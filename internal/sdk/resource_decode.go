@@ -10,7 +10,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// Decode will decode the Terraform Schema into the specified object
+// Decode will decode the Terraform Schema into the specified object consisting of Supported Go native Types
+// These are: int64, float64, string, bool, as well as lists and maps of these base types.
 // NOTE: this object must be passed by value - and must contain `tfschema`
 // struct tags for all fields
 //
@@ -170,27 +171,9 @@ func setValue(input, tfschemaValue interface{}, index int, fieldName string, deb
 
 			mapOutput := reflect.MakeMap(ty.Type())
 			for key, val := range mapConfig {
-				switch t := val.(type) {
+				switch val.(type) {
 				case int:
-					switch mapOutput.Type().Elem().Kind() {
-					case reflect.Int32:
-						v := int32(t)
-						mapOutput.SetMapIndex(reflect.ValueOf(key), reflect.ValueOf(v))
-					case reflect.Int64:
-						v := int64(t)
-						mapOutput.SetMapIndex(reflect.ValueOf(key), reflect.ValueOf(v))
-					default:
-						mapOutput.SetMapIndex(reflect.ValueOf(key), reflect.ValueOf(val))
-					}
-
-				case float64:
-					switch mapOutput.Type().Elem().Kind() {
-					case reflect.Float32:
-						v := float32(t)
-						mapOutput.SetMapIndex(reflect.ValueOf(key), reflect.ValueOf(v))
-					default:
-						mapOutput.SetMapIndex(reflect.ValueOf(key), reflect.ValueOf(val))
-					}
+					mapOutput.SetMapIndex(reflect.ValueOf(key), reflect.ValueOf(int64(val.(int))))
 
 				default:
 					mapOutput.SetMapIndex(reflect.ValueOf(key), reflect.ValueOf(val))
@@ -203,26 +186,9 @@ func setValue(input, tfschemaValue interface{}, index int, fieldName string, deb
 		} else {
 			mapOutput := reflect.MakeMap(n.Type())
 			for key, val := range mapConfig {
-				switch t := val.(type) {
+				switch val.(type) {
 				case int:
-					switch mapOutput.Type().Elem().Kind() {
-					case reflect.Int32:
-						v := int32(t)
-						mapOutput.SetMapIndex(reflect.ValueOf(key), reflect.ValueOf(v))
-					case reflect.Int64:
-						v := int64(t)
-						mapOutput.SetMapIndex(reflect.ValueOf(key), reflect.ValueOf(v))
-					default:
-						mapOutput.SetMapIndex(reflect.ValueOf(key), reflect.ValueOf(val))
-					}
-				case float64:
-					switch mapOutput.Type().Elem().Kind() {
-					case reflect.Float32:
-						v := float32(t)
-						mapOutput.SetMapIndex(reflect.ValueOf(key), reflect.ValueOf(v))
-					default:
-						mapOutput.SetMapIndex(reflect.ValueOf(key), reflect.ValueOf(val))
-					}
+					mapOutput.SetMapIndex(reflect.ValueOf(key), reflect.ValueOf(int64(val.(int))))
 				default:
 					mapOutput.SetMapIndex(reflect.ValueOf(key), reflect.ValueOf(val))
 				}

@@ -106,10 +106,6 @@ func TestDecode_TopLevelFieldsRequired(t *testing.T) {
 				"pi":    3.12,
 				"fifth": 0.2,
 			},
-			"map_of_float32": map[string]interface{}{
-				"pi":    3.12,
-				"tenth": 0.1,
-			},
 			"map_of_strings": map[string]interface{}{
 				"hello":   "there",
 				"salut":   "tous les monde",
@@ -352,6 +348,10 @@ func TestDecode_TopLevelFieldsOptionalComplete(t *testing.T) {
 				"foo":  "bar",
 				"ford": "prefect",
 			},
+			"map_of_float": map[string]interface{}{
+				"pi":    3.12,
+				"fifth": 0.2,
+			},
 		},
 		Input: &OneRequiredRestOptional{},
 		Expected: &OneRequiredRestOptional{
@@ -385,6 +385,10 @@ func TestDecode_TopLevelFieldsOptionalComplete(t *testing.T) {
 			MapOfStrings: pointer.To(map[string]string{
 				"foo":  "bar",
 				"ford": "prefect",
+			}),
+			MapOfFloat: pointer.To(map[string]float64{
+				"pi":    3.12,
+				"fifth": 0.2,
 			}),
 		},
 		ExpectError: false,
@@ -448,16 +452,13 @@ func TestResourceDecode_NestedOneLevelDeepEmpty(t *testing.T) {
 func TestResourceDecode_NestedOneLevelDeepSingle(t *testing.T) {
 	type Inner struct {
 		String        string            `tfschema:"string"`
-		Number        int               `tfschema:"number"`
+		Number        int64             `tfschema:"number"`
 		Price         float64           `tfschema:"price"`
 		Enabled       bool              `tfschema:"enabled"`
 		ListOfFloats  []float64         `tfschema:"list_of_floats"`
-		ListOfFloat32 []float32         `tfschema:"list_of_float32"`
-		ListOfNumbers []int             `tfschema:"list_of_numbers"`
 		ListOfInt64   []int64           `tfschema:"list_of_int64"`
 		ListOfStrings []string          `tfschema:"list_of_strings"`
 		MapOfBools    map[string]bool   `tfschema:"map_of_bools"`
-		MapOfNumbers  map[string]int    `tfschema:"map_of_numbers"`
 		MapOfInt64    map[string]int64  `tfschema:"map_of_int64"`
 		MapOfStrings  map[string]string `tfschema:"map_of_strings"`
 	}
@@ -469,7 +470,7 @@ func TestResourceDecode_NestedOneLevelDeepSingle(t *testing.T) {
 			"inner": []interface{}{
 				map[string]interface{}{
 					"number":  42,
-					"price":   float64(129.99),
+					"price":   129.99,
 					"string":  "world",
 					"enabled": true,
 					"list_of_floats": []interface{}{
@@ -478,14 +479,7 @@ func TestResourceDecode_NestedOneLevelDeepSingle(t *testing.T) {
 						3.0,
 						1.234567890,
 					},
-					"list_of_float32": []interface{}{
-						1.0,
-						2.0,
-						3.0,
-						1.234567890,
-					},
-					"list_of_int64":   []interface{}{2, 4, 6},
-					"list_of_numbers": []interface{}{1, 2, 3},
+					"list_of_int64": []interface{}{2, 4, 6},
 					"list_of_strings": []interface{}{
 						"have",
 						"you",
@@ -493,10 +487,6 @@ func TestResourceDecode_NestedOneLevelDeepSingle(t *testing.T) {
 					},
 					"map_of_bools": map[string]interface{}{
 						"awesome_feature": true,
-					},
-					"map_of_numbers": map[string]interface{}{
-						"hello": 1,
-						"there": 3,
 					},
 					"map_of_int64": map[string]interface{}{
 						"hello": 2,
@@ -525,14 +515,7 @@ func TestResourceDecode_NestedOneLevelDeepSingle(t *testing.T) {
 						3.0,
 						1.234567890,
 					},
-					ListOfFloat32: []float32{
-						1.0,
-						2.0,
-						3.0,
-						1.234567890,
-					},
-					ListOfNumbers: []int{1, 2, 3},
-					ListOfInt64:   []int64{2, 4, 6},
+					ListOfInt64: []int64{2, 4, 6},
 					ListOfStrings: []string{
 						"have",
 						"you",
@@ -544,10 +527,6 @@ func TestResourceDecode_NestedOneLevelDeepSingle(t *testing.T) {
 					MapOfInt64: map[string]int64{
 						"hello": 2,
 						"there": 6,
-					},
-					MapOfNumbers: map[string]int{
-						"hello": 1,
-						"there": 3,
 					},
 					MapOfStrings: map[string]string{
 						"hello":   "there",
@@ -564,16 +543,13 @@ func TestResourceDecode_NestedOneLevelDeepSingle(t *testing.T) {
 func TestResourceDecode_NestedOneLevelDeepSingleOmittedValues(t *testing.T) {
 	type Inner struct {
 		String        string            `tfschema:"string"`
-		Number        int               `tfschema:"number"`
+		Number        int64             `tfschema:"number"`
 		Price         float64           `tfschema:"price"`
 		Enabled       bool              `tfschema:"enabled"`
 		ListOfFloats  []float64         `tfschema:"list_of_floats"`
-		ListOfFloat32 []float32         `tfschema:"list_of_float32"`
-		ListOfNumbers []int             `tfschema:"list_of_numbers"`
 		ListOfInt64   []int64           `tfschema:"list_of_int64"`
 		ListOfStrings []string          `tfschema:"list_of_strings"`
 		MapOfBools    map[string]bool   `tfschema:"map_of_bools"`
-		MapOfNumbers  map[string]int    `tfschema:"map_of_numbers"`
 		MapOfInt64    map[string]int64  `tfschema:"map_of_int64"`
 		MapOfStrings  map[string]string `tfschema:"map_of_strings"`
 	}
@@ -589,8 +565,6 @@ func TestResourceDecode_NestedOneLevelDeepSingleOmittedValues(t *testing.T) {
 					"string":          "",
 					"enabled":         false,
 					"list_of_floats":  []float64{},
-					"list_of_float32": []float32{},
-					"list_of_numbers": []int{},
 					"list_of_int64":   []int64{},
 					"list_of_strings": []string{},
 					"map_of_bools":    map[string]interface{}{},
@@ -605,7 +579,6 @@ func TestResourceDecode_NestedOneLevelDeepSingleOmittedValues(t *testing.T) {
 			NestedObject: []Inner{
 				{
 					MapOfBools:   map[string]bool{},
-					MapOfNumbers: map[string]int{},
 					MapOfStrings: map[string]string{},
 					MapOfInt64:   map[string]int64{},
 				},

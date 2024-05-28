@@ -20,14 +20,14 @@ type encodeTestData struct {
 func TestResourceEncode_TopLevel(t *testing.T) {
 	type SimpleType struct {
 		String        string            `tfschema:"string"`
-		Number        int               `tfschema:"number"`
+		Number        int64             `tfschema:"number"`
 		Price         float64           `tfschema:"price"`
 		Enabled       bool              `tfschema:"enabled"`
 		ListOfFloats  []float64         `tfschema:"list_of_floats"`
-		ListOfNumbers []int             `tfschema:"list_of_numbers"`
+		ListOfNumbers []int64           `tfschema:"list_of_numbers"`
 		ListOfStrings []string          `tfschema:"list_of_strings"`
 		MapOfBools    map[string]bool   `tfschema:"map_of_bools"`
-		MapOfNumbers  map[string]int    `tfschema:"map_of_numbers"`
+		MapOfNumbers  map[string]int64  `tfschema:"map_of_numbers"`
 		MapOfStrings  map[string]string `tfschema:"map_of_strings"`
 	}
 
@@ -43,7 +43,7 @@ func TestResourceEncode_TopLevel(t *testing.T) {
 				3.0,
 				1.234567890,
 			},
-			ListOfNumbers: []int{1, 2, 3},
+			ListOfNumbers: []int64{1, 2, 3},
 			ListOfStrings: []string{
 				"have",
 				"you",
@@ -52,7 +52,7 @@ func TestResourceEncode_TopLevel(t *testing.T) {
 			MapOfBools: map[string]bool{
 				"awesome_feature": true,
 			},
-			MapOfNumbers: map[string]int{
+			MapOfNumbers: map[string]int64{
 				"hello": 1,
 				"there": 3,
 			},
@@ -65,7 +65,7 @@ func TestResourceEncode_TopLevel(t *testing.T) {
 		},
 		Expected: map[string]interface{}{
 			"number":  int64(42),
-			"price":   float64(129.99),
+			"price":   129.99,
 			"string":  "world",
 			"enabled": true,
 			"list_of_floats": []float64{
@@ -74,7 +74,7 @@ func TestResourceEncode_TopLevel(t *testing.T) {
 				3.0,
 				1.234567890,
 			},
-			"list_of_numbers": []int{1, 2, 3},
+			"list_of_numbers": []int64{1, 2, 3},
 			"list_of_strings": []string{
 				"have",
 				"you",
@@ -84,8 +84,8 @@ func TestResourceEncode_TopLevel(t *testing.T) {
 				"awesome_feature": true,
 			},
 			"map_of_numbers": map[string]interface{}{
-				"hello": 1,
-				"there": 3,
+				"hello": int64(1),
+				"there": int64(3),
 			},
 			"map_of_strings": map[string]interface{}{
 				"hello":   "there",
@@ -154,18 +154,18 @@ func TestResourceEncode_TopLevelEmptyPointers(t *testing.T) {
 	type SimpleType struct {
 		String           string             `tfschema:"string"`
 		StringPtr        *string            `tfschema:"string_ptr"`
-		Number           int                `tfschema:"number"`
-		NumberPtr        *int               `tfschema:"number_ptr"`
+		Number           int64              `tfschema:"number"`
+		NumberPtr        *int64             `tfschema:"number_ptr"`
 		Price            float64            `tfschema:"price"`
 		PricePtr         *float64           `tfschema:"price_ptr"`
 		Enabled          bool               `tfschema:"enabled"`
 		EnabledPtr       *bool              `tfschema:"enabled_ptr"`
 		ListOfFloats     []float64          `tfschema:"list_of_floats"`
-		ListOfNumbers    []int              `tfschema:"list_of_numbers"`
+		ListOfNumbers    []int64            `tfschema:"list_of_numbers"`
 		ListOfStrings    []string           `tfschema:"list_of_strings"`
 		ListOfStringsPtr *[]string          `tfschema:"list_of_strings_ptr"`
 		MapOfBools       map[string]bool    `tfschema:"map_of_bools"`
-		MapOfNumbers     map[string]int     `tfschema:"map_of_numbers"`
+		MapOfNumbers     map[string]int64   `tfschema:"map_of_numbers"`
 		MapOfStrings     map[string]string  `tfschema:"map_of_strings"`
 		MapOfStringsPtr  *map[string]string `tfschema:"map_of_strings_ptr"`
 	}
@@ -182,7 +182,7 @@ func TestResourceEncode_TopLevelEmptyPointers(t *testing.T) {
 				3.0,
 				1.234567890,
 			},
-			ListOfNumbers: []int{1, 2, 3},
+			ListOfNumbers: []int64{1, 2, 3},
 			ListOfStrings: []string{
 				"have",
 				"you",
@@ -191,7 +191,7 @@ func TestResourceEncode_TopLevelEmptyPointers(t *testing.T) {
 			MapOfBools: map[string]bool{
 				"awesome_feature": true,
 			},
-			MapOfNumbers: map[string]int{
+			MapOfNumbers: map[string]int64{
 				"hello": 1,
 				"there": 3,
 			},
@@ -217,7 +217,7 @@ func TestResourceEncode_TopLevelEmptyPointers(t *testing.T) {
 				3.0,
 				1.234567890,
 			},
-			"list_of_numbers": []int{1, 2, 3},
+			"list_of_numbers": []int64{1, 2, 3},
 			"list_of_strings": []string{
 				"have",
 				"you",
@@ -228,8 +228,8 @@ func TestResourceEncode_TopLevelEmptyPointers(t *testing.T) {
 				"awesome_feature": true,
 			},
 			"map_of_numbers": map[string]interface{}{
-				"hello": 1,
-				"there": 3,
+				"hello": int64(1),
+				"there": int64(3),
 			},
 			"map_of_strings": map[string]interface{}{
 				"hello":   "there",
@@ -246,18 +246,18 @@ func TestResourceEncode_TopLevelNonEmptyPointers(t *testing.T) {
 	type SimpleType struct {
 		String           string             `tfschema:"string"`
 		StringPtr        *string            `tfschema:"string_ptr"`
-		Number           int                `tfschema:"number"`
-		NumberPtr        *int               `tfschema:"number_ptr"`
+		Number           int64              `tfschema:"number"`
+		NumberPtr        *int64             `tfschema:"number_ptr"`
 		Price            float64            `tfschema:"price"`
 		PricePtr         *float64           `tfschema:"price_ptr"`
 		Enabled          bool               `tfschema:"enabled"`
 		EnabledPtr       *bool              `tfschema:"enabled_ptr"`
 		ListOfFloats     []float64          `tfschema:"list_of_floats"`
-		ListOfNumbers    []int              `tfschema:"list_of_numbers"`
+		ListOfNumbers    []int64            `tfschema:"list_of_numbers"`
 		ListOfStrings    []string           `tfschema:"list_of_strings"`
 		ListOfStringsPtr *[]string          `tfschema:"list_of_strings_ptr"`
 		MapOfBools       map[string]bool    `tfschema:"map_of_bools"`
-		MapOfNumbers     map[string]int     `tfschema:"map_of_numbers"`
+		MapOfNumbers     map[string]int64   `tfschema:"map_of_numbers"`
 		MapOfStrings     map[string]string  `tfschema:"map_of_strings"`
 		MapOfStringsPtr  *map[string]string `tfschema:"map_of_strings_ptr"`
 	}
@@ -267,7 +267,7 @@ func TestResourceEncode_TopLevelNonEmptyPointers(t *testing.T) {
 			String:     "world",
 			StringPtr:  pointer.To("foo"),
 			Number:     42,
-			NumberPtr:  pointer.To(22),
+			NumberPtr:  pointer.To(int64(22)),
 			Price:      129.99,
 			PricePtr:   pointer.To(3.50),
 			Enabled:    true,
@@ -278,7 +278,7 @@ func TestResourceEncode_TopLevelNonEmptyPointers(t *testing.T) {
 				3.0,
 				1.234567890,
 			},
-			ListOfNumbers: []int{1, 2, 3},
+			ListOfNumbers: []int64{1, 2, 3},
 			ListOfStrings: []string{
 				"have",
 				"you",
@@ -292,7 +292,7 @@ func TestResourceEncode_TopLevelNonEmptyPointers(t *testing.T) {
 			MapOfBools: map[string]bool{
 				"awesome_feature": true,
 			},
-			MapOfNumbers: map[string]int{
+			MapOfNumbers: map[string]int64{
 				"hello": 1,
 				"there": 3,
 			},
@@ -321,7 +321,7 @@ func TestResourceEncode_TopLevelNonEmptyPointers(t *testing.T) {
 				3.0,
 				1.234567890,
 			},
-			"list_of_numbers": []int{1, 2, 3},
+			"list_of_numbers": []int64{1, 2, 3},
 			"list_of_strings": []string{
 				"have",
 				"you",
@@ -336,8 +336,8 @@ func TestResourceEncode_TopLevelNonEmptyPointers(t *testing.T) {
 				"awesome_feature": true,
 			},
 			"map_of_numbers": map[string]interface{}{
-				"hello": 1,
-				"there": 3,
+				"hello": int64(1),
+				"there": int64(3),
 			},
 			"map_of_strings": map[string]interface{}{
 				"hello":   "there",
@@ -355,14 +355,14 @@ func TestResourceEncode_TopLevelNonEmptyPointers(t *testing.T) {
 func TestResourceEncode_TopLevelOmitted(t *testing.T) {
 	type SimpleType struct {
 		String        string            `tfschema:"string"`
-		Number        int               `tfschema:"number"`
+		Number        int64             `tfschema:"number"`
 		Price         float64           `tfschema:"price"`
 		Enabled       bool              `tfschema:"enabled"`
 		ListOfFloats  []float64         `tfschema:"list_of_floats"`
-		ListOfNumbers []int             `tfschema:"list_of_numbers"`
+		ListOfNumbers []int64           `tfschema:"list_of_numbers"`
 		ListOfStrings []string          `tfschema:"list_of_strings"`
 		MapOfBools    map[string]bool   `tfschema:"map_of_bools"`
-		MapOfNumbers  map[string]int    `tfschema:"map_of_numbers"`
+		MapOfNumbers  map[string]int64  `tfschema:"map_of_numbers"`
 		MapOfStrings  map[string]string `tfschema:"map_of_strings"`
 	}
 	encodeTestData{
@@ -373,7 +373,7 @@ func TestResourceEncode_TopLevelOmitted(t *testing.T) {
 			"string":          "",
 			"enabled":         false,
 			"list_of_floats":  []float64{},
-			"list_of_numbers": []int{},
+			"list_of_numbers": []int64{},
 			"list_of_strings": []string{},
 			"map_of_bools":    map[string]interface{}{},
 			"map_of_numbers":  map[string]interface{}{},
@@ -385,13 +385,13 @@ func TestResourceEncode_TopLevelOmitted(t *testing.T) {
 func TestResourceEncode_TopLevelComputed(t *testing.T) {
 	type SimpleType struct {
 		ComputedString        string             `tfschema:"computed_string" computed:"true"`
-		ComputedNumber        int                `tfschema:"computed_number" computed:"true"`
+		ComputedNumber        int64              `tfschema:"computed_number" computed:"true"`
 		ComputedBool          bool               `tfschema:"computed_bool" computed:"true"`
-		ComputedListOfNumbers []int              `tfschema:"computed_list_of_numbers" computed:"true"`
+		ComputedListOfNumbers []int64            `tfschema:"computed_list_of_numbers" computed:"true"`
 		ComputedListOfStrings []string           `tfschema:"computed_list_of_strings" computed:"true"`
 		ComputedMapOfBools    map[string]bool    `tfschema:"computed_map_of_bools" computed:"true"`
 		ComputedMapOfFloats   map[string]float64 `tfschema:"computed_map_of_floats" computed:"true"`
-		ComputedMapOfInts     map[string]int     `tfschema:"computed_map_of_ints" computed:"true"`
+		ComputedMapOfInts     map[string]int64   `tfschema:"computed_map_of_ints" computed:"true"`
 		ComputedMapOfStrings  map[string]string  `tfschema:"computed_map_of_strings" computed:"true"`
 	}
 	encodeTestData{
@@ -399,7 +399,7 @@ func TestResourceEncode_TopLevelComputed(t *testing.T) {
 			ComputedString:        "je suis computed",
 			ComputedNumber:        732,
 			ComputedBool:          true,
-			ComputedListOfNumbers: []int{1, 2, 3},
+			ComputedListOfNumbers: []int64{1, 2, 3},
 			ComputedListOfStrings: []string{
 				"have",
 				"you",
@@ -413,7 +413,7 @@ func TestResourceEncode_TopLevelComputed(t *testing.T) {
 				"hello": 1.8965345678,
 				"world": 2.0,
 			},
-			ComputedMapOfInts: map[string]int{
+			ComputedMapOfInts: map[string]int64{
 				"first":  1,
 				"second": 2,
 				"third":  3,
@@ -427,7 +427,7 @@ func TestResourceEncode_TopLevelComputed(t *testing.T) {
 			"computed_string":          "je suis computed",
 			"computed_number":          int64(732),
 			"computed_bool":            true,
-			"computed_list_of_numbers": []int{1, 2, 3},
+			"computed_list_of_numbers": []int64{1, 2, 3},
 			"computed_list_of_strings": []string{
 				"have",
 				"you",
@@ -442,9 +442,9 @@ func TestResourceEncode_TopLevelComputed(t *testing.T) {
 				"world": 2.0,
 			},
 			"computed_map_of_ints": map[string]interface{}{
-				"first":  1,
-				"second": 2,
-				"third":  3,
+				"first":  int64(1),
+				"second": int64(2),
+				"third":  int64(3),
 			},
 			"computed_map_of_strings": map[string]interface{}{
 				"hello": "world",
@@ -474,14 +474,14 @@ func TestResourceEncode_NestedOneLevelDeepEmpty(t *testing.T) {
 func TestResourceEncode_NestedOneLevelDeepSingle(t *testing.T) {
 	type Inner struct {
 		String        string            `tfschema:"string"`
-		Number        int               `tfschema:"number"`
+		Number        int64             `tfschema:"number"`
 		Price         float64           `tfschema:"price"`
 		Enabled       bool              `tfschema:"enabled"`
 		ListOfFloats  []float64         `tfschema:"list_of_floats"`
-		ListOfNumbers []int             `tfschema:"list_of_numbers"`
+		ListOfNumbers []int64           `tfschema:"list_of_numbers"`
 		ListOfStrings []string          `tfschema:"list_of_strings"`
 		MapOfBools    map[string]bool   `tfschema:"map_of_bools"`
-		MapOfNumbers  map[string]int    `tfschema:"map_of_numbers"`
+		MapOfNumbers  map[string]int64  `tfschema:"map_of_numbers"`
 		MapOfStrings  map[string]string `tfschema:"map_of_strings"`
 	}
 	type Type struct {
@@ -501,7 +501,7 @@ func TestResourceEncode_NestedOneLevelDeepSingle(t *testing.T) {
 						3.0,
 						1.234567890,
 					},
-					ListOfNumbers: []int{1, 2, 3},
+					ListOfNumbers: []int64{1, 2, 3},
 					ListOfStrings: []string{
 						"have",
 						"you",
@@ -510,7 +510,7 @@ func TestResourceEncode_NestedOneLevelDeepSingle(t *testing.T) {
 					MapOfBools: map[string]bool{
 						"awesome_feature": true,
 					},
-					MapOfNumbers: map[string]int{
+					MapOfNumbers: map[string]int64{
 						"hello": 1,
 						"there": 3,
 					},
@@ -536,7 +536,7 @@ func TestResourceEncode_NestedOneLevelDeepSingle(t *testing.T) {
 						3.0,
 						1.234567890,
 					},
-					"list_of_numbers": []int{1, 2, 3},
+					"list_of_numbers": []int64{1, 2, 3},
 					"list_of_strings": []string{
 						"have",
 						"you",
@@ -546,8 +546,8 @@ func TestResourceEncode_NestedOneLevelDeepSingle(t *testing.T) {
 						"awesome_feature": true,
 					},
 					"map_of_numbers": map[string]interface{}{
-						"hello": 1,
-						"there": 3,
+						"hello": int64(1),
+						"there": int64(3),
 					},
 					"map_of_strings": map[string]interface{}{
 						"hello":   "there",
@@ -564,18 +564,18 @@ func TestResourceEncode_NestedOneLevelDeepSingle(t *testing.T) {
 func TestResourceEncode_NestedOneLevelDeepSingleOmittedValues(t *testing.T) {
 	type Inner struct {
 		String               string             `tfschema:"string"`
-		Number               int                `tfschema:"number"`
+		Number               int64              `tfschema:"number"`
 		Price                float64            `tfschema:"price"`
 		Enabled              bool               `tfschema:"enabled"`
 		ListOfFloats         []float64          `tfschema:"list_of_floats"`
-		ListOfNumbers        []int              `tfschema:"list_of_numbers"`
+		ListOfNumbers        []int64            `tfschema:"list_of_numbers"`
 		ListOfStrings        []string           `tfschema:"list_of_strings"`
 		MapOfBools           map[string]bool    `tfschema:"map_of_bools"`
-		MapOfNumbers         map[string]int     `tfschema:"map_of_numbers"`
+		MapOfNumbers         map[string]int64   `tfschema:"map_of_numbers"`
 		MapOfStrings         map[string]string  `tfschema:"map_of_strings"`
 		ComputedMapOfBools   map[string]bool    `tfschema:"computed_map_of_bools" computed:"true"`
 		ComputedMapOfFloats  map[string]float64 `tfschema:"computed_map_of_floats" computed:"true"`
-		ComputedMapOfInts    map[string]int     `tfschema:"computed_map_of_ints" computed:"true"`
+		ComputedMapOfInts    map[string]int64   `tfschema:"computed_map_of_ints" computed:"true"`
 		ComputedMapOfStrings map[string]string  `tfschema:"computed_map_of_strings" computed:"true"`
 	}
 	type Type struct {

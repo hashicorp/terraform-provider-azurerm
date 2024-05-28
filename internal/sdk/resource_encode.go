@@ -71,20 +71,13 @@ func recurse(objType reflect.Type, objVal reflect.Value, debugLogger Logger) (ou
 			}
 
 			switch field.Type.Kind() {
-			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			case reflect.Int64:
 				iv := fieldVal.Int()
 				debugLogger.Infof("Setting %q to %d", structTags.hclPath, iv)
 				output[structTags.hclPath] = iv
 
 			case reflect.Float64:
 				fv := fieldVal.Float()
-				debugLogger.Infof("Setting %q to %f", structTags.hclPath, fv)
-				output[structTags.hclPath] = fv
-
-			// (@jackofallops) - float32 support is here for completeness, but it will likely result in either rounding errors or type problems due to expectation of float64 inside Terraform
-			// Should be removed?
-			case reflect.Float32:
-				fv := fieldVal.Interface() // Due to rounding errors, we cannot use the Float() method for float32 values
 				debugLogger.Infof("Setting %q to %f", structTags.hclPath, fv)
 				output[structTags.hclPath] = fv
 
@@ -118,17 +111,15 @@ func recurse(objType reflect.Type, objVal reflect.Value, debugLogger Logger) (ou
 						output[structTags.hclPath] = make([]string, 0)
 					}
 
-				case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+				case reflect.Int64:
 					debugLogger.Infof("Setting %q to []int", structTags.hclPath)
 					if sv.Len() > 0 {
 						output[structTags.hclPath] = sv.Interface()
 					} else {
-						output[structTags.hclPath] = make([]int, 0)
+						output[structTags.hclPath] = make([]int64, 0)
 					}
 
-				// (@jackofallops) - float32 support is here for completeness, but it will likely result in either rounding errors or type problems due to expectation of float64 inside Terraform
-				// Should be removed?
-				case reflect.Float64, reflect.Float32:
+				case reflect.Float64:
 					debugLogger.Infof("Setting %q to []float64", structTags.hclPath)
 					if sv.Len() > 0 {
 						output[structTags.hclPath] = sv.Interface()
@@ -165,20 +156,13 @@ func recurse(objType reflect.Type, objVal reflect.Value, debugLogger Logger) (ou
 				if !fieldVal.IsNil() {
 					pv := fieldVal.Elem()
 					switch pv.Kind() {
-					case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+					case reflect.Int, reflect.Int64:
 						iv := pv.Int()
 						debugLogger.Infof("Setting %q to %d", structTags.hclPath, iv)
 						output[structTags.hclPath] = iv
 
 					case reflect.Float64:
 						fv := pv.Float()
-						debugLogger.Infof("Setting %q to %f", structTags.hclPath, fv)
-						output[structTags.hclPath] = fv
-
-					// (@jackofallops) - float32 support is here for completeness, but it will likely result in either rounding errors or type problems due to expectation of float64 inside Terraform
-					// Should be removed?
-					case reflect.Float32:
-						fv := pv.Interface() // Due to rounding errors, we cannot use the Float() method for float32 values
 						debugLogger.Infof("Setting %q to %f", structTags.hclPath, fv)
 						output[structTags.hclPath] = fv
 
@@ -212,12 +196,12 @@ func recurse(objType reflect.Type, objVal reflect.Value, debugLogger Logger) (ou
 								output[structTags.hclPath] = make([]string, 0)
 							}
 
-						case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+						case reflect.Int64:
 							debugLogger.Infof("Setting %q to []int", structTags.hclPath)
 							if sv.Len() > 0 {
 								output[structTags.hclPath] = sv.Interface()
 							} else {
-								output[structTags.hclPath] = make([]int, 0)
+								output[structTags.hclPath] = make([]int64, 0)
 							}
 
 						case reflect.Float64:
