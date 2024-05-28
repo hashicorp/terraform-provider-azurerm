@@ -52,19 +52,17 @@ func (ContainerRegistryCacheRuleDataSource) Read() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
-			metadata.ResourceData.Set("name", id.CacheRuleName)
-			metadata.ResourceData.Set("container_registry_id", containerRegistryId)
+			state.Name = id.CacheRuleName
+			state.ContainerRegistryId = registryId.ID()
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
-					metadata.ResourceData.Set("source_repo", props.SourceRepository)
-					metadata.ResourceData.Set("target_repo", props.TargetRepository)
-					if props.CredentialSetResourceId != nil {
-						metadata.ResourceData.Set("credential_set_id", props.CredentialSetResourceId)
-					}
+					state.SourceRepo = pointer.From(props.SourceRepository)
+					state.TargetRepo = pointer.From(props.TargetRepository)
+					state.CredentialSetId = pointer.From(props.CredentialSetResourceId)
 				}
 			}
-			return nil
+			return metadata.Encode(&state)
 		},
 	}
 }
