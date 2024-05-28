@@ -258,7 +258,7 @@ func setListValue(input interface{}, index int, fieldName string, v []interface{
 			reflect.ValueOf(input).Elem().Field(index).Set(tmp)
 		}
 
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+	case reflect.Int64:
 		if !isPtr {
 			for i, iVal := range v {
 				slice.Index(i).SetInt(int64(iVal.(int)))
@@ -273,7 +273,7 @@ func setListValue(input interface{}, index int, fieldName string, v []interface{
 			reflect.ValueOf(input).Elem().Field(index).Set(tmp)
 		}
 
-	case reflect.Float64, reflect.Float32:
+	case reflect.Float64:
 		if !isPtr {
 			for i, fVal := range v {
 				slice.Index(i).SetFloat(fVal.(float64))
