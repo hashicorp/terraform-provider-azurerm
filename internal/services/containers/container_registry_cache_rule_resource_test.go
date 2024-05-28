@@ -59,7 +59,7 @@ func (t ContainerRegistryCacheRuleResource) Exists(ctx context.Context, clients 
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (ContainerRegistryCacheRuleResource) basic(data acceptance.TestData) string {
