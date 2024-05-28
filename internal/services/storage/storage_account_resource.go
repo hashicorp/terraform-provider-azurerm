@@ -255,7 +255,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 			"cross_tenant_replication_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default:  true,
+				Default:  false,
 			},
 			"custom_domain": {
 				Type:     pluginsdk.TypeList,
