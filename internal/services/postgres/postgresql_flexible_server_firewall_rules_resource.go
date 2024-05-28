@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -190,11 +191,19 @@ func resourcePostgresqlFlexibleServerFirewallRulesCreateUpdate(d *pluginsdk.Reso
 		pollers = append(pollers, poller.Poller)
 	}
 
+	wg := sync.WaitGroup{}
+
 	for _, poller := range pollers {
-		if err := poller.PollUntilDone(ctx); err != nil {
-			return fmt.Errorf("polling after CreateOrUpdate: %+v", err)
-		}
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			if err := poller.PollUntilDone(ctx); err != nil {
+				fmt.Errorf("polling after CreateOrUpdate: %+v", err)
+			}
+		}()
+
 	}
+	wg.Wait()
 
 	d.SetId(id.ID())
 	return resourcePostgresqlFlexibleServerFirewallRulesRead(d, meta)
@@ -274,17 +283,24 @@ func resourcePostgresqlFlexibleServerFirewallRulesDelete(d *pluginsdk.ResourceDa
 	for _, rule := range listFirewallRulesResult.Items {
 		poller, err := firewall_rules_client.Delete(ctx, firewallrules.NewFirewallRuleID(subscriptionId, flexibleServerId.ResourceGroupName, flexibleServerId.FlexibleServerName, *rule.Name))
 		if err != nil {
-			return fmt.Errorf("deleting %q: %+v", rule.Name, err)
+			return fmt.Errorf("deleting %q: %+v", *rule.Name, err)
 		}
 		pollers = append(pollers, poller.Poller)
 	}
 
+	wg := sync.WaitGroup{}
+
 	for _, poller := range pollers {
-		if err := poller.PollUntilDone(ctx); err != nil {
-			return fmt.Errorf("polling after Delete: %+v", err)
-		}
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			if err := poller.PollUntilDone(ctx); err != nil {
+				fmt.Errorf("polling after Delete: %+v", err)
+			}
+		}()
 	}
 
+	wg.Wait()
 	return nil
 }
 
