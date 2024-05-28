@@ -92,12 +92,9 @@ func (r ContainerRegistryCacheRule) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			resourceGroup := registryId.ResourceGroupName
-			registryName := registryId.RegistryName
-
 			id := cacherules.NewCacheRuleID(subscriptionId,
-				resourceGroup,
-				registryName,
+				registryId.ResourceGroupName,
+				registryId.RegistryName,
 				metadata.ResourceData.Get("name").(string),
 			)
 
