@@ -10,6 +10,8 @@ description: |-
 
 Manages a group of PostgreSQL Flexible Server Firewall Rules.
 
+~> **NOTE:** It's possible to define Flexible Server Firewall Rules individually with [the `postgresql_flexible_server_firewall_rule` resource](postgresql_flexible_server_firewall_rule.html) or in groups with [the `postgresql_flexible_server_firewall_rules` resource](postgresql_flexible_server_firewall_rules.html). But, it's not possible to use both methods to manage Firewall Rules within a PostgreSQL Flexible Server, since there will be conflicts.
+
 ## Example Usage
 
 ```hcl
@@ -33,13 +35,6 @@ resource "azurerm_postgresql_flexible_server" "example" {
   storage_mb = 32768
 
   sku_name = "GP_Standard_D4s_v3"
-}
-
-resource "azurerm_postgresql_flexible_server_firewall_rules" "example" {
-  name             = "example-fw"
-  server_id        = azurerm_postgresql_flexible_server.example.id
-  start_ip_address = "122.122.0.0"
-  end_ip_address   = "122.122.0.0"
 }
 
 resource "azurerm_postgresql_flexible_server_firewall_rules" "example" {
@@ -72,15 +67,15 @@ resource "azurerm_postgresql_flexible_server_firewall_rules" "example" {
 
 The following arguments are supported:
 
-* `server_id` - (Required) The ID of the PostgreSQL Flexible Server from which to create this PostgreSQL Flexible Server Firewall Rule. Changing this forces a new PostgreSQL Flexible Server Firewall Rule to be created.
+* `server_id` - (Required) The ID of the PostgreSQL Flexible Server from which to create these PostgreSQL Flexible Server Firewall Rules. Changing this forces a new PostgreSQL Flexible Server Firewall Rules resource to be created.
 
-* `firewall_rule` - (Optional) A `site_config` object as defined below.
+* `firewall_rule` - (Optional) A `firewall_rule` object as defined below.
 
 ---
 
 The `firewall_rule` block supports the following:
 
-* `name` - (Required) The name which should be used for this PostgreSQL Flexible Server Firewall Rule. Changing this forces a new PostgreSQL Flexible Server Firewall Rule to be created.
+* `name` - (Required) The name which should be used for this PostgreSQL Flexible Server Firewall Rule. 
 
 * `start_ip_address` - (Required) The Start IP Address associated with this PostgreSQL Flexible Server Firewall Rule.
 
