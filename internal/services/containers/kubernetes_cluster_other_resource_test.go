@@ -952,7 +952,7 @@ func TestAccKubernetesCluster_webAppRoutingPrivateDNS(t *testing.T) {
 				check.That(data.ResourceName).Key("web_app_routing.0.web_app_routing_identity.#").HasValue("1"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("web_app_routing.0.dns_zone_id", "web_app_routing.0.dns_zone_ids.#", "web_app_routing.0.dns_zone_ids.0"),
 	})
 }
 
