@@ -72,6 +72,7 @@ func (c MonitorsClient) ListHostsCompleteMatchingPredicate(ctx context.Context, 
 
 	resp, err := c.ListHosts(ctx, id, input)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

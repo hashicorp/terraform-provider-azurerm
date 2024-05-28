@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/sender"
 	"github.com/hashicorp/go-azure-sdk/sdk/auth"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
@@ -35,6 +34,7 @@ type ApiAuthorizerFunc func(api environments.Api) (auth.Authorizer, error)
 
 type ClientOptions struct {
 	Authorizers *Authorizers
+	AuthConfig  *auth.Credentials
 	Environment environments.Environment
 	Features    features.UserFeatures
 
@@ -50,8 +50,6 @@ type ClientOptions struct {
 	SkipProviderReg           bool
 	StorageUseAzureAD         bool
 
-	// Keep these around for convenience with Autorest based clients, remove when we are no longer using autorest
-	AzureEnvironment        azure.Environment
 	ResourceManagerEndpoint string
 
 	// Legacy authorizers for go-autorest

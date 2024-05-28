@@ -40,6 +40,8 @@ output "latest_version" {
 
 * `latest_version` - The most recent version available. If `include_preview == false`, this is the most recent non-preview version available.
 
+* `default_version` - The N-1 minor non-preview version and latest patch.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:

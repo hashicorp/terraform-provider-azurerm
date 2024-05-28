@@ -72,6 +72,7 @@ func (c AppPlatformClient) BuildServiceAgentPoolListCompleteMatchingPredicate(ct
 
 	resp, err := c.BuildServiceAgentPoolList(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

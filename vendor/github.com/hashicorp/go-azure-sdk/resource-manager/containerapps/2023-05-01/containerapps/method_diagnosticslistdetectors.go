@@ -72,6 +72,7 @@ func (c ContainerAppsClient) DiagnosticsListDetectorsCompleteMatchingPredicate(c
 
 	resp, err := c.DiagnosticsListDetectors(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

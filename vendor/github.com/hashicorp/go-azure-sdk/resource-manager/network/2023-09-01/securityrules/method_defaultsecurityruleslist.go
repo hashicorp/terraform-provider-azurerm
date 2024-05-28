@@ -72,6 +72,7 @@ func (c SecurityRulesClient) DefaultSecurityRulesListCompleteMatchingPredicate(c
 
 	resp, err := c.DefaultSecurityRulesList(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

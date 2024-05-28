@@ -73,6 +73,7 @@ func (c NetworkInterfacesClient) NetworkInterfaceIPConfigurationsListCompleteMat
 
 	resp, err := c.NetworkInterfaceIPConfigurationsList(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

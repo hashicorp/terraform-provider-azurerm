@@ -56,11 +56,13 @@ func (c Client) GetMetaData(ctx context.Context, shareName, path, fileName strin
 
 	var resp *client.Response
 	resp, err = req.Execute(ctx)
-	if resp != nil {
+	if resp != nil && resp.Response != nil {
 		result.HttpResponse = resp.Response
 
-		if resp.Header != nil {
-			result.MetaData = metadata.ParseFromHeaders(resp.Header)
+		if err == nil {
+			if resp.Header != nil {
+				result.MetaData = metadata.ParseFromHeaders(resp.Header)
+			}
 		}
 	}
 	if err != nil {

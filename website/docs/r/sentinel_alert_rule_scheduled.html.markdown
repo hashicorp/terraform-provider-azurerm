@@ -67,7 +67,7 @@ The following arguments are supported:
 
 * `alert_rule_template_guid` - (Optional) The GUID of the alert rule template which is used for this Sentinel Scheduled Alert Rule. Changing this forces a new Sentinel Scheduled Alert Rule to be created.
 
-* `alert_rule_template_version` - (Optional) The version of the alert rule template which is used for this Sentinel Scheduled Alert Rule. Changing this forces a new Sentinel Scheduled Alert Rule to be created.
+* `alert_rule_template_version` - (Optional) The version of the alert rule template which is used for this Sentinel Scheduled Alert Rule.
 
 * `custom_details` - (Optional) A map of string key-value pairs of columns to be attached to this Sentinel Scheduled Alert Rule. The key will appear as the field name in alerts and the value is the event parameter you wish to surface in the alerts.
 

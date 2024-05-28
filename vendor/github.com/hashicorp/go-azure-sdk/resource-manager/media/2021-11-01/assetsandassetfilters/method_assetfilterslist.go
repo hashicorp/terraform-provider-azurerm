@@ -72,6 +72,7 @@ func (c AssetsAndAssetFiltersClient) AssetFiltersListCompleteMatchingPredicate(c
 
 	resp, err := c.AssetFiltersList(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

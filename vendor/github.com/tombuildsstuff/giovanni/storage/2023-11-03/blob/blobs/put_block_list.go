@@ -86,13 +86,15 @@ func (c Client) PutBlockList(ctx context.Context, containerName, blobName string
 
 	var resp *client.Response
 	resp, err = req.Execute(ctx)
-	if resp != nil {
+	if resp != nil && resp.Response != nil {
 		result.HttpResponse = resp.Response
 
-		if resp.Header != nil {
-			result.ContentMD5 = resp.Header.Get("Content-MD5")
-			result.ETag = resp.Header.Get("ETag")
-			result.LastModified = resp.Header.Get("Last-Modified")
+		if err == nil {
+			if resp.Header != nil {
+				result.ContentMD5 = resp.Header.Get("Content-MD5")
+				result.ETag = resp.Header.Get("ETag")
+				result.LastModified = resp.Header.Get("Last-Modified")
+			}
 		}
 	}
 	if err != nil {

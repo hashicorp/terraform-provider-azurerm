@@ -51,6 +51,7 @@ type Criterion struct {
 type RouteMapResource struct{}
 
 var _ sdk.ResourceWithUpdate = RouteMapResource{}
+var _ sdk.ResourceWithCustomizeDiff = RouteMapResource{}
 
 func (r RouteMapResource) ResourceType() string {
 	return "azurerm_route_map"
@@ -98,7 +99,7 @@ func (r RouteMapResource) Arguments() map[string]*pluginsdk.Schema {
 							Schema: map[string]*pluginsdk.Schema{
 								"parameter": {
 									Type:     pluginsdk.TypeList,
-									Required: true,
+									Optional: true,
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"as_path": {
@@ -349,6 +350,29 @@ func (r RouteMapResource) Delete() sdk.ResourceFunc {
 
 			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 				return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
+			}
+
+			return nil
+		},
+	}
+}
+
+func (r RouteMapResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			var config RouteMapModel
+			if err := metadata.DecodeDiff(&config); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			// Validate that all actions have parameters when they are not of type Drop
+			for _, rule := range config.Rules {
+				for _, action := range rule.Actions {
+					if action.Type != network.RouteMapActionTypeDrop && len(action.Parameters) == 0 {
+						return fmt.Errorf("parameters are required when rule action is not `Drop`")
+					}
+				}
 			}
 
 			return nil

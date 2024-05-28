@@ -123,14 +123,12 @@ func resourceBotChannelsRegistration() *pluginsdk.Resource {
 			"developer_app_insights_key": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
 				ValidateFunc: validation.IsUUID,
 			},
 
 			"developer_app_insights_api_key": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
@@ -138,14 +136,13 @@ func resourceBotChannelsRegistration() *pluginsdk.Resource {
 			"developer_app_insights_application_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validation.IsUUID,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"icon_url": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Default:      "https://docs.botframework.com/static/devportal/client/images/bot-framework-default.png",
 				ValidateFunc: validate.BotChannelRegistrationIconUrl,
 			},
 
@@ -178,6 +175,13 @@ func resourceBotChannelsRegistration() *pluginsdk.Resource {
 			Computed:      true,
 			Deprecated:    "`isolated_network_enabled` will be removed in favour of the property `public_network_access_enabled` in version 4.0 of the AzureRM Provider.",
 			ConflictsWith: []string{"public_network_access_enabled"},
+		}
+
+		resource.Schema["icon_url"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validate.BotChannelRegistrationIconUrl,
 		}
 	}
 

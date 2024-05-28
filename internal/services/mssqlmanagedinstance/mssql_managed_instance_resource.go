@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2022-07-01-preview/publicmaintenanceconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/publicmaintenanceconfigurations"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/validate"
@@ -46,10 +46,10 @@ type MsSqlManagedInstanceModel struct {
 	ResourceGroupName            string                              `tfschema:"resource_group_name"`
 	SkuName                      string                              `tfschema:"sku_name"`
 	StorageAccountType           string                              `tfschema:"storage_account_type"`
-	StorageSizeInGb              int                                 `tfschema:"storage_size_in_gb"`
+	StorageSizeInGb              int64                               `tfschema:"storage_size_in_gb"`
 	SubnetId                     string                              `tfschema:"subnet_id"`
 	TimezoneId                   string                              `tfschema:"timezone_id"`
-	VCores                       int                                 `tfschema:"vcores"`
+	VCores                       int64                               `tfschema:"vcores"`
 	ZoneRedundantEnabled         bool                                `tfschema:"zone_redundant_enabled"`
 	Tags                         map[string]string                   `tfschema:"tags"`
 }
@@ -512,7 +512,7 @@ func (r MsSqlManagedInstanceResource) Read() sdk.ResourceFunc {
 					model.PublicDataEndpointEnabled = *props.PublicDataEndpointEnabled
 				}
 				if props.StorageSizeInGB != nil {
-					model.StorageSizeInGb = int(*props.StorageSizeInGB)
+					model.StorageSizeInGb = int64(*props.StorageSizeInGB)
 				}
 				if props.SubnetID != nil {
 					model.SubnetId = *props.SubnetID
@@ -521,7 +521,7 @@ func (r MsSqlManagedInstanceResource) Read() sdk.ResourceFunc {
 					model.TimezoneId = *props.TimezoneID
 				}
 				if props.VCores != nil {
-					model.VCores = int(*props.VCores)
+					model.VCores = int64(*props.VCores)
 				}
 
 				if props.ZoneRedundant != nil {

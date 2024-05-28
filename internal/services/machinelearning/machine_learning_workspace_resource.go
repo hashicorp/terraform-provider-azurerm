@@ -14,13 +14,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	components "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2021-08-01-preview/registries"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-10-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	appInsightsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -70,7 +70,7 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: appInsightsValidate.ComponentID,
+				ValidateFunc: components.ValidateComponentID,
 				// TODO -- remove when issue https://github.com/Azure/azure-rest-api-specs/issues/8323 is addressed
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
@@ -401,7 +401,15 @@ func resourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta interf
 	d.Set("kind", resp.Model.Kind)
 
 	if props := resp.Model.Properties; props != nil {
-		d.Set("application_insights_id", props.ApplicationInsights)
+		appInsightsId := ""
+		if props.ApplicationInsights != nil {
+			applicationInsightsId, err := components.ParseComponentIDInsensitively(*props.ApplicationInsights)
+			if err != nil {
+				return err
+			}
+			appInsightsId = applicationInsightsId.ID()
+		}
+		d.Set("application_insights_id", appInsightsId)
 		d.Set("storage_account_id", props.StorageAccount)
 		d.Set("container_registry_id", props.ContainerRegistry)
 		d.Set("description", props.Description)
@@ -461,7 +469,14 @@ func resourceMachineLearningWorkspaceDelete(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("parsing Machine Learning Workspace ID `%q`: %+v", d.Id(), err)
 	}
 
-	future, err := client.Delete(ctx, *id, workspaces.DefaultDeleteOperationOptions())
+	options := workspaces.DefaultDeleteOperationOptions()
+	if meta.(*clients.Client).Features.MachineLearning.PurgeSoftDeletedWorkspaceOnDestroy {
+		options = workspaces.DeleteOperationOptions{
+			ForceToPurge: pointer.To(true),
+		}
+	}
+
+	future, err := client.Delete(ctx, *id, options)
 	if err != nil {
 		return fmt.Errorf("deleting Machine Learning Workspace %q (Resource Group %q): %+v", id.WorkspaceName, id.ResourceGroupName, err)
 	}

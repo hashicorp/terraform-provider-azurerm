@@ -85,11 +85,19 @@ The following arguments are supported:
 
 A `secret` block supports the following:
 
-* `name` - (Required) The Secret name.
+* `identity` - (Optional) The identity to use for accessing the Key Vault secret reference. This can either be the Resource ID of a User Assigned Identity, or `System` for the System Assigned Identity.
 
-* `value` - (Required) The value for this secret.
+!> **Note:** `identity` must be used together with `key_vault_secret_id`
 
-!> **Note:** Secrets cannot be removed from the service once added, attempting to do so will result in an error. Their values may be zeroed, i.e. set to `""`, but the named secret must persist. This is due to a technical limitation on the service which causes the service to become unmanageable. See [this issue](https://github.com/microsoft/azure-container-apps/issues/395) for more details.
+* `key_vault_secret_id` - (Optional) The ID of a Key Vault secret. This can be a versioned or version-less ID.
+
+!> **Note:** When using `key_vault_secret_id`, `ignore_changes` should be used to ignore any changes to `value`.
+
+* `name` - (Required) The secret name.
+
+* `value` - (Optional) The value for this secret.
+
+!> **Note:** `value` will be ignored if `key_vault_secret_id` and `identity` are provided.
 
 ---
 
@@ -403,7 +411,7 @@ A `ip_security_restriction` block supports the following:
 
 * `description` - (Optional) Describe the IP restriction rule that is being sent to the container-app.
 
-* `ip_address_range` - (Required) CIDR notation to match incoming IP address.
+* `ip_address_range` - (Required) The incoming IP address or range of IP addresses (in CIDR notation).
 
 * `name` - (Required) Name for the IP restriction rule.
 
