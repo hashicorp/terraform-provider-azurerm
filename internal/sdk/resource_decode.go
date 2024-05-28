@@ -114,15 +114,7 @@ func setValue(input, tfschemaValue interface{}, index int, fieldName string, deb
 		if n.Kind() == reflect.Pointer {
 			debugLogger.Infof("*[INT] Decode %+v", v)
 			tmp := reflect.New(n.Type().Elem())
-			if n.Type().Elem().Kind() == reflect.Int {
-				tmp.Elem().Set(reflect.ValueOf(v))
-			}
-			if n.Type().Elem().Kind() == reflect.Int32 {
-				tmp.Elem().Set(reflect.ValueOf(int32(v)))
-			}
-			if n.Type().Elem().Kind() == reflect.Int64 {
-				tmp.Elem().Set(reflect.ValueOf(int64(v)))
-			}
+			tmp.Elem().Set(reflect.ValueOf(int64(v)))
 			n.Set(tmp)
 		} else {
 			debugLogger.Infof("[INT] Decode %+v", v)
