@@ -219,16 +219,10 @@ func (r ContainerRegistryCacheRule) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			parameters := cacherules.CacheRuleUpdateParameters{}
 			credentialSetId := pointer.To(config.CredentialSetId)
 
-			if *credentialSetId != "" {
-				parameters = cacherules.CacheRuleUpdateParameters{
-					Properties: &cacherules.CacheRuleUpdateProperties{CredentialSetResourceId: credentialSetId},
-				}
-			} else {
-				//This is due to an issue with the Azure CacheRule API that prevents removing credentials
-				return fmt.Errorf("Error on update: credential_set_id must not be empty: %s", id)
+			parameters := cacherules.CacheRuleUpdateParameters{
+				Properties: &cacherules.CacheRuleUpdateProperties{CredentialSetResourceId: credentialSetId},
 			}
 
 			if err := cacheRulesClient.UpdateThenPoll(ctx, *id, parameters); err != nil {
@@ -266,4 +260,18 @@ func (ContainerRegistryCacheRule) Delete() sdk.ResourceFunc {
 
 func (ContainerRegistryCacheRule) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return cacherules.ValidateCacheRuleID
+}
+
+func (ContainerRegistryCacheRule) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			if oldVal, newVal := metadata.ResourceDiff.GetChange("container_registry_id"); oldVal.(string) != "" && newVal.(string) == "" {
+				if err := metadata.ResourceDiff.ForceNew("container_registry_id"); err != nil {
+					return err
+				}
+			}
+			return nil
+		},
+	}
 }
