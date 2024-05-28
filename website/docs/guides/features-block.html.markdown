@@ -241,7 +241,7 @@ The `template_deployment` block supports the following:
 
 The `virtual_machine` block supports the following:
 
-* `detach_implicit_data_disk_on_deletion` - (Optional) Should the `azurerm_virtual_machine_implicit_data_disk_from_source` resource detach the implicit data disk of the Virtual Machine when the `azurerm_virtual_machine_implicit_data_disk_from_source` resource is destroyed? Defaults to `false`.
+* `detach_implicit_data_disk_on_deletion` - (Optional) Should we detach the `azurerm_virtual_machine_implicit_data_disk_from_source` from the virtual machine instead of destroying it? Defaults to `false`.
 
 * `delete_os_disk_on_deletion` - (Optional) Should the `azurerm_linux_virtual_machine` and `azurerm_windows_virtual_machine` resources delete the OS Disk attached to the Virtual Machine when the Virtual Machine is destroyed? Defaults to `true`.
 
