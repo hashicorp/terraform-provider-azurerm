@@ -20,14 +20,14 @@ import (
 
 type BotChannelEmailResource struct{}
 
-func testAccBotChannelEmail_basic(t *testing.T) {
+func TestAccBotChannelEmail_basic(t *testing.T) {
 	if ok := skipEmailChannel(); ok {
 		t.Skip("Skipping as one of `ARM_TEST_EMAIL`, AND `ARM_TEST_EMAIL_PASSWORD` was not specified")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_email", "test")
 	r := BotChannelEmailResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -38,14 +38,14 @@ func testAccBotChannelEmail_basic(t *testing.T) {
 	})
 }
 
-func testAccBotChannelEmail_update(t *testing.T) {
+func TestAccBotChannelEmail_update(t *testing.T) {
 	if ok := skipEmailChannel(); ok {
 		t.Skip("Skipping as one of `ARM_TEST_EMAIL`, AND `ARM_TEST_EMAIL_PASSWORD` was not specified")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_email", "test")
 	r := BotChannelEmailResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -63,7 +63,7 @@ func testAccBotChannelEmail_update(t *testing.T) {
 	})
 }
 
-func testAccBotChannelEmail_magicCode(t *testing.T) {
+func TestAccBotChannelEmail_magicCode(t *testing.T) {
 	if os.Getenv("ARM_TEST_BOT_RESOURCE_GROUP_NAME") == "" || os.Getenv("ARM_TEST_BOT_NAME") == "" || os.Getenv("ARM_TEST_EMAIL") == "" || os.Getenv("ARM_TEST_MAGIC_CODE") == "" {
 		t.Skip("Skipping as one of `ARM_TEST_BOT_RESOURCE_GROUP_NAME`, `ARM_TEST_BOT_LOCATION`, `ARM_TEST_BOT_NAME`, `ARM_TEST_EMAIL`, AND `ARM_TEST_MAGIC_CODE` was not specified")
 	}
@@ -71,7 +71,7 @@ func testAccBotChannelEmail_magicCode(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_email", "test")
 	r := BotChannelEmailResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.magicCode(),
 			Check: acceptance.ComposeTestCheckFunc(

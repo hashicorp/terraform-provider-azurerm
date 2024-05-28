@@ -72,6 +72,7 @@ func (c MonitorsClient) ListUserRolesCompleteMatchingPredicate(ctx context.Conte
 
 	resp, err := c.ListUserRoles(ctx, id, input)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

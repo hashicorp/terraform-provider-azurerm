@@ -33,6 +33,28 @@ func TestAccSentinelAlertRuleScheduled_basic(t *testing.T) {
 	})
 }
 
+func TestAccSentinelAlertRuleScheduled_upgrade(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_scheduled", "test")
+	r := SentinelAlertRuleScheduledResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.upgradeVersion(data, "1.0.4"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.upgradeVersion(data, "1.0.5"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccSentinelAlertRuleScheduled_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_scheduled", "test")
 	r := SentinelAlertRuleScheduledResource{}
@@ -337,6 +359,28 @@ QUERY
   }
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r SentinelAlertRuleScheduledResource) upgradeVersion(data acceptance.TestData, version string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_sentinel_alert_rule_scheduled" "test" {
+  name                        = "acctest-SentinelAlertRule-Sche-%d"
+  log_analytics_workspace_id  = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
+  display_name                = "Some Rule"
+  alert_rule_template_guid    = "173f8699-6af5-484a-8b06-8c47ba89b380"
+  alert_rule_template_version = "%[3]s"
+  severity                    = "Medium"
+  query                       = <<QUERY
+AzureActivity |
+  where OperationName == "Create or Update Virtual Machine" or OperationName =="Create Deployment" |
+  where ActivityStatus == "Succeeded" |
+  make-series dcount(ResourceId) default=0 on EventSubmissionTimestamp in range(ago(7d), now(), 1d) by Caller
+QUERY
+
+}
+`, r.template(data), data.RandomInteger, version)
 }
 
 func (SentinelAlertRuleScheduledResource) template(data acceptance.TestData) string {

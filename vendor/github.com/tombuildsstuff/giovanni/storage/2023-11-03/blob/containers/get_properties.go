@@ -47,32 +47,34 @@ func (c Client) GetProperties(ctx context.Context, containerName string, input G
 
 	var resp *client.Response
 	resp, err = req.Execute(ctx)
-	if resp != nil {
+	if resp != nil && resp.Response != nil {
 		result.HttpResponse = resp.Response
 
-		if resp.Header != nil {
-			result.DefaultEncryptionScope = resp.Header.Get("x-ms-default-encryption-scope")
-			result.LeaseStatus = LeaseStatus(resp.Header.Get("x-ms-lease-status"))
-			result.LeaseState = LeaseState(resp.Header.Get("x-ms-lease-state"))
-			if result.LeaseStatus == Locked {
-				duration := LeaseDuration(resp.Header.Get("x-ms-lease-duration"))
-				result.LeaseDuration = &duration
+		if err == nil {
+			if resp.Header != nil {
+				result.DefaultEncryptionScope = resp.Header.Get("x-ms-default-encryption-scope")
+				result.LeaseStatus = LeaseStatus(resp.Header.Get("x-ms-lease-status"))
+				result.LeaseState = LeaseState(resp.Header.Get("x-ms-lease-state"))
+				if result.LeaseStatus == Locked {
+					duration := LeaseDuration(resp.Header.Get("x-ms-lease-duration"))
+					result.LeaseDuration = &duration
+				}
+
+				// If this header is not returned in the response, the container is private to the account owner.
+				accessLevel := resp.Header.Get("x-ms-blob-public-access")
+				if accessLevel != "" {
+					result.AccessLevel = AccessLevel(accessLevel)
+				} else {
+					result.AccessLevel = Private
+				}
+
+				// we can't necessarily use strconv.ParseBool here since this could be nil (only in some API versions)
+				result.EncryptionScopeOverrideDisabled = strings.EqualFold(resp.Header.Get("x-ms-deny-encryption-scope-override"), "true")
+				result.HasImmutabilityPolicy = strings.EqualFold(resp.Header.Get("x-ms-has-immutability-policy"), "true")
+				result.HasLegalHold = strings.EqualFold(resp.Header.Get("x-ms-has-legal-hold"), "true")
+
+				result.MetaData = metadata.ParseFromHeaders(resp.Header)
 			}
-
-			// If this header is not returned in the response, the container is private to the account owner.
-			accessLevel := resp.Header.Get("x-ms-blob-public-access")
-			if accessLevel != "" {
-				result.AccessLevel = AccessLevel(accessLevel)
-			} else {
-				result.AccessLevel = Private
-			}
-
-			// we can't necessarily use strconv.ParseBool here since this could be nil (only in some API versions)
-			result.EncryptionScopeOverrideDisabled = strings.EqualFold(resp.Header.Get("x-ms-deny-encryption-scope-override"), "true")
-			result.HasImmutabilityPolicy = strings.EqualFold(resp.Header.Get("x-ms-has-immutability-policy"), "true")
-			result.HasLegalHold = strings.EqualFold(resp.Header.Get("x-ms-has-legal-hold"), "true")
-
-			result.MetaData = metadata.ParseFromHeaders(resp.Header)
 		}
 	}
 	if err != nil {

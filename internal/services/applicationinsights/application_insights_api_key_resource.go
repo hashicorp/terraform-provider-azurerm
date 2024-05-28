@@ -6,19 +6,17 @@ package applicationinsights
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2020-02-02/insights" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	apikeys "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2015-05-01/componentapikeysapis"
+	components "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceApplicationInsightsAPIKey() *pluginsdk.Resource {
@@ -28,13 +26,14 @@ func resourceApplicationInsightsAPIKey() *pluginsdk.Resource {
 		Delete: resourceApplicationInsightsAPIKeyDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ApiKeyID(id)
+			_, err := apikeys.ParseApiKeyID(id)
 			return err
 		}),
 
-		SchemaVersion: 1,
+		SchemaVersion: 2,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
 			0: migration.ApiKeyUpgradeV0ToV1{},
+			1: migration.ApiKeyUpgradeV1ToV2{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -55,7 +54,7 @@ func resourceApplicationInsightsAPIKey() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ComponentID,
+				ValidateFunc: components.ValidateComponentID,
 			},
 
 			"read_permissions": {
@@ -94,27 +93,25 @@ func resourceApplicationInsightsAPIKeyCreate(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM Application Insights API key creation.")
-
-	appInsightsId, err := parse.ComponentID(d.Get("application_insights_id").(string))
+	appInsightsId, err := apikeys.ParseComponentID(d.Get("application_insights_id").(string))
 	if err != nil {
 		return err
 	}
 
 	name := d.Get("name").(string)
 
-	var existingAPIKeyList insights.ApplicationInsightsComponentAPIKeyListResult
-	var existingAPIKeyId *parse.ApiKeyId
-	existingAPIKeyList, err = client.List(ctx, appInsightsId.ResourceGroup, appInsightsId.Name)
+	var existingAPIKeyList apikeys.APIKeysListOperationResponse
+	var existingAPIKeyId *apikeys.ApiKeyId
+	existingAPIKeyList, err = client.APIKeysList(ctx, *appInsightsId)
 	if err != nil {
-		if !utils.ResponseWasNotFound(existingAPIKeyList.Response) {
-			return fmt.Errorf("checking for presence of existing Application Insights API key list %q (%s): %+v", name, appInsightsId, err)
+		if !response.WasNotFound(existingAPIKeyList.HttpResponse) {
+			return fmt.Errorf("checking for presence of existing Application Insights API key list for %s: %+v", appInsightsId, err)
 		}
 	}
 
-	if existingAPIKeyList.Value != nil {
-		for _, existingAPIKey := range *existingAPIKeyList.Value {
-			existingAPIKeyId, err = parse.ApiKeyID(camelCaseApiKeys(*existingAPIKey.ID))
+	for existingAPIKeyList.Model != nil && len(existingAPIKeyList.Model.Value) > 0 {
+		for _, existingAPIKey := range existingAPIKeyList.Model.Value {
+			existingAPIKeyId, err = apikeys.ParseApiKeyIDInsensitively(*existingAPIKey.Id)
 			if err != nil {
 				return err
 			}
@@ -130,64 +127,73 @@ func resourceApplicationInsightsAPIKeyCreate(d *pluginsdk.ResourceData, meta int
 	if len(*linkedReadProperties) == 0 && len(*linkedWriteProperties) == 0 {
 		return fmt.Errorf("at least one read or write permission must be defined")
 	}
-	apiKeyProperties := insights.APIKeyRequest{
+	apiKeyProperties := apikeys.APIKeyRequest{
 		Name:                  &name,
 		LinkedReadProperties:  linkedReadProperties,
 		LinkedWriteProperties: linkedWriteProperties,
 	}
 
-	result, err := client.Create(ctx, appInsightsId.ResourceGroup, appInsightsId.Name, apiKeyProperties)
+	resp, err := client.APIKeysCreate(ctx, *appInsightsId, apiKeyProperties)
 	if err != nil {
-		return fmt.Errorf("creating Application Insights API key %q (%s): %+v", name, appInsightsId, err)
+		return fmt.Errorf("creating API key %q for %s: %+v", name, appInsightsId, err)
 	}
 
-	if result.APIKey == nil {
-		return fmt.Errorf("creating Application Insights API key %q (%s): got empty API key", name, appInsightsId)
+	if resp.Model == nil || resp.Model.ApiKey == nil {
+		return fmt.Errorf("creating API key %q for %s: got empty API key", name, appInsightsId)
 	}
 
-	d.SetId(camelCaseApiKeys(*result.ID))
+	// API returns lower case on resourceGroups and apiKeys
+	id, err := apikeys.ParseApiKeyIDInsensitively(*resp.Model.Id)
+	if err != nil {
+		return err
+	}
+	d.SetId(id.ID())
 
-	// API key can only retrieved at key creation
-	d.Set("api_key", result.APIKey)
+	// API key can only be retrieved at key creation
+	d.Set("api_key", resp.Model.ApiKey)
 
 	return resourceApplicationInsightsAPIKeyRead(d, meta)
 }
 
 func resourceApplicationInsightsAPIKeyRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppInsights.APIKeysClient
-	subscriptionId := meta.(*clients.Client).AppInsights.APIKeysClient.SubscriptionID
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ApiKeyID(d.Id())
+	id, err := apikeys.ParseApiKeyID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	appInsightsId := parse.NewComponentID(subscriptionId, id.ResourceGroup, id.ComponentName)
+	appInsightsId := components.NewComponentID(subscriptionId, id.ResourceGroupName, id.ComponentName)
 
-	log.Printf("[DEBUG] Reading AzureRM Application Insights API key '%s'", id)
-
-	result, err := client.Get(ctx, id.ResourceGroup, id.ComponentName, id.Name)
+	result, err := client.APIKeysGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(result.Response) {
-			log.Printf("[WARN] AzureRM Application Insights API key '%s' not found, removing from state", id)
+		if response.WasNotFound(result.HttpResponse) {
+			log.Printf("[DEBUG] %s not found, removing from state", id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("making Read request on %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.Set("application_insights_id", appInsightsId.ID())
 
-	d.Set("name", result.Name)
-	readProps := flattenApplicationInsightsAPIKeyLinkedProperties(result.LinkedReadProperties)
-	if err := d.Set("read_permissions", readProps); err != nil {
-		return fmt.Errorf("flattening `read_permissions `: %s", err)
-	}
-	writeProps := flattenApplicationInsightsAPIKeyLinkedProperties(result.LinkedWriteProperties)
-	if err := d.Set("write_permissions", writeProps); err != nil {
-		return fmt.Errorf("flattening `write_permissions `: %s", err)
+	if model := result.Model; model != nil {
+		d.Set("name", model.Name)
+		if props := model.LinkedReadProperties; props != nil {
+			readProps := flattenApplicationInsightsAPIKeyLinkedProperties(props)
+			if err := d.Set("read_permissions", readProps); err != nil {
+				return fmt.Errorf("flattening `read_permissions `: %s", err)
+			}
+		}
+		if props := model.LinkedWriteProperties; props != nil {
+			writeProps := flattenApplicationInsightsAPIKeyLinkedProperties(props)
+			if err := d.Set("write_permissions", writeProps); err != nil {
+				return fmt.Errorf("flattening `write_permissions `: %s", err)
+			}
+		}
 	}
 
 	return nil
@@ -198,26 +204,18 @@ func resourceApplicationInsightsAPIKeyDelete(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ApiKeyID(d.Id())
+	id, err := apikeys.ParseApiKeyID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	log.Printf("[DEBUG] Deleting AzureRM Application Insights API key '%s'", id)
-
-	result, err := client.Delete(ctx, id.ResourceGroup, id.ComponentName, id.Name)
+	result, err := client.APIKeysDelete(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(result.Response) {
+		if response.WasNotFound(result.HttpResponse) {
 			return nil
 		}
-		return fmt.Errorf("issuing AzureRM delete request for Application Insights API key '%s': %+v", id, err)
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return nil
-}
-
-func camelCaseApiKeys(id string) string {
-	// Azure only returns the api key identifier in the resource ID string where apikeys isn't camel cased
-	r := regexp.MustCompile(`apikeys`)
-	return r.ReplaceAllString(id, "apiKeys")
 }

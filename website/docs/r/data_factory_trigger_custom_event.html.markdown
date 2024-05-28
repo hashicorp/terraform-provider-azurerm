@@ -86,8 +86,6 @@ The following arguments are supported:
 
 * `subject_ends_with` - (Optional) The pattern that event subject ends with for trigger to fire.
 
-~> **Note:** At least one of `subject_begins_with` and `subject_ends_with` must be set.
-
 ---
 
 A `pipeline` block supports the following:

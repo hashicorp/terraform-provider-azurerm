@@ -54,7 +54,7 @@ func (c Client) Create(ctx context.Context, queueName string, input CreateInput)
 
 	var resp *client.Response
 	resp, err = req.Execute(ctx)
-	if resp != nil {
+	if resp != nil && resp.Response != nil {
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {

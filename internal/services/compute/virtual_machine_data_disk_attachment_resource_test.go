@@ -8,7 +8,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/virtualmachines"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -239,7 +240,7 @@ func (t VirtualMachineDataDiskAttachmentResource) Exists(ctx context.Context, cl
 		}
 	}
 
-	return utils.Bool(disk != nil), nil
+	return pointer.To(disk != nil), nil
 }
 
 func (VirtualMachineDataDiskAttachmentResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -272,7 +273,7 @@ func (VirtualMachineDataDiskAttachmentResource) Destroy(ctx context.Context, cli
 			// fixes #1600
 			model.Resources = nil
 
-			if err := client.Compute.VirtualMachinesClient.CreateOrUpdateThenPoll(ctx, virtualMachineId, *model); err != nil {
+			if err := client.Compute.VirtualMachinesClient.CreateOrUpdateThenPoll(ctx, virtualMachineId, *model, virtualmachines.DefaultCreateOrUpdateOperationOptions()); err != nil {
 				return nil, fmt.Errorf("updating Virtual Machine %q: %+v", id, err)
 			}
 		}

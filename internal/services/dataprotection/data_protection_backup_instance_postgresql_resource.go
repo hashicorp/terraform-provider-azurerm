@@ -12,8 +12,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2023-05-01/backupinstances"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2023-05-01/backuppolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backupinstances"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backuppolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/databases"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/servers"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -147,7 +147,7 @@ func resourceDataProtectionBackupInstancePostgreSQLCreateUpdate(d *schema.Resour
 		}
 	}
 
-	err := client.CreateOrUpdateThenPoll(ctx, id, parameters)
+	err := client.CreateOrUpdateThenPoll(ctx, id, parameters, backupinstances.DefaultCreateOrUpdateOperationOptions())
 	if err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
@@ -224,7 +224,7 @@ func resourceDataProtectionBackupInstancePostgreSQLDelete(d *schema.ResourceData
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, *id)
+	err = client.DeleteThenPoll(ctx, *id, backupinstances.DefaultDeleteOperationOptions())
 	if err != nil {
 		return fmt.Errorf("deleting DataProtection BackupInstance (%q): %+v", id, err)
 	}

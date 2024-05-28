@@ -72,6 +72,7 @@ func (c RoutesClient) ListCompleteMatchingPredicate(ctx context.Context, id Rout
 
 	resp, err := c.List(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

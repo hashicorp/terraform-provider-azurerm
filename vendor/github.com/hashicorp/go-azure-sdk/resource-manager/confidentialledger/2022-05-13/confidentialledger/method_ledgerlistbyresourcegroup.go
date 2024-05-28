@@ -101,6 +101,7 @@ func (c ConfidentialLedgerClient) LedgerListByResourceGroupCompleteMatchingPredi
 
 	resp, err := c.LedgerListByResourceGroup(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

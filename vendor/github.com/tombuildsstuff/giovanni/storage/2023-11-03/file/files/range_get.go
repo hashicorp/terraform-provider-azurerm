@@ -3,6 +3,8 @@ package files
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"io"
 	"net/http"
 	"strings"
 
@@ -82,14 +84,22 @@ func (c Client) GetByteRange(ctx context.Context, shareName, path, fileName stri
 
 	var resp *client.Response
 	resp, err = req.Execute(ctx)
-	if resp != nil {
-		result.Contents = &[]byte{}
+	if resp != nil && resp.Response != nil {
 		result.HttpResponse = resp.Response
 
-		err = resp.Unmarshal(result.Contents)
-		if err != nil {
-			err = fmt.Errorf("unmarshalling response: %+v", err)
-			return
+		if err == nil {
+			result.Contents = &[]byte{}
+			if resp.Body != nil {
+				respBody, err := io.ReadAll(resp.Body)
+				defer resp.Body.Close()
+				if err != nil {
+					return result, fmt.Errorf("could not parse response body")
+				}
+
+				if respBody != nil {
+					result.Contents = pointer.To(respBody)
+				}
+			}
 		}
 	}
 	if err != nil {
