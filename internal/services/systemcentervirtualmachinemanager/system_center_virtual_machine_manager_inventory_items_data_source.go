@@ -127,7 +127,7 @@ func (l SystemCenterVirtualMachineManagerInventoryItemsDataSource) Read() sdk.Re
 func flattenInventoryItems(input *[]inventoryitems.InventoryItem, inventoryType string) (*[]InventoryItem, error) {
 	results := make([]InventoryItem, 0)
 	if input == nil {
-		return pointer.To(results), nil
+		return &results, nil
 	}
 
 	for _, item := range *input {
@@ -136,7 +136,7 @@ func flattenInventoryItems(input *[]inventoryitems.InventoryItem, inventoryType 
 
 			if v, ok := props.(inventoryitems.CloudInventoryItem); ok && inventoryType == string(inventoryitems.InventoryTypeCloud) {
 				// Service API indicates that the static segment `inventoryItems` in the resource ID of the Inventory Item should start with lowercase. See more details from https://github.com/Azure/azure-rest-api-specs/blob/92c409d93f895a30d51603b2fda78a49b3a2cd60/specification/scvmm/resource-manager/Microsoft.ScVmm/stable/2023-10-07/scvmm.json#L1785
-				// But the static segment `InventoryItems` in the resource ID of the Inventory Item returned by API starts with uppercase. So it has to use ParseInventoryItemIDInsensitively() in Read() to normalize the resource ID
+				// But the static segment `InventoryItems` in the resource ID of the Inventory Item returned by the API starts with uppercase. So all instances of setting the inventory item ID must use ParseInventoryItemIDInsensitively() in Read() to normalize the resource ID
 				scvmmServerInventoryItemId, err := inventoryitems.ParseInventoryItemIDInsensitively(pointer.From(item.Id))
 				if err != nil {
 					return nil, err
@@ -148,7 +148,7 @@ func flattenInventoryItems(input *[]inventoryitems.InventoryItem, inventoryType 
 				results = append(results, inventoryItem)
 			} else if v, ok := props.(inventoryitems.VirtualMachineInventoryItem); ok && inventoryType == string(inventoryitems.InventoryTypeVirtualMachine) {
 				// Service API indicates that the static segment `inventoryItems` in the resource ID of the Inventory Item should start with lowercase. See more details from https://github.com/Azure/azure-rest-api-specs/blob/92c409d93f895a30d51603b2fda78a49b3a2cd60/specification/scvmm/resource-manager/Microsoft.ScVmm/stable/2023-10-07/scvmm.json#L1785
-				// But the static segment `InventoryItems` in the resource ID of the Inventory Item returned by API starts with uppercase. So it has to use ParseInventoryItemIDInsensitively() in Read() to normalize the resource ID
+				// But the static segment `InventoryItems` in the resource ID of the Inventory Item returned by the API starts with uppercase. So all instances of setting the inventory item ID must use ParseInventoryItemIDInsensitively() in Read() to normalize the resource ID
 				scvmmServerInventoryItemId, err := inventoryitems.ParseInventoryItemIDInsensitively(pointer.From(item.Id))
 				if err != nil {
 					return nil, err
@@ -160,7 +160,7 @@ func flattenInventoryItems(input *[]inventoryitems.InventoryItem, inventoryType 
 				results = append(results, inventoryItem)
 			} else if v, ok := props.(inventoryitems.VirtualMachineTemplateInventoryItem); ok && inventoryType == string(inventoryitems.InventoryTypeVirtualMachineTemplate) {
 				// Service API indicates that the static segment `inventoryItems` in the resource ID of the Inventory Item should start with lowercase. See more details from https://github.com/Azure/azure-rest-api-specs/blob/92c409d93f895a30d51603b2fda78a49b3a2cd60/specification/scvmm/resource-manager/Microsoft.ScVmm/stable/2023-10-07/scvmm.json#L1785
-				// But the static segment `InventoryItems` in the resource ID of the Inventory Item returned by API starts with uppercase. So it has to use ParseInventoryItemIDInsensitively() in Read() to normalize the resource ID
+				// But the static segment `InventoryItems` in the resource ID of the Inventory Item returned by the API starts with uppercase. So all instances of setting the inventory item ID must use ParseInventoryItemIDInsensitively() in Read() to normalize the resource ID
 				scvmmServerInventoryItemId, err := inventoryitems.ParseInventoryItemIDInsensitively(pointer.From(item.Id))
 				if err != nil {
 					return nil, err
@@ -172,7 +172,7 @@ func flattenInventoryItems(input *[]inventoryitems.InventoryItem, inventoryType 
 				results = append(results, inventoryItem)
 			} else if v, ok := props.(inventoryitems.VirtualNetworkInventoryItem); ok && inventoryType == string(inventoryitems.InventoryTypeVirtualNetwork) {
 				// Service API indicates that the static segment `inventoryItems` in the resource ID of the Inventory Item should start with lowercase. See more details from https://github.com/Azure/azure-rest-api-specs/blob/92c409d93f895a30d51603b2fda78a49b3a2cd60/specification/scvmm/resource-manager/Microsoft.ScVmm/stable/2023-10-07/scvmm.json#L1785
-				// But the static segment `InventoryItems` in the resource ID of the Inventory Item returned by API starts with uppercase. So it has to use ParseInventoryItemIDInsensitively() in Read() to normalize the resource ID
+				// But the static segment `InventoryItems` in the resource ID of the Inventory Item returned by the API starts with uppercase. So all instances of setting the inventory item ID must use ParseInventoryItemIDInsensitively() in Read() to normalize the resource ID
 				scvmmServerInventoryItemId, err := inventoryitems.ParseInventoryItemIDInsensitively(pointer.From(item.Id))
 				if err != nil {
 					return nil, err
@@ -186,5 +186,5 @@ func flattenInventoryItems(input *[]inventoryitems.InventoryItem, inventoryType 
 		}
 	}
 
-	return pointer.To(results), nil
+	return &results, nil
 }
