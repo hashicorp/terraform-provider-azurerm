@@ -595,7 +595,7 @@ func TestResourceEncode_NestedOneLevelDeepSingleOmittedValues(t *testing.T) {
 					"string":                  "",
 					"enabled":                 false,
 					"list_of_floats":          []float64{},
-					"list_of_numbers":         []int{},
+					"list_of_numbers":         []int64{},
 					"list_of_strings":         []string{},
 					"map_of_bools":            map[string]interface{}{},
 					"map_of_numbers":          map[string]interface{}{},

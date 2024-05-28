@@ -448,7 +448,7 @@ func TestAccPluginSDKAndDecoderSets(t *testing.T) {
 
 	type MyType struct {
 		SetOfStrings []string  `tfschema:"set_of_strings"`
-		SetOfNumbers []int     `tfschema:"set_of_numbers"`
+		SetOfNumbers []int64   `tfschema:"set_of_numbers"`
 		SetOfBools   []bool    `tfschema:"set_of_bools"`
 		SetOfFloats  []float64 `tfschema:"set_of_floats"`
 		// we could arguably extend this with nested Sets, but they're tested in the Decode function
@@ -545,7 +545,7 @@ func TestAccPluginSDKAndDecoderSets(t *testing.T) {
 									}
 								}
 
-								expectedNumbers := []int{
+								expectedNumbers := []int64{
 									1,
 									2,
 								}
