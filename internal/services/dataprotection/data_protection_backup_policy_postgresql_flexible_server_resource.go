@@ -401,11 +401,16 @@ func expandBackupPolicyPostgreSQLFlexibleServerAzureRetentionRules(input []Backu
 }
 
 func expandBackupPolicyPostgreSQLFlexibleServerDefaultAzureRetentionRule(input []BackupPolicyPostgreSQLFlexibleServerDefaultRetentionRule) backuppolicies.BasePolicyRule {
-	return backuppolicies.AzureRetentionRule{
-		Name:       "Default",
-		IsDefault:  utils.Bool(true),
-		Lifecycles: expandBackupPolicyPostgreSQLFlexibleServerLifeCycle(input[0].LifeCycle),
+	result := backuppolicies.AzureRetentionRule{
+		Name:      "Default",
+		IsDefault: utils.Bool(true),
 	}
+
+	if len(input) > 0 {
+		result.Lifecycles = expandBackupPolicyPostgreSQLFlexibleServerLifeCycle(input[0].LifeCycle)
+	}
+
+	return result
 }
 
 func expandBackupPolicyPostgreSQLFlexibleServerLifeCycle(input []BackupPolicyPostgreSQLFlexibleServerLifeCycle) []backuppolicies.SourceLifeCycle {
