@@ -137,7 +137,6 @@ func (r ContainerAppEnvironmentResource) Arguments() map[string]*pluginsdk.Schem
 			Description: "Should mutual transport layer security (mTLS) be enabled? Defaults to `false`. **Note:** This feature is in public preview. Enabling mTLS for your applications may increase response latency and reduce maximum throughput in high-load scenarios.",
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
-			ForceNew:    false,
 			Default:     false,
 		},
 
