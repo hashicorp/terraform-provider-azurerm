@@ -43,7 +43,7 @@ type BackupPolicyPostgreSQLFlexibleServerRetentionRule struct {
 	Name      string                                          `tfschema:"name"`
 	Criteria  []BackupPolicyPostgreSQLFlexibleServerCriteria  `tfschema:"criteria"`
 	LifeCycle []BackupPolicyPostgreSQLFlexibleServerLifeCycle `tfschema:"life_cycle"`
-	Priority  int                                             `tfschema:"priority"`
+	Priority  int64                                           `tfschema:"priority"`
 }
 
 type BackupPolicyPostgreSQLFlexibleServerCriteria struct {
@@ -63,7 +63,7 @@ func (r DataProtectionBackupPolicyPostgreSQLFlexibleServerResource) ResourceType
 }
 
 func (r DataProtectionBackupPolicyPostgreSQLFlexibleServerResource) ModelObject() interface{} {
-	return pointer.To(BackupPolicyPostgreSQLFlexibleServerModel{})
+	return &BackupPolicyPostgreSQLFlexibleServerModel{}
 }
 
 func (r DataProtectionBackupPolicyPostgreSQLFlexibleServerResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -313,13 +313,13 @@ func (r DataProtectionBackupPolicyPostgreSQLFlexibleServerResource) Read() sdk.R
 				return err
 			}
 
-			resp, err := client.Get(ctx, pointer.From(id))
+			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
-					return metadata.MarkAsGone(pointer.From(id))
+					return metadata.MarkAsGone(*id)
 				}
 
-				return fmt.Errorf("retrieving %s: %+v", pointer.From(id), err)
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
 			vaultId := backuppolicies.NewBackupVaultID(id.SubscriptionId, id.ResourceGroupName, id.BackupVaultName)
@@ -353,8 +353,8 @@ func (r DataProtectionBackupPolicyPostgreSQLFlexibleServerResource) Delete() sdk
 				return err
 			}
 
-			if _, err := client.Delete(ctx, pointer.From(id)); err != nil {
-				return fmt.Errorf("deleting %s: %+v", pointer.From(id), err)
+			if _, err := client.Delete(ctx, *id); err != nil {
+				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
 			return nil
@@ -451,7 +451,7 @@ func expandBackupPolicyPostgreSQLFlexibleServerTaggingCriteria(input []BackupPol
 		result := backuppolicies.TaggingCriteria{
 			IsDefault:       false,
 			Criteria:        expandBackupPolicyPostgreSQLFlexibleServerCriteria(item.Criteria),
-			TaggingPriority: int64(item.Priority),
+			TaggingPriority: item.Priority,
 			TagInfo: backuppolicies.RetentionTag{
 				Id:      utils.String(item.Name + "_"),
 				TagName: item.Name,
@@ -516,7 +516,7 @@ func expandBackupPolicyPostgreSQLFlexibleServerCriteria(input []BackupPolicyPost
 		})
 	}
 
-	return pointer.To(results)
+	return &results
 }
 
 func flattenBackupPolicyPostgreSQLFlexibleServerBackupRules(input []backuppolicies.BasePolicyRule) []string {
@@ -591,7 +591,7 @@ func flattenBackupPolicyPostgreSQLFlexibleServerRetentionRules(input []backuppol
 	for _, item := range input {
 		if retentionRule, ok := item.(backuppolicies.AzureRetentionRule); ok {
 			var name string
-			var taggingPriority int
+			var taggingPriority int64
 			var taggingCriteria []BackupPolicyPostgreSQLFlexibleServerCriteria
 
 			if !pointer.From(retentionRule.IsDefault) {
@@ -599,7 +599,7 @@ func flattenBackupPolicyPostgreSQLFlexibleServerRetentionRules(input []backuppol
 
 				for _, criteria := range taggingCriterias {
 					if strings.EqualFold(criteria.TagInfo.TagName, name) {
-						taggingPriority = int(criteria.TaggingPriority)
+						taggingPriority = criteria.TaggingPriority
 						taggingCriteria = flattenBackupPolicyPostgreSQLFlexibleServerBackupCriteria(criteria.Criteria)
 						break
 					}
