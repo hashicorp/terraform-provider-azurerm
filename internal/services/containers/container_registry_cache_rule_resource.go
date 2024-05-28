@@ -79,6 +79,11 @@ func (r ContainerRegistryCacheRule) Create() sdk.ResourceFunc {
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			ctx, cancel := timeouts.ForCreate(metadata.Client.StopContext, metadata.ResourceData)
 
+			var config ContainerRegistryCacheRuleModel
+			if err := metadata.Decode(&config); err != nil {
+				return err
+			}
+
 			defer cancel()
 			log.Printf("[INFO] preparing arguments for Container Registry Cache Rule creation.")
 
