@@ -54,7 +54,7 @@ func (t ContainerRegistryCacheRuleResource) Exists(ctx context.Context, clients 
 		return nil, err
 	}
 
-	resp, err := clients.Containers.ContainerRegistryClient_v2023_07_01.CacheRules.Get(ctx, *id)
+	resp, err := clients.Containers.CacheRulesClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
