@@ -235,7 +235,7 @@ func (ContainerRegistryCacheRule) Delete() sdk.ResourceFunc {
 			}
 
 			if err := cacheRulesClient.DeleteThenPoll(ctx, *id); err != nil {
-				return fmt.Errorf("deleting Container Registry Cache Rule %s: %+v", *id, err)
+				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
 			return nil
