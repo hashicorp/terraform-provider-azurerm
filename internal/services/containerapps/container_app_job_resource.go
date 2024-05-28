@@ -380,10 +380,9 @@ func (r ContainerAppJobResource) Read() sdk.ResourceFunc {
 					state.ContainerAppEnvironmentId = envId.ID()
 					state.Template = helpers.FlattenContainerAppJobTemplate(props.Template)
 					if config := props.Configuration; config != nil {
-						if !features.FourPointOhBeta() && len(state.RegistriesDeprecated) > 0 {
+						state.Registries = helpers.FlattenContainerAppJobRegistries(config.Registries)
+						if !features.FourPointOhBeta() {
 							state.RegistriesDeprecated = helpers.FlattenContainerAppJobRegistries(config.Registries)
-						} else {
-							state.Registries = helpers.FlattenContainerAppJobRegistries(config.Registries)
 						}
 						state.ReplicaTimeoutInSeconds = config.ReplicaTimeout
 						if config.ReplicaRetryLimit != nil {
@@ -407,10 +406,9 @@ func (r ContainerAppJobResource) Read() sdk.ResourceFunc {
 			if err != nil {
 				return fmt.Errorf("listing secrets for %s: %+v", *id, err)
 			}
-			if !features.FourPointOhBeta() && len(state.SecretsDeprecated) > 0 {
+			state.Secrets = helpers.FlattenContainerAppJobSecrets(secretResp.Model)
+			if !features.FourPointOhBeta() {
 				state.SecretsDeprecated = helpers.FlattenContainerAppJobSecrets(secretResp.Model)
-			} else {
-				state.Secrets = helpers.FlattenContainerAppJobSecrets(secretResp.Model)
 			}
 
 			return metadata.Encode(&state)
@@ -459,19 +457,10 @@ func (r ContainerAppJobResource) Update() sdk.ResourceFunc {
 
 			d := metadata.ResourceData
 
-			if !features.FourPointOhBeta() && d.HasChange("secrets") {
-				model.Properties.Configuration.Secrets = helpers.ExpandContainerAppJobSecrets(state.SecretsDeprecated)
-			}
 			if d.HasChange("secret") {
 				model.Properties.Configuration.Secrets = helpers.ExpandContainerAppJobSecrets(state.Secrets)
 			}
 
-			if !features.FourPointOhBeta() && d.HasChange("registries") {
-				model.Properties.Configuration.Registries, err = helpers.ExpandContainerAppJobRegistries(state.RegistriesDeprecated)
-				if err != nil {
-					return fmt.Errorf("invalid registry config for %s: %v", id, err)
-				}
-			}
 			if d.HasChange("registry") {
 				model.Properties.Configuration.Registries, err = helpers.ExpandContainerAppJobRegistries(state.Registries)
 				if err != nil {
@@ -513,6 +502,18 @@ func (r ContainerAppJobResource) Update() sdk.ResourceFunc {
 
 			if d.HasChange("tags") {
 				model.Tags = tags.Expand(state.Tags)
+			}
+
+			if !features.FourPointOhBeta() {
+				if d.HasChange("secrets") {
+					model.Properties.Configuration.Secrets = helpers.ExpandContainerAppJobSecrets(state.SecretsDeprecated)
+				}
+				if d.HasChange("registries") {
+					model.Properties.Configuration.Registries, err = helpers.ExpandContainerAppJobRegistries(state.RegistriesDeprecated)
+					if err != nil {
+						return fmt.Errorf("invalid registry config for %s: %v", id, err)
+					}
+				}
 			}
 
 			model.Properties.Template = helpers.ExpandContainerAppJobTemplate(state.Template)
