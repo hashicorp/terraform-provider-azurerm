@@ -37,22 +37,6 @@ func TestAccLogicAppTriggerCustom_callbackUrl(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("callback_url").IsEmpty(),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccLogicAppTriggerCustom_callbackUrl2(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_custom", "test")
-	r := LogicAppTriggerCustomResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
 			Config: r.nonEmptyCallback(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),

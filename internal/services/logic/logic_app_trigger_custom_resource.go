@@ -9,6 +9,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/workflows"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/workflowtriggers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -107,12 +108,7 @@ func resourceLogicAppTriggerCustomRead(d *pluginsdk.ResourceData, meta interface
 
 	d.Set("name", id.TriggerName)
 	d.Set("logic_app_id", app.Id)
-
-	if url != nil {
-		d.Set("callback_url", url)
-	} else {
-		d.Set("callback_url", "")
-	}
+	d.Set("callback_url", pointer.From(url))
 
 	// Azure returns an additional field called evaluatedRecurrence in the trigger body which
 	// is a copy of the recurrence specified in the body property and breaks the diff suppress logic
