@@ -424,15 +424,13 @@ An `managed_network` block supports the following:
 
 ---
 
-An `serverless_compute` block supports the following:
+A `serverless_compute` block supports the following:
 
-* `custom_subnet_id` - (Optional) The ID of an existing virtual network subnet in which serverless compute nodes should be deployed.
+* `subnet_id` - (Optional) The ID of an existing Virtual Network Subnet in which the serverless compute nodes should be deployed to.
 
-* `no_public_ip_enabled` - (Optional) Is serverless compute nodes deployed in custom vNet would have no public IP addresses enabled for a workspace with private endpoint? Defaults to `false`.
+* `public_ip_enabled` - (Optional) Should serverless compute nodes deployed in a custom Virtual Network have public IP addresses enabled for a workspace with private endpoint? Defaults to `false`.
 
-~> **Note:** Not supported to set `public_ip_enabled` to `false` without `subnet_id` when `public_network_access_enabled` is `false`.
-
-~> **Note:** Not supported to update `public_ip_enabled` from `true` to `false` when `subnet_id` is null or empty
+~> **Note:** `public_ip_enabled` cannot be updated from `true` to `false` when `subnet_id` is not set. `public_ip_enabled` must be set to `true` if `subnet_id` is not set and when `public_network_access_enabled` is `false`.
 
 ---
 

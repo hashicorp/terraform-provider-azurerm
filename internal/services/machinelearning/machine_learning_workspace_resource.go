@@ -22,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/validate"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -240,7 +239,7 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 						"subnet_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: networkValidate.SubnetID,
+							ValidateFunc: commonids.ValidateSubnetID,
 						},
 						"public_ip_enabled": {
 							Type:     pluginsdk.TypeBool,
@@ -339,7 +338,7 @@ func resourceMachineLearningWorkspaceCreateOrUpdate(d *pluginsdk.ResourceData, m
 	serverlessCompute := expandMachineLearningWorkspaceServerlessCompute(d.Get("serverless_compute").([]interface{}))
 	if serverlessCompute != nil {
 		if *serverlessCompute.ServerlessComputeNoPublicIP && serverlessCompute.ServerlessComputeCustomSubnet == nil && !networkAccessBehindVnetEnabled {
-			return fmt.Errorf(" Not supported to set `public_ip_enabled` to `false` without `subnet_id` when `public_network_access_enabled` is `false`")
+			return fmt.Errorf("`public_ip_enabled` must be set to  `true` if `subnet_id` is not set and `public_network_access_enabled` is `false`")
 		}
 
 		if serverlessCompute.ServerlessComputeCustomSubnet == nil {
