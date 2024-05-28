@@ -63,8 +63,16 @@ func (ContainerRegistryCacheRule) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
+type ContainerRegistryCacheRuleResourceModel struct {
+	Name                string `tfschema:"name"`
+	ContainerRegistryId string `tfschema:"container_registry_id"`
+	CredentialSetId     string `tfschema:"credential_set_id"`
+	SourceRepo          string `tfschema:"source_repo"`
+	TargetRepo          string `tfschema:"target_repo"`
+}
+
 func (ContainerRegistryCacheRule) ModelObject() interface{} {
-	return nil
+	return &ContainerRegistryCacheRuleReourceModel{}
 }
 
 func (ContainerRegistryCacheRule) ResourceType() string {
