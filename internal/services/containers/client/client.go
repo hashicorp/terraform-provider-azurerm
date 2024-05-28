@@ -27,7 +27,7 @@ import (
 type Client struct {
 	AgentPoolsClient                            *agentpools.AgentPoolsClient
 	ContainerInstanceClient                     *containerinstance.ContainerInstanceClient
-	ContainerRegistryClient_v2023_07_01         *containerregistry_v2023_07_01.Client
+	CacheRulesClient         *cacherules.CacheRulesClient
 	ContainerRegistryClient_v2021_08_01_preview *containerregistry_v2021_08_01_preview.Client
 	// v2019_06_01_preview is needed for container registry agent pools and tasks
 	ContainerRegistryClient_v2019_06_01_preview *containerregistry_v2019_06_01_preview.Client
