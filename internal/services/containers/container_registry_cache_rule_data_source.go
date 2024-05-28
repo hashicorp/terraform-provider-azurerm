@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2021-08-01-preview/registries"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-07-01/cacherules"
@@ -29,11 +30,6 @@ func (ContainerRegistryCacheRuleDataSource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Containers.CacheRulesClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
-
-			var state ContainerRegistryCacheRuleDataSourceModel
-			if err := metadata.Decode(&state); err != nil {
-				return err
-			}
 
 			var state ContainerRegistryCacheRuleDataSourceModel
 			if err := metadata.Decode(&state); err != nil {

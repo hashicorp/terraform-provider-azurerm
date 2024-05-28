@@ -9,6 +9,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2021-08-01-preview/registries"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-07-01/cacherules"
@@ -65,7 +66,7 @@ func (ContainerRegistryCacheRule) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-type ContainerRegistryCacheRuleResourceModel struct {
+type ContainerRegistryCacheRuleModel struct {
 	Name                string `tfschema:"name"`
 	ContainerRegistryId string `tfschema:"container_registry_id"`
 	CredentialSetId     string `tfschema:"credential_set_id"`
@@ -74,7 +75,7 @@ type ContainerRegistryCacheRuleResourceModel struct {
 }
 
 func (ContainerRegistryCacheRule) ModelObject() interface{} {
-	return &ContainerRegistryCacheRuleResourceModel{}
+	return &ContainerRegistryCacheRuleModel{}
 }
 
 func (ContainerRegistryCacheRule) ResourceType() string {
@@ -85,7 +86,7 @@ func (r ContainerRegistryCacheRule) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			cacheRulesClient := metadata.Client.Containers.ContainerRegistryClient_v2023_07_01.CacheRules
+			cacheRulesClient := metadata.Client.Containers.CacheRulesClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			ctx, cancel := timeouts.ForCreate(metadata.Client.StopContext, metadata.ResourceData)
 
@@ -141,7 +142,7 @@ func (r ContainerRegistryCacheRule) Create() sdk.ResourceFunc {
 
 			metadata.SetID(id)
 
-			return nil
+			return metadata.Encode(&config)
 		},
 	}
 }
@@ -150,8 +151,14 @@ func (ContainerRegistryCacheRule) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			cacheRulesClient := metadata.Client.Containers.ContainerRegistryClient_v2023_07_01.CacheRules
+			cacheRulesClient := metadata.Client.Containers.CacheRulesClient
 			ctx, cancel := timeouts.ForRead(metadata.Client.StopContext, metadata.ResourceData)
+
+			var config ContainerRegistryCacheRuleModel
+			if err := metadata.Decode(&config); err != nil {
+				return err
+			}
+
 			defer cancel()
 
 			id, err := cacherules.ParseCacheRuleID(metadata.ResourceData.Id())
@@ -168,25 +175,26 @@ func (ContainerRegistryCacheRule) Read() sdk.ResourceFunc {
 			resp, err := cacheRulesClient.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
-					log.Printf("[DEBUG] Container Registry Cache Rule %s was not found.", *id)
+					log.Printf("%s was not found.", *id)
 					return metadata.MarkAsGone(id)
 				}
 
 				return fmt.Errorf("retrieving Container Registry Cache Rule %s: %+v", *id, err)
 			}
 
-			metadata.ResourceData.Set("name", id.CacheRuleName)
-			metadata.ResourceData.Set("container_registry_id", registryId.ID())
+			registryIdString := registryId.ID()
+			config.Name = pointer.From(&id.CacheRuleName)
+			config.ContainerRegistryId = pointer.From(&registryIdString)
 
 			if model := resp.Model; model != nil {
 				if properties := model.Properties; properties != nil {
-					metadata.ResourceData.Set("source_repo", properties.SourceRepository)
-					metadata.ResourceData.Set("target_repo", properties.TargetRepository)
-					metadata.ResourceData.Set("credential_set_id", properties.CredentialSetResourceId)
+					config.SourceRepo = pointer.From(properties.SourceRepository)
+					config.TargetRepo = pointer.From(properties.TargetRepository)
+					config.CredentialSetId = pointer.From(properties.CredentialSetResourceId)
 				}
 			}
 
-			return nil
+			return metadata.Encode(&config)
 		},
 	}
 }
@@ -198,6 +206,11 @@ func (r ContainerRegistryCacheRule) Update() sdk.ResourceFunc {
 			cacheRulesClient := metadata.Client.Containers.CacheRulesClient
 			ctx, cancel := timeouts.ForUpdate(metadata.Client.StopContext, metadata.ResourceData)
 
+			var config ContainerRegistryCacheRuleModel
+			if err := metadata.Decode(&config); err != nil {
+				return err
+			}
+
 			defer cancel()
 			log.Printf("[INFO] preparing arguments for Container Registry Cache Rule update.")
 
@@ -207,11 +220,11 @@ func (r ContainerRegistryCacheRule) Update() sdk.ResourceFunc {
 			}
 
 			parameters := cacherules.CacheRuleUpdateParameters{}
-			credentialSetId := metadata.ResourceData.Get("credential_set_id").(string)
+			credentialSetId := pointer.To(config.CredentialSetId)
 
-			if credentialSetId != "" {
+			if *credentialSetId != "" {
 				parameters = cacherules.CacheRuleUpdateParameters{
-					Properties: &cacherules.CacheRuleUpdateProperties{CredentialSetResourceId: &credentialSetId},
+					Properties: &cacherules.CacheRuleUpdateProperties{CredentialSetResourceId: credentialSetId},
 				}
 			} else {
 				//This is due to an issue with the Azure CacheRule API that prevents removing credentials
@@ -224,7 +237,7 @@ func (r ContainerRegistryCacheRule) Update() sdk.ResourceFunc {
 
 			metadata.SetID(id)
 
-			return nil
+			return metadata.Encode(&config)
 		},
 	}
 }
