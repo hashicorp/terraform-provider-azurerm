@@ -133,7 +133,7 @@ func (r ContainerRegistryCacheRule) Create() sdk.ResourceFunc {
 
 			metadata.SetID(id)
 
-			return r.Read().Func(ctx, metadata)
+			return nil
 		},
 	}
 }
