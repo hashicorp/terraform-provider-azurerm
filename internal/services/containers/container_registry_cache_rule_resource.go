@@ -98,44 +98,38 @@ func (r ContainerRegistryCacheRule) Create() sdk.ResourceFunc {
 				metadata.ResourceData.Get("name").(string),
 			)
 
-			if metadata.ResourceData.IsNewResource() {
-				existing, err := cacheRulesClient.Get(ctx, id)
 
-				if err != nil {
-					if !response.WasNotFound(existing.HttpResponse) {
-						return fmt.Errorf("checking for presence of existing %s: %s", id, err)
-					}
-				}
-
-				if !response.WasNotFound(existing.HttpResponse) {
-					return tf.ImportAsExistsError("azurerm_container_registry_cache_rule", id.ID())
-				}
-
-				// TODO: make a check that the repo is available in the registry.
-				targetRepo := metadata.ResourceData.Get("target_repo").(string)
-
-				// TODO: validate the source repo.
-				sourceRepo := metadata.ResourceData.Get("source_repo").(string)
-
-				credentialSetId := metadata.ResourceData.Get("credential_set_id").(string)
-
-				parameters := cacherules.CacheRule{
-					Name: &id.CacheRuleName,
-					Properties: &cacherules.CacheRuleProperties{
-						SourceRepository: &sourceRepo,
-						TargetRepository: &targetRepo,
-					},
-				}
-
-				// Conditionally add CredentialSetResourceId if credentialSetId is not empty
-				if credentialSetId != "" {
-					parameters.Properties.CredentialSetResourceId = &credentialSetId
-				}
-
-				if err := cacheRulesClient.CreateThenPoll(ctx, id, parameters); err != nil {
-					return fmt.Errorf("creating Container Registry Cache Rule %s: %+v", id, err)
-				}
+		existing, err := cacheRulesClient.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
+		}
+
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_container_registry_cache_rule", id.ID())
+		}
+
+		// TODO: make a check that the repo is available in the registry.
+		// TODO: validate the source repo.
+
+		parameters := cacherules.CacheRule{
+			Name: &id.CacheRuleName,
+			Properties: &cacherules.CacheRuleProperties{
+				SourceRepository: pointer.To(config.SourceRepo),
+				TargetRepository: pointer.To(config.TargetRepo),
+			},
+		}
+
+		// Conditionally add CredentialSetResourceId if credentialSetId is not empty
+		if config.CredentialSetId != "" {
+			parameters.Properties.CredentialSetResourceId = pointer.To(config.CredentialSetId)
+		}
+
+		if err := cacheRulesClient.CreateThenPoll(ctx, id, parameters); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+
 
 			metadata.SetID(id)
 
