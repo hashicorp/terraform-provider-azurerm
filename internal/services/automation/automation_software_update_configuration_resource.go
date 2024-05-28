@@ -1108,11 +1108,7 @@ func (m SoftwareUpdateConfigurationResource) Update() sdk.ResourceFunc {
 						}
 
 						if len(v.AdvancedMonthDays) > 0 {
-							i := make([]int64, 0)
-							for _, v := range v.AdvancedMonthDays {
-								i = append(i, int64(v))
-							}
-							advSchedule.MonthDays = pointer.To(i)
+							advSchedule.MonthDays = pointer.To(v.AdvancedMonthDays)
 						}
 
 						if len(v.MonthlyOccurrence) > 0 {
@@ -1226,11 +1222,7 @@ func expandUpdateConfig(input SoftwareUpdateConfigurationModel) *softwareupdatec
 			}
 
 			if len(v.AdvancedMonthDays) > 0 {
-				i := make([]int64, 0)
-				for _, v := range v.AdvancedMonthDays {
-					i = append(i, int64(v))
-				}
-				advSchedule.MonthDays = pointer.To(i)
+				advSchedule.MonthDays = pointer.To(v.AdvancedMonthDays)
 			}
 
 			if len(v.MonthlyOccurrence) > 0 {

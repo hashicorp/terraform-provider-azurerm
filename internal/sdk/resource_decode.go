@@ -171,9 +171,9 @@ func setValue(input, tfschemaValue interface{}, index int, fieldName string, deb
 
 			mapOutput := reflect.MakeMap(ty.Type())
 			for key, val := range mapConfig {
-				switch val.(type) {
+				switch t := val.(type) {
 				case int:
-					mapOutput.SetMapIndex(reflect.ValueOf(key), reflect.ValueOf(int64(val.(int))))
+					mapOutput.SetMapIndex(reflect.ValueOf(key), reflect.ValueOf(int64(t)))
 
 				default:
 					mapOutput.SetMapIndex(reflect.ValueOf(key), reflect.ValueOf(val))
@@ -186,9 +186,9 @@ func setValue(input, tfschemaValue interface{}, index int, fieldName string, deb
 		} else {
 			mapOutput := reflect.MakeMap(n.Type())
 			for key, val := range mapConfig {
-				switch val.(type) {
+				switch t := val.(type) {
 				case int:
-					mapOutput.SetMapIndex(reflect.ValueOf(key), reflect.ValueOf(int64(val.(int))))
+					mapOutput.SetMapIndex(reflect.ValueOf(key), reflect.ValueOf(int64(t)))
 				default:
 					mapOutput.SetMapIndex(reflect.ValueOf(key), reflect.ValueOf(val))
 				}
