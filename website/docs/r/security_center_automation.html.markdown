@@ -81,6 +81,9 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Security Center Automation. Changing this forces a new Security Center Automation to be created.
 
+~> **NOTE:** For the automation to appear in Azure Portal correctly under Microsoft Defender for Cloud -> Environment Settings -> Account -> Continuous Export, either `ExportToWorkspace` or `ExportToEventHub` must be used[ #12491](https://github.com/hashicorp/terraform-provider-azurerm/issues/12491#issuecomment-1324249908).
+
+
 * `resource_group_name` - (Required) The name of the Resource Group where the Security Center Automation should exist. Changing this forces a new Security Center Automation to be created.
 
 * `scopes` - (Required) A list of scopes on which the automation logic is applied, at least one is required. Supported scopes are a subscription (in this format `/subscriptions/00000000-0000-0000-0000-000000000000`) or a resource group under that subscription (in the format `/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example`). The automation will only apply on defined scopes.
