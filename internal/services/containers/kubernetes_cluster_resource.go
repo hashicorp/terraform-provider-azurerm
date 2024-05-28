@@ -3590,10 +3590,12 @@ func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerSe
 	}
 
 	dockerBridgeCidr := ""
-	if len(raw) != 0 && raw[0] != nil {
-		config := raw[0].(map[string]interface{})
-		if v, ok := config["docker_bridge_cidr"]; ok && v.(string) != "" {
-			dockerBridgeCidr = v.(string)
+	if !features.FourPointOhBeta() {
+		if len(raw) != 0 && raw[0] != nil {
+			config := raw[0].(map[string]interface{})
+			if v, ok := config["docker_bridge_cidr"]; ok && v.(string) != "" {
+				dockerBridgeCidr = v.(string)
+			}
 		}
 	}
 
@@ -3720,26 +3722,29 @@ func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerSe
 		ebpfDataPlane = string(*v)
 	}
 
-	return []interface{}{
-		map[string]interface{}{
-			"dns_service_ip":        dnsServiceIP,
-			"docker_bridge_cidr":    dockerBridgeCidr,
-			"ebpf_data_plane":       ebpfDataPlane,
-			"load_balancer_sku":     string(*sku),
-			"load_balancer_profile": lbProfiles,
-			"nat_gateway_profile":   ngwProfiles,
-			"ip_versions":           ipVersions,
-			"network_plugin":        networkPlugin,
-			"network_plugin_mode":   networkPluginMode,
-			"network_mode":          networkMode,
-			"network_policy":        networkPolicy,
-			"pod_cidr":              podCidr,
-			"pod_cidrs":             utils.FlattenStringSlice(profile.PodCidrs),
-			"service_cidr":          serviceCidr,
-			"service_cidrs":         utils.FlattenStringSlice(profile.ServiceCidrs),
-			"outbound_type":         outboundType,
-		},
+	result := map[string]interface{}{
+		"dns_service_ip":        dnsServiceIP,
+		"ebpf_data_plane":       ebpfDataPlane,
+		"load_balancer_sku":     string(*sku),
+		"load_balancer_profile": lbProfiles,
+		"nat_gateway_profile":   ngwProfiles,
+		"ip_versions":           ipVersions,
+		"network_plugin":        networkPlugin,
+		"network_plugin_mode":   networkPluginMode,
+		"network_mode":          networkMode,
+		"network_policy":        networkPolicy,
+		"pod_cidr":              podCidr,
+		"pod_cidrs":             utils.FlattenStringSlice(profile.PodCidrs),
+		"service_cidr":          serviceCidr,
+		"service_cidrs":         utils.FlattenStringSlice(profile.ServiceCidrs),
+		"outbound_type":         outboundType,
 	}
+
+	if !features.FourPointOhBeta() {
+		result["docker_bridge_cidr"] = dockerBridgeCidr
+	}
+
+	return []interface{}{result}
 }
 
 func expandKubernetesClusterAzureActiveDirectoryRoleBasedAccessControl(input []interface{}, providerTenantId string) (*managedclusters.ManagedClusterAADProfile, error) {
