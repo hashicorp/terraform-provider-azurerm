@@ -57,10 +57,10 @@ type ClusterProfile struct {
 }
 
 type NetworkProfile struct {
-	OutboundType            string `tfschema:"outbound_type"`
-	PodCidr                 string `tfschema:"pod_cidr"`
-	ServiceCidr             string `tfschema:"service_cidr"`
-	PreconfiguredNSGEnabled bool   `tfschema:"preconfigured_nsg_enabled"`
+	OutboundType                             string `tfschema:"outbound_type"`
+	PodCidr                                  string `tfschema:"pod_cidr"`
+	ServiceCidr                              string `tfschema:"service_cidr"`
+	PreconfiguredNetworkSecurityGroupEnabled bool   `tfschema:"preconfigured_network_security_group_enabled"`
 }
 
 type MainProfile struct {
@@ -194,7 +194,7 @@ func (r RedHatOpenShiftCluster) Arguments() map[string]*pluginsdk.Schema {
 							false,
 						),
 					},
-					"preconfigured_nsg_enabled": {
+					"preconfigured_network_security_group_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						ForceNew: true,
@@ -614,7 +614,7 @@ func expandOpenshiftNetworkProfile(input []NetworkProfile) *openshiftclusters.Ne
 	}
 
 	preconfiguredNSG := openshiftclusters.PreconfiguredNSGDisabled
-	if input[0].PreconfiguredNSGEnabled {
+	if input[0].PreconfiguredNetworkSecurityGroupEnabled {
 		preconfiguredNSG = openshiftclusters.PreconfiguredNSGEnabled
 	}
 
@@ -631,17 +631,17 @@ func flattenOpenShiftNetworkProfile(profile *openshiftclusters.NetworkProfile) [
 		return []NetworkProfile{}
 	}
 
-	preconfiguredNSGEnabled := false
+	preconfiguredNetworkSecurityGroupEnabled := false
 	if profile.PreconfiguredNSG != nil {
-		preconfiguredNSGEnabled = *profile.PreconfiguredNSG == openshiftclusters.PreconfiguredNSGEnabled
+		preconfiguredNetworkSecurityGroupEnabled = *profile.PreconfiguredNSG == openshiftclusters.PreconfiguredNSGEnabled
 	}
 
 	return []NetworkProfile{
 		{
-			OutboundType:            string(pointer.From(profile.OutboundType)),
-			PodCidr:                 pointer.From(profile.PodCidr),
-			ServiceCidr:             pointer.From(profile.ServiceCidr),
-			PreconfiguredNSGEnabled: preconfiguredNSGEnabled,
+			OutboundType:                             string(pointer.From(profile.OutboundType)),
+			PodCidr:                                  pointer.From(profile.PodCidr),
+			ServiceCidr:                              pointer.From(profile.ServiceCidr),
+			PreconfiguredNetworkSecurityGroupEnabled: preconfiguredNetworkSecurityGroupEnabled,
 		},
 	}
 }
