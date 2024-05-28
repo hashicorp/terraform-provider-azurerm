@@ -72,6 +72,7 @@ func (c ManagedEnvironmentsClient) ListWorkloadProfileStatesCompleteMatchingPred
 
 	resp, err := c.ListWorkloadProfileStates(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

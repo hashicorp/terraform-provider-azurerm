@@ -23,6 +23,7 @@ type SiteProperties struct {
 	DefaultHostName             *string                    `json:"defaultHostName,omitempty"`
 	Enabled                     *bool                      `json:"enabled,omitempty"`
 	EnabledHostNames            *[]string                  `json:"enabledHostNames,omitempty"`
+	EndToEndEncryptionEnabled   *bool                      `json:"endToEndEncryptionEnabled,omitempty"`
 	HTTPSOnly                   *bool                      `json:"httpsOnly,omitempty"`
 	HostNameSslStates           *[]HostNameSslState        `json:"hostNameSslStates,omitempty"`
 	HostNames                   *[]string                  `json:"hostNames,omitempty"`

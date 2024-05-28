@@ -42,8 +42,8 @@ type WorkloadsSAPThreeTierVirtualInstanceModel struct {
 
 type DiskVolumeConfiguration struct {
 	VolumeName    string `tfschema:"volume_name"`
-	NumberOfDisks int    `tfschema:"number_of_disks"`
-	SizeGb        int    `tfschema:"size_in_gb"`
+	NumberOfDisks int64  `tfschema:"number_of_disks"`
+	SizeGb        int64  `tfschema:"size_in_gb"`
 	SkuName       string `tfschema:"sku_name"`
 }
 
@@ -96,13 +96,13 @@ type TransportCreateAndMount struct {
 }
 
 type ApplicationServerConfiguration struct {
-	InstanceCount               int                           `tfschema:"instance_count"`
+	InstanceCount               int64                         `tfschema:"instance_count"`
 	SubnetId                    string                        `tfschema:"subnet_id"`
 	VirtualMachineConfiguration []VirtualMachineConfiguration `tfschema:"virtual_machine_configuration"`
 }
 
 type CentralServerConfiguration struct {
-	InstanceCount               int                           `tfschema:"instance_count"`
+	InstanceCount               int64                         `tfschema:"instance_count"`
 	SubnetId                    string                        `tfschema:"subnet_id"`
 	VirtualMachineConfiguration []VirtualMachineConfiguration `tfschema:"virtual_machine_configuration"`
 }
@@ -110,7 +110,7 @@ type CentralServerConfiguration struct {
 type DatabaseServerConfiguration struct {
 	DatabaseType                string                        `tfschema:"database_type"`
 	DiskVolumeConfigurations    []DiskVolumeConfiguration     `tfschema:"disk_volume_configuration"`
-	InstanceCount               int                           `tfschema:"instance_count"`
+	InstanceCount               int64                         `tfschema:"instance_count"`
 	SubnetId                    string                        `tfschema:"subnet_id"`
 	VirtualMachineConfiguration []VirtualMachineConfiguration `tfschema:"virtual_machine_configuration"`
 }
@@ -1372,8 +1372,8 @@ func expandDiskVolumeConfigurations(input []DiskVolumeConfiguration) *sapvirtual
 		skuName := sapvirtualinstances.DiskSkuName(v.SkuName)
 
 		result[v.VolumeName] = sapvirtualinstances.DiskVolumeConfiguration{
-			Count:  utils.Int64(int64(v.NumberOfDisks)),
-			SizeGB: utils.Int64(int64(v.SizeGb)),
+			Count:  utils.Int64(v.NumberOfDisks),
+			SizeGB: utils.Int64(v.SizeGb),
 			Sku: &sapvirtualinstances.DiskSku{
 				Name: &skuName,
 			},
@@ -1393,7 +1393,7 @@ func expandApplicationServer(input []ApplicationServerConfiguration) *sapvirtual
 	applicationServer := input[0]
 
 	result := &sapvirtualinstances.ApplicationServerConfiguration{
-		InstanceCount:               int64(applicationServer.InstanceCount),
+		InstanceCount:               applicationServer.InstanceCount,
 		SubnetId:                    applicationServer.SubnetId,
 		VirtualMachineConfiguration: pointer.From(expandVirtualMachineConfiguration(applicationServer.VirtualMachineConfiguration)),
 	}
@@ -1409,7 +1409,7 @@ func expandCentralServer(input []CentralServerConfiguration) *sapvirtualinstance
 	centralServer := input[0]
 
 	result := &sapvirtualinstances.CentralServerConfiguration{
-		InstanceCount:               int64(centralServer.InstanceCount),
+		InstanceCount:               centralServer.InstanceCount,
 		SubnetId:                    centralServer.SubnetId,
 		VirtualMachineConfiguration: pointer.From(expandVirtualMachineConfiguration(centralServer.VirtualMachineConfiguration)),
 	}
@@ -1426,7 +1426,7 @@ func expandDatabaseServer(input []DatabaseServerConfiguration) *sapvirtualinstan
 
 	result := &sapvirtualinstances.DatabaseConfiguration{
 		DiskConfiguration:           expandDiskVolumeConfigurations(databaseServer.DiskVolumeConfigurations),
-		InstanceCount:               int64(databaseServer.InstanceCount),
+		InstanceCount:               databaseServer.InstanceCount,
 		SubnetId:                    databaseServer.SubnetId,
 		VirtualMachineConfiguration: pointer.From(expandVirtualMachineConfiguration(databaseServer.VirtualMachineConfiguration)),
 	}
@@ -1665,7 +1665,7 @@ func flattenApplicationServer(input sapvirtualinstances.ApplicationServerConfigu
 	result := make([]ApplicationServerConfiguration, 0)
 
 	applicationServerConfig := ApplicationServerConfiguration{
-		InstanceCount:               int(input.InstanceCount),
+		InstanceCount:               input.InstanceCount,
 		SubnetId:                    input.SubnetId,
 		VirtualMachineConfiguration: flattenVirtualMachineConfiguration(input.VirtualMachineConfiguration, d, fmt.Sprintf("%s.0.application_server_configuration", basePath)),
 	}
@@ -1677,7 +1677,7 @@ func flattenCentralServer(input sapvirtualinstances.CentralServerConfiguration, 
 	result := make([]CentralServerConfiguration, 0)
 
 	centralServerConfig := CentralServerConfiguration{
-		InstanceCount:               int(input.InstanceCount),
+		InstanceCount:               input.InstanceCount,
 		SubnetId:                    input.SubnetId,
 		VirtualMachineConfiguration: flattenVirtualMachineConfiguration(input.VirtualMachineConfiguration, d, fmt.Sprintf("%s.0.central_server_configuration", basePath)),
 	}
@@ -1690,7 +1690,7 @@ func flattenDatabaseServer(input sapvirtualinstances.DatabaseConfiguration, d *p
 
 	databaseServerConfig := DatabaseServerConfiguration{
 		DiskVolumeConfigurations:    flattenDiskVolumeConfigurations(input.DiskConfiguration),
-		InstanceCount:               int(input.InstanceCount),
+		InstanceCount:               input.InstanceCount,
 		SubnetId:                    input.SubnetId,
 		VirtualMachineConfiguration: flattenVirtualMachineConfiguration(input.VirtualMachineConfiguration, d, fmt.Sprintf("%s.0.database_server_configuration", basePath)),
 	}
@@ -1808,8 +1808,8 @@ func flattenDiskVolumeConfigurations(input *sapvirtualinstances.DiskConfiguratio
 
 	for k, v := range *input.DiskVolumeConfigurations {
 		diskVolumeConfiguration := DiskVolumeConfiguration{
-			NumberOfDisks: int(pointer.From(v.Count)),
-			SizeGb:        int(pointer.From(v.SizeGB)),
+			NumberOfDisks: pointer.From(v.Count),
+			SizeGb:        pointer.From(v.SizeGB),
 			VolumeName:    k,
 		}
 

@@ -167,7 +167,7 @@ resource "azurerm_log_analytics_saved_search" "test" {
   query        = "Heartbeat | summarize Count() by Computer | take a"
 
   function_alias      = "heartbeat_func"
-  function_parameters = ["a:int=1"]
+  function_parameters = ["a:int=1", "b:int=2", "c:int=3"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

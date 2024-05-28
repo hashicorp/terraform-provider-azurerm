@@ -13,6 +13,60 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
+type HandlerMappings struct {
+	Extension           string `tfschema:"extension"`
+	ScriptProcessorPath string `tfschema:"script_processor_path"`
+	Arguments           string `tfschema:"arguments"`
+}
+
+func HandlerMappingSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeSet,
+		Optional: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"extension": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+				"script_processor_path": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+				"arguments": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+		},
+	}
+}
+func HandlerMappingSchemaComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeSet,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"extension": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+				"script_processor_path": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+				"arguments": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+			},
+		},
+	}
+}
+
 type VirtualApplication struct {
 	VirtualPath        string             `tfschema:"virtual_path"`
 	PhysicalPath       string             `tfschema:"physical_path"`
@@ -933,6 +987,53 @@ func ExpandConnectionStrings(connectionStringsConfig []ConnectionString) *webapp
 	return result
 }
 
+func expandHandlerMapping(handlerMapping []HandlerMappings) *[]webapps.HandlerMapping {
+	if len(handlerMapping) == 0 {
+		return nil
+	}
+
+	result := make([]webapps.HandlerMapping, 0)
+
+	for _, v := range handlerMapping {
+		if v.Arguments != "" {
+			result = append(result, webapps.HandlerMapping{
+				Extension:       pointer.To(v.Extension),
+				ScriptProcessor: pointer.To(v.ScriptProcessorPath),
+				Arguments:       pointer.To(v.Arguments),
+			})
+		} else {
+			result = append(result, webapps.HandlerMapping{
+				Extension:       pointer.To(v.Extension),
+				ScriptProcessor: pointer.To(v.ScriptProcessorPath),
+			})
+		}
+	}
+	return &result
+}
+
+func expandHandlerMappingForUpdate(handlerMapping []HandlerMappings) *[]webapps.HandlerMapping {
+	result := make([]webapps.HandlerMapping, 0)
+	if len(handlerMapping) == 0 {
+		return &result
+	}
+
+	for _, v := range handlerMapping {
+		if v.Arguments != "" {
+			result = append(result, webapps.HandlerMapping{
+				Extension:       pointer.To(v.Extension),
+				ScriptProcessor: pointer.To(v.ScriptProcessorPath),
+				Arguments:       pointer.To(v.Arguments),
+			})
+		} else {
+			result = append(result, webapps.HandlerMapping{
+				Extension:       pointer.To(v.Extension),
+				ScriptProcessor: pointer.To(v.ScriptProcessorPath),
+			})
+		}
+	}
+	return &result
+}
+
 func expandVirtualApplications(virtualApplicationConfig []VirtualApplication) *[]webapps.VirtualApplication {
 	if len(virtualApplicationConfig) == 0 {
 		return nil
@@ -1278,6 +1379,24 @@ func FilterManagedAppSettingsDeprecated(input map[string]string) map[string]stri
 	}
 
 	return input
+}
+
+func flattenHandlerMapping(appHandlerMappings *[]webapps.HandlerMapping) []HandlerMappings {
+	if appHandlerMappings == nil {
+		return []HandlerMappings{}
+	}
+
+	var handlerMappings []HandlerMappings
+	for _, v := range *appHandlerMappings {
+		handlerMapping := HandlerMappings{
+			Extension:           pointer.From(v.Extension),
+			ScriptProcessorPath: pointer.From(v.ScriptProcessor),
+		}
+		handlerMapping.Arguments = pointer.From(v.Arguments)
+		handlerMappings = append(handlerMappings, handlerMapping)
+	}
+
+	return handlerMappings
 }
 
 func flattenVirtualApplications(appVirtualApplications *[]webapps.VirtualApplication) []VirtualApplication {

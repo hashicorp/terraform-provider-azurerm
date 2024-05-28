@@ -598,6 +598,8 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating Linux %s: %+v", id, err)
 			}
 
+			metadata.SetID(id)
+
 			stickySettings := helpers.ExpandStickySettings(functionApp.StickySettings)
 
 			if stickySettings != nil {
@@ -662,7 +664,6 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			metadata.SetID(id)
 			return nil
 		},
 	}

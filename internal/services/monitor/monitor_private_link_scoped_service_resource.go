@@ -134,7 +134,7 @@ func resourceMonitorPrivateLinkScopedServiceRead(d *pluginsdk.ResourceData, meta
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			d.Set("linked_resource_id", props.LinkedResourceId)
+			d.Set("linked_resource_id", normalizeLinkedResourceId(props.LinkedResourceId))
 		}
 	}
 
@@ -157,4 +157,25 @@ func resourceMonitorPrivateLinkScopedServiceDelete(d *pluginsdk.ResourceData, me
 	}
 
 	return nil
+}
+
+func normalizeLinkedResourceId(input *string) *string {
+	if input == nil {
+		return input
+	}
+
+	if resourceId, err := components.ParseComponentIDInsensitively(*input); err == nil {
+		nomalizedId := resourceId.ID()
+		return &nomalizedId
+	}
+	if resourceId, err := workspaces.ParseWorkspaceIDInsensitively(*input); err == nil {
+		nomalizedId := resourceId.ID()
+		return &nomalizedId
+	}
+	if resourceId, err := datacollectionendpoints.ParseDataCollectionEndpointIDInsensitively(*input); err == nil {
+		nomalizedId := resourceId.ID()
+		return &nomalizedId
+	}
+
+	return input
 }

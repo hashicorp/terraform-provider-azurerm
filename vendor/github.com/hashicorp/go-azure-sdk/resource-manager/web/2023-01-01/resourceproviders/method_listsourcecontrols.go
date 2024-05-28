@@ -72,6 +72,7 @@ func (c ResourceProvidersClient) ListSourceControlsCompleteMatchingPredicate(ctx
 
 	resp, err := c.ListSourceControls(ctx)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

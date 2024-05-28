@@ -137,8 +137,8 @@ var serviceTestConfigurationOverrides = mapOf(
         // network has increased timeout to accommodate the custom_ip_prefix resource
         "network" to testConfiguration(timeout = 24),
 
-        // New Relic is only available in East US region
-        "newrelic" to testConfiguration(locationOverride = LocationConfiguration("eastus", "eastus", "eastus", false)),
+        // Run New Relic testcases in Canary Region to avoid generating pollution test data in Production Region, which will cause side effect in Service Partner's Database
+        "newrelic" to testConfiguration(locationOverride = LocationConfiguration("centraluseuap", "eastus", "eastus", false)),
 
         // Network Function is only available in certain locations
         "networkfunction" to testConfiguration(locationOverride = LocationConfiguration("westus2", "eastus2", "westeurope", false)),

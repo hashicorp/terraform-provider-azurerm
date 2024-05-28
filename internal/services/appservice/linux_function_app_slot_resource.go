@@ -565,6 +565,8 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating Linux %s: %+v", id, err)
 			}
 
+			metadata.SetID(id)
+
 			if !functionAppSlot.PublishingDeployBasicAuthEnabled {
 				sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
 					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
@@ -639,7 +641,6 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			metadata.SetID(id)
 			return nil
 		},
 	}

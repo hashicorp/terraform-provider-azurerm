@@ -119,6 +119,11 @@ func dataSourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"private_link_fast_path_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
 			"resource_guid": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -227,6 +232,7 @@ func dataSourceVirtualNetworkGatewayConnectionRead(d *pluginsdk.ResourceData, me
 		d.Set("egress_bytes_transferred", gwc.EgressBytesTransferred)
 		d.Set("use_policy_based_traffic_selectors", gwc.UsePolicyBasedTrafficSelectors)
 		d.Set("express_route_gateway_bypass", gwc.ExpressRouteGatewayBypass)
+		d.Set("private_link_fast_path_enabled", gwc.EnablePrivateLinkFastPath)
 		d.Set("type", string(gwc.ConnectionType))
 		d.Set("connection_protocol", string(gwc.ConnectionProtocol))
 		d.Set("routing_weight", gwc.RoutingWeight)

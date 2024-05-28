@@ -8,14 +8,14 @@ import (
 	"fmt"
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 )
 
 func TestAccLinuxVirtualMachineScaleSet_otherBootDiagnostics(t *testing.T) {
@@ -167,17 +167,15 @@ func TestAccLinuxVirtualMachineScaleSet_otherUserData(t *testing.T) {
 		},
 		data.ImportStep(
 			"admin_password",
-			"user_data",
 		),
 		{
-			Config: r.otherUserData(data, "Goodbye Wolrd"),
+			Config: r.otherUserData(data, "Goodbye World"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(
 			"admin_password",
-			"user_data",
 		),
 		{
 			// removed
@@ -188,7 +186,6 @@ func TestAccLinuxVirtualMachineScaleSet_otherUserData(t *testing.T) {
 		},
 		data.ImportStep(
 			"admin_password",
-			"user_data",
 		),
 	})
 }
@@ -668,14 +665,14 @@ func TestAccLinuxVirtualMachineScaleSet_otherRollingUpgradePolicyUpdate(t *testi
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.otherRollingUpgradePolicyUpdate(data, true, 10, 10, 10, "PT0S", true),
+			Config: r.otherRollingUpgradePolicyUpdate(data, true, 10, 10, 10, "PT0S", true, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("admin_password"),
 		{
-			Config: r.otherRollingUpgradePolicyUpdate(data, false, 20, 20, 20, "PT1S", false),
+			Config: r.otherRollingUpgradePolicyUpdate(data, false, 20, 20, 20, "PT1S", false, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -779,40 +776,44 @@ func TestAccLinuxVirtualMachineScaleSet_otherCancelRollingUpgrades(t *testing.T)
 				data.CheckWithClientForResource(func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
 					// This function manually updates the value for the image sku which triggers rolling upgrades
 					// and simulates the scenario where rolling upgrades are running when we try to delete a VMSS
-					client := clients.Compute.VMScaleSetClient
+					client := clients.Compute.VirtualMachineScaleSetsClient
 
-					id, err := commonids.ParseVirtualMachineScaleSetID(state.Attributes["id"])
+					id, err := virtualmachinescalesets.ParseVirtualMachineScaleSetID(state.Attributes["id"])
 					if err != nil {
 						return err
 					}
 
-					existing, err := client.Get(ctx, id.ResourceGroupName, id.VirtualMachineScaleSetName, compute.ExpandTypesForGetVMScaleSetsUserData)
+					ctx2, cancel := context.WithTimeout(ctx, 5*time.Minute)
+					defer cancel()
+					options := virtualmachinescalesets.DefaultGetOperationOptions()
+					options.Expand = pointer.To(virtualmachinescalesets.ExpandTypesForGetVMScaleSetsUserData)
+					existing, err := client.Get(ctx2, *id, options)
 					if err != nil {
 						return fmt.Errorf("retrieving %s: %+v", *id, err)
 					}
 
-					existingImageReference := existing.VirtualMachineScaleSetProperties.VirtualMachineProfile.StorageProfile.ImageReference
+					existingImageReference := existing.Model.Properties.VirtualMachineProfile.StorageProfile.ImageReference
 
-					imageReference := compute.ImageReference{
+					imageReference := virtualmachinescalesets.ImageReference{
 						Publisher: existingImageReference.Publisher,
 						Offer:     existingImageReference.Offer,
 						Sku:       pointer.To("22_04-lts"),
 						Version:   existingImageReference.Version,
 					}
 
-					updateProps := compute.VirtualMachineScaleSetUpdateProperties{
-						VirtualMachineProfile: &compute.VirtualMachineScaleSetUpdateVMProfile{
-							StorageProfile: &compute.VirtualMachineScaleSetUpdateStorageProfile{
+					updateProps := virtualmachinescalesets.VirtualMachineScaleSetUpdateProperties{
+						VirtualMachineProfile: &virtualmachinescalesets.VirtualMachineScaleSetUpdateVMProfile{
+							StorageProfile: &virtualmachinescalesets.VirtualMachineScaleSetUpdateStorageProfile{
 								ImageReference: &imageReference,
 							},
 						},
-						UpgradePolicy: existing.VirtualMachineScaleSetProperties.UpgradePolicy,
+						UpgradePolicy: existing.Model.Properties.UpgradePolicy,
 					}
-					update := compute.VirtualMachineScaleSetUpdate{
-						VirtualMachineScaleSetUpdateProperties: &updateProps,
+					update := virtualmachinescalesets.VirtualMachineScaleSetUpdate{
+						Properties: &updateProps,
 					}
 
-					if _, err := client.Update(ctx, id.ResourceGroupName, id.VirtualMachineScaleSetName, update); err != nil {
+					if err := client.UpdateThenPoll(ctx2, *id, update, virtualmachinescalesets.DefaultUpdateOperationOptions()); err != nil {
 						return fmt.Errorf("updating %s: %+v", *id, err)
 					}
 
@@ -2726,7 +2727,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LinuxVirtualMachineScaleSetResource) otherRollingUpgradePolicyUpdate(data acceptance.TestData, cross_zone_upgrades_enabled bool, max_batch_instance_percent, max_unhealthy_instance_percent, max_unhealthy_upgraded_instance_percent int, pause_time_between_batches string, prioritize_unhealthy_instances_enabled bool) string {
+func (r LinuxVirtualMachineScaleSetResource) otherRollingUpgradePolicyUpdate(data acceptance.TestData, cross_zone_upgrades_enabled bool, max_batch_instance_percent, max_unhealthy_instance_percent, max_unhealthy_upgraded_instance_percent int, pause_time_between_batches string, prioritize_unhealthy_instances_enabled bool, maximum_surge_instances bool) string {
 	return fmt.Sprintf(`
 %s
 
@@ -2785,6 +2786,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   upgrade_mode    = "Rolling"
   health_probe_id = azurerm_lb_probe.test.id
+  overprovision   = false
 
   rolling_upgrade_policy {
     cross_zone_upgrades_enabled             = %t
@@ -2793,6 +2795,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     max_unhealthy_upgraded_instance_percent = %d
     pause_time_between_batches              = "%s"
     prioritize_unhealthy_instances_enabled  = %t
+    maximum_surge_instances_enabled         = %t
   }
 
   source_image_reference {
@@ -2821,7 +2824,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   depends_on = [azurerm_lb_rule.test]
 }
-`, r.template(data), data.RandomInteger, cross_zone_upgrades_enabled, max_batch_instance_percent, max_unhealthy_instance_percent, max_unhealthy_upgraded_instance_percent, pause_time_between_batches, prioritize_unhealthy_instances_enabled)
+`, r.template(data), data.RandomInteger, cross_zone_upgrades_enabled, max_batch_instance_percent, max_unhealthy_instance_percent, max_unhealthy_upgraded_instance_percent, pause_time_between_batches, prioritize_unhealthy_instances_enabled, maximum_surge_instances)
 }
 
 func (r LinuxVirtualMachineScaleSetResource) otherHealthProbe(data acceptance.TestData) string {

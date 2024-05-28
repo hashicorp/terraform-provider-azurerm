@@ -15,6 +15,8 @@ import (
 
 // TODO 4.0 check if this can be removed
 // Hacking the SDK model, together with the Create and Get method for working around issue: https://github.com/Azure/azure-rest-api-specs/issues/21487
+// The left issue is `PollingFrequency` is not consistent. The API returns 0, 1, 2, but the SDK expects the string value.
+// tracked on https://github.com/Azure/azure-rest-api-specs/issues/21487
 
 type DataConnectorModel struct {
 	autorest.Response `json:"-"`
@@ -446,7 +448,8 @@ func (t *Time) UnmarshalJSON(data []byte) (err error) {
 	// Firstly, try to parse the date time via RFC3339, which is the expected format defined by Swagger.
 	// However, since the service issue (#21487), it currently doesn't return in this format.
 	// In order not to break the code once the service fix it, we keep this try at first.
-	if time, err := time.Parse(time.RFC3339, string(data)); err == nil {
+	layout := fmt.Sprintf(`"%s"`, time.RFC3339)
+	if time, err := time.Parse(layout, string(data)); err == nil {
 		t.Time = time
 		return nil
 	}

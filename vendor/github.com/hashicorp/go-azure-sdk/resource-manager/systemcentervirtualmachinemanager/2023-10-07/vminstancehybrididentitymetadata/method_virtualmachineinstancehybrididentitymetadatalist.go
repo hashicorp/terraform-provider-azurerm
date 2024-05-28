@@ -73,6 +73,7 @@ func (c VMInstanceHybridIdentityMetadataClient) VirtualMachineInstanceHybridIden
 
 	resp, err := c.VirtualMachineInstanceHybridIdentityMetadataList(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

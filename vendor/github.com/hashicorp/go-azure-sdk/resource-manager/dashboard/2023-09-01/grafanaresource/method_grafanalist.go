@@ -73,6 +73,7 @@ func (c GrafanaResourceClient) GrafanaListCompleteMatchingPredicate(ctx context.
 
 	resp, err := c.GrafanaList(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

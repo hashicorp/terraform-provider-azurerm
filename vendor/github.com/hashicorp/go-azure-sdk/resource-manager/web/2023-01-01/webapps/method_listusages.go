@@ -101,6 +101,7 @@ func (c WebAppsClient) ListUsagesCompleteMatchingPredicate(ctx context.Context, 
 
 	resp, err := c.ListUsages(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
