@@ -35,6 +35,11 @@ func (ContainerRegistryCacheRuleDataSource) Read() sdk.ResourceFunc {
 				return err
 			}
 
+			var state ContainerRegistryCacheRuleDataSourceModel
+			if err := metadata.Decode(&state); err != nil {
+				return err
+			}
+
 			registryId, err := registries.ParseRegistryID(metadata.ResourceData.Get("container_registry_id").(string))
 			if err != nil {
 				return err
