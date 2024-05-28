@@ -63,12 +63,11 @@ func NewContainersClient(o *common.ClientOptions) (*Client, error) {
 		return nil, err
 	}
 
-	containerRegistryClient_v2023_07_01, err := containerregistry_v2023_07_01.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
-		o.Configure(c, o.Authorizers.ResourceManager)
-	})
+cacheRulesClient, err := cacherules.NewCacheRulesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("building Cache Rules client: %+v", err)
 	}
+	o.Configure(cacheRulesClient.Client, o.Authorizers.ResourceManager)
 
 	// AKS
 	fleetUpdateRunsClient, err := updateruns.NewUpdateRunsClientWithBaseURI(o.Environment.ResourceManager)
