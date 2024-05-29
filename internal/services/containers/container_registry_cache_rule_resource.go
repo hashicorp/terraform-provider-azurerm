@@ -142,7 +142,7 @@ func (r ContainerRegistryCacheRule) Create() sdk.ResourceFunc {
 
 			metadata.SetID(id)
 
-			return metadata.Encode(&config)
+			return nil
 		},
 	}
 }
