@@ -138,13 +138,13 @@ func (r ElasticSANVolumeGroupDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			if model := resp.Model; model != nil {
-				state.SanId = elasticSanId.ID()
-				state.Name = id.VolumeGroupName
+			state.SanId = elasticSanId.ID()
+			state.Name = id.VolumeGroupName
 
+			if model := resp.Model; model != nil {
 				flattenedIdentity, err := identity.FlattenSystemOrUserAssignedMapToModel(model.Identity)
 				if err != nil {
-					return fmt.Errorf("flattening identity: %+v", err)
+					return fmt.Errorf("flattening `identity`: %+v", err)
 				}
 				state.Identity = *flattenedIdentity
 
@@ -158,7 +158,7 @@ func (r ElasticSANVolumeGroupDataSource) Read() sdk.ResourceFunc {
 
 					state.Encryption, err = FlattenVolumeGroupEncryption(model.Properties.EncryptionProperties)
 					if err != nil {
-						return fmt.Errorf("flattening encryption: %+v", err)
+						return fmt.Errorf("flattening `encryption`: %+v", err)
 					}
 				}
 			}

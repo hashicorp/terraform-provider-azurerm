@@ -56,11 +56,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 An `encryption` block exports the following arguments:
 
-* `key_vault_key_id` - The Key Vault key URI for Customer Managed Key encryption, which can be either a full URI or a versionless URI.
+* `key_vault_key_id` - The Key Vault Key URI for Customer Managed Key encryption, which can be either a full URI or a versionless URI.
 
 * `user_assigned_identity_id` - The ID of the User Assigned Identity used by this Elastic SAN Volume Group.
 
-* `current_versioned_key_expiration_timestamp` - The timestamp of the expiration time for the current version of the customer managed key.
+* `current_versioned_key_expiration_timestamp` - The timestamp of the expiration time for the current version of the Customer Managed Key.
 
 * `current_versioned_key_id` - The ID of the current versioned Key Vault Key in use.
 
@@ -82,9 +82,9 @@ An `identity` block exports the following arguments:
 
 A `network_rule` block exports the following arguments:
 
-* `subnet_id` - The ID of the Subnet which is allowed to access this Elastic SAN Volume Group.
+* `subnet_id` - The ID of the Subnet from which access to this Elastic SAN Volume Group is allowed.
 
-* `action` - The action to take when the Subnet attempts to access this Elastic SAN Volume Group.
+* `action` - The action to take when an access attempt to this Elastic SAN Volume Group from this Subnet is made.
 
 ## Timeouts
 
