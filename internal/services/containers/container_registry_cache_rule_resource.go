@@ -120,9 +120,6 @@ func (r ContainerRegistryCacheRule) Create() sdk.ResourceFunc {
 				return tf.ImportAsExistsError("azurerm_container_registry_cache_rule", id.ID())
 			}
 
-			// TODO: make a check that the repo is available in the registry.
-			// TODO: validate the source repo.
-
 			parameters := cacherules.CacheRule{
 				Name: &id.CacheRuleName,
 				Properties: &cacherules.CacheRuleProperties{
