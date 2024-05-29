@@ -52,8 +52,11 @@ func TestAccKubernetesCluster_updateVmSizeAfterFailureWithTempAndDefault(t *test
 				check.That(data.ResourceName).ExistsInAzure(r),
 				// create the temporary node pool to simulate the case where both old default node pool and temp node pool exist
 				data.CheckWithClientForResource(func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
-					ctx, cancel := context.WithDeadline(clients.StopContext, time.Now().Add(1*time.Hour))
-					defer cancel()
+					if _, ok := ctx.Deadline(); !ok {
+						var cancel context.CancelFunc
+						ctx, cancel = context.WithTimeout(ctx, 1*time.Hour)
+						defer cancel()
+					}
 
 					client := clients.Containers.AgentPoolsClient
 
@@ -108,8 +111,11 @@ func TestAccKubernetesCluster_updateVmSizeAfterFailureWithTempWithoutDefault(t *
 				check.That(data.ResourceName).ExistsInAzure(r),
 				// create the temporary node pool and delete the old default node pool to simulate the case where resizing fails when trying to bring up the new node pool
 				data.CheckWithClientForResource(func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
-					ctx, cancel := context.WithDeadline(clients.StopContext, time.Now().Add(1*time.Hour))
-					defer cancel()
+					if _, ok := ctx.Deadline(); !ok {
+						var cancel context.CancelFunc
+						ctx, cancel = context.WithTimeout(ctx, 1*time.Hour)
+						defer cancel()
+					}
 
 					client := clients.Containers.AgentPoolsClient
 

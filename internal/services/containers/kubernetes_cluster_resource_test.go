@@ -246,8 +246,11 @@ func (t KubernetesClusterResource) Exists(ctx context.Context, clients *clients.
 
 func (KubernetesClusterResource) updateDefaultNodePoolAgentCount(nodeCount int) acceptance.ClientCheckFunc {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
-		ctx, cancel := context.WithDeadline(clients.StopContext, time.Now().Add(1*time.Hour))
-		defer cancel()
+		if _, ok := ctx.Deadline(); !ok {
+			var cancel context.CancelFunc
+			ctx, cancel = context.WithTimeout(ctx, 1*time.Hour)
+			defer cancel()
+		}
 
 		nodePoolName := state.Attributes["default_node_pool.0.name"]
 		clusterName := state.Attributes["name"]
