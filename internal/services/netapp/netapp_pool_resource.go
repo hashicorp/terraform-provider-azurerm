@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -104,14 +105,16 @@ func resourceNetAppPool() *pluginsdk.Resource {
 		},
 	}
 
-	resource.Schema["qos_type"] = &pluginsdk.Schema{
-		Type:     pluginsdk.TypeString,
-		Optional: true,
-		Computed: true,
-		ValidateFunc: validation.StringInSlice([]string{
-			string(capacitypools.QosTypeAuto),
-			string(capacitypools.QosTypeManual),
-		}, false),
+	if !features.FourPointOhBeta() {
+		resource.Schema["qos_type"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(capacitypools.QosTypeAuto),
+				string(capacitypools.QosTypeManual),
+			}, false),
+		}
 	}
 
 	return resource
