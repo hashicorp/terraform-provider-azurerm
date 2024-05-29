@@ -26,9 +26,17 @@ BUG FIXES:
 
 * `azurerm_app_configuration_feature` - update polling interval to tolerate eventual consistency of the API [GH-26025]
 * `azurerm_app_configuration_key` - update polling interval to tolerate eventual consistency of the API [GH-26025]
+* `azurerm_linux_function_app` - fix update handling of `health_check_eviction_time_in_min` and    `WEBSITE_HEALTHCHECK_MAXPINGFAILURES` [GH-26107]
+* `azurerm_linux_function_app_slot` - fix update handling of `health_check_eviction_time_in_min` and `WEBSITE_HEALTHCHECK_MAXPINGFAILURES` [GH-26107]
+* `azurerm_linux_web_app` - fix update handling of `health_check_eviction_time_in_min` and `WEBSITE_HEALTHCHECK_MAXPINGFAILURES` [GH-26107]
+* `azurerm_linux_web_app_slot` - fix update handling of `health_check_eviction_time_in_min` and `WEBSITE_HEALTHCHECK_MAXPINGFAILURES` [GH-26107]
 * `azurerm_postgresql_flexible_server` - prevent premature check on updated `storage_mb` value that prevents the resource from being re-created [GH-25986]
 * `azurerm_redis_access_cache_policy_assignment` - add locks to stabilize creation of multiple policy assignments [GH-26085]
 * `azurerm_redis_access_cache_policy` - add locks to stabilize creation of multiple policy assignments [GH-26085]
+* `azurerm_windows_function_app` - fix update handling of `health_check_eviction_time_in_min` and `WEBSITE_HEALTHCHECK_MAXPINGFAILURES` [GH-26107]
+* `azurerm_windows_function_app_slot` - fix update handling of `health_check_eviction_time_in_min` and `WEBSITE_HEALTHCHECK_MAXPINGFAILURES` [GH-26107]
+* `azurerm_windows_web_app` - fix update handling of `health_check_eviction_time_in_min` and `WEBSITE_HEALTHCHECK_MAXPINGFAILURES` [GH-26107]
+* `azurerm_windows_web_app_slot` - fix update handling of `health_check_eviction_time_in_min` and `WEBSITE_HEALTHCHECK_MAXPINGFAILURES` [GH-26107]
 
 ## 3.105.0 (May 24, 2024)
 
