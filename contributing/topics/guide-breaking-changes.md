@@ -1,6 +1,6 @@
 # Guide: Breaking Changes
 
-Over time, new and existing properities will need either a Default Value added or updated. This can be seen as a quick fix but could expose a breaking change that won't be caught by tests so doing a more in depth look into how Default values can impact Terraform is key.
+Over time, new and existing properties will need either a Default Value added or updated. This can be seen as a quick fix but could expose a breaking change that won't be caught by tests so doing a more in depth look into how Default values can impact Terraform is key.
 
 ## Updating Default Values
 
