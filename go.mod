@@ -18,7 +18,7 @@ require (
 	github.com/google/uuid v1.4.0
 	github.com/hashicorp/go-azure-helpers v0.69.0
 	github.com/hashicorp/go-azure-sdk/resource-manager v0.20240523.1095414
-	github.com/hashicorp/go-azure-sdk/sdk v0.20240523.1095414
+	github.com/hashicorp/go-azure-sdk/sdk v0.20240529.1155048
 	github.com/hashicorp/go-hclog v1.5.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/go-uuid v1.0.3
