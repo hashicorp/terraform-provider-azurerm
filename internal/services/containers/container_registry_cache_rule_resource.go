@@ -112,7 +112,7 @@ func (r ContainerRegistryCacheRule) Create() sdk.ResourceFunc {
 			existing, err := cacheRulesClient.Get(ctx, id)
 			if err != nil {
 				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 				}
 			}
 
