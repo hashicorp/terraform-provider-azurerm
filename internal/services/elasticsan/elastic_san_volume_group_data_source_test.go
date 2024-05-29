@@ -42,7 +42,7 @@ func (d ElasticSANVolumeGroupDataSource) basic(data acceptance.TestData) string 
 %s
 
 data "azurerm_elastic_san_volume_group" "test" {
-  name           = azurerm_elastic_san_volume_group.test.nameelastic_san_id
+  name           = azurerm_elastic_san_volume_group.test.name
   elastic_san_id = azurerm_elastic_san_volume_group.test.elastic_san_id
 }
 `, ElasticSANVolumeGroupTestResource{}.complete(data))
