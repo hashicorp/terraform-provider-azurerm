@@ -166,11 +166,7 @@ func (ContainerRegistryCacheRule) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			subscriptionId := metadata.Client.Account.SubscriptionId
-			resourceGroupName := id.ResourceGroupName
-			registryName := id.RegistryName
-
-			registryId := registries.NewRegistryID(subscriptionId, resourceGroupName, registryName)
+			registryId := registries.NewRegistryID(id.SubscriptionId, id.ResourceGroupName, id.RegistryName)
 
 			resp, err := cacheRulesClient.Get(ctx, *id)
 			if err != nil {
