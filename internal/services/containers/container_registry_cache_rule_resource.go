@@ -182,9 +182,8 @@ func (ContainerRegistryCacheRule) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			registryIdString := registryId.ID()
-			config.Name = pointer.From(&id.CacheRuleName)
-			config.ContainerRegistryId = pointer.From(&registryIdString)
+			config.Name = id.CacheRuleName
+			config.ContainerRegistryId = registryId.ID()
 
 			if model := resp.Model; model != nil {
 				if properties := model.Properties; properties != nil {
