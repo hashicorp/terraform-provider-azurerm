@@ -42,7 +42,6 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 		"azurerm_storage_share":                      dataSourceStorageShare(),
 		"azurerm_storage_sync":                       dataSourceStorageSync(),
 		"azurerm_storage_sync_group":                 dataSourceStorageSyncGroup(),
-		"azurerm_storage_table":                      dataSourceStorageTable(),
 		"azurerm_storage_table_entity":               dataSourceStorageTableEntity(),
 	}
 }
@@ -75,6 +74,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
+		storageTableDataSource{},
 		storageTableEntitiesDataSource{},
 		storageContainersDataSource{},
 	}
