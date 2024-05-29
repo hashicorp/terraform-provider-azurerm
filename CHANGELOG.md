@@ -6,15 +6,16 @@ UPGRADE NOTES:
 
 FEATURES:
 
-* New Data Source: `azurerm_arc_resource_bridge_appliance` [GH-25731]
-* New Data Source: `azurerm_storage_queue` [GH-26087]
-* New Resource: `azurerm_virtual_machine_implicit_data_disk_from_source` [GH-25537]
+* **New Data Source:** `azurerm_arc_resource_bridge_appliance` [GH-25731]
+* **New Data Source:** `azurerm_storage_queue` [GH-26087]
+* **New Resource:** `azurerm_virtual_machine_implicit_data_disk_from_source` [GH-25537]
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v0.20240523.1095414` of `github.com/hashicorp/go-azure-sdk` [GH-26090]
+* dependencies: updating to `v0.20240529.1155048` of `github.com/hashicorp/go-azure-sdk` [GH-26148]
 * `containerapps`: update API version to `2024-03-01` [GH-25993]
 * `keyvault`: populating the cache using both the Key Vault List and Resources API to workaround incomplete/stale data being returned [GH-26070]
+* `servicenetworking`: updating to API Version `2023-11-01` [GH-26148]
 * `virtualnetworkpeerings`: update to use `hashicorp/go-azure-sdk` [GH-26065]
 * `azurerm_automation_powershell72_module` - add support for the `tags` property [GH-26106]
 * `azurerm_bastion_host` - add support for `Developer` SKU [GH-26068]
