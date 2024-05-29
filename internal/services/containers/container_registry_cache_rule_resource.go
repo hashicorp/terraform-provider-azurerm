@@ -88,7 +88,7 @@ func (r ContainerRegistryCacheRule) Create() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			cacheRulesClient := metadata.Client.Containers.CacheRulesClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
-			ctx, cancel := timeouts.ForCreate(metadata.Client.StopContext, metadata.ResourceData)
+			_, cancel := timeouts.ForCreate(metadata.Client.StopContext, metadata.ResourceData)
 
 			var config ContainerRegistryCacheRuleModel
 			if err := metadata.Decode(&config); err != nil {
@@ -149,7 +149,7 @@ func (ContainerRegistryCacheRule) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			cacheRulesClient := metadata.Client.Containers.CacheRulesClient
-			ctx, cancel := timeouts.ForRead(metadata.Client.StopContext, metadata.ResourceData)
+			_, cancel := timeouts.ForRead(metadata.Client.StopContext, metadata.ResourceData)
 
 			var config ContainerRegistryCacheRuleModel
 			if err := metadata.Decode(&config); err != nil {
@@ -196,7 +196,7 @@ func (r ContainerRegistryCacheRule) Update() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			cacheRulesClient := metadata.Client.Containers.CacheRulesClient
-			ctx, cancel := timeouts.ForUpdate(metadata.Client.StopContext, metadata.ResourceData)
+			_, cancel := timeouts.ForUpdate(metadata.Client.StopContext, metadata.ResourceData)
 
 			var config ContainerRegistryCacheRuleModel
 			if err := metadata.Decode(&config); err != nil {
@@ -233,7 +233,7 @@ func (ContainerRegistryCacheRule) Delete() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			cacheRulesClient := metadata.Client.Containers.CacheRulesClient
-			ctx, cancel := timeouts.ForDelete(metadata.Client.StopContext, metadata.ResourceData)
+			_, cancel := timeouts.ForDelete(metadata.Client.StopContext, metadata.ResourceData)
 			defer cancel()
 
 			id, err := cacherules.ParseCacheRuleID(metadata.ResourceData.Id())
