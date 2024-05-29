@@ -44,13 +44,13 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Container Registry Cache Rule. Only Alphanumeric characters allowed. Changing this forces a new resource to be created.
 
-* `container_registry_id` - (Required) The ID of the container registry where the cache rule should apply. Changing this forces a new resource to be created.
+* `container_registry_id` - (Required) The ID of the Container Registry where the Cache Rule should apply. Changing this forces a new resource to be created.
 
 * `source_repo` - (Required) The name of the source repository path. Changing this forces a new resource to be created. 
 
 * `target_repo` - (Required) The name of the new repository path to store artifacts. Changing this forces a new resource to be created.
 
-* `credential_set_id` - (Optional) The ARM resource ID of the credential store which is associated with the cache rule.
+* `credential_set_id` - (Optional) The ARM resource ID of the Credential Store which is associated with the Cache Rule.
 
 ## Attributes Reference
 
