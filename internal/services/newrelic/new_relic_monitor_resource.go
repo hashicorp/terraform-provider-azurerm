@@ -269,6 +269,8 @@ func (r NewRelicMonitorResource) Create() sdk.ResourceFunc {
 			}
 
 			identityValue := expandSystemAssigned(metadata.ResourceData.Get("identity").([]interface{}))
+
+			// Currently the API does not accept `None` type: https://github.com/Azure/azure-rest-api-specs/issues/29257
 			if identityValue.Type != identity.TypeNone {
 				properties.Identity = identityValue
 			}
@@ -533,7 +535,7 @@ func flattenUserInfoModel(input *monitors.UserInfo) []UserInfoModel {
 	return append(outputList, output)
 }
 
-// Currently the API only supports `SystemAssigned` type.
+// Currently the API only supports `SystemAssigned` type: https://github.com/Azure/azure-rest-api-specs/issues/29256
 func expandSystemAssigned(input []interface{}) *identity.SystemAndUserAssignedMap {
 	if len(input) == 0 || input[0] == nil {
 		return &identity.SystemAndUserAssignedMap{
