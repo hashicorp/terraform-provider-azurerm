@@ -72,6 +72,7 @@ func (c ExpressRouteCircuitPeeringsClient) ListCompleteMatchingPredicate(ctx con
 
 	resp, err := c.List(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

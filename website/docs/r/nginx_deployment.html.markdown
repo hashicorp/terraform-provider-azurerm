@@ -143,7 +143,9 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the NGINX Deployment should exist. Changing this forces a new NGINX Deployment to be created.
 
-* `sku` - (Required) Specifies the NGINX Deployment SKU. Possible values include `standard_Monthly`. Changing this forces a new resource to be created.
+* `sku` - (Required) Specifies the NGINX Deployment SKU. Possible values are `standard_Monthly` and `basic_Monthly`. Changing this forces a new resource to be created.
+
+-> **NOTE:** If you are setting the `sku` to `basic_Monthly`, you should use [Terraform's `ignore_changes` functionality](https://www.terraform.io/language/meta-arguments/lifecycle#ignore_changes) to ignore changes to the `capacity` field.
 
 * `managed_resource_group` - (Optional) Specify the managed resource group to deploy VNet injection related network resources. Changing this forces a new NGINX Deployment to be created.
 
@@ -155,7 +157,7 @@ The following arguments are supported:
 
 * `auto_scale_profile` - (Optional) An `auto_scale_profile` block as defined below.
 
-* `diagnose_support_enabled` - (Optional) Should the diagnosis support be enabled?
+* `diagnose_support_enabled` - (Optional) Should the metrics be exported to Azure Monitor?
 
 * `email` - (Optional) Specify the preferred support contact email address for receiving alerts and notifications.
 
@@ -179,7 +181,7 @@ The following arguments are supported:
 
 A `identity` block supports the following:
 
-* `type` - (Required) Specifies the identity type of the NGINX Deployment. Possible values are `UserAssigned`, `SystemAssigned`.
+* `type` - (Required) Specifies the identity type of the NGINX Deployment. Possible values are `SystemAssigned`, `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 * `identity_ids` - (Optional) Specifies a list of user managed identity ids to be assigned.
 

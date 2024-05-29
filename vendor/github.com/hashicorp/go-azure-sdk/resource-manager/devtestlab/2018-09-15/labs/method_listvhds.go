@@ -72,6 +72,7 @@ func (c LabsClient) ListVhdsCompleteMatchingPredicate(ctx context.Context, id La
 
 	resp, err := c.ListVhds(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

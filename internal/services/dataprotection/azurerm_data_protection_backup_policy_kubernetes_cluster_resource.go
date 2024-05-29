@@ -38,7 +38,7 @@ type DefaultRetentionRule struct {
 type RetentionRule struct {
 	Name      string      `tfschema:"name"`
 	Criteria  []Criteria  `tfschema:"criteria"`
-	Priority  int         `tfschema:"priority"`
+	Priority  int64       `tfschema:"priority"`
 	LifeCycle []LifeCycle `tfschema:"life_cycle"`
 }
 
@@ -458,7 +458,7 @@ func expandBackupPolicyKubernetesClusterTaggingCriteriaArray(input []RetentionRu
 	for _, item := range input {
 		result := backuppolicies.TaggingCriteria{
 			IsDefault:       false,
-			TaggingPriority: int64(item.Priority),
+			TaggingPriority: item.Priority,
 			TagInfo: backuppolicies.RetentionTag{
 				Id:      utils.String(item.Name + "_"),
 				TagName: item.Name,
@@ -574,13 +574,13 @@ func flattenBackupPolicyKubernetesClusterRetentionRules(input *[]backuppolicies.
 	for _, item := range *input {
 		if retentionRule, ok := item.(backuppolicies.AzureRetentionRule); ok {
 			var name string
-			var taggingPriority int
+			var taggingPriority int64
 			var taggingCriteria []Criteria
 			if retentionRule.IsDefault == nil || !*retentionRule.IsDefault {
 				name = retentionRule.Name
 				for _, criteria := range taggingCriterias {
 					if strings.EqualFold(criteria.TagInfo.TagName, name) {
-						taggingPriority = int(criteria.TaggingPriority)
+						taggingPriority = criteria.TaggingPriority
 						taggingCriteria = flattenBackupPolicyKubernetesClusterBackupCriteriaArray(criteria.Criteria)
 						break
 					}

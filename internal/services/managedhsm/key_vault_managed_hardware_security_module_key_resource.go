@@ -39,7 +39,7 @@ type KeyVaultMHSMKeyResourceSchema struct {
 	ManagedHSMID   string                 `tfschema:"managed_hsm_id"`
 	KeyType        string                 `tfschema:"key_type"`
 	KeyOpts        []string               `tfschema:"key_opts"`
-	KeySize        int                    `tfschema:"key_size"`
+	KeySize        int64                  `tfschema:"key_size"`
 	Curve          string                 `tfschema:"curve"`
 	NotBeforeDate  string                 `tfschema:"not_before_date"`
 	ExpirationDate string                 `tfschema:"expiration_date"`
@@ -329,7 +329,7 @@ func (r KeyVaultMHSMKeyResource) Read() sdk.ResourceFunc {
 					if err != nil {
 						return fmt.Errorf("Could not decode N: %+v", err)
 					}
-					schema.KeySize = len(nBytes) * 8
+					schema.KeySize = int64(len(nBytes) * 8)
 				}
 
 				if attributes := resp.Attributes; attributes != nil {

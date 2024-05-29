@@ -20,7 +20,9 @@ func (r Registration) Name() string {
 }
 
 func (r Registration) DataSources() []sdk.DataSource {
-	return []sdk.DataSource{}
+	return []sdk.DataSource{
+		ArcResourceBridgeApplianceDataSource{},
+	}
 }
 
 func (r Registration) Resources() []sdk.Resource {

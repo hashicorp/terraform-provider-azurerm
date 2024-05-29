@@ -278,7 +278,8 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 
 			"public_network_access_enabled": {
 				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Optional: true,
+				Default:  true,
 			},
 
 			"replication_role": {
@@ -383,11 +384,6 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 
 			newMb = newStorageMbRaw.(int)
 			newTier = newTierRaw.(string)
-
-			// storage_mb can only be scaled up...
-			if newMb < oldStorageMbRaw.(int) {
-				return fmt.Errorf("'storage_mb' can only be scaled up, expected the new 'storage_mb' value (%d) to be larger than the previous 'storage_mb' value (%d)", newMb, oldStorageMbRaw.(int))
-			}
 
 			// if newMb or newTier values are empty,
 			// assign the default values that will
@@ -517,7 +513,10 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("expanding `sku_name` for %s: %v", id, err)
 	}
 
-	storage := expandArmServerStorage(d)
+	storage, err := expandArmServerStorage(d)
+	if err != nil {
+		return err
+	}
 	var storageMb int
 
 	if storage.StorageSizeGB == nil || *storage.StorageSizeGB == 0 {
@@ -781,7 +780,7 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 		}
 	}
 
-	if d.HasChange("private_dns_zone_id") {
+	if d.HasChange("private_dns_zone_id") || d.HasChange("public_network_access_enabled") {
 		parameters.Properties.Network = expandArmServerNetwork(d)
 	}
 
@@ -854,9 +853,14 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 
 	if d.HasChange("auto_grow_enabled") || d.HasChange("storage_mb") || d.HasChange("storage_tier") {
 		// TODO remove the additional update after https://github.com/Azure/azure-rest-api-specs/issues/22867 is fixed
+		storage, err := expandArmServerStorage(d)
+		if err != nil {
+			return err
+		}
+
 		storageUpdateParameters := servers.ServerForUpdate{
 			Properties: &servers.ServerPropertiesForUpdate{
-				Storage: expandArmServerStorage(d),
+				Storage: storage,
 			},
 		}
 
@@ -978,6 +982,12 @@ func expandArmServerNetwork(d *pluginsdk.ResourceData) *servers.Network {
 		network.PrivateDnsZoneArmResourceId = utils.String(v.(string))
 	}
 
+	publicNetworkAccessEnabled := servers.ServerPublicNetworkAccessStateEnabled
+	if !d.Get("public_network_access_enabled").(bool) {
+		publicNetworkAccessEnabled = servers.ServerPublicNetworkAccessStateDisabled
+	}
+	network.PublicNetworkAccess = pointer.To(publicNetworkAccessEnabled)
+
 	return &network
 }
 
@@ -999,7 +1009,7 @@ func expandArmServerMaintenanceWindow(input []interface{}) *servers.MaintenanceW
 	return &maintenanceWindow
 }
 
-func expandArmServerStorage(d *pluginsdk.ResourceData) *servers.Storage {
+func expandArmServerStorage(d *pluginsdk.ResourceData) (*servers.Storage, error) {
 	storage := servers.Storage{}
 
 	autoGrow := servers.StorageAutoGrowDisabled
@@ -1007,6 +1017,12 @@ func expandArmServerStorage(d *pluginsdk.ResourceData) *servers.Storage {
 		autoGrow = servers.StorageAutoGrowEnabled
 	}
 	storage.AutoGrow = &autoGrow
+
+	// storage_mb can only be scaled up...
+	oldStorageMbRaw, newStorageMbRaw := d.GetChange("storage_mb")
+	if newStorageMbRaw.(int) < oldStorageMbRaw.(int) {
+		return nil, fmt.Errorf("'storage_mb' can only be scaled up, expected the new 'storage_mb' value (%d) to be larger than the previous 'storage_mb' value (%d)", newStorageMbRaw.(int), oldStorageMbRaw.(int))
+	}
 
 	if v, ok := d.GetOk("storage_mb"); ok {
 		storage.StorageSizeGB = pointer.FromInt64(int64(v.(int) / 1024))
@@ -1016,7 +1032,7 @@ func expandArmServerStorage(d *pluginsdk.ResourceData) *servers.Storage {
 		storage.Tier = pointer.To(servers.AzureManagedDiskPerformanceTiers(v.(string)))
 	}
 
-	return &storage
+	return &storage, nil
 }
 
 func expandArmServerBackup(d *pluginsdk.ResourceData) *servers.Backup {

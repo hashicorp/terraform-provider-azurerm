@@ -26,13 +26,14 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourcePublicIp() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourcePublicIpCreateUpdate,
+		Create: resourcePublicIpCreate,
 		Read:   resourcePublicIpRead,
-		Update: resourcePublicIpCreateUpdate,
+		Update: resourcePublicIpUpdate,
 		Delete: resourcePublicIpDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -178,7 +179,7 @@ func resourcePublicIp() *pluginsdk.Resource {
 	}
 }
 
-func resourcePublicIpCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePublicIpCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PublicIPAddresses
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -187,17 +188,16 @@ func resourcePublicIpCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	log.Printf("[INFO] preparing arguments for AzureRM Public IP creation.")
 
 	id := commonids.NewPublicIPAddressID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id, publicipaddresses.DefaultGetOperationOptions())
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-		}
 
+	existing, err := client.Get(ctx, id, publicipaddresses.DefaultGetOperationOptions())
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_public_ip", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
+	}
+
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_public_ip", id.ID())
 	}
 
 	sku := d.Get("sku").(string)
@@ -205,7 +205,7 @@ func resourcePublicIpCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	if strings.EqualFold(sku, "standard") {
 		if !strings.EqualFold(ipAllocationMethod, "static") {
-			return fmt.Errorf("Static IP allocation must be used when creating Standard SKU public IP addresses.")
+			return fmt.Errorf("static IP allocation must be used when creating Standard SKU public IP addresses")
 		}
 	}
 
@@ -286,10 +286,88 @@ func resourcePublicIpCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, publicIp); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+	return resourcePublicIpRead(d, meta)
+}
+
+func resourcePublicIpUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.PublicIPAddresses
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	log.Printf("[INFO] preparing arguments for AzureRM Public IP update.")
+
+	id, err := commonids.ParsePublicIPAddressID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.Get(ctx, *id, publicipaddresses.DefaultGetOperationOptions())
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", id)
+	}
+
+	payload := existing.Model
+
+	if d.HasChange("allocation_method") {
+		payload.Properties.PublicIPAllocationMethod = pointer.To(publicipaddresses.IPAllocationMethod(d.Get("allocation_method").(string)))
+	}
+
+	if d.HasChange("ddos_protection_mode") {
+		if payload.Properties.DdosSettings == nil {
+			payload.Properties.DdosSettings = &publicipaddresses.DdosSettings{}
+		}
+		payload.Properties.DdosSettings.ProtectionMode = pointer.To(publicipaddresses.DdosSettingsProtectionMode(d.Get("ddos_protection_mode").(string)))
+	}
+
+	if d.HasChange("ddos_protection_plan_id") {
+		if !strings.EqualFold(string(*payload.Properties.DdosSettings.ProtectionMode), "enabled") {
+			return fmt.Errorf("ddos protection plan id can only be set when ddos protection is enabled")
+		}
+		if payload.Properties.DdosSettings == nil {
+			payload.Properties.DdosSettings = &publicipaddresses.DdosSettings{}
+		}
+		payload.Properties.DdosSettings.DdosProtectionPlan = &publicipaddresses.SubResource{
+			Id: pointer.To(d.Get("ddos_protection_plan_id").(string)),
+		}
+	}
+
+	if d.HasChange("idle_timeout_in_minutes") {
+		payload.Properties.IdleTimeoutInMinutes = utils.Int64(d.Get("idle_timeout_in_minutes").(int64))
+	}
+
+	if d.HasChange("domain_name_label") {
+		if payload.Properties.DnsSettings == nil {
+			payload.Properties.DnsSettings = &publicipaddresses.PublicIPAddressDnsSettings{}
+		}
+		payload.Properties.DnsSettings.DomainNameLabel = utils.String(d.Get("domain_name_label").(string))
+	}
+
+	if d.HasChange("reverse_fqdn") {
+		if payload.Properties.DnsSettings == nil {
+			payload.Properties.DnsSettings = &publicipaddresses.PublicIPAddressDnsSettings{}
+		}
+		payload.Properties.DnsSettings.ReverseFqdn = utils.String(d.Get("reverse_fqdn").(string))
+	}
+
+	if d.HasChanges("tags") {
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if err = client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
 	return resourcePublicIpRead(d, meta)
 }
 

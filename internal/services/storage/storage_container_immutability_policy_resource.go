@@ -26,7 +26,7 @@ var _ sdk.ResourceWithUpdate = StorageContainerImmutabilityPolicyResource{}
 
 type ContainerImmutabilityPolicyModel struct {
 	StorageContainerResourceManagerId string `tfschema:"storage_container_resource_manager_id"`
-	ImmutabilityPeriodInDays          int    `tfschema:"immutability_period_in_days"`
+	ImmutabilityPeriodInDays          int64  `tfschema:"immutability_period_in_days"`
 	Locked                            bool   `tfschema:"locked"`
 	ProtectedAppendWritesAllEnabled   bool   `tfschema:"protected_append_writes_all_enabled"`
 	ProtectedAppendWritesEnabled      bool   `tfschema:"protected_append_writes_enabled"`
@@ -155,7 +155,7 @@ func (r StorageContainerImmutabilityPolicyResource) Create() sdk.ResourceFunc {
 				Properties: blobcontainers.ImmutabilityPolicyProperty{
 					AllowProtectedAppendWrites:            pointer.To(model.ProtectedAppendWritesEnabled),
 					AllowProtectedAppendWritesAll:         pointer.To(model.ProtectedAppendWritesAllEnabled),
-					ImmutabilityPeriodSinceCreationInDays: pointer.To(int64(model.ImmutabilityPeriodInDays)),
+					ImmutabilityPeriodSinceCreationInDays: pointer.To(model.ImmutabilityPeriodInDays),
 				},
 			}
 
@@ -224,7 +224,7 @@ func (r StorageContainerImmutabilityPolicyResource) Update() sdk.ResourceFunc {
 				Properties: blobcontainers.ImmutabilityPolicyProperty{
 					AllowProtectedAppendWrites:            pointer.To(model.ProtectedAppendWritesEnabled),
 					AllowProtectedAppendWritesAll:         pointer.To(model.ProtectedAppendWritesAllEnabled),
-					ImmutabilityPeriodSinceCreationInDays: pointer.To(int64(model.ImmutabilityPeriodInDays)),
+					ImmutabilityPeriodSinceCreationInDays: pointer.To(model.ImmutabilityPeriodInDays),
 				},
 			}
 
@@ -293,7 +293,7 @@ func (r StorageContainerImmutabilityPolicyResource) Read() sdk.ResourceFunc {
 					state.ProtectedAppendWritesAllEnabled = *props.AllowProtectedAppendWritesAll
 				}
 				if props.ImmutabilityPeriodSinceCreationInDays != nil {
-					state.ImmutabilityPeriodInDays = int(*props.ImmutabilityPeriodSinceCreationInDays)
+					state.ImmutabilityPeriodInDays = *props.ImmutabilityPeriodSinceCreationInDays
 				}
 				if props.State != nil {
 					state.Locked = *props.State == blobcontainers.ImmutabilityPolicyStateLocked

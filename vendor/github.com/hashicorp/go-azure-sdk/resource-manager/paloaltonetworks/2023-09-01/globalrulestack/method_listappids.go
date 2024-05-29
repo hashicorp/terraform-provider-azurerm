@@ -107,6 +107,7 @@ func (c GlobalRulestackClient) ListAppIdsComplete(ctx context.Context, id Global
 
 	resp, err := c.ListAppIds(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
