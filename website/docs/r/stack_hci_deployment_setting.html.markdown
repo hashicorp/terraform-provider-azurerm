@@ -13,7 +13,6 @@ Manages a Stack HCI Deployment Setting.
 -> Note: Completion of the prerequisites of deploying the Azure Stack HCI in your environment is outside the scope of this document. For more details refer to the [Azure Stack HCI deployment sequence](https://learn.microsoft.com/en-us/azure-stack/hci/deploy/deployment-introduction#deployment-sequence). If you encounter issues completing the prerequisites, we'd recommend opening a ticket with Microsoft Support.
 
 -> Note: The Azure Provider include a Feature Toggle `delete_arc_bridge_on_destroy` which controls whether to delete Arc Resource Bridge generated on destroy, and Feature Toggle `delete_custom_location_on_destroy` which controls whether to delete Custom Location on destroy. The Provider will not do the deletion by default. See [the Features block documentation](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block) for more information on Feature Toggles within Terraform.
- 
 
 ## Example Usage
 
@@ -580,6 +579,7 @@ A `storage_network` block supports the following:
 * `network_adapter_name` - (Required) The name of the network adapter. Changing this forces a new Stack HCI Deployment Setting to be created.
 
 * `vlan_id` - (Required) Specifies the ID for the VLAN storage network. This setting is applied to the network interfaces that route the storage and VM migration traffic. Changing this forces a new Stack HCI Deployment Setting to be created.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
