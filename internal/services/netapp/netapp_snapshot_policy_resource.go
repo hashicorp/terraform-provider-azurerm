@@ -71,7 +71,6 @@ func resourceNetAppSnapshotPolicy() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"snapshots_to_keep": {
@@ -93,7 +92,6 @@ func resourceNetAppSnapshotPolicy() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"snapshots_to_keep": {
@@ -121,7 +119,6 @@ func resourceNetAppSnapshotPolicy() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"snapshots_to_keep": {
@@ -159,7 +156,6 @@ func resourceNetAppSnapshotPolicy() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"snapshots_to_keep": {
@@ -439,7 +435,7 @@ func expandNetAppSnapshotPolicyMonthlySchedule(input []interface{}) *snapshotpol
 }
 
 func flattenNetAppVolumeSnapshotPolicyHourlySchedule(input *snapshotpolicy.HourlySchedule) []interface{} {
-	if input == nil {
+	if input == nil || (input.Minute == nil && input.SnapshotsToKeep == nil) {
 		return []interface{}{}
 	}
 
@@ -452,7 +448,7 @@ func flattenNetAppVolumeSnapshotPolicyHourlySchedule(input *snapshotpolicy.Hourl
 }
 
 func flattenNetAppVolumeSnapshotPolicyDailySchedule(input *snapshotpolicy.DailySchedule) []interface{} {
-	if input == nil {
+	if input == nil || (input.SnapshotsToKeep == nil && input.Hour == nil && input.Minute == nil) {
 		return []interface{}{}
 	}
 
@@ -466,7 +462,7 @@ func flattenNetAppVolumeSnapshotPolicyDailySchedule(input *snapshotpolicy.DailyS
 }
 
 func flattenNetAppVolumeSnapshotPolicyWeeklySchedule(input *snapshotpolicy.WeeklySchedule) []interface{} {
-	if input == nil {
+	if input == nil || (input.SnapshotsToKeep == nil && input.Day == nil && input.Hour == nil && input.Minute == nil) {
 		return []interface{}{}
 	}
 
@@ -488,7 +484,7 @@ func flattenNetAppVolumeSnapshotPolicyWeeklySchedule(input *snapshotpolicy.Weekl
 }
 
 func flattenNetAppVolumeSnapshotPolicyMonthlySchedule(input *snapshotpolicy.MonthlySchedule) []interface{} {
-	if input == nil {
+	if input == nil || (input.SnapshotsToKeep == nil && input.DaysOfMonth == nil && input.Hour == nil && input.Minute == nil) {
 		return []interface{}{}
 	}
 
