@@ -11,6 +11,7 @@ import (
 type Registration struct{}
 
 var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+var _ sdk.TypedServiceRegistration = Registration{}
 
 func (r Registration) AssociatedGitHubLabel() string {
 	return "service/postgresql"
@@ -48,9 +49,18 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_postgresql_active_directory_administrator":                 resourcePostgreSQLAdministrator(),
 		"azurerm_postgresql_flexible_server":                                resourcePostgresqlFlexibleServer(),
 		"azurerm_postgresql_flexible_server_firewall_rule":                  resourcePostgresqlFlexibleServerFirewallRule(),
-		"azurerm_postgresql_flexible_server_firewall_rules":                 resourcePostgresqlFlexibleServerFirewallRules(),
 		"azurerm_postgresql_flexible_server_configuration":                  resourcePostgresqlFlexibleServerConfiguration(),
 		"azurerm_postgresql_flexible_server_database":                       resourcePostgresqlFlexibleServerDatabase(),
 		"azurerm_postgresql_flexible_server_active_directory_administrator": resourcePostgresqlFlexibleServerAdministrator(),
+	}
+}
+
+func (Registration) DataSources() []sdk.DataSource {
+	return []sdk.DataSource{}
+}
+
+func (Registration) Resources() []sdk.Resource {
+	return []sdk.Resource{
+		FlexibleServerFirewallRulesResource{},
 	}
 }
