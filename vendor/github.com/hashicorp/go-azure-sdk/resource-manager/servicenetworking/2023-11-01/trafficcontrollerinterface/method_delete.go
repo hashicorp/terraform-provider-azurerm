@@ -27,7 +27,6 @@ func (c TrafficControllerInterfaceClient) Delete(ctx context.Context, id Traffic
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,
-			http.StatusOK,
 		},
 		HttpMethod: http.MethodDelete,
 		Path:       id.ID(),

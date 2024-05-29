@@ -27,7 +27,6 @@ func (c FrontendsInterfaceClient) Delete(ctx context.Context, id FrontendId) (re
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,
-			http.StatusOK,
 		},
 		HttpMethod: http.MethodDelete,
 		Path:       id.ID(),
