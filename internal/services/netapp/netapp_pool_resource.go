@@ -26,7 +26,7 @@ import (
 )
 
 func resourceNetAppPool() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceNetAppPoolCreate,
 		Read:   resourceNetAppPoolRead,
 		Update: resourceNetAppPoolUpdate,
@@ -82,7 +82,7 @@ func resourceNetAppPool() *pluginsdk.Resource {
 			"qos_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Default:  string(capacitypools.QosTypeAuto),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(capacitypools.QosTypeAuto),
 					string(capacitypools.QosTypeManual),
@@ -103,6 +103,18 @@ func resourceNetAppPool() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
+
+	resource.Schema["qos_type"] = &pluginsdk.Schema{
+		Type:     pluginsdk.TypeString,
+		Optional: true,
+		Computed: true,
+		ValidateFunc: validation.StringInSlice([]string{
+			string(capacitypools.QosTypeAuto),
+			string(capacitypools.QosTypeManual),
+		}, false),
+	}
+
+	return resource
 }
 
 func resourceNetAppPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error {
