@@ -179,7 +179,7 @@ func (ContainerRegistryCacheRule) Read() sdk.ResourceFunc {
 					return metadata.MarkAsGone(id)
 				}
 
-				return fmt.Errorf("retrieving Container Registry Cache Rule %s: %+v", *id, err)
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
 			registryIdString := registryId.ID()
