@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -56,7 +57,7 @@ func resourceVirtualNetwork() *pluginsdk.Resource {
 }
 
 func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	s := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -69,10 +70,9 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"address_space": {
-			Type:             pluginsdk.TypeList,
-			Required:         true,
-			MinItems:         1,
-			DiffSuppressFunc: suppress.ListOrder,
+			Type:     pluginsdk.TypeSet,
+			Required: true,
+			MinItems: 1,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -182,6 +182,21 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 
 		"tags": tags.Schema(),
 	}
+
+	if !features.FourPointOhBeta() {
+		s["address_space"] = &pluginsdk.Schema{
+			Type:             pluginsdk.TypeList,
+			Required:         true,
+			MinItems:         1,
+			DiffSuppressFunc: suppress.ListOrder,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+		}
+	}
+
+	return s
 }
 
 func resourceVirtualNetworkCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -297,7 +312,13 @@ func resourceVirtualNetworkRead(d *pluginsdk.ResourceData, meta interface{}) err
 		d.Set("flow_timeout_in_minutes", props.FlowTimeoutInMinutes)
 
 		if space := props.AddressSpace; space != nil {
-			d.Set("address_space", utils.FlattenStringSlice(space.AddressPrefixes))
+			if !features.FourPointOhBeta() {
+				d.Set("address_space", utils.FlattenStringSlice(space.AddressPrefixes))
+			} else {
+				if err = d.Set("address_space", space.AddressPrefixes); err != nil {
+					return fmt.Errorf("setting `address_space`: %+v", err)
+				}
+			}
 		}
 
 		if err := d.Set("ddos_protection_plan", flattenVirtualNetworkDDoSProtectionPlan(props)); err != nil {
@@ -402,13 +423,17 @@ func expandVirtualNetworkProperties(ctx context.Context, d *pluginsdk.ResourceDa
 	}
 
 	properties := &network.VirtualNetworkPropertiesFormat{
-		AddressSpace: &network.AddressSpace{
-			AddressPrefixes: utils.ExpandStringSlice(d.Get("address_space").([]interface{})),
-		},
+		AddressSpace: &network.AddressSpace{},
 		DhcpOptions: &network.DhcpOptions{
 			DNSServers: utils.ExpandStringSlice(d.Get("dns_servers").([]interface{})),
 		},
 		Subnets: &subnets,
+	}
+
+	if !features.FourPointOhBeta() {
+		properties.AddressSpace.AddressPrefixes = utils.ExpandStringSlice(d.Get("address_space").([]interface{}))
+	} else {
+		properties.AddressSpace.AddressPrefixes = utils.ExpandStringSlice(d.Get("address_space").(*pluginsdk.Set).List())
 	}
 
 	if v, ok := d.GetOk("ddos_protection_plan"); ok {
