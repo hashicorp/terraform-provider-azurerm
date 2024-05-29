@@ -105,6 +105,7 @@ This is a breaking change as Terraform should not trigger a plan between minor v
 			"3.4", 
 		}, false),
 	},
+```
 
 ## Adding a new property with a default value
 
@@ -113,7 +114,7 @@ When adding a new property with a default value, we can introduce a similar brea
 It originally came in like this:
 
 ```hcl
-"enable_auto_stop": {
+"auto_stop_enabled": {
 	Type:     pluginsdk.TypeBool,
 	Optional: true,
 },
@@ -122,7 +123,7 @@ It originally came in like this:
 Our tests were failing because the Azure API was returning this value as true while Terraform does not expect this value to be set because it isn't specified in the config file. To fix this breaking change, we need to add a Default like so:
 
 ```hcl
-"enable_auto_stop": {
+"auto_stop_enabled": {
 	Type:     pluginsdk.TypeBool,
 	Optional: true,
 	Default:  true,
