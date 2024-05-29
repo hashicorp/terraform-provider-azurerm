@@ -266,8 +266,8 @@ func (ContainerRegistryCacheRule) CustomizeDiff() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			if oldVal, newVal := metadata.ResourceDiff.GetChange("container_registry_id"); oldVal.(string) != "" && newVal.(string) == "" {
-				if err := metadata.ResourceDiff.ForceNew("container_registry_id"); err != nil {
+			if oldVal, newVal := metadata.ResourceDiff.GetChange("credential_set_id"); oldVal.(string) != "" && newVal.(string) == "" {
+				if err := metadata.ResourceDiff.ForceNew("credential_set_id"); err != nil {
 					return err
 				}
 			}
