@@ -65,12 +65,12 @@ func (t ContainerRegistryCacheRuleResource) Exists(ctx context.Context, clients 
 func (ContainerRegistryCacheRuleResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-	features {}
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
-	name     = "accTestRG-acr-cache-rule-%d"
-	location = "%s"
+  name     = "accTestRG-acr-cache-rule-%d"
+  location = "%s"
 }
 
 resource "azurerm_container_registry" "test" {
