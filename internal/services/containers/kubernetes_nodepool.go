@@ -1183,10 +1183,10 @@ func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAg
 		if upgradeSettingsNodePool.MaxSurge != nil && *upgradeSettingsNodePool.MaxSurge != "" {
 			agentpool.Properties.UpgradeSettings.MaxSurge = upgradeSettingsNodePool.MaxSurge
 		}
-		if upgradeSettingsNodePool.DrainTimeoutInMinutes != nil && *upgradeSettingsNodePool.DrainTimeoutInMinutes != int64(0) {
+		if upgradeSettingsNodePool.DrainTimeoutInMinutes != nil {
 			agentpool.Properties.UpgradeSettings.DrainTimeoutInMinutes = upgradeSettingsNodePool.DrainTimeoutInMinutes
 		}
-		if upgradeSettingsNodePool.NodeSoakDurationInMinutes != nil && *upgradeSettingsNodePool.NodeSoakDurationInMinutes != int64(0) {
+		if upgradeSettingsNodePool.NodeSoakDurationInMinutes != nil {
 			agentpool.Properties.UpgradeSettings.NodeSoakDurationInMinutes = upgradeSettingsNodePool.NodeSoakDurationInMinutes
 		}
 	}

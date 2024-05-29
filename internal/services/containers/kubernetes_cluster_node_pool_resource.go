@@ -70,9 +70,6 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 			pluginsdk.ForceNewIfChange("upgrade_settings.0.drain_timeout_in_minutes", func(ctx context.Context, old, new, meta interface{}) bool {
 				return old != 0 && new == 0
 			}),
-			pluginsdk.ForceNewIfChange("upgrade_settings.0.node_soak_duration_in_minutes", func(ctx context.Context, old, new, meta interface{}) bool {
-				return old != 0 && new == 0
-			}),
 		),
 	}
 }

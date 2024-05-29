@@ -572,14 +572,7 @@ func TestAccKubernetesClusterNodePool_upgradeSettings(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.upgradeSettings(data, 1, 1),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.upgradeSettingsRemoved(data),
+			Config: r.upgradeSettings(data, 1, 0),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -2051,25 +2044,6 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   }
 }
 `, template, drainTimeout, nodeSoakDuration)
-}
-
-func (r KubernetesClusterNodePoolResource) upgradeSettingsRemoved(data acceptance.TestData) string {
-	template := r.templateConfig(data)
-
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_kubernetes_cluster_node_pool" "test" {
-  name                  = "internal"
-  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_DS2_v2"
-  node_count            = 3
-}
-`, template)
 }
 
 func (r KubernetesClusterNodePoolResource) virtualNetworkAutomaticConfig(data acceptance.TestData) string {
