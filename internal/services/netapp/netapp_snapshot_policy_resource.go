@@ -73,7 +73,6 @@ func resourceNetAppSnapshotPolicy() *pluginsdk.Resource {
 				Optional: true,
 				MaxItems: 1,
 				Computed: !features.FourPointOhBeta(),
-				ForceNew: features.FourPointOhBeta(),
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"snapshots_to_keep": {
@@ -96,7 +95,6 @@ func resourceNetAppSnapshotPolicy() *pluginsdk.Resource {
 				Optional: true,
 				MaxItems: 1,
 				Computed: !features.FourPointOhBeta(),
-				ForceNew: features.FourPointOhBeta(),
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"snapshots_to_keep": {
@@ -125,7 +123,6 @@ func resourceNetAppSnapshotPolicy() *pluginsdk.Resource {
 				Optional: true,
 				MaxItems: 1,
 				Computed: !features.FourPointOhBeta(),
-				ForceNew: features.FourPointOhBeta(),
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"snapshots_to_keep": {
@@ -164,7 +161,6 @@ func resourceNetAppSnapshotPolicy() *pluginsdk.Resource {
 				Optional: true,
 				MaxItems: 1,
 				Computed: !features.FourPointOhBeta(),
-				ForceNew: features.FourPointOhBeta(),
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"snapshots_to_keep": {
@@ -200,6 +196,36 @@ func resourceNetAppSnapshotPolicy() *pluginsdk.Resource {
 
 			"tags": commonschema.Tags(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.ForceNewIfChange("hourly_schedule", func(ctx context.Context, old, new, meta interface{}) bool {
+				if !features.FourPointOhBeta() {
+					return false
+				}
+				return len(old.([]interface{})) > 0 && len(new.([]interface{})) == 0
+			}),
+
+			pluginsdk.ForceNewIfChange("daily_schedule", func(ctx context.Context, old, new, meta interface{}) bool {
+				if !features.FourPointOhBeta() {
+					return false
+				}
+				return len(old.([]interface{})) > 0 && len(new.([]interface{})) == 0
+			}),
+
+			pluginsdk.ForceNewIfChange("weekly_schedule", func(ctx context.Context, old, new, meta interface{}) bool {
+				if !features.FourPointOhBeta() {
+					return false
+				}
+				return len(old.([]interface{})) > 0 && len(new.([]interface{})) == 0
+			}),
+
+			pluginsdk.ForceNewIfChange("monthly_schedule", func(ctx context.Context, old, new, meta interface{}) bool {
+				if !features.FourPointOhBeta() {
+					return false
+				}
+				return len(old.([]interface{})) > 0 && len(new.([]interface{})) == 0
+			}),
+		),
 	}
 }
 
