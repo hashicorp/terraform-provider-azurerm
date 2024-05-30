@@ -1172,7 +1172,6 @@ func upgradeSettingsSchema() *pluginsdk.Schema {
 				"drain_timeout_in_minutes": {
 					Type:     pluginsdk.TypeInt,
 					Optional: true,
-					Default:  30,
 				},
 				"node_soak_duration_in_minutes": {
 					Type:         pluginsdk.TypeInt,

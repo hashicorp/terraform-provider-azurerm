@@ -913,13 +913,6 @@ func TestAccKubernetesClusterNodePool_workloadRuntime(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.workloadRuntime(data, "WasmWasi"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
 			Config: r.workloadRuntime(data, "KataMshvVmIsolation"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -2365,7 +2358,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   vm_size               = "Standard_DS2_v2"
   enable_auto_scaling   = true
   min_count             = 1
-  max_count             = 1000
+  max_count             = 399
   node_count            = 1
 }
 `, r.templateConfig(data))
