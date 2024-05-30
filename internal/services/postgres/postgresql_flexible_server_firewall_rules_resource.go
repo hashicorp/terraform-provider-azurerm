@@ -24,13 +24,19 @@ import (
 )
 
 type FirewallRuleWithId struct {
-	Id           firewallrules.FirewallRuleId
-	FirewallRule firewallrules.FirewallRule
+	Id           firewallrules.FirewallRuleId `tfschema:"id"`
+	FirewallRule firewallrules.FirewallRule   `tfschema:"firewall_rule"`
+}
+
+type NamedFirewallRule struct {
+	Name           string `tfschema:"name"`
+	StartIPAddress string `tfschema:"start_ip_address"`
+	EndIPAddress   string `tfschema:"end_ip_address"`
 }
 
 type FlexibleServerFirewallRulesModel struct {
-	ServerID     string                       `tfschema:"server_id"`
-	FirewallRule []firewallrules.FirewallRule `tfschema:"firewall_rule"`
+	ServerID     string              `tfschema:"server_id"`
+	FirewallRule []NamedFirewallRule `tfschema:"firewall_rule"`
 }
 
 var (
@@ -58,7 +64,6 @@ func (r FlexibleServerFirewallRulesResource) Arguments() map[string]*pluginsdk.S
 					"name": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ForceNew:     true,
 						ValidateFunc: validate.FlexibleServerFirewallRuleName,
 					},
 
@@ -139,11 +144,11 @@ func (r FlexibleServerFirewallRulesResource) Create() sdk.ResourceFunc {
 			for _, address := range m.FirewallRule {
 				fwRule := firewallrules.FirewallRule{
 					Properties: firewallrules.FirewallRuleProperties{
-						EndIPAddress:   address.Properties.EndIPAddress,
-						StartIPAddress: address.Properties.StartIPAddress,
+						EndIPAddress:   address.EndIPAddress,
+						StartIPAddress: address.StartIPAddress,
 					},
 				}
-				fwRuleId := firewallrules.NewFirewallRuleID(subscriptionId, flexibleServerId.ResourceGroupName, flexibleServerId.FlexibleServerName, *address.Name)
+				fwRuleId := firewallrules.NewFirewallRuleID(subscriptionId, flexibleServerId.ResourceGroupName, flexibleServerId.FlexibleServerName, address.Name)
 				correctFirewallRules = append(correctFirewallRules, FirewallRuleWithId{Id: fwRuleId, FirewallRule: fwRule})
 			}
 
@@ -248,9 +253,17 @@ func (r FlexibleServerFirewallRulesResource) Read() sdk.ResourceFunc {
 
 			flexibleServerId := firewallrules.NewFlexibleServerID(subscriptionId, id.ResourceGroupName, id.FlexibleServerName)
 			fwRules, err := firewall_rules_client.ListByServerComplete(ctx, flexibleServerId)
+			currentRulesData := make([]NamedFirewallRule, 0)
+			for _, rule := range fwRules.Items {
+				currentRulesData = append(currentRulesData, NamedFirewallRule{
+					Name:           *rule.Name,
+					StartIPAddress: rule.Properties.StartIPAddress,
+					EndIPAddress:   rule.Properties.EndIPAddress,
+				})
+			}
 			m := FlexibleServerFirewallRulesModel{
 				ServerID:     id.ID(),
-				FirewallRule: fwRules.Items,
+				FirewallRule: currentRulesData,
 			}
 			return metadata.Encode(&m)
 		},
@@ -302,11 +315,11 @@ func (r FlexibleServerFirewallRulesResource) Update() sdk.ResourceFunc {
 				for _, address := range m.FirewallRule {
 					fwRule := firewallrules.FirewallRule{
 						Properties: firewallrules.FirewallRuleProperties{
-							EndIPAddress:   address.Properties.EndIPAddress,
-							StartIPAddress: address.Properties.StartIPAddress,
+							EndIPAddress:   address.EndIPAddress,
+							StartIPAddress: address.StartIPAddress,
 						},
 					}
-					fwRuleId := firewallrules.NewFirewallRuleID(subscriptionId, flexibleServerId.ResourceGroupName, flexibleServerId.FlexibleServerName, *address.Name)
+					fwRuleId := firewallrules.NewFirewallRuleID(subscriptionId, flexibleServerId.ResourceGroupName, flexibleServerId.FlexibleServerName, address.Name)
 					correctFirewallRules = append(correctFirewallRules, FirewallRuleWithId{Id: fwRuleId, FirewallRule: fwRule})
 				}
 
