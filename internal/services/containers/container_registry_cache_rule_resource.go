@@ -88,14 +88,12 @@ func (r ContainerRegistryCacheRule) Create() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			cacheRulesClient := metadata.Client.Containers.CacheRulesClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
-			_, cancel := timeouts.ForCreate(metadata.Client.StopContext, metadata.ResourceData)
 
 			var config ContainerRegistryCacheRuleModel
 			if err := metadata.Decode(&config); err != nil {
 				return err
 			}
 
-			defer cancel()
 			log.Printf("[INFO] preparing arguments for Container Registry Cache Rule creation.")
 
 			registryId, err := registries.ParseRegistryID(metadata.ResourceData.Get("container_registry_id").(string))
