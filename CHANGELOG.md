@@ -6,28 +6,44 @@ UPGRADE NOTES:
 
 FEATURES:
 
-* New Data Source: `azurerm_arc_resource_bridge_appliance` [GH-25731]
-* New Data Source: `azurerm_storage_queue` [GH-26087]
+* **New Data Source:** `azurerm_arc_resource_bridge_appliance` [GH-25731]
+* **New Data Source:** `azurerm_storage_queue` [GH-26087]
+* **New Resource:** `azurerm_virtual_machine_implicit_data_disk_from_source` [GH-25537]
 
-ENHANCEMENTS
+ENHANCEMENTS:
 
-* dependencies: updating to `v0.20240523.1095414` of `github.com/hashicorp/go-azure-sdk` [GH-26090]
+* dependencies: updating to `v0.20240529.1155048` of `github.com/hashicorp/go-azure-sdk` [GH-26148]
+* `containerapps`: update API version to `2024-03-01` [GH-25993]
 * `keyvault`: populating the cache using both the Key Vault List and Resources API to workaround incomplete/stale data being returned [GH-26070]
+* `servicenetworking`: updating to API Version `2023-11-01` [GH-26148]
 * `virtualnetworkpeerings`: update to use `hashicorp/go-azure-sdk` [GH-26065]
 * `azurerm_automation_powershell72_module` - add support for the `tags` property [GH-26106]
-* `azurerm_bastion_host` - added support for `Developer` SKU [GH-26068]
+* `azurerm_bastion_host` - add support for `Developer` SKU [GH-26068]
+* `azurerm_container_app_environment` - add support for the `mutual_tls_enabled` property [GH-25993]
 * `azurerm_container_registry` - add validation to fail fast when setting `public_network_access_enabled` with an invalid SKU [GH-26054]
 * `azurerm_linux_virtual_machine` - `hibernation_enabled` can now be updated [GH-26112]
+* `azurerm_logic_app_trigger_custom` - add support for the property `callback_url` [GH-25979]
+* `azurerm_machine_learning_workspace` - add support for the `serverless_compute` block [GH-25660]
+* `azurerm_new_relic_monitor` - add support for the `identity` block [GH-26115]
 * `azurerm_route_map` - `parameter` is now Optional when the action type is `Drop` [GH-26003]
 * `azurerm_windows_virtual_machine` - `hibernation_enabled` can now be updated [GH-26112]
 
 BUG FIXES:
 
+* Data Source: `azurerm_system_center_virtual_machine_manager_inventory_items` - normalise the resource ID for Intentory Items [GH-25955]
 * `azurerm_app_configuration_feature` - update polling interval to tolerate eventual consistency of the API [GH-26025]
 * `azurerm_app_configuration_key` - update polling interval to tolerate eventual consistency of the API [GH-26025]
+* `azurerm_linux_function_app` - fix update handling of `health_check_eviction_time_in_min` and    `WEBSITE_HEALTHCHECK_MAXPINGFAILURES` [GH-26107]
+* `azurerm_linux_function_app_slot` - fix update handling of `health_check_eviction_time_in_min` and `WEBSITE_HEALTHCHECK_MAXPINGFAILURES` [GH-26107]
+* `azurerm_linux_web_app` - fix update handling of `health_check_eviction_time_in_min` and `WEBSITE_HEALTHCHECK_MAXPINGFAILURES` [GH-26107]
+* `azurerm_linux_web_app_slot` - fix update handling of `health_check_eviction_time_in_min` and `WEBSITE_HEALTHCHECK_MAXPINGFAILURES` [GH-26107]
 * `azurerm_postgresql_flexible_server` - prevent premature check on updated `storage_mb` value that prevents the resource from being re-created [GH-25986]
 * `azurerm_redis_access_cache_policy_assignment` - add locks to stabilize creation of multiple policy assignments [GH-26085]
 * `azurerm_redis_access_cache_policy` - add locks to stabilize creation of multiple policy assignments [GH-26085]
+* `azurerm_windows_function_app` - fix update handling of `health_check_eviction_time_in_min` and `WEBSITE_HEALTHCHECK_MAXPINGFAILURES` [GH-26107]
+* `azurerm_windows_function_app_slot` - fix update handling of `health_check_eviction_time_in_min` and `WEBSITE_HEALTHCHECK_MAXPINGFAILURES` [GH-26107]
+* `azurerm_windows_web_app` - fix update handling of `health_check_eviction_time_in_min` and `WEBSITE_HEALTHCHECK_MAXPINGFAILURES` [GH-26107]
+* `azurerm_windows_web_app_slot` - fix update handling of `health_check_eviction_time_in_min` and `WEBSITE_HEALTHCHECK_MAXPINGFAILURES` [GH-26107]
 
 ## 3.105.0 (May 24, 2024)
 

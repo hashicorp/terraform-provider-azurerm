@@ -102,9 +102,9 @@ The following arguments are supported:
 
 * `replica_retry_limit` - (Optional) The maximum number of times a replica is allowed to retry.
 
-* `secrets` - (Optional) A `secrets` block as defined below.
+* `secret` - (Optional) One or more `secret` blocks as defined below.
 
-* `registries` - (Optional) A `registries` block as defined below.
+* `registry` - (Optional) One or more `registry` blocks as defined below.
 
 * `manual_trigger_config` - (Optional) A `manual_trigger_config` block as defined below.
 
@@ -312,7 +312,7 @@ A `volume` block supports the following:
 
 ---
 
-A `secrets` block supports the following:
+A `secret` block supports the following:
 
 * `name` - (required) Name of the secret.
 
@@ -320,7 +320,7 @@ A `secrets` block supports the following:
 
 ---
 
-A `registries` block supports the following:
+A `registry` block supports the following:
 
 * `identity` - (Optional) A Managed Identity to use to authenticate with Azure Container Registry.
 

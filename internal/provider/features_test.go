@@ -58,9 +58,10 @@ func TestExpandFeatures(t *testing.T) {
 					DeleteNestedItemsDuringDeletion: true,
 				},
 				VirtualMachine: features.VirtualMachineFeatures{
-					DeleteOSDiskOnDeletion:     true,
-					GracefulShutdown:           false,
-					SkipShutdownAndForceDelete: false,
+					DetachImplicitDataDiskOnDeletion: false,
+					DeleteOSDiskOnDeletion:           true,
+					GracefulShutdown:                 false,
+					SkipShutdownAndForceDelete:       false,
 				},
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
 					ForceDelete:               false,
@@ -167,9 +168,10 @@ func TestExpandFeatures(t *testing.T) {
 					},
 					"virtual_machine": []interface{}{
 						map[string]interface{}{
-							"delete_os_disk_on_deletion":     true,
-							"graceful_shutdown":              true,
-							"skip_shutdown_and_force_delete": true,
+							"detach_implicit_data_disk_on_deletion": true,
+							"delete_os_disk_on_deletion":            true,
+							"graceful_shutdown":                     true,
+							"skip_shutdown_and_force_delete":        true,
 						},
 					},
 					"virtual_machine_scale_set": []interface{}{
@@ -240,9 +242,10 @@ func TestExpandFeatures(t *testing.T) {
 					DeleteNestedItemsDuringDeletion: true,
 				},
 				VirtualMachine: features.VirtualMachineFeatures{
-					DeleteOSDiskOnDeletion:     true,
-					GracefulShutdown:           true,
-					SkipShutdownAndForceDelete: true,
+					DetachImplicitDataDiskOnDeletion: true,
+					DeleteOSDiskOnDeletion:           true,
+					GracefulShutdown:                 true,
+					SkipShutdownAndForceDelete:       true,
 				},
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
 					ReimageOnManualUpgrade:    true,
@@ -340,9 +343,10 @@ func TestExpandFeatures(t *testing.T) {
 					},
 					"virtual_machine": []interface{}{
 						map[string]interface{}{
-							"delete_os_disk_on_deletion":     false,
-							"graceful_shutdown":              false,
-							"skip_shutdown_and_force_delete": false,
+							"detach_implicit_data_disk_on_deletion": false,
+							"delete_os_disk_on_deletion":            false,
+							"graceful_shutdown":                     false,
+							"skip_shutdown_and_force_delete":        false,
 						},
 					},
 					"virtual_machine_scale_set": []interface{}{
@@ -413,9 +417,10 @@ func TestExpandFeatures(t *testing.T) {
 					DeleteNestedItemsDuringDeletion: false,
 				},
 				VirtualMachine: features.VirtualMachineFeatures{
-					DeleteOSDiskOnDeletion:     false,
-					GracefulShutdown:           false,
-					SkipShutdownAndForceDelete: false,
+					DetachImplicitDataDiskOnDeletion: false,
+					DeleteOSDiskOnDeletion:           false,
+					GracefulShutdown:                 false,
+					SkipShutdownAndForceDelete:       false,
 				},
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
 					ForceDelete:               false,
@@ -912,9 +917,34 @@ func TestExpandFeaturesVirtualMachine(t *testing.T) {
 			},
 			Expected: features.UserFeatures{
 				VirtualMachine: features.VirtualMachineFeatures{
-					DeleteOSDiskOnDeletion:     true,
-					GracefulShutdown:           false,
-					SkipShutdownAndForceDelete: false,
+					DetachImplicitDataDiskOnDeletion: false,
+					DeleteOSDiskOnDeletion:           true,
+					GracefulShutdown:                 false,
+					SkipShutdownAndForceDelete:       false,
+				},
+			},
+		},
+		{
+			Name: "Detach implicit Data Disk Enabled",
+			Input: []interface{}{
+				map[string]interface{}{
+					"virtual_machine": []interface{}{
+						map[string]interface{}{
+							"detach_implicit_data_disk_on_deletion": true,
+							"delete_os_disk_on_deletion":            false,
+							"graceful_shutdown":                     false,
+							"force_delete":                          false,
+							"shutdown_before_deletion":              false,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				VirtualMachine: features.VirtualMachineFeatures{
+					DetachImplicitDataDiskOnDeletion: true,
+					DeleteOSDiskOnDeletion:           false,
+					GracefulShutdown:                 false,
+					SkipShutdownAndForceDelete:       false,
 				},
 			},
 		},
@@ -924,19 +954,21 @@ func TestExpandFeaturesVirtualMachine(t *testing.T) {
 				map[string]interface{}{
 					"virtual_machine": []interface{}{
 						map[string]interface{}{
-							"delete_os_disk_on_deletion": true,
-							"graceful_shutdown":          false,
-							"force_delete":               false,
-							"shutdown_before_deletion":   false,
+							"detach_implicit_data_disk_on_deletion": false,
+							"delete_os_disk_on_deletion":            true,
+							"graceful_shutdown":                     false,
+							"force_delete":                          false,
+							"shutdown_before_deletion":              false,
 						},
 					},
 				},
 			},
 			Expected: features.UserFeatures{
 				VirtualMachine: features.VirtualMachineFeatures{
-					DeleteOSDiskOnDeletion:     true,
-					GracefulShutdown:           false,
-					SkipShutdownAndForceDelete: false,
+					DetachImplicitDataDiskOnDeletion: false,
+					DeleteOSDiskOnDeletion:           true,
+					GracefulShutdown:                 false,
+					SkipShutdownAndForceDelete:       false,
 				},
 			},
 		},
@@ -946,18 +978,20 @@ func TestExpandFeaturesVirtualMachine(t *testing.T) {
 				map[string]interface{}{
 					"virtual_machine": []interface{}{
 						map[string]interface{}{
-							"delete_os_disk_on_deletion": false,
-							"graceful_shutdown":          true,
-							"force_delete":               false,
+							"detach_implicit_data_disk_on_deletion": false,
+							"delete_os_disk_on_deletion":            false,
+							"graceful_shutdown":                     true,
+							"force_delete":                          false,
 						},
 					},
 				},
 			},
 			Expected: features.UserFeatures{
 				VirtualMachine: features.VirtualMachineFeatures{
-					DeleteOSDiskOnDeletion:     false,
-					GracefulShutdown:           true,
-					SkipShutdownAndForceDelete: false,
+					DetachImplicitDataDiskOnDeletion: false,
+					DeleteOSDiskOnDeletion:           false,
+					GracefulShutdown:                 true,
+					SkipShutdownAndForceDelete:       false,
 				},
 			},
 		},
@@ -967,18 +1001,20 @@ func TestExpandFeaturesVirtualMachine(t *testing.T) {
 				map[string]interface{}{
 					"virtual_machine": []interface{}{
 						map[string]interface{}{
-							"delete_os_disk_on_deletion":     false,
-							"graceful_shutdown":              false,
-							"skip_shutdown_and_force_delete": true,
+							"detach_implicit_data_disk_on_deletion": false,
+							"delete_os_disk_on_deletion":            false,
+							"graceful_shutdown":                     false,
+							"skip_shutdown_and_force_delete":        true,
 						},
 					},
 				},
 			},
 			Expected: features.UserFeatures{
 				VirtualMachine: features.VirtualMachineFeatures{
-					DeleteOSDiskOnDeletion:     false,
-					GracefulShutdown:           false,
-					SkipShutdownAndForceDelete: true,
+					DetachImplicitDataDiskOnDeletion: false,
+					DeleteOSDiskOnDeletion:           false,
+					GracefulShutdown:                 false,
+					SkipShutdownAndForceDelete:       true,
 				},
 			},
 		},
@@ -988,18 +1024,20 @@ func TestExpandFeaturesVirtualMachine(t *testing.T) {
 				map[string]interface{}{
 					"virtual_machine": []interface{}{
 						map[string]interface{}{
-							"delete_os_disk_on_deletion":     false,
-							"graceful_shutdown":              false,
-							"skip_shutdown_and_force_delete": false,
+							"detach_implicit_data_disk_on_deletion": false,
+							"delete_os_disk_on_deletion":            false,
+							"graceful_shutdown":                     false,
+							"skip_shutdown_and_force_delete":        false,
 						},
 					},
 				},
 			},
 			Expected: features.UserFeatures{
 				VirtualMachine: features.VirtualMachineFeatures{
-					DeleteOSDiskOnDeletion:     false,
-					GracefulShutdown:           false,
-					SkipShutdownAndForceDelete: false,
+					DetachImplicitDataDiskOnDeletion: false,
+					DeleteOSDiskOnDeletion:           false,
+					GracefulShutdown:                 false,
+					SkipShutdownAndForceDelete:       false,
 				},
 			},
 		},
