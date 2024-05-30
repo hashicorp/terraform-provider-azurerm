@@ -16,6 +16,7 @@ ENHANCEMENTS:
 * Data Source: azurerm_kubernetes_cluster - add support for the `drain_timeout_in_minutes` and `node_soak_duration_in_minutes` properties in the `upgrade_settings` block [GH-26137]
 * dependencies: updating to `v0.20240529.1155048` of `github.com/hashicorp/go-azure-sdk` [GH-26148]
 * `containerapps`: update API version to `2024-03-01` [GH-25993]
+* `expressroute`: update to use `hashicorp/go-azure-sdk` [GH-26066]
 * `keyvault`: populating the cache using both the Key Vault List and Resources API to workaround incomplete/stale data being returned [GH-26070]
 * `servicenetworking`: updating to API Version `2023-11-01` [GH-26148]
 * `virtualnetworkpeerings`: update to use `hashicorp/go-azure-sdk` [GH-26065]
