@@ -417,6 +417,7 @@ func parseRuleAction(input string) (*RuleAction, error) {
 type RuleCategory string
 
 const (
+	RuleCategoryDependency  RuleCategory = "Dependency"
 	RuleCategoryRecommended RuleCategory = "Recommended"
 	RuleCategoryRequired    RuleCategory = "Required"
 	RuleCategoryUserDefined RuleCategory = "UserDefined"
@@ -424,6 +425,7 @@ const (
 
 func PossibleValuesForRuleCategory() []string {
 	return []string{
+		string(RuleCategoryDependency),
 		string(RuleCategoryRecommended),
 		string(RuleCategoryRequired),
 		string(RuleCategoryUserDefined),
@@ -445,6 +447,7 @@ func (s *RuleCategory) UnmarshalJSON(bytes []byte) error {
 
 func parseRuleCategory(input string) (*RuleCategory, error) {
 	vals := map[string]RuleCategory{
+		"dependency":  RuleCategoryDependency,
 		"recommended": RuleCategoryRecommended,
 		"required":    RuleCategoryRequired,
 		"userdefined": RuleCategoryUserDefined,
