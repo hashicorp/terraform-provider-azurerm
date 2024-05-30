@@ -12,6 +12,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* Data Source: azurerm_kubernetes_cluster - add support for the `drain_timeout_in_minutes` and `node_soak_duration_in_minutes` properties in the `upgrade_settings` block [GH-26137]
 * dependencies: updating to `v0.20240529.1155048` of `github.com/hashicorp/go-azure-sdk` [GH-26148]
 * `containerapps`: update API version to `2024-03-01` [GH-25993]
 * `keyvault`: populating the cache using both the Key Vault List and Resources API to workaround incomplete/stale data being returned [GH-26070]
@@ -21,6 +22,10 @@ ENHANCEMENTS:
 * `azurerm_bastion_host` - add support for `Developer` SKU [GH-26068]
 * `azurerm_container_app_environment` - add support for the `mutual_tls_enabled` property [GH-25993]
 * `azurerm_container_registry` - add validation to fail fast when setting `public_network_access_enabled` with an invalid SKU [GH-26054]
+* `azurerm_key_vault_managed_hardware_security_module` - `public_network_access_enabled` can now be updated [GH-26075]
+* `azurerm_kubernetes_cluster` - add support for the `cost_analysis_enabled` property [GH-26052]
+* `azurerm_kubernetes_cluster` - add support for the `drain_timeout_in_minutes` and `node_soak_duration_in_minutes` properties in the `upgrade_settings` block [GH-26137]
+* `azurerm_kubernetes_cluster_node_pool` - add support for the `drain_timeout_in_minutes` and `node_soak_duration_in_minutes` properties in the `upgrade_settings` block [GH-26137]
 * `azurerm_linux_virtual_machine` - `hibernation_enabled` can now be updated [GH-26112]
 * `azurerm_logic_app_trigger_custom` - add support for the property `callback_url` [GH-25979]
 * `azurerm_machine_learning_workspace` - add support for the `serverless_compute` block [GH-25660]
