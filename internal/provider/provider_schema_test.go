@@ -442,7 +442,7 @@ func TestDataSourcesWithAnEncryptionBlockBehaveConsistently(t *testing.T) {
 
 	for _, dataSourceName := range dataSourceNames {
 		dataSource := provider.DataSourcesMap[dataSourceName]
-		if err := schemaContainsAnEncryptionBlock(dataSource.Schema, true); err != nil {
+		if err := schemaContainsAnEncryptionBlock(dataSource.Schema, false); err != nil {
 			if _, ok := dataSourcesWhichNeedToBeAddressed[dataSourceName]; ok {
 				continue
 			}
@@ -487,7 +487,7 @@ func TestResourcesWithAnEncryptionBlockBehaveConsistently(t *testing.T) {
 	for _, resourceName := range resourceNames {
 		resource := provider.ResourcesMap[resourceName]
 
-		if err := schemaContainsAnEncryptionBlock(resource.Schema, false); err != nil {
+		if err := schemaContainsAnEncryptionBlock(resource.Schema, true); err != nil {
 			if _, ok := resourcesWhichNeedToBeAddressed[resourceName]; ok {
 				continue
 			}
@@ -496,7 +496,7 @@ func TestResourcesWithAnEncryptionBlockBehaveConsistently(t *testing.T) {
 	}
 }
 
-func schemaContainsAnEncryptionBlock(input map[string]*schema.Schema, isDataSource bool) error {
+func schemaContainsAnEncryptionBlock(input map[string]*schema.Schema, isResource bool) error {
 	// intentionally sorting these so the output is consistent
 	fieldNames := make([]string, 0)
 	for fieldName := range input {
@@ -510,7 +510,7 @@ func schemaContainsAnEncryptionBlock(input map[string]*schema.Schema, isDataSour
 
 		if field.Type == pluginsdk.TypeList && field.Elem != nil {
 			if strings.Contains(key, "encryption") {
-				if !isDataSource && field.Computed {
+				if isResource && field.Computed {
 					return fmt.Errorf("the block %q is marked as Computed when it shouldn't be", fieldName)
 				}
 
@@ -538,7 +538,7 @@ func schemaContainsAnEncryptionBlock(input map[string]*schema.Schema, isDataSour
 			}
 
 			if val, ok := field.Elem.(*pluginsdk.Resource); ok && val.Schema != nil {
-				if err := schemaContainsAnEncryptionBlock(val.Schema, isDataSource); err != nil {
+				if err := schemaContainsAnEncryptionBlock(val.Schema, isResource); err != nil {
 					return fmt.Errorf("field %q: %+v", fieldName, err)
 				}
 			}
