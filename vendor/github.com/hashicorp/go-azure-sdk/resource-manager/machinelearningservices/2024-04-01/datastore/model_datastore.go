@@ -68,6 +68,14 @@ func unmarshalDatastoreImplementation(input []byte) (Datastore, error) {
 		return out, nil
 	}
 
+	if strings.EqualFold(value, "OneLake") {
+		var out OneLakeDatastore
+		if err := json.Unmarshal(input, &out); err != nil {
+			return nil, fmt.Errorf("unmarshaling into OneLakeDatastore: %+v", err)
+		}
+		return out, nil
+	}
+
 	out := RawDatastoreImpl{
 		Type:   value,
 		Values: temp,

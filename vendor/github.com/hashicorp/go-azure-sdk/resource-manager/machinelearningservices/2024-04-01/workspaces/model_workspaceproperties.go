@@ -6,13 +6,16 @@ package workspaces
 type WorkspaceProperties struct {
 	AllowPublicAccessWhenBehindVnet *bool                            `json:"allowPublicAccessWhenBehindVnet,omitempty"`
 	ApplicationInsights             *string                          `json:"applicationInsights,omitempty"`
+	AssociatedWorkspaces            *[]string                        `json:"associatedWorkspaces,omitempty"`
 	ContainerRegistry               *string                          `json:"containerRegistry,omitempty"`
 	Description                     *string                          `json:"description,omitempty"`
 	DiscoveryUrl                    *string                          `json:"discoveryUrl,omitempty"`
+	EnableDataIsolation             *bool                            `json:"enableDataIsolation,omitempty"`
 	Encryption                      *EncryptionProperty              `json:"encryption,omitempty"`
 	FeatureStoreSettings            *FeatureStoreSettings            `json:"featureStoreSettings,omitempty"`
 	FriendlyName                    *string                          `json:"friendlyName,omitempty"`
 	HbiWorkspace                    *bool                            `json:"hbiWorkspace,omitempty"`
+	HubResourceId                   *string                          `json:"hubResourceId,omitempty"`
 	ImageBuildCompute               *string                          `json:"imageBuildCompute,omitempty"`
 	KeyVault                        *string                          `json:"keyVault,omitempty"`
 	ManagedNetwork                  *ManagedNetworkSettings          `json:"managedNetwork,omitempty"`
@@ -31,5 +34,6 @@ type WorkspaceProperties struct {
 	StorageHnsEnabled               *bool                            `json:"storageHnsEnabled,omitempty"`
 	TenantId                        *string                          `json:"tenantId,omitempty"`
 	V1LegacyMode                    *bool                            `json:"v1LegacyMode,omitempty"`
+	WorkspaceHubConfig              *WorkspaceHubConfig              `json:"workspaceHubConfig,omitempty"`
 	WorkspaceId                     *string                          `json:"workspaceId,omitempty"`
 }
