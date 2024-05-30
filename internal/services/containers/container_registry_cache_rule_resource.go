@@ -152,7 +152,6 @@ func (ContainerRegistryCacheRule) Read() sdk.ResourceFunc {
 				return err
 			}
 
-
 			id, err := cacherules.ParseCacheRuleID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
