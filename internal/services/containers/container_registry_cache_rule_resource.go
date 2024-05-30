@@ -194,14 +194,12 @@ func (r ContainerRegistryCacheRule) Update() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			cacheRulesClient := metadata.Client.Containers.CacheRulesClient
-			_, cancel := timeouts.ForUpdate(metadata.Client.StopContext, metadata.ResourceData)
 
 			var config ContainerRegistryCacheRuleModel
 			if err := metadata.Decode(&config); err != nil {
 				return err
 			}
 
-			defer cancel()
 			log.Printf("[INFO] preparing arguments for Container Registry Cache Rule update.")
 
 			id, err := cacherules.ParseCacheRuleID(metadata.ResourceData.Id())
