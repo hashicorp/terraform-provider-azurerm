@@ -147,14 +147,12 @@ func (ContainerRegistryCacheRule) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			cacheRulesClient := metadata.Client.Containers.CacheRulesClient
-			_, cancel := timeouts.ForRead(metadata.Client.StopContext, metadata.ResourceData)
 
 			var config ContainerRegistryCacheRuleModel
 			if err := metadata.Decode(&config); err != nil {
 				return err
 			}
 
-			defer cancel()
 
 			id, err := cacherules.ParseCacheRuleID(metadata.ResourceData.Id())
 			if err != nil {
