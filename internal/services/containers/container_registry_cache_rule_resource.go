@@ -229,8 +229,6 @@ func (ContainerRegistryCacheRule) Delete() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			cacheRulesClient := metadata.Client.Containers.CacheRulesClient
-			_, cancel := timeouts.ForDelete(metadata.Client.StopContext, metadata.ResourceData)
-			defer cancel()
 
 			id, err := cacherules.ParseCacheRuleID(metadata.ResourceData.Id())
 			if err != nil {
