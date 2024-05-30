@@ -292,7 +292,7 @@ func resourceVpnSiteRead(d *pluginsdk.ResourceData, meta interface{}) error {
 func resourceVpnSiteUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := virtualwans.NewVpnSiteID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
@@ -332,7 +332,7 @@ func resourceVpnSiteUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	if err := client.VpnSitesCreateOrUpdateThenPoll(ctx, id, *payload); err != nil {
-		return fmt.Errorf("creating %s: %+v", id, err)
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
