@@ -99,6 +99,8 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `confidential_computing` - (Optional) A `confidential_computing` block as defined below. For more details please [the documentation](https://learn.microsoft.com/en-us/azure/confidential-computing/confidential-nodes-aks-overview)
 
+* `cost_analysis_enabled` - (Optional) Should cost analysis be enabled for this Kubernetes Cluster? Defaults to `false`. The `sku_tier` must be set to `Standard` or `Premium` to enable this feature. Enabling this will add Kubernetes Namespace and Deployment details to the Cost Analysis views in the Azure portal.
+
 * `custom_ca_trust_certificates_base64` - (Optional) A list of up to 10 base64 encoded CAs that will be added to the trust store on nodes with the `custom_ca_trust_enabled` feature enabled.
 
 -> **Note:** Removing `custom_ca_trust_certificates_base64` after it has been set forces a new resource to be created.

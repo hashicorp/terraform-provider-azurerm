@@ -333,6 +333,11 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				},
 			},
 
+			"cost_analysis_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
+
 			"custom_ca_trust_certificates_base64": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -1764,6 +1769,11 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
+	metricsProfile, err := expandKubernetesClusterMetricsProfile(d.Get("cost_analysis_enabled").(bool), d.Get("sku_tier").(string))
+	if err != nil {
+		return err
+	}
+
 	var azureADProfile *managedclusters.ManagedClusterAADProfile
 	if v, ok := d.GetOk("azure_active_directory_role_based_access_control"); ok {
 		azureADProfile, err = expandKubernetesClusterAzureActiveDirectoryRoleBasedAccessControl(v.([]interface{}), tenantId)
@@ -1896,6 +1906,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 			KubernetesVersion:         utils.String(kubernetesVersion),
 			LinuxProfile:              linuxProfile,
 			WindowsProfile:            windowsProfile,
+			MetricsProfile:            metricsProfile,
 			NetworkProfile:            networkProfile,
 			NodeResourceGroup:         utils.String(nodeResourceGroup),
 			DisableLocalAccounts:      utils.Bool(d.Get("local_account_disabled").(bool)),
@@ -2167,6 +2178,15 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 	if d.HasChange("local_account_disabled") {
 		updateCluster = true
 		existing.Model.Properties.DisableLocalAccounts = utils.Bool(d.Get("local_account_disabled").(bool))
+	}
+
+	if d.HasChange("cost_analysis_enabled") {
+		updateCluster = true
+		metricsProfile, err := expandKubernetesClusterMetricsProfile(d.Get("cost_analysis_enabled").(bool), d.Get("sku_tier").(string))
+		if err != nil {
+			return err
+		}
+		existing.Model.Properties.MetricsProfile = metricsProfile
 	}
 
 	if d.HasChange("network_profile") {
@@ -2894,6 +2914,11 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			networkProfile := flattenKubernetesClusterNetworkProfile(props.NetworkProfile, networkProfileRaw)
 			if err := d.Set("network_profile", networkProfile); err != nil {
 				return fmt.Errorf("setting `network_profile`: %+v", err)
+			}
+
+			costAnalysisEnabled := flattenKubernetesClusterMetricsProfile(props.MetricsProfile)
+			if err := d.Set("cost_analysis_enabled", costAnalysisEnabled); err != nil {
+				return fmt.Errorf("setting `cost_analysis_enabled`: %+v", err)
 			}
 
 			rbacEnabled := true
@@ -4812,6 +4837,24 @@ func flattenKubernetesClusterAzureMonitorProfile(input *managedclusters.ManagedC
 			"labels_allowed":      labelAllowList,
 		},
 	}
+}
+
+func expandKubernetesClusterMetricsProfile(input bool, skuTier string) (*managedclusters.ManagedClusterMetricsProfile, error) {
+	if input && skuTier != "Standard" && skuTier != "Premium" {
+		return nil, fmt.Errorf("`sku_tier` must be either `Standard` or `Premium` when cost analysis is enabled")
+	}
+	return &managedclusters.ManagedClusterMetricsProfile{
+		CostAnalysis: &managedclusters.ManagedClusterCostAnalysis{
+			Enabled: pointer.To(input),
+		},
+	}, nil
+}
+
+func flattenKubernetesClusterMetricsProfile(input *managedclusters.ManagedClusterMetricsProfile) bool {
+	if input == nil || input.CostAnalysis == nil {
+		return false
+	}
+	return pointer.From(input.CostAnalysis.Enabled)
 }
 
 func retrySystemNodePoolCreation(ctx context.Context, client *agentpools.AgentPoolsClient, id agentpools.AgentPoolId, profile agentpools.AgentPool) error {
