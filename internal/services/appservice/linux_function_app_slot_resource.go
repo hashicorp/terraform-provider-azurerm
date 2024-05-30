@@ -1221,7 +1221,7 @@ func (r LinuxFunctionAppSlotResource) CustomizeDiff() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			appClient := metadata.Client.AppService.WebAppsClient
 			rd := metadata.ResourceDiff
-			if rd.HasChange("vnet_image_pull_enabled") {
+			if rd.HasChange("vnet_image_pull_enabled") && features.FourPointOhBeta() {
 				appId := rd.Get("function_app_id")
 				if appId.(string) == "" {
 					return nil
