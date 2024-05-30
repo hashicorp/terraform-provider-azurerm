@@ -1765,7 +1765,10 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
-	metricsProfile := expandKubernetesClusterMetricsProfile(d.Get("cost_analysis_enabled").(bool))
+	metricsProfile, err := expandKubernetesClusterMetricsProfile(d.Get("cost_analysis_enabled").(bool), d.Get("sku_tier").(string))
+	if err != nil {
+		return err
+	}
 
 	var azureADProfile *managedclusters.ManagedClusterAADProfile
 	if v, ok := d.GetOk("azure_active_directory_role_based_access_control"); ok {
@@ -2175,7 +2178,10 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	if d.HasChange("metrics_profile") {
 		updateCluster = true
-		metricsProfile := expandKubernetesClusterMetricsProfile(d.Get("cost_analysis_enabled").(bool))
+		metricsProfile, err := expandKubernetesClusterMetricsProfile(d.Get("cost_analysis_enabled").(bool), d.Get("sku_tier").(string))
+		if err != nil {
+			return err
+		}
 		existing.Model.Properties.MetricsProfile = metricsProfile
 	}
 
@@ -4829,12 +4835,15 @@ func flattenKubernetesClusterAzureMonitorProfile(input *managedclusters.ManagedC
 	}
 }
 
-func expandKubernetesClusterMetricsProfile(input bool) *managedclusters.ManagedClusterMetricsProfile {
+func expandKubernetesClusterMetricsProfile(input bool, skuTier string) (*managedclusters.ManagedClusterMetricsProfile, error) {
+	if input && skuTier != "Standard" && skuTier != "Premium" {
+		return nil, fmt.Errorf("`sku_tier` must be either `Standard` or `Premium` when cost analysis is enabled")
+	}
 	return &managedclusters.ManagedClusterMetricsProfile{
 		CostAnalysis: &managedclusters.ManagedClusterCostAnalysis{
 			Enabled: pointer.To(input),
 		},
-	}
+	}, nil
 }
 
 func flattenKubernetesClusterMetricsProfile(input *managedclusters.ManagedClusterMetricsProfile) bool {
