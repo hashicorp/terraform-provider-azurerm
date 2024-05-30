@@ -524,6 +524,7 @@ func (s *SiteConfigWindows) ExpandForCreate(appSettings map[string]string) (*web
 			if appSettings == nil {
 				appSettings = make(map[string]string)
 			}
+
 			appSettings["WEBSITE_NODE_DEFAULT_VERSION"] = winAppStack.NodeVersion
 		}
 		if winAppStack.NetFrameworkVersion != "" {
@@ -568,6 +569,10 @@ func (s *SiteConfigWindows) ExpandForCreate(appSettings map[string]string) (*web
 		}
 
 		if winAppStack.DockerImageName != "" {
+			if appSettings == nil {
+				appSettings = make(map[string]string)
+			}
+
 			expanded.WindowsFxVersion = pointer.To(EncodeDockerFxStringWindows(winAppStack.DockerImageName, winAppStack.DockerRegistryUrl))
 			appSettings["DOCKER_REGISTRY_SERVER_URL"] = winAppStack.DockerRegistryUrl
 			appSettings["DOCKER_REGISTRY_SERVER_USERNAME"] = winAppStack.DockerRegistryUsername
