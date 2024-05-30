@@ -2176,7 +2176,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		existing.Model.Properties.DisableLocalAccounts = utils.Bool(d.Get("local_account_disabled").(bool))
 	}
 
-	if d.HasChange("metrics_profile") {
+	if d.HasChange("cost_analysis_enabled") {
 		updateCluster = true
 		metricsProfile, err := expandKubernetesClusterMetricsProfile(d.Get("cost_analysis_enabled").(bool), d.Get("sku_tier").(string))
 		if err != nil {
