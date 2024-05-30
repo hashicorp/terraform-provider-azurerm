@@ -31,6 +31,7 @@ ENHANCEMENTS:
 * `azurerm_linux_virtual_machine` - `hibernation_enabled` can now be updated [GH-26112]
 * `azurerm_logic_app_trigger_custom` - add support for the property `callback_url` [GH-25979]
 * `azurerm_machine_learning_workspace` - add support for the `serverless_compute` block [GH-25660]
+* `azurerm_mssql_elasticpool` - support the sku `HS_PRMS` [GH-26161]
 * `azurerm_new_relic_monitor` - add support for the `identity` block [GH-26115]
 * `azurerm_route_map` - `parameter` is now Optional when the action type is `Drop` [GH-26003]
 * `azurerm_windows_virtual_machine` - `hibernation_enabled` can now be updated [GH-26112]
