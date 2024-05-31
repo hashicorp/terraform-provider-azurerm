@@ -132,7 +132,7 @@ The following arguments are supported:
 
 ~> **Note:** Assigning the `virtual_network_subnet_id` property requires [RBAC permissions on the subnet](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#permissions)
 
-[//]: # (todo: add in 4.0 provider)
+[//]: # (TODO 4.0 add it in 4.0 provider)
 [//]: # (* `vnet_image_pull_enabled` - &#40;Optional&#41; Specifies whether traffic for the image pull should be routed over virtual network. Defaults to `false`.)
 
 [//]: # (~> **Note:** The feature can also be enabled via the app setting `WEBSITE_PULL_IMAGE_OVER_VNET`. The Setting is enabled by default for app running in the App Service Environment.)
