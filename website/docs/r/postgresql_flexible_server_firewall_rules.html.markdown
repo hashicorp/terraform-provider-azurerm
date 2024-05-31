@@ -10,7 +10,7 @@ description: |-
 
 Manages a group of PostgreSQL Flexible Server Firewall Rules.
 
-~> **NOTE:** It's possible to define Flexible Server Firewall Rules individually with [the `postgresql_flexible_server_firewall_rule` resource](postgresql_flexible_server_firewall_rule.html) or in groups with [the `postgresql_flexible_server_firewall_rules` resource](postgresql_flexible_server_firewall_rules.html). But, it's not possible to use both methods to manage Firewall Rules within a PostgreSQL Flexible Server, since there will be conflicts.
+~> **NOTE:** It's possible to define Flexible Server Firewall Rules individually with [the `postgresql_flexible_server_firewall_rule` resource](postgresql_flexible_server_firewall_rule.html) or in groups with [the `postgresql_flexible_server_firewall_rules` resource](postgresql_flexible_server_firewall_rules.html). But, it's not possible to use both methods to manage Firewall Rules within a PostgreSQL Flexible Server, as this resource manages all the rules for a server, and will overwrite any rules not listed.
 
 ## Example Usage
 
@@ -38,7 +38,7 @@ resource "azurerm_postgresql_flexible_server" "example" {
 }
 
 resource "azurerm_postgresql_flexible_server_firewall_rules" "example" {
-  server_id        = azurerm_postgresql_flexible_server.example.id
+  server_id = azurerm_postgresql_flexible_server.example.id
 
   firewall_rule {
     name             = "ruleA"
@@ -69,7 +69,7 @@ The following arguments are supported:
 
 * `server_id` - (Required) The ID of the PostgreSQL Flexible Server from which to create these PostgreSQL Flexible Server Firewall Rules. Changing this forces a new resource to be created.
 
-* `firewall_rule` - (Optional) A `firewall_rule` object as defined below. Changing this forces a new resource to be created.
+* `firewall_rule` - (Required) One or more `firewall_rule` objects as defined below.
 
 ---
 
