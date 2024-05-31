@@ -51,7 +51,7 @@ type ServicePrincipal struct {
 type ClusterProfile struct {
 	PullSecret               string `tfschema:"pull_secret"`
 	Domain                   string `tfschema:"domain"`
-	ClusterResourceGroupName string `tfschema:"cluster_resource_group_name"`
+	ManagedResourceGroupName string `tfschema:"managed_resource_group_name"`
 	ResourceGroupId          string `tfschema:"resource_group_id"`
 	Version                  string `tfschema:"version"`
 	FipsEnabled              bool   `tfschema:"fips_enabled"`
@@ -136,7 +136,7 @@ func (r RedHatOpenShiftCluster) Arguments() map[string]*pluginsdk.Schema {
 						Sensitive:    true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
-					"cluster_resource_group_name": {
+					"managed_resource_group_name": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
@@ -555,7 +555,7 @@ func expandOpenshiftClusterProfile(input []ClusterProfile, subscriptionId string
 	// the api needs a ResourceGroupId value and the portal doesn't allow you to set it but the portal returns the
 	// resource id being `aro-{domain}` so we'll follow that here.
 	resourceGroupId := commonids.NewResourceGroupID(subscriptionId, fmt.Sprintf("aro-%s", input[0].Domain)).ID()
-	if rg := input[0].ClusterResourceGroupName; rg != "" {
+	if rg := input[0].ManagedResourceGroupName; rg != "" {
 		resourceGroupId = commonids.NewResourceGroupID(subscriptionId, rg).ID()
 	}
 
@@ -584,9 +584,9 @@ func flattenOpenShiftClusterProfile(profile *openshiftclusters.ClusterProfile, c
 		fipsEnabled = *profile.FipsValidatedModules == openshiftclusters.FipsValidatedModulesEnabled
 	}
 
-	resourceGroupId, err := commonids.ParseResourceGroupIDInsensitively(*profile.ResourceGroupId)
+	resourceGroupId, err := commonids.ParseResourceGroupID(*profile.ResourceGroupId)
 	if err != nil {
-		return nil, fmt.Errorf("parsing resourceGroupId: %+v", err)
+		return nil, err
 	}
 
 	resourceGroupIdString := ""
@@ -602,7 +602,7 @@ func flattenOpenShiftClusterProfile(profile *openshiftclusters.ClusterProfile, c
 			Domain:                   pointer.From(profile.Domain),
 			FipsEnabled:              fipsEnabled,
 			ResourceGroupId:          resourceGroupIdString,
-			ClusterResourceGroupName: resourceGroupName,
+			ManagedResourceGroupName: resourceGroupName,
 			Version:                  pointer.From(profile.Version),
 		},
 	}, nil
