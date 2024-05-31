@@ -338,6 +338,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
+  node_resource_group = "${azurerm_resource_group.test.name}-nodes"
 
   linux_profile {
     admin_username = "acctestuser%d"
@@ -402,6 +403,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
+  node_resource_group = "${azurerm_resource_group.test.name}-nodes"
 
   linux_profile {
     admin_username = "acctestuser%d"
@@ -447,6 +449,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
+  node_resource_group = "${azurerm_resource_group.test.name}-nodes"
 
   linux_profile {
     admin_username = "acctestuser%d"
@@ -510,6 +513,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
+  node_resource_group = "${azurerm_resource_group.test.name}-nodes"
 
   linux_profile {
     admin_username = "acctestuser%d"
@@ -575,6 +579,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
+  node_resource_group = "${azurerm_resource_group.test.name}-nodes"
 
   linux_profile {
     admin_username = "acctestuser%d"
@@ -621,6 +626,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
+  node_resource_group = "${azurerm_resource_group.test.name}-nodes"
 
   linux_profile {
     admin_username = "acctestuser%d"
@@ -662,6 +668,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
+  node_resource_group = "${azurerm_resource_group.test.name}-nodes"
 
   linux_profile {
     admin_username = "acctestuser%d"
@@ -786,6 +793,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
+  node_resource_group = "${azurerm_resource_group.test.name}-nodes"
 
   linux_profile {
     admin_username = "acctestuser%d"
@@ -835,6 +843,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
+  node_resource_group = "${azurerm_resource_group.test.name}-nodes"
 
   linux_profile {
     admin_username = "acctestuser%d"
@@ -881,6 +890,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
+  node_resource_group = "${azurerm_resource_group.test.name}-nodes"
 
   linux_profile {
     admin_username = "acctestuser%d"
@@ -936,6 +946,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
+  node_resource_group = "${azurerm_resource_group.test.name}-nodes"
 
   linux_profile {
     admin_username = "acctestuser%d"
@@ -986,6 +997,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
+  node_resource_group = "${azurerm_resource_group.test.name}-nodes"
 
   linux_profile {
     admin_username = "acctestuser%d"
@@ -1029,6 +1041,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
+  node_resource_group = "${azurerm_resource_group.test.name}-nodes"
 
   linux_profile {
     admin_username = "acctestuser%d"
@@ -1075,6 +1088,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
+  node_resource_group = "${azurerm_resource_group.test.name}-nodes"
 
   linux_profile {
     admin_username = "acctestuser%d"
@@ -1120,6 +1134,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
+  node_resource_group = "${azurerm_resource_group.test.name}-nodes"
 
   linux_profile {
     admin_username = "acctestuser%d"

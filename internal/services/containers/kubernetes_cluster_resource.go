@@ -111,9 +111,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			pluginsdk.ForceNewIfChange("network_profile.0.network_plugin_mode", func(ctx context.Context, _, new, meta interface{}) bool {
 				return !strings.EqualFold(new.(string), string(managedclusters.NetworkPluginModeOverlay))
 			}),
-			pluginsdk.ForceNewIfChange("network_profile.0.network_policy", func(ctx context.Context, old, new, meta interface{}) bool {
-				return old.(string) != "" || new.(string) != string(managedclusters.NetworkPolicyCilium)
-			}),
 			pluginsdk.ForceNewIfChange("custom_ca_trust_certificates_base64", func(ctx context.Context, old, new, meta interface{}) bool {
 				return len(old.([]interface{})) > 0 && len(new.([]interface{})) == 0
 			}),
@@ -2308,6 +2305,11 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		if key := "network_profile.0.ebpf_data_plane"; d.HasChange(key) {
 			ebpfDataPlane := d.Get(key).(string)
 			existing.Model.Properties.NetworkProfile.NetworkDataplane = pointer.To(managedclusters.NetworkDataplane(ebpfDataPlane))
+		}
+
+		if key := "network_profile.0.network_policy"; d.HasChange(key) {
+			networkPolicy := d.Get(key).(string)
+			existing.Model.Properties.NetworkProfile.NetworkPolicy = pointer.To(managedclusters.NetworkPolicy(networkPolicy))
 		}
 
 		if key := "network_profile.0.outbound_type"; d.HasChange(key) {
