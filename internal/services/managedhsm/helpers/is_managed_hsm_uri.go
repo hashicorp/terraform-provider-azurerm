@@ -12,6 +12,14 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+func DomainSuffixForManagedHSM(env environments.Environment) *string {
+	ret, found := env.ManagedHSM.DomainSuffix()
+	if !found {
+		ret = utils.String("managedhsm.azure.net")
+	}
+	return ret
+}
+
 func IsManagedHSMURI(env environments.Environment, uri string) (bool, error, string, string) {
 	url, err := url.Parse(uri)
 	if err != nil {
@@ -22,10 +30,8 @@ func IsManagedHSMURI(env environments.Environment, uri string) (bool, error, str
 	if !found {
 		return false, fmt.Errorf("Key vault URI hostname does not have the right number of components: %s", url.Hostname()), "", ""
 	}
-	expectedDomainSuffix, found := env.ManagedHSM.DomainSuffix()
-	if !found {
-		expectedDomainSuffix = utils.String("managedhsm.azure.net")
-	}
+	expectedDomainSuffix := DomainSuffixForManagedHSM(env)
+
 	if domainSuffix == *expectedDomainSuffix {
 		return true, nil, instanceName, domainSuffix
 	} else {
