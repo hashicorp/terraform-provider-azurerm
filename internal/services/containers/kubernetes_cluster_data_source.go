@@ -1479,7 +1479,7 @@ func flattenKubernetesClusterDataSourceUpgradeSettings(input *managedclusters.Ag
 		values["drain_timeout_in_minutes"] = *input.DrainTimeoutInMinutes
 	}
 
-	if input.DrainTimeoutInMinutes != nil {
+	if input.NodeSoakDurationInMinutes != nil {
 		values["node_soak_duration_in_minutes"] = *input.NodeSoakDurationInMinutes
 	}
 
