@@ -1,3 +1,9 @@
+## 3.107.0 (Unreleased)
+
+BUG FIXES:
+
+* `azurerm_vpn_site` -  split create and update function to fix lifecycle - ignore changes [GH-26163]
+
 ## 3.106.1 (May 31, 2024)
 
 BUG FIXES:
