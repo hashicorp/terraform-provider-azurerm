@@ -8,8 +8,10 @@ FEATURES:
 
 * **New Data Source:** `azurerm_arc_resource_bridge_appliance` [GH-25731]
 * **New Data Source:** `azurerm_storage_queue` [GH-26087]
+* **New Data Source:** `azurerm_storage_table` [GH-26126]
 * **New Resource:** `azurerm_container_registry_cache_rule` [GH-26034]
 * **New Resource:** `azurerm_virtual_machine_implicit_data_disk_from_source` [GH-25537]
+* 
 
 ENHANCEMENTS:
 
