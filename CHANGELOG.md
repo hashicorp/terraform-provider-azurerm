@@ -1,8 +1,8 @@
-## 3.106.1 (Unreleased)
+## 3.106.1 (May 31, 2024)
 
 BUG FIXES:
 
-* Data Source: `azurerm_kubernetes_cluster` - fix a crash when reading/setting `upgrade_settings` [GH-26173]
+* Data Source: `azurerm_kubernetes_cluster` - fix a crash when reading/setting `upgrade_settings` ([#26173](https://github.com/hashicorp/terraform-provider-azurerm/issues/26173))
 
 ## 3.106.0 (May 31, 2024)
 
