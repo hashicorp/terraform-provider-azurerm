@@ -716,6 +716,14 @@ github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-07-01/applicatio
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/applicationsecuritygroups
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/azurefirewalls
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/ddosprotectionplans
+github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/expressroutecircuitauthorizations
+github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/expressroutecircuitconnections
+github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/expressroutecircuitpeerings
+github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/expressroutecircuits
+github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/expressrouteconnections
+github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/expressroutegateways
+github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/expressrouteportauthorizations
+github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/expressrouteports
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/firewallpolicies
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/flowlogs
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/loadbalancers
