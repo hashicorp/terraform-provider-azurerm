@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/diskencryptionsets"
+	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
@@ -24,6 +25,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	managedHsmHelpers "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/helpers"
+	managedHsmParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/parse"
+	managedHsmValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -64,8 +68,16 @@ func resourceDiskEncryptionSet() *pluginsdk.Resource {
 			// Issue #22864
 			"key_vault_key_id": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
 				ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+				ExactlyOneOf: []string{"managed_hsm_key_id", "key_vault_key_id"},
+			},
+
+			"managed_hsm_key_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.Any(managedHsmValidate.ManagedHSMDataPlaneVersionedKeyID, managedHsmValidate.ManagedHSMDataPlaneVersionlessKeyID),
+				ExactlyOneOf: []string{"managed_hsm_key_id", "key_vault_key_id"},
 			},
 
 			"auto_key_rotation_enabled": {
@@ -220,6 +232,7 @@ func resourceDiskEncryptionSetCreate(d *pluginsdk.ResourceData, meta interface{}
 
 func resourceDiskEncryptionSetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DiskEncryptionSetsClient
+	env := meta.(*clients.Client).Account.Environment
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -253,33 +266,61 @@ func resourceDiskEncryptionSetRead(d *pluginsdk.ResourceData, meta interface{}) 
 	if props := model.Properties; props != nil {
 		var keyVaultKey *keyVaultParse.NestedItemId
 
+		RotationToLatestKeyVersionEnabled := pointer.From(props.RotationToLatestKeyVersionEnabled)
+		d.Set("auto_key_rotation_enabled", RotationToLatestKeyVersionEnabled)
+
 		if props.ActiveKey != nil && props.ActiveKey.KeyUrl != "" {
-			keyVaultKey, err = keyVaultParse.ParseOptionallyVersionedNestedItemID(props.ActiveKey.KeyUrl)
+			keyVaultURI := props.ActiveKey.KeyUrl
+
+			isHSMURI, err, instanceName, domainSuffix := managedHsmHelpers.IsManagedHSMURI(env, keyVaultURI)
 			if err != nil {
 				return err
 			}
 
-			d.Set("key_vault_key_url", keyVaultKey.ID())
-		}
+			switch {
+			case !isHSMURI:
+				{
+					keyVaultKey, err = keyVaultParse.ParseOptionallyVersionedNestedItemID(props.ActiveKey.KeyUrl)
+					if err != nil {
+						return err
+					}
 
-		// This "should" never happen, but if keyVaultKey does not get assigned above it
-		// would cause a panic when referenced below, so check to make sure it was
-		// assigned or not...
-		if keyVaultKey == nil {
-			return fmt.Errorf("`KeyForDiskEncryptionSet.ActiveKey` was nil")
-		}
+					// This "should" never happen, but if keyVaultKey does not get assigned above it
+					// would cause a panic when referenced below, so check to make sure it was
+					// assigned or not...
+					if keyVaultKey == nil {
+						return fmt.Errorf("`KeyForDiskEncryptionSet.ActiveKey` was nil")
+					}
+					d.Set("key_vault_key_url", keyVaultKey.ID())
 
-		RotationToLatestKeyVersionEnabled := pointer.From(props.RotationToLatestKeyVersionEnabled)
-		d.Set("auto_key_rotation_enabled", RotationToLatestKeyVersionEnabled)
+					// NOTE: Since the auto rotation changes the version information when the key is rotated
+					// we need to persist the versionless key ID to the state file else terraform will always
+					// try to revert to the original version of the key once it has been rotated...
+					// Issue #22864
+					if RotationToLatestKeyVersionEnabled {
+						d.Set("key_vault_key_id", keyVaultKey.VersionlessID())
+					} else {
+						d.Set("key_vault_key_id", keyVaultKey.ID())
+					}
+				}
 
-		// NOTE: Since the auto rotation changes the version information when the key is rotated
-		// we need to persist the versionless key ID to the state file else terraform will always
-		// try to revert to the original version of the key once it has been rotated...
-		// Issue #22864
-		if RotationToLatestKeyVersionEnabled {
-			d.Set("key_vault_key_id", keyVaultKey.VersionlessID())
-		} else {
-			d.Set("key_vault_key_id", keyVaultKey.ID())
+			case isHSMURI:
+				{
+					keyId, err := managedHsmParse.ManagedHSMDataPlaneVersionedKeyID(keyVaultURI, &domainSuffix)
+					if err != nil {
+						return err;
+					}
+
+					// See comment above and issue #22864
+					if RotationToLatestKeyVersionEnabled {
+						versionlessKeyId := managedHsmParse.NewManagedHSMDataPlaneVersionlessKeyID(instanceName, domainSuffix, keyId.KeyName)
+						d.Set("managed_hsm_key_id", versionlessKeyId.ID())
+					} else {
+						d.Set("managed_hsm_key_id", keyId.ID())
+					}
+				}
+			}
+
 		}
 
 		encryptionType := string(diskencryptionsets.DiskEncryptionSetTypeEncryptionAtRestWithCustomerKey)
