@@ -165,8 +165,9 @@ func resourceDiskEncryptionSetCreate(d *pluginsdk.ResourceData, meta interface{}
 		}
 
 		if keyVaultDetails != nil {
-			if !keyVaultDetails.softDeleteEnabled {
-				return fmt.Errorf("validating Key Vault %q (Resource Group %q) for Disk Encryption Set: Soft Delete must be enabled", keyVaultDetails.keyVaultName, keyVaultDetails.resourceGroupName)
+			err = validateKeyVaultDetails(keyVaultDetails)
+			if err != nil {
+				return err
 			}
 
 			activeKey.SourceVault = &diskencryptionsets.SourceVault{
@@ -422,14 +423,9 @@ func resourceDiskEncryptionSetUpdate(d *pluginsdk.ResourceData, meta interface{}
 			return fmt.Errorf("validating Key Vault Key %q for Disk Encryption Set: %+v", keyVaultKey.ID(), err)
 		}
 
-		if keyVaultDetails != nil {
-			if !keyVaultDetails.softDeleteEnabled {
-				return fmt.Errorf("validating Key Vault %q (Resource Group %q) for Disk Encryption Set: Soft Delete must be enabled", keyVaultDetails.keyVaultName, keyVaultDetails.resourceGroupName)
-			}
-
-			if !keyVaultDetails.purgeProtectionEnabled {
-				return fmt.Errorf("validating Key Vault %q (Resource Group %q) for Disk Encryption Set: Purge Protection must be enabled", keyVaultDetails.keyVaultName, keyVaultDetails.resourceGroupName)
-			}
+		err = validateKeyVaultDetails(keyVaultDetails)
+		if err != nil {
+			return err
 		}
 
 		if update.Properties == nil {
@@ -500,6 +496,17 @@ func resourceDiskEncryptionSetUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	return resourceDiskEncryptionSetRead(d, meta)
+}
+
+func validateKeyVaultDetails(keyVaultDetails *diskEncryptionSetKeyVault) error {
+	if !keyVaultDetails.softDeleteEnabled {
+		return fmt.Errorf("validating Key Vault %q (Resource Group %q) for Disk Encryption Set: Soft Delete must be enabled", keyVaultDetails.keyVaultName, keyVaultDetails.resourceGroupName)
+	}
+
+	if !keyVaultDetails.purgeProtectionEnabled {
+		return fmt.Errorf("validating Key Vault %q (Resource Group %q) for Disk Encryption Set: Purge Protection must be enabled", keyVaultDetails.keyVaultName, keyVaultDetails.resourceGroupName)
+	}
+	return nil
 }
 
 func resourceDiskEncryptionSetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
