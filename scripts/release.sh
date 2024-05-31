@@ -84,7 +84,7 @@ if [[ "${NOTEST}" == "1" ]]; then
   echo "Warning: Skipping tests"
 else
   echo "Running tests..."
-  ( set -x; ${debug}TF_ACC= scripts/run-test.sh )
+  ( set -x; TF_ACC= scripts/run-test.sh )
 fi
 
 echo "Preparing changelog for release..."
