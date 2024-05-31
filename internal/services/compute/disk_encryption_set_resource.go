@@ -32,6 +32,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 func resourceDiskEncryptionSet() *pluginsdk.Resource {
@@ -192,32 +193,12 @@ func resourceDiskEncryptionSetCreate(d *pluginsdk.ResourceData, meta interface{}
 			// Use the passed version of the key...
 			activeKey.KeyUrl = keyVaultKey.ID()
 		}
-	} else if managedkeyBundleId, ok := d.GetOk("managed_hsm_key_id"); ok {
-		managedHsmVersionedKey, err := managedHsmParse.ManagedHSMDataPlaneVersionedKeyID(managedkeyBundleId.(string), &env)
-		if err == nil {
-			err = validateKeyAndRotationEnabled(rotationToLatestKeyVersionEnabled, true, managedHsmVersionedKey.ID())
+	} else if managedHsmKeyId, ok := d.GetOk("managed_hsm_key_id"); ok {
+		keyUrl, err := getManagedHsmKeyUrl(ctx, managedkeyBundleClient, managedHsmKeyId.(string), rotationToLatestKeyVersionEnabled, env)
 			if err != nil {
 				return err
 			}
-			activeKey.KeyUrl = managedHsmVersionedKey.ID()
-		} else {
-			managedHsmVersionlessKey, err := managedHsmParse.ManagedHSMDataPlaneVersionlessKeyID(managedkeyBundleId.(string), &env)
-			if err != nil {
-				return nil
-			}
-			err = validateKeyAndRotationEnabled(rotationToLatestKeyVersionEnabled, false, managedHsmVersionlessKey.ID())
-			if err != nil {
-				return err
-			}
-			keyBundle, err := managedkeyBundleClient.GetKey(ctx, managedHsmVersionlessKey.BaseUri(), managedHsmVersionlessKey.KeyName, "")
-			if err != nil {
-				return err
-			}
-
-			if keyBundle.Key.Kid != nil {
-				activeKey.KeyUrl = pointer.From(keyBundle.Key.Kid)
-			}
-		}
+		activeKey.KeyUrl = keyUrl
 	}
 
 	encryptionType := diskencryptionsets.DiskEncryptionSetType(d.Get("encryption_type").(string))
@@ -496,6 +477,36 @@ func resourceDiskEncryptionSetUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	return resourceDiskEncryptionSetRead(d, meta)
+}
+
+func getManagedHsmKeyUrl(ctx context.Context, managedkeyBundleClient *keyvault.BaseClient, managedHsmKeyId string, rotationToLatestKeyVersionEnabled bool, env environments.Environment) (string, error) {
+	domainSuffix := managedHsmHelpers.DomainSuffixForManagedHSM(env)
+	managedHsmVersionedKey, err := managedHsmParse.ManagedHSMDataPlaneVersionedKeyID(managedHsmKeyId, domainSuffix)
+	if err == nil {
+		err = validateKeyAndRotationEnabled(rotationToLatestKeyVersionEnabled, true, managedHsmVersionedKey.ID())
+		if err != nil {
+			return "", err
+		}
+		return managedHsmVersionedKey.ID(), nil
+	} else {
+		managedHsmVersionlessKey, err := managedHsmParse.ManagedHSMDataPlaneVersionlessKeyID(managedHsmKeyId, domainSuffix)
+		if err != nil {
+			return "", err
+		}
+		err = validateKeyAndRotationEnabled(rotationToLatestKeyVersionEnabled, false, managedHsmVersionlessKey.ID())
+		if err != nil {
+			return "", err
+		}
+		keyBundle, err := managedkeyBundleClient.GetKey(ctx, managedHsmVersionlessKey.BaseUri(), managedHsmVersionlessKey.KeyName, "")
+		if err != nil {
+			return "", err
+		}
+
+		if keyBundle.Key.Kid != nil {
+			return pointer.From(keyBundle.Key.Kid), nil
+		}
+		return "", fmt.Errorf("retrieving key version for key %s: Key Vault did not return a version", managedHsmKeyId)
+	}
 }
 
 func validateKeyVaultDetails(keyVaultDetails *diskEncryptionSetKeyVault) error {
