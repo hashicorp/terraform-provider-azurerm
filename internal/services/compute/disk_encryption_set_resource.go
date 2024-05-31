@@ -195,9 +195,9 @@ func resourceDiskEncryptionSetCreate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	} else if managedHsmKeyId, ok := d.GetOk("managed_hsm_key_id"); ok {
 		keyUrl, err := getManagedHsmKeyUrl(ctx, managedkeyBundleClient, managedHsmKeyId.(string), rotationToLatestKeyVersionEnabled, env)
-			if err != nil {
-				return err
-			}
+		if err != nil {
+			return err
+		}
 		activeKey.KeyUrl = keyUrl
 	}
 
@@ -369,6 +369,8 @@ func resourceDiskEncryptionSetUpdate(d *pluginsdk.ResourceData, meta interface{}
 	client := meta.(*clients.Client).Compute.DiskEncryptionSetsClient
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	keyVaultKeyClient := meta.(*clients.Client).KeyVault.ManagementClient
+	managedkeyBundleClient := meta.(*clients.Client).ManagedHSMs.DataPlaneKeysClient
+	env := meta.(*clients.Client).Account.Environment
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -393,12 +395,18 @@ func resourceDiskEncryptionSetUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	rotationToLatestKeyVersionEnabled := d.Get("auto_key_rotation_enabled").(bool)
-	keyVaultKey, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(d.Get("key_vault_key_id").(string))
-	if err != nil {
-		return err
-	}
 
-	if d.HasChange("key_vault_key_id") {
+	if keyVaultKeyId, ok := d.GetOk("key_vault_key_id"); ok && d.HasChange("key_vault_key_id") {
+		keyVaultKey, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(keyVaultKeyId.(string))
+		if err != nil {
+			return err
+		}
+
+		err = validateKeyAndRotationEnabled(rotationToLatestKeyVersionEnabled, keyVaultKey.Version != "", keyVaultKey.ID())
+		if err != nil {
+			return err
+		}
+
 		keyVaultDetails, err := diskEncryptionSetRetrieveKeyVault(ctx, keyVaultsClient, id.SubscriptionId, *keyVaultKey)
 		if err != nil {
 			return fmt.Errorf("validating Key Vault Key %q for Disk Encryption Set: %+v", keyVaultKey.ID(), err)
@@ -438,16 +446,12 @@ func resourceDiskEncryptionSetUpdate(d *pluginsdk.ResourceData, meta interface{}
 				Id: utils.String(keyVaultDetails.keyVaultId),
 			}
 		}
-	}
-
-	if rotationToLatestKeyVersionEnabled {
-		if keyVaultKey.Version != "" {
-			return fmt.Errorf("'auto_key_rotation_enabled' field is set to 'true' expected a key vault key with a versionless ID but version information was found: %q", keyVaultKey.ID())
+	} else if managedHsmKeyId, ok := d.GetOk("managed_hsm_key_id"); ok && d.HasChange("managed_hsm_key_id") {
+		keyUrl, err := getManagedHsmKeyUrl(ctx, managedkeyBundleClient, managedHsmKeyId.(string), rotationToLatestKeyVersionEnabled, env)
+		if err != nil {
+			return err
 		}
-	} else {
-		if keyVaultKey.Version == "" {
-			return fmt.Errorf("'auto_key_rotation_enabled' field is set to 'false' expected a key vault key with a versioned ID but no version information was found: %q", keyVaultKey.ID())
-		}
+		update.Properties.ActiveKey.KeyUrl = keyUrl
 	}
 
 	if d.HasChange("auto_key_rotation_enabled") {
