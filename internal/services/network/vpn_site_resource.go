@@ -291,12 +291,14 @@ func resourceVpnSiteRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 func resourceVpnSiteUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := virtualwans.NewVpnSiteID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	existing, err := client.VpnSitesGet(ctx, id)
+	id, err := virtualwans.ParseVpnSiteID(d.Id())
+	if err != nil {
+		return err
+	}
+	existing, err := client.VpnSitesGet(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
@@ -331,7 +333,7 @@ func resourceVpnSiteUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	if err := client.VpnSitesCreateOrUpdateThenPoll(ctx, id, *payload); err != nil {
+	if err := client.VpnSitesCreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
