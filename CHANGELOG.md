@@ -1,3 +1,9 @@
+## 3.106.1 (Unreleased)
+
+BUG FIXES:
+
+* Data Source: `azurerm_kubernetes_cluster` - fix a crash when reading/setting `upgrade_settings` [GH-26173]
+
 ## 3.106.0 (May 31, 2024)
 
 UPGRADE NOTES:
