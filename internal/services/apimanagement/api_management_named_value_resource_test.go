@@ -71,7 +71,7 @@ func TestAccApiManagementNamedValue_keyVaultInvalidSecretValue(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.keyVaultWithInvalidSecretValue(data),
-			ExpectError: regexp.MustCompile(``secret` must be true when `value_from_key_vault` is set`),
+			ExpectError: regexp.MustCompile("`secret` must be true when `value_from_key_vault` is set"),
 		},
 	})
 }
