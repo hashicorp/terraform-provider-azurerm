@@ -104,7 +104,6 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 			"create_from_snapshot_resource_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
 				ForceNew:     true,
 				ValidateFunc: snapshots.ValidateSnapshotID,
 			},
