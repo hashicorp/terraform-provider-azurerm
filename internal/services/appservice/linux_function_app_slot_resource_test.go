@@ -356,6 +356,7 @@ func TestAccLinuxFunctionAppSlot_elasticPremiumCompleteWithVnetProperties(t *tes
 	})
 }
 
+// TODO 4.0 remove post 4.0
 func TestAccLinuxFunctionAppSlot_elasticPremiumComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
 	r := LinuxFunctionAppSlotResource{}
@@ -389,6 +390,7 @@ func TestAccLinuxFunctionAppSlot_standardCompleteWithVnetProperties(t *testing.T
 	})
 }
 
+// TODO 4.0 remove post 4.0
 func TestAccLinuxFunctionAppSlot_standardComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
 	r := LinuxFunctionAppSlotResource{}
@@ -440,6 +442,7 @@ func TestAccLinuxFunctionAppSlot_scmIpRestrictionSubnetWithVnetProperties(t *tes
 	})
 }
 
+// TODO 4.0 remove post 4.0
 func TestAccLinuxFunctionAppSlot_scmIpRestrictionSubnet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
 	r := LinuxFunctionAppSlotResource{}
@@ -1250,6 +1253,7 @@ func TestAccLinuxFunctionAppSlot_vNetIntegration(t *testing.T) {
 	})
 }
 
+// TODO 4.0 remove post 4.0
 func TestAccLinuxFunctionAppSlot_vNetIntegrationUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
 	r := LinuxFunctionAppSlotResource{}
@@ -1337,6 +1341,7 @@ func TestAccLinuxFunctionAppSlot_vNetIntegrationUpdateWithVnetProperties(t *test
 	})
 }
 
+// TODO 4.0 remove post 4.0
 func TestAccLinuxFunctionAppSlotASEv3_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
 	r := LinuxFunctionAppSlotResource{}
@@ -2596,6 +2601,7 @@ resource "azurerm_linux_function_app_slot" "test" {
 `, r.storageContainerTemplate(data, planSku), data.RandomInteger, data.Client().TenantID)
 }
 
+// TODO 4.0 remove this test case as it's replaced by standardCompleteWithVnetProperties
 func (r LinuxFunctionAppSlotResource) standardComplete(data acceptance.TestData) string {
 	planSku := "S1"
 	return fmt.Sprintf(`
@@ -2821,6 +2827,8 @@ resource "azurerm_linux_function_app_slot" "test" {
 }
 `, r.template(data, planSku), data.RandomInteger)
 }
+
+// TODO 4.0 remove this test case as it's replaced by scmIpRestrictionSubnetWithVnetProperties
 func (r LinuxFunctionAppSlotResource) scmIpRestrictionSubnet(data acceptance.TestData, planSku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -2996,6 +3004,8 @@ resource "azurerm_linux_function_app_slot" "test" {
 }
 `, r.storageContainerTemplate(data, SkuElasticPremiumPlan), data.RandomInteger)
 }
+
+// TODO 4.0 remove this test case as it's replaced by elasticCompleteWithVnetProperties
 func (r LinuxFunctionAppSlotResource) elasticComplete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3662,6 +3672,7 @@ resource "azurerm_user_assigned_identity" "test" {
 `, r.template(data, planSku), data.RandomInteger)
 }
 
+// TODO 4.0 remove this test case as it's replaced by vNetIntegration_basicWithVnetProperties
 func (r LinuxFunctionAppSlotResource) vNetIntegration_basic(data acceptance.TestData, planSku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3902,6 +3913,7 @@ resource "azurerm_linux_function_app_slot" "test" {
 `, r.template(data, planSku), data.RandomInteger, data.RandomInteger)
 }
 
+// TODO 4.0 remove this test case as it's replaced by vNetIntegration_subnet2WithVnetProperties
 func (r LinuxFunctionAppSlotResource) vNetIntegration_subnet2(data acceptance.TestData, planSku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3961,67 +3973,6 @@ resource "azurerm_linux_function_app_slot" "test" {
 `, r.template(data, planSku), data.RandomInteger, data.RandomInteger)
 }
 
-func (r LinuxFunctionAppSlotResource) vNetIntegration_subnet1WithVnetProperties(data acceptance.TestData, planSku string) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_virtual_network" "test" {
-  name                = "vnet-%d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test1" {
-  name                 = "subnet1"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.1.0/24"]
-
-  delegation {
-    name = "delegation"
-
-    service_delegation {
-      name    = "Microsoft.Web/serverFarms"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
-    }
-  }
-}
-
-resource "azurerm_subnet" "test2" {
-  name                 = "subnet2"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/24"]
-
-  delegation {
-    name = "delegation"
-
-    service_delegation {
-      name    = "Microsoft.Web/serverFarms"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
-    }
-  }
-}
-
-resource "azurerm_linux_function_app_slot" "test" {
-  name                       = "acctest-LFAS-%d"
-  function_app_id            = azurerm_linux_function_app.test.id
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
-  virtual_network_subnet_id  = azurerm_subnet.test1.id
-
-  vnet_image_pull_enabled = true
-  site_config {}
-}
-`, r.template(data, planSku), data.RandomInteger, data.RandomInteger)
-}
-
-// TODO 4.0 enable the vnet_image_pull_enabled property for app running in ase env
 func (r LinuxFunctionAppSlotResource) vNetIntegration_subnet2WithVnetProperties(data acceptance.TestData, planSku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -4082,6 +4033,7 @@ resource "azurerm_linux_function_app_slot" "test" {
 `, r.template(data, planSku), data.RandomInteger, data.RandomInteger)
 }
 
+// TODO 4.0 remove this test case as it's replaced by withASEV3WithVnetProperties
 func (r LinuxFunctionAppSlotResource) withASEV3(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
@@ -4103,7 +4055,6 @@ resource "azurerm_linux_function_app" "test" {
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
-  // vnet_image_pull_enabled = true
   site_config {
     vnet_route_all_enabled = true
   }
@@ -4115,7 +4066,6 @@ resource "azurerm_linux_function_app_slot" "test" {
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
-  // vnet_image_pull_enabled = true
   site_config {
     vnet_route_all_enabled = true
   }
@@ -4123,6 +4073,7 @@ resource "azurerm_linux_function_app_slot" "test" {
 
 `, ServicePlanResource{}.aseV3Linux(data), data.RandomString, data.RandomInteger)
 }
+
 func (r LinuxFunctionAppSlotResource) withASEV3WithVnetProperties(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
