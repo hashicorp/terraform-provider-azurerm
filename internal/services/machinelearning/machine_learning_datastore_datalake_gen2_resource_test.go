@@ -152,7 +152,6 @@ resource "azurerm_machine_learning_datastore_datalake_gen2" "test" {
   tenant_id            = azuread_service_principal.test.application_tenant_id
   client_id            = azuread_service_principal.test.client_id
   client_secret        = azuread_service_principal_password.test.value
-
 }
 `, template, data.RandomInteger)
 }
