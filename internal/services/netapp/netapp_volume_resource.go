@@ -194,7 +194,6 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 						"protocols_enabled": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Computed: true,
 							MaxItems: 1,
 							MinItems: 1,
 							Elem: &pluginsdk.Schema{
