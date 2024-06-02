@@ -98,7 +98,7 @@ func (r FlexibleServerFirewallRulesResource) ModelObject() interface{} {
 }
 
 func (r FlexibleServerFirewallRulesResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return firewallrules.ValidateFirewallRuleID
+	return servers.ValidateFlexibleServerID
 }
 
 func (r FlexibleServerFirewallRulesResource) Create() sdk.ResourceFunc {
