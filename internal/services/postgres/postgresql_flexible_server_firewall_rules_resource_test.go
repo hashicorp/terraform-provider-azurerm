@@ -91,12 +91,13 @@ func (PostgresqlFlexibleServerFirewallRulesResource) Exists(ctx context.Context,
 func (PostgresqlFlexibleServerFirewallRulesResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
+
 resource "azurerm_postgresql_flexible_server_firewall_rules" "test" {
-  server_id = azurerm_postgresql_flexible_server.test.id
+  server_id        = azurerm_postgresql_flexible_server.test.id
   firewall_rule {
-    name             = "acctest-FSFR-%d"
-    start_ip_address = "122.122.0.0"
-    end_ip_address   = "122.122.0.0"
+	name             = "acctest-FSFR-%d"
+	start_ip_address = "122.122.0.0"
+	end_ip_address   = "122.122.0.0"
   }
 }
 `, PostgresqlFlexibleServerResource{}.basic(data), data.RandomInteger)
@@ -105,12 +106,13 @@ resource "azurerm_postgresql_flexible_server_firewall_rules" "test" {
 func (r PostgresqlFlexibleServerFirewallRulesResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
+
 resource "azurerm_postgresql_flexible_server_firewall_rules" "import" {
-  server_id = azurerm_postgresql_flexible_server_firewall_rules.test.id
+  server_id        = azurerm_postgresql_flexible_server_firewall_rules.test.id
   firewall_rule {
-    name             = "acctest-FSFR"
-    start_ip_address = "122.122.0.0"
-    end_ip_address   = "122.122.0.0"
+	name             = "acctest-FSFR"
+	start_ip_address = "122.122.0.0"
+	end_ip_address   = "122.122.0.0"
   }
 }
 `, r.basic(data))
@@ -119,13 +121,14 @@ resource "azurerm_postgresql_flexible_server_firewall_rules" "import" {
 func (r PostgresqlFlexibleServerFirewallRulesResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
+
 resource "azurerm_postgresql_flexible_server_firewall_rules" "test" {
-  server_id = azurerm_postgresql_flexible_server.test.id
-  firewall_rule {
-    name             = "acctest-FSFR-%d"
-    start_ip_address = "123.0.0.0"
-    end_ip_address   = "123.0.0.0"
-  }
+	server_id        = azurerm_postgresql_flexible_server.test.id
+		firewall_rule {
+		name             = "acctest-FSFR-%d"
+		start_ip_address = "123.0.0.0"
+		end_ip_address   = "123.0.0.0"
+	}
 }
 `, PostgresqlFlexibleServerResource{}.basic(data), data.RandomInteger)
 }
