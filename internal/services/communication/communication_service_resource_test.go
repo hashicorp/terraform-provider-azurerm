@@ -137,10 +137,25 @@ func (r CommunicationServiceTestResource) complete(data acceptance.TestData) str
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_communication_service" "test" {
-  name                = "acctest-CommunicationService-%d"
+resource "azurerm_email_communication_service" "test" {
+  name                = "acctest-CommunicationService-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   data_location       = "United States"
+}
+
+resource "azurerm_email_communication_service_domain" "test" {
+  name                = azurerm_email_communication_service_domain.test.name
+  resource_group_name = azurerm_email_communication_service_domain.test.resource_group_name
+  email_service_name  = azurerm_email_communication_service_domain.test.email_service_name
+
+  domain_management = azurerm_email_communication_service_domain.test.domain_management
+}
+
+resource "azurerm_communication_service" "test" {
+  name                = "acctest-CommunicationService-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  data_location       = "United States"
+  linked_domains      = [azurerm_email_communication_service_domain.test.id]
 
   tags = {
     env = "Test"
