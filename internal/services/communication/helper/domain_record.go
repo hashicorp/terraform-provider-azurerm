@@ -10,7 +10,7 @@ type DomainVerificationRecords struct {
 	Type  string `tfschema:"type"`
 	Name  string `tfschema:"name"`
 	Value string `tfschema:"value"`
-	TTL   int    `tfschema:"ttl"`
+	TTL   int64  `tfschema:"ttl"`
 }
 
 func DomainVerificationRecordsCommonSchema() *pluginsdk.Schema {
