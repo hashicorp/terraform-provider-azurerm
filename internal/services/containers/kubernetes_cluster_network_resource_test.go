@@ -349,7 +349,9 @@ func TestAccKubernetesCluster_advancedNetworkingAzurePolicyRemove(t *testing.T) 
 			Config: r.advancedNetworkingWithOptionalPolicyConfig(data, ""),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network_profile.0.network_policy").HasValue("azure"), // TODO
+				check.That(data.ResourceName).Key("network_profile.0.network_policy").Exists(),
+				// network_policy is a computed value. If omitted, the current value from API is taken.
+				check.That(data.ResourceName).Key("network_profile.0.network_policy").HasValue("calico"),
 			),
 		},
 		data.ImportStep(),
