@@ -235,28 +235,28 @@ resource "azurerm_subnet" "test1" {
   name                 = "internal1"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test1.name
-  address_prefixes     = ["10.0.2.0/24"]
+  address_prefixes     = ["10.0.1.0/28"]
 }
 
 resource "azurerm_subnet" "test2" {
   name                 = "internal2"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test1.name
-  address_prefixes     = ["10.0.3.0/24"]
+  address_prefixes     = ["10.0.1.80/29"]
 }
 
 resource "azurerm_subnet" "test3" {
   name                 = "internal3"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test2.name
-  address_prefixes     = ["10.0.4.0/24"]
+  address_prefixes     = ["10.0.2.0/28"]
 }
 
 resource "azurerm_subnet" "test4" {
   name                 = "internal4"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test2.name
-  address_prefixes     = ["10.0.5.0/24"]
+  address_prefixes     = ["10.0.2.80/29"]
 }
 
 resource "azurerm_virtual_network_peering" "test1" {
@@ -270,6 +270,8 @@ resource "azurerm_virtual_network_peering" "test1" {
   only_ipv6_peering_enabled              = true
   local_subnet_names                     = [azurerm_subnet.test1.name]
   remote_subnet_names                    = [azurerm_subnet.test3.name]
+
+  depends_on = [azurerm_subnet.test2, azurerm_subnet.test4]
 }
 
 resource "azurerm_virtual_network_peering" "test2" {
@@ -283,6 +285,8 @@ resource "azurerm_virtual_network_peering" "test2" {
   only_ipv6_peering_enabled              = true
   local_subnet_names                     = [azurerm_subnet.test2.name]
   remote_subnet_names                    = [azurerm_subnet.test4.name]
+
+  depends_on = [azurerm_subnet.test1, azurerm_subnet.test3]
 }
 `, template, data.RandomInteger)
 }
