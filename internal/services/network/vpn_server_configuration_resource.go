@@ -564,7 +564,7 @@ func resourceVPNServerConfigurationUpdate(d *pluginsdk.ResourceData, meta interf
 	}
 
 	// parameter:VpnServerConfigVpnClientRootCertificates is not specified when VpnAuthenticationType as Certificate is selected.
-	if supportsCertificates && payload.Properties.RadiusClientRootCertificates != nil && len(*payload.Properties.RadiusClientRootCertificates) == 0 {
+	if supportsCertificates && payload.Properties.VpnClientRootCertificates != nil && len(*payload.Properties.VpnClientRootCertificates) == 0 {
 		return fmt.Errorf("`client_root_certificate` must be specified when `vpn_authentication_type` is set to `Certificate`")
 	}
 
