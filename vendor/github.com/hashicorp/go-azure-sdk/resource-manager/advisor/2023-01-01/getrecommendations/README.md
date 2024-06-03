@@ -1,7 +1,7 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/advisor/2020-01-01/getrecommendations` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/advisor/2023-01-01/getrecommendations` Documentation
 
-The `getrecommendations` SDK allows for interaction with the Azure Resource Manager Service `advisor` (API Version `2020-01-01`).
+The `getrecommendations` SDK allows for interaction with the Azure Resource Manager Service `advisor` (API Version `2023-01-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -9,7 +9,7 @@ This readme covers example usages, but further information on [using this SDK ca
 
 ```go
 import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-import "github.com/hashicorp/go-azure-sdk/resource-manager/advisor/2020-01-01/getrecommendations"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/advisor/2023-01-01/getrecommendations"
 ```
 
 

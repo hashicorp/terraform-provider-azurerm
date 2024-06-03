@@ -102,3 +102,47 @@ func parseImpact(input string) (*Impact, error) {
 	out := Impact(input)
 	return &out, nil
 }
+
+type Risk string
+
+const (
+	RiskError   Risk = "Error"
+	RiskNone    Risk = "None"
+	RiskWarning Risk = "Warning"
+)
+
+func PossibleValuesForRisk() []string {
+	return []string{
+		string(RiskError),
+		string(RiskNone),
+		string(RiskWarning),
+	}
+}
+
+func (s *Risk) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseRisk(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseRisk(input string) (*Risk, error) {
+	vals := map[string]Risk{
+		"error":   RiskError,
+		"none":    RiskNone,
+		"warning": RiskWarning,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := Risk(input)
+	return &out, nil
+}

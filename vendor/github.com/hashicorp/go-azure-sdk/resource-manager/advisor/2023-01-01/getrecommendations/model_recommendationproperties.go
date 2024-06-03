@@ -26,6 +26,7 @@ type RecommendationProperties struct {
 	RecommendationTypeId      *string                   `json:"recommendationTypeId,omitempty"`
 	Remediation               *map[string]interface{}   `json:"remediation,omitempty"`
 	ResourceMetadata          *ResourceMetadata         `json:"resourceMetadata,omitempty"`
+	Risk                      *Risk                     `json:"risk,omitempty"`
 	ShortDescription          *ShortDescription         `json:"shortDescription,omitempty"`
 	SuppressionIds            *[]string                 `json:"suppressionIds,omitempty"`
 }
