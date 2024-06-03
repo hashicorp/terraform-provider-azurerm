@@ -165,7 +165,7 @@ func (r SyncServerEndpointResource) Create() sdk.ResourceFunc {
 			}
 
 			pollerType := custompollers.NewStorageSyncServerEndpointPoller(client, id)
-			poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+			poller := pollers.NewPoller(pollerType, 20*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
 
 			if _, err = client.ServerEndpointsCreate(ctx, id, payload); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
@@ -277,7 +277,7 @@ func (r SyncServerEndpointResource) Update() sdk.ResourceFunc {
 			}
 
 			pollerType := custompollers.NewStorageSyncServerEndpointPoller(client, *id)
-			poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+			poller := pollers.NewPoller(pollerType, 20*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
 
 			if _, err = client.ServerEndpointsUpdate(ctx, *id, payload); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
