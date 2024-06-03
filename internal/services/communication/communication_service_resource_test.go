@@ -144,9 +144,9 @@ resource "azurerm_email_communication_service" "test" {
 }
 
 resource "azurerm_email_communication_service_domain" "test" {
-  name                = "AzureManagedDomain"
-  email_service_id    = azurerm_email_communication_service.test.id
-  domain_management   = "AzureManaged"
+  name              = "AzureManagedDomain"
+  email_service_id  = azurerm_email_communication_service.test.id
+  domain_management = "AzureManaged"
 }
 
 resource "azurerm_communication_service" "test" {

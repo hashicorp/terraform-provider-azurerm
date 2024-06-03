@@ -95,8 +95,8 @@ func (r EmailServiceDomainTestResource) basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_email_communication_service_domain" "test" {
-  name                = "AzureManagedDomain"
-  email_service_id    = azurerm_email_communication_service.test.id
+  name             = "AzureManagedDomain"
+  email_service_id = azurerm_email_communication_service.test.id
 
   domain_management = "AzureManaged"
 }
@@ -109,8 +109,8 @@ func (r EmailServiceDomainTestResource) requiresImport(data acceptance.TestData)
 %s
 
 resource "azurerm_email_communication_service_domain" "import" {
-  name                = azurerm_email_communication_service_domain.test.name
-  email_service_id    = azurerm_email_communication_service_domain.test.email_service_id
+  name             = azurerm_email_communication_service_domain.test.name
+  email_service_id = azurerm_email_communication_service_domain.test.email_service_id
 
   domain_management = azurerm_email_communication_service_domain.test.domain_management
 }
@@ -122,8 +122,8 @@ func (r EmailServiceDomainTestResource) complete(data acceptance.TestData, userT
 %s
 
 resource "azurerm_email_communication_service_domain" "test" {
-  name                = "example.com"
-  email_service_id    = azurerm_email_communication_service.test.id
+  name             = "example.com"
+  email_service_id = azurerm_email_communication_service.test.id
 
   domain_management                = "CustomerManaged"
   user_engagement_tracking_enabled = %s
