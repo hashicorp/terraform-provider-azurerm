@@ -244,13 +244,9 @@ func (EmailCommunicationServiceDomainResource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					state.DomainManagement = string(props.DomainManagement)
 
-					if props.FromSenderDomain != nil {
-						state.FromSenderDomain = pointer.From(props.FromSenderDomain)
-					}
+					state.FromSenderDomain = pointer.From(props.FromSenderDomain)
 
-					if props.MailFromSenderDomain != nil {
-						state.MailFromSenderDomain = pointer.From(props.MailFromSenderDomain)
-					}
+					state.MailFromSenderDomain = pointer.From(props.MailFromSenderDomain)
 
 					if props.UserEngagementTracking != nil {
 						state.UserEngagementTracking = *props.UserEngagementTracking == domains.UserEngagementTrackingEnabled
