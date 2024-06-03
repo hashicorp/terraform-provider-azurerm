@@ -86,6 +86,21 @@ func TestAccStorageDataLakeGen2FileSystem_UpdateDefaultACL(t *testing.T) {
 	})
 }
 
+func TestAccStorageDataLakeGen2FileSystem_encryptionScope(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_data_lake_gen2_filesystem", "test")
+	r := StorageDataLakeGen2FileSystemResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.encryptionScope(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccStorageDataLakeGen2FileSystem_properties(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_data_lake_gen2_filesystem", "test")
 	r := StorageDataLakeGen2FileSystemResource{}
@@ -225,6 +240,26 @@ resource "azurerm_storage_data_lake_gen2_filesystem" "import" {
   storage_account_id = azurerm_storage_data_lake_gen2_filesystem.test.storage_account_id
 }
 `, template)
+}
+
+func (r StorageDataLakeGen2FileSystemResource) encryptionScope(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_storage_encryption_scope" "test" {
+  name               = "acctestEScontainer%[2]d"
+  storage_account_id = azurerm_storage_account.test.id
+  source             = "Microsoft.Storage"
+}
+
+resource "azurerm_storage_data_lake_gen2_filesystem" "test" {
+  name               = "acctest-%[2]d"
+  storage_account_id = azurerm_storage_account.test.id
+
+  default_encryption_scope = azurerm_storage_encryption_scope.test.name
+}
+`, template, data.RandomInteger)
 }
 
 func (r StorageDataLakeGen2FileSystemResource) properties(data acceptance.TestData, value string) string {

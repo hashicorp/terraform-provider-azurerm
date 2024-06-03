@@ -16,13 +16,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2023-04-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func dataSourceCosmosDbAccount() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	dataSource := &pluginsdk.Resource{
 		Read: dataSourceCosmosDbAccountRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -56,14 +57,12 @@ func dataSourceCosmosDbAccount() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_free_tier": {
+			"free_tier_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
 
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_automatic_failover": {
+			"automatic_failover_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
@@ -150,8 +149,7 @@ func dataSourceCosmosDbAccount() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_multiple_write_locations": {
+			"multiple_write_locations_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
@@ -199,16 +197,6 @@ func dataSourceCosmosDbAccount() *pluginsdk.Resource {
 				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
-			},
-
-			"connection_strings": {
-				Type:      pluginsdk.TypeList,
-				Computed:  true,
-				Sensitive: true,
-				Elem: &pluginsdk.Schema{
-					Type:      pluginsdk.TypeString,
-					Sensitive: true,
-				},
 			},
 
 			"primary_sql_connection_string": {
@@ -260,6 +248,37 @@ func dataSourceCosmosDbAccount() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		dataSource.Schema["connection_strings"] = &pluginsdk.Schema{
+			Type:      pluginsdk.TypeList,
+			Computed:  true,
+			Sensitive: true,
+			Elem: &pluginsdk.Schema{
+				Type:      pluginsdk.TypeString,
+				Sensitive: true,
+			},
+			Deprecated: "This property has been superseded by the primary and secondary connection strings for sql, mongodb and readonly and will be removed in v4.0 of the AzureRM provider",
+		}
+		dataSource.Schema["enable_free_tier"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Computed:   true,
+			Deprecated: "This property has been renamed to `free_tier_enabled` and will be removed in v4.0 of the AzureRM provider",
+		}
+		dataSource.Schema["enable_automatic_failover"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Computed:   true,
+			Deprecated: "This property has been renamed to `automatic_failover_enabled` and will be removed in v4.0 of the AzureRM provider",
+		}
+		dataSource.Schema["enable_multiple_write_locations"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Computed:   true,
+			Deprecated: "This property has been renamed to `multiple_write_locations_enabled` and will be removed in v4.0 of the AzureRM provider",
+		}
+
+	}
+
+	return dataSource
 }
 
 func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -293,8 +312,15 @@ func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("ip_range_filter", common.CosmosDBIpRulesToIpRangeFilterThreePointOh(props.IPRules))
 			d.Set("endpoint", props.DocumentEndpoint)
 			d.Set("is_virtual_network_filter_enabled", props.IsVirtualNetworkFilterEnabled)
-			d.Set("enable_free_tier", props.EnableFreeTier)
-			d.Set("enable_automatic_failover", props.EnableAutomaticFailover)
+			if !features.FourPointOhBeta() {
+				d.Set("enable_free_tier", props.EnableFreeTier)
+				d.Set("enable_automatic_failover", props.EnableAutomaticFailover)
+				d.Set("enable_multiple_write_locations", props.EnableMultipleWriteLocations)
+			}
+
+			d.Set("free_tier_enabled", props.EnableFreeTier)
+			d.Set("automatic_failover_enabled", props.EnableAutomaticFailover)
+			d.Set("multiple_write_locations_enabled", props.EnableMultipleWriteLocations)
 
 			if v := props.KeyVaultKeyUri; v != nil {
 				d.Set("key_vault_key_id", v)
@@ -368,8 +394,6 @@ func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 			if err := d.Set("write_endpoints", writeEndpoints); err != nil {
 				return fmt.Errorf("setting `write_endpoints`: %s", err)
 			}
-
-			d.Set("enable_multiple_write_locations", props.EnableMultipleWriteLocations)
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
@@ -417,7 +441,9 @@ func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 				}
 			}
 
-			d.Set("connection_strings", connStrings)
+			if !features.FourPointOhBeta() {
+				d.Set("connection_strings", connStrings)
+			}
 		}
 	}
 	return nil

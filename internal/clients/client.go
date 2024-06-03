@@ -19,7 +19,7 @@ import (
 	hdinsight_v2021_06_01 "github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01"
 	nginx_2024_01_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-01-01-preview"
 	redis_2023_08_01 "github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-08-01"
-	servicenetworking_v2023_05_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2023-05-01-preview"
+	servicenetworking_2023_11_01 "github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2023-11-01"
 	storagecache_2023_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01"
 	systemcentervirtualmachinemanager_2023_10_07 "github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07"
 	timeseriesinsights_v2020_05_15 "github.com/hashicorp/go-azure-sdk/resource-manager/timeseriesinsights/2020-05-15"
@@ -86,9 +86,9 @@ import (
 	keyvault "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	kusto "github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/client"
 	labservice "github.com/hashicorp/terraform-provider-azurerm/internal/services/labservice/client"
-	legacy "github.com/hashicorp/terraform-provider-azurerm/internal/services/legacy/client"
 	lighthouse "github.com/hashicorp/terraform-provider-azurerm/internal/services/lighthouse/client"
 	loadbalancers "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/client"
+	loadtestservice "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadtestservice/client"
 	loganalytics "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/client"
 	logic "github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/client"
 	logz "github.com/hashicorp/terraform-provider-azurerm/internal/services/logz/client"
@@ -223,9 +223,9 @@ type Client struct {
 	KeyVault                          *keyvault.Client
 	Kusto                             *kusto.Client
 	LabService                        *labservice.Client
-	Legacy                            *legacy.Client
 	Lighthouse                        *lighthouse.Client
 	LoadBalancers                     *loadbalancers.Client
+	LoadTestService                   *loadtestservice.AutoClient
 	LogAnalytics                      *loganalytics.Client
 	Logic                             *logic.Client
 	Logz                              *logz.Client
@@ -271,7 +271,7 @@ type Client struct {
 	ServiceConnector                  *serviceConnector.Client
 	ServiceFabric                     *serviceFabric.Client
 	ServiceFabricManaged              *serviceFabricManaged.Client
-	ServiceNetworking                 *servicenetworking_v2023_05_01_preview.Client
+	ServiceNetworking                 *servicenetworking_2023_11_01.Client
 	SignalR                           *signalr.Client
 	Storage                           *storage.Client
 	StorageCache                      *storagecache_2023_05_01.Client
@@ -475,14 +475,15 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.IoTTimeSeriesInsights, err = timeseriesinsights.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for IoT TimeSeries Insights: %+v", err)
 	}
-	client.KeyVault = keyvault.NewClient(o)
+	if client.KeyVault, err = keyvault.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Key Vault: %+v", err)
+	}
 	if client.Kusto, err = kusto.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Kusto: %+v", err)
 	}
 	if client.LabService, err = labservice.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for LabService: %+v", err)
 	}
-	client.Legacy = legacy.NewClient(o)
 	if client.Lighthouse, err = lighthouse.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Lighthouse: %+v", err)
 	}
@@ -491,6 +492,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	}
 	if client.LoadBalancers, err = loadbalancers.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for LoadBalancers: %+v", err)
+	}
+	if client.LoadTestService, err = loadtestservice.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for LoadTestService: %+v", err)
 	}
 	if client.Logic, err = logic.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Logic: %+v", err)

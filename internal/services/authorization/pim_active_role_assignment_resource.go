@@ -12,22 +12,62 @@ import (
 	"strings"
 	"time"
 
-	// nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/roleassignmentschedulerequests"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/roleassignmentschedules"
 	"github.com/hashicorp/go-uuid"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/validate"
+	billingValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/billing/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 var _ sdk.Resource = PimActiveRoleAssignmentResource{}
 
 type PimActiveRoleAssignmentResource struct{}
+
+type PimActiveRoleAssignmentModel struct {
+	RoleDefinitionId string                                `tfschema:"role_definition_id"`
+	Scope            string                                `tfschema:"scope"`
+	PrincipalId      string                                `tfschema:"principal_id"`
+	PrincipalType    string                                `tfschema:"principal_type"`
+	Justification    string                                `tfschema:"justification"`
+	TicketInfo       []PimActiveRoleAssignmentTicketInfo   `tfschema:"ticket"`
+	ScheduleInfo     []PimActiveRoleAssignmentScheduleInfo `tfschema:"schedule"`
+}
+
+type PimActiveRoleAssignmentTicketInfo struct {
+	TicketNumber string `tfschema:"number"`
+	TicketSystem string `tfschema:"system"`
+}
+
+type PimActiveRoleAssignmentScheduleInfo struct {
+	StartDateTime string                                          `tfschema:"start_date_time"`
+	Expiration    []PimActiveRoleAssignmentScheduleInfoExpiration `tfschema:"expiration"`
+}
+
+type PimActiveRoleAssignmentScheduleInfoExpiration struct {
+	DurationDays  int64  `tfschema:"duration_days"`
+	DurationHours int64  `tfschema:"duration_hours"`
+	EndDateTime   string `tfschema:"end_date_time"`
+}
+
+func (PimActiveRoleAssignmentResource) ModelObject() interface{} {
+	return &PimActiveRoleAssignmentModel{}
+}
+
+func (PimActiveRoleAssignmentResource) ResourceType() string {
+	return "azurerm_pim_active_role_assignment"
+}
+
+func (PimActiveRoleAssignmentResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+	return validate.PimRoleAssignmentID
+}
 
 func (PimActiveRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
@@ -35,51 +75,51 @@ func (PimActiveRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schema 
 			Type:        pluginsdk.TypeString,
 			Required:    true,
 			ForceNew:    true,
-			Description: "The scope.",
+			Description: "Scope for this role assignment, should be a valid resource ID",
+			ValidateFunc: validation.Any(
+				// Elevated access for a global admin is needed to assign roles in this scope:
+				// https://docs.microsoft.com/en-us/azure/role-based-access-control/elevate-access-global-admin#azure-cli
+				// It seems only user account is allowed to be elevated access.
+				validation.StringMatch(regexp.MustCompile("/providers/Microsoft.Subscription.*"), "Subscription scope is invalid"),
+
+				billingValidate.EnrollmentID,
+				commonids.ValidateManagementGroupID,
+				commonids.ValidateSubscriptionID,
+				commonids.ValidateResourceGroupID,
+				azure.ValidateResourceID,
+			),
 		},
 
 		"role_definition_id": {
 			Type:        pluginsdk.TypeString,
 			Required:    true,
 			ForceNew:    true,
-			Description: "The role definition id.",
+			Description: "Role definition ID for this role assignment",
 		},
 
 		"principal_id": {
-			Type:        pluginsdk.TypeString,
-			Required:    true,
-			ForceNew:    true,
-			Description: "The principal id.",
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			Description:  "Object ID of the principal for this role assignment",
+			ValidateFunc: validation.IsUUID,
 		},
 
-		"ticket": {
-			Type:        pluginsdk.TypeList,
-			MaxItems:    1,
+		"justification": {
+			Type:        pluginsdk.TypeString,
 			Optional:    true,
+			Computed:    true,
 			ForceNew:    true,
-			Description: "The ticket details.",
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"number": {
-						Optional:    true,
-						Type:        pluginsdk.TypeString,
-						Description: "The ticket number.",
-					},
-					"system": {
-						Optional:    true,
-						Type:        pluginsdk.TypeString,
-						Description: "The ticket system.",
-					},
-				},
-			},
+			Description: "The justification for this role assignment",
 		},
 
 		"schedule": {
 			Type:        pluginsdk.TypeList,
 			MaxItems:    1,
 			Optional:    true,
+			Computed:    true,
 			ForceNew:    true,
-			Description: "The schedule details of this role assignment.",
+			Description: "The schedule details for this role assignment",
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"start_date_time": { // defaults to now
@@ -87,9 +127,10 @@ func (PimActiveRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schema 
 						Computed:    true,
 						ForceNew:    true,
 						Type:        pluginsdk.TypeString,
-						Description: "The start date time.",
+						Description: "The start date/time of the role assignment",
 					},
-					"expiration": { // if none specified, it's a permanent assignment
+
+					"expiration": {
 						Type:     pluginsdk.TypeList,
 						MaxItems: 1,
 						Optional: true,
@@ -104,8 +145,9 @@ func (PimActiveRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schema 
 										"schedule.0.expiration.0.duration_hours",
 										"schedule.0.expiration.0.end_date_time",
 									},
-									Description: "The duration of the assignment in days.",
+									Description: "The duration of the role assignment in days",
 								},
+
 								"duration_hours": {
 									Type:     pluginsdk.TypeInt,
 									Optional: true,
@@ -115,8 +157,9 @@ func (PimActiveRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schema 
 										"schedule.0.expiration.0.duration_days",
 										"schedule.0.expiration.0.end_date_time",
 									},
-									Description: "The duration of the assignment in hours.",
+									Description: "The duration of the role assignment in hours",
 								},
+
 								"end_date_time": {
 									Optional: true,
 									Computed: true,
@@ -126,7 +169,7 @@ func (PimActiveRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schema 
 										"schedule.0.expiration.0.duration_days",
 										"schedule.0.expiration.0.duration_hours",
 									},
-									Description: "The end date time of the assignment.",
+									Description: "The end date/time of the role assignment",
 								},
 							},
 						},
@@ -135,11 +178,30 @@ func (PimActiveRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schema 
 			},
 		},
 
-		"justification": {
-			Type:        pluginsdk.TypeString,
+		"ticket": {
+			Type:        pluginsdk.TypeList,
+			MaxItems:    1,
 			Optional:    true,
+			Computed:    true,
 			ForceNew:    true,
-			Description: "The justification of the role assignment.",
+			Description: "Ticket details relating to the assignment",
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"number": {
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						ForceNew:    true,
+						Description: "User-supplied ticket number to be included with the request",
+					},
+
+					"system": {
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						ForceNew:    true,
+						Description: "User-supplied ticket system name to be included with the request",
+					},
+				},
+			},
 		},
 	}
 }
@@ -149,92 +211,137 @@ func (PimActiveRoleAssignmentResource) Attributes() map[string]*pluginsdk.Schema
 		"principal_type": {
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The type of principal.",
+			Description: "Type of principal to which the role will be assigned",
 		},
 	}
 }
 
-func (PimActiveRoleAssignmentResource) ModelObject() interface{} {
-	return &PimActiveRoleAssignmentResourceSchema{}
-}
-
-func (PimActiveRoleAssignmentResource) ResourceType() string {
-	return "azurerm_pim_active_role_assignment"
-}
-
 func (r PimActiveRoleAssignmentResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 10 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			clientSchedules := metadata.Client.Authorization.RoleAssignmentSchedulesClient
-			clientRequest := metadata.Client.Authorization.RoleAssignmentScheduleRequestClient
+			schedulesClient := metadata.Client.Authorization.RoleAssignmentSchedulesClient
+			requestsClient := metadata.Client.Authorization.RoleAssignmentScheduleRequestClient
 
-			scope := metadata.ResourceData.Get("scope").(string)
-			roleDefinitionId := metadata.ResourceData.Get("role_definition_id").(string)
-			principalId := metadata.ResourceData.Get("principal_id").(string)
-
-			id := parse.NewPimRoleAssignmentID(scope, roleDefinitionId, principalId)
-
-			filter := &roleassignmentschedules.ListForScopeOperationOptions{
-				Filter: pointer.To(fmt.Sprintf("(principalId eq '%s')", id.PrincipalId)),
-			}
-
-			items, err := clientSchedules.ListForScopeComplete(ctx, id.ScopeID(), *filter)
-			if err != nil {
-				return fmt.Errorf("listing role assignments on scope %s: %+v", id, err)
-			}
-			for _, item := range items.Items {
-				if *item.Properties.MemberType == roleassignmentschedules.MemberTypeDirect &&
-					strings.EqualFold(*item.Properties.RoleDefinitionId, id.RoleDefinitionId) &&
-					strings.EqualFold(*item.Properties.Scope, id.Scope) {
-					return metadata.ResourceRequiresImport(r.ResourceType(), id)
-				}
-			}
-
-			var config PimActiveRoleAssignmentResourceSchema
-			if err = metadata.Decode(&config); err != nil {
+			var config PimActiveRoleAssignmentModel
+			if err := metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			var payload roleassignmentschedulerequests.RoleAssignmentScheduleRequest
+			id := parse.NewPimRoleAssignmentID(config.Scope, config.RoleDefinitionId, config.PrincipalId)
 
-			r.mapPimActiveRoleAssignmentResourceSchemaToRoleAssignmentScheduleRequest(config, &payload)
+			schedule, err := findRoleAssignmentSchedule(ctx, schedulesClient, id)
+			if err != nil {
+				return err
+			}
+			if schedule != nil {
+				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			}
 
-			payload.Properties.RequestType = roleassignmentschedulerequests.RequestTypeAdminAssign
+			scheduleInfo := &roleassignmentschedulerequests.RoleAssignmentScheduleRequestPropertiesScheduleInfo{
+				Expiration: &roleassignmentschedulerequests.RoleAssignmentScheduleRequestPropertiesScheduleInfoExpiration{
+					Type: pointer.To(roleassignmentschedulerequests.TypeNoExpiration),
+				},
+			}
 
-			roleAssignmentScheduleRequestId, err := uuid.GenerateUUID()
+			if len(config.ScheduleInfo) > 0 {
+				if config.ScheduleInfo[0].StartDateTime != "" {
+					scheduleInfo.StartDateTime = pointer.To(config.ScheduleInfo[0].StartDateTime)
+				}
+
+				if expiration := config.ScheduleInfo[0].Expiration; len(expiration) > 0 {
+					scheduleInfo.Expiration = &roleassignmentschedulerequests.RoleAssignmentScheduleRequestPropertiesScheduleInfoExpiration{
+						Type: pointer.To(roleassignmentschedulerequests.TypeNoExpiration),
+					}
+
+					switch {
+					case expiration[0].DurationDays != 0:
+						scheduleInfo.Expiration.Duration = pointer.To(fmt.Sprintf("P%dD", expiration[0].DurationDays))
+						scheduleInfo.Expiration.Type = pointer.To(roleassignmentschedulerequests.TypeAfterDuration)
+
+					case expiration[0].DurationHours != 0:
+						scheduleInfo.Expiration.Duration = pointer.To(fmt.Sprintf("PT%dH", expiration[0].DurationHours))
+						scheduleInfo.Expiration.Type = pointer.To(roleassignmentschedulerequests.TypeAfterDuration)
+
+					case expiration[0].EndDateTime != "":
+						scheduleInfo.Expiration.EndDateTime = pointer.To(expiration[0].EndDateTime)
+						scheduleInfo.Expiration.Type = pointer.To(roleassignmentschedulerequests.TypeAfterDateTime)
+					}
+				}
+			}
+
+			var ticketInfo *roleassignmentschedulerequests.RoleAssignmentScheduleRequestPropertiesTicketInfo
+
+			if len(config.TicketInfo) > 0 {
+				ticketInfo = &roleassignmentschedulerequests.RoleAssignmentScheduleRequestPropertiesTicketInfo{
+					TicketNumber: pointer.To(config.TicketInfo[0].TicketNumber),
+					TicketSystem: pointer.To(config.TicketInfo[0].TicketSystem),
+				}
+			}
+
+			scopeId, err := commonids.ParseScopeID(id.Scope)
+			if err != nil {
+				return err
+			}
+
+			payload := roleassignmentschedulerequests.RoleAssignmentScheduleRequest{
+				Properties: &roleassignmentschedulerequests.RoleAssignmentScheduleRequestProperties{
+					Justification:    pointer.To(config.Justification),
+					PrincipalId:      id.PrincipalId,
+					RequestType:      roleassignmentschedulerequests.RequestTypeAdminAssign,
+					RoleDefinitionId: id.RoleDefinitionId,
+					Scope:            pointer.To(scopeId.ID()),
+					ScheduleInfo:     scheduleInfo,
+					TicketInfo:       ticketInfo,
+				},
+			}
+
+			roleAssignmentScheduleRequestName, err := uuid.GenerateUUID()
 			if err != nil {
 				return fmt.Errorf("generating uuid: %+v", err)
 			}
+
+			requestId := roleassignmentschedulerequests.NewScopedRoleAssignmentScheduleRequestID(id.Scope, roleAssignmentScheduleRequestName)
 
 			deadline, ok := ctx.Deadline()
 			if !ok {
 				return fmt.Errorf("internal error: context has no deadline")
 			}
 
-			requestId := roleassignmentschedulerequests.NewScopedRoleAssignmentScheduleRequestID(config.Scope, roleAssignmentScheduleRequestId)
+			// TODO: Remove this WaitForState workaround once eventual-consistency retries are added to the upstream SDK
 			stateConf := &pluginsdk.StateChangeConf{
-				Pending:    []string{"Missing"},
-				Target:     []string{"Created"},
-				Refresh:    createActiveRoleAssignment(ctx, clientRequest, requestId, &payload),
-				MinTimeout: 30 * time.Second,
+				Pending: []string{"Retry"},
+				Target:  []string{"Created"},
+				Refresh: func() (interface{}, string, error) {
+					// Retry new requests to smooth over AAD replication issues with the subject principal
+					result, err := requestsClient.Create(ctx, requestId, payload)
+					if err != nil {
+						if result.OData != nil && result.OData.Error != nil && result.OData.Error.Code != nil && *result.OData.Error.Code == "SubjectNotFound" {
+							return result, "Retry", nil
+						}
+
+						return result, "Error", fmt.Errorf("creating %s: %+v", requestId, err)
+					}
+
+					return result, "Created", nil
+				},
+				MinTimeout: 10 * time.Second,
 				Timeout:    time.Until(deadline),
 			}
 			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-				return fmt.Errorf("waiting for %s to be created: %+v", id, err)
+				return fmt.Errorf("waiting for %s to be created: %+v", requestId, err)
 			}
 
-			// Wait for resource to exist
+			// Wait for the request to be processed and a schedule to be created, so that subsequent reads will succeed
 			stateConf = &pluginsdk.StateChangeConf{
-				Pending:    []string{"Missing"},
-				Target:     []string{"Found"},
-				Refresh:    waitForActiveRoleAssignment(ctx, clientSchedules, config.Scope, config.PrincipalId, config.RoleDefinitionId, "Found"),
-				MinTimeout: 30 * time.Second,
+				Pending:    []string{"NotFound"},
+				Target:     []string{"Exists"},
+				Refresh:    pollForRoleAssignmentSchedule(ctx, schedulesClient, id),
+				MinTimeout: 10 * time.Second,
 				Timeout:    time.Until(deadline),
 			}
-
 			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-				return fmt.Errorf("waiting for %s to become found: %+v", id, err)
+				return fmt.Errorf("waiting for %s to become found: %+v", requestId, err)
 			}
 
 			metadata.SetID(id)
@@ -248,89 +355,161 @@ func (r PimActiveRoleAssignmentResource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			clientSchedules := metadata.Client.Authorization.RoleAssignmentSchedulesClient
-			clientRequest := metadata.Client.Authorization.RoleAssignmentScheduleRequestClient
+			schedulesClient := metadata.Client.Authorization.RoleAssignmentSchedulesClient
+			requestsClient := metadata.Client.Authorization.RoleAssignmentScheduleRequestClient
 
-			schema := PimActiveRoleAssignmentResourceSchema{}
+			// Retrieve existing state as we may not be able to populate everything after the initial request has expired
+			var state PimActiveRoleAssignmentModel
+			if err := metadata.Decode(&state); err != nil {
+				return err
+			}
 
 			id, err := parse.PimRoleAssignmentID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			filter := &roleassignmentschedules.ListForScopeOperationOptions{
-				Filter: pointer.To(fmt.Sprintf("(principalId eq '%s')", id.PrincipalId)),
-			}
-
-			items, err := clientSchedules.ListForScopeComplete(ctx, id.ScopeID(), *filter)
-			if err != nil {
-				return fmt.Errorf("listing role assignments on scope %s: %+v", id, err)
-			}
-			var schedule *roleassignmentschedules.RoleAssignmentSchedule
-			for _, item := range items.Items {
-				if *item.Properties.MemberType == roleassignmentschedules.MemberTypeDirect &&
-					strings.EqualFold(*item.Properties.RoleDefinitionId, id.RoleDefinitionId) &&
-					strings.EqualFold(*item.Properties.Scope, id.Scope) {
-					schedule = &item
-					break
-				}
-			}
-			if schedule == nil {
-				return metadata.MarkAsGone(*id)
-			}
-
-			schema.Scope = id.Scope
-
-			roleAssignmentScheduleRequestId, err := parse.RoleAssignmentScheduleRequestIdFromSchedule(schedule)
+			// Look for a Schedule for this role assignment. Note that the Schedule ID changes each time the assignment is manipulated,
+			// whilst still remaining valid for the configured role, scope and principal, so we must search for it.
+			schedule, err := findRoleAssignmentSchedule(ctx, schedulesClient, *id)
 			if err != nil {
 				return err
 			}
-			scheduleRequestId := roleassignmentschedulerequests.NewScopedRoleAssignmentScheduleRequestID(id.Scope, *roleAssignmentScheduleRequestId)
+			if schedule == nil {
+				return metadata.MarkAsGone(id)
+			}
 
-			resp, err := clientRequest.Get(ctx, scheduleRequestId)
+			// Look for the latest associated assignment request as this contains some fields we want
+			request, err := findRoleAssignmentScheduleRequest(ctx, requestsClient, schedule, id)
 			if err != nil {
-				if response.WasNotFound(resp.HttpResponse) {
-					return metadata.MarkAsGone(*id)
+				return err
+			}
+
+			state.Scope = id.Scope
+
+			// PIM Role Assignments are represented by a Schedule object and one or more Request objects that comprise the audit history. Requests return
+			// more information, but expire after 45 days, so after this time we can only partially populate the resource attributes from the Schedule.
+			if request != nil && request.Properties != nil {
+				// A request is still present and was found, so populate from the request
+				state.Justification = pointer.From(request.Properties.Justification)
+				state.PrincipalId = request.Properties.PrincipalId
+				state.PrincipalType = string(pointer.From(request.Properties.PrincipalType))
+				state.RoleDefinitionId = request.Properties.RoleDefinitionId
+
+				if ticketInfo := request.Properties.TicketInfo; ticketInfo != nil {
+					if len(state.TicketInfo) == 0 {
+						state.TicketInfo = make([]PimActiveRoleAssignmentTicketInfo, 1)
+					}
+
+					if ticketInfo.TicketNumber != nil {
+						state.TicketInfo[0].TicketNumber = *ticketInfo.TicketNumber
+					}
+					if ticketInfo.TicketSystem != nil {
+						state.TicketInfo[0].TicketSystem = *ticketInfo.TicketSystem
+					}
 				}
-				return fmt.Errorf("retrieving %s: %+v", *id, err)
-			}
 
-			if model := resp.Model; model != nil {
-				schema.Scope = id.Scope
+				if scheduleInfo := request.Properties.ScheduleInfo; scheduleInfo != nil {
+					if len(state.ScheduleInfo) == 0 {
+						state.ScheduleInfo = make([]PimActiveRoleAssignmentScheduleInfo, 1)
+					}
 
-				if err = r.mapRoleAssignmentScheduleRequestToPimActiveRoleAssignmentResourceSchema(*model, &schema); err != nil {
-					return fmt.Errorf("flattening model: %+v", err)
+					// Only set the StartDateTime if not already present in state, because the value returned by the server advances
+					// in short intervals until the request has been fully processed, causing unnecessary persistent diffs
+					if state.ScheduleInfo[0].StartDateTime == "" && scheduleInfo.StartDateTime != nil {
+						state.ScheduleInfo[0].StartDateTime = *scheduleInfo.StartDateTime
+					}
+
+					if expiration := scheduleInfo.Expiration; expiration != nil {
+						if len(state.ScheduleInfo[0].Expiration) == 0 {
+							state.ScheduleInfo[0].Expiration = make([]PimActiveRoleAssignmentScheduleInfoExpiration, 1)
+						}
+
+						// Only set the EndDateTime if not already present in state, because the value returned by the server advances
+						// in short intervals until the request has been fully processed, causing unnecessary persistent diffs
+						if state.ScheduleInfo[0].Expiration[0].EndDateTime == "" && expiration.EndDateTime != nil {
+							state.ScheduleInfo[0].Expiration[0].EndDateTime = pointer.From(expiration.EndDateTime)
+						}
+
+						if expiration.Duration != nil && *expiration.Duration != "" {
+							durationRaw := *expiration.Duration
+
+							reHours := regexp.MustCompile(`PT(\d+)H`)
+							matches := reHours.FindStringSubmatch(durationRaw)
+							if len(matches) == 2 {
+								hours, err := strconv.ParseInt(matches[1], 10, 0)
+								if err != nil {
+									return fmt.Errorf("parsing duration: %+v", err)
+								}
+								state.ScheduleInfo[0].Expiration[0].DurationHours = hours
+							}
+
+							reDays := regexp.MustCompile(`P(\d+)D`)
+							matches = reDays.FindStringSubmatch(durationRaw)
+							if len(matches) == 2 {
+								days, err := strconv.ParseInt(matches[1], 10, 0)
+								if err != nil {
+									return fmt.Errorf("parsing duration: %+v", err)
+								}
+								state.ScheduleInfo[0].Expiration[0].DurationDays = days
+							}
+						}
+					}
+				}
+			} else if props := schedule.Properties; props != nil {
+				// The request has likely expired, so populate from the schedule (not all fields will be available)
+				state.PrincipalId = pointer.From(props.PrincipalId)
+				state.PrincipalType = string(pointer.From(props.PrincipalType))
+				state.RoleDefinitionId = pointer.From(props.RoleDefinitionId)
+
+				if props.StartDateTime != nil {
+					if len(state.ScheduleInfo) == 0 {
+						state.ScheduleInfo = make([]PimActiveRoleAssignmentScheduleInfo, 1)
+					}
+
+					// Only set the StartDateTime if not already present in state, because the value returned by the server advances
+					// in short intervals until the request has been fully processed, causing unnecessary persistent diffs
+					if state.ScheduleInfo[0].StartDateTime == "" {
+						state.ScheduleInfo[0].StartDateTime = *props.StartDateTime
+					}
+				}
+
+				if props.EndDateTime != nil {
+					if len(state.ScheduleInfo) == 0 {
+						state.ScheduleInfo = make([]PimActiveRoleAssignmentScheduleInfo, 1)
+					}
+					if len(state.ScheduleInfo[0].Expiration) == 0 {
+						state.ScheduleInfo[0].Expiration = make([]PimActiveRoleAssignmentScheduleInfoExpiration, 1)
+					}
+
+					// Only set the EndDateTime if not already present in state, because the value returned by the server advances
+					// in short intervals until the request has been fully processed, causing unnecessary persistent diffs
+					if state.ScheduleInfo[0].Expiration[0].EndDateTime == "" {
+						state.ScheduleInfo[0].Expiration[0].EndDateTime = *props.EndDateTime
+					}
 				}
 			}
 
-			// The API returns the start date time of when the request has been processed, instead of the date/time of when the request was submitted.
-			if val, ok := metadata.ResourceData.GetOk("schedule.0.start_date_time"); ok && len(schema.ScheduleInfo) > 0 {
-				schema.ScheduleInfo[0].StartDateTime = val.(string)
-			}
-			if val, ok := metadata.ResourceData.GetOk("schedule.0.expiration.0.end_date_time"); ok && len(schema.ScheduleInfo) > 0 && len(schema.ScheduleInfo[0].Expiration) > 0 {
-				schema.ScheduleInfo[0].Expiration[0].EndDateTime = val.(string)
-			}
-
-			return metadata.Encode(&schema)
+			return metadata.Encode(&state)
 		},
 	}
 }
 
 func (PimActiveRoleAssignmentResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 10 * time.Minute,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			clientRequest := metadata.Client.Authorization.RoleAssignmentScheduleRequestClient
-			clientSchedules := metadata.Client.Authorization.RoleAssignmentSchedulesClient
+			schedulesClient := metadata.Client.Authorization.RoleAssignmentSchedulesClient
+			requestsClient := metadata.Client.Authorization.RoleAssignmentScheduleRequestClient
 
 			id, err := parse.PimRoleAssignmentID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			var config PimActiveRoleAssignmentResourceSchema
-			if err = metadata.Decode(&config); err != nil {
+			var state PimActiveRoleAssignmentModel
+			if err = metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
@@ -339,91 +518,111 @@ func (PimActiveRoleAssignmentResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("internal error: context has no deadline")
 			}
 
-			filter := roleassignmentschedules.ListForScopeOperationOptions{
-				Filter: pointer.To(fmt.Sprintf("(principalId eq '%s')", id.PrincipalId)),
-			}
-
-			items, err := clientSchedules.ListForScopeComplete(ctx, id.ScopeID(), filter)
+			schedule, err := findRoleAssignmentSchedule(ctx, schedulesClient, *id)
 			if err != nil {
-				return fmt.Errorf("listing role assignments on scope %s: %+v", id, err)
-			}
-
-			var schedule *roleassignmentschedules.RoleAssignmentSchedule
-			for _, item := range items.Items {
-				if *item.Properties.MemberType == roleassignmentschedules.MemberTypeDirect &&
-					strings.EqualFold(*item.Properties.RoleDefinitionId, id.RoleDefinitionId) &&
-					strings.EqualFold(*item.Properties.Scope, id.Scope) {
-					schedule = &item
-					break
-				}
+				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 			if schedule == nil {
-				log.Printf("[DEBUG] Role Eligibility request has been canceled.")
+				log.Printf("[DEBUG] Role Assignment request has been canceled")
 				return nil
 			}
+			if schedule.Properties == nil {
+				return fmt.Errorf("retrieving %s: response with nil properties received", id)
+			}
 
-			switch *schedule.Properties.Status {
+			switch pointer.From(schedule.Properties.Status) {
 			case roleassignmentschedules.StatusPendingApproval, roleassignmentschedules.StatusPendingApprovalProvisioning,
 				roleassignmentschedules.StatusPendingEvaluation, roleassignmentschedules.StatusGranted,
 				roleassignmentschedules.StatusPendingProvisioning, roleassignmentschedules.StatusPendingAdminDecision:
-				// Pending role assignments should be removed by Cancel operation
-				roleAssignmentScheduleRequestId, err := parse.RoleAssignmentScheduleRequestIdFromSchedule(schedule)
+
+				// Attempt to find a Request for this Schedule
+				request, err := findRoleAssignmentScheduleRequest(ctx, requestsClient, schedule, id)
 				if err != nil {
 					return err
 				}
-				scheduleRequestId := roleassignmentschedulerequests.NewScopedRoleAssignmentScheduleRequestID(id.Scope, *roleAssignmentScheduleRequestId)
-				if _, err = clientRequest.Cancel(ctx, scheduleRequestId); err != nil {
+
+				// Pending scheduled role assignments should be removed by Cancel operation
+				scheduleRequestId, err := roleassignmentschedulerequests.ParseScopedRoleAssignmentScheduleRequestID(pointer.From(request.Id))
+				if err != nil {
 					return err
 				}
+				if _, err = requestsClient.Cancel(ctx, *scheduleRequestId); err != nil {
+					return err
+				}
+
+				return nil
 			default:
 				// Remove active role assignment by sending an AdminRemove request
-				payload := roleassignmentschedulerequests.RoleAssignmentScheduleRequest{}
-				payload.Properties = &roleassignmentschedulerequests.RoleAssignmentScheduleRequestProperties{}
-				payload.Properties.PrincipalId = id.PrincipalId
-				payload.Properties.RoleDefinitionId = id.RoleDefinitionId
-				payload.Properties.RequestType = roleassignmentschedulerequests.RequestTypeAdminRemove
-				payload.Properties.ScheduleInfo = &roleassignmentschedulerequests.RoleAssignmentScheduleRequestPropertiesScheduleInfo{}
-
-				if config.Justification != "" {
-					payload.Properties.Justification = &config.Justification
+				payload := roleassignmentschedulerequests.RoleAssignmentScheduleRequest{
+					Properties: &roleassignmentschedulerequests.RoleAssignmentScheduleRequestProperties{
+						PrincipalId:      id.PrincipalId,
+						RoleDefinitionId: id.RoleDefinitionId,
+						RequestType:      roleassignmentschedulerequests.RequestTypeAdminRemove,
+						Justification:    pointer.To("Removed by Terraform"),
+					},
 				}
-				if len(config.TicketInfo) == 1 {
+
+				// Include the ticket information from state for auditing purposes
+				if len(state.TicketInfo) == 1 {
 					payload.Properties.TicketInfo = &roleassignmentschedulerequests.RoleAssignmentScheduleRequestPropertiesTicketInfo{}
-					payload.Properties.TicketInfo.TicketNumber = &config.TicketInfo[0].TicketNumber
-					payload.Properties.TicketInfo.TicketSystem = &config.TicketInfo[0].TicketSystem
+					payload.Properties.TicketInfo.TicketNumber = &state.TicketInfo[0].TicketNumber
+					payload.Properties.TicketInfo.TicketSystem = &state.TicketInfo[0].TicketSystem
 				}
 
-				roleAssignmentScheduleRequestId, err := uuid.GenerateUUID()
+				roleAssignmentScheduleRequestName, err := uuid.GenerateUUID()
 				if err != nil {
 					return fmt.Errorf("generating uuid: %+v", err)
 				}
-				deleteId := roleassignmentschedulerequests.NewScopedRoleAssignmentScheduleRequestID(id.Scope, roleAssignmentScheduleRequestId)
 
-				// Wait for resource to deleted
+				deleteId := roleassignmentschedulerequests.NewScopedRoleAssignmentScheduleRequestID(id.Scope, roleAssignmentScheduleRequestName)
+
+				// Wait for removal request to be processed
 				stateConf := &pluginsdk.StateChangeConf{
-					Pending:    []string{"Exist"},
-					Target:     []string{"Deleted"},
-					Refresh:    deleteActiveRoleAssignment(ctx, clientRequest, deleteId, &payload),
+					Pending: []string{"Pending"},
+					Target:  []string{"Submitted", "GoneAway"},
+					Refresh: func() (interface{}, string, error) {
+						// Removal request is not accepted within a minimum duration window, so retry it
+						result, err := requestsClient.Create(ctx, deleteId, payload)
+						if err != nil {
+							if result.OData != nil && result.OData.Error != nil {
+								if code := result.OData.Error.Code; code != nil {
+									// API sometimes returns this error for a short while before relenting
+									if *code == "ActiveDurationTooShort" {
+										return result, "Pending", nil
+									}
+
+									// The principal is gone, so the role assignment must also have gone away
+									if *code == "RoleAssignmentDoesNotExist" {
+										return result, "GoneAway", nil
+									}
+								}
+							}
+
+							return nil, "Error", fmt.Errorf("sending removal request for %s: %+v", id, err)
+						}
+
+						return result, "Submitted", nil
+					},
 					MinTimeout: 1 * time.Minute,
 					Timeout:    time.Until(deadline),
 				}
 
 				if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-					return fmt.Errorf("waiting for %s to become deleted: %+v", id, err)
+					return fmt.Errorf("waiting for removal request %s to be processed: %+v", id, err)
 				}
 			}
 
-			// Wait for role assignment to be missing
+			// Wait for role assignment schedule to disappear
 			stateConf := &pluginsdk.StateChangeConf{
-				Pending:    []string{"Found"},
-				Target:     []string{"Missing"},
-				Refresh:    waitForActiveRoleAssignment(ctx, clientSchedules, id.Scope, id.PrincipalId, id.RoleDefinitionId, "Missing"),
-				MinTimeout: 30 * time.Second,
+				Pending:    []string{"Exists"},
+				Target:     []string{"NotFound"},
+				Refresh:    pollForRoleAssignmentSchedule(ctx, schedulesClient, *id),
+				MinTimeout: 10 * time.Second,
 				Timeout:    time.Until(deadline),
 			}
 
 			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-				return fmt.Errorf("waiting for %s to become missing: %+v", id, err)
+				return fmt.Errorf("waiting for %s to be removed: %+v", id, err)
 			}
 
 			return nil
@@ -431,286 +630,91 @@ func (PimActiveRoleAssignmentResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (PimActiveRoleAssignmentResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.ValidatePimRoleAssignmentID
-}
-
-type PimActiveRoleAssignmentResourceSchema struct {
-	RoleDefinitionId string                                              `tfschema:"role_definition_id"`
-	Scope            string                                              `tfschema:"scope"`
-	PrincipalId      string                                              `tfschema:"principal_id"`
-	PrincipalType    string                                              `tfschema:"principal_type"`
-	Justification    string                                              `tfschema:"justification"`
-	TicketInfo       []PimActiveRoleAssignmentResourceSchemaTicketInfo   `tfschema:"ticket"`
-	ScheduleInfo     []PimActiveRoleAssignmentResourceSchemaScheduleInfo `tfschema:"schedule"`
-}
-
-type PimActiveRoleAssignmentResourceSchemaTicketInfo struct {
-	TicketNumber string `tfschema:"number"`
-	TicketSystem string `tfschema:"system"`
-}
-
-type PimActiveRoleAssignmentResourceSchemaScheduleInfo struct {
-	StartDateTime string                                                        `tfschema:"start_date_time"`
-	Expiration    []PimActiveRoleAssignmentResourceSchemaScheduleInfoExpiration `tfschema:"expiration"`
-}
-
-type PimActiveRoleAssignmentResourceSchemaScheduleInfoExpiration struct {
-	DurationDays  int    `tfschema:"duration_days"`
-	DurationHours int    `tfschema:"duration_hours"`
-	EndDateTime   string `tfschema:"end_date_time"`
-}
-
-func (r PimActiveRoleAssignmentResource) mapPimActiveRoleAssignmentResourceSchemaToRoleAssignmentScheduleRequest(input PimActiveRoleAssignmentResourceSchema, output *roleassignmentschedulerequests.RoleAssignmentScheduleRequest) {
-	if output.Properties == nil {
-		output.Properties = &roleassignmentschedulerequests.RoleAssignmentScheduleRequestProperties{}
+func findRoleAssignmentSchedule(ctx context.Context, client *roleassignmentschedules.RoleAssignmentSchedulesClient, id parse.PimRoleAssignmentId) (*roleassignmentschedules.RoleAssignmentSchedule, error) {
+	scopeId, err := commonids.ParseScopeID(id.Scope)
+	if err != nil {
+		return nil, err
 	}
 
-	r.mapPimActiveRoleAssignmentResourceSchemaToRoleAssignmentScheduleRequestProperties(input, output.Properties)
-}
-
-func (r PimActiveRoleAssignmentResource) mapPimActiveRoleAssignmentResourceSchemaToRoleAssignmentScheduleRequestProperties(input PimActiveRoleAssignmentResourceSchema, output *roleassignmentschedulerequests.RoleAssignmentScheduleRequestProperties) {
-	output.Justification = &input.Justification
-	output.PrincipalId = input.PrincipalId
-
-	output.RoleDefinitionId = input.RoleDefinitionId
-	output.Scope = &input.Scope
-
-	if len(input.TicketInfo) > 0 {
-		r.mapPimActiveRoleAssignmentResourceSchemaTicketInfoToRoleAssignmentScheduleRequestProperties(input.TicketInfo[0], output)
+	schedulesResult, err := client.ListForScopeComplete(ctx, *scopeId, roleassignmentschedules.ListForScopeOperationOptions{
+		Filter: pointer.To(fmt.Sprintf("(principalId eq '%s')", id.PrincipalId)),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("listing Role Assignment Schedules for %s: %+v", scopeId, err)
 	}
 
-	if len(input.ScheduleInfo) > 0 {
-		r.mapRoleAssignmentScheduleRequestResourceScheduleInfoSchemaToRoleAssignmentScheduleRequestProperties(input.ScheduleInfo[0], output)
-	} else {
-		output.ScheduleInfo = &roleassignmentschedulerequests.RoleAssignmentScheduleRequestPropertiesScheduleInfo{}
-		output.ScheduleInfo.Expiration = &roleassignmentschedulerequests.RoleAssignmentScheduleRequestPropertiesScheduleInfoExpiration{}
-		output.ScheduleInfo.Expiration.Type = pointer.To(roleassignmentschedulerequests.TypeNoExpiration)
-	}
-}
-
-func (r PimActiveRoleAssignmentResource) mapPimActiveRoleAssignmentResourceSchemaTicketInfoToRoleAssignmentScheduleRequestProperties(input PimActiveRoleAssignmentResourceSchemaTicketInfo, output *roleassignmentschedulerequests.RoleAssignmentScheduleRequestProperties) {
-	if output.TicketInfo == nil {
-		output.TicketInfo = &roleassignmentschedulerequests.RoleAssignmentScheduleRequestPropertiesTicketInfo{}
-	}
-	r.mapPimActiveRoleAssignmentResourceSchemaTicketInfoToRoleAssignmentScheduleRequestPropertiesTicketInfo(input, output.TicketInfo)
-}
-
-func (r PimActiveRoleAssignmentResource) mapPimActiveRoleAssignmentResourceSchemaTicketInfoToRoleAssignmentScheduleRequestPropertiesTicketInfo(input PimActiveRoleAssignmentResourceSchemaTicketInfo, output *roleassignmentschedulerequests.RoleAssignmentScheduleRequestPropertiesTicketInfo) {
-	output.TicketNumber = pointer.To(input.TicketNumber)
-	output.TicketSystem = pointer.To(input.TicketSystem)
-}
-
-func (r PimActiveRoleAssignmentResource) mapRoleAssignmentScheduleRequestResourceScheduleInfoSchemaToRoleAssignmentScheduleRequestProperties(input PimActiveRoleAssignmentResourceSchemaScheduleInfo, output *roleassignmentschedulerequests.RoleAssignmentScheduleRequestProperties) {
-	if output.ScheduleInfo == nil {
-		output.ScheduleInfo = &roleassignmentschedulerequests.RoleAssignmentScheduleRequestPropertiesScheduleInfo{}
-	}
-	r.mapPimActiveRoleAssignmentResourceSchemaScheduleInfoToRoleAssignmentScheduleRequestPropertiesScheduleInfo(input, output.ScheduleInfo)
-}
-
-func (r PimActiveRoleAssignmentResource) mapPimActiveRoleAssignmentResourceSchemaScheduleInfoToRoleAssignmentScheduleRequestPropertiesScheduleInfo(input PimActiveRoleAssignmentResourceSchemaScheduleInfo, output *roleassignmentschedulerequests.RoleAssignmentScheduleRequestPropertiesScheduleInfo) {
-	output.StartDateTime = pointer.To(input.StartDateTime)
-
-	if output.Expiration == nil {
-		output.Expiration = &roleassignmentschedulerequests.RoleAssignmentScheduleRequestPropertiesScheduleInfoExpiration{}
-	}
-	if len(input.Expiration) > 0 {
-		r.mapPimActiveRoleAssignmentResourceSchemaScheduleInfoExpirationToRoleAssignmentScheduleRequestPropertiesScheduleInfoExpiration(input.Expiration[0], output.Expiration)
-	} else {
-		// when no expiration is specified, set the type to No Expiration
-		output.Expiration.Type = pointer.To(roleassignmentschedulerequests.TypeNoExpiration)
-	}
-}
-
-func (r PimActiveRoleAssignmentResource) mapPimActiveRoleAssignmentResourceSchemaScheduleInfoExpirationToRoleAssignmentScheduleRequestPropertiesScheduleInfoExpiration(input PimActiveRoleAssignmentResourceSchemaScheduleInfoExpiration, output *roleassignmentschedulerequests.RoleAssignmentScheduleRequestPropertiesScheduleInfoExpiration) {
-	switch {
-	case input.DurationDays != 0:
-		output.Duration = pointer.To(fmt.Sprintf("P%dD", input.DurationDays))
-
-	case input.DurationHours != 0:
-		output.Duration = pointer.To(fmt.Sprintf("PT%dH", input.DurationHours))
-
-	case input.EndDateTime != "":
-		output.EndDateTime = pointer.To(input.EndDateTime)
-	}
-
-	// value of duration and end date determine expiration type
-	switch {
-	case output.Duration != nil && *output.Duration != "":
-		output.Type = pointer.To(roleassignmentschedulerequests.TypeAfterDuration)
-
-	case input.EndDateTime != "":
-		output.Type = pointer.To(roleassignmentschedulerequests.TypeAfterDateTime)
-
-	default:
-		output.Type = pointer.To(roleassignmentschedulerequests.TypeNoExpiration)
-	}
-}
-
-func (r PimActiveRoleAssignmentResource) mapRoleAssignmentScheduleRequestToPimActiveRoleAssignmentResourceSchema(input roleassignmentschedulerequests.RoleAssignmentScheduleRequest, output *PimActiveRoleAssignmentResourceSchema) error {
-	if input.Properties == nil {
-		input.Properties = &roleassignmentschedulerequests.RoleAssignmentScheduleRequestProperties{}
-	}
-
-	if err := r.mapRoleAssignmentScheduleRequestPropertiesToPimActiveRoleAssignmentResourceSchema(*input.Properties, output); err != nil {
-		return fmt.Errorf("mapping SDK Field %q / Model %q to Schema: %+v", "RoleAssignmentScheduleRequestProperties", "Properties", err)
-	}
-
-	return nil
-}
-
-func (r PimActiveRoleAssignmentResource) mapRoleAssignmentScheduleRequestPropertiesToPimActiveRoleAssignmentResourceSchema(input roleassignmentschedulerequests.RoleAssignmentScheduleRequestProperties, output *PimActiveRoleAssignmentResourceSchema) error {
-	output.Justification = pointer.From(input.Justification)
-	output.PrincipalId = input.PrincipalId
-	output.PrincipalType = string(*input.PrincipalType)
-	output.RoleDefinitionId = input.RoleDefinitionId
-
-	if input.TicketInfo == nil {
-		input.TicketInfo = &roleassignmentschedulerequests.RoleAssignmentScheduleRequestPropertiesTicketInfo{}
-	}
-
-	if input.ScheduleInfo == nil {
-		input.ScheduleInfo = &roleassignmentschedulerequests.RoleAssignmentScheduleRequestPropertiesScheduleInfo{}
-	}
-
-	if input.TicketInfo != nil && (input.TicketInfo.TicketNumber != nil ||
-		input.TicketInfo.TicketSystem != nil) {
-		tempTicketInfo := &PimActiveRoleAssignmentResourceSchemaTicketInfo{}
-		if err := r.mapRoleAssignmentScheduleRequestPropertiesTicketInfoToPimActiveRoleAssignmentResourceSchemaTicketInfo(*input.TicketInfo, tempTicketInfo); err != nil {
-			return err
-		} else {
-			output.TicketInfo = make([]PimActiveRoleAssignmentResourceSchemaTicketInfo, 0)
-			output.TicketInfo = append(output.TicketInfo, *tempTicketInfo)
-		}
-	}
-
-	tempScheduleInfo := &PimActiveRoleAssignmentResourceSchemaScheduleInfo{}
-	if err := r.mapRoleAssignmentScheduleRequestPropertiesScheduleInfoToPimActiveRoleAssignmentResourceSchemaScheduleInfo(*input.ScheduleInfo, tempScheduleInfo); err != nil {
-		return err
-	} else {
-		output.ScheduleInfo = make([]PimActiveRoleAssignmentResourceSchemaScheduleInfo, 0)
-		output.ScheduleInfo = append(output.ScheduleInfo, *tempScheduleInfo)
-	}
-
-	return nil
-}
-
-func (r PimActiveRoleAssignmentResource) mapRoleAssignmentScheduleRequestPropertiesTicketInfoToPimActiveRoleAssignmentResourceSchemaTicketInfo(input roleassignmentschedulerequests.RoleAssignmentScheduleRequestPropertiesTicketInfo, output *PimActiveRoleAssignmentResourceSchemaTicketInfo) error {
-	output.TicketNumber = pointer.From(input.TicketNumber)
-	output.TicketSystem = pointer.From(input.TicketSystem)
-	return nil
-}
-
-func (r PimActiveRoleAssignmentResource) mapRoleAssignmentScheduleRequestPropertiesScheduleInfoToPimActiveRoleAssignmentResourceSchemaScheduleInfo(input roleassignmentschedulerequests.RoleAssignmentScheduleRequestPropertiesScheduleInfo, output *PimActiveRoleAssignmentResourceSchemaScheduleInfo) error {
-	output.StartDateTime = pointer.From(input.StartDateTime)
-
-	tempExpiration := &PimActiveRoleAssignmentResourceSchemaScheduleInfoExpiration{}
-	if err := r.mapRoleAssignmentScheduleRequestPropertiesExpirationToPimActiveRoleAssignmentResourceSchemaScheduleInfoExpiration(*input.Expiration, tempExpiration); err != nil {
-		return err
-	} else {
-		output.Expiration = make([]PimActiveRoleAssignmentResourceSchemaScheduleInfoExpiration, 0)
-		output.Expiration = append(output.Expiration, *tempExpiration)
-	}
-	return nil
-}
-
-func (r PimActiveRoleAssignmentResource) mapRoleAssignmentScheduleRequestPropertiesExpirationToPimActiveRoleAssignmentResourceSchemaScheduleInfoExpiration(input roleassignmentschedulerequests.RoleAssignmentScheduleRequestPropertiesScheduleInfoExpiration, output *PimActiveRoleAssignmentResourceSchemaScheduleInfoExpiration) error {
-
-	if input.Duration != nil && *input.Duration != "" {
-		durationRaw := *input.Duration
-
-		reHours := regexp.MustCompile(`PT(\d+)H`)
-		matches := reHours.FindStringSubmatch(durationRaw)
-		if len(matches) == 2 {
-			hours, err := strconv.Atoi(matches[1])
-			if err != nil {
-				return fmt.Errorf("could not decode hours from RoleAssignmentScheduleRequestPropertiesScheduleInfoExpiration: %+v", err)
+	for _, schedule := range schedulesResult.Items {
+		if props := schedule.Properties; props != nil {
+			if props.RoleDefinitionId != nil && strings.EqualFold(*props.RoleDefinitionId, id.RoleDefinitionId) &&
+				props.Scope != nil && strings.EqualFold(*props.Scope, scopeId.ID()) &&
+				props.PrincipalId != nil && strings.EqualFold(*props.PrincipalId, id.PrincipalId) &&
+				props.MemberType != nil && *props.MemberType == roleassignmentschedules.MemberTypeDirect {
+				return &schedule, nil
 			}
-			output.DurationHours = hours
-		}
-		reDays := regexp.MustCompile(`P(\d+)D`)
-		matches = reDays.FindStringSubmatch(durationRaw)
-		if len(matches) == 2 {
-			days, err := strconv.Atoi(matches[1])
-			if err != nil {
-				return fmt.Errorf("could not decode days from RoleAssignmentScheduleRequestPropertiesScheduleInfoExpiration: %+v", err)
-			}
-			output.DurationDays = days
 		}
 	}
 
-	output.EndDateTime = pointer.From(input.EndDateTime)
-	return nil
+	return nil, nil
 }
 
-func createActiveRoleAssignment(ctx context.Context, client *roleassignmentschedulerequests.RoleAssignmentScheduleRequestsClient, id roleassignmentschedulerequests.ScopedRoleAssignmentScheduleRequestId, payload *roleassignmentschedulerequests.RoleAssignmentScheduleRequest) pluginsdk.StateRefreshFunc {
+func pollForRoleAssignmentSchedule(ctx context.Context, client *roleassignmentschedules.RoleAssignmentSchedulesClient, id parse.PimRoleAssignmentId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		// Azure can error when the subject doesn't exist yet due to AAD replication
-		// Retry deletes while that error exists.
-		result, err := client.Create(ctx, id, *payload)
-		if err != nil {
-			if *result.OData.Error.Code == "SubjectNotFound" {
-				return nil, "Exist", nil
-			}
+		log.Printf("[DEBUG] Polling for %s", id)
 
-			return nil, "Exist", fmt.Errorf("creating %s: %+v", id, err)
+		schedule, err := findRoleAssignmentSchedule(ctx, client, id)
+		if err != nil {
+			return schedule, "Error", err
 		}
 
-		return result, "Created", nil
+		if schedule == nil {
+			return schedule, "NotFound", nil
+		}
+
+		return schedule, "Exists", nil
 	}
 }
 
-func waitForActiveRoleAssignment(ctx context.Context, client *roleassignmentschedules.RoleAssignmentSchedulesClient, scope string, principalId string, roleDefinitionId string, target string) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		log.Printf("[DEBUG] Checking to see if Role Assignment is %s on %q with role %q for %q.", target, scope, roleDefinitionId, principalId)
-
-		scopeId := commonids.NewScopeID(scope)
-		filter := &roleassignmentschedules.ListForScopeOperationOptions{
-			Filter: pointer.To(fmt.Sprintf("assignedTo('%s')", principalId)),
+func findRoleAssignmentScheduleRequest(ctx context.Context, client *roleassignmentschedulerequests.RoleAssignmentScheduleRequestsClient, schedule *roleassignmentschedules.RoleAssignmentSchedule, id *parse.PimRoleAssignmentId) (*roleassignmentschedulerequests.RoleAssignmentScheduleRequest, error) {
+	// Request ID was provided, so retrieve it individually
+	if schedule.Properties.RoleAssignmentScheduleRequestId != nil {
+		requestId, err := roleassignmentschedulerequests.ParseScopedRoleAssignmentScheduleRequestID(*schedule.Properties.RoleAssignmentScheduleRequestId)
+		if err != nil { //
+			return nil, err
 		}
 
-		items, err := client.ListForScopeComplete(ctx, scopeId, *filter)
-		if err != nil {
-			return nil, "", fmt.Errorf("listing role assignments on scope %s: %+v", scopeId, err)
-		}
-		state := "Missing"
-		var result interface{}
-
-		for _, item := range items.Items {
-			if *item.Properties.RoleDefinitionId == roleDefinitionId &&
-				*item.Properties.MemberType == roleassignmentschedules.MemberTypeDirect &&
-				strings.EqualFold(*item.Properties.Scope, scope) {
-				state = "Found"
-				result = item
-				break
-			}
+		requestResp, err := client.Get(ctx, *requestId)
+		if err != nil && !response.WasNotFound(requestResp.HttpResponse) {
+			return nil, fmt.Errorf("retrieving %s: %+v", requestId, err)
 		}
 
-		if target == "Missing" && state == "Missing" {
-			result = &roleassignmentschedules.RoleAssignmentSchedule{}
+		if !response.WasNotFound(requestResp.HttpResponse) {
+			return requestResp.Model, nil
 		}
-
-		return result, state, nil
 	}
-}
 
-func deleteActiveRoleAssignment(ctx context.Context, client *roleassignmentschedulerequests.RoleAssignmentScheduleRequestsClient, id roleassignmentschedulerequests.ScopedRoleAssignmentScheduleRequestId, payload *roleassignmentschedulerequests.RoleAssignmentScheduleRequest) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		// Azure can error when the role hasn't existed for less than 5 minutes.
-		// Retry deletes while that error exists.
-		result, err := client.Create(ctx, id, *payload)
+	// Request ID not provided or was invalid, list by scope and filter by principal for a best-effort search
+	if principalId := schedule.Properties.PrincipalId; principalId != nil && id != nil {
+		scopeId, err := commonids.ParseScopeID(id.Scope)
 		if err != nil {
-			if *result.OData.Error.Code == "ActiveDurationTooShort" {
-				return nil, "Exist", nil
-			}
-
-			if *result.OData.Error.Code == "RoleAssignmentDoesNotExist" {
-				return nil, "Deleted", nil
-			}
-
-			return nil, "Exist", fmt.Errorf("creating %s: %+v", id, err)
+			return nil, err
 		}
 
-		return result, "Deleted", nil
+		requestsResult, err := client.ListForScopeComplete(ctx, *scopeId, roleassignmentschedulerequests.ListForScopeOperationOptions{
+			Filter: pointer.To(fmt.Sprintf("principalId eq '%s'", *principalId)),
+		})
+		if err != nil {
+			return nil, fmt.Errorf("listing Role Assignment Requests for principal_id %q: %+v", *principalId, err)
+		}
+		for _, item := range requestsResult.Items {
+			if props := item.Properties; props != nil {
+				if props.TargetRoleAssignmentScheduleId != nil && strings.EqualFold(*props.TargetRoleAssignmentScheduleId, id.ID()) &&
+					props.RequestType == roleassignmentschedulerequests.RequestTypeAdminAssign && strings.EqualFold(props.PrincipalId, *principalId) {
+					return pointer.To(item), nil
+				}
+			}
+		}
 	}
+
+	// No request was found, it probably expired
+	return nil, nil
 }

@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkmanagers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/networkmanagers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -67,6 +67,7 @@ func TestAccNetworkManager(t *testing.T) {
 			"complete":          testAccNetworkManagerConnectivityConfiguration_complete,
 			"update":            testAccNetworkManagerConnectivityConfiguration_update,
 			"requiresImport":    testAccNetworkManagerConnectivityConfiguration_requiresImport,
+			"dataSource":        testAccNetworkManagerConnectivityConfigurationDataSource_basic,
 		},
 		"SecurityAdminConfiguration": {
 			"basic":          testAccNetworkManagerSecurityAdminConfiguration_basic,

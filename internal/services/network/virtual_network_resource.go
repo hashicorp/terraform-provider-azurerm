@@ -19,11 +19,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -55,7 +57,7 @@ func resourceVirtualNetwork() *pluginsdk.Resource {
 }
 
 func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	s := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -68,7 +70,7 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"address_space": {
-			Type:     pluginsdk.TypeList,
+			Type:     pluginsdk.TypeSet,
 			Required: true,
 			MinItems: 1,
 			Elem: &pluginsdk.Schema{
@@ -180,6 +182,21 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 
 		"tags": tags.Schema(),
 	}
+
+	if !features.FourPointOhBeta() {
+		s["address_space"] = &pluginsdk.Schema{
+			Type:             pluginsdk.TypeList,
+			Required:         true,
+			MinItems:         1,
+			DiffSuppressFunc: suppress.ListOrder,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+		}
+	}
+
+	return s
 }
 
 func resourceVirtualNetworkCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -295,7 +312,13 @@ func resourceVirtualNetworkRead(d *pluginsdk.ResourceData, meta interface{}) err
 		d.Set("flow_timeout_in_minutes", props.FlowTimeoutInMinutes)
 
 		if space := props.AddressSpace; space != nil {
-			d.Set("address_space", utils.FlattenStringSlice(space.AddressPrefixes))
+			if !features.FourPointOhBeta() {
+				d.Set("address_space", utils.FlattenStringSlice(space.AddressPrefixes))
+			} else {
+				if err = d.Set("address_space", space.AddressPrefixes); err != nil {
+					return fmt.Errorf("setting `address_space`: %+v", err)
+				}
+			}
 		}
 
 		if err := d.Set("ddos_protection_plan", flattenVirtualNetworkDDoSProtectionPlan(props)); err != nil {
@@ -400,13 +423,17 @@ func expandVirtualNetworkProperties(ctx context.Context, d *pluginsdk.ResourceDa
 	}
 
 	properties := &network.VirtualNetworkPropertiesFormat{
-		AddressSpace: &network.AddressSpace{
-			AddressPrefixes: utils.ExpandStringSlice(d.Get("address_space").([]interface{})),
-		},
+		AddressSpace: &network.AddressSpace{},
 		DhcpOptions: &network.DhcpOptions{
 			DNSServers: utils.ExpandStringSlice(d.Get("dns_servers").([]interface{})),
 		},
 		Subnets: &subnets,
+	}
+
+	if !features.FourPointOhBeta() {
+		properties.AddressSpace.AddressPrefixes = utils.ExpandStringSlice(d.Get("address_space").([]interface{}))
+	} else {
+		properties.AddressSpace.AddressPrefixes = utils.ExpandStringSlice(d.Get("address_space").(*pluginsdk.Set).List())
 	}
 
 	if v, ok := d.GetOk("ddos_protection_plan"); ok {
@@ -541,18 +568,26 @@ func resourceAzureSubnetHash(v interface{}) int {
 }
 
 func getExistingSubnet(ctx context.Context, resGroup string, vnetName string, subnetName string, meta interface{}) (*network.Subnet, error) {
-	subnetClient := meta.(*clients.Client).Network.SubnetsClient
-	resp, err := subnetClient.Get(ctx, resGroup, vnetName, subnetName, "")
+	vnetClient := meta.(*clients.Client).Network.VnetClient
+	resp, err := vnetClient.Get(ctx, resGroup, vnetName, "")
 	if err != nil {
+		// The Subnet doesn't exist when the Virtual Network doesn't exist
 		if resp.StatusCode == http.StatusNotFound {
-			return &network.Subnet{}, nil
+			return pointer.To(network.Subnet{}), nil
 		}
 		// raise an error if there was an issue other than 404 in getting subnet properties
 		return nil, err
 	}
 
-	// Return it directly rather than copy the fields to prevent potential uncovered properties (for example, `ServiceEndpoints` mentioned in #1619)
-	return &resp, nil
+	for _, subnet := range pointer.From(resp.Subnets) {
+		if subnetName == pointer.From(subnet.Name) {
+			// Return it directly rather than copy the fields to prevent potential uncovered properties (for example, `ServiceEndpoints` mentioned in #1619)
+			return pointer.To(subnet), nil
+		}
+	}
+
+	// TODO 4.0: Return empty object when the Subnet isn't found
+	return pointer.To(network.Subnet{}), nil
 }
 
 func expandAzureRmVirtualNetworkVirtualNetworkSecurityGroupNames(d *pluginsdk.ResourceData) ([]string, error) {

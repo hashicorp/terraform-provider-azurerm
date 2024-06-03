@@ -411,7 +411,7 @@ func TestAccContainerAppResource_removeDaprAppPort(t *testing.T) {
 	})
 }
 
-func TestAccContainerAppResource_secretFail(t *testing.T) {
+func TestAccContainerAppResource_secretChangeName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app", "test")
 	r := ContainerAppResource{}
 
@@ -424,13 +424,34 @@ func TestAccContainerAppResource_secretFail(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config:      r.secretRemove(data),
-			ExpectError: regexp.MustCompile("cannot remove secrets from Container Apps at this time"),
+			Config: r.secretChangeName(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccContainerAppResource_secretRemove(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app", "test")
+	r := ContainerAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config:      r.secretChangeName(data),
-			ExpectError: regexp.MustCompile("previously configured secret"),
+			Config: r.secretBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.secretRemove(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -521,6 +542,13 @@ func TestAccContainerAppResource_ipSecurityRulesUpdate(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.ingressSecurityRestrictionUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.ingressSecurityRestrictionNotIncludedCIDR(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -2487,6 +2515,43 @@ resource "azurerm_container_app" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
+func (r ContainerAppResource) ingressSecurityRestrictionNotIncludedCIDR(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_container_app" "test" {
+  name                         = "acctest-capp-%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  container_app_environment_id = azurerm_container_app_environment.test.id
+  revision_mode                = "Single"
+
+  template {
+    container {
+      name   = "acctest-cont-%[2]d"
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      cpu    = 0.25
+      memory = "0.5Gi"
+    }
+  }
+
+  ingress {
+    target_port = 5000
+    ip_security_restriction {
+      name             = "test"
+      description      = "test"
+      action           = "Allow"
+      ip_address_range = "10.1.0.0"
+    }
+
+    traffic_weight {
+      latest_revision = true
+      percentage      = 100
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
 func (r ContainerAppResource) scaleRulesUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -2622,7 +2687,7 @@ resource "azurerm_container_app_environment_storage" "test" {
   share_name                   = azurerm_storage_share.test.name
   access_mode                  = "ReadWrite"
 }
-`, ContainerAppEnvironmentResource{}.complete(data), data.RandomInteger, data.RandomString)
+`, ContainerAppEnvironmentResource{}.completeWithoutWorkloadProfile(data), data.RandomInteger, data.RandomString)
 }
 
 func (ContainerAppResource) templatePlusExtras(data acceptance.TestData) string {

@@ -46,13 +46,13 @@ func TestAccResourceProviderRegistration_requiresImport(t *testing.T) {
 	r := ResourceProviderRegistrationResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic("Microsoft.ApiCenter"),
+			Config: r.basic("Microsoft.AgFoodPlatform"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.RequiresImportErrorStep(func(data acceptance.TestData) string {
-			return r.requiresImport("Microsoft.ApiCenter")
+			return r.requiresImport("Microsoft.AgFoodPlatform")
 		}),
 	})
 }

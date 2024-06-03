@@ -73,6 +73,7 @@ func (c AzureTrafficCollectorsClient) ByResourceGroupListCompleteMatchingPredica
 
 	resp, err := c.ByResourceGroupList(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

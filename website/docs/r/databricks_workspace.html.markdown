@@ -76,6 +76,12 @@ The following arguments are supported:
 
 * `public_network_access_enabled` - (Optional) Allow public access for accessing workspace. Set value to `false` to access workspace only via private link endpoint. Possible values include `true` or `false`. Defaults to `true`.
 
+* `default_storage_firewall_enabled` - (Optional) Disallow public access to default storage account. Defaults to `false`.
+
+* `access_connector_id` - (Optional) Access Connector ID to use when default storage account firewall is enabled. 
+
+-> **Note:** The `access_connector_id` field is only required if `default_storage_firewall_enabled` is set to `true`.
+
 * `network_security_group_rules_required` - (Optional) Does the data plane (clusters) to control plane communication happen over private link endpoint only or publicly? Possible values `AllRules`, `NoAzureDatabricksRules` or `NoAzureServiceRules`. Required when `public_network_access_enabled` is set to `false`.
 
 * `custom_parameters` - (Optional) A `custom_parameters` block as documented below.

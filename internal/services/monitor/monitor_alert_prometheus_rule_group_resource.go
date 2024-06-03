@@ -43,7 +43,7 @@ type PrometheusRuleModel struct {
 	Labels          map[string]string                    `tfschema:"labels"`
 	Record          string                               `tfschema:"record"`
 	AlertResolution []PrometheusRuleAlertResolutionModel `tfschema:"alert_resolution"`
-	Severity        int                                  `tfschema:"severity"`
+	Severity        int64                                `tfschema:"severity"`
 }
 
 type PrometheusRuleGroupActionModel struct {
@@ -499,7 +499,7 @@ func flattenPrometheusRuleModel(inputList *[]prometheusrulegroups.PrometheusRule
 		output.Record = pointer.From(input.Record)
 		resolveConfigurationValue := flattenPrometheusRuleAlertResolutionModel(input.ResolveConfiguration)
 		output.AlertResolution = resolveConfigurationValue
-		output.Severity = int(pointer.From(input.Severity))
+		output.Severity = pointer.From(input.Severity)
 		outputList = append(outputList, output)
 	}
 

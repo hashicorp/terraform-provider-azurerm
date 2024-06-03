@@ -72,6 +72,7 @@ func (c WebAppsClient) ListHostNameBindingsSlotCompleteMatchingPredicate(ctx con
 
 	resp, err := c.ListHostNameBindingsSlot(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
