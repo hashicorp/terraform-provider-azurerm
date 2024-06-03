@@ -2,7 +2,8 @@
 
 ENHANCEMENTS:
 
-* `container_app_job`: support new properties `key_vault_secret_id` and `identity` in `secret` block [GH-25969]
+* `azurerm_container_app_job`: support new properties `key_vault_secret_id` and `identity` in `secret` block [GH-25969]
+* `azurerm_notification_hub_authorization_rule` - add support for `primary_connection_string` and `secondary_connection_string` properties [GH-26188]
 
 BUG FIXES:
 
