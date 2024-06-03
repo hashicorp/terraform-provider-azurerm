@@ -1,4 +1,4 @@
-package privatelinkservice
+package privatelinkservices
 
 import (
 	"context"
@@ -22,7 +22,7 @@ type CreateOrUpdateOperationResponse struct {
 }
 
 // CreateOrUpdate ...
-func (c PrivateLinkServiceClient) CreateOrUpdate(ctx context.Context, id PrivateLinkServiceId, input PrivateLinkService) (result CreateOrUpdateOperationResponse, err error) {
+func (c PrivateLinkServicesClient) CreateOrUpdate(ctx context.Context, id PrivateLinkServiceId, input PrivateLinkService) (result CreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -61,7 +61,7 @@ func (c PrivateLinkServiceClient) CreateOrUpdate(ctx context.Context, id Private
 }
 
 // CreateOrUpdateThenPoll performs CreateOrUpdate then polls until it's completed
-func (c PrivateLinkServiceClient) CreateOrUpdateThenPoll(ctx context.Context, id PrivateLinkServiceId, input PrivateLinkService) error {
+func (c PrivateLinkServicesClient) CreateOrUpdateThenPoll(ctx context.Context, id PrivateLinkServiceId, input PrivateLinkService) error {
 	result, err := c.CreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing CreateOrUpdate: %+v", err)
