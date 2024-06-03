@@ -314,6 +314,8 @@ A `volume` block supports the following:
 
 A `secret` block supports the following:
 
+* `name` - (Required) The secret name.
+
 * `identity` - (Optional) The identity to use for accessing the Key Vault secret reference. This can either be the Resource ID of a User Assigned Identity, or `System` for the System Assigned Identity.
 
 !> **Note:** `identity` must be used together with `key_vault_secret_id`
@@ -321,8 +323,6 @@ A `secret` block supports the following:
 * `key_vault_secret_id` - (Optional) The ID of a Key Vault secret. This can be a versioned or version-less ID.
 
 !> **Note:** When using `key_vault_secret_id`, `ignore_changes` should be used to ignore any changes to `value`.
-
-* `name` - (Required) The secret name.
 
 * `value` - (Optional) The value for this secret.
 
