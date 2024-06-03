@@ -152,7 +152,7 @@ github.com/hashicorp/go-azure-helpers/resourcemanager/tags
 github.com/hashicorp/go-azure-helpers/resourcemanager/zones
 github.com/hashicorp/go-azure-helpers/sender
 github.com/hashicorp/go-azure-helpers/storage
-# github.com/hashicorp/go-azure-sdk/resource-manager v0.20240529.1155048
+# github.com/hashicorp/go-azure-sdk/resource-manager v0.20240603.1145333
 ## explicit; go 1.21
 github.com/hashicorp/go-azure-sdk/resource-manager/aad/2021-05-01/domainservices
 github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview
@@ -802,7 +802,6 @@ github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/packetcapt
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/peerexpressroutecircuitconnections
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/privatednszonegroups
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/privateendpoints
-github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/privatelinkservice
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/privatelinkservices
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipaddresses
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipprefixes
@@ -1059,6 +1058,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/regist
 github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/serverendpointresource
 github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/storagesyncservicesresource
 github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/syncgroupresource
+github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2022-09-01/serverendpointresource
 github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/clusters
 github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/functions
 github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/inputs
@@ -1115,7 +1115,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/saplands
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/saprecommendations
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/sapsupportedsku
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/sapvirtualinstances
-# github.com/hashicorp/go-azure-sdk/sdk v0.20240529.1155048
+# github.com/hashicorp/go-azure-sdk/sdk v0.20240603.1145333
 ## explicit; go 1.21
 github.com/hashicorp/go-azure-sdk/sdk/auth
 github.com/hashicorp/go-azure-sdk/sdk/auth/autorest
