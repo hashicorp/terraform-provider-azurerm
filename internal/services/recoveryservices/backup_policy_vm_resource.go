@@ -853,6 +853,51 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.RecoveryServicesVaultName,
 		},
 
+		// `tiering_policy` is defined as the map type in Swagger and currently the key only supports `ArchivedRP`. Service team confirmed that they would support other keys in the future.
+		"tiering_policy": {
+			Type:     pluginsdk.TypeList,
+			MaxItems: 1,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"archived_rp": {
+						Type:     pluginsdk.TypeList,
+						MaxItems: 1,
+						Required: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"duration": {
+									Type:         pluginsdk.TypeInt,
+									Optional:     true,
+									ValidateFunc: validation.IntBetween(3, 1182),
+								},
+
+								"duration_type": {
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+									ValidateFunc: validation.StringInSlice([]string{
+										string(protectionpolicies.RetentionDurationTypeDays),
+										string(protectionpolicies.RetentionDurationTypeWeeks),
+										string(protectionpolicies.RetentionDurationTypeMonths),
+										string(protectionpolicies.RetentionDurationTypeYears),
+									}, false),
+								},
+
+								"tiering_mode": {
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+									ValidateFunc: validation.StringInSlice([]string{
+										string(protectionpolicies.TieringModeTierAfter),
+										string(protectionpolicies.TieringModeTierRecommended),
+									}, false),
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+
 		"timezone": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
