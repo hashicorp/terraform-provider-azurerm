@@ -67,7 +67,7 @@ The following arguments are supported:
 
 * `registered_server_id` - (Required) The ID of the Registered Server that will be associate with the Storage Sync Server Endpoint. Changing this forces a new Storage Sync Server Endpoint to be created.
 
-~> **NOTE:** For more information on registering a server see the [Microsoft documentation](https://learn.microsoft.com/azure/storage/file-sync/file-sync-server-registration)
+~> **NOTE:** The target server must already be registered with the parent `azurerm_storage_sync` prior to creating this endpoint. For more information on registering a server see the [Microsoft documentation](https://learn.microsoft.com/azure/storage/file-sync/file-sync-server-registration)
 
 * `server_local_path` - (Required) The path on the Windows Server to be synced to the Azure file share. Changing this forces a new Storage Sync Server Endpoint to be created.
 
