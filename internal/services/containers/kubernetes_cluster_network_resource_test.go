@@ -274,14 +274,8 @@ func TestAccKubernetesCluster_advancedNetworkingAzureAzurePolicyUpdate(t *testin
 			Config: r.advancedNetworkingWithOptionalPolicyConfig(data, "azure"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_profile.0.network_policy").Exists(),
 				check.That(data.ResourceName).Key("network_profile.0.network_policy").HasValue("azure"),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.advancedNetworkingWithOptionalPolicyConfig(data, ""),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -304,6 +298,49 @@ func TestAccKubernetesCluster_advancedNetworkingAzureCalicoPolicyUpdate(t *testi
 			Config: r.advancedNetworkingWithOptionalPolicyConfig(data, "calico"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_profile.0.network_policy").Exists(),
+				check.That(data.ResourceName).Key("network_profile.0.network_policy").HasValue("calico"),
+			),
+		},
+	})
+}
+
+func TestAccKubernetesCluster_advancedNetworkingAzureAzureInPlaceUpdatePolicyUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.advancedNetworkingWithOptionalPolicyConfig(data, "calico"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_profile.0.network_policy").Exists(),
+				check.That(data.ResourceName).Key("network_profile.0.network_policy").HasValue("calico"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.advancedNetworkingWithOptionalPolicyConfig(data, "azure"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_profile.0.network_policy").Exists(),
+				check.That(data.ResourceName).Key("network_profile.0.network_policy").HasValue("azure"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_advancedNetworkingAzureAzureRemovePolicyUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.advancedNetworkingWithOptionalPolicyConfig(data, "calico"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_profile.0.network_policy").Exists(),
 				check.That(data.ResourceName).Key("network_profile.0.network_policy").HasValue("calico"),
 			),
 		},
@@ -312,6 +349,7 @@ func TestAccKubernetesCluster_advancedNetworkingAzureCalicoPolicyUpdate(t *testi
 			Config: r.advancedNetworkingWithOptionalPolicyConfig(data, ""),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_profile.0.network_policy").HasValue("azure"), // TODO
 			),
 		},
 		data.ImportStep(),
