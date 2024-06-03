@@ -22,6 +22,7 @@ type storageSyncServerEndpointPoller struct {
 	id     serverendpointresource.ServerEndpointId
 }
 
+// The `ServerEndpointsCreateThenPoll` and `ServerEndpointsUpdateThenPoll` methods do not properly await, so a custom poller is required
 func NewStorageSyncServerEndpointPoller(client *serverendpointresource.ServerEndpointResourceClient, id serverendpointresource.ServerEndpointId) *storageSyncServerEndpointPoller {
 	return &storageSyncServerEndpointPoller{
 		client: client,
