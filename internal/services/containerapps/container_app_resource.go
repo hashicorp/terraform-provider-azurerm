@@ -257,7 +257,11 @@ func (r ContainerAppResource) Read() sdk.ResourceFunc {
 			if model := existing.Model; model != nil {
 				state.Location = location.Normalize(model.Location)
 				state.Tags = tags.Flatten(model.Tags)
-				ident, err := identity.FlattenSystemAndUserAssignedMapToModel(pointer.To(identity.SystemAndUserAssignedMap(*model.Identity)))
+				var identityMap *identity.SystemAndUserAssignedMap
+				if model.Identity != nil {
+					identityMap = pointer.To(identity.SystemAndUserAssignedMap(*model.Identity))
+				}
+				ident, err := identity.FlattenSystemAndUserAssignedMapToModel(identityMap)
 				if err != nil {
 					return err
 				}
