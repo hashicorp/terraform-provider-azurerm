@@ -1,5 +1,9 @@
 ## 3.107.0 (Unreleased)
 
+ENHANCEMENTS:
+
+* `container_app_job`: support new properties `key_vault_secret_id` and `identity` in `secret` block [GH-25969]
+
 BUG FIXES:
 
 * `azurerm_vpn_site` -  split create and update function to fix lifecycle - ignore changes [GH-26163]
