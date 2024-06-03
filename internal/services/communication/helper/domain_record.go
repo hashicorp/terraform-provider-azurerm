@@ -48,6 +48,6 @@ func DomainVerificationRecordsToModel(record *domains.DnsRecord) []DomainVerific
 		Name:  pointer.From(record.Name),
 		Type:  pointer.From(record.Type),
 		Value: pointer.From(record.Value),
-		TTL:   int(pointer.From(record.Ttl)),
+		TTL:   pointer.From(record.Ttl),
 	}}
 }
