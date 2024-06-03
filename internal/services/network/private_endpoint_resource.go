@@ -163,7 +163,7 @@ func resourcePrivateEndpoint() *pluginsdk.Resource {
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
 								ValidateFunc: validate.PrivateLinkSubResourceName,
-							},
+							}
 						},
 						"request_message": {
 							Type:         pluginsdk.TypeString,
