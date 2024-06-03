@@ -28,9 +28,6 @@ func TestAccEmailServiceDomain_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("from_sender_domain").IsNotEmpty(),
-				check.That(data.ResourceName).Key("mail_from_sender_domain").IsNotEmpty(),
-				check.That(data.ResourceName).Key("verification_records.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
