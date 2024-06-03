@@ -9,12 +9,12 @@ import (
 	"math/rand"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type RouteMapResource struct{}
@@ -101,18 +101,18 @@ func TestAccRouteMap_update(t *testing.T) {
 }
 
 func (r RouteMapResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.RouteMapID(state.ID)
+	id, err := virtualwans.ParseRouteMapID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	client := clients.Network.RouteMapsClient
-	resp, err := client.Get(ctx, id.ResourceGroup, id.VirtualHubName, id.Name)
+	client := clients.Network.VirtualWANs
+	resp, err := client.RouteMapsGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func randString() string {
