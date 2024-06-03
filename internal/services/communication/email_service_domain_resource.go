@@ -13,9 +13,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/domains"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/emailservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/communication/helper"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/communication/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -25,12 +25,11 @@ var _ sdk.ResourceWithUpdate = EmailCommunicationServiceDomainResource{}
 type EmailCommunicationServiceDomainResource struct{}
 
 type EmailCommunicationServiceDomainResourceModel struct {
-	Name                   string            `tfschema:"name"`
-	ResourceGroupName      string            `tfschema:"resource_group_name"`
-	EMailServiceName       string            `tfschema:"email_service_name"`
-	DomainManagement       string            `tfschema:"domain_management"`
-	UserEngagementTracking bool              `tfschema:"user_engagement_tracking"`
-	Tags                   map[string]string `tfschema:"tags"`
+	Name                          string            `tfschema:"name"`
+	EMailServiceID                string            `tfschema:"email_service_id"`
+	DomainManagement              string            `tfschema:"domain_management"`
+	UserEngagementTrackingEnabled bool              `tfschema:"user_engagement_tracking_enabled"`
+	Tags                          map[string]string `tfschema:"tags"`
 
 	FromSenderDomain     string                           `tfschema:"from_sender_domain"`
 	MailFromSenderDomain string                           `tfschema:"mail_from_sender_domain"`
@@ -53,13 +52,11 @@ func (EmailCommunicationServiceDomainResource) Arguments() map[string]*pluginsdk
 			ForceNew: true,
 		},
 
-		"resource_group_name": commonschema.ResourceGroupName(),
-
-		"email_service_name": {
+		"email_service_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.CommunicationServiceName,
+			ValidateFunc: domains.ValidateEmailServiceID,
 		},
 
 		"domain_management": {
@@ -69,10 +66,10 @@ func (EmailCommunicationServiceDomainResource) Arguments() map[string]*pluginsdk
 			ValidateFunc: validation.StringInSlice(domains.PossibleValuesForDomainManagement(), false),
 		},
 
-		"user_engagement_tracking": {
+		"user_engagement_tracking_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Computed: true,
+			Default:  false,
 		},
 
 		"tags": commonschema.Tags(),
@@ -127,7 +124,12 @@ func (r EmailCommunicationServiceDomainResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			id := domains.NewDomainID(subscriptionId, model.ResourceGroupName, model.EMailServiceName, model.Name)
+			eMailServiceID, err := emailservices.ParseEmailServiceID(model.EMailServiceID)
+			if err != nil {
+				return fmt.Errorf("parsing parent email_service_id: %+v", err)
+			}
+
+			id := domains.NewDomainID(subscriptionId, eMailServiceID.ResourceGroupName, eMailServiceID.EmailServiceName, model.Name)
 
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
@@ -142,7 +144,7 @@ func (r EmailCommunicationServiceDomainResource) Create() sdk.ResourceFunc {
 			}
 
 			properties.UserEngagementTracking = pointer.To(domains.UserEngagementTrackingDisabled)
-			if model.UserEngagementTracking {
+			if model.UserEngagementTrackingEnabled {
 				properties.UserEngagementTracking = pointer.To(domains.UserEngagementTrackingEnabled)
 			}
 
@@ -190,9 +192,9 @@ func (r EmailCommunicationServiceDomainResource) Update() sdk.ResourceFunc {
 
 			props := pointer.From(domain.Properties)
 
-			if metadata.ResourceData.HasChange("user_engagement_tracking") {
+			if metadata.ResourceData.HasChange("user_engagement_tracking_enabled") {
 				userEngagementTracking := domains.UserEngagementTrackingDisabled
-				if model.UserEngagementTracking {
+				if model.UserEngagementTrackingEnabled {
 					userEngagementTracking = domains.UserEngagementTrackingEnabled
 				}
 
@@ -237,8 +239,7 @@ func (EmailCommunicationServiceDomainResource) Read() sdk.ResourceFunc {
 			}
 
 			state.Name = id.DomainName
-			state.ResourceGroupName = id.ResourceGroupName
-			state.EMailServiceName = id.EmailServiceName
+			state.EMailServiceID = emailservices.NewEmailServiceID(id.SubscriptionId, id.ResourceGroupName, id.EmailServiceName).ID()
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
@@ -249,7 +250,7 @@ func (EmailCommunicationServiceDomainResource) Read() sdk.ResourceFunc {
 					state.MailFromSenderDomain = pointer.From(props.MailFromSenderDomain)
 
 					if props.UserEngagementTracking != nil {
-						state.UserEngagementTracking = *props.UserEngagementTracking == domains.UserEngagementTrackingEnabled
+						state.UserEngagementTrackingEnabled = *props.UserEngagementTracking == domains.UserEngagementTrackingEnabled
 
 					}
 

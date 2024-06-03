@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/communicationservices"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/domains"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/communication/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/communication/validate"
@@ -82,6 +83,15 @@ func (CommunicationServiceResource) Arguments() map[string]*pluginsdk.Schema {
 				"UK",
 				"United States",
 			}, false),
+		},
+
+		"linked_domains": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: domains.ValidateDomainID,
+			},
 		},
 
 		"tags": commonschema.Tags(),

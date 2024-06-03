@@ -39,15 +39,13 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the Email Communication Service resource. If `domain_management` is `AzureManaged`, the name must be `AzureManagedDomain`. Changing this forces a new Email Communication Service to be created.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the Email Communication Service should exist. Changing this forces a new Email Communication Service to be created.
- 
-* `email_service_name` - (Required) The name of the Email Communication Service where the Domain belongs to. Changing this forces a new Email Communication Service to be created.
+* `email_service_id` - (Required) The resource ID of the Email Communication Service where the Domain belongs to. Changing this forces a new Email Communication Service to be created.
 
 * `domain_management` - (Required) Describes how a Domains resource is being managed. Possible values are `AzureManaged`, `CustomerManaged`, `CustomerManagedInExchangeOnline`. Changing this forces a new Email Communication Service to be created.
 
 ---
 
-* `user_engagement_tracking` - (Optional) Describes user engagement tracking is enabled or disabled.
+* `user_engagement_tracking_enabled` - (Optional) Describes user engagement tracking is enabled or disabled. Defaults to `false`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Email Communication Service.
 
