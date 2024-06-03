@@ -313,6 +313,7 @@ resource "azurerm_synapse_spark_pool" "test" {
   node_size                 = "XXXLarge"
   node_count                = 3
   compute_isolation_enabled = true
+  spark_version             = "3.4"
 }
 `, template, data.RandomString)
 }
