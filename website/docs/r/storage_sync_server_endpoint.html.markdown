@@ -10,6 +10,8 @@ description: |-
 
 Manages a Storage Sync Server Endpoint.
 
+~> **NOTE:** The parent `azurerm_storage_sync_group` must have an `azurerm_storage_sync_cloud_endpoint` available before an `azurerm_storage_sync_server_endpoint` resource can be created.
+
 ## Example Usage
 
 ```hcl
