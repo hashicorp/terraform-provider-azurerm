@@ -2,6 +2,7 @@
 
 ENHANCEMENTS:
 
+* dependencies: updating to `v0.20240603.1145333` of `github.com/hashicorp/go-azure-sdk` [GH-26197]
 * `azurerm_container_app_job`: support new properties `key_vault_secret_id` and `identity` in `secret` block [GH-25969]
 * `azurerm_notification_hub_authorization_rule` - add support for `primary_connection_string` and `secondary_connection_string` properties [GH-26188]
 
