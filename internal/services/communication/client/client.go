@@ -34,7 +34,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	domainsClient, err := domains.NewDomainsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, fmt.Errorf("building Domain Service client: %+v", err)
+		return nil, fmt.Errorf("building Domais client: %+v", err)
 	}
 	o.Configure(domainsClient.Client, o.Authorizers.ResourceManager)
 
