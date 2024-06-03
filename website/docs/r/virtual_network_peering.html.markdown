@@ -12,6 +12,8 @@ description: |-
 Manages a virtual network peering which allows resources to access other
 resources in the linked virtual network.
 
+-> **Note:** Before using the feature of Subnet Peering, it's required to submit the request of registering the providers and features with Azure CLI `az provider register --namespace Microsoft.Network/AllowMultiplePeeringLinksBetweenVnets`.
+
 ## Example Usage
 
 ```hcl
@@ -173,6 +175,14 @@ The following arguments are supported:
 * `allow_forwarded_traffic` - (Optional) Controls if forwarded traffic from VMs in the remote virtual network is allowed. Defaults to `false`.
 
 * `allow_gateway_transit` - (Optional) Controls gatewayLinks can be used in the remote virtual network’s link to the local virtual network. Defaults to `false`.
+
+* `peer_complete_virtual_networks_enabled` - (Optional) Specifies whether complete Virtual Network address space is peered. Defaults to `true`.
+
+* `only_ipv6_peering_enabled` - (Optional) Specifies whether only IPv6 address space is peered for Subnet peering.
+
+* `local_subnet_names` - (Optional) A list of local Subnet names that are Subnet peered with remote Virtual Network.
+
+* `remote_subnet_names` - (Optional) A list of remote Subnet names from remote Virtual Network that are Subnet peered.
 
 * `use_remote_gateways` - (Optional) Controls if remote gateways can be used on the local virtual network. If the flag is set to `true`, and `allow_gateway_transit` on the remote peering is also `true`, virtual network will use gateways of remote virtual network for transit. Only one peering can have this flag set to `true`. This flag cannot be set if virtual network already has a gateway. Defaults to `false`.
 

@@ -231,22 +231,58 @@ provider "azurerm" {
 
 %[1]s
 
+resource "azurerm_subnet" "test1" {
+  name                 = "internal1"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test1.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
+resource "azurerm_subnet" "test2" {
+  name                 = "internal2"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test1.name
+  address_prefixes     = ["10.0.3.0/24"]
+}
+
+resource "azurerm_subnet" "test3" {
+  name                 = "internal3"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test2.name
+  address_prefixes     = ["10.0.4.0/24"]
+}
+
+resource "azurerm_subnet" "test4" {
+  name                 = "internal4"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test2.name
+  address_prefixes     = ["10.0.5.0/24"]
+}
+
 resource "azurerm_virtual_network_peering" "test1" {
-  name                         = "acctestpeer-1-%[2]d"
-  resource_group_name          = azurerm_resource_group.test.name
-  virtual_network_name         = azurerm_virtual_network.test1.name
-  remote_virtual_network_id    = azurerm_virtual_network.test2.id
-  allow_forwarded_traffic      = true
-  allow_virtual_network_access = true
+  name                                   = "acctestpeer-1-%[2]d"
+  resource_group_name                    = azurerm_resource_group.test.name
+  virtual_network_name                   = azurerm_virtual_network.test1.name
+  remote_virtual_network_id              = azurerm_virtual_network.test2.id
+  allow_forwarded_traffic                = true
+  allow_virtual_network_access           = true
+  peer_complete_virtual_networks_enabled = false
+  only_ipv6_peering_enabled              = true
+  local_subnet_names                     = [azurerm_subnet.test1.name]
+  remote_subnet_names                    = [azurerm_subnet.test3.name]
 }
 
 resource "azurerm_virtual_network_peering" "test2" {
-  name                         = "acctestpeer-2-%[2]d"
-  resource_group_name          = azurerm_resource_group.test.name
-  virtual_network_name         = azurerm_virtual_network.test2.name
-  remote_virtual_network_id    = azurerm_virtual_network.test1.id
-  allow_forwarded_traffic      = true
-  allow_virtual_network_access = true
+  name                                   = "acctestpeer-2-%[2]d"
+  resource_group_name                    = azurerm_resource_group.test.name
+  virtual_network_name                   = azurerm_virtual_network.test2.name
+  remote_virtual_network_id              = azurerm_virtual_network.test1.id
+  allow_forwarded_traffic                = true
+  allow_virtual_network_access           = true
+  peer_complete_virtual_networks_enabled = false
+  only_ipv6_peering_enabled              = true
+  local_subnet_names                     = [azurerm_subnet.test2.name]
+  remote_subnet_names                    = [azurerm_subnet.test4.name]
 }
 `, template, data.RandomInteger)
 }
