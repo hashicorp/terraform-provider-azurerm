@@ -9,33 +9,18 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2022-09-01/serverendpointresource"
+	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 )
 
 var _ pollers.PollerType = &storageSyncServerEndpointPoller{}
 
-// This resource has 2 potential 'ready' statuses
-//
-// we shouldn't require that the file sync client has been configured correctly in order to declare success
-//
-// serverendpointresource.ServerProvisioningStatusReadySyncFunctional = "Ready_SyncFunctional"
-// serverendpointresource.ServerProvisioningStatusReadySyncNotFunctional = "Ready_SyncNotFunctional"
 type storageSyncServerEndpointPoller struct {
 	client *serverendpointresource.ServerEndpointResourceClient
 	id     serverendpointresource.ServerEndpointId
 }
-
-var (
-	pollingSuccess = pollers.PollResult{
-		Status:       pollers.PollingStatus("Ready_"),
-		PollInterval: 10 * time.Second,
-	}
-	pollingInProgress = pollers.PollResult{
-		Status:       pollers.PollingStatusInProgress,
-		PollInterval: 10 * time.Second,
-	}
-)
 
 func NewStorageSyncServerEndpointPoller(client *serverendpointresource.ServerEndpointResourceClient, id serverendpointresource.ServerEndpointId) *storageSyncServerEndpointPoller {
 	return &storageSyncServerEndpointPoller{
@@ -50,13 +35,35 @@ func (p storageSyncServerEndpointPoller) Poll(ctx context.Context) (*pollers.Pol
 		return nil, fmt.Errorf("retrieving %s: %+v", p.id, err)
 	}
 
-	if resp.Model != nil {
-		if provisioningStatus := resp.Model.Properties.ProvisioningState; provisioningStatus != nil {
-			if !strings.Contains(strings.ToLower((*provisioningStatus)), strings.ToLower(string(pollingSuccess.Status))) {
-				return &pollingInProgress, nil
-			}
-		}
+	provisioningState := ""
+	if model := resp.Model; model != nil && model.Properties != nil {
+		provisioningState = pointer.From(model.Properties.ProvisioningState)
 	}
 
-	return &pollingSuccess, nil
+	if strings.EqualFold(provisioningState, "Succeeded") {
+		return &pollers.PollResult{
+			HttpResponse: &client.Response{
+				Response: resp.HttpResponse,
+			},
+			PollInterval: 10 * time.Second,
+			Status:       pollers.PollingStatusSucceeded,
+		}, nil
+	}
+
+	if strings.EqualFold(provisioningState, "runServerJob") {
+		return &pollers.PollResult{
+			HttpResponse: &client.Response{
+				Response: resp.HttpResponse,
+			},
+			PollInterval: 10 * time.Second,
+			Status:       pollers.PollingStatusInProgress,
+		}, nil
+	}
+
+	return nil, pollers.PollingFailedError{
+		HttpResponse: &client.Response{
+			Response: resp.HttpResponse,
+		},
+		Message: fmt.Sprintf("unexpected provisioningState %q", provisioningState),
+	}
 }

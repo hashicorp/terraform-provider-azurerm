@@ -168,7 +168,7 @@ func (r SyncServerEndpointResource) Create() sdk.ResourceFunc {
 				payload.Properties.TierFilesOlderThanDays = pointer.To(config.TierFilesOlderThanDays)
 			}
 
-			if _, err = client.ServerEndpointsCreate(ctx, id, payload); err != nil {
+			if err = client.ServerEndpointsCreateThenPoll(ctx, id, payload); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
