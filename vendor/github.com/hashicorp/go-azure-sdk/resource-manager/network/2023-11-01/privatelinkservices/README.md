@@ -55,6 +55,23 @@ if err := client.CheckPrivateLinkServiceVisibilityByResourceGroupThenPoll(ctx, i
 ```
 
 
+### Example Usage: `PrivateLinkServicesClient.CreateOrUpdate`
+
+```go
+ctx := context.TODO()
+id := privatelinkservices.NewPrivateLinkServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateLinkServiceValue")
+
+payload := privatelinkservices.PrivateLinkService{
+	// ...
+}
+
+
+if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+	// handle the error
+}
+```
+
+
 ### Example Usage: `PrivateLinkServicesClient.Delete`
 
 ```go
