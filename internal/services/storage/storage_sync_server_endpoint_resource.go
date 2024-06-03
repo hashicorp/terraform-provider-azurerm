@@ -144,6 +144,10 @@ func (r SyncServerEndpointResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
+			// custom poller necessary due to non-standard success status
+			pollerType := custompollers.NewStorageSyncServerEndpointPoller(client, id)
+			poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+
 			payload := serverendpointresource.ServerEndpointCreateParameters{
 				Properties: &serverendpointresource.ServerEndpointCreateParametersProperties{
 					InitialDownloadPolicy:  pointer.To(serverendpointresource.InitialDownloadPolicy(config.InitialDownloadPolicy)),
@@ -168,9 +172,9 @@ func (r SyncServerEndpointResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
-			// This custompoller can be removed once https://github.com/hashicorp/go-azure-sdk/issues/989 has been fixed
-			pollerType := custompollers.NewStorageSyncServerEndpointPoller(client, id)
-			poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+			if err := poller.PollUntilDone(ctx); err != nil {
+				return err
+			}
 
 			metadata.SetID(id)
 			return nil
@@ -256,6 +260,10 @@ func (r SyncServerEndpointResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
+			// custom poller necessary due to non-standard success status
+			pollerType := custompollers.NewStorageSyncServerEndpointPoller(client, *id)
+			poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+
 			payload := serverendpointresource.ServerEndpointUpdateParameters{
 				Properties: &serverendpointresource.ServerEndpointUpdateProperties{
 					LocalCacheMode:         pointer.To(serverendpointresource.LocalCacheMode(config.LocalCacheMode)),
@@ -275,6 +283,10 @@ func (r SyncServerEndpointResource) Update() sdk.ResourceFunc {
 
 			if _, err = client.ServerEndpointsUpdate(ctx, *id, payload); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
+			}
+
+			if err := poller.PollUntilDone(ctx); err != nil {
+				return err
 			}
 
 			return nil

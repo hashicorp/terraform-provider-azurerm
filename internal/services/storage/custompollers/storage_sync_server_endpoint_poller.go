@@ -15,16 +15,18 @@ import (
 
 var _ pollers.PollerType = &storageSyncServerEndpointPoller{}
 
+// This resource has 2 potential 'ready' statuses
+//
+// we shouldn't require that the file sync client has been configured correctly in order to declare success
+//
+// serverendpointresource.ServerProvisioningStatusReadySyncFunctional = "Ready_SyncFunctional"
+// serverendpointresource.ServerProvisioningStatusReadySyncNotFunctional = "Ready_SyncNotFunctional"
 type storageSyncServerEndpointPoller struct {
 	client *serverendpointresource.ServerEndpointResourceClient
 	id     serverendpointresource.ServerEndpointId
 }
 
 var (
-	// This resource has 2 potential 'ready' statuses
-	// we shouldn't require that the sync-server has been configured correctly in order to declare success
-	// serverendpointresource.ServerProvisioningStatusReadySyncFunctional = "Ready_SyncFunctional"
-	// serverendpointresource.ServerProvisioningStatusReadySyncNotFunctional = "Ready_SyncNotFunctional"
 	pollingSuccess = pollers.PollResult{
 		Status:       pollers.PollingStatus("Ready_"),
 		PollInterval: 10 * time.Second,
