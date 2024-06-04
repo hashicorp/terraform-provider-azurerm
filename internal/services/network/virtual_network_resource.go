@@ -437,11 +437,11 @@ func resourceVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroupName, id.VirtualNetworkName, existing)
 	if err != nil {
-		return fmt.Errorf("creating %s: %+v", id, err)
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
+		return fmt.Errorf("waiting for updating of %s: %+v", id, err)
 	}
 
 	timeout, _ := ctx.Deadline()
