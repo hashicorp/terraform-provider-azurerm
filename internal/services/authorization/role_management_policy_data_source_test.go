@@ -23,8 +23,7 @@ func TestRoleManagementPolicyDataSource_resourceGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_role_management_policy", "test")
 	r := RoleManagementPolicyDataSource{}
 
-	// Ignore the dangling resource post-test as the policy remains while the group is in a pending deletion state
-	data.ResourceTestSkipCheckDestroyed(t, []acceptance.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.resourceGroup(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -38,8 +37,7 @@ func TestRoleManagementPolicyDataSource_managementGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_role_management_policy", "test")
 	r := RoleManagementPolicyDataSource{}
 
-	// Ignore the dangling resource post-test as the policy remains while the group is in a pending deletion state
-	data.ResourceTestSkipCheckDestroyed(t, []acceptance.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.managementGroup(data),
 			Check: acceptance.ComposeTestCheckFunc(

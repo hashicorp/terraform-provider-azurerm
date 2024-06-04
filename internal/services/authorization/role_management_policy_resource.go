@@ -6,7 +6,6 @@ package authorization
 import (
 	"context"
 	"fmt"
-	"regexp"
 	"strings"
 	"time"
 
@@ -15,6 +14,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/rolemanagementpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -112,11 +113,15 @@ func (r RoleManagementPolicyResource) ModelObject() interface{} {
 func (r RoleManagementPolicyResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"scope": {
-			Description:  "The scope of the role to which this policy will apply",
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringStartsWithOneOf("/subscriptions/", "/providers/Microsoft.Management/managementGroups/"),
+			Description: "The scope of the role to which this policy will apply",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
+			ValidateFunc: validation.Any(
+				commonids.ValidateManagementGroupID,
+				commonids.ValidateSubscriptionID,
+				commonids.ValidateResourceGroupID,
+			),
 		},
 
 		"role_definition_id": {
@@ -124,7 +129,7 @@ func (r RoleManagementPolicyResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringMatch(regexp.MustCompile("/providers/Microsoft.Authorization/roleDefinitions/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"), "should be in the format /providers/Microsoft.Authorization/roleDefinitions/00000000-0000-0000-0000-000000000000"),
+			ValidateFunc: validate.ValidateRoleDefinitionResourceId,
 		},
 
 		"eligible_assignment_rules": {
@@ -314,6 +319,7 @@ func (r RoleManagementPolicyResource) Arguments() map[string]*pluginsdk.Schema {
 							Schema: notificationRuleSchema(),
 						},
 					},
+
 					"eligible_activations": {
 						Description: "Notifications about activations of eligible assignments",
 						Type:        pluginsdk.TypeList,
@@ -324,6 +330,7 @@ func (r RoleManagementPolicyResource) Arguments() map[string]*pluginsdk.Schema {
 							Schema: notificationRuleSchema(),
 						},
 					},
+
 					"eligible_assignments": {
 						Description: "Notifications about eligible assignments",
 						Type:        pluginsdk.TypeList,
@@ -558,47 +565,47 @@ func (r RoleManagementPolicyResource) Read() sdk.ResourceFunc {
 
 						case "Notification_Admin_Admin_Assignment":
 							state.NotificationRules[0].ActiveAssignments[0].AdminNotifications = []RoleManagementPolicyNotificationSettings{
-								*flattenNotificationSettings(pointer.To(rule.Values)),
+								*flattenNotificationSettings(rule.Values),
 							}
 
 						case "Notification_Admin_Admin_Eligibility":
 							state.NotificationRules[0].EligibleAssignments[0].AdminNotifications = []RoleManagementPolicyNotificationSettings{
-								*flattenNotificationSettings(pointer.To(rule.Values)),
+								*flattenNotificationSettings(rule.Values),
 							}
 
 						case "Notification_Admin_EndUser_Assignment":
 							state.NotificationRules[0].EligibleActivations[0].AdminNotifications = []RoleManagementPolicyNotificationSettings{
-								*flattenNotificationSettings(pointer.To(rule.Values)),
+								*flattenNotificationSettings(rule.Values),
 							}
 
 						case "Notification_Approver_Admin_Assignment":
 							state.NotificationRules[0].ActiveAssignments[0].ApproverNotifications = []RoleManagementPolicyNotificationSettings{
-								*flattenNotificationSettings(pointer.To(rule.Values)),
+								*flattenNotificationSettings(rule.Values),
 							}
 
 						case "Notification_Approver_Admin_Eligibility":
 							state.NotificationRules[0].EligibleAssignments[0].ApproverNotifications = []RoleManagementPolicyNotificationSettings{
-								*flattenNotificationSettings(pointer.To(rule.Values)),
+								*flattenNotificationSettings(rule.Values),
 							}
 
 						case "Notification_Approver_EndUser_Assignment":
 							state.NotificationRules[0].EligibleActivations[0].ApproverNotifications = []RoleManagementPolicyNotificationSettings{
-								*flattenNotificationSettings(pointer.To(rule.Values)),
+								*flattenNotificationSettings(rule.Values),
 							}
 
 						case "Notification_Requestor_Admin_Assignment":
 							state.NotificationRules[0].ActiveAssignments[0].AssigneeNotifications = []RoleManagementPolicyNotificationSettings{
-								*flattenNotificationSettings(pointer.To(rule.Values)),
+								*flattenNotificationSettings(rule.Values),
 							}
 
 						case "Notification_Requestor_Admin_Eligibility":
 							state.NotificationRules[0].EligibleAssignments[0].AssigneeNotifications = []RoleManagementPolicyNotificationSettings{
-								*flattenNotificationSettings(pointer.To(rule.Values)),
+								*flattenNotificationSettings(rule.Values),
 							}
 
 						case "Notification_Requestor_EndUser_Assignment":
 							state.NotificationRules[0].EligibleActivations[0].AssigneeNotifications = []RoleManagementPolicyNotificationSettings{
-								*flattenNotificationSettings(pointer.To(rule.Values)),
+								*flattenNotificationSettings(rule.Values),
 							}
 						}
 					}
@@ -682,8 +689,23 @@ func buildPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePolicy *rolemanage
 		return nil, fmt.Errorf("decoding: %+v", err)
 	}
 
-	if strings.HasPrefix(model.Scope, "/subscriptions/") && !strings.HasPrefix(model.RoleDefinitionId, "/subscriptions/") {
-		return nil, fmt.Errorf("role_definition_id must be a scoped id")
+	roleId, err := parse.ParseRoleDefinitionResourceId(model.RoleDefinitionId)
+	if err != nil {
+		return nil, fmt.Errorf("parsing role definition id: %+v", err)
+	}
+
+	_, err = commonids.ParseManagementGroupID(model.Scope)
+	if err != nil {
+		scopeId, err := commonids.ParseSubscriptionID(model.Scope)
+		if err == nil {
+			if strings.HasPrefix(roleId.Scope, scopeId.ID()) {
+				return nil, fmt.Errorf("role definition id must be in the same subscription as the scope")
+			}
+		}
+	} else {
+		if roleId.Scope != "" {
+			return nil, fmt.Errorf("role definition must be scoped to a management group")
+		}
 	}
 
 	// Take the slice of rules and convert it to a map with the ID as the key
@@ -695,252 +717,469 @@ func buildPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePolicy *rolemanage
 	updatedRules := make([]rolemanagementpolicies.RoleManagementPolicyRule, 0)
 
 	if metadata.ResourceData.HasChange("eligible_assignment_rules") {
-		expirationRequired := existingRules["Expiration_Admin_Eligibility"].Values["isExpirationRequired"].(bool)
-		maximumDuration := existingRules["Expiration_Admin_Eligibility"].Values["maximumDuration"].(string)
+		if expirationAdminEligibility, ok := existingRules["Expiration_Admin_Eligibility"]; ok && expirationAdminEligibility.Values != nil {
+			var expirationRequired bool
+			if expirationRequiredRaw, ok := expirationAdminEligibility.Values["isExpirationRequired"]; ok {
+				expirationRequired = expirationRequiredRaw.(bool)
+			}
 
-		if expirationRequired != model.EligibleAssignmentRules[0].ExpirationRequired {
-			expirationRequired = model.EligibleAssignmentRules[0].ExpirationRequired
-		}
-		if maximumDuration != model.EligibleAssignmentRules[0].ExpireAfter &&
-			model.EligibleAssignmentRules[0].ExpireAfter != "" {
-			maximumDuration = model.EligibleAssignmentRules[0].ExpireAfter
-		}
+			var maximumDuration string
+			if maximumDurationRaw, ok := expirationAdminEligibility.Values["maximumDuration"]; ok {
+				maximumDuration = maximumDurationRaw.(string)
+			}
 
-		updatedRules = append(updatedRules, map[string]interface{}{
-			"id":                   existingRules["Expiration_Admin_Eligibility"].Values["id"],
-			"ruleType":             existingRules["Expiration_Admin_Eligibility"].Values["ruleType"],
-			"target":               existingRules["Expiration_Admin_Eligibility"].Values["target"],
-			"isExpirationRequired": expirationRequired,
-			"maximumDuration":      maximumDuration,
-		})
+			if len(model.EligibleAssignmentRules) == 1 {
+				if expirationRequired != model.EligibleAssignmentRules[0].ExpirationRequired {
+					expirationRequired = model.EligibleAssignmentRules[0].ExpirationRequired
+				}
+				if maximumDuration != model.EligibleAssignmentRules[0].ExpireAfter &&
+					model.EligibleAssignmentRules[0].ExpireAfter != "" {
+					maximumDuration = model.EligibleAssignmentRules[0].ExpireAfter
+				}
+			}
+
+			var id, ruleType string
+			var target map[string]interface{}
+			if idRaw, ok := expirationAdminEligibility.Values["id"]; ok {
+				id = idRaw.(string)
+			}
+			if ruleTypeRaw, ok := expirationAdminEligibility.Values["ruleType"]; ok {
+				ruleType = ruleTypeRaw.(string)
+			}
+			if targetRaw, ok := expirationAdminEligibility.Values["target"]; ok {
+				target = targetRaw.(map[string]interface{})
+			}
+
+			updatedRules = append(updatedRules, map[string]interface{}{
+				"id":                   id,
+				"ruleType":             ruleType,
+				"target":               target,
+				"isExpirationRequired": expirationRequired,
+				"maximumDuration":      maximumDuration,
+			})
+		}
 	}
 
 	if metadata.ResourceData.HasChange("active_assignment_rules.0.require_multifactor_authentication") ||
 		metadata.ResourceData.HasChange("active_assignment_rules.0.require_justification") ||
 		metadata.ResourceData.HasChange("active_assignment_rules.0.require_ticket_info") {
-		enabledRules := make([]string, 0)
-		if model.ActiveAssignmentRules[0].RequireMultiFactorAuth {
-			enabledRules = append(enabledRules, "MultiFactorAuthentication")
-		}
-		if model.ActiveAssignmentRules[0].RequireJustification {
-			enabledRules = append(enabledRules, "Justification")
-		}
-		if model.ActiveAssignmentRules[0].RequireTicketInfo {
-			enabledRules = append(enabledRules, "Ticketing")
-		}
+		if enablementAdminEligibility, ok := existingRules["Enablement_Admin_Assignment"]; ok && enablementAdminEligibility.Values != nil {
+			enabledRules := make([]string, 0)
 
-		updatedRules = append(updatedRules, map[string]interface{}{
-			"id":           existingRules["Enablement_Admin_Assignment"].Values["id"],
-			"ruleType":     existingRules["Enablement_Admin_Assignment"].Values["ruleType"],
-			"target":       existingRules["Enablement_Admin_Assignment"].Values["target"],
-			"enabledRules": enabledRules,
-		})
+			if len(model.ActiveAssignmentRules) == 1 {
+				if model.ActiveAssignmentRules[0].RequireMultiFactorAuth {
+					enabledRules = append(enabledRules, "MultiFactorAuthentication")
+				}
+				if model.ActiveAssignmentRules[0].RequireJustification {
+					enabledRules = append(enabledRules, "Justification")
+				}
+				if model.ActiveAssignmentRules[0].RequireTicketInfo {
+					enabledRules = append(enabledRules, "Ticketing")
+				}
+			}
+
+			var id, ruleType string
+			var target map[string]interface{}
+			if idRaw, ok := enablementAdminEligibility.Values["id"]; ok {
+				id = idRaw.(string)
+			}
+			if ruleTypeRaw, ok := enablementAdminEligibility.Values["ruleType"]; ok {
+				ruleType = ruleTypeRaw.(string)
+			}
+			if targetRaw, ok := enablementAdminEligibility.Values["target"]; ok {
+				target = targetRaw.(map[string]interface{})
+			}
+
+			updatedRules = append(updatedRules, map[string]interface{}{
+				"id":           id,
+				"ruleType":     ruleType,
+				"target":       target,
+				"enabledRules": enabledRules,
+			})
+		}
 	}
 
 	if metadata.ResourceData.HasChange("active_assignment_rules.0.expiration_required") ||
 		metadata.ResourceData.HasChange("active_assignment_rules.0.expire_after") {
-		expirationRequired := existingRules["Expiration_Admin_Assignment"].Values["isExpirationRequired"].(bool)
-		maximumDuration := existingRules["Expiration_Admin_Assignment"].Values["maximumDuration"].(string)
+		if expirationAdminAssignment, ok := existingRules["Expiration_Admin_Assignment"]; ok && expirationAdminAssignment.Values != nil {
+			var expirationRequired bool
+			if expirationRequiredRaw, ok := expirationAdminAssignment.Values["isExpirationRequired"]; ok {
+				expirationRequired = expirationRequiredRaw.(bool)
+			}
 
-		if expirationRequired != model.ActiveAssignmentRules[0].ExpirationRequired {
-			expirationRequired = model.ActiveAssignmentRules[0].ExpirationRequired
-		}
-		if maximumDuration != model.ActiveAssignmentRules[0].ExpireAfter &&
-			model.ActiveAssignmentRules[0].ExpireAfter != "" {
-			maximumDuration = model.ActiveAssignmentRules[0].ExpireAfter
-		}
+			var maximumDuration string
+			if maximumDurationRaw, ok := expirationAdminAssignment.Values["maximumDuration"]; ok {
+				maximumDuration = maximumDurationRaw.(string)
+			}
 
-		updatedRules = append(updatedRules, map[string]interface{}{
-			"id":                   existingRules["Expiration_Admin_Assignment"].Values["id"],
-			"ruleType":             existingRules["Expiration_Admin_Assignment"].Values["ruleType"],
-			"target":               existingRules["Expiration_Admin_Assignment"].Values["target"],
-			"isExpirationRequired": expirationRequired,
-			"maximumDuration":      maximumDuration,
-		})
+			if len(model.ActiveAssignmentRules) == 1 {
+				if expirationRequired != model.ActiveAssignmentRules[0].ExpirationRequired {
+					expirationRequired = model.ActiveAssignmentRules[0].ExpirationRequired
+				}
+				if maximumDuration != model.ActiveAssignmentRules[0].ExpireAfter &&
+					model.ActiveAssignmentRules[0].ExpireAfter != "" {
+					maximumDuration = model.ActiveAssignmentRules[0].ExpireAfter
+				}
+			}
+
+			var id, ruleType string
+			var target map[string]interface{}
+			if idRaw, ok := expirationAdminAssignment.Values["id"]; ok {
+				id = idRaw.(string)
+			}
+			if ruleTypeRaw, ok := expirationAdminAssignment.Values["ruleType"]; ok {
+				ruleType = ruleTypeRaw.(string)
+			}
+			if targetRaw, ok := expirationAdminAssignment.Values["target"]; ok {
+				target = targetRaw.(map[string]interface{})
+			}
+
+			updatedRules = append(updatedRules, map[string]interface{}{
+				"id":                   id,
+				"ruleType":             ruleType,
+				"target":               target,
+				"isExpirationRequired": expirationRequired,
+				"maximumDuration":      maximumDuration,
+			})
+		}
 	}
 
 	if metadata.ResourceData.HasChange("activation_rules.0.maximum_duration") {
-		updatedRules = append(updatedRules, map[string]interface{}{
-			"id":              existingRules["Expiration_EndUser_Assignment"].Values["id"],
-			"ruleType":        existingRules["Expiration_EndUser_Assignment"].Values["ruleType"],
-			"target":          existingRules["Expiration_EndUser_Assignment"].Values["target"],
-			"maximumDuration": model.ActivationRules[0].MaximumDuration,
-		})
+		if expirationEndUserAssignment, ok := existingRules["Expiration_EndUser_Assignment"]; ok && expirationEndUserAssignment.Values != nil {
+			var id, ruleType, maximumDuration string
+			var target map[string]interface{}
+			if idRaw, ok := expirationEndUserAssignment.Values["id"]; ok {
+				id = idRaw.(string)
+			}
+			if ruleTypeRaw, ok := expirationEndUserAssignment.Values["ruleType"]; ok {
+				ruleType = ruleTypeRaw.(string)
+			}
+			if targetRaw, ok := expirationEndUserAssignment.Values["target"]; ok {
+				target = targetRaw.(map[string]interface{})
+			}
+			if len(model.ActivationRules) == 1 {
+				maximumDuration = model.ActivationRules[0].MaximumDuration
+			}
+
+			updatedRules = append(updatedRules, map[string]interface{}{
+				"id":              id,
+				"ruleType":        ruleType,
+				"target":          target,
+				"maximumDuration": maximumDuration,
+			})
+		}
 	}
 
 	if metadata.ResourceData.HasChange("activation_rules.0.require_approval") ||
 		metadata.ResourceData.HasChange("activation_rules.0.approval_stage") {
-		if model.ActivationRules[0].RequireApproval && len(model.ActivationRules[0].ApprovalStages) != 1 {
-			return nil, fmt.Errorf("require_approval is true, but no approval_stages are provided")
-		}
+		if approvalEndUserAssignment, ok := existingRules["Approval_EndUser_Assignment"]; ok && approvalEndUserAssignment.Values != nil {
+			if len(model.ActivationRules) == 1 {
+				if model.ActivationRules[0].RequireApproval && len(model.ActivationRules[0].ApprovalStages) != 1 {
+					return nil, fmt.Errorf("require_approval is true, but no approval_stages are provided")
+				}
+			}
 
-		settings := existingRules["Approval_EndUser_Assignment"].Values["setting"].(map[string]interface{})
-		approvalReqd := settings["isApprovalRequired"]
-		if approvalReqd != model.ActivationRules[0].RequireApproval {
-			approvalReqd = model.ActivationRules[0].RequireApproval
-		}
+			var approvalReqd bool
+			var approvalStages []map[string]interface{}
 
-		var approvalStages []map[string]interface{}
-		if metadata.ResourceData.HasChange("activation_rules.0.approval_stage") {
-			approvalStages = make([]map[string]interface{}, len(model.ActivationRules[0].ApprovalStages))
-			for i, stage := range model.ActivationRules[0].ApprovalStages {
-				primaryApprovers := make([]map[string]interface{}, len(stage.PrimaryApprovers))
-				for ia, approver := range stage.PrimaryApprovers {
-					primaryApprovers[ia] = map[string]interface{}{
-						"id":       approver.ID,
-						"userType": approver.Type,
+			if settingsRaw, ok := approvalEndUserAssignment.Values["setting"]; ok {
+				settings := settingsRaw.(map[string]interface{})
+
+				if approvalReqdRaw, ok := settings["isApprovalRequired"]; ok {
+					approvalReqd = approvalReqdRaw.(bool)
+				}
+
+				if len(model.ActivationRules) == 1 {
+					if approvalReqd != model.ActivationRules[0].RequireApproval {
+						approvalReqd = model.ActivationRules[0].RequireApproval
 					}
 				}
 
-				approvalStages[i] = map[string]interface{}{
-					"PrimaryApprovers": primaryApprovers,
+				if metadata.ResourceData.HasChange("activation_rules.0.approval_stage") {
+					if len(model.ActivationRules) == 1 {
+						approvalStages = make([]map[string]interface{}, len(model.ActivationRules[0].ApprovalStages))
+						for i, stage := range model.ActivationRules[0].ApprovalStages {
+							primaryApprovers := make([]map[string]interface{}, len(stage.PrimaryApprovers))
+							for ia, approver := range stage.PrimaryApprovers {
+								primaryApprovers[ia] = map[string]interface{}{
+									"id":       approver.ID,
+									"userType": approver.Type,
+								}
+							}
+
+							approvalStages[i] = map[string]interface{}{
+								"PrimaryApprovers": primaryApprovers,
+							}
+						}
+					}
+				} else {
+					if approvalStagesRaw, ok := settings["approvalStages"]; ok {
+						approvalStages = approvalStagesRaw.([]map[string]interface{})
+					}
 				}
 			}
-		} else {
-			approvalStages = settings["approvalStages"].([]map[string]interface{})
-		}
 
-		updatedRules = append(updatedRules, map[string]interface{}{
-			"id":       existingRules["Approval_EndUser_Assignment"].Values["id"],
-			"ruleType": existingRules["Approval_EndUser_Assignment"].Values["ruleType"],
-			"target":   existingRules["Approval_EndUser_Assignment"].Values["target"],
-			"setting": map[string]interface{}{
-				"isApprovalRequired": approvalReqd,
-				"approvalStages":     approvalStages,
-			},
-		})
+			var id, ruleType string
+			var target map[string]interface{}
+			if idRaw, ok := approvalEndUserAssignment.Values["id"]; ok {
+				id = idRaw.(string)
+			}
+			if ruleTypeRaw, ok := approvalEndUserAssignment.Values["ruleType"]; ok {
+				ruleType = ruleTypeRaw.(string)
+			}
+			if targetRaw, ok := approvalEndUserAssignment.Values["target"]; ok {
+				target = targetRaw.(map[string]interface{})
+			}
+
+			updatedRules = append(updatedRules, map[string]interface{}{
+				"id":       id,
+				"ruleType": ruleType,
+				"target":   target,
+				"setting": map[string]interface{}{
+					"isApprovalRequired": approvalReqd,
+					"approvalStages":     approvalStages,
+				},
+			})
+		}
 	}
 
 	if metadata.ResourceData.HasChange("activation_rules.0.required_conditional_access_authentication_context") {
-		var isEnabled bool
-		claimValue := existingRules["AuthenticationContext_EndUser_Assignment"].Values["claimValue"]
+		if authEndUserAssignment, ok := existingRules["AuthenticationContext_EndUser_Assignment"]; ok && authEndUserAssignment.Values != nil {
+			var claimValue string
+			if claimValueRaw, ok := authEndUserAssignment.Values["claimValue"]; ok {
+				claimValue = claimValueRaw.(string)
+			}
 
-		if _, set := metadata.ResourceData.GetOk("activation_rules.0.required_conditional_access_authentication_context"); set {
-			isEnabled = true
-			claimValue = model.ActivationRules[0].RequireConditionalAccessContext
-		} else {
-			isEnabled = false
+			var isEnabled bool
+			if _, set := metadata.ResourceData.GetOk("activation_rules.0.required_conditional_access_authentication_context"); set {
+				isEnabled = true
+				if len(model.ActivationRules) == 1 {
+					claimValue = model.ActivationRules[0].RequireConditionalAccessContext
+				}
+			} else {
+				isEnabled = false
+			}
+
+			var id, ruleType string
+			var target map[string]interface{}
+			if idRaw, ok := authEndUserAssignment.Values["id"]; ok {
+				id = idRaw.(string)
+			}
+			if ruleTypeRaw, ok := authEndUserAssignment.Values["ruleType"]; ok {
+				ruleType = ruleTypeRaw.(string)
+			}
+			if targetRaw, ok := authEndUserAssignment.Values["target"]; ok {
+				target = targetRaw.(map[string]interface{})
+			}
+
+			updatedRules = append(updatedRules, map[string]interface{}{
+				"id":         id,
+				"ruleType":   ruleType,
+				"target":     target,
+				"isEnabled":  isEnabled,
+				"claimValue": claimValue,
+			})
 		}
-
-		updatedRules = append(updatedRules, map[string]interface{}{
-			"id":         existingRules["AuthenticationContext_EndUser_Assignment"].Values["id"],
-			"ruleType":   existingRules["AuthenticationContext_EndUser_Assignment"].Values["ruleType"],
-			"target":     existingRules["AuthenticationContext_EndUser_Assignment"].Values["target"],
-			"isEnabled":  isEnabled,
-			"claimValue": claimValue,
-		})
 	}
 
 	if metadata.ResourceData.HasChange("activation_rules.0.require_multifactor_authentication") ||
 		metadata.ResourceData.HasChange("activation_rules.0.require_justification") ||
 		metadata.ResourceData.HasChange("activation_rules.0.require_ticket_info") {
-		enabledRules := make([]string, 0)
-		if model.ActivationRules[0].RequireMultiFactorAuth {
-			enabledRules = append(enabledRules, "MultiFactorAuthentication")
-		}
-		if model.ActivationRules[0].RequireJustification {
-			enabledRules = append(enabledRules, "Justification")
-		}
-		if model.ActivationRules[0].RequireTicketInfo {
-			enabledRules = append(enabledRules, "Ticketing")
-		}
+		if enablementEndUserAssignment, ok := existingRules["Enablement_EndUser_Assignment"]; ok && enablementEndUserAssignment.Values != nil {
+			enabledRules := make([]string, 0)
+			if len(model.ActivationRules) == 1 {
+				if model.ActivationRules[0].RequireMultiFactorAuth {
+					enabledRules = append(enabledRules, "MultiFactorAuthentication")
+				}
+				if model.ActivationRules[0].RequireJustification {
+					enabledRules = append(enabledRules, "Justification")
+				}
+				if model.ActivationRules[0].RequireTicketInfo {
+					enabledRules = append(enabledRules, "Ticketing")
+				}
+			}
 
-		updatedRules = append(updatedRules, map[string]interface{}{
-			"id":           existingRules["Enablement_EndUser_Assignment"].Values["id"],
-			"ruleType":     existingRules["Enablement_EndUser_Assignment"].Values["ruleType"],
-			"target":       existingRules["Enablement_EndUser_Assignment"].Values["target"],
-			"enabledRules": enabledRules,
-		})
+			var id, ruleType string
+			var target map[string]interface{}
+			if idRaw, ok := enablementEndUserAssignment.Values["id"]; ok {
+				id = idRaw.(string)
+			}
+			if ruleTypeRaw, ok := enablementEndUserAssignment.Values["ruleType"]; ok {
+				ruleType = ruleTypeRaw.(string)
+			}
+			if targetRaw, ok := enablementEndUserAssignment.Values["target"]; ok {
+				target = targetRaw.(map[string]interface{})
+			}
+
+			updatedRules = append(updatedRules, map[string]interface{}{
+				"id":           id,
+				"ruleType":     ruleType,
+				"target":       target,
+				"enabledRules": enabledRules,
+			})
+		}
 	}
 
 	if metadata.ResourceData.HasChange("notification_rules.0.eligible_assignments.0.admin_notifications") {
-		updatedRules = append(updatedRules,
-			expandNotificationSettings(
-				existingRules["Notification_Admin_Admin_Eligibility"],
-				model.NotificationRules[0].EligibleAssignments[0].AdminNotifications[0],
-				metadata.ResourceData.HasChange("notification_rules.0.eligible_assignments.0.admin_notifications.0.additional_recipients"),
-			),
-		)
+		if notificationAdminAdminEligibility, ok := existingRules["Notification_Admin_Admin_Eligibility"]; ok && notificationAdminAdminEligibility.Values != nil {
+			if len(model.NotificationRules) == 1 {
+				if len(model.NotificationRules[0].EligibleAssignments) == 1 {
+					if len(model.NotificationRules[0].EligibleAssignments[0].AdminNotifications) == 1 {
+						updatedRules = append(updatedRules,
+							expandNotificationSettings(
+								notificationAdminAdminEligibility,
+								model.NotificationRules[0].EligibleAssignments[0].AdminNotifications[0],
+								metadata.ResourceData.HasChange("notification_rules.0.eligible_assignments.0.admin_notifications.0.additional_recipients"),
+							),
+						)
+					}
+				}
+			}
+		}
 	}
 
 	if metadata.ResourceData.HasChange("notification_rules.0.active_assignments.0.admin_notifications") {
-		updatedRules = append(updatedRules,
-			expandNotificationSettings(
-				existingRules["Notification_Admin_Admin_Assignment"],
-				model.NotificationRules[0].ActiveAssignments[0].AdminNotifications[0],
-				metadata.ResourceData.HasChange("notification_rules.0.active_assignments.0.admin_notifications.0.additional_recipients"),
-			),
-		)
+		if notificationAdminAdminAssignment, ok := existingRules["Notification_Admin_Admin_Assignment"]; ok && notificationAdminAdminAssignment.Values != nil {
+			if len(model.NotificationRules) == 1 {
+				if len(model.NotificationRules[0].ActiveAssignments) == 1 {
+					if len(model.NotificationRules[0].ActiveAssignments[0].AdminNotifications) == 1 {
+						updatedRules = append(updatedRules,
+							expandNotificationSettings(
+								notificationAdminAdminAssignment,
+								model.NotificationRules[0].ActiveAssignments[0].AdminNotifications[0],
+								metadata.ResourceData.HasChange("notification_rules.0.active_assignments.0.admin_notifications.0.additional_recipients"),
+							),
+						)
+					}
+				}
+			}
+		}
 	}
 
 	if metadata.ResourceData.HasChange("notification_rules.0.eligible_activations.0.admin_notifications") {
-		updatedRules = append(updatedRules,
-			expandNotificationSettings(
-				existingRules["Notification_Admin_EndUser_Assignment"],
-				model.NotificationRules[0].EligibleActivations[0].AdminNotifications[0],
-				metadata.ResourceData.HasChange("notification_rules.0.eligible_activations.0.admin_notifications.0.additional_recipients"),
-			),
-		)
+		if notificationAdminEndUserAssignment, ok := existingRules["Notification_Admin_EndUser_Assignment"]; ok && notificationAdminEndUserAssignment.Values != nil {
+			if len(model.NotificationRules) == 1 {
+				if len(model.NotificationRules[0].EligibleActivations) == 1 {
+					if len(model.NotificationRules[0].EligibleActivations[0].AdminNotifications) == 1 {
+						updatedRules = append(updatedRules,
+							expandNotificationSettings(
+								notificationAdminEndUserAssignment,
+								model.NotificationRules[0].EligibleActivations[0].AdminNotifications[0],
+								metadata.ResourceData.HasChange("notification_rules.0.eligible_activations.0.admin_notifications.0.additional_recipients"),
+							),
+						)
+					}
+				}
+			}
+		}
 	}
 
 	if metadata.ResourceData.HasChange("notification_rules.0.eligible_assignments.0.approver_notifications") {
-		updatedRules = append(updatedRules,
-			expandNotificationSettings(
-				existingRules["Notification_Approver_Admin_Eligibility"],
-				model.NotificationRules[0].EligibleAssignments[0].ApproverNotifications[0],
-				metadata.ResourceData.HasChange("notification_rules.0.eligible_assignments.0.approver_notifications.0.additional_recipients"),
-			),
-		)
+		if notificationApproverAdminEligibility, ok := existingRules["Notification_Approver_Admin_Eligibility"]; ok && notificationApproverAdminEligibility.Values != nil {
+			if len(model.NotificationRules) == 1 {
+				if len(model.NotificationRules[0].EligibleAssignments) == 1 {
+					if len(model.NotificationRules[0].EligibleAssignments[0].ApproverNotifications) == 1 {
+						updatedRules = append(updatedRules,
+							expandNotificationSettings(
+								notificationApproverAdminEligibility,
+								model.NotificationRules[0].EligibleAssignments[0].ApproverNotifications[0],
+								metadata.ResourceData.HasChange("notification_rules.0.eligible_assignments.0.approver_notifications.0.additional_recipients"),
+							),
+						)
+					}
+				}
+			}
+		}
 	}
 
 	if metadata.ResourceData.HasChange("notification_rules.0.active_assignments.0.approver_notifications") {
-		updatedRules = append(updatedRules,
-			expandNotificationSettings(
-				existingRules["Notification_Approver_Admin_Assignment"],
-				model.NotificationRules[0].ActiveAssignments[0].ApproverNotifications[0],
-				metadata.ResourceData.HasChange("notification_rules.0.active_assignments.0.approver_notifications.0.additional_recipients"),
-			),
-		)
+		if notificationApproverAdminAssignment, ok := existingRules["Notification_Approver_Admin_Assignment"]; ok && notificationApproverAdminAssignment.Values != nil {
+			if len(model.NotificationRules) == 1 {
+				if len(model.NotificationRules[0].ActiveAssignments) == 1 {
+					if len(model.NotificationRules[0].ActiveAssignments[0].ApproverNotifications) == 1 {
+						updatedRules = append(updatedRules,
+							expandNotificationSettings(
+								notificationApproverAdminAssignment,
+								model.NotificationRules[0].ActiveAssignments[0].ApproverNotifications[0],
+								metadata.ResourceData.HasChange("notification_rules.0.active_assignments.0.approver_notifications.0.additional_recipients"),
+							),
+						)
+					}
+				}
+			}
+		}
 	}
 
 	if metadata.ResourceData.HasChange("notification_rules.0.eligible_activations.0.approver_notifications") {
-		updatedRules = append(updatedRules,
-			expandNotificationSettings(
-				existingRules["Notification_Approver_EndUser_Assignment"],
-				model.NotificationRules[0].EligibleActivations[0].ApproverNotifications[0],
-				metadata.ResourceData.HasChange("notification_rules.0.eligible_activations.0.approver_notifications.0.additional_recipients"),
-			),
-		)
+		if notificationApproverEndUserAssignment, ok := existingRules["Notification_Approver_EndUser_Assignment"]; ok && notificationApproverEndUserAssignment.Values != nil {
+			if len(model.NotificationRules) == 1 {
+				if len(model.NotificationRules[0].EligibleActivations) == 1 {
+					if len(model.NotificationRules[0].EligibleActivations[0].ApproverNotifications) == 1 {
+						updatedRules = append(updatedRules,
+							expandNotificationSettings(
+								notificationApproverEndUserAssignment,
+								model.NotificationRules[0].EligibleActivations[0].ApproverNotifications[0],
+								metadata.ResourceData.HasChange("notification_rules.0.eligible_activations.0.approver_notifications.0.additional_recipients"),
+							),
+						)
+					}
+				}
+			}
+		}
 	}
 
 	if metadata.ResourceData.HasChange("notification_rules.0.eligible_assignments.0.assignee_notifications") {
-		updatedRules = append(updatedRules,
-			expandNotificationSettings(
-				existingRules["Notification_Requestor_Admin_Eligibility"],
-				model.NotificationRules[0].EligibleAssignments[0].AssigneeNotifications[0],
-				metadata.ResourceData.HasChange("notification_rules.0.eligible_assignments.0.assignee_notifications.0.additional_recipients"),
-			),
-		)
+		if notificationRequestorAdminEligibility, ok := existingRules["Notification_Requestor_Admin_Eligibility"]; ok && notificationRequestorAdminEligibility.Values != nil {
+			if len(model.NotificationRules) == 1 {
+				if len(model.NotificationRules[0].EligibleAssignments) == 1 {
+					if len(model.NotificationRules[0].EligibleAssignments[0].AssigneeNotifications) == 1 {
+						updatedRules = append(updatedRules,
+							expandNotificationSettings(
+								notificationRequestorAdminEligibility,
+								model.NotificationRules[0].EligibleAssignments[0].AssigneeNotifications[0],
+								metadata.ResourceData.HasChange("notification_rules.0.eligible_assignments.0.assignee_notifications.0.additional_recipients"),
+							),
+						)
+					}
+				}
+			}
+		}
 	}
 
 	if metadata.ResourceData.HasChange("notification_rules.0.active_assignments.0.assignee_notifications") {
-		updatedRules = append(updatedRules,
-			expandNotificationSettings(
-				existingRules["Notification_Requestor_Admin_Assignment"],
-				model.NotificationRules[0].ActiveAssignments[0].AssigneeNotifications[0],
-				metadata.ResourceData.HasChange("notification_rules.0.active_assignments.0.assignee_notifications.0.additional_recipients"),
-			),
-		)
+		if notificationRequestorAdminAssignment, ok := existingRules["Notification_Requestor_Admin_Assignment"]; ok && notificationRequestorAdminAssignment.Values != nil {
+			if len(model.NotificationRules) == 1 {
+				if len(model.NotificationRules[0].ActiveAssignments) == 1 {
+					if len(model.NotificationRules[0].ActiveAssignments[0].AssigneeNotifications) == 1 {
+						updatedRules = append(updatedRules,
+							expandNotificationSettings(
+								notificationRequestorAdminAssignment,
+								model.NotificationRules[0].ActiveAssignments[0].AssigneeNotifications[0],
+								metadata.ResourceData.HasChange("notification_rules.0.active_assignments.0.assignee_notifications.0.additional_recipients"),
+							),
+						)
+					}
+				}
+			}
+		}
 	}
 
 	if metadata.ResourceData.HasChange("notification_rules.0.eligible_activations.0.assignee_notifications") {
-		updatedRules = append(updatedRules,
-			expandNotificationSettings(
-				existingRules["Notification_Requestor_EndUser_Assignment"],
-				model.NotificationRules[0].EligibleActivations[0].AssigneeNotifications[0],
-				metadata.ResourceData.HasChange("notification_rules.0.eligible_activations.0.assignee_notifications.0.additional_recipients"),
-			),
-		)
+		if notificationRequestorEndUserAssignment, ok := existingRules["Notification_Requestor_EndUser_Assignment"]; ok && notificationRequestorEndUserAssignment.Values != nil {
+			if len(model.NotificationRules) == 1 {
+				if len(model.NotificationRules[0].EligibleActivations) == 1 {
+					if len(model.NotificationRules[0].EligibleActivations[0].AssigneeNotifications) == 1 {
+						updatedRules = append(updatedRules,
+							expandNotificationSettings(
+								notificationRequestorEndUserAssignment,
+								model.NotificationRules[0].EligibleActivations[0].AssigneeNotifications[0],
+								metadata.ResourceData.HasChange("notification_rules.0.eligible_activations.0.assignee_notifications.0.additional_recipients"),
+							),
+						)
+					}
+				}
+			}
+		}
 	}
 
 	return &rolemanagementpolicies.RoleManagementPolicy{
@@ -954,9 +1193,24 @@ func buildPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePolicy *rolemanage
 }
 
 func expandNotificationSettings(rule rolemanagementpolicies.RawRoleManagementPolicyRuleImpl, data RoleManagementPolicyNotificationSettings, recipientChange bool) rolemanagementpolicies.RoleManagementPolicyRule {
-	level := rule.Values["notificationLevel"]
-	defaultRecipients := rule.Values["isDefaultRecipientsEnabled"]
-	additionalRecipients := rule.Values["notificationRecipients"]
+	var level string
+	if levelRaw, ok := rule.Values["notificationLevel"]; ok {
+		level = levelRaw.(string)
+	}
+
+	var defaultRecipients bool
+	if defaultRecipientsRaw, ok := rule.Values["isDefaultRecipientsEnabled"]; ok {
+		defaultRecipients = defaultRecipientsRaw.(bool)
+	}
+
+	var additionalRecipients []string
+	if v, ok := rule.Values["notificationRecipients"]; ok {
+		additionalRecipientsRaw := v.([]interface{})
+		additionalRecipients = make([]string, len(additionalRecipientsRaw))
+		for i, r := range additionalRecipientsRaw {
+			additionalRecipients[i] = r.(string)
+		}
+	}
 
 	if level != data.NotificationLevel {
 		level = data.NotificationLevel
@@ -968,30 +1222,52 @@ func expandNotificationSettings(rule rolemanagementpolicies.RawRoleManagementPol
 		additionalRecipients = data.AdditionalRecipients
 	}
 
+	var id, ruleType, recipientType, notificationType string
+	var target map[string]interface{}
+	if idRaw, ok := rule.Values["id"]; ok {
+		id = idRaw.(string)
+	}
+	if ruleTypeRaw, ok := rule.Values["ruleType"]; ok {
+		ruleType = ruleTypeRaw.(string)
+	}
+	if targetRaw, ok := rule.Values["target"]; ok {
+		target = targetRaw.(map[string]interface{})
+	}
+	if recipientTypeRaw, ok := rule.Values["recipientType"]; ok {
+		recipientType = recipientTypeRaw.(string)
+	}
+	if notificationTypeRaw, ok := rule.Values["notificationType"]; ok {
+		notificationType = notificationTypeRaw.(string)
+	}
+
 	return map[string]interface{}{
-		"id":                         rule.Values["id"],
-		"ruleType":                   rule.Values["ruleType"],
-		"target":                     rule.Values["target"],
-		"recipientType":              rule.Values["recipientType"],
-		"notificationType":           rule.Values["notificationType"],
+		"id":                         id,
+		"ruleType":                   ruleType,
+		"target":                     target,
+		"recipientType":              recipientType,
+		"notificationType":           notificationType,
 		"notificationLevel":          level,
 		"isDefaultRecipientsEnabled": defaultRecipients,
 		"notificationRecipients":     additionalRecipients,
 	}
 }
 
-func flattenNotificationSettings(rule *map[string]interface{}) *RoleManagementPolicyNotificationSettings {
+func flattenNotificationSettings(rule map[string]interface{}) *RoleManagementPolicyNotificationSettings {
+	if rule == nil {
+		return nil
+	}
+
 	var notificationLevel string
 	var defaultRecipients bool
 	var additionalRecipients []string
 
-	if v, ok := (*rule)["notificationLevel"].(string); ok {
+	if v, ok := rule["notificationLevel"].(string); ok {
 		notificationLevel = v
 	}
-	if v, ok := (*rule)["isDefaultRecipientsEnabled"].(bool); ok {
+	if v, ok := rule["isDefaultRecipientsEnabled"].(bool); ok {
 		defaultRecipients = v
 	}
-	if v, ok := (*rule)["notificationRecipients"].([]interface{}); ok {
+	if v, ok := rule["notificationRecipients"].([]interface{}); ok {
 		additionalRecipients = make([]string, len(v))
 		for i, r := range v {
 			additionalRecipients[i] = r.(string)
@@ -1047,6 +1323,7 @@ func notificationRuleSchema() map[string]*pluginsdk.Schema {
 				Schema: notificationSettingsSchema(),
 			},
 		},
+
 		"approver_notifications": {
 			Description: "Approver notification settings",
 			Type:        pluginsdk.TypeList,
@@ -1057,6 +1334,7 @@ func notificationRuleSchema() map[string]*pluginsdk.Schema {
 				Schema: notificationSettingsSchema(),
 			},
 		},
+
 		"assignee_notifications": {
 			Description: "Assignee notification settings",
 			Type:        pluginsdk.TypeList,
@@ -1078,11 +1356,13 @@ func notificationSettingsSchema() map[string]*pluginsdk.Schema {
 			Required:     true,
 			ValidateFunc: validation.StringInSlice([]string{"All", "Critical"}, false),
 		},
+
 		"default_recipients": {
 			Description: "Whether the default recipients are notified",
 			Type:        pluginsdk.TypeBool,
 			Required:    true,
 		},
+
 		"additional_recipients": {
 			Description: "The additional recipients to notify",
 			Type:        pluginsdk.TypeSet,
