@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/virtualnetworkgatewayconnections"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 type VirtualNetworkGatewayConnectionDataSource struct{}
@@ -24,7 +24,7 @@ func TestAccDataSourceVirtualNetworkGatewayConnection_sitetosite(t *testing.T) {
 			Config: r.sitetosite(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("shared_key").HasValue(sharedKey),
-				check.That(data.ResourceName).Key("type").HasValue(string(network.VirtualNetworkGatewayConnectionTypeIPsec)),
+				check.That(data.ResourceName).Key("type").HasValue(string(virtualnetworkgatewayconnections.VirtualNetworkGatewayConnectionTypeIPsec)),
 			),
 		},
 	})
@@ -43,8 +43,8 @@ func TestAccDataSourceVirtualNetworkGatewayConnection_vnettovnet(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				acceptance.TestCheckResourceAttr(data1.ResourceName, "shared_key", sharedKey),
 				acceptance.TestCheckResourceAttr(data2.ResourceName, "shared_key", sharedKey),
-				acceptance.TestCheckResourceAttr(data1.ResourceName, "type", string(network.VirtualNetworkGatewayConnectionTypeVnet2Vnet)),
-				acceptance.TestCheckResourceAttr(data2.ResourceName, "type", string(network.VirtualNetworkGatewayConnectionTypeVnet2Vnet)),
+				acceptance.TestCheckResourceAttr(data1.ResourceName, "type", string(virtualnetworkgatewayconnections.VirtualNetworkGatewayConnectionTypeVnetTwoVnet)),
+				acceptance.TestCheckResourceAttr(data2.ResourceName, "type", string(virtualnetworkgatewayconnections.VirtualNetworkGatewayConnectionTypeVnetTwoVnet)),
 			),
 		},
 	})
@@ -60,14 +60,14 @@ func TestAccDataSourceVirtualNetworkGatewayConnection_ipsecpolicy(t *testing.T) 
 			Config: r.ipsecpolicy(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("shared_key").HasValue(sharedKey),
-				check.That(data.ResourceName).Key("type").HasValue(string(network.VirtualNetworkGatewayConnectionTypeIPsec)),
+				check.That(data.ResourceName).Key("type").HasValue(string(virtualnetworkgatewayconnections.VirtualNetworkGatewayConnectionTypeIPsec)),
 				check.That(data.ResourceName).Key("routing_weight").HasValue("20"),
-				check.That(data.ResourceName).Key("ipsec_policy.0.dh_group").HasValue(string(network.DhGroupDHGroup14)),
-				check.That(data.ResourceName).Key("ipsec_policy.0.ike_encryption").HasValue(string(network.IkeEncryptionAES256)),
-				check.That(data.ResourceName).Key("ipsec_policy.0.ike_integrity").HasValue(string(network.IkeIntegritySHA256)),
-				check.That(data.ResourceName).Key("ipsec_policy.0.ipsec_encryption").HasValue(string(network.IpsecEncryptionAES256)),
-				check.That(data.ResourceName).Key("ipsec_policy.0.ipsec_integrity").HasValue(string(network.IpsecIntegritySHA256)),
-				check.That(data.ResourceName).Key("ipsec_policy.0.pfs_group").HasValue(string(network.PfsGroupPFS2048)),
+				check.That(data.ResourceName).Key("ipsec_policy.0.dh_group").HasValue(string(virtualnetworkgatewayconnections.DhGroupDHGroupOneFour)),
+				check.That(data.ResourceName).Key("ipsec_policy.0.ike_encryption").HasValue(string(virtualnetworkgatewayconnections.IkeEncryptionAESTwoFiveSix)),
+				check.That(data.ResourceName).Key("ipsec_policy.0.ike_integrity").HasValue(string(virtualnetworkgatewayconnections.IkeIntegritySHATwoFiveSix)),
+				check.That(data.ResourceName).Key("ipsec_policy.0.ipsec_encryption").HasValue(string(virtualnetworkgatewayconnections.IPsecEncryptionAESTwoFiveSix)),
+				check.That(data.ResourceName).Key("ipsec_policy.0.ipsec_integrity").HasValue(string(virtualnetworkgatewayconnections.IPsecIntegritySHATwoFiveSix)),
+				check.That(data.ResourceName).Key("ipsec_policy.0.pfs_group").HasValue(string(virtualnetworkgatewayconnections.PfsGroupPFSTwoZeroFourEight)),
 				check.That(data.ResourceName).Key("ipsec_policy.0.sa_datasize").HasValue("102400000"),
 				check.That(data.ResourceName).Key("ipsec_policy.0.sa_lifetime").HasValue("27000"),
 			),
@@ -96,7 +96,7 @@ resource "azurerm_virtual_network" "test" {
 resource "azurerm_subnet" "test" {
   name                 = "GatewaySubnet"
   resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
+  virtual_network_name = azurerm_virtual_virtualnetworkgatewayconnections.test.name
   address_prefixes     = ["10.0.1.0/24"]
 }
 
@@ -177,7 +177,7 @@ resource "azurerm_virtual_network" "test_1" {
 resource "azurerm_subnet" "test_1" {
   name                 = "GatewaySubnet"
   resource_group_name  = azurerm_resource_group.test_1.name
-  virtual_network_name = azurerm_virtual_network.test_1.name
+  virtual_network_name = azurerm_virtual_virtualnetworkgatewayconnections.test_1.name
   address_prefixes     = ["10.0.1.0/24"]
 }
 
@@ -232,7 +232,7 @@ resource "azurerm_virtual_network" "test_2" {
 resource "azurerm_subnet" "test_2" {
   name                 = "GatewaySubnet"
   resource_group_name  = azurerm_resource_group.test_2.name
-  virtual_network_name = azurerm_virtual_network.test_2.name
+  virtual_network_name = azurerm_virtual_virtualnetworkgatewayconnections.test_2.name
   address_prefixes     = ["10.1.1.0/24"]
 }
 
@@ -305,7 +305,7 @@ resource "azurerm_virtual_network" "test" {
 resource "azurerm_subnet" "test" {
   name                 = "GatewaySubnet"
   resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
+  virtual_network_name = azurerm_virtual_virtualnetworkgatewayconnections.test.name
   address_prefixes     = ["10.0.1.0/24"]
 }
 
