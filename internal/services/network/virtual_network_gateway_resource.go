@@ -809,7 +809,6 @@ func getVirtualNetworkGatewayProperties(id virtualnetworkgateways.VirtualNetwork
 		EnableBgp:                       pointer.To(d.Get("enable_bgp").(bool)),
 		EnablePrivateIPAddress:          pointer.To(d.Get("private_ip_address_enabled").(bool)),
 		ActiveActive:                    pointer.To(d.Get("active_active").(bool)),
-		VpnGatewayGeneration:            pointer.To(virtualnetworkgateways.VpnGatewayGeneration(d.Get("generation").(string))),
 		EnableBgpRouteTranslationForNat: pointer.To(d.Get("bgp_route_translation_for_nat_enabled").(bool)),
 		DisableIPSecReplayProtection:    pointer.To(!d.Get("ip_sec_replay_protection_enabled").(bool)),
 		AllowRemoteVnetTraffic:          pointer.To(d.Get("remote_vnet_traffic_enabled").(bool)),
@@ -817,6 +816,10 @@ func getVirtualNetworkGatewayProperties(id virtualnetworkgateways.VirtualNetwork
 		Sku:                             expandVirtualNetworkGatewaySku(d),
 		IPConfigurations:                expandVirtualNetworkGatewayIPConfigurations(d),
 		CustomRoutes:                    expandVirtualNetworkGatewayAddressSpace(d.Get("custom_route").([]interface{})),
+	}
+
+	if v, ok := d.GetOk("generation"); ok {
+		props.VpnGatewayGeneration = pointer.To(virtualnetworkgateways.VpnGatewayGeneration(v.(string)))
 	}
 
 	if v, ok := d.GetOk("dns_forwarding_enabled"); ok {
