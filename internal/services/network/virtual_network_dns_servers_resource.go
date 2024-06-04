@@ -105,7 +105,7 @@ func resourceVirtualNetworkDnsServersCreateUpdate(d *pluginsdk.ResourceData, met
 	vnetStateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{string(network.ProvisioningStateUpdating)},
 		Target:     []string{string(network.ProvisioningStateSucceeded)},
-		Refresh:    VirtualNetworkProvisioningStateRefreshFunc(ctx, client, *vnetId),
+		Refresh:    VirtualNetworkProvisioningStateRefreshFunc(ctx, meta.(*clients.Client).Network.VirtualNetworks, *vnetId),
 		MinTimeout: 1 * time.Minute,
 		Timeout:    time.Until(timeout),
 	}

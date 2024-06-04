@@ -57,7 +57,7 @@ func resourceSubnetNetworkSecurityGroupAssociation() *pluginsdk.Resource {
 
 func resourceSubnetNetworkSecurityGroupAssociationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.Client.Subnets
-	vnetClient := meta.(*clients.Client).Network.VnetClient
+	vnetClient := meta.(*clients.Client).Network.VirtualNetworks
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

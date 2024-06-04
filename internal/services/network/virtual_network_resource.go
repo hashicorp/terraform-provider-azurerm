@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/ddosprotectionplans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/virtualnetworks"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -270,7 +271,7 @@ func resourceVirtualNetworkCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{string(network.ProvisioningStateUpdating)},
 		Target:     []string{string(network.ProvisioningStateSucceeded)},
-		Refresh:    VirtualNetworkProvisioningStateRefreshFunc(ctx, client, id),
+		Refresh:    VirtualNetworkProvisioningStateRefreshFunc(ctx, meta.(*clients.Client).Network.VirtualNetworks, id),
 		MinTimeout: 1 * time.Minute,
 		Timeout:    time.Until(timeout),
 	}
@@ -619,13 +620,16 @@ func expandAzureRmVirtualNetworkVirtualNetworkSecurityGroupNames(d *pluginsdk.Re
 	return nsgNames, nil
 }
 
-func VirtualNetworkProvisioningStateRefreshFunc(ctx context.Context, client *network.VirtualNetworksClient, id commonids.VirtualNetworkId) pluginsdk.StateRefreshFunc {
+func VirtualNetworkProvisioningStateRefreshFunc(ctx context.Context, client *virtualnetworks.VirtualNetworksClient, id commonids.VirtualNetworkId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, id.ResourceGroupName, id.VirtualNetworkName, "")
+		res, err := client.Get(ctx, id, virtualnetworks.DefaultGetOperationOptions())
 		if err != nil {
-			return nil, "", fmt.Errorf("polling for %s: %+v", id.String(), err)
+			return nil, "", fmt.Errorf("retrieving %s: %+v", id, err)
 		}
 
-		return res, string(res.ProvisioningState), nil
+		if res.Model != nil && res.Model.Properties != nil {
+			return res, string(pointer.From(res.Model.Properties.ProvisioningState)), nil
+		}
+		return res, "", fmt.Errorf("polling for %s: %+v", id, err)
 	}
 }

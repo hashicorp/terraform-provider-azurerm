@@ -282,7 +282,7 @@ func resourceSubnet() *pluginsdk.Resource {
 // TODO: refactor the create/flatten functions
 func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.Client.Subnets
-	vnetClient := meta.(*clients.Client).Network.VnetClient
+	vnetClient := meta.(*clients.Client).Network.VirtualNetworks
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -447,7 +447,7 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 
 func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.Client.Subnets
-	vnetClient := meta.(*clients.Client).Network.VnetClient
+	vnetClient := meta.(*clients.Client).Network.VirtualNetworks
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
