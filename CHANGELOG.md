@@ -8,6 +8,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_storage_sync_server_endpoint` - improve pooling to work around api inconsistencies [GH-26204]
 * `azurerm_vpn_site` -  split create and update function to fix lifecycle - ignore changes [GH-26163]
 
 ## 3.106.1 (May 31, 2024)
