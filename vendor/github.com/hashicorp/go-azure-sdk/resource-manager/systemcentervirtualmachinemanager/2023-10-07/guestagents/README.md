@@ -1,7 +1,7 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/vminstanceguestagents` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/guestagents` Documentation
 
-The `vminstanceguestagents` SDK allows for interaction with the Azure Resource Manager Service `systemcentervirtualmachinemanager` (API Version `2023-10-07`).
+The `guestagents` SDK allows for interaction with the Azure Resource Manager Service `systemcentervirtualmachinemanager` (API Version `2023-10-07`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -9,25 +9,25 @@ This readme covers example usages, but further information on [using this SDK ca
 
 ```go
 import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-import "github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/vminstanceguestagents"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/guestagents"
 ```
 
 
 ### Client Initialization
 
 ```go
-client := vminstanceguestagents.NewVMInstanceGuestAgentsClientWithBaseURI("https://management.azure.com")
+client := guestagents.NewGuestAgentsClientWithBaseURI("https://management.azure.com")
 client.Client.Authorizer = authorizer
 ```
 
 
-### Example Usage: `VMInstanceGuestAgentsClient.Create`
+### Example Usage: `GuestAgentsClient.Create`
 
 ```go
 ctx := context.TODO()
 id := commonids.NewScopeID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
 
-payload := vminstanceguestagents.GuestAgent{
+payload := guestagents.GuestAgent{
 	// ...
 }
 
@@ -38,7 +38,7 @@ if err := client.CreateThenPoll(ctx, id, payload); err != nil {
 ```
 
 
-### Example Usage: `VMInstanceGuestAgentsClient.Delete`
+### Example Usage: `GuestAgentsClient.Delete`
 
 ```go
 ctx := context.TODO()
@@ -54,7 +54,7 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `VMInstanceGuestAgentsClient.Get`
+### Example Usage: `GuestAgentsClient.Get`
 
 ```go
 ctx := context.TODO()
@@ -70,14 +70,14 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `VMInstanceGuestAgentsClient.List`
+### Example Usage: `GuestAgentsClient.ListByVirtualMachineInstance`
 
 ```go
 ctx := context.TODO()
 id := commonids.NewScopeID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
 
-// alternatively `client.List(ctx, id)` can be used to do batched pagination
-items, err := client.ListComplete(ctx, id)
+// alternatively `client.ListByVirtualMachineInstance(ctx, id)` can be used to do batched pagination
+items, err := client.ListByVirtualMachineInstanceComplete(ctx, id)
 if err != nil {
 	// handle the error
 }

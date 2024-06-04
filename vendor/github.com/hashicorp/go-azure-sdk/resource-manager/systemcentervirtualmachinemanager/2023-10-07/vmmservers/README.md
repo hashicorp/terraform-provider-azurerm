@@ -27,7 +27,7 @@ client.Client.Authorizer = authorizer
 ctx := context.TODO()
 id := vmmservers.NewVMmServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vmmServerValue")
 
-payload := vmmservers.VMMServer{
+payload := vmmservers.VMmServer{
 	// ...
 }
 
@@ -106,7 +106,7 @@ for _, item := range items {
 ctx := context.TODO()
 id := vmmservers.NewVMmServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vmmServerValue")
 
-payload := vmmservers.ResourcePatch{
+payload := vmmservers.VMmServerTagsUpdate{
 	// ...
 }
 

@@ -1,4 +1,4 @@
-package vminstanceguestagents
+package guestagents
 
 import "fmt"
 
@@ -8,5 +8,5 @@ import "fmt"
 const defaultApiVersion = "2023-10-07"
 
 func userAgent() string {
-	return fmt.Sprintf("hashicorp/go-azure-sdk/vminstanceguestagents/%s", defaultApiVersion)
+	return fmt.Sprintf("hashicorp/go-azure-sdk/guestagents/%s", defaultApiVersion)
 }

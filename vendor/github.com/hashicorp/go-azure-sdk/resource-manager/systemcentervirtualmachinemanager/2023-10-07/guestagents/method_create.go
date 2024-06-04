@@ -1,4 +1,4 @@
-package vminstanceguestagents
+package guestagents
 
 import (
 	"context"
@@ -23,7 +23,7 @@ type CreateOperationResponse struct {
 }
 
 // Create ...
-func (c VMInstanceGuestAgentsClient) Create(ctx context.Context, id commonids.ScopeId, input GuestAgent) (result CreateOperationResponse, err error) {
+func (c GuestAgentsClient) Create(ctx context.Context, id commonids.ScopeId, input GuestAgent) (result CreateOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -62,7 +62,7 @@ func (c VMInstanceGuestAgentsClient) Create(ctx context.Context, id commonids.Sc
 }
 
 // CreateThenPoll performs Create then polls until it's completed
-func (c VMInstanceGuestAgentsClient) CreateThenPoll(ctx context.Context, id commonids.ScopeId, input GuestAgent) error {
+func (c GuestAgentsClient) CreateThenPoll(ctx context.Context, id commonids.ScopeId, input GuestAgent) error {
 	result, err := c.Create(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Create: %+v", err)

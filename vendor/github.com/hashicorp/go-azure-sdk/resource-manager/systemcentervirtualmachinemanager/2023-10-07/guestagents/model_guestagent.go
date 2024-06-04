@@ -1,4 +1,4 @@
-package vminstanceguestagents
+package guestagents
 
 import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/systemdata"
@@ -10,7 +10,7 @@ import (
 type GuestAgent struct {
 	Id         *string                `json:"id,omitempty"`
 	Name       *string                `json:"name,omitempty"`
-	Properties GuestAgentProperties   `json:"properties"`
+	Properties *GuestAgentProperties  `json:"properties,omitempty"`
 	SystemData *systemdata.SystemData `json:"systemData,omitempty"`
 	Type       *string                `json:"type,omitempty"`
 }

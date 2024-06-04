@@ -1,4 +1,4 @@
-package vminstancehybrididentitymetadata
+package vminstancehybrididentitymetadatas
 
 import (
 	"context"
@@ -13,19 +13,19 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type VirtualMachineInstanceHybridIdentityMetadataListOperationResponse struct {
+type ListByVirtualMachineInstanceOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
 	Model        *[]VMInstanceHybridIdentityMetadata
 }
 
-type VirtualMachineInstanceHybridIdentityMetadataListCompleteResult struct {
+type ListByVirtualMachineInstanceCompleteResult struct {
 	LatestHttpResponse *http.Response
 	Items              []VMInstanceHybridIdentityMetadata
 }
 
-// VirtualMachineInstanceHybridIdentityMetadataList ...
-func (c VMInstanceHybridIdentityMetadataClient) VirtualMachineInstanceHybridIdentityMetadataList(ctx context.Context, id commonids.ScopeId) (result VirtualMachineInstanceHybridIdentityMetadataListOperationResponse, err error) {
+// ListByVirtualMachineInstance ...
+func (c VMInstanceHybridIdentityMetadatasClient) ListByVirtualMachineInstance(ctx context.Context, id commonids.ScopeId) (result ListByVirtualMachineInstanceOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -62,16 +62,16 @@ func (c VMInstanceHybridIdentityMetadataClient) VirtualMachineInstanceHybridIden
 	return
 }
 
-// VirtualMachineInstanceHybridIdentityMetadataListComplete retrieves all the results into a single object
-func (c VMInstanceHybridIdentityMetadataClient) VirtualMachineInstanceHybridIdentityMetadataListComplete(ctx context.Context, id commonids.ScopeId) (VirtualMachineInstanceHybridIdentityMetadataListCompleteResult, error) {
-	return c.VirtualMachineInstanceHybridIdentityMetadataListCompleteMatchingPredicate(ctx, id, VMInstanceHybridIdentityMetadataOperationPredicate{})
+// ListByVirtualMachineInstanceComplete retrieves all the results into a single object
+func (c VMInstanceHybridIdentityMetadatasClient) ListByVirtualMachineInstanceComplete(ctx context.Context, id commonids.ScopeId) (ListByVirtualMachineInstanceCompleteResult, error) {
+	return c.ListByVirtualMachineInstanceCompleteMatchingPredicate(ctx, id, VMInstanceHybridIdentityMetadataOperationPredicate{})
 }
 
-// VirtualMachineInstanceHybridIdentityMetadataListCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c VMInstanceHybridIdentityMetadataClient) VirtualMachineInstanceHybridIdentityMetadataListCompleteMatchingPredicate(ctx context.Context, id commonids.ScopeId, predicate VMInstanceHybridIdentityMetadataOperationPredicate) (result VirtualMachineInstanceHybridIdentityMetadataListCompleteResult, err error) {
+// ListByVirtualMachineInstanceCompleteMatchingPredicate retrieves all the results and then applies the predicate
+func (c VMInstanceHybridIdentityMetadatasClient) ListByVirtualMachineInstanceCompleteMatchingPredicate(ctx context.Context, id commonids.ScopeId, predicate VMInstanceHybridIdentityMetadataOperationPredicate) (result ListByVirtualMachineInstanceCompleteResult, err error) {
 	items := make([]VMInstanceHybridIdentityMetadata, 0)
 
-	resp, err := c.VirtualMachineInstanceHybridIdentityMetadataList(ctx, id)
+	resp, err := c.ListByVirtualMachineInstance(ctx, id)
 	if err != nil {
 		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
@@ -85,7 +85,7 @@ func (c VMInstanceHybridIdentityMetadataClient) VirtualMachineInstanceHybridIden
 		}
 	}
 
-	result = VirtualMachineInstanceHybridIdentityMetadataListCompleteResult{
+	result = ListByVirtualMachineInstanceCompleteResult{
 		LatestHttpResponse: resp.HttpResponse,
 		Items:              items,
 	}

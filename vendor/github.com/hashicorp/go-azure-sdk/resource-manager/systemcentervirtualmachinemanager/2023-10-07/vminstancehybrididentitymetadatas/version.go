@@ -1,4 +1,4 @@
-package vminstancehybrididentitymetadata
+package vminstancehybrididentitymetadatas
 
 import "fmt"
 
@@ -8,5 +8,5 @@ import "fmt"
 const defaultApiVersion = "2023-10-07"
 
 func userAgent() string {
-	return fmt.Sprintf("hashicorp/go-azure-sdk/vminstancehybrididentitymetadata/%s", defaultApiVersion)
+	return fmt.Sprintf("hashicorp/go-azure-sdk/vminstancehybrididentitymetadatas/%s", defaultApiVersion)
 }

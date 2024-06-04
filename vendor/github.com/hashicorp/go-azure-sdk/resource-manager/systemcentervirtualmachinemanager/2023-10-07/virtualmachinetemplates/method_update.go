@@ -22,7 +22,7 @@ type UpdateOperationResponse struct {
 }
 
 // Update ...
-func (c VirtualMachineTemplatesClient) Update(ctx context.Context, id VirtualMachineTemplateId, input ResourcePatch) (result UpdateOperationResponse, err error) {
+func (c VirtualMachineTemplatesClient) Update(ctx context.Context, id VirtualMachineTemplateId, input VirtualMachineTemplateTagsUpdate) (result UpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -61,7 +61,7 @@ func (c VirtualMachineTemplatesClient) Update(ctx context.Context, id VirtualMac
 }
 
 // UpdateThenPoll performs Update then polls until it's completed
-func (c VirtualMachineTemplatesClient) UpdateThenPoll(ctx context.Context, id VirtualMachineTemplateId, input ResourcePatch) error {
+func (c VirtualMachineTemplatesClient) UpdateThenPoll(ctx context.Context, id VirtualMachineTemplateId, input VirtualMachineTemplateTagsUpdate) error {
 	result, err := c.Update(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Update: %+v", err)
