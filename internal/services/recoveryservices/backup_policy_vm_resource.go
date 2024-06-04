@@ -149,6 +149,7 @@ func resourceBackupProtectionPolicyVMCreateUpdate(d *pluginsdk.ResourceData, met
 		TimeZone:         utils.String(d.Get("timezone").(string)),
 		PolicyType:       pointer.To(policyType),
 		SchedulePolicy:   schedulePolicy,
+		TieringPolicy:    expandBackupProtectionPolicyVMTieringPolicy(d.Get("tiering_policy").([]interface{})),
 		InstantRPDetails: expandBackupProtectionPolicyVMResourceGroup(d),
 		RetentionPolicy: &protectionpolicies.LongTermRetentionPolicy{ // SimpleRetentionPolicy only has duration property ¯\_(ツ)_/¯
 			DailySchedule:   expandBackupProtectionPolicyVMRetentionDaily(d, times),
@@ -214,6 +215,7 @@ func resourceBackupProtectionPolicyVMRead(d *pluginsdk.ResourceData, meta interf
 		if properties, ok := model.Properties.(protectionpolicies.AzureIaaSVMProtectionPolicy); ok {
 			d.Set("timezone", properties.TimeZone)
 			d.Set("instant_restore_retention_days", properties.InstantRpRetentionRangeInDays)
+			d.Set("tiering_policy", flattenBackupProtectionPolicyVMTieringPolicy(properties.TieringPolicy))
 
 			if schedule, ok := properties.SchedulePolicy.(protectionpolicies.SimpleSchedulePolicy); ok {
 				if err := d.Set("backup", flattenBackupProtectionPolicyVMSchedule(schedule)); err != nil {
@@ -564,6 +566,35 @@ func expandBackupProtectionPolicyVMRetentionDailyFormat(block map[string]interfa
 	return &daily
 }
 
+func expandBackupProtectionPolicyVMTieringPolicy(input []interface{}) *map[string]protectionpolicies.TieringPolicy {
+	result := make(map[string]protectionpolicies.TieringPolicy)
+	if len(input) == 0 {
+		return &result
+	}
+
+	tieringPolicy := input[0].(map[string]interface{})
+	archivedRP := tieringPolicy["archived_rp"].([]interface{})
+	result["ArchivedRP"] = expandBackupProtectionPolicyVMArchivedRP(archivedRP)
+
+	return &result
+}
+
+func expandBackupProtectionPolicyVMArchivedRP(input []interface{}) protectionpolicies.TieringPolicy {
+	if len(input) == 0 || input[0] == nil {
+		return protectionpolicies.TieringPolicy{}
+	}
+
+	archivedRP := input[0].(map[string]interface{})
+
+	result := protectionpolicies.TieringPolicy{
+		Duration:     pointer.To(int64(archivedRP["duration"].(int))),
+		DurationType: pointer.To(protectionpolicies.RetentionDurationType(archivedRP["duration_type"].(string))),
+		TieringMode:  pointer.To(protectionpolicies.TieringMode(archivedRP["tiering_mode"].(string))),
+	}
+
+	return result
+}
+
 func flattenBackupProtectionPolicyVMResourceGroup(rpDetail protectionpolicies.InstantRPAdditionalDetails) []interface{} {
 	if rpDetail.AzureBackupRGNamePrefix == nil {
 		return nil
@@ -769,6 +800,35 @@ func flattenBackupProtectionPolicyVMRetentionDailyFormat(retention *protectionpo
 	return days, includeLastDay
 }
 
+func flattenBackupProtectionPolicyVMTieringPolicy(input *map[string]protectionpolicies.TieringPolicy) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for k, v := range *input {
+		if k == "ArchivedRP" {
+			results = append(results, map[string]interface{}{
+				"archived_rp": flattenBackupProtectionPolicyVMArchivedRP(v),
+			})
+		}
+	}
+
+	return results
+}
+
+func flattenBackupProtectionPolicyVMArchivedRP(input protectionpolicies.TieringPolicy) []interface{} {
+	results := make([]interface{}, 0)
+
+	results = append(results, map[string]interface{}{
+		"duration":      int(pointer.From(input.Duration)),
+		"duration_type": string(pointer.From(input.DurationType)),
+		"tiering_mode":  string(pointer.From(input.TieringMode)),
+	})
+
+	return results
+}
+
 func resourceBackupProtectionPolicyVMWaitForUpdate(ctx context.Context, client *protectionpolicies.ProtectionPoliciesClient, id protectionpolicies.BackupPolicyId, d *pluginsdk.ResourceData) error {
 	state := &pluginsdk.StateChangeConf{
 		MinTimeout: 30 * time.Second,
@@ -870,6 +930,7 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 									Type:         pluginsdk.TypeInt,
 									Optional:     true,
 									ValidateFunc: validation.IntBetween(3, 1182),
+									AtLeastOneOf: []string{"tiering_policy.0.archived_rp.0.duration", "tiering_policy.0.archived_rp.0.duration_type", "tiering_policy.0.archived_rp.0.tiering_mode"},
 								},
 
 								"duration_type": {
@@ -881,6 +942,7 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 										string(protectionpolicies.RetentionDurationTypeMonths),
 										string(protectionpolicies.RetentionDurationTypeYears),
 									}, false),
+									AtLeastOneOf: []string{"tiering_policy.0.archived_rp.0.duration", "tiering_policy.0.archived_rp.0.duration_type", "tiering_policy.0.archived_rp.0.tiering_mode"},
 								},
 
 								"tiering_mode": {
@@ -890,6 +952,7 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 										string(protectionpolicies.TieringModeTierAfter),
 										string(protectionpolicies.TieringModeTierRecommended),
 									}, false),
+									AtLeastOneOf: []string{"tiering_policy.0.archived_rp.0.duration", "tiering_policy.0.archived_rp.0.duration_type", "tiering_policy.0.archived_rp.0.tiering_mode"},
 								},
 							},
 						},

@@ -91,6 +91,8 @@ The following arguments are supported:
 
 * `retention_yearly` - (Optional) Configures the policy yearly retention as documented in the `retention_yearly` block below.
 
+* `tiering_policy` - (Optional) A `tiering_policy` block as defined below.
+
 ---
 
 The `backup` block supports:
@@ -165,6 +167,14 @@ The `retention_yearly` block supports:
 -> **NOTE:**: Either `weekdays` and `weeks` or `days` and `include_last_days` must be specified.
 
 ---
+
+An `tiering_policy` block supports the following:
+
+* `duration` - (Optional) The number of days/weeks/months/years to retain backups in current tier before tiering. Possible values is between `3` and `1182`.
+
+* `duration_type` - (Optional) The retention duration type. Possible values are `Days`, `Weeks`, `Months` and `Years`.
+
+* `tiering_mode` - (Optional) The tiering mode to control automatic tiering of recovery points. Possible values are `TierAfter` and `TierRecommended`.
 
 ## Attributes Reference
 
