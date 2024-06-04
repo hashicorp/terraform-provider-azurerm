@@ -702,10 +702,8 @@ func buildPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePolicy *rolemanage
 				return nil, fmt.Errorf("role definition id must be in the same subscription as the scope")
 			}
 		}
-	} else {
-		if roleId.Scope != "" {
-			return nil, fmt.Errorf("role definition must be scoped to a management group")
-		}
+	} else if roleId.Scope != "" {
+		return nil, fmt.Errorf("role definition must be scoped to a management group")
 	}
 
 	// Take the slice of rules and convert it to a map with the ID as the key
