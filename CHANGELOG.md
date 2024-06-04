@@ -11,6 +11,7 @@ ENHANCEMENTS:
 * `machinelearning`: update API version to `2024-04-01` [GH-26168]
 * `azurerm_container_app_job`: support new properties `key_vault_secret_id` and `identity` in `secret` block [GH-25969]
 * `azurerm_notification_hub_authorization_rule` - add support for `primary_connection_string` and `secondary_connection_string` properties [GH-26188]
+* `azurerm_subnet` - support for the `default_outbound_access_enabled` property [GH-25259]
 
 BUG FIXES:
 
