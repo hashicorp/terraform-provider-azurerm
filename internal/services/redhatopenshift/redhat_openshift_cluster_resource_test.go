@@ -628,6 +628,18 @@ resource "azurerm_subnet_network_security_group_association" "test_worker" {
   network_security_group_id = azurerm_network_security_group.test.id
 }
 
+resource "azurerm_role_assignment" "role_network3" {
+  scope                = azurerm_network_security_group.test.id
+  role_definition_name = "Network Contributor"
+  principal_id         = azuread_service_principal.test.object_id
+}
+
+resource "azurerm_role_assignment" "role_network4" {
+  scope                = azurerm_network_security_group.test.id
+  role_definition_name = "Network Contributor"
+  principal_id         = data.azuread_service_principal.redhatopenshift.object_id
+}
+
 resource "azurerm_redhat_openshift_cluster" "test" {
   name                = "acctestaro%[2]d"
   location            = azurerm_resource_group.test.location
@@ -672,6 +684,8 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   depends_on = [
     "azurerm_role_assignment.role_network1",
     "azurerm_role_assignment.role_network2",
+    "azurerm_role_assignment.role_network3",
+    "azurerm_role_assignment.role_network4",
   ]
 }
   `, r.template(data), data.RandomInteger, data.RandomString)
