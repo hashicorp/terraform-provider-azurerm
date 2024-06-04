@@ -1,5 +1,9 @@
 ## 3.107.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_data_protection_backup_policy_postgresql_flexible_server` [GH-26024]
+
 ENHANCEMENTS:
 
 * dependencies: updating to `v0.20240603.1145333` of `github.com/hashicorp/go-azure-sdk` [GH-26197]
