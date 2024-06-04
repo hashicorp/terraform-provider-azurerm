@@ -63,7 +63,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "example" {
 
 * `automatic_instance_repair` - (Optional) An `automatic_instance_repair` block as defined below.
 
--> **NOTE:** To enable the `automatic_instance_repair`, the Virtual Machine Scale Set must have an [Application Health Extension](https://docs.microsoft.com/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-health-extension).
+-> **NOTE:** To enable the `automatic_instance_repair`, the Orchestrated Virtual Machine Scale Set must have a valid [Application Health Extension](https://docs.microsoft.com/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-health-extension).
 
 * `boot_diagnostics` - (Optional) A `boot_diagnostics` block as defined below.
 
@@ -259,7 +259,9 @@ An `automatic_instance_repair` block supports the following:
 
 * `enabled` - (Required) Should the automatic instance repair be enabled on this Virtual Machine Scale Set? Possible values are `true` and `false`.
 
-* `grace_period` - (Optional) Amount of time for which automatic repairs will be delayed. The grace period starts right after the VM is found unhealthy. Possible values are between `30` and `90` minutes. The time duration should be specified in `ISO 8601` format (e.g. `PT30M` to `PT90M`). Defaults to `PT30M`.
+* `grace_period` - (Optional) Amount of time for which automatic repairs will be delayed. The grace period starts right after the VM is found unhealthy. Possible values are between `10` and `90` minutes. Defaults to `PT30M`. The time duration should be specified in `ISO 8601` format (e.g. `PT10M` to `PT90M`).
+
+* `action` - (Optional) The repair action that will be used for repairing unhealthy virtual machines in the scale set. Possible values include `Replace`, `Restart`, `Reimage`. Defaults to `Replace`.
 
 ---
 
