@@ -21,7 +21,7 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_postgresql_flexible_server" "example" {
-  name                   = "example-fs"
+  name                   = "example-postgresqlfs"
   resource_group_name    = azurerm_resource_group.example.name
   location               = azurerm_resource_group.example.location
   administrator_login    = "adminTerraform"
@@ -33,30 +33,24 @@ resource "azurerm_postgresql_flexible_server" "example" {
 }
 
 resource "azurerm_data_protection_backup_vault" "example" {
-  name                = "examplebv"
+  name                = "example-dpv"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
   datastore_type      = "VaultStore"
   redundancy          = "LocallyRedundant"
+  soft_delete         = "Off"
 
   identity {
     type = "SystemAssigned"
   }
 }
 
-resource "azurerm_role_assignment" "example" {
-  scope                = azurerm_postgresql_flexible_server.example.id
-  role_definition_name = "Reader"
-  principal_id         = azurerm_data_protection_backup_vault.example.identity.0.principal_id
-}
-
 resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "example" {
-  name                            = "example-backuppolicy"
-  resource_group_name             = azurerm_resource_group.example.name
-  vault_name                      = azurerm_data_protection_backup_vault.example.name
+  name                            = "example-bp"
+  vault_id                        = azurerm_data_protection_backup_vault.example.id
   backup_repeating_time_intervals = ["R/2021-05-23T02:30:00+00:00/P1W"]
-  data_store_type                 = "VaultStore"
-  
+  time_zone                       = "India Standard Time"
+
   default_retention_rule {
     life_cycle {
       duration        = "P4M"
@@ -78,7 +72,7 @@ resource "azurerm_data_protection_backup_instance_postgresql_flexible_server" "e
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Backup Instance PostgreSQL Flexible Server. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Backup Instance for the PostgreSQL Flexible Server. Changing this forces a new resource to be created.
 
 * `location` - (Required) The location of the source database. Changing this forces a new resource to be created.
 

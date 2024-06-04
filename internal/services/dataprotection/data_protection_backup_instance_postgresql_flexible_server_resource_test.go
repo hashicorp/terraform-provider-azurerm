@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backupinstances"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -100,12 +99,9 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Exists(ctx
 	}
 	resp, err := client.DataProtection.BackupInstanceClient.Get(ctx, *id)
 	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
-		}
-		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
+		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
-	return utils.Bool(true), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) template(data acceptance.TestData) string {
@@ -115,12 +111,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-dataprotection-%[1]d"
-  location = "%[2]s"
+  name     = "acctest-dataprotection-%d"
+  location = "%s"
 }
 
 resource "azurerm_postgresql_flexible_server" "test" {
-  name                   = "acctest-postgresqlfs-%[1]d"
+  name                   = "acctest-postgresqlfs-%d"
   resource_group_name    = azurerm_resource_group.test.name
   location               = azurerm_resource_group.test.location
   administrator_login    = "adminTerraform"
@@ -132,28 +128,24 @@ resource "azurerm_postgresql_flexible_server" "test" {
 }
 
 resource "azurerm_data_protection_backup_vault" "test" {
-  name                = "acctest-dataprotection-vault-%[1]d"
+  name                = "acctest-dataprotection-vault-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   datastore_type      = "VaultStore"
   redundancy          = "LocallyRedundant"
+  soft_delete         = "Off"
 
   identity {
     type = "SystemAssigned"
   }
 }
 
-resource "azurerm_role_assignment" "test" {
-  scope                = azurerm_postgresql_flexible_server.test.id
-  role_definition_name = "Reader"
-  principal_id         = azurerm_data_protection_backup_vault.test.identity.0.principal_id
-}
-
 resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "test" {
-  name                            = "acctest-dp-%[1]d"
+  name                            = "acctest-dp-%d"
   vault_id                        = azurerm_data_protection_backup_vault.test.id
   backup_repeating_time_intervals = ["R/2021-05-23T02:30:00+00:00/P1W"]
-  
+  time_zone                       = "India Standard Time"
+
   default_retention_rule {
     life_cycle {
       duration        = "P4M"
@@ -161,20 +153,7 @@ resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "tes
     }
   }
 }
-
-resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "another" {
-  name                            = "acctest-dp-second-%[1]d"
-  vault_id                        = azurerm_data_protection_backup_vault.test.id
-  backup_repeating_time_intervals = ["R/2021-05-23T02:30:00+00:00/P1W"]
-  
-  default_retention_rule {
-    life_cycle {
-      duration        = "P3M"
-      data_store_type = "VaultStore"
-    }
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomStringOfLength(16))
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) basic(data acceptance.TestData) string {
