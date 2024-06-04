@@ -94,6 +94,8 @@ The `origin` block supports:
 
 * `https_port` - (Optional) The HTTPS port of the origin. Defaults to `443`. Changing this forces a new resource to be created.
 
+* `id` - (Computed) The Resource ID of the origin.
+
 ---
 
 The `geo_filter` block supports:

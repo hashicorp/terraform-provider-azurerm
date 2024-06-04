@@ -52,6 +52,8 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_cdn_endpoint":               resourceCdnEndpoint(),
 		"azurerm_cdn_endpoint_custom_domain": resourceArmCdnEndpointCustomDomain(),
 		"azurerm_cdn_profile":                resourceCdnProfile(),
+		"azurerm_cdn_origin_groups":          resourceCdnOriginGroups(),
+		"azurerm_cdn_default_origin_group":   resourceCdnDefaultOriginGroup(),
 
 		// FrontDoor
 		"azurerm_cdn_frontdoor_custom_domain":                        resourceCdnFrontDoorCustomDomain(),

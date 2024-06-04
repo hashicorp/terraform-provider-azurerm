@@ -81,10 +81,11 @@ func resourceCdnEndpoint() *pluginsdk.Resource {
 				Default:  true,
 			},
 
+			// NOTE: Need to update this as it is nolonger force new...
 			"origin": {
-				Type:     pluginsdk.TypeSet,
-				Required: true,
-				ForceNew: true,
+				Type:       pluginsdk.TypeSet,
+				Required:   true,
+				Deprecated: "",
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
@@ -111,6 +112,10 @@ func resourceCdnEndpoint() *pluginsdk.Resource {
 							Optional: true,
 							ForceNew: true,
 							Default:  443,
+						},
+						"id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
 						},
 					},
 				},
@@ -279,9 +284,15 @@ func resourceCdnEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		endpoint.EndpointProperties.ProbePath = utils.String(probePath)
 	}
 
+	// NOTE: You can only create more than one origin if the default
+	// origin group has been set...
 	origins := expandAzureRmCdnEndpointOrigins(d)
-	if len(origins) > 0 {
+	originCount := len(origins)
+
+	if originCount == 1 {
 		endpoint.EndpointProperties.Origins = &origins
+	} else if originCount > 1 {
+		return fmt.Errorf("%s creating more than one 'origin' is not allowed if the Default Origin Group has not been set", id)
 	}
 
 	profile, err := profilesClient.Get(ctx, id.ResourceGroup, id.ProfileName)
@@ -509,7 +520,7 @@ func resourceCdnEndpointRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			return fmt.Errorf("setting `geo_filter`: %+v", err)
 		}
 
-		origins := flattenAzureRMCdnEndpointOrigin(props.Origins)
+		origins := flattenAzureRMCdnEndpointOrigin(props.Origins, *id)
 		if err := d.Set("origin", origins); err != nil {
 			return fmt.Errorf("setting `origin`: %+v", err)
 		}
@@ -666,7 +677,7 @@ func expandAzureRmCdnEndpointOrigins(d *pluginsdk.ResourceData) []cdn.DeepCreate
 	return origins
 }
 
-func flattenAzureRMCdnEndpointOrigin(input *[]cdn.DeepCreatedOrigin) []interface{} {
+func flattenAzureRMCdnEndpointOrigin(input *[]cdn.DeepCreatedOrigin, endpointId parse.EndpointId) []interface{} {
 	results := make([]interface{}, 0)
 
 	if list := input; list != nil {
@@ -691,7 +702,10 @@ func flattenAzureRMCdnEndpointOrigin(input *[]cdn.DeepCreatedOrigin) []interface
 				}
 			}
 
+			id := parse.NewOriginID(endpointId.SubscriptionId, endpointId.ResourceGroup, endpointId.ProfileName, endpointId.Name, name)
+
 			results = append(results, map[string]interface{}{
+				"id":         id.ID(),
 				"name":       name,
 				"host_name":  hostName,
 				"http_port":  httpPort,
