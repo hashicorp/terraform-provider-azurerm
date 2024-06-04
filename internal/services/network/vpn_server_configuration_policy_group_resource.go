@@ -198,6 +198,9 @@ func resourceVPNServerConfigurationPolicyGroupUpdate(d *pluginsdk.ResourceData, 
 	defer locks.UnlockByID(vpnServerConfigurationId.ID())
 
 	existing, err := client.ConfigurationPolicyGroupsGet(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
 
 	if existing.Model == nil {
 		return fmt.Errorf("retrieving %s: `model` was nil", id)
