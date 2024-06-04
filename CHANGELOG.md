@@ -10,6 +10,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_api_management_named_value` - will now enforce setting the `secret` property when setting the `value_from_key_vault` property [GH-26150]
 * `azurerm_storage_sync_server_endpoint` - improve pooling to work around api inconsistencies [GH-26204]
 * `azurerm_vpn_site` -  split create and update function to fix lifecycle - ignore changes [GH-26163]
 
