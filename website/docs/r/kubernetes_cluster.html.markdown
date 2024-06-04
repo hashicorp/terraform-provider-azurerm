@@ -225,8 +225,6 @@ resource "azurerm_kubernetes_cluster" "example" {
 
 * `service_mesh_profile` - (Optional) A `service_mesh_profile` block as defined below.
 
--> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/AzureServiceMeshPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://learn.microsoft.com/en-us/azure/aks/istio-deploy-addon#register-the-azureservicemeshpreview-feature-flag) for more information.
-
 * `workload_autoscaler_profile` - (Optional) A `workload_autoscaler_profile` block defined below.
 
 * `workload_identity_enabled` - (Optional) Specifies whether Azure AD Workload Identity should be enabled for the Cluster. Defaults to `false`.
@@ -790,8 +788,6 @@ A `service_mesh_profile` block supports the following:
 * `internal_ingress_gateway_enabled` - (Optional) Is Istio Internal Ingress Gateway enabled?
 
 * `external_ingress_gateway_enabled` - (Optional) Is Istio External Ingress Gateway enabled?
-
--> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/AzureServiceMeshPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://learn.microsoft.com/en-us/azure/aks/istio-deploy-addon#register-the-azureservicemeshpreview-feature-flag) for more information.
 
 -> **NOTE:** Currently only one Internal Ingress Gateway and one External Ingress Gateway are allowed per cluster
 
