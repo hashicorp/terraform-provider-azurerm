@@ -517,6 +517,7 @@ func TestAccHDInsightKafkaCluster_restProxy(t *testing.T) {
 			"roles.0.zookeeper_node.0.vm_size",
 			"roles.0.kafka_management_node.0.password",
 			"roles.0.kafka_management_node.0.vm_size",
+			"roles.0.kafka_management_node.0.username",
 			"storage_account"),
 	})
 }
