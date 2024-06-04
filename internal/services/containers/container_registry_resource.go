@@ -218,6 +218,10 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	publicNetworkAccess := registries.PublicNetworkAccessEnabled
 	if !d.Get("public_network_access_enabled").(bool) {
+		if !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
+			return fmt.Errorf("`public_network_access_enabled` can only be disabled for a Premium Sku.")
+		}
+
 		publicNetworkAccess = registries.PublicNetworkAccessDisabled
 	}
 
@@ -336,6 +340,10 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 	if d.HasChange("public_network_access_enabled") {
 		publicNetworkAccess := registries.PublicNetworkAccessEnabled
 		if !d.Get("public_network_access_enabled").(bool) {
+			if !isPremiumSku {
+				return fmt.Errorf("`public_network_access_enabled` can only be disabled for a Premium Sku.")
+			}
+
 			publicNetworkAccess = registries.PublicNetworkAccessDisabled
 		}
 

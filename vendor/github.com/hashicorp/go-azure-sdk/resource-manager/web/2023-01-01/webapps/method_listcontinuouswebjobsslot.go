@@ -72,6 +72,7 @@ func (c WebAppsClient) ListContinuousWebJobsSlotCompleteMatchingPredicate(ctx co
 
 	resp, err := c.ListContinuousWebJobsSlot(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

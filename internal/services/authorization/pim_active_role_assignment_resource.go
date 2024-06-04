@@ -52,8 +52,8 @@ type PimActiveRoleAssignmentScheduleInfo struct {
 }
 
 type PimActiveRoleAssignmentScheduleInfoExpiration struct {
-	DurationDays  int    `tfschema:"duration_days"`
-	DurationHours int    `tfschema:"duration_hours"`
+	DurationDays  int64  `tfschema:"duration_days"`
+	DurationHours int64  `tfschema:"duration_hours"`
 	EndDateTime   string `tfschema:"end_date_time"`
 }
 
@@ -117,6 +117,7 @@ func (PimActiveRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schema 
 			Type:        pluginsdk.TypeList,
 			MaxItems:    1,
 			Optional:    true,
+			Computed:    true,
 			ForceNew:    true,
 			Description: "The schedule details for this role assignment",
 			Elem: &pluginsdk.Resource{
@@ -181,6 +182,7 @@ func (PimActiveRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schema 
 			Type:        pluginsdk.TypeList,
 			MaxItems:    1,
 			Optional:    true,
+			Computed:    true,
 			ForceNew:    true,
 			Description: "Ticket details relating to the assignment",
 			Elem: &pluginsdk.Resource{
@@ -236,11 +238,13 @@ func (r PimActiveRoleAssignmentResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			var scheduleInfo *roleassignmentschedulerequests.RoleAssignmentScheduleRequestPropertiesScheduleInfo
+			scheduleInfo := &roleassignmentschedulerequests.RoleAssignmentScheduleRequestPropertiesScheduleInfo{
+				Expiration: &roleassignmentschedulerequests.RoleAssignmentScheduleRequestPropertiesScheduleInfoExpiration{
+					Type: pointer.To(roleassignmentschedulerequests.TypeNoExpiration),
+				},
+			}
 
 			if len(config.ScheduleInfo) > 0 {
-				scheduleInfo = &roleassignmentschedulerequests.RoleAssignmentScheduleRequestPropertiesScheduleInfo{}
-
 				if config.ScheduleInfo[0].StartDateTime != "" {
 					scheduleInfo.StartDateTime = pointer.To(config.ScheduleInfo[0].StartDateTime)
 				}
@@ -433,7 +437,7 @@ func (r PimActiveRoleAssignmentResource) Read() sdk.ResourceFunc {
 							reHours := regexp.MustCompile(`PT(\d+)H`)
 							matches := reHours.FindStringSubmatch(durationRaw)
 							if len(matches) == 2 {
-								hours, err := strconv.Atoi(matches[1])
+								hours, err := strconv.ParseInt(matches[1], 10, 0)
 								if err != nil {
 									return fmt.Errorf("parsing duration: %+v", err)
 								}
@@ -443,7 +447,7 @@ func (r PimActiveRoleAssignmentResource) Read() sdk.ResourceFunc {
 							reDays := regexp.MustCompile(`P(\d+)D`)
 							matches = reDays.FindStringSubmatch(durationRaw)
 							if len(matches) == 2 {
-								days, err := strconv.Atoi(matches[1])
+								days, err := strconv.ParseInt(matches[1], 10, 0)
 								if err != nil {
 									return fmt.Errorf("parsing duration: %+v", err)
 								}

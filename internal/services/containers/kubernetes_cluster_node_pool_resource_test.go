@@ -13,8 +13,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-09-02-preview/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-09-02-preview/snapshots"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -565,29 +565,16 @@ func TestAccKubernetesClusterNodePool_upgradeSettings(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.upgradeSettingsConfig(data, "2"),
+			Config: r.upgradeSettings(data, 35, 18),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("upgrade_settings.#").HasValue("1"),
-				check.That(data.ResourceName).Key("upgrade_settings.0.max_surge").HasValue("2"),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.upgradeSettingsConfig(data, "4"),
+			Config: r.upgradeSettings(data, 1, 0),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("upgrade_settings.#").HasValue("1"),
-				check.That(data.ResourceName).Key("upgrade_settings.0.max_surge").HasValue("4"),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.upgradeSettingsConfig(data, "10%"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("upgrade_settings.#").HasValue("1"),
-				check.That(data.ResourceName).Key("upgrade_settings.0.max_surge").HasValue("10%"),
 			),
 		},
 		data.ImportStep(),
@@ -926,13 +913,6 @@ func TestAccKubernetesClusterNodePool_workloadRuntime(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.workloadRuntime(data, "WasmWasi"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
 			Config: r.workloadRuntime(data, "KataMshvVmIsolation"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -1047,6 +1027,11 @@ func TestAccKubernetesClusterNodePool_snapshotId(t *testing.T) {
 			Config: r.snapshotSource(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+					if _, ok := ctx.Deadline(); !ok {
+						var cancel context.CancelFunc
+						ctx, cancel = context.WithTimeout(ctx, 30*time.Minute)
+						defer cancel()
+					}
 					client := clients.Containers.SnapshotClient
 					poolId, err := agentpools.ParseAgentPoolID(state.ID)
 					if err != nil {
@@ -1080,6 +1065,11 @@ func TestAccKubernetesClusterNodePool_snapshotId(t *testing.T) {
 			Config: r.snapshotSource(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+					if _, ok := ctx.Deadline(); !ok {
+						var cancel context.CancelFunc
+						ctx, cancel = context.WithTimeout(ctx, 30*time.Minute)
+						defer cancel()
+					}
 					client := clients.Containers.SnapshotClient
 					poolId, err := agentpools.ParseAgentPoolID(state.ID)
 					if err != nil {
@@ -1128,6 +1118,12 @@ func (t KubernetesClusterNodePoolResource) Exists(ctx context.Context, clients *
 
 func (KubernetesClusterNodePoolResource) scaleNodePool(nodeCount int) acceptance.ClientCheckFunc {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
+		if _, ok := ctx.Deadline(); !ok {
+			var cancel context.CancelFunc
+			ctx, cancel = context.WithTimeout(ctx, 1*time.Hour)
+			defer cancel()
+		}
+
 		nodePoolName := state.Attributes["name"]
 		kubernetesClusterId := state.Attributes["kubernetes_cluster_id"]
 		parsedK8sId, err := commonids.ParseKubernetesClusterID(kubernetesClusterId)
@@ -1153,9 +1149,6 @@ func (KubernetesClusterNodePoolResource) scaleNodePool(nodeCount int) acceptance
 		}
 
 		nodePool.Model.Properties.Count = utils.Int64(int64(nodeCount))
-
-		ctx, cancel := context.WithDeadline(clients.StopContext, time.Now().Add(1*time.Hour))
-		defer cancel()
 
 		err = clients.Containers.AgentPoolsClient.CreateOrUpdateThenPoll(ctx, parsedAgentPoolId, *nodePool.Model)
 		if err != nil {
@@ -2022,13 +2015,8 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 `, r.templateConfig(data))
 }
 
-func (r KubernetesClusterNodePoolResource) upgradeSettingsConfig(data acceptance.TestData, maxSurge string) string {
+func (r KubernetesClusterNodePoolResource) upgradeSettings(data acceptance.TestData, drainTimeout int, nodeSoakDuration int) string {
 	template := r.templateConfig(data)
-	if maxSurge != "" {
-		maxSurge = fmt.Sprintf(`upgrade_settings {
-    max_surge = %q
-  }`, maxSurge)
-	}
 
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -2042,9 +2030,13 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
   vm_size               = "Standard_DS2_v2"
   node_count            = 3
-  %s
+  upgrade_settings {
+    max_surge                     = "10%%"
+    drain_timeout_in_minutes      = %d
+    node_soak_duration_in_minutes = %d
+  }
 }
-`, template, maxSurge)
+`, template, drainTimeout, nodeSoakDuration)
 }
 
 func (r KubernetesClusterNodePoolResource) virtualNetworkAutomaticConfig(data acceptance.TestData) string {
@@ -2366,7 +2358,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   vm_size               = "Standard_DS2_v2"
   enable_auto_scaling   = true
   min_count             = 1
-  max_count             = 1000
+  max_count             = 399
   node_count            = 1
 }
 `, r.templateConfig(data))

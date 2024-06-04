@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/subnets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/subnets"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -198,6 +198,13 @@ func resourceSubnet() *pluginsdk.Resource {
 						},
 					},
 				},
+			},
+
+			"default_outbound_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Default:  true,
+				Optional: true,
+				ForceNew: true,
 			},
 
 			"private_endpoint_network_policies": {
@@ -394,6 +401,8 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	serviceEndpointsRaw := d.Get("service_endpoints").(*pluginsdk.Set).List()
 	properties.ServiceEndpoints = expandSubnetServiceEndpoints(serviceEndpointsRaw)
+
+	properties.DefaultOutboundAccess = pointer.To(d.Get("default_outbound_access_enabled").(bool))
 
 	delegationsRaw := d.Get("delegation").([]interface{})
 	properties.Delegations = expandSubnetDelegation(delegationsRaw)
@@ -624,6 +633,12 @@ func resourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			} else {
 				d.Set("address_prefixes", props.AddressPrefixes)
 			}
+
+			defaultOutboundAccessEnabled := true
+			if props.DefaultOutboundAccess != nil {
+				defaultOutboundAccessEnabled = *props.DefaultOutboundAccess
+			}
+			d.Set("default_outbound_access_enabled", defaultOutboundAccessEnabled)
 
 			delegation := flattenSubnetDelegation(props.Delegations)
 			if err := d.Set("delegation", delegation); err != nil {

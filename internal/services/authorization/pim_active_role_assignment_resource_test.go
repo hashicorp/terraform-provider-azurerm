@@ -22,25 +22,23 @@ import (
 
 type PimActiveRoleAssignmentResource struct{}
 
-// TODO: update the management policy configuration so that it can have no expiration
-// Depends on new resource - azurerm_role_management_policy - https://github.com/hashicorp/terraform-provider-azurerm/pull/20496
-// func TestAccPimActiveRoleAssignment_noExpiration(t *testing.T) {
-// 	data := acceptance.BuildTestData(t, "azurerm_pim_active_role_assignment", "test")
-// 	r := PimActiveRoleAssignmentResource{}
+func TestAccPimActiveRoleAssignment_noExpiration(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_pim_active_role_assignment", "test")
+	r := PimActiveRoleAssignmentResource{}
 
-// 	data.ResourceTest(t, r, []acceptance.TestStep{
-// 		{
-// 			Config: r.noExpirationConfig(),
-// 			Check: acceptance.ComposeTestCheckFunc(
-// 				check.That(data.ResourceName).ExistsInAzure(r),
-// 				check.That(data.ResourceName).Key("scope").Exists(),
-// 			),
-// 		},
-// 		data.ImportStep("schedule.0.start_date_time"),
-// 	})
-// }
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.noExpiration(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("scope").Exists(),
+			),
+		},
+		data.ImportStep("schedule.0.start_date_time"),
+	})
+}
 
-func TestAccPimActiveRoleAssignment_expirationByDurationHoursConfig(t *testing.T) {
+func TestAccPimActiveRoleAssignment_expirationByDurationHours(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_pim_active_role_assignment", "test")
 	r := PimActiveRoleAssignmentResource{}
 
@@ -56,7 +54,7 @@ func TestAccPimActiveRoleAssignment_expirationByDurationHoursConfig(t *testing.T
 	})
 }
 
-func TestAccPimActiveRoleAssignment_expirationByDurationDaysConfig(t *testing.T) {
+func TestAccPimActiveRoleAssignment_expirationByDurationDays(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_pim_active_role_assignment", "test")
 	r := PimActiveRoleAssignmentResource{}
 
@@ -79,7 +77,7 @@ func TestAccPimActiveRoleAssignment_pending(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.pending(),
+			Config: r.pending(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("scope").Exists(),
@@ -96,25 +94,23 @@ func TestAccPimActiveRoleAssignment_requiresImport(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.importSetup(),
+			Config: r.importSetup(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("scope").Exists(),
 			),
 		},
-		data.RequiresImportErrorStep(func(data acceptance.TestData) string {
-			return r.requiresImport()
-		}),
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func TestAccPimActiveRoleAssignment_expirationByDateConfig(t *testing.T) {
+func TestAccPimActiveRoleAssignment_expirationByDate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_pim_active_role_assignment", "test")
 	r := PimActiveRoleAssignmentResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.expirationByDate(),
+			Config: r.expirationByDate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("scope").Exists(),
@@ -156,30 +152,52 @@ func (r PimActiveRoleAssignmentResource) Exists(ctx context.Context, client *cli
 	return utils.Bool(false), nil
 }
 
-// func (PimActiveRoleAssignmentResource) noExpirationConfig() string {
-// 	return `
-// data "azurerm_subscription" "primary" {}
+func (PimActiveRoleAssignmentResource) template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+data "azuread_domains" "test" {
+  only_initial = true
+}
 
-// data "azurerm_client_config" "test" {}
+resource "azuread_user" "test" {
+  user_principal_name = "acctestUser-%[1]d1@${data.azuread_domains.test.domains.0.domain_name}"
+  display_name        = "acctestUser-%[1]d1"
+  password            = "p@$$Wd%[2]s"
+}
 
-// data "azurerm_role_definition" "test" {
-//   name = "Monitoring Data Reader"
-// }
+resource "azuread_group" "test" {
+  display_name     = "acctest-group-%[1]d"
+  security_enabled = true
+}
 
-// resource "azurerm_pim_active_role_assignment" "test" {
-//   scope              = data.azurerm_subscription.primary.id
-//   role_definition_id = "${data.azurerm_subscription.primary.id}${data.azurerm_role_definition.test.id}"
-//   principal_id       = data.azurerm_client_config.test.object_id
+`, data.RandomInteger, data.RandomString)
+}
 
-//   justification = "No Expiration"
+func (r PimActiveRoleAssignmentResource) noExpiration(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+data "azurerm_subscription" "primary" {}
 
-//   ticket {
-//     number = "1"
-//     system = "example ticket system"
-//   }
-// }
-// `
-// }
+data "azurerm_client_config" "test" {}
+
+data "azurerm_role_definition" "test" {
+  name = "Monitoring Data Reader"
+}
+
+%[1]s
+
+resource "azurerm_pim_active_role_assignment" "test" {
+  scope              = data.azurerm_subscription.primary.id
+  role_definition_id = "${data.azurerm_subscription.primary.id}${data.azurerm_role_definition.test.id}"
+  principal_id       = azuread_user.test.object_id
+
+  justification = "No Expiration"
+
+  ticket {
+    number = "1"
+    system = "example ticket system"
+  }
+}
+`, r.template(data))
+}
 
 func (PimActiveRoleAssignmentResource) expirationByDurationHours(data acceptance.TestData) string {
 	return fmt.Sprintf(`
@@ -192,7 +210,7 @@ data "azurerm_role_definition" "test" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
+  name     = "acctest-%[1]d"
   location = "%[2]s"
 }
 
@@ -265,8 +283,8 @@ resource "azurerm_pim_active_role_assignment" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (PimActiveRoleAssignmentResource) importSetup() string {
-	return `
+func (PimActiveRoleAssignmentResource) importSetup(data acceptance.TestData) string {
+	return fmt.Sprintf(`
 data "azurerm_subscription" "primary" {}
 
 data "azurerm_client_config" "test" {}
@@ -275,12 +293,20 @@ data "azurerm_role_definition" "test" {
   name = "AcrPull"
 }
 
+resource "azuread_application_registration" "test" {
+  display_name = "acctest-%[1]d"
+}
+
+resource "azuread_service_principal" "test" {
+  client_id = azuread_application_registration.test.client_id
+}
+
 resource "time_static" "test" {}
 
 resource "azurerm_pim_active_role_assignment" "test" {
   scope              = data.azurerm_subscription.primary.id
   role_definition_id = "${data.azurerm_subscription.primary.id}${data.azurerm_role_definition.test.id}"
-  principal_id       = data.azurerm_client_config.test.object_id
+  principal_id       = azuread_service_principal.test.object_id
 
   schedule {
     start_date_time = time_static.test.rfc3339
@@ -296,29 +322,37 @@ resource "azurerm_pim_active_role_assignment" "test" {
     system = "example ticket system"
   }
 }
-`
+`, data.RandomInteger)
 }
 
-func (r PimActiveRoleAssignmentResource) requiresImport() string {
+func (r PimActiveRoleAssignmentResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_pim_active_role_assignment" "import" {
   scope              = azurerm_pim_active_role_assignment.test.scope
   role_definition_id = azurerm_pim_active_role_assignment.test.role_definition_id
   principal_id       = azurerm_pim_active_role_assignment.test.principal_id
 }
-`, r.importSetup())
+`, r.importSetup(data))
 }
 
-func (PimActiveRoleAssignmentResource) expirationByDate() string {
-	return `
+func (PimActiveRoleAssignmentResource) expirationByDate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
 data "azurerm_subscription" "primary" {}
 
 data "azurerm_client_config" "test" {}
 
 data "azurerm_role_definition" "test" {
   name = "Workbook Contributor"
+}
+
+resource "azuread_application_registration" "test" {
+  display_name = "acctest-%[1]d"
+}
+
+resource "azuread_service_principal" "test" {
+  client_id = azuread_application_registration.test.client_id
 }
 
 resource "time_static" "test" {}
@@ -329,7 +363,7 @@ resource "time_offset" "test" {
 resource "azurerm_pim_active_role_assignment" "test" {
   scope              = data.azurerm_subscription.primary.id
   role_definition_id = "${data.azurerm_subscription.primary.id}${data.azurerm_role_definition.test.id}"
-  principal_id       = data.azurerm_client_config.test.object_id
+  principal_id       = azuread_service_principal.test.object_id
 
   schedule {
     start_date_time = time_static.test.rfc3339
@@ -345,17 +379,25 @@ resource "azurerm_pim_active_role_assignment" "test" {
     system = "example ticket system"
   }
 }
-`
+`, data.RandomInteger)
 }
 
-func (PimActiveRoleAssignmentResource) pending() string {
-	return `
+func (PimActiveRoleAssignmentResource) pending(data acceptance.TestData) string {
+	return fmt.Sprintf(`
 data "azurerm_subscription" "primary" {}
 
 data "azurerm_client_config" "test" {}
 
 data "azurerm_role_definition" "test" {
   name = "Key Vault Reader"
+}
+
+resource "azuread_application_registration" "test" {
+  display_name = "acctest-%[1]d"
+}
+
+resource "azuread_service_principal" "test" {
+  client_id = azuread_application_registration.test.client_id
 }
 
 resource "time_offset" "test" {
@@ -365,7 +407,7 @@ resource "time_offset" "test" {
 resource "azurerm_pim_active_role_assignment" "test" {
   scope              = data.azurerm_subscription.primary.id
   role_definition_id = "${data.azurerm_subscription.primary.id}${data.azurerm_role_definition.test.id}"
-  principal_id       = data.azurerm_client_config.test.object_id
+  principal_id       = azuread_service_principal.test.object_id
 
   schedule {
     start_date_time = time_offset.test.rfc3339
@@ -381,5 +423,5 @@ resource "azurerm_pim_active_role_assignment" "test" {
     system = "example ticket system"
   }
 }
-`
+`, data.RandomInteger)
 }

@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/bastionhosts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/bastionhosts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -115,6 +115,21 @@ func TestAccBastionHost_sku(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.sku(data, "Standard"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccBastionHost_developerSku(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_bastion_host", "test")
+	r := BastionHostResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.developerSku(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -401,4 +416,32 @@ resource "azurerm_bastion_host" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomString, sku)
+}
+
+func (BastionHostResource) developerSku(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-bastion-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestVNet%s"
+  address_space       = ["192.168.1.0/24"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_bastion_host" "test" {
+  name                = "acctestBastion%s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Developer"
+  virtual_network_id  = azurerm_virtual_network.test.id
+}
+`, data.RandomInteger, data.Locations.Ternary, data.RandomString, data.RandomString)
 }

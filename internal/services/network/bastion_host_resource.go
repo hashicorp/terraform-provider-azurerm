@@ -11,10 +11,11 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/bastionhosts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/bastionhosts"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -24,8 +25,9 @@ import (
 )
 
 var skuWeight = map[string]int8{
-	"Basic":    1,
-	"Standard": 2,
+	"Developer": 1,
+	"Basic":     2,
+	"Standard":  3,
 }
 
 func resourceBastionHost() *pluginsdk.Resource {
@@ -74,7 +76,7 @@ func resourceBastionHost() *pluginsdk.Resource {
 			"ip_configuration": {
 				Type:     pluginsdk.TypeList,
 				ForceNew: true,
-				Required: true,
+				Optional: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -126,19 +128,23 @@ func resourceBastionHost() *pluginsdk.Resource {
 			},
 
 			"sku": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(bastionhosts.BastionHostSkuNameBasic),
-					string(bastionhosts.BastionHostSkuNameStandard),
-				}, false),
-				Default: string(bastionhosts.BastionHostSkuNameBasic),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(bastionhosts.PossibleValuesForBastionHostSkuName(), false),
+				Default:      string(bastionhosts.BastionHostSkuNameBasic),
 			},
 
 			"tunneling_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
+			},
+
+			"virtual_network_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: commonids.ValidateVirtualNetworkID,
 			},
 
 			"dns_name": {
@@ -217,19 +223,49 @@ func resourceBastionHostCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	parameters := bastionhosts.BastionHost{
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &bastionhosts.BastionHostPropertiesFormat{
-			DisableCopyPaste:    pointer.To(!d.Get("copy_paste_enabled").(bool)),
-			EnableFileCopy:      pointer.To(fileCopyEnabled),
-			EnableIPConnect:     pointer.To(ipConnectEnabled),
-			EnableKerberos:      pointer.To(kerberosEnabled),
-			EnableShareableLink: pointer.To(shareableLinkEnabled),
-			EnableTunneling:     pointer.To(tunnelingEnabled),
-			IPConfigurations:    expandBastionHostIPConfiguration(d.Get("ip_configuration").([]interface{})),
-			ScaleUnits:          pointer.To(int64(d.Get("scale_units").(int))),
+			IPConfigurations: expandBastionHostIPConfiguration(d.Get("ip_configuration").([]interface{})),
+			ScaleUnits:       pointer.To(int64(d.Get("scale_units").(int))),
 		},
 		Sku: &bastionhosts.Sku{
 			Name: pointer.To(sku),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if v := !d.Get("copy_paste_enabled").(bool); v {
+		parameters.Properties.DisableCopyPaste = pointer.To(v)
+	}
+
+	if fileCopyEnabled {
+		parameters.Properties.EnableFileCopy = pointer.To(fileCopyEnabled)
+	}
+
+	if ipConnectEnabled {
+		parameters.Properties.EnableIPConnect = pointer.To(ipConnectEnabled)
+	}
+
+	if kerberosEnabled {
+		parameters.Properties.EnableKerberos = pointer.To(kerberosEnabled)
+	}
+
+	if shareableLinkEnabled {
+		parameters.Properties.EnableShareableLink = pointer.To(shareableLinkEnabled)
+	}
+
+	if tunnelingEnabled {
+		parameters.Properties.EnableTunneling = pointer.To(tunnelingEnabled)
+	}
+
+	if v, ok := d.GetOk("virtual_network_id"); ok {
+		if sku != bastionhosts.BastionHostSkuNameDeveloper {
+			return fmt.Errorf("`virtual_network_id` is only supported when `sku` is `Developer`")
+		}
+
+		parameters.Properties.VirtualNetwork = &bastionhosts.SubResource{
+			Id: pointer.To(v.(string)),
+		}
+	} else if sku == bastionhosts.BastionHostSkuNameDeveloper {
+		return fmt.Errorf("`virtual_network_id` is required when `sku` is `Developer`")
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
@@ -369,6 +405,16 @@ func resourceBastionHostRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			d.Set("kerberos_enabled", props.EnableKerberos)
 			d.Set("shareable_link_enabled", props.EnableShareableLink)
 			d.Set("tunneling_enabled", props.EnableTunneling)
+
+			virtualNetworkId := ""
+			if vnet := props.VirtualNetwork; vnet != nil {
+				vnetId, err := commonids.ParseVirtualNetworkID(pointer.From(vnet.Id))
+				if err != nil {
+					return err
+				}
+				virtualNetworkId = vnetId.ID()
+			}
+			d.Set("virtual_network_id", virtualNetworkId)
 
 			copyPasteEnabled := true
 			if props.DisableCopyPaste != nil {
