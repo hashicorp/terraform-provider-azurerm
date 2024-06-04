@@ -1208,22 +1208,22 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_user_assigned_identity" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  name = "acctest%[4]s"
+  name                = "acctest%[4]s"
 }
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctestOVMSS-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  zones = []
-  sku_name = "Standard_D1_v2"
+  zones               = []
+  sku_name            = "Standard_D1_v2"
   # Orchestrated VMSS allocation will timeout at service side due to extension, set instances to 0 to avoid the timeout
-  instances = 0
+  instances                   = 0
   platform_fault_domain_count = 2
   os_profile {
     linux_configuration {
-      computer_name_prefix = "testvm-%[1]d"
-      admin_username       = "myadmin"
-      admin_password       = "Passwword1234"
+      computer_name_prefix            = "testvm-%[1]d"
+      admin_username                  = "myadmin"
+      admin_password                  = "Passwword1234"
       disable_password_authentication = false
     }
   }

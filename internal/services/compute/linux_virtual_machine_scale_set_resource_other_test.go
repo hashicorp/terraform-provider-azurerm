@@ -2377,14 +2377,14 @@ resource "azurerm_lb_rule" "test" {
   backend_port                   = 22
 }
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                = "acctestvmss-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "Standard_F2"
-  instances           = 1
-  admin_username      = "adminuser"
-  admin_password      = "P@ssword1234!"
-  health_probe_id     = azurerm_lb_probe.test.id
+  name                            = "acctestvmss-%[2]d"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  sku                             = "Standard_F2"
+  instances                       = 1
+  admin_username                  = "adminuser"
+  admin_password                  = "P@ssword1234!"
+  health_probe_id                 = azurerm_lb_probe.test.id
   disable_password_authentication = false
   source_image_reference {
     publisher = "Canonical"
@@ -2476,14 +2476,14 @@ resource "azurerm_lb_rule" "test" {
   backend_port                   = 22
 }
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                = "acctestvmss-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "Standard_F2"
-  instances           = 1
-  admin_username      = "adminuser"
-  admin_password      = "P@ssword1234!"
-  health_probe_id     = azurerm_lb_probe.test.id
+  name                            = "acctestvmss-%[2]d"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  sku                             = "Standard_F2"
+  instances                       = 1
+  admin_username                  = "adminuser"
+  admin_password                  = "P@ssword1234!"
+  health_probe_id                 = azurerm_lb_probe.test.id
   disable_password_authentication = false
   source_image_reference {
     publisher = "Canonical"
@@ -2574,14 +2574,14 @@ resource "azurerm_lb_rule" "test" {
   backend_port                   = 22
 }
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                = "acctestvmss-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "Standard_F2"
-  instances           = 1
-  admin_username      = "adminuser"
-  admin_password      = "P@ssword1234!"
-  health_probe_id     = azurerm_lb_probe.test.id
+  name                            = "acctestvmss-%[2]d"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  sku                             = "Standard_F2"
+  instances                       = 1
+  admin_username                  = "adminuser"
+  admin_password                  = "P@ssword1234!"
+  health_probe_id                 = azurerm_lb_probe.test.id
   disable_password_authentication = false
   source_image_reference {
     publisher = "Canonical"
