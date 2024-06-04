@@ -580,7 +580,7 @@ func expandBackupProtectionPolicyVMTieringPolicy(input []interface{}) *map[strin
 }
 
 func expandBackupProtectionPolicyVMArchivedRP(input []interface{}) protectionpolicies.TieringPolicy {
-	if len(input) == 0 || input[0] == nil {
+	if len(input) == 0 {
 		return protectionpolicies.TieringPolicy{}
 	}
 
@@ -926,11 +926,19 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 						Required: true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
+								"tiering_mode": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ValidateFunc: validation.StringInSlice([]string{
+										string(protectionpolicies.TieringModeTierAfter),
+										string(protectionpolicies.TieringModeTierRecommended),
+									}, false),
+								},
+
 								"duration": {
 									Type:         pluginsdk.TypeInt,
 									Optional:     true,
 									ValidateFunc: validation.IntBetween(3, 1182),
-									AtLeastOneOf: []string{"tiering_policy.0.archived_rp.0.duration", "tiering_policy.0.archived_rp.0.duration_type", "tiering_policy.0.archived_rp.0.tiering_mode"},
 								},
 
 								"duration_type": {
@@ -942,17 +950,6 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 										string(protectionpolicies.RetentionDurationTypeMonths),
 										string(protectionpolicies.RetentionDurationTypeYears),
 									}, false),
-									AtLeastOneOf: []string{"tiering_policy.0.archived_rp.0.duration", "tiering_policy.0.archived_rp.0.duration_type", "tiering_policy.0.archived_rp.0.tiering_mode"},
-								},
-
-								"tiering_mode": {
-									Type:     pluginsdk.TypeString,
-									Optional: true,
-									ValidateFunc: validation.StringInSlice([]string{
-										string(protectionpolicies.TieringModeTierAfter),
-										string(protectionpolicies.TieringModeTierRecommended),
-									}, false),
-									AtLeastOneOf: []string{"tiering_policy.0.archived_rp.0.duration", "tiering_policy.0.archived_rp.0.duration_type", "tiering_policy.0.archived_rp.0.tiering_mode"},
 								},
 							},
 						},
