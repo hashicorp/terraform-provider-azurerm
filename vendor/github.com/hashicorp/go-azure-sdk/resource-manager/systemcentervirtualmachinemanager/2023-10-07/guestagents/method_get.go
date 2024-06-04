@@ -1,4 +1,4 @@
-package vminstancehybrididentitymetadata
+package guestagents
 
 import (
 	"context"
@@ -13,21 +13,21 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type VirtualMachineInstanceHybridIdentityMetadataGetOperationResponse struct {
+type GetOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *VMInstanceHybridIdentityMetadata
+	Model        *GuestAgent
 }
 
-// VirtualMachineInstanceHybridIdentityMetadataGet ...
-func (c VMInstanceHybridIdentityMetadataClient) VirtualMachineInstanceHybridIdentityMetadataGet(ctx context.Context, id commonids.ScopeId) (result VirtualMachineInstanceHybridIdentityMetadataGetOperationResponse, err error) {
+// Get ...
+func (c GuestAgentsClient) Get(ctx context.Context, id commonids.ScopeId) (result GetOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
-		Path:       fmt.Sprintf("%s/providers/Microsoft.ScVmm/virtualMachineInstances/default/hybridIdentityMetadata/default", id.ID()),
+		Path:       fmt.Sprintf("%s/providers/Microsoft.ScVmm/virtualMachineInstances/default/guestAgents/default", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -45,7 +45,7 @@ func (c VMInstanceHybridIdentityMetadataClient) VirtualMachineInstanceHybridIden
 		return
 	}
 
-	var model VMInstanceHybridIdentityMetadata
+	var model GuestAgent
 	result.Model = &model
 
 	if err = resp.Unmarshal(result.Model); err != nil {

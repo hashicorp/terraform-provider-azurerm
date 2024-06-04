@@ -12,19 +12,19 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type ListByVMMServerOperationResponse struct {
+type ListByVMmServerOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
 	Model        *[]InventoryItem
 }
 
-type ListByVMMServerCompleteResult struct {
+type ListByVMmServerCompleteResult struct {
 	LatestHttpResponse *http.Response
 	Items              []InventoryItem
 }
 
-// ListByVMMServer ...
-func (c InventoryItemsClient) ListByVMMServer(ctx context.Context, id VMmServerId) (result ListByVMMServerOperationResponse, err error) {
+// ListByVMmServer ...
+func (c InventoryItemsClient) ListByVMmServer(ctx context.Context, id VMmServerId) (result ListByVMmServerOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -61,16 +61,16 @@ func (c InventoryItemsClient) ListByVMMServer(ctx context.Context, id VMmServerI
 	return
 }
 
-// ListByVMMServerComplete retrieves all the results into a single object
-func (c InventoryItemsClient) ListByVMMServerComplete(ctx context.Context, id VMmServerId) (ListByVMMServerCompleteResult, error) {
-	return c.ListByVMMServerCompleteMatchingPredicate(ctx, id, InventoryItemOperationPredicate{})
+// ListByVMmServerComplete retrieves all the results into a single object
+func (c InventoryItemsClient) ListByVMmServerComplete(ctx context.Context, id VMmServerId) (ListByVMmServerCompleteResult, error) {
+	return c.ListByVMmServerCompleteMatchingPredicate(ctx, id, InventoryItemOperationPredicate{})
 }
 
-// ListByVMMServerCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c InventoryItemsClient) ListByVMMServerCompleteMatchingPredicate(ctx context.Context, id VMmServerId, predicate InventoryItemOperationPredicate) (result ListByVMMServerCompleteResult, err error) {
+// ListByVMmServerCompleteMatchingPredicate retrieves all the results and then applies the predicate
+func (c InventoryItemsClient) ListByVMmServerCompleteMatchingPredicate(ctx context.Context, id VMmServerId, predicate InventoryItemOperationPredicate) (result ListByVMmServerCompleteResult, err error) {
 	items := make([]InventoryItem, 0)
 
-	resp, err := c.ListByVMMServer(ctx, id)
+	resp, err := c.ListByVMmServer(ctx, id)
 	if err != nil {
 		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
@@ -84,7 +84,7 @@ func (c InventoryItemsClient) ListByVMMServerCompleteMatchingPredicate(ctx conte
 		}
 	}
 
-	result = ListByVMMServerCompleteResult{
+	result = ListByVMmServerCompleteResult{
 		LatestHttpResponse: resp.HttpResponse,
 		Items:              items,
 	}

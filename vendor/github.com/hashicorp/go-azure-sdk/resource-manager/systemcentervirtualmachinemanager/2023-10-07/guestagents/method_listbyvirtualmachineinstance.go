@@ -1,4 +1,4 @@
-package vminstanceguestagents
+package guestagents
 
 import (
 	"context"
@@ -13,19 +13,19 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type ListOperationResponse struct {
+type ListByVirtualMachineInstanceOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
 	Model        *[]GuestAgent
 }
 
-type ListCompleteResult struct {
+type ListByVirtualMachineInstanceCompleteResult struct {
 	LatestHttpResponse *http.Response
 	Items              []GuestAgent
 }
 
-// List ...
-func (c VMInstanceGuestAgentsClient) List(ctx context.Context, id commonids.ScopeId) (result ListOperationResponse, err error) {
+// ListByVirtualMachineInstance ...
+func (c GuestAgentsClient) ListByVirtualMachineInstance(ctx context.Context, id commonids.ScopeId) (result ListByVirtualMachineInstanceOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -62,16 +62,16 @@ func (c VMInstanceGuestAgentsClient) List(ctx context.Context, id commonids.Scop
 	return
 }
 
-// ListComplete retrieves all the results into a single object
-func (c VMInstanceGuestAgentsClient) ListComplete(ctx context.Context, id commonids.ScopeId) (ListCompleteResult, error) {
-	return c.ListCompleteMatchingPredicate(ctx, id, GuestAgentOperationPredicate{})
+// ListByVirtualMachineInstanceComplete retrieves all the results into a single object
+func (c GuestAgentsClient) ListByVirtualMachineInstanceComplete(ctx context.Context, id commonids.ScopeId) (ListByVirtualMachineInstanceCompleteResult, error) {
+	return c.ListByVirtualMachineInstanceCompleteMatchingPredicate(ctx, id, GuestAgentOperationPredicate{})
 }
 
-// ListCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c VMInstanceGuestAgentsClient) ListCompleteMatchingPredicate(ctx context.Context, id commonids.ScopeId, predicate GuestAgentOperationPredicate) (result ListCompleteResult, err error) {
+// ListByVirtualMachineInstanceCompleteMatchingPredicate retrieves all the results and then applies the predicate
+func (c GuestAgentsClient) ListByVirtualMachineInstanceCompleteMatchingPredicate(ctx context.Context, id commonids.ScopeId, predicate GuestAgentOperationPredicate) (result ListByVirtualMachineInstanceCompleteResult, err error) {
 	items := make([]GuestAgent, 0)
 
-	resp, err := c.List(ctx, id)
+	resp, err := c.ListByVirtualMachineInstance(ctx, id)
 	if err != nil {
 		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
@@ -85,7 +85,7 @@ func (c VMInstanceGuestAgentsClient) ListCompleteMatchingPredicate(ctx context.C
 		}
 	}
 
-	result = ListCompleteResult{
+	result = ListByVirtualMachineInstanceCompleteResult{
 		LatestHttpResponse: resp.HttpResponse,
 		Items:              items,
 	}

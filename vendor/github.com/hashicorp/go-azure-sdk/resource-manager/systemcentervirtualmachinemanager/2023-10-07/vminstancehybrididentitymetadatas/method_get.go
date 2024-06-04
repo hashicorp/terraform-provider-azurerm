@@ -1,4 +1,4 @@
-package vminstanceguestagents
+package vminstancehybrididentitymetadatas
 
 import (
 	"context"
@@ -13,21 +13,21 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type DeleteOperationResponse struct {
+type GetOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *VMInstanceHybridIdentityMetadata
 }
 
-// Delete ...
-func (c VMInstanceGuestAgentsClient) Delete(ctx context.Context, id commonids.ScopeId) (result DeleteOperationResponse, err error) {
+// Get ...
+func (c VMInstanceHybridIdentityMetadatasClient) Get(ctx context.Context, id commonids.ScopeId) (result GetOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
-			http.StatusNoContent,
 			http.StatusOK,
 		},
-		HttpMethod: http.MethodDelete,
-		Path:       fmt.Sprintf("%s/providers/Microsoft.ScVmm/virtualMachineInstances/default/guestAgents/default", id.ID()),
+		HttpMethod: http.MethodGet,
+		Path:       fmt.Sprintf("%s/providers/Microsoft.ScVmm/virtualMachineInstances/default/hybridIdentityMetadata/default", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -42,6 +42,13 @@ func (c VMInstanceGuestAgentsClient) Delete(ctx context.Context, id commonids.Sc
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	var model VMInstanceHybridIdentityMetadata
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -73,14 +73,14 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `InventoryItemsClient.ListByVMMServer`
+### Example Usage: `InventoryItemsClient.ListByVMmServer`
 
 ```go
 ctx := context.TODO()
 id := inventoryitems.NewVMmServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vmmServerValue")
 
-// alternatively `client.ListByVMMServer(ctx, id)` can be used to do batched pagination
-items, err := client.ListByVMMServerComplete(ctx, id)
+// alternatively `client.ListByVMmServer(ctx, id)` can be used to do batched pagination
+items, err := client.ListByVMmServerComplete(ctx, id)
 if err != nil {
 	// handle the error
 }

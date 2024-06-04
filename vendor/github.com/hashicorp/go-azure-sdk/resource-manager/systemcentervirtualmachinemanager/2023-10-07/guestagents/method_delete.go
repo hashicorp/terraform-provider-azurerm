@@ -1,4 +1,4 @@
-package vminstanceguestagents
+package guestagents
 
 import (
 	"context"
@@ -13,20 +13,20 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type GetOperationResponse struct {
+type DeleteOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *GuestAgent
 }
 
-// Get ...
-func (c VMInstanceGuestAgentsClient) Get(ctx context.Context, id commonids.ScopeId) (result GetOperationResponse, err error) {
+// Delete ...
+func (c GuestAgentsClient) Delete(ctx context.Context, id commonids.ScopeId) (result DeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
+			http.StatusNoContent,
 			http.StatusOK,
 		},
-		HttpMethod: http.MethodGet,
+		HttpMethod: http.MethodDelete,
 		Path:       fmt.Sprintf("%s/providers/Microsoft.ScVmm/virtualMachineInstances/default/guestAgents/default", id.ID()),
 	}
 
@@ -42,13 +42,6 @@ func (c VMInstanceGuestAgentsClient) Get(ctx context.Context, id commonids.Scope
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
-		return
-	}
-
-	var model GuestAgent
-	result.Model = &model
-
-	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 
