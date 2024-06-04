@@ -85,11 +85,11 @@ func (PostgresqlFlexibleServerFirewallRulesResource) basic(data acceptance.TestD
 %s
 
 resource "azurerm_postgresql_flexible_server_firewall_rules" "test" {
-  server_id        = azurerm_postgresql_flexible_server.test.id
+  server_id = azurerm_postgresql_flexible_server.test.id
   firewall_rule {
-	name             = "acctest-FSFR-%d"
-	start_ip_address = "122.122.0.0"
-	end_ip_address   = "122.122.0.0"
+    name             = "acctest-FSFR-%d"
+    start_ip_address = "122.122.0.0"
+    end_ip_address   = "122.122.0.0"
   }
 }
 `, PostgresqlFlexibleServerResource{}.basic(data), data.RandomInteger)
@@ -100,12 +100,12 @@ func (r PostgresqlFlexibleServerFirewallRulesResource) update(data acceptance.Te
 %s
 
 resource "azurerm_postgresql_flexible_server_firewall_rules" "test" {
-	server_id        = azurerm_postgresql_flexible_server.test.id
-		firewall_rule {
-		name             = "acctest-FSFR-%d"
-		start_ip_address = "123.0.0.0"
-		end_ip_address   = "123.0.0.0"
-	}
+  server_id = azurerm_postgresql_flexible_server.test.id
+  firewall_rule {
+    name             = "acctest-FSFR-%d"
+    start_ip_address = "123.0.0.0"
+    end_ip_address   = "123.0.0.0"
+  }
 }
 `, PostgresqlFlexibleServerResource{}.basic(data), data.RandomInteger)
 }
