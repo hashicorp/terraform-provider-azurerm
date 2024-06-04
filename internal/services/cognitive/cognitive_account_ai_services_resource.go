@@ -72,7 +72,7 @@ type AIServicesAccountResourceResourceModel struct {
 	CustomerManagedKey              []AIServicesAccountCustomerManagedKey      `tfschema:"customer_managed_key"`
 	Fqdns                           []string                                   `tfschema:"fqdns"`
 	Identity                        []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
-	LocalAuthEnabled                bool                                       `tfschema:"local_auth_enabled"`
+	LocalAuthorizationEnabled       bool                                       `tfschema:"local_authentication_enabled"`
 	NetworkACLs                     []AIServicesAccountNetworkACLs             `tfschema:"network_acls"`
 	OutboundNetworkAccessRestricted bool                                       `tfschema:"outbound_network_access_restricted"`
 	PublicNetworkAccess             string                                     `tfschema:"public_network_access"`
@@ -143,7 +143,7 @@ func (AIServicesAccountResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
-		"local_auth_enabled": {
+		"local_authentication_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  true,
@@ -321,7 +321,7 @@ func (AIServicesAccountResource) Create() sdk.ResourceFunc {
 					AllowedFqdnList:               pointer.To(model.Fqdns),
 					PublicNetworkAccess:           pointer.To(cognitiveservicesaccounts.PublicNetworkAccess(model.PublicNetworkAccess)),
 					RestrictOutboundNetworkAccess: pointer.To(model.OutboundNetworkAccessRestricted),
-					DisableLocalAuth:              pointer.To(!model.LocalAuthEnabled),
+					DisableLocalAuth:              pointer.To(!model.LocalAuthorizationEnabled),
 					Encryption:                    expandAIServicesAccountCustomerManagedKey(model.CustomerManagedKey),
 				},
 				Tags: pointer.To(model.Tags),
@@ -412,7 +412,7 @@ func (AIServicesAccountResource) Read() sdk.ResourceFunc {
 					if props.DisableLocalAuth != nil {
 						localAuthEnabled = !*props.DisableLocalAuth
 					}
-					state.LocalAuthEnabled = localAuthEnabled
+					state.LocalAuthorizationEnabled = localAuthEnabled
 
 					customerManagedKey, err := flattenAIServicesAccountCustomerManagedKey(props.Encryption)
 					if err != nil {
@@ -434,7 +434,6 @@ func (AIServicesAccountResource) Update() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Cognitive.AccountsClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var model AIServicesAccountResourceResourceModel
 
@@ -442,7 +441,10 @@ func (AIServicesAccountResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			id := cognitiveservicesaccounts.NewAccountID(subscriptionId, model.ResourceGroupName, model.Name)
+			id, err := cognitiveservicesaccounts.ParseAccountID(metadata.ResourceData.Id())
+			if err != nil {
+				return fmt.Errorf(" Cannot parse Cognitive Account AI service ID: %s", err)
+			}
 
 			networkACLs, subnetIds := expandAIServicesAccountNetworkACLs(model.NetworkACLs)
 			locks.MultipleByName(&subnetIds, network.VirtualNetworkResourceName)
@@ -473,7 +475,7 @@ func (AIServicesAccountResource) Update() sdk.ResourceFunc {
 					AllowedFqdnList:               pointer.To(model.Fqdns),
 					PublicNetworkAccess:           pointer.To(cognitiveservicesaccounts.PublicNetworkAccess(model.PublicNetworkAccess)),
 					RestrictOutboundNetworkAccess: pointer.To(model.OutboundNetworkAccessRestricted),
-					DisableLocalAuth:              pointer.To(!model.LocalAuthEnabled),
+					DisableLocalAuth:              pointer.To(!model.LocalAuthorizationEnabled),
 					Encryption:                    expandAIServicesAccountCustomerManagedKey(model.CustomerManagedKey),
 				},
 				Tags: pointer.To(model.Tags),
@@ -485,7 +487,7 @@ func (AIServicesAccountResource) Update() sdk.ResourceFunc {
 			}
 			props.Identity = expandIdentity
 
-			future, err := client.AccountsUpdate(ctx, id, props)
+			future, err := client.AccountsUpdate(ctx, *id, props)
 			if err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
