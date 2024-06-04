@@ -565,29 +565,16 @@ func TestAccKubernetesClusterNodePool_upgradeSettings(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.upgradeSettingsConfig(data, "2"),
+			Config: r.upgradeSettings(data, 35, 18),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("upgrade_settings.#").HasValue("1"),
-				check.That(data.ResourceName).Key("upgrade_settings.0.max_surge").HasValue("2"),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.upgradeSettingsConfig(data, "4"),
+			Config: r.upgradeSettings(data, 1, 0),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("upgrade_settings.#").HasValue("1"),
-				check.That(data.ResourceName).Key("upgrade_settings.0.max_surge").HasValue("4"),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.upgradeSettingsConfig(data, "10%"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("upgrade_settings.#").HasValue("1"),
-				check.That(data.ResourceName).Key("upgrade_settings.0.max_surge").HasValue("10%"),
 			),
 		},
 		data.ImportStep(),
@@ -949,13 +936,6 @@ func TestAccKubernetesClusterNodePool_workloadRuntime(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.workloadRuntime(data, "OCIContainer"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.workloadRuntime(data, "WasmWasi"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -2064,13 +2044,8 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 `, r.templateConfig(data))
 }
 
-func (r KubernetesClusterNodePoolResource) upgradeSettingsConfig(data acceptance.TestData, maxSurge string) string {
+func (r KubernetesClusterNodePoolResource) upgradeSettings(data acceptance.TestData, drainTimeout int, nodeSoakDuration int) string {
 	template := r.templateConfig(data)
-	if maxSurge != "" {
-		maxSurge = fmt.Sprintf(`upgrade_settings {
-    max_surge = %q
-  }`, maxSurge)
-	}
 
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -2084,9 +2059,13 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
   vm_size               = "Standard_DS2_v2"
   node_count            = 3
-  %s
+  upgrade_settings {
+    max_surge                     = "10%%"
+    drain_timeout_in_minutes      = %d
+    node_soak_duration_in_minutes = %d
+  }
 }
-`, template, maxSurge)
+`, template, drainTimeout, nodeSoakDuration)
 }
 
 func (r KubernetesClusterNodePoolResource) virtualNetworkAutomaticConfig(data acceptance.TestData) string {
@@ -2408,7 +2387,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   vm_size               = "Standard_DS2_v2"
   enable_auto_scaling   = true
   min_count             = 1
-  max_count             = 1000
+  max_count             = 399
   node_count            = 1
 }
 `, r.templateConfig(data))

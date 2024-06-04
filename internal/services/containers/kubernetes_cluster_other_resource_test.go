@@ -1158,6 +1158,35 @@ func TestAccKubernetesCluster_supportPlanAKSLongTermSupport(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesCluster_costAnalysis(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.costAnalysisEnabled(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.costAnalysisEnabled(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.costAnalysisEnabled(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (KubernetesClusterResource) basicAvailabilitySetConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1358,7 +1387,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     vm_size             = "Standard_DS2_v2"
     enable_auto_scaling = true
     min_count           = 1
-    max_count           = 1000
+    max_count           = 399
     node_count          = 1
     upgrade_settings {
       max_surge = "10%%"
@@ -3591,4 +3620,38 @@ resource "azurerm_kubernetes_cluster" "test" {
   sku_tier     = "Premium"
 }
 `, data.Locations.Primary, data.RandomInteger)
+}
+
+func (KubernetesClusterResource) costAnalysisEnabled(data acceptance.TestData, enabled bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[2]d"
+  default_node_pool {
+    name       = "default"
+    vm_size    = "Standard_DS2_v2"
+    node_count = 1
+    upgrade_settings {
+      max_surge = "10%%"
+    }
+  }
+  identity {
+    type = "SystemAssigned"
+  }
+  cost_analysis_enabled = %[3]t
+  sku_tier              = "Premium"
+  support_plan          = "AKSLongTermSupport"
+}
+`, data.Locations.Primary, data.RandomInteger, enabled)
 }

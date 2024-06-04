@@ -21,7 +21,7 @@ type ExpressRoutePortResource struct{}
 
 const ARMTestExpressRoutePortAdminState = "ARM_TEST_EXPRESS_ROUTE_PORT_ADMIN_STATE"
 
-func TestAccAzureRMExpressRoutePort_basic(t *testing.T) {
+func TestAccExpressRoutePort_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_port", "test")
 	r := ExpressRoutePortResource{}
 
@@ -52,7 +52,7 @@ func TestAccAzureRMExpressRoutePort_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMExpressRoutePort_adminState(t *testing.T) {
+func TestAccExpressRoutePort_adminState(t *testing.T) {
 	if _, ok := os.LookupEnv(ARMTestExpressRoutePortAdminState); !ok {
 		t.Skipf("Enabling admin state will cause high cost, please set environment variable %q if you want to test it.", ARMTestExpressRoutePortAdminState)
 	}
@@ -70,7 +70,7 @@ func TestAccAzureRMExpressRoutePort_adminState(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMExpressRoutePort_requiresImport(t *testing.T) {
+func TestAccExpressRoutePort_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_port", "test")
 	r := ExpressRoutePortResource{}
 
@@ -85,7 +85,7 @@ func TestAccAzureRMExpressRoutePort_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMExpressRoutePort_userAssignedIdentity(t *testing.T) {
+func TestAccExpressRoutePort_userAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_port", "test")
 	r := ExpressRoutePortResource{}
 
@@ -100,7 +100,7 @@ func TestAccAzureRMExpressRoutePort_userAssignedIdentity(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMExpressRoutePort_linkCipher(t *testing.T) {
+func TestAccExpressRoutePort_linkCipher(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_port", "test")
 	r := ExpressRoutePortResource{}
 
@@ -142,7 +142,7 @@ resource "azurerm_express_route_port" "test" {
   name                = "acctestERP-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  peering_location    = "Airtel-Chennai2-CLS"
+  peering_location    = "Equinix-London-LDS"
   bandwidth_in_gbps   = 10
   encapsulation       = "Dot1Q"
   billing_type        = "MeteredData"
@@ -203,7 +203,7 @@ resource "azurerm_express_route_port" "test" {
   name                = "acctestERP-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  peering_location    = "CDC-Canberra"
+  peering_location    = "Equinix-Hong-Kong-HK1"
   bandwidth_in_gbps   = 10
   encapsulation       = "Dot1Q"
   identity {
@@ -270,7 +270,7 @@ resource "azurerm_express_route_port" "test" {
   name                = "acctestERP-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  peering_location    = "CDC-Canberra2"
+  peering_location    = "Airtel-Chennai2-CLS"
   bandwidth_in_gbps   = 10
   encapsulation       = "Dot1Q"
   identity {

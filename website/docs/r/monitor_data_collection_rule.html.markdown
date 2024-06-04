@@ -494,7 +494,7 @@ A `storage_table_direct` block supports the following:
 
 A `stream_declaration` block supports the following:
 
-* `stream_name` - (Required) The name of the custom stream. This name should be unique across all `stream_declaration` blocks.
+* `stream_name` - (Required) The name of the custom stream. This name should be unique across all `stream_declaration` blocks and must begin with a prefix of `Custom-`.
 
 * `column` - (Required) One or more `column` blocks as defined above.
 
