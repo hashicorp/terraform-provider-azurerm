@@ -69,7 +69,6 @@ func (EmailCommunicationServiceDomainResource) Arguments() map[string]*pluginsdk
 		"user_engagement_tracking_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Default:  false,
 		},
 
 		"tags": commonschema.Tags(),

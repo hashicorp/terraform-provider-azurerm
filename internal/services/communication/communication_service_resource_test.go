@@ -84,6 +84,22 @@ func TestAccCommunicationService_update(t *testing.T) {
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("linked_domains").DoesNotExist(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCommunicationService_linkedDomainsEmpty(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_communication_service", "test")
+	r := CommunicationServiceTestResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.emptyLinkedDomains(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -170,6 +186,23 @@ resource "azurerm_communication_service" "test" {
   name                = "acctest-CommunicationService-%d"
   resource_group_name = azurerm_resource_group.test.name
   data_location       = "United States"
+
+  tags = {
+    env = "Test2"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CommunicationServiceTestResource) emptyLinkedDomains(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_communication_service" "test" {
+  name                = "acctest-CommunicationService-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  data_location       = "United States"
+  linked_domains      = []
 
   tags = {
     env = "Test2"
