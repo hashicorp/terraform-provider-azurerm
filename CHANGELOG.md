@@ -6,7 +6,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v0.20240603.1145333` of `github.com/hashicorp/go-azure-sdk` [GH-26197]
+* dependencies: updating to `v0.20240604.1114748` of `github.com/hashicorp/go-azure-sdk` [GH-26216]
 * `advisor`: update API version to `2023-01-01` [GH-26205]
 * `keyvault`: handling the Resources API returning Key Vaults that have been deleted when populating the cache [GH-26199]
 * `machinelearning`: update API version to `2024-04-01` [GH-26168]
