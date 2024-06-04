@@ -13,6 +13,7 @@ package resourceproviders
 func Required() map[string]struct{} {
 	// NOTE: Resource Providers in this list are case sensitive
 	return map[string]struct{}{
+		"Microsoft.AlertsManagement":        {},
 		"Microsoft.AppConfiguration":        {},
 		"Microsoft.ApiManagement":           {},
 		"Microsoft.AppPlatform":             {},
