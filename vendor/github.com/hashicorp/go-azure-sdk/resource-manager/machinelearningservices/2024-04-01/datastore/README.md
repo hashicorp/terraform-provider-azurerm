@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-10-01/datastore` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2024-04-01/datastore` Documentation
 
-The `datastore` SDK allows for interaction with the Azure Resource Manager Service `machinelearningservices` (API Version `2023-10-01`).
+The `datastore` SDK allows for interaction with the Azure Resource Manager Service `machinelearningservices` (API Version `2024-04-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-10-01/datastore"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2024-04-01/datastore"
 ```
 
 

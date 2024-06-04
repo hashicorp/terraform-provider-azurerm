@@ -66,6 +66,7 @@ const (
 	DatastoreTypeAzureDataLakeGenOne DatastoreType = "AzureDataLakeGen1"
 	DatastoreTypeAzureDataLakeGenTwo DatastoreType = "AzureDataLakeGen2"
 	DatastoreTypeAzureFile           DatastoreType = "AzureFile"
+	DatastoreTypeOneLake             DatastoreType = "OneLake"
 )
 
 func PossibleValuesForDatastoreType() []string {
@@ -74,6 +75,7 @@ func PossibleValuesForDatastoreType() []string {
 		string(DatastoreTypeAzureDataLakeGenOne),
 		string(DatastoreTypeAzureDataLakeGenTwo),
 		string(DatastoreTypeAzureFile),
+		string(DatastoreTypeOneLake),
 	}
 }
 
@@ -96,6 +98,7 @@ func parseDatastoreType(input string) (*DatastoreType, error) {
 		"azuredatalakegen1": DatastoreTypeAzureDataLakeGenOne,
 		"azuredatalakegen2": DatastoreTypeAzureDataLakeGenTwo,
 		"azurefile":         DatastoreTypeAzureFile,
+		"onelake":           DatastoreTypeOneLake,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
@@ -103,6 +106,44 @@ func parseDatastoreType(input string) (*DatastoreType, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := DatastoreType(input)
+	return &out, nil
+}
+
+type OneLakeArtifactType string
+
+const (
+	OneLakeArtifactTypeLakeHouse OneLakeArtifactType = "LakeHouse"
+)
+
+func PossibleValuesForOneLakeArtifactType() []string {
+	return []string{
+		string(OneLakeArtifactTypeLakeHouse),
+	}
+}
+
+func (s *OneLakeArtifactType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseOneLakeArtifactType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseOneLakeArtifactType(input string) (*OneLakeArtifactType, error) {
+	vals := map[string]OneLakeArtifactType{
+		"lakehouse": OneLakeArtifactTypeLakeHouse,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := OneLakeArtifactType(input)
 	return &out, nil
 }
 
