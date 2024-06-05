@@ -1266,9 +1266,9 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			account.Properties.RestoreParameters = expandCosmosdbAccountRestoreParameters(v.([]interface{}))
 		}
 
-		if v, ok := d.GetOk("mongo_server_version"); ok {
+		if !pluginsdk.IsExplicitlyNullInConfig(d, "mongo_server_version") {
 			account.Properties.ApiProperties = &cosmosdb.ApiProperties{
-				ServerVersion: pointer.To(cosmosdb.ServerVersion(v.(string))),
+				ServerVersion: pointer.To(cosmosdb.ServerVersion(d.Get("mongo_server_version").(string))),
 			}
 		}
 
