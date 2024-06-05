@@ -22,6 +22,10 @@ data "azurerm_hdinsight_cluster" "example" {
 output "https_endpoint" {
   value = data.azurerm_hdinsight_cluster.example.https_endpoint
 }
+
+output "cluster_id" {
+  value = data.azurerm_hdinsight_cluster.example.cluster_id
+}
 ```
 
 ## Argument Reference
