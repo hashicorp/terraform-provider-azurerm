@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/communicationservices"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/domains"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/communication/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/communication/validate"
@@ -30,7 +29,6 @@ type CommunicationServiceResourceModel struct {
 	Name              string            `tfschema:"name"`
 	ResourceGroupName string            `tfschema:"resource_group_name"`
 	DataLocation      string            `tfschema:"data_location"`
-	LinkedDomains     []string          `tfschema:"linked_domains"`
 	Tags              map[string]string `tfschema:"tags"`
 
 	PrimaryConnectionString   string `tfschema:"primary_connection_string"`
@@ -83,15 +81,6 @@ func (CommunicationServiceResource) Arguments() map[string]*pluginsdk.Schema {
 				"UK",
 				"United States",
 			}, false),
-		},
-
-		"linked_domains": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			Elem: &pluginsdk.Schema{
-				Type:         pluginsdk.TypeString,
-				ValidateFunc: domains.ValidateDomainID,
-			},
 		},
 
 		"tags": commonschema.Tags(),
@@ -157,8 +146,7 @@ func (r CommunicationServiceResource) Create() sdk.ResourceFunc {
 				// The location is always `global` from the Azure Portal
 				Location: location.Normalize("global"),
 				Properties: &communicationservices.CommunicationServiceProperties{
-					DataLocation:  model.DataLocation,
-					LinkedDomains: pointer.To(model.LinkedDomains),
+					DataLocation: model.DataLocation,
 				},
 				Tags: pointer.To(model.Tags),
 			}
@@ -201,10 +189,6 @@ func (r CommunicationServiceResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("data_location") {
 				props.DataLocation = model.DataLocation
-			}
-
-			if metadata.ResourceData.HasChange("linked_domains") {
-				props.LinkedDomains = pointer.To(model.LinkedDomains)
 			}
 
 			existing.Model.Properties = &props
@@ -255,7 +239,6 @@ func (CommunicationServiceResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
 					state.DataLocation = props.DataLocation
-					state.LinkedDomains = pointer.From(props.LinkedDomains)
 				}
 
 				state.Tags = pointer.From(model.Tags)

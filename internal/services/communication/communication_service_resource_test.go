@@ -84,22 +84,6 @@ func TestAccCommunicationService_update(t *testing.T) {
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("linked_domains").DoesNotExist(),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccCommunicationService_linkedDomainsEmpty(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_communication_service", "test")
-	r := CommunicationServiceTestResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.emptyLinkedDomains(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -153,23 +137,10 @@ func (r CommunicationServiceTestResource) complete(data acceptance.TestData) str
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_email_communication_service" "test" {
-  name                = "acctest-CommunicationService-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_location       = "United States"
-}
-
-resource "azurerm_email_communication_service_domain" "test" {
-  name              = "AzureManagedDomain"
-  email_service_id  = azurerm_email_communication_service.test.id
-  domain_management = "AzureManaged"
-}
-
 resource "azurerm_communication_service" "test" {
-  name                = "acctest-CommunicationService-%[2]d"
+  name                = "acctest-CommunicationService-%d"
   resource_group_name = azurerm_resource_group.test.name
   data_location       = "United States"
-  linked_domains      = [azurerm_email_communication_service_domain.test.id]
 
   tags = {
     env = "Test"
@@ -186,23 +157,6 @@ resource "azurerm_communication_service" "test" {
   name                = "acctest-CommunicationService-%d"
   resource_group_name = azurerm_resource_group.test.name
   data_location       = "United States"
-
-  tags = {
-    env = "Test2"
-  }
-}
-`, r.template(data), data.RandomInteger)
-}
-
-func (r CommunicationServiceTestResource) emptyLinkedDomains(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_communication_service" "test" {
-  name                = "acctest-CommunicationService-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_location       = "United States"
-  linked_domains      = []
 
   tags = {
     env = "Test2"
