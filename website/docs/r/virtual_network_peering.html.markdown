@@ -12,8 +12,6 @@ description: |-
 Manages a virtual network peering which allows resources to access other
 resources in the linked virtual network.
 
--> **Note:** Before using the feature of Subnet Peering, it's required to submit the request of registering the providers and features with Azure CLI `az provider register --namespace Microsoft.Network/AllowMultiplePeeringLinksBetweenVnets`.
-
 ## Example Usage
 
 ```hcl
