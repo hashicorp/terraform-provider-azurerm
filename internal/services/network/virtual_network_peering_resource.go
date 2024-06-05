@@ -94,12 +94,14 @@ func resourceVirtualNetworkPeering() *pluginsdk.Resource {
 			"only_ipv6_peering_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
+				ForceNew: true,
 			},
 
 			"peer_complete_virtual_networks_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
+				ForceNew: true,
 			},
 
 			"remote_subnet_names": {
@@ -244,12 +246,6 @@ func resourceVirtualNetworkPeeringUpdate(d *pluginsdk.ResourceData, meta interfa
 	}
 	if d.HasChange("allow_virtual_network_access") {
 		existing.Model.Properties.AllowVirtualNetworkAccess = pointer.To(d.Get("allow_virtual_network_access").(bool))
-	}
-	if d.HasChange("peer_complete_virtual_networks_enabled") {
-		existing.Model.Properties.PeerCompleteVnets = pointer.To(d.Get("peer_complete_virtual_networks_enabled").(bool))
-	}
-	if d.HasChange("only_ipv6_peering_enabled") {
-		existing.Model.Properties.EnableOnlyIPv6Peering = pointer.To(d.Get("only_ipv6_peering_enabled").(bool))
 	}
 	if d.HasChange("local_subnet_names") {
 		existing.Model.Properties.LocalSubnetNames = utils.ExpandStringSlice(d.Get("local_subnet_names").([]interface{}))
