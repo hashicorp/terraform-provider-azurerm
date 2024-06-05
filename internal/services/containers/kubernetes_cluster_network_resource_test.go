@@ -258,105 +258,73 @@ func TestAccKubernetesCluster_advancedNetworkingAzureCiliumPolicyUpdate(t *testi
 	})
 }
 
-func TestAccKubernetesCluster_advancedNetworkingAzureAzurePolicyUpdate(t *testing.T) {
+func TestAccKubernetesCluster_advancedNetworkingAzurePolicyUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.advancedNetworkingWithOptionalPolicyConfig(data, ""),
+			Config: r.advancedNetworkingConfig(data, "azure"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.advancedNetworkingWithOptionalPolicyConfig(data, "azure"),
+			Config: r.advancedNetworkingWithPolicyConfig(data, "azure", "azure"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network_profile.0.network_policy").Exists(),
-				check.That(data.ResourceName).Key("network_profile.0.network_policy").HasValue("azure"),
 			),
 		},
 		data.ImportStep(),
 	})
 }
 
-func TestAccKubernetesCluster_advancedNetworkingAzureCalicoPolicyUpdate(t *testing.T) {
+func TestAccKubernetesCluster_advancedNetworkingCalicoPolicyUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.advancedNetworkingWithOptionalPolicyConfig(data, ""),
+			Config: r.advancedNetworkingConfig(data, "azure"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.advancedNetworkingWithOptionalPolicyConfig(data, "calico"),
+			Config: r.advancedNetworkingWithPolicyConfig(data, "azure", "calico"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network_profile.0.network_policy").Exists(),
-				check.That(data.ResourceName).Key("network_profile.0.network_policy").HasValue("calico"),
 			),
 		},
 	})
 }
 
-func TestAccKubernetesCluster_advancedNetworkingAzureInPlacePolicyUpdate(t *testing.T) {
+func TestAccKubernetesCluster_advancedNetworkingCalicoToAzurePolicyUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.advancedNetworkingWithOptionalPolicyConfig(data, "calico"),
+			Config: r.advancedNetworkingWithPolicyConfig(data, "azure", "calico"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_profile.0.network_policy").Exists(),
-				check.That(data.ResourceName).Key("network_profile.0.network_policy").HasValue("calico"),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.advancedNetworkingWithOptionalPolicyConfig(data, "azure"),
+			Config: r.advancedNetworkingWithPolicyConfig(data, "azure", "azure"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_profile.0.network_policy").Exists(),
-				check.That(data.ResourceName).Key("network_profile.0.network_policy").HasValue("azure"),
 			),
 		},
 		data.ImportStep(),
 	})
 }
 
-func TestAccKubernetesCluster_advancedNetworkingAzurePolicyRemove(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	r := KubernetesClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.advancedNetworkingWithOptionalPolicyConfig(data, "calico"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network_profile.0.network_policy").Exists(),
-				check.That(data.ResourceName).Key("network_profile.0.network_policy").HasValue("calico"),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.advancedNetworkingWithOptionalPolicyConfig(data, ""),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network_profile.0.network_policy").Exists(),
-				// network_policy is a computed value. If omitted, the current value from API is taken.
-				check.That(data.ResourceName).Key("network_profile.0.network_policy").HasValue("calico"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
 
 func TestAccKubernetesCluster_advancedNetworkingAzureCalicoPolicyComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
@@ -1701,63 +1669,6 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
 `, data.Locations.Primary, data.RandomInteger)
-}
-
-func (KubernetesClusterResource) advancedNetworkingWithOptionalPolicyConfig(data acceptance.TestData, networkPolicy string) string {
-	if networkPolicy != "" {
-		networkPolicy = fmt.Sprintf("network_policy = %q", networkPolicy)
-	}
-
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%[2]d"
-  location = "%[1]s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestvirtnet%[2]d"
-  address_space       = ["10.1.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctestsubnet%[2]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.1.0.0/24"]
-}
-
-resource "azurerm_kubernetes_cluster" "test" {
-  name                = "acctestaks%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%[2]d"
-
-  default_node_pool {
-    name           = "default"
-    node_count     = 2
-    vm_size        = "Standard_DS2_v2"
-    vnet_subnet_id = azurerm_subnet.test.id
-    upgrade_settings {
-      max_surge = "10%%"
-    }
-  }
-
-  identity {
-    type = "SystemAssigned"
-  }
-
-  network_profile {
-    network_plugin = "azure"
-	%[3]s
-  }
-}
-`, data.Locations.Primary, data.RandomInteger, networkPolicy)
 }
 
 func (KubernetesClusterResource) advancedNetworkingWithCiliumPolicyConfig(data acceptance.TestData) string {
