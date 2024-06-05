@@ -325,7 +325,6 @@ func TestAccKubernetesCluster_advancedNetworkingCalicoToAzurePolicyUpdate(t *tes
 	})
 }
 
-
 func TestAccKubernetesCluster_advancedNetworkingAzureCalicoPolicyComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
