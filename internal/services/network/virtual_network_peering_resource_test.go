@@ -51,7 +51,7 @@ func TestAccVirtualNetworkPeering_withTriggers(t *testing.T) {
 				check.That(secondResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("allow_virtual_network_access").HasValue("true"),
 				check.That(data.ResourceName).Key("triggers.remote_address_space").Exists(),
-				check.That(data.ResourceName).Key("triggers.remote_address_space").HasValue("10.0.2.0/24"),
+				check.That(data.ResourceName).Key("triggers.remote_address_space").HasValue("10.0.2.0/24,1001:1002::/64"),
 				check.That(secondResourceName).Key("allow_virtual_network_access").HasValue("true"),
 			),
 		},
