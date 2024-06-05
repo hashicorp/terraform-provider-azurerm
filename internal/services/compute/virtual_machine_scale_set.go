@@ -1946,14 +1946,10 @@ func VirtualMachineScaleSetAutomaticRepairsPolicySchema() *pluginsdk.Schema {
 					ValidateFunc: azValidate.ISO8601DurationBetween("PT10M", "PT90M"),
 				},
 				"action": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  string(virtualmachinescalesets.RepairActionReplace),
-					ValidateFunc: validation.StringInSlice([]string{
-						string(virtualmachinescalesets.RepairActionReimage),
-						string(virtualmachinescalesets.RepairActionRestart),
-						string(virtualmachinescalesets.RepairActionReplace),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Default:      string(virtualmachinescalesets.RepairActionReplace),
+					ValidateFunc: validation.StringInSlice(virtualmachinescalesets.PossibleValuesForRepairAction(), false),
 				},
 			},
 		},
