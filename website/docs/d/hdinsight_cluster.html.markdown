@@ -32,6 +32,12 @@ output "https_endpoint" {
 
 ## Attributes Reference
 
+* `id` - The fully qualified HDInsight resource ID.
+
+* `name` - The HDInsight Cluster name.
+
+* `cluster_id` - The HDInsight Cluster ID.
+
 * `location` - The Azure Region in which this HDInsight Cluster exists.
 
 * `cluster_version` - The version of HDInsights which is used on this HDInsight Cluster.
