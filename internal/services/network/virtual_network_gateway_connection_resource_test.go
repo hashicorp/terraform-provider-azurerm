@@ -18,13 +18,13 @@ import (
 
 type VirtualNetworkGatewayConnectionResource struct{}
 
-func TestAccVirtualNetworkGatewayConnection_sitetosite(t *testing.T) {
+func TestAccVirtualNetworkGatewayConnection_siteToSite(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test")
 	r := VirtualNetworkGatewayConnectionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.sitetosite(data),
+			Config: r.siteToSite(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -39,7 +39,7 @@ func TestAccVirtualNetworkGatewayConnection_requiresImport(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.sitetosite(data),
+			Config: r.siteToSite(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -51,13 +51,13 @@ func TestAccVirtualNetworkGatewayConnection_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccVirtualNetworkGatewayConnection_sitetositeWithoutSharedKey(t *testing.T) {
+func TestAccVirtualNetworkGatewayConnection_siteToSiteWithoutSharedKey(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test")
 	r := VirtualNetworkGatewayConnectionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.sitetositeWithoutSharedKey(data),
+			Config: r.siteToSiteWithoutSharedKey(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -66,13 +66,13 @@ func TestAccVirtualNetworkGatewayConnection_sitetositeWithoutSharedKey(t *testin
 	})
 }
 
-func TestAccVirtualNetworkGatewayConnection_expressroute(t *testing.T) {
+func TestAccVirtualNetworkGatewayConnection_expressRoute(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test")
 	r := VirtualNetworkGatewayConnectionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.expressroute(data),
+			Config: r.expressRoute(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -81,13 +81,13 @@ func TestAccVirtualNetworkGatewayConnection_expressroute(t *testing.T) {
 	})
 }
 
-func TestAccVirtualNetworkGatewayConnection_expressrouteWithFastPath(t *testing.T) {
+func TestAccVirtualNetworkGatewayConnection_expressRouteWithFastPath(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test")
 	r := VirtualNetworkGatewayConnectionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.expressrouteWithFastPath(data),
+			Config: r.expressRouteWithFastPath(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -96,7 +96,7 @@ func TestAccVirtualNetworkGatewayConnection_expressrouteWithFastPath(t *testing.
 	})
 }
 
-func TestAccVirtualNetworkGatewayConnection_vnettonet(t *testing.T) {
+func TestAccVirtualNetworkGatewayConnection_vnetToVnet(t *testing.T) {
 	data1 := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test_1")
 	data2 := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test_2")
 	r := VirtualNetworkGatewayConnectionResource{}
@@ -105,7 +105,7 @@ func TestAccVirtualNetworkGatewayConnection_vnettonet(t *testing.T) {
 
 	data1.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.vnettovnet(data1, data1.RandomInteger, data2.RandomInteger, sharedKey),
+			Config: r.vnetToVnet(data1, data1.RandomInteger, data2.RandomInteger, sharedKey),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data1.ResourceName).ExistsInAzure(r),
 				acceptance.TestCheckResourceAttr(data1.ResourceName, "shared_key", sharedKey),
@@ -115,13 +115,13 @@ func TestAccVirtualNetworkGatewayConnection_vnettonet(t *testing.T) {
 	})
 }
 
-func TestAccVirtualNetworkGatewayConnection_ipsecpolicy(t *testing.T) {
+func TestAccVirtualNetworkGatewayConnection_ipsecPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test")
 	r := VirtualNetworkGatewayConnectionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.ipsecpolicy(data),
+			Config: r.ipsecPolicy(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -135,7 +135,7 @@ func TestAccVirtualNetworkGatewayConnection_trafficSelectorPolicy(t *testing.T) 
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.trafficselectorpolicy(data),
+			Config: r.trafficSelectorPolicy(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("traffic_selector_policy.0.local_address_cidrs.0").HasValue("10.66.18.0/24"),
@@ -152,7 +152,7 @@ func TestAccVirtualNetworkGatewayConnection_trafficSelectorPolicyMultiple(t *tes
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.trafficselectorpolicymultiple(data),
+			Config: r.trafficSelectorPolicyMultiple(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("traffic_selector_policy.0.local_address_cidrs.0").HasValue("10.66.18.0/24"),
@@ -166,14 +166,14 @@ func TestAccVirtualNetworkGatewayConnection_trafficSelectorPolicyMultiple(t *tes
 	})
 }
 
-func TestAccVirtualNetworkGatewayConnection_connectionprotocol(t *testing.T) {
+func TestAccVirtualNetworkGatewayConnection_connectionProtocol(t *testing.T) {
 	expectedConnectionProtocol := "IKEv1"
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test")
 	r := VirtualNetworkGatewayConnectionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.connectionprotocol(data),
+			Config: r.connectionProtocol(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("connection_protocol").HasValue(expectedConnectionProtocol),
@@ -208,7 +208,7 @@ func TestAccVirtualNetworkGatewayConnection_updatingSharedKey(t *testing.T) {
 
 	data1.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.vnettovnet(data1, data1.RandomInteger, data2.RandomInteger, firstSharedKey),
+			Config: r.vnetToVnet(data1, data1.RandomInteger, data2.RandomInteger, firstSharedKey),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data1.ResourceName).ExistsInAzure(r),
 				check.That(data2.ResourceName).ExistsInAzure(r),
@@ -217,7 +217,7 @@ func TestAccVirtualNetworkGatewayConnection_updatingSharedKey(t *testing.T) {
 			),
 		},
 		{
-			Config: r.vnettovnet(data1, data1.RandomInteger, data2.RandomInteger, secondSharedKey),
+			Config: r.vnetToVnet(data1, data1.RandomInteger, data2.RandomInteger, secondSharedKey),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data1.ResourceName).ExistsInAzure(r),
 				check.That(data2.ResourceName).ExistsInAzure(r),
@@ -311,7 +311,7 @@ func (t VirtualNetworkGatewayConnectionResource) Exists(ctx context.Context, cli
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (VirtualNetworkGatewayConnectionResource) sitetosite(data acceptance.TestData) string {
+func (VirtualNetworkGatewayConnectionResource) siteToSite(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 variable "random" {
   default = "%d"
@@ -388,7 +388,7 @@ resource "azurerm_virtual_network_gateway_connection" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (VirtualNetworkGatewayConnectionResource) sitetositeWithoutSharedKey(data acceptance.TestData) string {
+func (VirtualNetworkGatewayConnectionResource) siteToSiteWithoutSharedKey(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 variable "random" {
   default = "%d"
@@ -461,7 +461,7 @@ resource "azurerm_virtual_network_gateway_connection" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (VirtualNetworkGatewayConnectionResource) expressroute(data acceptance.TestData) string {
+func (VirtualNetworkGatewayConnectionResource) expressRoute(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 variable "random" {
   default = "%d"
@@ -568,7 +568,7 @@ resource "azurerm_virtual_network_gateway_connection" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (VirtualNetworkGatewayConnectionResource) expressrouteWithFastPath(data acceptance.TestData) string {
+func (VirtualNetworkGatewayConnectionResource) expressRouteWithFastPath(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 variable "random" {
   default = "%d"
@@ -690,10 +690,10 @@ resource "azurerm_virtual_network_gateway_connection" "import" {
   local_network_gateway_id   = azurerm_virtual_network_gateway_connection.test.local_network_gateway_id
   shared_key                 = azurerm_virtual_network_gateway_connection.test.shared_key
 }
-`, r.sitetosite(data))
+`, r.siteToSite(data))
 }
 
-func (VirtualNetworkGatewayConnectionResource) vnettovnet(data acceptance.TestData, rInt1 int, rInt2 int, sharedKey string) string {
+func (VirtualNetworkGatewayConnectionResource) vnetToVnet(data acceptance.TestData, rInt1 int, rInt2 int, sharedKey string) string {
 	return fmt.Sprintf(`
 variable "random1" {
   default = "%d"
@@ -819,7 +819,7 @@ resource "azurerm_virtual_network_gateway_connection" "test_2" {
 `, rInt1, rInt2, sharedKey, data.Locations.Primary, data.Locations.Secondary)
 }
 
-func (VirtualNetworkGatewayConnectionResource) ipsecpolicy(data acceptance.TestData) string {
+func (VirtualNetworkGatewayConnectionResource) ipsecPolicy(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 variable "random" {
   default = "%d"
@@ -848,7 +848,8 @@ resource "azurerm_public_ip" "test" {
   name                = "acctest-${var.random}"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
@@ -934,7 +935,8 @@ resource "azurerm_public_ip" "test" {
   name                = "acctest-${var.random}"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
@@ -990,7 +992,7 @@ resource "azurerm_virtual_network_gateway_connection" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (VirtualNetworkGatewayConnectionResource) connectionprotocol(data acceptance.TestData) string {
+func (VirtualNetworkGatewayConnectionResource) connectionProtocol(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 variable "random" {
   default = "%d"
@@ -1019,7 +1021,8 @@ resource "azurerm_public_ip" "test" {
   name                = "acctest-${var.random}"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
@@ -1075,7 +1078,7 @@ resource "azurerm_virtual_network_gateway_connection" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (VirtualNetworkGatewayConnectionResource) trafficselectorpolicy(data acceptance.TestData) string {
+func (VirtualNetworkGatewayConnectionResource) trafficSelectorPolicy(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 variable "random" {
   default = "%d"
@@ -1104,7 +1107,8 @@ resource "azurerm_public_ip" "test" {
   name                = "acctest-${var.random}"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
@@ -1167,7 +1171,7 @@ resource "azurerm_virtual_network_gateway_connection" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (VirtualNetworkGatewayConnectionResource) trafficselectorpolicymultiple(data acceptance.TestData) string {
+func (VirtualNetworkGatewayConnectionResource) trafficSelectorPolicyMultiple(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 variable "random" {
   default = "%d"
@@ -1196,7 +1200,8 @@ resource "azurerm_public_ip" "test" {
   name                = "acctest-${var.random}"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
