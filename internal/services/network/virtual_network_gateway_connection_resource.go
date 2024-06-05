@@ -157,7 +157,8 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 			"shared_key": {
 				Type:      pluginsdk.TypeString,
 				Computed:  !features.FourPointOhBeta(),
-				Optional:  true,
+				Optional:  !features.FourPointOh(),
+				Required:  features.FourPointOhBeta(),
 				Sensitive: true,
 			},
 
