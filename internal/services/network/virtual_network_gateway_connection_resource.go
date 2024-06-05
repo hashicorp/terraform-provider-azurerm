@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/virtualnetworkgateways"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -155,6 +156,7 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 
 			"shared_key": {
 				Type:      pluginsdk.TypeString,
+				Computed:  !features.FourPointOhBeta(),
 				Optional:  true,
 				Sensitive: true,
 			},
@@ -463,7 +465,9 @@ func resourceVirtualNetworkGatewayConnectionRead(d *pluginsdk.ResourceData, meta
 	}
 
 	if model := respKey.Model; model != nil {
-		d.Set("shared_key", model.Value)
+		if model.Value != "" {
+			d.Set("shared_key", model.Value)
+		}
 	}
 
 	if model := resp.Model; model != nil {
