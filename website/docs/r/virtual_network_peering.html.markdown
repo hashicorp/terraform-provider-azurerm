@@ -174,11 +174,11 @@ The following arguments are supported:
 
 * `allow_gateway_transit` - (Optional) Controls gatewayLinks can be used in the remote virtual network’s link to the local virtual network. Defaults to `false`.
 
-* `peer_complete_virtual_networks_enabled` - (Optional) Specifies whether complete Virtual Network address space is peered. Defaults to `true`. Changing this forces a new resource to be created.
+* `local_subnet_names` - (Optional) A list of local Subnet names that are Subnet peered with remote Virtual Network.
 
 * `only_ipv6_peering_enabled` - (Optional) Specifies whether only IPv6 address space is peered for Subnet peering. Changing this forces a new resource to be created.
 
-* `local_subnet_names` - (Optional) A list of local Subnet names that are Subnet peered with remote Virtual Network.
+* `peer_complete_virtual_networks_enabled` - (Optional) Specifies whether complete Virtual Network address space is peered. Defaults to `true`. Changing this forces a new resource to be created.
 
 * `remote_subnet_names` - (Optional) A list of remote Subnet names from remote Virtual Network that are Subnet peered.
 

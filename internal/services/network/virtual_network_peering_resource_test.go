@@ -290,7 +290,6 @@ resource "azurerm_virtual_network" "test2" {
 }
 
 func (r VirtualNetworkPeeringResource) subnetPeering(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -324,5 +323,5 @@ resource "azurerm_virtual_network_peering" "test1" {
   local_subnet_names                     = [azurerm_subnet.test1.name]
   remote_subnet_names                    = [azurerm_subnet.test2.name]
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
