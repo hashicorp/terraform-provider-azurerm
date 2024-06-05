@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 	"log"
 	"time"
 
@@ -36,9 +37,9 @@ var VirtualNetworkResourceName = "azurerm_virtual_network"
 
 func resourceVirtualNetwork() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceVirtualNetworkCreateUpdate,
+		Create: resourceVirtualNetworkCreate,
 		Read:   resourceVirtualNetworkRead,
-		Update: resourceVirtualNetworkCreateUpdate,
+		Update: resourceVirtualNetworkUpdate,
 		Delete: resourceVirtualNetworkDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := commonids.ParseVirtualNetworkID(id)
@@ -199,24 +200,22 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 	return s
 }
 
-func resourceVirtualNetworkCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualNetworkCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VirtualNetworks
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := commonids.NewVirtualNetworkID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id, virtualnetworks.DefaultGetOperationOptions())
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id, virtualnetworks.DefaultGetOperationOptions())
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_virtual_network", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
+	}
+
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_virtual_network", id.ID())
 	}
 
 	vnetProperties, err := expandVirtualNetworkProperties(ctx, *client, id, d)
@@ -255,7 +254,7 @@ func resourceVirtualNetworkCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	defer locks.UnlockMultipleByName(&networkSecurityGroupNames, networkSecurityGroupResourceName)
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, vnet); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	timeout, _ := ctx.Deadline()
@@ -345,6 +344,121 @@ func resourceVirtualNetworkRead(d *pluginsdk.ResourceData, meta interface{}) err
 	return nil
 }
 
+func resourceVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.VirtualNetworks
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := commonids.ParseVirtualNetworkID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.Get(ctx, *id, virtualnetworks.DefaultGetOperationOptions())
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", id)
+	}
+
+	payload := existing.Model
+
+	if d.HasChange("address_space") {
+		if payload.Properties.AddressSpace == nil {
+			payload.Properties.AddressSpace = &virtualnetworks.AddressSpace{}
+		}
+		if !features.FourPointOhBeta() {
+			payload.Properties.AddressSpace.AddressPrefixes = utils.ExpandStringSlice(d.Get("address_space").([]interface{}))
+		} else {
+			payload.Properties.AddressSpace.AddressPrefixes = utils.ExpandStringSlice(d.Get("address_space").(*pluginsdk.Set).List())
+		}
+	}
+
+	if d.HasChange("bgp_community") {
+		payload.Properties.BgpCommunities = &virtualnetworks.VirtualNetworkBgpCommunities{VirtualNetworkCommunity: d.Get("bgp_community").(string)}
+	}
+
+	if d.HasChange("ddos_protection_plan") {
+		ddosProtectionPlanId, enabled := expandVirtualNetworkDdosProtectionPlan(d.Get("ddos_protection_plan").([]interface{}))
+		payload.Properties.DdosProtectionPlan = ddosProtectionPlanId
+		payload.Properties.EnableDdosProtection = enabled
+	}
+
+	if d.HasChange("encryption") {
+		// nil out the current values in case `encryption` has been removed from the config file
+		payload.Properties.Encryption = expandVirtualNetworkEncryption(d.Get("encryption").([]interface{}))
+	}
+
+	if d.HasChange("dns_servers") {
+		if payload.Properties.DhcpOptions == nil {
+			payload.Properties.DhcpOptions = &virtualnetworks.DhcpOptions{}
+		}
+
+		payload.Properties.DhcpOptions.DnsServers = utils.ExpandStringSlice(d.Get("dns_servers").([]interface{}))
+	}
+
+	if d.HasChange("flow_timeout_in_minutes") {
+		payload.Properties.FlowTimeoutInMinutes = utils.Int64(int64(d.Get("flow_timeout_in_minutes").(int)))
+	}
+
+	if d.HasChange("subnet") {
+		subnets, err := expandVirtualNetworkSubnets(ctx, *client, d.Get("subnet").(*pluginsdk.Set).List(), *id)
+		if err != nil {
+			return fmt.Errorf("expanding `subnet`: %+v", err)
+		}
+		payload.Properties.Subnets = subnets
+	}
+
+	if d.HasChange("tags") {
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	networkSecurityGroupNames := make([]string, 0)
+	if payload.Properties != nil && payload.Properties.Subnets != nil {
+		for _, subnet := range *payload.Properties.Subnets {
+			if subnet.Properties != nil && subnet.Properties.NetworkSecurityGroup != nil && subnet.Id != nil {
+				parsedNsgID, err := parse.NetworkSecurityGroupID(*subnet.Id)
+				if err != nil {
+					return err
+				}
+
+				networkSecurityGroupName := parsedNsgID.Name
+				if !utils.SliceContainsValue(networkSecurityGroupNames, networkSecurityGroupName) {
+					networkSecurityGroupNames = append(networkSecurityGroupNames, networkSecurityGroupName)
+				}
+			}
+		}
+	}
+
+	locks.MultipleByName(&networkSecurityGroupNames, networkSecurityGroupResourceName)
+	defer locks.UnlockMultipleByName(&networkSecurityGroupNames, networkSecurityGroupResourceName)
+
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
+	timeout, _ := ctx.Deadline()
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending:    []string{string(network.ProvisioningStateUpdating)},
+		Target:     []string{string(network.ProvisioningStateSucceeded)},
+		Refresh:    VirtualNetworkProvisioningStateRefreshFunc(ctx, meta.(*clients.Client).Network.VirtualNetworks, *id),
+		MinTimeout: 1 * time.Minute,
+		Timeout:    time.Until(timeout),
+	}
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for provisioning state of %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+	return resourceVirtualNetworkRead(d, meta)
+}
+
 func resourceVirtualNetworkDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VirtualNetworks
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -368,6 +482,88 @@ func resourceVirtualNetworkDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	return nil
+}
+
+func expandVirtualNetworkDdosProtectionPlan(input []interface{}) (*virtualnetworks.SubResource, *bool) {
+	if len(input) == 0 || input[0] == nil {
+		return nil, nil
+	}
+
+	var id string
+	var enabled bool
+
+	ddosPPlan := input[0].(map[string]interface{})
+
+	if v, ok := ddosPPlan["id"]; ok {
+		id = v.(string)
+	}
+
+	if v, ok := ddosPPlan["enable"]; ok {
+		enabled = v.(bool)
+	}
+
+	return &virtualnetworks.SubResource{
+		Id: pointer.To(id),
+	}, &enabled
+}
+
+func expandVirtualNetworkEncryption(input []interface{}) *virtualnetworks.VirtualNetworkEncryption {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	attr := input[0].(map[string]interface{})
+	return &virtualnetworks.VirtualNetworkEncryption{
+		Enabled:     true,
+		Enforcement: pointer.To(virtualnetworks.VirtualNetworkEncryptionEnforcement(attr["enforcement"].(string))),
+	}
+}
+
+func expandVirtualNetworkSubnets(ctx context.Context, client virtualnetworks.VirtualNetworksClient, input []interface{}, id commonids.VirtualNetworkId) (*[]virtualnetworks.Subnet, error) {
+	if len(input) == 0 {
+		return nil, nil
+	}
+
+	subnets := make([]virtualnetworks.Subnet, 0)
+	for _, subnetRaw := range input {
+		if subnetRaw == nil {
+			continue
+		}
+		subnet := subnetRaw.(map[string]interface{})
+
+		name := subnet["name"].(string)
+		log.Printf("[INFO] setting subnets inside vNet, processing %q", name)
+		// since subnets can also be created outside of vNet definition (as root objects)
+		// do a GET on subnet properties from the server before setting them
+		subnetObj, err := getExistingSubnet(ctx, client, id, name)
+		if err != nil {
+			return nil, err
+		}
+		log.Printf("[INFO] Completed GET of Subnet props ")
+
+		prefix := subnet["address_prefix"].(string)
+		secGroup := subnet["security_group"].(string)
+
+		// set the props from config and leave the rest intact
+		subnetObj.Name = &name
+		if subnetObj.Properties == nil {
+			subnetObj.Properties = &virtualnetworks.SubnetPropertiesFormat{}
+		}
+
+		subnetObj.Properties.AddressPrefix = &prefix
+
+		if secGroup != "" {
+			subnetObj.Properties.NetworkSecurityGroup = &virtualnetworks.NetworkSecurityGroup{
+				Id: &secGroup,
+			}
+		} else {
+			subnetObj.Properties.NetworkSecurityGroup = nil
+		}
+
+		subnets = append(subnets, *subnetObj)
+	}
+
+	return &subnets, nil
 }
 
 func expandVirtualNetworkProperties(ctx context.Context, client virtualnetworks.VirtualNetworksClient, id commonids.VirtualNetworkId, d *pluginsdk.ResourceData) (*virtualnetworks.VirtualNetworkPropertiesFormat, error) {
