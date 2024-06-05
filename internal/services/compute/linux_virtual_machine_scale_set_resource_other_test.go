@@ -550,6 +550,14 @@ func TestAccLinuxVirtualMachineScaleSet_otherAutomaticRepairsPolicy(t *testing.T
 			),
 		},
 		data.ImportStep("admin_password"),
+		// turn automatic repair off
+		{
+			Config: r.otherAutomaticRepairsPolicyDisabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
 		// update automatic repair
 		{
 			Config: r.otherAutomaticRepairsPolicyUpdated(data),

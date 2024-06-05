@@ -201,6 +201,13 @@ func TestAccOrchestratedVirtualMachineScaleSet_otherAutomaticInstanceRepair(t *t
 		},
 		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
 		{
+			Config: r.otherAutomaticInstanceRepairDisabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
+		{
 			Config: r.otherAutomaticInstanceRepairUpdated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
