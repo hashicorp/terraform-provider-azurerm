@@ -150,6 +150,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		authorization.Registration{},
 		automanage.Registration{},
 		automation.Registration{},
+		advisor.Registration{},
 		azurestackhci.Registration{},
 		batch.Registration{},
 		bot.Registration{},

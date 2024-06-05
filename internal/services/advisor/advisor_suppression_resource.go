@@ -77,7 +77,6 @@ func (r AdvisorSuppressionResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			subscriptionId := metadata.Client.Account.SubscriptionId
 			client := metadata.Client.Advisor.SuppressionsClient
 
 			var model AdvisorSuppressionResourceModel
@@ -86,7 +85,7 @@ func (r AdvisorSuppressionResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			id := suppressions.NewScopedSuppressionID(subscriptionId, model.RecommendationID, model.Name)
+			id := suppressions.NewScopedSuppressionID(model.ResourceID, model.RecommendationID, model.Name)
 
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
