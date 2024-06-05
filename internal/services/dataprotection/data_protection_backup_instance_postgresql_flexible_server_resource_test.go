@@ -69,13 +69,6 @@ func TestAccDataProtectionBackupInstancePostgreSQLFlexibleServer_update(t *testi
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -83,7 +76,7 @@ func TestAccDataProtectionBackupInstancePostgreSQLFlexibleServer_update(t *testi
 		},
 		data.ImportStep(),
 		{
-			Config: r.basic(data),
+			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -193,7 +186,34 @@ resource "azurerm_data_protection_backup_instance_postgresql_flexible_server" "t
   location         = azurerm_resource_group.test.location
   vault_id         = azurerm_data_protection_backup_vault.test.id
   server_id        = azurerm_postgresql_flexible_server.test.id
-  backup_policy_id = azurerm_data_protection_backup_policy_postgresql_flexible_server.another.id
+  backup_policy_id = azurerm_data_protection_backup_policy_postgresql_flexible_server.test.id
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) update(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "test2" {
+  name                            = "acctest-dp2-%d"
+  vault_id                        = azurerm_data_protection_backup_vault.test.id
+  backup_repeating_time_intervals = ["R/2021-05-24T02:30:00+00:00/P1W"]
+
+  default_retention_rule {
+    life_cycle {
+      duration        = "P4M"
+      data_store_type = "VaultStore"
+    }
+  }
+}
+
+resource "azurerm_data_protection_backup_instance_postgresql_flexible_server" "test" {
+  name             = "acctest-dbi-%d"
+  location         = azurerm_resource_group.test.location
+  vault_id         = azurerm_data_protection_backup_vault.test.id
+  server_id        = azurerm_postgresql_flexible_server.test.id
+  backup_policy_id = azurerm_data_protection_backup_policy_postgresql_flexible_server.test2.id
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger)
 }
