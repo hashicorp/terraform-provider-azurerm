@@ -457,6 +457,15 @@ func resourceVirtualNetworkGatewayConnectionRead(d *pluginsdk.ResourceData, meta
 	d.Set("name", id.ConnectionName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
+	respKey, err := client.GetSharedKey(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving Shared Key for %s: %+v", id, err)
+	}
+
+	if model := respKey.Model; model != nil {
+		d.Set("shared_key", model.Value)
+	}
+
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
 
@@ -501,10 +510,6 @@ func resourceVirtualNetworkGatewayConnectionRead(d *pluginsdk.ResourceData, meta
 
 		if props.RoutingWeight != nil {
 			d.Set("routing_weight", props.RoutingWeight)
-		}
-
-		if props.SharedKey != nil {
-			d.Set("shared_key", props.SharedKey)
 		}
 
 		if err := d.Set("custom_bgp_addresses", flattenGatewayCustomBgpIPAddresses(props.GatewayCustomBgpIPAddresses)); err != nil {
@@ -635,7 +640,7 @@ func getVirtualNetworkGatewayConnectionProperties(d *pluginsdk.ResourceData, vir
 			return nil, err
 		}
 		props.VirtualNetworkGateway2 = &virtualnetworkgatewayconnections.VirtualNetworkGateway{
-			Id:   utils.String(gwid.ID()),
+			Id:   pointer.To(gwid.ID()),
 			Name: &gwid.Name,
 			Properties: virtualnetworkgatewayconnections.VirtualNetworkGatewayPropertiesFormat{
 				IPConfigurations: &[]virtualnetworkgatewayconnections.VirtualNetworkGatewayIPConfiguration{},
@@ -668,7 +673,7 @@ func getVirtualNetworkGatewayConnectionProperties(d *pluginsdk.ResourceData, vir
 	}
 
 	if v, ok := d.GetOk("shared_key"); ok {
-		props.SharedKey = utils.String(v.(string))
+		props.SharedKey = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("connection_protocol"); ok {
@@ -912,7 +917,7 @@ func expandVirtualNetworkGatewayConnectionNatRuleIds(input []interface{}) *[]vir
 
 	for _, item := range input {
 		results = append(results, virtualnetworkgatewayconnections.SubResource{
-			Id: utils.String(item.(string)),
+			Id: pointer.To(item.(string)),
 		})
 	}
 

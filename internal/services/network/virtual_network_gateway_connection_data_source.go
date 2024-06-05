@@ -220,12 +220,20 @@ func dataSourceVirtualNetworkGatewayConnectionRead(d *pluginsdk.ResourceData, me
 	d.Set("name", id.ConnectionName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
+	respKey, err := client.GetSharedKey(ctx, id)
+	if err != nil {
+		return fmt.Errorf("retrieving Shared Key for %s: %+v", id, err)
+	}
+
+	if model := respKey.Model; model != nil {
+		d.Set("shared_key", model.Value)
+	}
+
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
 
 		props := model.Properties
 
-		d.Set("shared_key", props.SharedKey)
 		d.Set("authorization_key", props.AuthorizationKey)
 		d.Set("enable_bgp", props.EnableBgp)
 		d.Set("ingress_bytes_transferred", props.IngressBytesTransferred)

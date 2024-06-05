@@ -14,14 +14,14 @@ import (
 
 type VirtualNetworkGatewayConnectionDataSource struct{}
 
-func TestAccDataSourceVirtualNetworkGatewayConnection_sitetosite(t *testing.T) {
+func TestAccDataSourceVirtualNetworkGatewayConnection_siteToSite(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_virtual_network_gateway_connection", "test")
 	r := VirtualNetworkGatewayConnectionDataSource{}
 	sharedKey := "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
-			Config: r.sitetosite(data),
+			Config: r.siteToSite(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("shared_key").HasValue(sharedKey),
 				check.That(data.ResourceName).Key("type").HasValue(string(virtualnetworkgatewayconnections.VirtualNetworkGatewayConnectionTypeIPsec)),
@@ -30,7 +30,7 @@ func TestAccDataSourceVirtualNetworkGatewayConnection_sitetosite(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceVirtualNetworkGatewayConnection_vnettovnet(t *testing.T) {
+func TestAccDataSourceVirtualNetworkGatewayConnection_vnetToVnet(t *testing.T) {
 	data1 := acceptance.BuildTestData(t, "data.azurerm_virtual_network_gateway_connection", "test_1")
 	data2 := acceptance.BuildTestData(t, "data.azurerm_virtual_network_gateway_connection", "test_2")
 	r := VirtualNetworkGatewayConnectionDataSource{}
@@ -39,7 +39,7 @@ func TestAccDataSourceVirtualNetworkGatewayConnection_vnettovnet(t *testing.T) {
 
 	data1.DataSourceTest(t, []acceptance.TestStep{
 		{
-			Config: r.vnettovnet(data1, data2.RandomInteger, sharedKey),
+			Config: r.vnetToVnet(data1, data2.RandomInteger, sharedKey),
 			Check: acceptance.ComposeTestCheckFunc(
 				acceptance.TestCheckResourceAttr(data1.ResourceName, "shared_key", sharedKey),
 				acceptance.TestCheckResourceAttr(data2.ResourceName, "shared_key", sharedKey),
@@ -50,14 +50,14 @@ func TestAccDataSourceVirtualNetworkGatewayConnection_vnettovnet(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceVirtualNetworkGatewayConnection_ipsecpolicy(t *testing.T) {
+func TestAccDataSourceVirtualNetworkGatewayConnection_ipsecPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_virtual_network_gateway_connection", "test")
 	r := VirtualNetworkGatewayConnectionDataSource{}
 	sharedKey := "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
-			Config: r.ipsecpolicy(data),
+			Config: r.ipsecPolicy(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("shared_key").HasValue(sharedKey),
 				check.That(data.ResourceName).Key("type").HasValue(string(virtualnetworkgatewayconnections.VirtualNetworkGatewayConnectionTypeIPsec)),
@@ -75,7 +75,7 @@ func TestAccDataSourceVirtualNetworkGatewayConnection_ipsecpolicy(t *testing.T) 
 	})
 }
 
-func (VirtualNetworkGatewayConnectionDataSource) sitetosite(data acceptance.TestData) string {
+func (VirtualNetworkGatewayConnectionDataSource) siteToSite(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 variable "random" {
   default = "%d"
@@ -148,7 +148,7 @@ data "azurerm_virtual_network_gateway_connection" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (VirtualNetworkGatewayConnectionDataSource) vnettovnet(data acceptance.TestData, rInt2 int, sharedKey string) string {
+func (VirtualNetworkGatewayConnectionDataSource) vnetToVnet(data acceptance.TestData, rInt2 int, sharedKey string) string {
 	return fmt.Sprintf(`
 variable "random1" {
   default = "%d"
@@ -284,7 +284,7 @@ data "azurerm_virtual_network_gateway_connection" "test_2" {
 `, data.RandomInteger, rInt2, sharedKey, data.Locations.Primary, data.Locations.Secondary)
 }
 
-func (VirtualNetworkGatewayConnectionDataSource) ipsecpolicy(data acceptance.TestData) string {
+func (VirtualNetworkGatewayConnectionDataSource) ipsecPolicy(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 variable "random" {
   default = "%d"

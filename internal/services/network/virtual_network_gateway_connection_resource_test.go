@@ -182,7 +182,7 @@ func TestAccVirtualNetworkGatewayConnection_connectionProtocol(t *testing.T) {
 	})
 }
 
-func TestAccVirtualNetworkGatewayConnection_ConnectionMode(t *testing.T) {
+func TestAccVirtualNetworkGatewayConnection_connectionMode(t *testing.T) {
 	expectedConnectionMode := "InitiatorOnly"
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test")
 	r := VirtualNetworkGatewayConnectionResource{}
