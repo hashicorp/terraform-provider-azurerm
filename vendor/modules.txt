@@ -997,6 +997,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/servicefabricmanagedcluster/2
 github.com/hashicorp/go-azure-sdk/resource-manager/servicefabricmanagedcluster/2021-05-01/nodetype
 github.com/hashicorp/go-azure-sdk/resource-manager/servicelinker/2022-05-01/links
 github.com/hashicorp/go-azure-sdk/resource-manager/servicelinker/2022-05-01/servicelinker
+github.com/hashicorp/go-azure-sdk/resource-manager/servicelinker/2024-04-01/servicelinker
 github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2023-11-01
 github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2023-11-01/associationsinterface
 github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2023-11-01/frontendsinterface
