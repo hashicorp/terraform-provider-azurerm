@@ -67,6 +67,10 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 		),
 
 		CustomizeDiff: pluginsdk.CustomDiffInSequence(
+			// The behaviour of the API requires this, but this could be removed when https://github.com/Azure/azure-rest-api-specs/issues/27373 has been addressed
+			pluginsdk.ForceNewIfChange("default_node_pool.0.upgrade_settings.0.drain_timeout_in_minutes", func(ctx context.Context, old, new, meta interface{}) bool {
+				return old != 0 && new == 0
+			}),
 			// Migration of `identity` to `service_principal` is not allowed, the other way around is
 			pluginsdk.ForceNewIfChange("service_principal.0.client_id", func(ctx context.Context, old, new, meta interface{}) bool {
 				return old == "msi" || old == ""
@@ -327,6 +331,11 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						},
 					},
 				},
+			},
+
+			"cost_analysis_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
 			},
 
 			"custom_ca_trust_certificates_base64": {
@@ -1789,6 +1798,11 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
+	metricsProfile, err := expandKubernetesClusterMetricsProfile(d.Get("cost_analysis_enabled").(bool), d.Get("sku_tier").(string))
+	if err != nil {
+		return err
+	}
+
 	var azureADProfile *managedclusters.ManagedClusterAADProfile
 	if v, ok := d.GetOk("azure_active_directory_role_based_access_control"); ok {
 		azureADProfile, err = expandKubernetesClusterAzureActiveDirectoryRoleBasedAccessControl(v.([]interface{}), tenantId)
@@ -1869,12 +1883,13 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	autoUpgradeProfile := &managedclusters.ManagedClusterAutoUpgradeProfile{}
 
-	autoChannelUpgrade := d.Get("automatic_channel_upgrade").(string)
-	nodeOsChannelUpgrade := d.Get("node_os_channel_upgrade").(string)
-	if features.FourPointOhBeta() {
+	var autoChannelUpgrade, nodeOsChannelUpgrade string
+	if !features.FourPointOhBeta() {
+		autoChannelUpgrade = d.Get("automatic_channel_upgrade").(string)
+		nodeOsChannelUpgrade = d.Get("node_os_channel_upgrade").(string)
+	} else {
 		autoChannelUpgrade = d.Get("automatic_upgrade_channel").(string)
 		nodeOsChannelUpgrade = d.Get("node_os_upgrade_channel").(string)
-
 	}
 
 	// this check needs to be separate and gated since node_os_channel_upgrade is a preview feature
@@ -1921,6 +1936,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 			KubernetesVersion:         utils.String(kubernetesVersion),
 			LinuxProfile:              linuxProfile,
 			WindowsProfile:            windowsProfile,
+			MetricsProfile:            metricsProfile,
 			NetworkProfile:            networkProfile,
 			NodeResourceGroup:         utils.String(nodeResourceGroup),
 			DisableLocalAccounts:      utils.Bool(d.Get("local_account_disabled").(bool)),
@@ -2192,6 +2208,15 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 	if d.HasChange("local_account_disabled") {
 		updateCluster = true
 		existing.Model.Properties.DisableLocalAccounts = utils.Bool(d.Get("local_account_disabled").(bool))
+	}
+
+	if d.HasChange("cost_analysis_enabled") {
+		updateCluster = true
+		metricsProfile, err := expandKubernetesClusterMetricsProfile(d.Get("cost_analysis_enabled").(bool), d.Get("sku_tier").(string))
+		if err != nil {
+			return err
+		}
+		existing.Model.Properties.MetricsProfile = metricsProfile
 	}
 
 	if d.HasChange("network_profile") {
@@ -2921,6 +2946,11 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 				return fmt.Errorf("setting `network_profile`: %+v", err)
 			}
 
+			costAnalysisEnabled := flattenKubernetesClusterMetricsProfile(props.MetricsProfile)
+			if err := d.Set("cost_analysis_enabled", costAnalysisEnabled); err != nil {
+				return fmt.Errorf("setting `cost_analysis_enabled`: %+v", err)
+			}
+
 			rbacEnabled := true
 			if props.EnableRBAC != nil {
 				rbacEnabled = *props.EnableRBAC
@@ -3619,10 +3649,12 @@ func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerSe
 	}
 
 	dockerBridgeCidr := ""
-	if len(raw) != 0 && raw[0] != nil {
-		config := raw[0].(map[string]interface{})
-		if v, ok := config["docker_bridge_cidr"]; ok && v.(string) != "" {
-			dockerBridgeCidr = v.(string)
+	if !features.FourPointOhBeta() {
+		if len(raw) != 0 && raw[0] != nil {
+			config := raw[0].(map[string]interface{})
+			if v, ok := config["docker_bridge_cidr"]; ok && v.(string) != "" {
+				dockerBridgeCidr = v.(string)
+			}
 		}
 	}
 
@@ -3749,26 +3781,29 @@ func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerSe
 		ebpfDataPlane = string(*v)
 	}
 
-	return []interface{}{
-		map[string]interface{}{
-			"dns_service_ip":        dnsServiceIP,
-			"docker_bridge_cidr":    dockerBridgeCidr,
-			"ebpf_data_plane":       ebpfDataPlane,
-			"load_balancer_sku":     string(*sku),
-			"load_balancer_profile": lbProfiles,
-			"nat_gateway_profile":   ngwProfiles,
-			"ip_versions":           ipVersions,
-			"network_plugin":        networkPlugin,
-			"network_plugin_mode":   networkPluginMode,
-			"network_mode":          networkMode,
-			"network_policy":        networkPolicy,
-			"pod_cidr":              podCidr,
-			"pod_cidrs":             utils.FlattenStringSlice(profile.PodCidrs),
-			"service_cidr":          serviceCidr,
-			"service_cidrs":         utils.FlattenStringSlice(profile.ServiceCidrs),
-			"outbound_type":         outboundType,
-		},
+	result := map[string]interface{}{
+		"dns_service_ip":        dnsServiceIP,
+		"ebpf_data_plane":       ebpfDataPlane,
+		"load_balancer_sku":     string(*sku),
+		"load_balancer_profile": lbProfiles,
+		"nat_gateway_profile":   ngwProfiles,
+		"ip_versions":           ipVersions,
+		"network_plugin":        networkPlugin,
+		"network_plugin_mode":   networkPluginMode,
+		"network_mode":          networkMode,
+		"network_policy":        networkPolicy,
+		"pod_cidr":              podCidr,
+		"pod_cidrs":             utils.FlattenStringSlice(profile.PodCidrs),
+		"service_cidr":          serviceCidr,
+		"service_cidrs":         utils.FlattenStringSlice(profile.ServiceCidrs),
+		"outbound_type":         outboundType,
 	}
+
+	if !features.FourPointOhBeta() {
+		result["docker_bridge_cidr"] = dockerBridgeCidr
+	}
+
+	return []interface{}{result}
 }
 
 func expandKubernetesClusterAzureActiveDirectoryRoleBasedAccessControl(input []interface{}, providerTenantId string) (*managedclusters.ManagedClusterAADProfile, error) {
@@ -4852,6 +4887,24 @@ func flattenKubernetesClusterAzureMonitorProfile(input *managedclusters.ManagedC
 			"labels_allowed":      labelAllowList,
 		},
 	}
+}
+
+func expandKubernetesClusterMetricsProfile(input bool, skuTier string) (*managedclusters.ManagedClusterMetricsProfile, error) {
+	if input && skuTier != "Standard" && skuTier != "Premium" {
+		return nil, fmt.Errorf("`sku_tier` must be either `Standard` or `Premium` when cost analysis is enabled")
+	}
+	return &managedclusters.ManagedClusterMetricsProfile{
+		CostAnalysis: &managedclusters.ManagedClusterCostAnalysis{
+			Enabled: pointer.To(input),
+		},
+	}, nil
+}
+
+func flattenKubernetesClusterMetricsProfile(input *managedclusters.ManagedClusterMetricsProfile) bool {
+	if input == nil || input.CostAnalysis == nil {
+		return false
+	}
+	return pointer.From(input.CostAnalysis.Enabled)
 }
 
 func retrySystemNodePoolCreation(ctx context.Context, client *agentpools.AgentPoolsClient, id agentpools.AgentPoolId, profile agentpools.AgentPool) error {

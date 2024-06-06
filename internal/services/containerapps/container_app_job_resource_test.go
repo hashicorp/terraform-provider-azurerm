@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -229,6 +230,24 @@ func TestAccContainerAppJob_complete(t *testing.T) {
 	})
 }
 
+func TestAccContainerAppJob_completeDeprecated(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("Skipped as `secrets` and `registries` removed in 4.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_container_app_job", "test")
+	r := ContainerAppJobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.completeDeprecated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccContainerAppJob_completeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app_job", "test")
 	r := ContainerAppJobResource{}
@@ -243,6 +262,72 @@ func TestAccContainerAppJob_completeUpdate(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.completeUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccContainerAppJob_withKeyVaultSecret(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app_job", "test")
+	r := ContainerAppJobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withKeyVaultSecret(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccContainerAppJob_withKeyVaultSecretVersioningUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app_job", "test")
+	r := ContainerAppJobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withKeyVaultSecret(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withKeyVaultSecretVersionless(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccContainerAppJob_withKeyVaultSecretIdentityUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app_job", "test")
+	r := ContainerAppJobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withKeyVaultSecretUserIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withKeyVaultSecretSystemIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withKeyVaultSecretSystemAndUserIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -456,6 +541,567 @@ resource "azurerm_container_app_job" "test" {
 `, template, data.RandomInteger)
 }
 
+func (r ContainerAppJobResource) withKeyVaultSecret(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy    = true
+      recover_soft_deleted_key_vaults = true
+    }
+  }
+}
+
+%[1]s
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_key_vault" "test" {
+  name                       = "acctest-kv-%[3]s"
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "premium"
+  soft_delete_retention_days = 7
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+    key_permissions = [
+      "Create",
+      "Get",
+    ]
+    secret_permissions = [
+      "Set",
+      "Get",
+      "Delete",
+      "Purge",
+      "Recover"
+    ]
+  }
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = azurerm_user_assigned_identity.test.principal_id
+    secret_permissions = [
+      "Get",
+    ]
+  }
+}
+
+resource "azurerm_key_vault_secret" "test" {
+  name         = "secret-%[3]s"
+  value        = "test-secret"
+  key_vault_id = azurerm_key_vault.test.id
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acct-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_container_app_job" "test" {
+  name                         = "acctest-cajob%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  container_app_environment_id = azurerm_container_app_environment.test.id
+
+  replica_timeout_in_seconds = 10
+  replica_retry_limit        = 10
+  manual_trigger_config {
+    parallelism              = 4
+    replica_completion_count = 1
+  }
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  template {
+    container {
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      name   = "testcontainerappsjob0"
+      cpu    = 0.5
+      memory = "1Gi"
+      env {
+        name        = "key-vault-secret"
+        secret_name = "key-vault-secret"
+      }
+    }
+  }
+
+  secret {
+    name                = "key-vault-secret"
+    identity            = azurerm_user_assigned_identity.test.id
+    key_vault_secret_id = azurerm_key_vault_secret.test.id
+  }
+}
+`, template, data.RandomInteger, data.RandomString)
+}
+
+func (r ContainerAppJobResource) withKeyVaultSecretVersionless(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy    = true
+      recover_soft_deleted_key_vaults = true
+    }
+  }
+}
+
+%[1]s
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_key_vault" "test" {
+  name                       = "acctest-kv-%[3]s"
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "premium"
+  soft_delete_retention_days = 7
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+    key_permissions = [
+      "Create",
+      "Get",
+    ]
+    secret_permissions = [
+      "Set",
+      "Get",
+      "Delete",
+      "Purge",
+      "Recover"
+    ]
+  }
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = azurerm_user_assigned_identity.test.principal_id
+    secret_permissions = [
+      "Get",
+    ]
+  }
+}
+
+resource "azurerm_key_vault_secret" "test" {
+  name         = "secret-%[3]s"
+  value        = "test-secret"
+  key_vault_id = azurerm_key_vault.test.id
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acct-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_container_app_job" "test" {
+  name                         = "acctest-cajob%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  container_app_environment_id = azurerm_container_app_environment.test.id
+
+  replica_timeout_in_seconds = 10
+  replica_retry_limit        = 10
+  manual_trigger_config {
+    parallelism              = 4
+    replica_completion_count = 1
+  }
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  template {
+    container {
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      name   = "testcontainerappsjob0"
+      cpu    = 0.5
+      memory = "1Gi"
+      env {
+        name        = "key-vault-secret"
+        secret_name = "key-vault-secret"
+      }
+    }
+  }
+
+  secret {
+    name                = "key-vault-secret"
+    identity            = azurerm_user_assigned_identity.test.id
+    key_vault_secret_id = azurerm_key_vault_secret.test.versionless_id
+  }
+}
+`, template, data.RandomInteger, data.RandomString)
+}
+
+func (r ContainerAppJobResource) withKeyVaultSecretUserIdentity(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy    = true
+      recover_soft_deleted_key_vaults = true
+    }
+  }
+}
+
+%[1]s
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_key_vault" "test" {
+  name                       = "acctest-kv-%[3]s"
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "premium"
+  soft_delete_retention_days = 7
+}
+
+resource "azurerm_key_vault_secret" "test" {
+  name         = "secret-%[3]s"
+  value        = "test-secret"
+  key_vault_id = azurerm_key_vault.test.id
+
+  depends_on = [
+    azurerm_key_vault_access_policy.self_key_vault_admin
+  ]
+}
+
+resource "azurerm_key_vault_access_policy" "self_key_vault_admin" {
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
+
+  key_permissions = [
+    "Create",
+    "Get",
+  ]
+
+  secret_permissions = [
+    "Set",
+    "Get",
+    "Delete",
+    "Purge",
+    "Recover"
+  ]
+}
+
+resource "azurerm_key_vault_access_policy" "mi_key_vault_secrets" {
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = azurerm_container_app_job.test.identity[0].principal_id
+
+  secret_permissions = [
+    "Get",
+  ]
+}
+
+resource "azurerm_key_vault_access_policy" "user_mi_key_vault_secrets" {
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = azurerm_user_assigned_identity.test.principal_id
+
+  secret_permissions = [
+    "Get",
+  ]
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acct-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_container_app_job" "test" {
+  name                         = "acctest-cajob%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  container_app_environment_id = azurerm_container_app_environment.test.id
+
+  replica_timeout_in_seconds = 10
+  replica_retry_limit        = 10
+  manual_trigger_config {
+    parallelism              = 4
+    replica_completion_count = 1
+  }
+
+  identity {
+    type         = "SystemAssigned, UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  template {
+    container {
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      name   = "testcontainerappsjob0"
+      cpu    = 0.5
+      memory = "1Gi"
+      env {
+        name        = "key-vault-secret"
+        secret_name = "key-vault-secret"
+      }
+    }
+  }
+
+  secret {
+    name                = "key-vault-secret"
+    identity            = azurerm_user_assigned_identity.test.id
+    key_vault_secret_id = azurerm_key_vault_secret.test.id
+  }
+
+  depends_on = [
+    azurerm_key_vault_access_policy.user_mi_key_vault_secrets
+  ]
+}
+`, template, data.RandomInteger, data.RandomString)
+}
+
+func (r ContainerAppJobResource) withKeyVaultSecretSystemAndUserIdentity(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy    = true
+      recover_soft_deleted_key_vaults = true
+    }
+  }
+}
+
+%[1]s
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_key_vault" "test" {
+  name                       = "acctest-kv-%[3]s"
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "premium"
+  soft_delete_retention_days = 7
+}
+
+resource "azurerm_key_vault_secret" "test" {
+  name         = "secret-%[3]s"
+  value        = "test-secret"
+  key_vault_id = azurerm_key_vault.test.id
+
+  depends_on = [
+    azurerm_key_vault_access_policy.self_key_vault_admin
+  ]
+}
+
+resource "azurerm_key_vault_access_policy" "self_key_vault_admin" {
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
+
+  key_permissions = [
+    "Create",
+    "Get",
+  ]
+
+  secret_permissions = [
+    "Set",
+    "Get",
+    "Delete",
+    "Purge",
+    "Recover"
+  ]
+}
+
+resource "azurerm_key_vault_access_policy" "mi_key_vault_secrets" {
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = azurerm_container_app_job.test.identity[0].principal_id
+
+  secret_permissions = [
+    "Get",
+  ]
+}
+
+resource "azurerm_key_vault_access_policy" "user_mi_key_vault_secrets" {
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = azurerm_user_assigned_identity.test.principal_id
+
+  secret_permissions = [
+    "Get",
+  ]
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acct-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_container_app_job" "test" {
+  name                         = "acctest-cajob%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  container_app_environment_id = azurerm_container_app_environment.test.id
+
+  replica_timeout_in_seconds = 10
+  replica_retry_limit        = 10
+  manual_trigger_config {
+    parallelism              = 4
+    replica_completion_count = 1
+  }
+
+  identity {
+    type         = "SystemAssigned, UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  template {
+    container {
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      name   = "testcontainerappsjob0"
+      cpu    = 0.5
+      memory = "1Gi"
+      env {
+        name        = "key-vault-secret"
+        secret_name = "key-vault-secret"
+      }
+      env {
+        name        = "key-vault-secret-system"
+        secret_name = "key-vault-secret-system"
+      }
+    }
+  }
+
+  secret {
+    name                = "key-vault-secret"
+    identity            = azurerm_user_assigned_identity.test.id
+    key_vault_secret_id = azurerm_key_vault_secret.test.id
+  }
+
+  secret {
+    name                = "key-vault-secret-system"
+    identity            = "System"
+    key_vault_secret_id = azurerm_key_vault_secret.test.id
+  }
+
+  depends_on = [
+    azurerm_key_vault_access_policy.user_mi_key_vault_secrets
+  ]
+}
+`, template, data.RandomInteger, data.RandomString)
+}
+
+func (r ContainerAppJobResource) withKeyVaultSecretSystemIdentity(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy    = true
+      recover_soft_deleted_key_vaults = true
+    }
+  }
+}
+
+%[1]s
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_key_vault" "test" {
+  name                       = "acctest-kv-%[3]s"
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "premium"
+  soft_delete_retention_days = 7
+}
+
+resource "azurerm_key_vault_secret" "test" {
+  name         = "secret-%[3]s"
+  value        = "test-secret"
+  key_vault_id = azurerm_key_vault.test.id
+
+  depends_on = [
+    azurerm_key_vault_access_policy.self_key_vault_admin
+  ]
+}
+
+resource "azurerm_key_vault_access_policy" "self_key_vault_admin" {
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
+
+  key_permissions = [
+    "Create",
+    "Get",
+  ]
+
+  secret_permissions = [
+    "Set",
+    "Get",
+    "Delete",
+    "Purge",
+    "Recover"
+  ]
+}
+
+resource "azurerm_key_vault_access_policy" "mi_key_vault_secrets" {
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = azurerm_container_app_job.test.identity[0].principal_id
+
+  secret_permissions = [
+    "Get",
+  ]
+}
+
+resource "azurerm_container_app_job" "test" {
+  name                         = "acctest-cajob%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  container_app_environment_id = azurerm_container_app_environment.test.id
+
+  replica_timeout_in_seconds = 10
+  replica_retry_limit        = 10
+  manual_trigger_config {
+    parallelism              = 4
+    replica_completion_count = 1
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  template {
+    container {
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      name   = "testcontainerappsjob0"
+      cpu    = 0.5
+      memory = "1Gi"
+      env {
+        name        = "key-vault-secret-system"
+        secret_name = "key-vault-secret-system"
+      }
+    }
+  }
+
+  secret {
+    name                = "key-vault-secret-system"
+    identity            = "System"
+    key_vault_secret_id = azurerm_key_vault_secret.test.id
+  }
+}
+`, template, data.RandomInteger, data.RandomString)
+}
+
 func (r ContainerAppJobResource) withUserAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -637,6 +1283,104 @@ resource "azurerm_container_app_job" "test" {
     parallelism              = 4
     replica_completion_count = 1
   }
+  secret {
+    name  = "registry-password"
+    value = azurerm_container_registry.test.admin_password
+  }
+  registry {
+    server               = azurerm_container_registry.test.login_server
+    username             = azurerm_container_registry.test.admin_username
+    password_secret_name = "registry-password"
+  }
+
+  template {
+    volume {
+      name         = azurerm_container_app_environment_storage.test.name
+      storage_type = "AzureFile"
+      storage_name = azurerm_container_app_environment_storage.test.name
+    }
+    container {
+      args = [
+        "-c",
+        "while true; do echo hello; sleep 10;done",
+      ]
+      command = [
+        "/bin/sh",
+      ]
+      image = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      name  = "testcontainerappsjob0"
+      readiness_probe {
+        transport = "HTTP"
+        port      = 5000
+      }
+
+      liveness_probe {
+        transport = "HTTP"
+        port      = 5000
+        path      = "/health"
+
+        header {
+          name  = "Cache-Control"
+          value = "no-cache"
+        }
+
+        initial_delay           = 5
+        interval_seconds        = 20
+        timeout                 = 2
+        failure_count_threshold = 1
+      }
+      startup_probe {
+        transport = "TCP"
+        port      = 5000
+      }
+
+      cpu    = 0.5
+      memory = "1Gi"
+      volume_mounts {
+        path = "/appsettings"
+        name = azurerm_container_app_environment_storage.test.name
+      }
+    }
+
+    init_container {
+      name   = "init-cont-%[2]d"
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      cpu    = 0.25
+      memory = "0.5Gi"
+      volume_mounts {
+        name = azurerm_container_app_environment_storage.test.name
+        path = "/appsettings"
+      }
+    }
+  }
+  tags = {
+    ENV = "test"
+  }
+}
+`, ContainerAppResource{}.templatePlusExtras(data), data.RandomInteger)
+}
+
+func (r ContainerAppJobResource) completeDeprecated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+%[1]s
+
+resource "azurerm_container_app_job" "test" {
+  name                         = "acctest-cajob%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  container_app_environment_id = azurerm_container_app_environment.test.id
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  replica_timeout_in_seconds = 10
+  replica_retry_limit        = 10
+  manual_trigger_config {
+    parallelism              = 4
+    replica_completion_count = 1
+  }
   secrets {
     name  = "registry-password"
     value = azurerm_container_registry.test.admin_password
@@ -738,17 +1482,17 @@ resource "azurerm_container_app_job" "test" {
     replica_completion_count = 2
   }
 
-  secrets {
+  secret {
     name  = "registry-password"
     value = azurerm_container_registry.test.admin_password
   }
 
-  secrets {
+  secret {
     name  = "foo"
     value = "bar"
   }
 
-  registries {
+  registry {
     server               = azurerm_container_registry.test.login_server
     username             = azurerm_container_registry.test.admin_username
     password_secret_name = "registry-password"

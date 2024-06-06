@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	apimValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -278,14 +279,26 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeString,
 					Optional:    true,
 					Description: "The path to be checked for this function app health.",
+					RequiredWith: func() []string {
+						if features.FourPointOhBeta() {
+							return []string{"site_config.0.health_check_eviction_time_in_min"}
+						}
+						return []string{}
+					}(),
 				},
 
 				"health_check_eviction_time_in_min": { // NOTE: Will evict the only node in single node configurations.
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					Computed:     true,
+					Computed:     !features.FourPointOhBeta(),
 					ValidateFunc: validation.IntBetween(2, 10),
-					Description:  "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Defaults to `10`. Only valid in conjunction with `health_check_path`",
+					RequiredWith: func() []string {
+						if features.FourPointOhBeta() {
+							return []string{"site_config.0.health_check_path"}
+						}
+						return []string{}
+					}(),
+					Description: "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Only valid in conjunction with `health_check_path`",
 				},
 
 				"worker_count": {
@@ -764,14 +777,26 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeString,
 					Optional:    true,
 					Description: "The path to be checked for this function app health.",
+					RequiredWith: func() []string {
+						if features.FourPointOhBeta() {
+							return []string{"site_config.0.health_check_eviction_time_in_min"}
+						}
+						return []string{}
+					}(),
 				},
 
 				"health_check_eviction_time_in_min": { // NOTE: Will evict the only node in single node configurations.
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					Computed:     true,
+					Computed:     !features.FourPointOhBeta(),
 					ValidateFunc: validation.IntBetween(2, 10),
-					Description:  "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Defaults to `10`. Only valid in conjunction with `health_check_path`",
+					RequiredWith: func() []string {
+						if features.FourPointOhBeta() {
+							return []string{"site_config.0.health_check_path"}
+						}
+						return []string{}
+					}(),
+					Description: "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Only valid in conjunction with `health_check_path`",
 				},
 
 				"worker_count": {
@@ -1542,13 +1567,11 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 
 	linuxSiteConfig := siteConfig[0]
 
-	if metadata.ResourceData.HasChange("site_config.0.health_check_path") || metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
-		v := strconv.Itoa(int(linuxSiteConfig.HealthCheckEvictionTime))
-		if v == "0" || linuxSiteConfig.HealthCheckPath == "" {
-			appSettings = updateOrAppendAppSettings(appSettings, "WEBSITE_HEALTHCHECK_MAXPINGFAILURES", v, true)
-		} else {
-			appSettings = updateOrAppendAppSettings(appSettings, "WEBSITE_HEALTHCHECK_MAXPINGFAILURES", v, false)
-		}
+	v := strconv.FormatInt(linuxSiteConfig.HealthCheckEvictionTime, 10)
+	if v == "0" || linuxSiteConfig.HealthCheckPath == "" {
+		appSettings = updateOrAppendAppSettings(appSettings, "WEBSITE_HEALTHCHECK_MAXPINGFAILURES", v, true)
+	} else {
+		appSettings = updateOrAppendAppSettings(appSettings, "WEBSITE_HEALTHCHECK_MAXPINGFAILURES", v, false)
 	}
 
 	expanded.AlwaysOn = pointer.To(linuxSiteConfig.AlwaysOn)
@@ -1814,13 +1837,11 @@ func ExpandSiteConfigWindowsFunctionApp(siteConfig []SiteConfigWindowsFunctionAp
 
 	windowsSiteConfig := siteConfig[0]
 
-	if metadata.ResourceData.HasChange("site_config.0.health_check_path") || metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
-		v := strconv.Itoa(int(windowsSiteConfig.HealthCheckEvictionTime))
-		if v == "0" || windowsSiteConfig.HealthCheckPath == "" {
-			appSettings = updateOrAppendAppSettings(appSettings, "WEBSITE_HEALTHCHECK_MAXPINGFAILURES", v, true)
-		} else {
-			appSettings = updateOrAppendAppSettings(appSettings, "WEBSITE_HEALTHCHECK_MAXPINGFAILURES", v, false)
-		}
+	v := strconv.FormatInt(windowsSiteConfig.HealthCheckEvictionTime, 10)
+	if v == "0" || windowsSiteConfig.HealthCheckPath == "" {
+		appSettings = updateOrAppendAppSettings(appSettings, "WEBSITE_HEALTHCHECK_MAXPINGFAILURES", v, true)
+	} else {
+		appSettings = updateOrAppendAppSettings(appSettings, "WEBSITE_HEALTHCHECK_MAXPINGFAILURES", v, false)
 	}
 
 	expanded.AlwaysOn = pointer.To(windowsSiteConfig.AlwaysOn)

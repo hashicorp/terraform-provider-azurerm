@@ -11,7 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/subnets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/subnets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -123,6 +123,24 @@ func TestAccSubnet_disappears(t *testing.T) {
 			Config:       r.basic,
 			TestResource: r,
 		}),
+	})
+}
+
+func TestAccSubnet_defaultOutbound(t *testing.T) {
+	dataInternal := acceptance.BuildTestData(t, "azurerm_subnet", "internal")
+	dataPublic := acceptance.BuildTestData(t, "azurerm_subnet", "public")
+	r := SubnetResource{}
+
+	dataInternal.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.defaultOutbound(dataInternal),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(dataInternal.ResourceName).ExistsInAzure(r),
+				check.That(dataInternal.ResourceName).Key("default_outbound_access_enabled").HasValue("false"),
+				check.That(dataPublic.ResourceName).ExistsInAzure(r),
+				check.That(dataPublic.ResourceName).Key("default_outbound_access_enabled").HasValue("true"),
+			),
+		},
 	})
 }
 
@@ -817,6 +835,26 @@ resource "azurerm_subnet" "test" {
       ]
     }
   }
+}
+`, r.template(data))
+}
+
+func (r SubnetResource) defaultOutbound(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+resource "azurerm_subnet" "internal" {
+  name                            = "internal"
+  resource_group_name             = azurerm_resource_group.test.name
+  virtual_network_name            = azurerm_virtual_network.test.name
+  address_prefixes                = ["10.0.2.0/24"]
+  default_outbound_access_enabled = false
+}
+resource "azurerm_subnet" "public" {
+  name                            = "public"
+  resource_group_name             = azurerm_resource_group.test.name
+  virtual_network_name            = azurerm_virtual_network.test.name
+  address_prefixes                = ["10.0.3.0/24"]
+  default_outbound_access_enabled = true
 }
 `, r.template(data))
 }

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package client
 
 import (
@@ -88,6 +91,10 @@ func (c *Client) populateCache(ctx context.Context, subscriptionId commonids.Sub
 
 		keyVault, err := c.vaults20230701Client.Get(ctx, *id)
 		if err != nil {
+			if response.WasNotFound(keyVault.HttpResponse) {
+				log.Printf("[DEBUG] The %s appears to be gone, this is likely an ARM Caching bug - ignoring caching it", *id)
+				continue
+			}
 			if response.WasForbidden(keyVault.HttpResponse) {
 				log.Printf("[WARN] Unable to access %s with current credentials, skipping caching it", *id)
 				continue
