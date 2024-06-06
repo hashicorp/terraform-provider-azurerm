@@ -380,7 +380,11 @@ func resourceVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if d.HasChange("bgp_community") {
-		payload.Properties.BgpCommunities = &virtualnetworks.VirtualNetworkBgpCommunities{VirtualNetworkCommunity: d.Get("bgp_community").(string)}
+		// nil out the current values in case `bgp_community` has been removed from the config file
+		payload.Properties.BgpCommunities = nil
+		if v := d.Get("bgp_community"); v.(string) != "" {
+			payload.Properties.BgpCommunities = &virtualnetworks.VirtualNetworkBgpCommunities{VirtualNetworkCommunity: v.(string)}
+		}
 	}
 
 	if d.HasChange("ddos_protection_plan") {
@@ -403,7 +407,10 @@ func resourceVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if d.HasChange("flow_timeout_in_minutes") {
-		payload.Properties.FlowTimeoutInMinutes = utils.Int64(int64(d.Get("flow_timeout_in_minutes").(int)))
+		payload.Properties.FlowTimeoutInMinutes = nil
+		if v := d.Get("flow_timeout_in_minutes"); v.(int) != 0 {
+			payload.Properties.FlowTimeoutInMinutes = utils.Int64(int64(v.(int)))
+		}
 	}
 
 	if d.HasChange("subnet") {
@@ -519,11 +526,11 @@ func expandVirtualNetworkEncryption(input []interface{}) *virtualnetworks.Virtua
 }
 
 func expandVirtualNetworkSubnets(ctx context.Context, client virtualnetworks.VirtualNetworksClient, input []interface{}, id commonids.VirtualNetworkId) (*[]virtualnetworks.Subnet, error) {
+	subnets := make([]virtualnetworks.Subnet, 0)
 	if len(input) == 0 {
-		return nil, nil
+		return &subnets, nil
 	}
 
-	subnets := make([]virtualnetworks.Subnet, 0)
 	for _, subnetRaw := range input {
 		if subnetRaw == nil {
 			continue
