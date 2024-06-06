@@ -39,6 +39,18 @@ The following attributes are exported:
 
 * `sku` - The vault's current SKU.
 
+* `identity` - (Optional) An `identity` block as defined below.
+
+---
+
+An `identity` block exports the following:
+
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
+
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
+
+* `type` - The identity type of this Managed Service Identity.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:

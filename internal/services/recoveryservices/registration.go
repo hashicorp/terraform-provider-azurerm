@@ -21,6 +21,7 @@ func (r Registration) AssociatedGitHubLabel() string {
 
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
+		SiteRecoveryRecoveryVaultDataSource{},
 		SiteRecoveryReplicationRecoveryPlanDataSource{},
 	}
 }
@@ -55,7 +56,6 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_recovery_services_vault":            dataSourceRecoveryServicesVault(),
 		"azurerm_site_recovery_fabric":               dataSourceSiteRecoveryFabric(),
 		"azurerm_site_recovery_protection_container": dataSourceSiteRecoveryProtectionContainer(),
 		"azurerm_backup_policy_vm":                   dataSourceBackupPolicyVm(),
