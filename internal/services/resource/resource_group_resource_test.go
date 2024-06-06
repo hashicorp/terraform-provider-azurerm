@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -185,7 +186,10 @@ func (t ResourceGroupResource) createNetworkOutsideTerraform(name string) func(c
 			},
 		}
 		vnetId := commonids.NewVirtualNetworkID(id.SubscriptionId, id.ResourceGroupName, name)
-		if err := client.CreateOrUpdateThenPoll(ctx, vnetId, params); err != nil {
+
+		ctx2, cancel := context.WithTimeout(ctx, 30*time.Minute)
+		defer cancel()
+		if err := client.CreateOrUpdateThenPoll(ctx2, vnetId, params); err != nil {
 			return fmt.Errorf("creating nested virtual network: %+v", err)
 		}
 
