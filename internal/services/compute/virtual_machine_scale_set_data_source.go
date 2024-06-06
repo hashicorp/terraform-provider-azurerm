@@ -227,7 +227,7 @@ func getVirtualMachineScaleSetVMConnectionInfo(ctx context.Context, networkInter
 				for _, config := range *ipConfigs {
 					if configProps := config.Properties; configProps != nil {
 						if pip := configProps.PublicIPAddress; pip != nil {
-							pipID, err := commonids.ParseVirtualMachineScaleSetPublicIPAddressID(*pip.Id)
+							pipID, err := commonids.ParseVirtualMachineScaleSetPublicIPAddressIDInsensitively(*pip.Id)
 							if err != nil {
 								return nil, err
 							}
