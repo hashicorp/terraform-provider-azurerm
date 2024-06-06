@@ -69,7 +69,7 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Attributes
 
 func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			var model BackupInstancePostgreSQLFlexibleServerModel
 			if err := metadata.Decode(&model); err != nil {
@@ -137,6 +137,25 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Create() s
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
+			// Service will continue to configure the protection after the resource is created and `provisioningState` returns `Succeeded`. At this time, service doesn't allow to change the resource until it is configured completely
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("internal-error: context had no deadline")
+			}
+
+			stateConf := &pluginsdk.StateChangeConf{
+				Delay:        5 * time.Second,
+				Pending:      []string{string(backupinstances.CurrentProtectionStateConfiguringProtection)},
+				Target:       []string{string(backupinstances.CurrentProtectionStateProtectionConfigured)},
+				Refresh:      dataProtectionBackupInstancePostgreSQLFlexibleServerStateRefreshFunc(ctx, client, id),
+				PollInterval: 1 * time.Minute,
+				Timeout:      time.Until(deadline),
+			}
+
+			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+				return fmt.Errorf("waiting for %s to become available: %s", id, err)
+			}
+
 			metadata.SetID(id)
 			return nil
 		},
@@ -195,7 +214,7 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Read() sdk
 
 func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.DataProtection.BackupInstanceClient
 
@@ -232,6 +251,25 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Update() s
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
+			// Service will update the protection after the resource is updated and `provisioningState` returns `Succeeded`. At this time, service doesn't allow to change the resource until it is updated completely
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("internal-error: context had no deadline")
+			}
+
+			stateConf := &pluginsdk.StateChangeConf{
+				Delay:        5 * time.Second,
+				Pending:      []string{string(backupinstances.CurrentProtectionStateUpdatingProtection)},
+				Target:       []string{string(backupinstances.CurrentProtectionStateProtectionConfigured)},
+				Refresh:      dataProtectionBackupInstancePostgreSQLFlexibleServerStateRefreshFunc(ctx, client, *id),
+				PollInterval: 1 * time.Minute,
+				Timeout:      time.Until(deadline),
+			}
+
+			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+				return fmt.Errorf("waiting for %s to become available: %s", id, err)
+			}
+
 			return nil
 		},
 	}
@@ -239,7 +277,7 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Update() s
 
 func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.DataProtection.BackupInstanceClient
 
@@ -255,5 +293,24 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Delete() s
 
 			return nil
 		},
+	}
+}
+
+func dataProtectionBackupInstancePostgreSQLFlexibleServerStateRefreshFunc(ctx context.Context, client *backupinstances.BackupInstancesClient, id backupinstances.BackupInstanceId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		resp, err := client.Get(ctx, id)
+		if err != nil {
+			return nil, "", fmt.Errorf("polling for %s: %+v", id, err)
+		}
+
+		if resp.Model == nil {
+			return nil, "", fmt.Errorf("polling for %s: `model` was nil", id)
+		}
+
+		if resp.Model.Properties == nil {
+			return nil, "", fmt.Errorf("polling for %s: `properties` was nil", id)
+		}
+
+		return resp, string(pointer.From(resp.Model.Properties.CurrentProtectionState)), nil
 	}
 }
