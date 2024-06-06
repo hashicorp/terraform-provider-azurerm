@@ -131,7 +131,7 @@ func resourceStorageContainerCreate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("locating Storage Account %q", accountName)
 	}
 
-	//change authentication method by accountKey
+	// change authentication method by accountKey
 	authMethod := storageClient.DataPlaneOperationSupportingAnyAuthMethod()
 
 	if !account.AllowSharedKeyAccess || account.NetworkRuleSetExists {
@@ -208,11 +208,18 @@ func resourceStorageContainerUpdate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("locating Storage Account %q", id.AccountId.AccountName)
 	}
 
+	// change authentication method by accountKey
+	authMethod := storageClient.DataPlaneOperationSupportingOnlySharedKeyAuth()
+
+	if !account.AllowSharedKeyAccess || account.NetworkRuleSetExists {
+		authMethod = storageClient.DataPlaneOperationSupportingNoSharedKeyAuth()
+	}
+
 	if d.HasChange("container_access_type") {
 		log.Printf("[DEBUG] Updating Access Level for %s...", id)
 
 		// Updating metadata does not work with AAD authentication, returns a cryptic 404
-		client, err := storageClient.ContainersDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingOnlySharedKeyAuth())
+		client, err := storageClient.ContainersDataPlaneClient(ctx, *account, authMethod)
 		if err != nil {
 			return fmt.Errorf("building Containers Client: %v", err)
 		}
@@ -230,7 +237,11 @@ func resourceStorageContainerUpdate(d *pluginsdk.ResourceData, meta interface{})
 	if d.HasChange("metadata") {
 		log.Printf("[DEBUG] Updating Metadata for %s...", id)
 
-		client, err := storageClient.ContainersDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
+		if account.AllowSharedKeyAccess || !account.NetworkRuleSetExists {
+			authMethod = storageClient.DataPlaneOperationSupportingAnyAuthMethod()
+		}
+
+		client, err := storageClient.ContainersDataPlaneClient(ctx, *account, authMethod)
 		if err != nil {
 			return fmt.Errorf("building Containers Client: %v", err)
 		}
@@ -269,7 +280,14 @@ func resourceStorageContainerRead(d *pluginsdk.ResourceData, meta interface{}) e
 		return nil
 	}
 
-	client, err := storageClient.ContainersDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
+	// change authentication method by accountKey
+	authMethod := storageClient.DataPlaneOperationSupportingAnyAuthMethod()
+
+	if !account.AllowSharedKeyAccess || account.NetworkRuleSetExists {
+		authMethod = storageClient.DataPlaneOperationSupportingNoSharedKeyAuth()
+	}
+
+	client, err := storageClient.ContainersDataPlaneClient(ctx, *account, authMethod)
 	if err != nil {
 		return fmt.Errorf("building Containers Client: %v", err)
 	}
@@ -324,7 +342,14 @@ func resourceStorageContainerDelete(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("locating Storage Account %q", id.AccountId.AccountName)
 	}
 
-	client, err := storageClient.ContainersDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
+	// change authentication method by accountKey
+	authMethod := storageClient.DataPlaneOperationSupportingAnyAuthMethod()
+
+	if !account.AllowSharedKeyAccess || account.NetworkRuleSetExists {
+		authMethod = storageClient.DataPlaneOperationSupportingNoSharedKeyAuth()
+	}
+
+	client, err := storageClient.ContainersDataPlaneClient(ctx, *account, authMethod)
 	if err != nil {
 		return fmt.Errorf("building Containers Client: %v", err)
 	}

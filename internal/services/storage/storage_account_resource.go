@@ -1991,7 +1991,13 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("unable to locate %s", *id)
 		}
 
-		queueClient, err := storageClient.QueuesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
+		// check authentication method.
+		authMethod := storageClient.DataPlaneOperationSupportingAnyAuthMethod()
+		if !d.Get("shared_access_key_enabled").(bool) || d.Get("network_rules") != nil {
+			authMethod = storageClient.DataPlaneOperationSupportingNoSharedKeyAuth()
+		}
+
+		queueClient, err := storageClient.QueuesDataPlaneClient(ctx, *account, authMethod)
 		if err != nil {
 			return fmt.Errorf("building Queues Client: %s", err)
 		}
@@ -2046,7 +2052,13 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("unable to locate %s", *id)
 		}
 
-		accountsClient, err := storageClient.AccountsDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
+		// check authentication method.
+		authMethod := storageClient.DataPlaneOperationSupportingAnyAuthMethod()
+		if !d.Get("shared_access_key_enabled").(bool) || d.Get("network_rules") != nil {
+			authMethod = storageClient.DataPlaneOperationSupportingNoSharedKeyAuth()
+		}
+
+		accountsClient, err := storageClient.AccountsDataPlaneClient(ctx, *account, authMethod)
 		if err != nil {
 			return fmt.Errorf("building Data Plane client for %s: %+v", *id, err)
 		}
@@ -2330,7 +2342,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 	}
 
-	//check authentication method.
+	// check authentication method.
 	authMethod := storageClient.DataPlaneOperationSupportingAnyAuthMethod()
 	if !d.Get("shared_access_key_enabled").(bool) || d.Get("network_rules") != nil {
 		authMethod = storageClient.DataPlaneOperationSupportingNoSharedKeyAuth()
