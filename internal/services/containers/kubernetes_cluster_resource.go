@@ -99,7 +99,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				}
 				return true
 			}),
-			pluginsdk.ForceNewIfChange("network_profile.0.ebpf_data_plane", func(ctx context.Context, old, new, meta interface{}) bool {
+			pluginsdk.ForceNewIfChange("network_profile.0.network_data_plane", func(ctx context.Context, old, new, meta interface{}) bool {
 				return old != ""
 			}),
 			func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
@@ -373,12 +373,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			},
 
 			"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
-
-			"enable_pod_security_policy": {
-				Type:       pluginsdk.TypeBool,
-				Deprecated: "The AKS API has removed support for this field on 2020-10-15 and is no longer possible to configure this the Pod Security Policy.",
-				Optional:   true,
-			},
 
 			"fqdn": {
 				Type:     pluginsdk.TypeString,
@@ -1007,12 +1001,25 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							ValidateFunc: validate.IPv4Address,
 						},
 
-						"ebpf_data_plane": {
+						"network_data_plane": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(managedclusters.NetworkDataplaneCilium),
-							}, false),
+							Computed: !features.FourPointOhBeta(),
+							Default: func() interface{} {
+								if !features.FourPointOh() {
+									return nil
+								}
+								return string(managedclusters.NetworkDataplaneAzure)
+							}(),
+							ValidateFunc: validation.StringInSlice(
+								managedclusters.PossibleValuesForNetworkDataplane(),
+								false),
+							ConflictsWith: func() []string {
+								if !features.FourPointOhBeta() {
+									return []string{"network_profile.0.ebpf_data_plane"}
+								}
+								return []string{}
+							}(),
 						},
 
 						"network_plugin_mode": {
@@ -1470,6 +1477,21 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 	}
 
 	if !features.FourPointOhBeta() {
+		resource.Schema["enable_pod_security_policy"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Deprecated: "The AKS API has removed support for this field on 2020-10-15 and it is no longer possible to configure Pod Security Policy. This property will be removed in v4.0 of the AzureRM provider.",
+			Optional:   true,
+		}
+		resource.Schema["network_profile"].Elem.(*pluginsdk.Resource).Schema["ebpf_data_plane"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(managedclusters.NetworkDataplaneCilium),
+			}, false),
+			Deprecated:    "This property has been superseded by the property `network_data_plane` and will be removed in v4.0 of the AzureRM provider.",
+			ConflictsWith: []string{"network_profile.0.network_data_plane"},
+		}
 		resource.Schema["api_server_authorized_ip_ranges"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
@@ -1797,8 +1819,10 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	nodeResourceGroup := d.Get("node_resource_group").(string)
 
-	if d.Get("enable_pod_security_policy").(bool) {
-		return fmt.Errorf("the AKS API has removed support for this field on 2020-10-15 and is no longer possible to configure this the Pod Security Policy - as such you'll need to set `enable_pod_security_policy` to `false`")
+	if !features.FourPointOhBeta() {
+		if d.Get("enable_pod_security_policy").(bool) {
+			return fmt.Errorf("the AKS API has removed support for this field on 2020-10-15 and it is no longer possible to configure Pod Security Policy - as such you'll need to set `enable_pod_security_policy` to `false`")
+		}
 	}
 
 	autoScalerProfileRaw := d.Get("auto_scaler_profile").([]interface{})
@@ -2165,8 +2189,10 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		existing.Model.Properties.AzureMonitorProfile = azureMonitorProfile
 	}
 
-	if d.HasChange("enable_pod_security_policy") && d.Get("enable_pod_security_policy").(bool) {
-		return fmt.Errorf("The AKS API has removed support for this field on 2020-10-15 and is no longer possible to configure this the Pod Security Policy - as such you'll need to set `enable_pod_security_policy` to `false`")
+	if !features.FourPointOhBeta() {
+		if d.HasChange("enable_pod_security_policy") && d.Get("enable_pod_security_policy").(bool) {
+			return fmt.Errorf("The AKS API has removed support for this field on 2020-10-15 and it is no longer possible to configure Pod Security Policy - as such you'll need to set `enable_pod_security_policy` to `false`")
+		}
 	}
 
 	if d.HasChange("linux_profile") {
@@ -2306,9 +2332,15 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			existing.Model.Properties.NetworkProfile.NatGatewayProfile = &natGatewayProfile
 		}
 
-		if key := "network_profile.0.ebpf_data_plane"; d.HasChange(key) {
-			ebpfDataPlane := d.Get(key).(string)
-			existing.Model.Properties.NetworkProfile.NetworkDataplane = pointer.To(managedclusters.NetworkDataplane(ebpfDataPlane))
+		if !features.FourPointOhBeta() {
+			if key := "network_profile.0.ebpf_data_plane"; d.HasChange(key) {
+				ebpfDataPlane := d.Get(key).(string)
+				existing.Model.Properties.NetworkProfile.NetworkDataplane = pointer.To(managedclusters.NetworkDataplane(ebpfDataPlane))
+			}
+		}
+
+		if d.HasChange("network_profile.0.network_data_plane") {
+			existing.Model.Properties.NetworkProfile.NetworkDataplane = pointer.To(managedclusters.NetworkDataplane(d.Get("network_profile.0.network_data_plane").(string)))
 		}
 
 		if key := "network_profile.0.outbound_type"; d.HasChange(key) {
@@ -2775,7 +2807,9 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("disk_encryption_set_id", props.DiskEncryptionSetID)
 			d.Set("kubernetes_version", props.KubernetesVersion)
 			d.Set("current_kubernetes_version", props.CurrentKubernetesVersion)
-			d.Set("enable_pod_security_policy", props.EnablePodSecurityPolicy)
+			if !features.FourPointOhBeta() {
+				d.Set("enable_pod_security_policy", props.EnablePodSecurityPolicy)
+			}
 			d.Set("local_account_disabled", props.DisableLocalAccounts)
 
 			nodeResourceGroup := ""
@@ -3438,9 +3472,16 @@ func expandKubernetesClusterNetworkProfile(input []interface{}) (*managedcluster
 		IPFamilies:      ipVersions,
 	}
 
-	if ebpfDataPlane := config["ebpf_data_plane"].(string); ebpfDataPlane != "" {
-		networkProfile.NetworkDataplane = pointer.To(managedclusters.NetworkDataplane(ebpfDataPlane))
+	if networkDataPlane := config["network_data_plane"].(string); networkDataPlane != "" {
+		networkProfile.NetworkDataplane = pointer.To(managedclusters.NetworkDataplane(networkDataPlane))
 	}
+
+	if !features.FourPointOhBeta() {
+		if ebpfDataPlane := config["ebpf_data_plane"].(string); ebpfDataPlane != "" {
+			networkProfile.NetworkDataplane = pointer.To(managedclusters.NetworkDataplane(ebpfDataPlane))
+		}
+	}
+
 	if networkPluginMode := config["network_plugin_mode"].(string); networkPluginMode != "" {
 		networkProfile.NetworkPluginMode = pointer.To(managedclusters.NetworkPluginMode(networkPluginMode))
 	}
@@ -3745,16 +3786,15 @@ func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerSe
 			networkPluginMode = string(managedclusters.NetworkPluginModeOverlay)
 		}
 	}
-	ebpfDataPlane := ""
-	// 2023-02-02-preview returns the default value `azure` for this new property
-	// @stephybun: we should look into replacing `ebpf_data_plane` with a new property called `network_data_plane`
-	if v := profile.NetworkDataplane; v != nil && *v != managedclusters.NetworkDataplaneAzure {
-		ebpfDataPlane = string(*v)
+
+	networkDataPlane := string(managedclusters.NetworkDataplaneAzure)
+	if v := profile.NetworkDataplane; v != nil {
+		networkDataPlane = string(pointer.From(v))
 	}
 
 	result := map[string]interface{}{
 		"dns_service_ip":        dnsServiceIP,
-		"ebpf_data_plane":       ebpfDataPlane,
+		"network_data_plane":    networkDataPlane,
 		"load_balancer_sku":     string(*sku),
 		"load_balancer_profile": lbProfiles,
 		"nat_gateway_profile":   ngwProfiles,
@@ -3772,6 +3812,14 @@ func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerSe
 
 	if !features.FourPointOhBeta() {
 		result["docker_bridge_cidr"] = dockerBridgeCidr
+
+		ebpfDataPlane := ""
+		// 2023-02-02-preview returns the default value `azure` for this new property
+		// @stephybun: we should look into replacing `ebpf_data_plane` with a new property called `network_data_plane`
+		if v := profile.NetworkDataplane; v != nil && *v != managedclusters.NetworkDataplaneAzure {
+			ebpfDataPlane = string(*v)
+		}
+		result["ebpf_data_plane"] = ebpfDataPlane
 	}
 
 	return []interface{}{result}

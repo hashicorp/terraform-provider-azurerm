@@ -29,7 +29,7 @@ import (
 )
 
 func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceVirtualNetworkGatewayConnectionCreateUpdate,
 		Read:   resourceVirtualNetworkGatewayConnectionRead,
 		Update: resourceVirtualNetworkGatewayConnectionCreateUpdate,
@@ -75,6 +75,12 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: virtualnetworkgateways.ValidateVirtualNetworkGatewayID,
+			},
+
+			"shared_key": {
+				Type:      pluginsdk.TypeString,
+				Required:  true,
+				Sensitive: true,
 			},
 
 			"authorization_key": {
@@ -152,14 +158,6 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validation.IntBetween(0, 32000),
-			},
-
-			"shared_key": {
-				Type:      pluginsdk.TypeString,
-				Computed:  !features.FourPointOhBeta(),
-				Optional:  !features.FourPointOh(),
-				Required:  features.FourPointOhBeta(),
-				Sensitive: true,
 			},
 
 			"express_route_gateway_bypass": {
@@ -353,6 +351,16 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["shared_key"] = &pluginsdk.Schema{
+			Type:      pluginsdk.TypeString,
+			Computed:  true,
+			Optional:  true,
+			Sensitive: true,
+		}
+	}
+	return resource
 }
 
 func resourceVirtualNetworkGatewayConnectionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
