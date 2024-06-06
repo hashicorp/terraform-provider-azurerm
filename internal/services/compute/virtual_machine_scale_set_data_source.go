@@ -19,7 +19,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesetvms"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkinterfaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/vmsspublicipaddresses"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/vmsspublicipaddresses"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -127,7 +127,7 @@ func dataSourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interf
 	virtualMachinesClient := meta.(*clients.Client).Compute.VirtualMachinesClient
 	networkInterfacesClient := meta.(*clients.Client).Network.NetworkInterfacesClient
 	publicIPAddressesClient := meta.(*clients.Client).Network.PublicIPAddresses
-	vmssPublicIpAddressesClient := meta.(*clients.Client).Network.VMSSPublicIPAddresses
+	vmssPublicIpAddressesClient := meta.(*clients.Client).Network.VMSSPublicIPAddressesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

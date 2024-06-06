@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-07-01/applicationgateways"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkinterfaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/vmsspublicipaddresses"
 	network_2023_11_01 "github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
@@ -18,8 +19,9 @@ type Client struct {
 
 	// TODO 4.0 application gateways should be updated to use 2023-09-01 just prior to releasing 4.0
 	ApplicationGatewaysClient *applicationgateways.ApplicationGatewaysClient
-	// VMSS Data Source requires the Network Interfaces client from `2023-09-01` for the `ListVirtualMachineScaleSetVMNetworkInterfacesComplete` method
-	NetworkInterfacesClient *networkinterfaces.NetworkInterfacesClient
+	// VMSS Data Source requires the Network Interfaces and VMSSPublicIpAddresses client from `2023-09-01` for the `ListVirtualMachineScaleSetVMNetworkInterfacesComplete` method
+	NetworkInterfacesClient     *networkinterfaces.NetworkInterfacesClient
+	VMSSPublicIPAddressesClient *vmsspublicipaddresses.VMSSPublicIPAddressesClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -35,6 +37,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(NetworkInterfacesClient.Client, o.Authorizers.ResourceManager)
 
+	VMSSPublicIPAddressesClient, err := vmsspublicipaddresses.NewVMSSPublicIPAddressesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building VMSS Public IP Addresses Client: %+v", err)
+	}
+	o.Configure(VMSSPublicIPAddressesClient.Client, o.Authorizers.ResourceManager)
+
 	client, err := network_2023_11_01.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
 		o.Configure(c, o.Authorizers.ResourceManager)
 	})
@@ -43,8 +51,9 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 
 	return &Client{
-		ApplicationGatewaysClient: ApplicationGatewaysClient,
-		NetworkInterfacesClient:   NetworkInterfacesClient,
-		Client:                    client,
+		ApplicationGatewaysClient:   ApplicationGatewaysClient,
+		NetworkInterfacesClient:     NetworkInterfacesClient,
+		VMSSPublicIPAddressesClient: VMSSPublicIPAddressesClient,
+		Client:                      client,
 	}, nil
 }
