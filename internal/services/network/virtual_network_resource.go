@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 	"log"
 	"time"
 
@@ -445,8 +444,8 @@ func resourceVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	timeout, _ := ctx.Deadline()
 	stateConf := &pluginsdk.StateChangeConf{
-		Pending:    []string{string(network.ProvisioningStateUpdating)},
-		Target:     []string{string(network.ProvisioningStateSucceeded)},
+		Pending:    []string{string(virtualnetworks.ProvisioningStateUpdating)},
+		Target:     []string{string(virtualnetworks.ProvisioningStateSucceeded)},
 		Refresh:    VirtualNetworkProvisioningStateRefreshFunc(ctx, meta.(*clients.Client).Network.VirtualNetworks, *id),
 		MinTimeout: 1 * time.Minute,
 		Timeout:    time.Until(timeout),
