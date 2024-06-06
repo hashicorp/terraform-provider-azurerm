@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2023-06-01-preview/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 type BackupInstancePostgreSQLFlexibleServerModel struct {
@@ -36,7 +37,7 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) ResourceTy
 }
 
 func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) ModelObject() interface{} {
-	return pointer.To(BackupInstancePostgreSQLFlexibleServerModel{})
+	return &BackupInstancePostgreSQLFlexibleServerModel{}
 }
 
 func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -46,18 +47,19 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) IDValidati
 func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"location": commonschema.Location(),
 
-		"vault_id": commonschema.ResourceIDReferenceRequiredForceNew(pointer.To(backuppolicies.BackupVaultId{})),
+		"vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&backuppolicies.BackupVaultId{}),
 
-		"backup_policy_id": commonschema.ResourceIDReferenceRequired(pointer.To(backuppolicies.BackupPolicyId{})),
+		"backup_policy_id": commonschema.ResourceIDReferenceRequired(&backuppolicies.BackupPolicyId{}),
 
-		"server_id": commonschema.ResourceIDReferenceRequiredForceNew(pointer.To(servers.FlexibleServerId{})),
+		"server_id": commonschema.ResourceIDReferenceRequiredForceNew(&servers.FlexibleServerId{}),
 	}
 }
 
@@ -152,13 +154,13 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Read() sdk
 				return err
 			}
 
-			resp, err := client.Get(ctx, pointer.From(id))
+			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
-					return metadata.MarkAsGone(pointer.From(id))
+					return metadata.MarkAsGone(*id)
 				}
 
-				return fmt.Errorf("retrieving %s: %+v", pointer.From(id), err)
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
 			vaultId := backupinstances.NewBackupVaultID(id.SubscriptionId, id.ResourceGroupName, id.BackupVaultName)
@@ -207,16 +209,16 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Update() s
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			existing, err := client.Get(ctx, pointer.From(id))
+			existing, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
 
-				return fmt.Errorf("reading %s: %+v", pointer.From(id), err)
+				return fmt.Errorf("reading %s: %+v", *id, err)
 			}
 
-			parameters := pointer.From(existing.Model)
+			parameters := *existing.Model
 
 			if metadata.ResourceData.HasChange("backup_policy_id") {
 				policyId, err := backuppolicies.ParseBackupPolicyID(model.BackupPolicyId)
@@ -226,7 +228,7 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Update() s
 				parameters.Properties.PolicyInfo.PolicyId = policyId.ID()
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, pointer.From(id), parameters, backupinstances.DefaultCreateOrUpdateOperationOptions()); err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, *id, parameters, backupinstances.DefaultCreateOrUpdateOperationOptions()); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
@@ -246,9 +248,9 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Delete() s
 				return err
 			}
 
-			err = client.DeleteThenPoll(ctx, pointer.From(id), backupinstances.DefaultDeleteOperationOptions())
+			err = client.DeleteThenPoll(ctx, *id, backupinstances.DefaultDeleteOperationOptions())
 			if err != nil {
-				return fmt.Errorf("deleting %s: %+v", pointer.From(id), err)
+				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
 			return nil

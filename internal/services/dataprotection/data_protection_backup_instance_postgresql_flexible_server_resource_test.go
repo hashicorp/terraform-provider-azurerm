@@ -48,28 +48,13 @@ func TestAccDataProtectionBackupInstancePostgreSQLFlexibleServer_requiresImport(
 	})
 }
 
-func TestAccDataProtectionBackupInstancePostgreSQLFlexibleServer_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_postgresql_flexible_server", "test")
-	r := DataProtectionBackupInstancePostgreSQLFlexibleServerResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccDataProtectionBackupInstancePostgreSQLFlexibleServer_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_postgresql_flexible_server", "test")
 	r := DataProtectionBackupInstancePostgreSQLFlexibleServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -99,10 +84,6 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Exists(ctx
 
 func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_resource_group" "test" {
   name     = "acctest-dataprotection-%d"
   location = "%s"
@@ -116,7 +97,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   administrator_password = "QAZwsx123"
   storage_mb             = 32768
   version                = "12"
-  sku_name               = "GP_Standard_D2s_v3"
+  sku_name               = "GP_Standard_D4s_v3"
   zone                   = "2"
 }
 
@@ -133,11 +114,22 @@ resource "azurerm_data_protection_backup_vault" "test" {
   }
 }
 
+resource "azurerm_role_assignment" "test" {
+  scope                = azurerm_resource_group.test.id
+  role_definition_name = "Reader"
+  principal_id         = azurerm_data_protection_backup_vault.test.identity.0.principal_id
+}
+
+resource "azurerm_role_assignment" "test2" {
+  scope                = azurerm_postgresql_flexible_server.test.id
+  role_definition_name = "PostgreSQL Flexible Server Long Term Retention Backup Role"
+  principal_id         = azurerm_data_protection_backup_vault.test.identity.0.principal_id
+}
+
 resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "test" {
   name                            = "acctest-dp-%d"
   vault_id                        = azurerm_data_protection_backup_vault.test.id
   backup_repeating_time_intervals = ["R/2021-05-23T02:30:00+00:00/P1W"]
-  time_zone                       = "India Standard Time"
 
   default_retention_rule {
     life_cycle {
@@ -145,12 +137,18 @@ resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "tes
       data_store_type = "VaultStore"
     }
   }
+
+  depends_on = [azurerm_role_assignment.test, azurerm_role_assignment.test2]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_data_protection_backup_instance_postgresql_flexible_server" "test" {
@@ -177,28 +175,18 @@ resource "azurerm_data_protection_backup_instance_postgresql_flexible_server" "i
 `, r.basic(data))
 }
 
-func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) complete(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_data_protection_backup_instance_postgresql_flexible_server" "test" {
-  name             = "acctest-dbi-%d"
-  location         = azurerm_resource_group.test.location
-  vault_id         = azurerm_data_protection_backup_vault.test.id
-  server_id        = azurerm_postgresql_flexible_server.test.id
-  backup_policy_id = azurerm_data_protection_backup_policy_postgresql_flexible_server.test.id
-}
-`, r.template(data), data.RandomInteger)
-}
-
 func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "test2" {
   name                            = "acctest-dp2-%d"
   vault_id                        = azurerm_data_protection_backup_vault.test.id
-  backup_repeating_time_intervals = ["R/2021-05-24T02:30:00+00:00/P1W"]
+  backup_repeating_time_intervals = ["R/2021-05-23T02:30:00+00:00/P1W"]
 
   default_retention_rule {
     life_cycle {
@@ -206,6 +194,8 @@ resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "tes
       data_store_type = "VaultStore"
     }
   }
+
+  depends_on = [azurerm_role_assignment.test, azurerm_role_assignment.test2]
 }
 
 resource "azurerm_data_protection_backup_instance_postgresql_flexible_server" "test" {

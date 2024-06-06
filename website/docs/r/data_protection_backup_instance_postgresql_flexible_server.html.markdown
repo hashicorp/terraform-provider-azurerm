@@ -28,12 +28,12 @@ resource "azurerm_postgresql_flexible_server" "example" {
   administrator_password = "QAZwsx123"
   storage_mb             = 32768
   version                = "12"
-  sku_name               = "GP_Standard_D2s_v3"
+  sku_name               = "GP_Standard_D4s_v3"
   zone                   = "2"
 }
 
 resource "azurerm_data_protection_backup_vault" "example" {
-  name                = "example-dpv"
+  name                = "example-backupvault"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
   datastore_type      = "VaultStore"
@@ -45,11 +45,22 @@ resource "azurerm_data_protection_backup_vault" "example" {
   }
 }
 
+resource "azurerm_role_assignment" "example" {
+  scope                = azurerm_resource_group.example.id
+  role_definition_name = "Reader"
+  principal_id         = azurerm_data_protection_backup_vault.example.identity.0.principal_id
+}
+
+resource "azurerm_role_assignment" "example2" {
+  scope                = azurerm_postgresql_flexible_server.example.id
+  role_definition_name = "PostgreSQL Flexible Server Long Term Retention Backup Role"
+  principal_id         = azurerm_data_protection_backup_vault.example.identity.0.principal_id
+}
+
 resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "example" {
-  name                            = "example-bp"
+  name                            = "example-dp"
   vault_id                        = azurerm_data_protection_backup_vault.example.id
   backup_repeating_time_intervals = ["R/2021-05-23T02:30:00+00:00/P1W"]
-  time_zone                       = "India Standard Time"
 
   default_retention_rule {
     life_cycle {
@@ -57,10 +68,12 @@ resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "exa
       data_store_type = "VaultStore"
     }
   }
+
+  depends_on = [azurerm_role_assignment.example, azurerm_role_assignment.example2]
 }
 
 resource "azurerm_data_protection_backup_instance_postgresql_flexible_server" "example" {
-  name             = "example-backupinstance"
+  name             = "example-dbi"
   location         = azurerm_resource_group.example.location
   vault_id         = azurerm_data_protection_backup_vault.example.id
   server_id        = azurerm_postgresql_flexible_server.example.id
