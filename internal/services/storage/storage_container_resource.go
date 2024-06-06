@@ -131,7 +131,14 @@ func resourceStorageContainerCreate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("locating Storage Account %q", accountName)
 	}
 
-	containersDataPlaneClient, err := storageClient.ContainersDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
+	//change authentication method by accountKey
+	authMethod := storageClient.DataPlaneOperationSupportingAnyAuthMethod()
+
+	if !account.AllowSharedKeyAccess || account.NetworkRuleSetExists {
+		authMethod = storageClient.DataPlaneOperationSupportingNoSharedKeyAuth()
+	}
+
+	containersDataPlaneClient, err := storageClient.ContainersDataPlaneClient(ctx, *account, authMethod)
 	if err != nil {
 		return fmt.Errorf("building storage client: %v", err)
 	}

@@ -2330,8 +2330,14 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 	}
 
+	//check authentication method.
+	authMethod := storageClient.DataPlaneOperationSupportingAnyAuthMethod()
+	if !d.Get("shared_access_key_enabled").(bool) || d.Get("network_rules") != nil {
+		authMethod = storageClient.DataPlaneOperationSupportingNoSharedKeyAuth()
+	}
+
 	if supportLevel.supportQueue {
-		queueClient, err := storageClient.QueuesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
+		queueClient, err := storageClient.QueuesDataPlaneClient(ctx, *account, authMethod)
 		if err != nil {
 			return fmt.Errorf("building Queues Client: %s", err)
 		}
@@ -2360,7 +2366,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if supportLevel.supportStaticWebsite {
-		accountsClient, err := storageClient.AccountsDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
+		accountsClient, err := storageClient.AccountsDataPlaneClient(ctx, *account, authMethod)
 		if err != nil {
 			return fmt.Errorf("building Accounts Data Plane Client: %s", err)
 		}

@@ -33,9 +33,11 @@ const (
 )
 
 type accountDetails struct {
-	Kind             storageaccounts.Kind
-	IsHnsEnabled     bool
-	StorageAccountId commonids.StorageAccountId
+	Kind                 storageaccounts.Kind
+	IsHnsEnabled         bool
+	StorageAccountId     commonids.StorageAccountId
+	AllowSharedKeyAccess bool
+	NetworkRuleSetExists bool
 
 	accountKey *string
 
@@ -185,9 +187,13 @@ func (c Client) FindAccount(ctx context.Context, subscriptionIdRaw, accountName 
 }
 
 func populateAccountDetails(accountId commonids.StorageAccountId, account storageaccounts.StorageAccount) (*accountDetails, error) {
+	networkRuleSetExists := account.Properties.NetworkAcls != nil
+
 	out := accountDetails{
-		Kind:             pointer.From(account.Kind),
-		StorageAccountId: accountId,
+		Kind:                 pointer.From(account.Kind),
+		StorageAccountId:     accountId,
+		AllowSharedKeyAccess: pointer.From(account.Properties.AllowSharedKeyAccess),
+		NetworkRuleSetExists: networkRuleSetExists,
 	}
 
 	if account.Properties == nil {
