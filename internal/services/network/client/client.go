@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-07-01/applicationgateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkinterfaces"
 	network_2023_11_01 "github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
@@ -17,6 +18,8 @@ type Client struct {
 
 	// TODO 4.0 application gateways should be updated to use 2023-09-01 just prior to releasing 4.0
 	ApplicationGatewaysClient *applicationgateways.ApplicationGatewaysClient
+	// VMSS Data Source requires the Network Interfaces client from `2023-09-01` for the `ListVirtualMachineScaleSetVMNetworkInterfacesComplete` method
+	NetworkInterfacesClient *networkinterfaces.NetworkInterfacesClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -25,6 +28,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		return nil, fmt.Errorf("building Application Gateways Client: %+v", err)
 	}
 	o.Configure(ApplicationGatewaysClient.Client, o.Authorizers.ResourceManager)
+
+	NetworkInterfacesClient, err := networkinterfaces.NewNetworkInterfacesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Network Interfaces Client: %+v", err)
+	}
+	o.Configure(NetworkInterfacesClient.Client, o.Authorizers.ResourceManager)
 
 	client, err := network_2023_11_01.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
 		o.Configure(c, o.Authorizers.ResourceManager)
@@ -35,6 +44,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	return &Client{
 		ApplicationGatewaysClient: ApplicationGatewaysClient,
+		NetworkInterfacesClient:   NetworkInterfacesClient,
 		Client:                    client,
 	}, nil
 }

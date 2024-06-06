@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesetvms"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/networkinterfaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkinterfaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/vmsspublicipaddresses"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -125,7 +125,7 @@ func dataSourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interf
 	client := meta.(*clients.Client).Compute.VirtualMachineScaleSetsClient
 	instancesClient := meta.(*clients.Client).Compute.VirtualMachineScaleSetVMsClient
 	virtualMachinesClient := meta.(*clients.Client).Compute.VirtualMachinesClient
-	networkInterfacesClient := meta.(*clients.Client).Network.NetworkInterfaces
+	networkInterfacesClient := meta.(*clients.Client).Network.NetworkInterfacesClient
 	publicIPAddressesClient := meta.(*clients.Client).Network.PublicIPAddresses
 	vmssPublicIpAddressesClient := meta.(*clients.Client).Network.VMSSPublicIPAddresses
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
