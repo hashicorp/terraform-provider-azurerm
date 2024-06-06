@@ -381,7 +381,7 @@ resource "azurerm_stack_hci_deployment_setting" "test" {
 
       intent {
         name                                          = "ManagementCompute"
-        override_adapter_property_enabled             = false
+        override_adapter_property_enabled             = true
         override_qos_policy_enabled                   = false
         override_virtual_switch_configuration_enabled = false
         adapter = [
@@ -398,15 +398,13 @@ resource "azurerm_stack_hci_deployment_setting" "test" {
           bandwidth_percentage_smb          = "50"
         }
         override_adapter_property {
-          jumbo_packet              = "9014"
-          network_direct            = "Disabled"
-          network_direct_technology = "RoCEv2"
+          network_direct = "Disabled"
         }
       }
 
       intent {
         name                                          = "Storage"
-        override_adapter_property_enabled             = false
+        override_adapter_property_enabled             = true
         override_qos_policy_enabled                   = false
         override_virtual_switch_configuration_enabled = false
         adapter = [
@@ -422,9 +420,7 @@ resource "azurerm_stack_hci_deployment_setting" "test" {
           bandwidth_percentage_smb          = "50"
         }
         override_adapter_property {
-          jumbo_packet              = "9014"
-          network_direct            = "Enabled"
-          network_direct_technology = "RoCEv2"
+          network_direct = "Disabled"
         }
       }
 
