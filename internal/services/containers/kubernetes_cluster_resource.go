@@ -114,6 +114,12 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			pluginsdk.ForceNewIfChange("network_profile.0.network_policy", func(ctx context.Context, old, new, meta interface{}) bool {
 				return old.(string) != "" || new.(string) != string(managedclusters.NetworkPolicyCilium)
 			}),
+			pluginsdk.ForceNewIfChange("network_profile.0.pod_cidr", func(ctx context.Context, old, new, meta interface{}) bool {
+				return old.(string) != ""
+			}),
+			pluginsdk.ForceNewIfChange("network_profile.0.pod_cidrs", func(ctx context.Context, old, new, meta interface{}) bool {
+				return len(old.([]interface{})) > 0
+			}),
 			pluginsdk.ForceNewIfChange("custom_ca_trust_certificates_base64", func(ctx context.Context, old, new, meta interface{}) bool {
 				return len(old.([]interface{})) > 0 && len(new.([]interface{})) == 0
 			}),
@@ -1031,7 +1037,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true,
-							ForceNew:     true,
 							ValidateFunc: validate.CIDR,
 						},
 
@@ -1039,7 +1044,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
 							Computed: true,
-							ForceNew: true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
@@ -2338,6 +2342,21 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		if key := "network_profile.0.ebpf_data_plane"; d.HasChange(key) {
 			ebpfDataPlane := d.Get(key).(string)
 			existing.Model.Properties.NetworkProfile.NetworkDataplane = pointer.To(managedclusters.NetworkDataplane(ebpfDataPlane))
+		}
+
+		if key := "network_profile.0.network_plugin_mode"; d.HasChange(key) {
+			networkPluginMode := d.Get(key).(string)
+			existing.Model.Properties.NetworkProfile.NetworkPluginMode = pointer.To(managedclusters.NetworkPluginMode(networkPluginMode))
+		}
+
+		if key := "network_profile.0.pod_cidr"; d.HasChange(key) {
+			podCidr := d.Get(key).(string)
+			existing.Model.Properties.NetworkProfile.PodCidr = pointer.To(podCidr)
+		}
+
+		if key := "network_profile.0.pod_cidrs"; d.HasChange(key) {
+			podCidrs := d.Get(key).([]interface{})
+			existing.Model.Properties.NetworkProfile.PodCidrs = utils.ExpandStringSlice(podCidrs)
 		}
 
 		if key := "network_profile.0.outbound_type"; d.HasChange(key) {
