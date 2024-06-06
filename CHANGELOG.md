@@ -10,7 +10,12 @@ ENHANCEMENTS:
 * `advisor`: update API version to `2023-01-01` [GH-26205]
 * `keyvault`: handling the Resources API returning Key Vaults that have been deleted when populating the cache [GH-26199]
 * `machinelearning`: update API version to `2024-04-01` [GH-26168]
-* `azurerm_container_app_job`: support new properties `key_vault_secret_id` and `identity` in `secret` block [GH-25969]
+* `network/privatelinkservices` - update to use `hashicorp/go-azure-sdk` [GH-26212]
+* `network/serviceendpointpolicies` - update to use `hashicorp/go-azure-sdk` [GH-26196]
+* `network/virtualnetworks` - update to use `hashicorp/go-azure-sdk` [GH-26217]
+* `network/virtualwans`: update route resources to use `hashicorp/go-azure-sdk` [GH-26189]
+* `azurerm_container_app_job` - support new properties `key_vault_secret_id` and `identity` in `secret` block [GH-25969]
+* `azurerm_kubernetes_cluster` - add support for `dns_zone_ids` in the `web_app_routing` block [GH-26117]
 * `azurerm_notification_hub_authorization_rule` - add support for `primary_connection_string` and `secondary_connection_string` properties [GH-26188]
 * `azurerm_subnet` - support for the `default_outbound_access_enabled` property [GH-25259]
 
@@ -21,6 +26,11 @@ BUG FIXES:
 * `azurerm_vpn_server_configuration` - split create and update function to fix lifecycle - ignore [GH-26175]
 * `azurerm_vpn_server_configuration_policy_group` - split create and update function to fix lifecycle - ignore [GH-26207]
 * `azurerm_vpn_site` -  split create and update function to fix lifecycle - ignore changes [GH-26163]
+
+DEPRECATIONS:
+
+* `azurerm_kubernetes_cluster` - the property `dns_zone_id` has been superseded by the property `dns_zone_ids` in the `web_app_routing` block [GH-26117]
+* `azurerm_nginx_deployment` - the block `configuration` has been deprecated and superseded by the resource `azurerm_nginx_configuration` [GH-25773]
 
 ## 3.106.1 (May 31, 2024)
 
