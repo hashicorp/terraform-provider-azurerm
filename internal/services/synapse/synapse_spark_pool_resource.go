@@ -22,7 +22,7 @@ import (
 )
 
 func resourceSynapseSparkPool() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceSynapseSparkPoolCreate,
 		Read:   resourceSynapseSparkPoolRead,
 		Update: resourceSynapseSparkPoolUpdate,
@@ -214,12 +214,7 @@ func resourceSynapseSparkPool() *pluginsdk.Resource {
 			"spark_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default: func() string {
-					if !features.FourPointOh() {
-						return "2.4"
-					}
-					return "3.4"
-				}(),
+				Default:  "2.4",
 				ValidateFunc: validation.StringInSlice([]string{
 					"2.4",
 					"3.1",
@@ -232,6 +227,20 @@ func resourceSynapseSparkPool() *pluginsdk.Resource {
 			"tags": tags.Schema(),
 		},
 	}
+
+	if features.FourPointOh() {
+		resource.Schema["spark_version"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				"3.2",
+				"3.3",
+				"3.4",
+			}, false),
+		}
+	}
+
+	return resource
 }
 
 func resourceSynapseSparkPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error {
