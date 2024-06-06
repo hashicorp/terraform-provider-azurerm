@@ -664,15 +664,15 @@ func TestAccWindowsVirtualMachineScaleSet_otherAutomaticRepairsPolicy(t *testing
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
-		// turn automatic repair on
+		// Enable automatic repair policy
 		{
-			Config: r.otherAutomaticRepairsPolicy(data),
+			Config: r.otherAutomaticRepairsPolicyEnabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("admin_password"),
-		// turn automatic repair off
+		// Disable automatic repair policy
 		{
 			Config: r.otherAutomaticRepairsPolicyDisabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -680,15 +680,15 @@ func TestAccWindowsVirtualMachineScaleSet_otherAutomaticRepairsPolicy(t *testing
 			),
 		},
 		data.ImportStep("admin_password"),
-		// update automatic repair on
+		// Enable automatic repair policy with correct action
 		{
-			Config: r.otherAutomaticRepairsPolicyUpdated(data),
+			Config: r.otherAutomaticRepairsPolicyUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("admin_password"),
-		// turn automatic repair off
+		// Disable automatic repair policy
 		{
 			Config: r.otherAutomaticRepairsPolicyDisabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -696,9 +696,9 @@ func TestAccWindowsVirtualMachineScaleSet_otherAutomaticRepairsPolicy(t *testing
 			),
 		},
 		data.ImportStep("admin_password"),
-		// turn automatic repair on again
+		// Enable automatic repair policy with correct action again
 		{
-			Config: r.otherAutomaticRepairsPolicy(data),
+			Config: r.otherAutomaticRepairsPolicyUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -2723,7 +2723,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 `, r.template(data), enabled)
 }
 
-func (r WindowsVirtualMachineScaleSetResource) otherAutomaticRepairsPolicy(data acceptance.TestData) string {
+func (r WindowsVirtualMachineScaleSetResource) otherAutomaticRepairsPolicyEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -2824,7 +2824,6 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   automatic_instance_repair {
     enabled      = true
     grace_period = "PT30M"
-    action       = "Restart"
   }
 
   depends_on = [azurerm_lb_rule.test]
@@ -2832,7 +2831,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r WindowsVirtualMachineScaleSetResource) otherAutomaticRepairsPolicyUpdated(data acceptance.TestData) string {
+func (r WindowsVirtualMachineScaleSetResource) otherAutomaticRepairsPolicyUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
