@@ -38,5 +38,5 @@ func FourPointOh() bool {
 // This exists to allow breaking changes to be piped through the provider
 // during the development of 3.x until 4.0 is ready.
 func FourPointOhBeta() bool {
-	return FourPointOh() || false
+	return true
 }

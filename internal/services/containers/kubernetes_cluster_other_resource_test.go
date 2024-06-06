@@ -903,6 +903,9 @@ func TestAccKubernetesCluster_webAppRoutingWithMultipleDnsZone(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_webAppRouting(t *testing.T) {
+	if !features.FourPointOhBeta() {
+		t.Skip("Skipping test in 4.0 as `dns_zone_id` is removed")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -941,6 +944,9 @@ func TestAccKubernetesCluster_webAppRouting(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_webAppRoutingPrivateDNS(t *testing.T) {
+	if !features.FourPointOhBeta() {
+		t.Skip("Skipping test in 4.0 as `dns_zone_id` is removed")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
