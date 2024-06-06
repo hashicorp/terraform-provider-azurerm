@@ -2337,6 +2337,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 func (r LinuxVirtualMachineScaleSetResource) otherAutomaticRepairsPolicy(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
+
 resource "azurerm_public_ip" "test" {
   name                    = "acctestpip-%[2]d"
   location                = azurerm_resource_group.test.location
@@ -2344,6 +2345,7 @@ resource "azurerm_public_ip" "test" {
   allocation_method       = "Dynamic"
   idle_timeout_in_minutes = 4
 }
+
 resource "azurerm_lb" "test" {
   name                = "acctestlb-%[2]d"
   location            = azurerm_resource_group.test.location
@@ -2354,10 +2356,12 @@ resource "azurerm_lb" "test" {
     public_ip_address_id = azurerm_public_ip.test.id
   }
 }
+
 resource "azurerm_lb_backend_address_pool" "test" {
   name            = "test"
   loadbalancer_id = azurerm_lb.test.id
 }
+
 resource "azurerm_lb_nat_pool" "test" {
   name                           = "test"
   resource_group_name            = azurerm_resource_group.test.name
@@ -2368,12 +2372,14 @@ resource "azurerm_lb_nat_pool" "test" {
   frontend_port_end              = 81
   backend_port                   = 8080
 }
+
 resource "azurerm_lb_probe" "test" {
   loadbalancer_id = azurerm_lb.test.id
   name            = "acctest-lb-probe"
   port            = 22
   protocol        = "Tcp"
 }
+
 resource "azurerm_lb_rule" "test" {
   name                           = "AccTestLBRule"
   loadbalancer_id                = azurerm_lb.test.id
@@ -2384,6 +2390,7 @@ resource "azurerm_lb_rule" "test" {
   frontend_port                  = 22
   backend_port                   = 22
 }
+
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
   name                            = "acctestvmss-%[2]d"
   resource_group_name             = azurerm_resource_group.test.name
@@ -2394,22 +2401,26 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   admin_password                  = "P@ssword1234!"
   health_probe_id                 = azurerm_lb_probe.test.id
   disable_password_authentication = false
+  
   source_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
     sku       = "16.04-LTS"
     version   = "latest"
   }
+  
   os_disk {
     storage_account_type = "Standard_LRS"
     caching              = "ReadWrite"
   }
+  
   data_disk {
     storage_account_type = "Standard_LRS"
     caching              = "ReadWrite"
     disk_size_gb         = 10
     lun                  = 10
   }
+  
   network_interface {
     name    = "example"
     primary = true
@@ -2421,9 +2432,10 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
       load_balancer_inbound_nat_rules_ids    = [azurerm_lb_nat_pool.test.id]
     }
   }
+  
   automatic_instance_repair {
     enabled      = true
-    grace_period = "PT60M"
+    grace_period = "PT30M"
     action       = "Restart"
   }
 

@@ -1948,7 +1948,6 @@ func VirtualMachineScaleSetAutomaticRepairsPolicySchema() *pluginsdk.Schema {
 				"action": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					Default:      string(virtualmachinescalesets.RepairActionReplace),
 					ValidateFunc: validation.StringInSlice(virtualmachinescalesets.PossibleValuesForRepairAction(), false),
 				},
 			},
@@ -1961,41 +1960,51 @@ func ExpandVirtualMachineScaleSetAutomaticRepairsPolicy(input []interface{}) *vi
 		return nil
 	}
 
-	raw := input[0].(map[string]interface{})
+	v := input[0].(map[string]interface{})
 
-	return &virtualmachinescalesets.AutomaticRepairsPolicy{
-		Enabled:      utils.Bool(raw["enabled"].(bool)),
-		GracePeriod:  utils.String(raw["grace_period"].(string)),
-		RepairAction: pointer.To(virtualmachinescalesets.RepairAction(raw["action"].(string))),
+	result := virtualmachinescalesets.AutomaticRepairsPolicy{}
+
+	result.Enabled = utils.Bool(v["enabled"].(bool))
+
+	// Only add the other two values to the AutomaticRepairsPolicy if
+	// the policy is enabled, per MS documentation...
+	// https://learn.microsoft.com/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-automatic-instance-repairs?tabs=rest-api-1%2Crest-api-2%2Crest-api-3%2Crest-api-4#configure-a-repair-action-on-automatic-repairs-policy
+	if v["enabled"].(bool) {
+		result.GracePeriod = utils.String(v["grace_period"].(string))
+
+		// The action should only be included if it is defined in the configuration file....
+		if v["action"].(string) != "" {
+			result.RepairAction = pointer.To(virtualmachinescalesets.RepairAction(v["action"].(string)))
+		}
 	}
+
+	return &result
 }
 
 func FlattenVirtualMachineScaleSetAutomaticRepairsPolicy(input *virtualmachinescalesets.AutomaticRepairsPolicy) []interface{} {
-	// if enabled is set to false, there will be no AutomaticRepairsPolicy in response, to avoid plan non empty when
-	// a user explicitly set enabled to false, we need to assign a default block to this field
-
-	enabled := false
-	if input != nil && input.Enabled != nil {
-		enabled = *input.Enabled
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
 	}
 
-	gracePeriod := "PT30M"
-	if input != nil && input.GracePeriod != nil {
-		gracePeriod = *input.GracePeriod
+	result := make(map[string]interface{})
+
+	if input.Enabled != nil {
+		result["enabled"] = *input.Enabled
 	}
 
-	action := string(virtualmachinescalesets.RepairActionReplace) // Default value
-	if input != nil && input.RepairAction != nil {
-		action = string(*input.RepairAction)
+	// Grace Period and Action should not be added if the Repair Policy is disabled...
+	if input.Enabled != nil && *input.Enabled {
+		if input.GracePeriod != nil {
+			result["grace_period"] = *input.GracePeriod
+		}
+
+		if input.RepairAction != nil {
+			result["action"] = string(*input.RepairAction)
+		}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
-			"enabled":      enabled,
-			"grace_period": gracePeriod,
-			"action":       action,
-		},
-	}
+	return append(results, result)
 }
 
 func VirtualMachineScaleSetExtensionsSchema() *pluginsdk.Schema {
