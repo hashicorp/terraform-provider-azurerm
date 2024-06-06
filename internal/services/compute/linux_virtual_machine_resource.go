@@ -783,8 +783,8 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VirtualMachinesClient
 	disksClient := meta.(*clients.Client).Compute.DisksClient
-	networkInterfacesClient := meta.(*clients.Client).Network.InterfacesClient
-	publicIPAddressesClient := meta.(*clients.Client).Network.PublicIPsClient
+	networkInterfacesClient := meta.(*clients.Client).Network.NetworkInterfaces
+	publicIPAddressesClient := meta.(*clients.Client).Network.PublicIPAddresses
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

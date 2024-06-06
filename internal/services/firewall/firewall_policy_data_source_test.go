@@ -8,9 +8,9 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/firewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 type FirewallPolicyDataSource struct{}
@@ -31,7 +31,7 @@ func TestAccFirewallPolicyDataSource_basic(t *testing.T) {
 				acceptance.TestCheckResourceAttr(dataParent.ResourceName, "child_policies.#", "1"),
 				check.That(data.ResourceName).Key("dns.0.proxy_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("dns.0.servers.#").HasValue("2"),
-				check.That(data.ResourceName).Key("threat_intelligence_mode").HasValue(string(network.AzureFirewallThreatIntelModeAlert)),
+				check.That(data.ResourceName).Key("threat_intelligence_mode").HasValue(string(firewallpolicies.AzureFirewallThreatIntelModeAlert)),
 				check.That(data.ResourceName).Key("threat_intelligence_allowlist.0.ip_addresses.#").HasValue("2"),
 				check.That(data.ResourceName).Key("threat_intelligence_allowlist.0.fqdns.#").HasValue("2"),
 			),

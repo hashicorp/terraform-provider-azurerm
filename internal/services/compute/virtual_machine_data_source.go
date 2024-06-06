@@ -77,8 +77,8 @@ func dataSourceVirtualMachine() *pluginsdk.Resource {
 func dataSourceVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VirtualMachinesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	networkInterfacesClient := meta.(*clients.Client).Network.InterfacesClient
-	publicIPAddressesClient := meta.(*clients.Client).Network.PublicIPsClient
+	networkInterfacesClient := meta.(*clients.Client).Network.NetworkInterfaces
+	publicIPAddressesClient := meta.(*clients.Client).Network.PublicIPAddresses
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
