@@ -2401,26 +2401,26 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   admin_password                  = "P@ssword1234!"
   health_probe_id                 = azurerm_lb_probe.test.id
   disable_password_authentication = false
-  
+
   source_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
     sku       = "16.04-LTS"
     version   = "latest"
   }
-  
+
   os_disk {
     storage_account_type = "Standard_LRS"
     caching              = "ReadWrite"
   }
-  
+
   data_disk {
     storage_account_type = "Standard_LRS"
     caching              = "ReadWrite"
     disk_size_gb         = 10
     lun                  = 10
   }
-  
+
   network_interface {
     name    = "example"
     primary = true
@@ -2432,7 +2432,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
       load_balancer_inbound_nat_rules_ids    = [azurerm_lb_nat_pool.test.id]
     }
   }
-  
+
   automatic_instance_repair {
     enabled      = true
     grace_period = "PT30M"
