@@ -45,7 +45,10 @@ func (c ResourceProvidersClient) GetSubscriptionDeploymentLocations(ctx context.
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model DeploymentLocations
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

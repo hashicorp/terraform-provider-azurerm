@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -20,10 +21,11 @@ type AutoHealSettingWindows struct {
 }
 
 type AutoHealTriggerWindows struct {
-	Requests        []AutoHealRequestTrigger    `tfschema:"requests"`
-	PrivateMemoryKB int64                       `tfschema:"private_memory_kb"` // Private should be > 102400 KB (100 MB) to 13631488 KB (13 GB), defaults to 0 however and is always present.
-	StatusCodes     []AutoHealStatusCodeTrigger `tfschema:"status_code"`       // 0 or more, ranges split by `-`, ranges cannot use sub-status or win32 code
-	SlowRequests    []AutoHealSlowRequest       `tfschema:"slow_request"`
+	Requests             []AutoHealRequestTrigger      `tfschema:"requests"`
+	PrivateMemoryKB      int64                         `tfschema:"private_memory_kb"` // Private should be > 102400 KB (100 MB) to 13631488 KB (13 GB), defaults to 0 however and is always present.
+	StatusCodes          []AutoHealStatusCodeTrigger   `tfschema:"status_code"`       // 0 or more, ranges split by `-`, ranges cannot use sub-status or win32 code
+	SlowRequests         []AutoHealSlowRequest         `tfschema:"slow_request"`
+	SlowRequestsWithPath []AutoHealSlowRequestWithPath `tfschema:"slow_request_with_path"`
 }
 
 type AutoHealRequestTrigger struct {
@@ -41,6 +43,13 @@ type AutoHealStatusCodeTrigger struct {
 }
 
 type AutoHealSlowRequest struct {
+	TimeTaken string `tfschema:"time_taken"`
+	Interval  string `tfschema:"interval"`
+	Count     int64  `tfschema:"count"`
+	Path      string `tfschema:"path,removedInNextMajorVersion"`
+}
+
+type AutoHealSlowRequestWithPath struct {
 	TimeTaken string `tfschema:"time_taken"`
 	Interval  string `tfschema:"interval"`
 	Count     int64  `tfschema:"count"`
@@ -175,7 +184,7 @@ func autoHealActionSchemaWindowsComputed() *pluginsdk.Schema {
 
 // (@jackofallops) - trigger schemas intentionally left long-hand for now
 func autoHealTriggerSchemaWindows() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	s := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Required: true,
 		MaxItems: 1,
@@ -273,6 +282,32 @@ func autoHealTriggerSchemaWindows() *pluginsdk.Schema {
 								Required:     true,
 								ValidateFunc: validation.IntAtLeast(1),
 							},
+						},
+					},
+				},
+
+				"slow_request_with_path": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"time_taken": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validate.TimeInterval,
+							},
+
+							"interval": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validate.TimeInterval,
+							},
+
+							"count": {
+								Type:         pluginsdk.TypeInt,
+								Required:     true,
+								ValidateFunc: validation.IntAtLeast(1),
+							},
 
 							"path": {
 								Type:         pluginsdk.TypeString,
@@ -285,10 +320,46 @@ func autoHealTriggerSchemaWindows() *pluginsdk.Schema {
 			},
 		},
 	}
+	if !features.FourPointOhBeta() {
+		s.Elem.(*pluginsdk.Resource).Schema["slow_request"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"time_taken": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validate.TimeInterval,
+					},
+
+					"interval": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validate.TimeInterval,
+					},
+
+					"count": {
+						Type:         pluginsdk.TypeInt,
+						Required:     true,
+						ValidateFunc: validation.IntAtLeast(1),
+					},
+
+					"path": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+						Deprecated:   "`path` will be removed in `slow_request` and please use `slow_request_with_path` to set the path in version 4.0 of the AzureRM Provider.",
+					},
+				},
+			},
+		}
+	}
+	return s
 }
 
 func autoHealTriggerSchemaWindowsComputed() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	s := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
 		Elem: &pluginsdk.Resource{
@@ -373,6 +444,29 @@ func autoHealTriggerSchemaWindowsComputed() *pluginsdk.Schema {
 								Type:     pluginsdk.TypeInt,
 								Computed: true,
 							},
+						},
+					},
+				},
+
+				"slow_request_with_path": {
+					Type:     pluginsdk.TypeList,
+					Computed: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"time_taken": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+
+							"interval": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+
+							"count": {
+								Type:     pluginsdk.TypeInt,
+								Computed: true,
+							},
 
 							"path": {
 								Type:     pluginsdk.TypeString,
@@ -384,6 +478,37 @@ func autoHealTriggerSchemaWindowsComputed() *pluginsdk.Schema {
 			},
 		},
 	}
+	if !features.FourPointOh() {
+		s.Elem.(*pluginsdk.Resource).Schema["slow_request"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"time_taken": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"interval": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"count": {
+						Type:     pluginsdk.TypeInt,
+						Computed: true,
+					},
+
+					"path": {
+						Type:       pluginsdk.TypeString,
+						Computed:   true,
+						Deprecated: "`path` will be removed in `slow_request` and please use `slow_request_with_path` to set the path in version 4.0 of the AzureRM Provider.",
+					},
+				},
+			},
+		}
+	}
+	return s
 }
 
 func expandAutoHealSettingsWindows(autoHealSettings []AutoHealSettingWindows) *webapps.AutoHealRules {
@@ -415,9 +540,27 @@ func expandAutoHealSettingsWindows(autoHealSettings []AutoHealSettingWindows) *w
 			TimeInterval: pointer.To(triggers.SlowRequests[0].Interval),
 			Count:        pointer.To(triggers.SlowRequests[0].Count),
 		}
-		if triggers.SlowRequests[0].Path != "" {
-			result.Triggers.SlowRequests.Path = pointer.To(triggers.SlowRequests[0].Path)
+		if !features.FourPointOh() {
+			if triggers.SlowRequests[0].Path != "" {
+				result.Triggers.SlowRequests.Path = pointer.To(triggers.SlowRequests[0].Path)
+			}
 		}
+	}
+
+	if len(triggers.SlowRequestsWithPath) > 0 {
+		slowRequestWithPathTriggers := make([]webapps.SlowRequestsBasedTrigger, 0)
+		for _, sr := range triggers.SlowRequestsWithPath {
+			trigger := webapps.SlowRequestsBasedTrigger{
+				TimeTaken:    pointer.To(sr.TimeTaken),
+				TimeInterval: pointer.To(sr.Interval),
+				Count:        pointer.To(sr.Count),
+			}
+			if sr.Path != "" {
+				trigger.Path = pointer.To(sr.Path)
+			}
+			slowRequestWithPathTriggers = append(slowRequestWithPathTriggers, trigger)
+		}
+		result.Triggers.SlowRequestsWithPath = &slowRequestWithPathTriggers
 	}
 
 	if triggers.PrivateMemoryKB != 0 {
@@ -507,7 +650,7 @@ func flattenAutoHealSettingsWindows(autoHealRules *webapps.AutoHealRules) []Auto
 				}
 
 				if s.Status != nil {
-					t.StatusCodeRange = strconv.Itoa(int(*s.Status))
+					t.StatusCodeRange = strconv.FormatInt(*s.Status, 10)
 				}
 
 				if s.Count != nil {
@@ -551,7 +694,22 @@ func flattenAutoHealSettingsWindows(autoHealRules *webapps.AutoHealRules) []Auto
 				Path:      pointer.From(triggers.SlowRequests.Path),
 			})
 		}
+
+		slowRequestTriggersWithPaths := make([]AutoHealSlowRequestWithPath, 0)
+		if triggers.SlowRequestsWithPath != nil {
+			for _, v := range *triggers.SlowRequestsWithPath {
+				sr := AutoHealSlowRequestWithPath{
+					TimeTaken: pointer.From(v.TimeTaken),
+					Interval:  pointer.From(v.TimeInterval),
+					Count:     pointer.From(v.Count),
+					Path:      pointer.From(v.Path),
+				}
+				slowRequestTriggersWithPaths = append(slowRequestTriggersWithPaths, sr)
+			}
+		}
+
 		resultTrigger.SlowRequests = slowRequestTriggers
+		resultTrigger.SlowRequestsWithPath = slowRequestTriggersWithPaths
 		result.Triggers = []AutoHealTriggerWindows{resultTrigger}
 	}
 

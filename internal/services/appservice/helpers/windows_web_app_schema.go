@@ -19,39 +19,42 @@ import (
 )
 
 type SiteConfigWindows struct {
-	AlwaysOn                 bool                      `tfschema:"always_on"`
-	ApiManagementConfigId    string                    `tfschema:"api_management_api_id"`
-	ApiDefinition            string                    `tfschema:"api_definition_url"`
-	AppCommandLine           string                    `tfschema:"app_command_line"`
-	AutoHeal                 bool                      `tfschema:"auto_heal_enabled"`
-	AutoHealSettings         []AutoHealSettingWindows  `tfschema:"auto_heal_setting"`
-	UseManagedIdentityACR    bool                      `tfschema:"container_registry_use_managed_identity"`
-	ContainerRegistryUserMSI string                    `tfschema:"container_registry_managed_identity_client_id"`
-	DefaultDocuments         []string                  `tfschema:"default_documents"`
-	Http2Enabled             bool                      `tfschema:"http2_enabled"`
-	IpRestriction            []IpRestriction           `tfschema:"ip_restriction"`
-	ScmUseMainIpRestriction  bool                      `tfschema:"scm_use_main_ip_restriction"`
-	ScmIpRestriction         []IpRestriction           `tfschema:"scm_ip_restriction"`
-	LoadBalancing            string                    `tfschema:"load_balancing_mode"`
-	LocalMysql               bool                      `tfschema:"local_mysql_enabled"`
-	ManagedPipelineMode      string                    `tfschema:"managed_pipeline_mode"`
-	RemoteDebugging          bool                      `tfschema:"remote_debugging_enabled"`
-	RemoteDebuggingVersion   string                    `tfschema:"remote_debugging_version"`
-	ScmType                  string                    `tfschema:"scm_type"`
-	Use32BitWorker           bool                      `tfschema:"use_32_bit_worker"`
-	WebSockets               bool                      `tfschema:"websockets_enabled"`
-	FtpsState                string                    `tfschema:"ftps_state"`
-	HealthCheckPath          string                    `tfschema:"health_check_path"`
-	HealthCheckEvictionTime  int64                     `tfschema:"health_check_eviction_time_in_min"`
-	WorkerCount              int64                     `tfschema:"worker_count"`
-	ApplicationStack         []ApplicationStackWindows `tfschema:"application_stack"`
-	VirtualApplications      []VirtualApplication      `tfschema:"virtual_application"`
-	MinTlsVersion            string                    `tfschema:"minimum_tls_version"`
-	ScmMinTlsVersion         string                    `tfschema:"scm_minimum_tls_version"`
-	Cors                     []CorsSetting             `tfschema:"cors"`
-	DetailedErrorLogging     bool                      `tfschema:"detailed_error_logging_enabled"`
-	WindowsFxVersion         string                    `tfschema:"windows_fx_version"`
-	VnetRouteAllEnabled      bool                      `tfschema:"vnet_route_all_enabled"`
+	AlwaysOn                      bool                      `tfschema:"always_on"`
+	ApiManagementConfigId         string                    `tfschema:"api_management_api_id"`
+	ApiDefinition                 string                    `tfschema:"api_definition_url"`
+	AppCommandLine                string                    `tfschema:"app_command_line"`
+	AutoHeal                      bool                      `tfschema:"auto_heal_enabled"`
+	AutoHealSettings              []AutoHealSettingWindows  `tfschema:"auto_heal_setting"`
+	UseManagedIdentityACR         bool                      `tfschema:"container_registry_use_managed_identity"`
+	ContainerRegistryUserMSI      string                    `tfschema:"container_registry_managed_identity_client_id"`
+	DefaultDocuments              []string                  `tfschema:"default_documents"`
+	Http2Enabled                  bool                      `tfschema:"http2_enabled"`
+	IpRestriction                 []IpRestriction           `tfschema:"ip_restriction"`
+	IpRestrictionDefaultAction    string                    `tfschema:"ip_restriction_default_action"`
+	ScmUseMainIpRestriction       bool                      `tfschema:"scm_use_main_ip_restriction"`
+	ScmIpRestriction              []IpRestriction           `tfschema:"scm_ip_restriction"`
+	ScmIpRestrictionDefaultAction string                    `tfschema:"scm_ip_restriction_default_action"`
+	LoadBalancing                 string                    `tfschema:"load_balancing_mode"`
+	LocalMysql                    bool                      `tfschema:"local_mysql_enabled"`
+	ManagedPipelineMode           string                    `tfschema:"managed_pipeline_mode"`
+	RemoteDebugging               bool                      `tfschema:"remote_debugging_enabled"`
+	RemoteDebuggingVersion        string                    `tfschema:"remote_debugging_version"`
+	ScmType                       string                    `tfschema:"scm_type"`
+	Use32BitWorker                bool                      `tfschema:"use_32_bit_worker"`
+	WebSockets                    bool                      `tfschema:"websockets_enabled"`
+	FtpsState                     string                    `tfschema:"ftps_state"`
+	HealthCheckPath               string                    `tfschema:"health_check_path"`
+	HealthCheckEvictionTime       int64                     `tfschema:"health_check_eviction_time_in_min"`
+	WorkerCount                   int64                     `tfschema:"worker_count"`
+	ApplicationStack              []ApplicationStackWindows `tfschema:"application_stack"`
+	HandlerMapping                []HandlerMappings         `tfschema:"handler_mapping"`
+	VirtualApplications           []VirtualApplication      `tfschema:"virtual_application"`
+	MinTlsVersion                 string                    `tfschema:"minimum_tls_version"`
+	ScmMinTlsVersion              string                    `tfschema:"scm_minimum_tls_version"`
+	Cors                          []CorsSetting             `tfschema:"cors"`
+	DetailedErrorLogging          bool                      `tfschema:"detailed_error_logging_enabled"`
+	WindowsFxVersion              string                    `tfschema:"windows_fx_version"`
+	VnetRouteAllEnabled           bool                      `tfschema:"vnet_route_all_enabled"`
 	// TODO new properties / blocks
 	// SiteLimits []SiteLimitsSettings `tfschema:"site_limits"` // TODO - ASE related for limiting App resource consumption
 	// PushSettings - Supported in SDK, but blocked by manual step needed for connecting app to notification hub.
@@ -129,6 +132,13 @@ func SiteConfigSchemaWindows() *pluginsdk.Schema {
 
 				"ip_restriction": IpRestrictionSchema(),
 
+				"ip_restriction_default_action": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Default:      webapps.DefaultActionAllow,
+					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForDefaultAction(), false),
+				},
+
 				"scm_use_main_ip_restriction": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
@@ -136,6 +146,13 @@ func SiteConfigSchemaWindows() *pluginsdk.Schema {
 				},
 
 				"scm_ip_restriction": IpRestrictionSchema(),
+
+				"scm_ip_restriction_default_action": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Default:      webapps.DefaultActionAllow,
+					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForDefaultAction(), false),
+				},
 
 				"local_mysql_enabled": {
 					Type:     pluginsdk.TypeBool,
@@ -215,14 +232,26 @@ func SiteConfigSchemaWindows() *pluginsdk.Schema {
 				"health_check_path": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
+					RequiredWith: func() []string {
+						if features.FourPointOhBeta() {
+							return []string{"site_config.0.health_check_eviction_time_in_min"}
+						}
+						return []string{}
+					}(),
 				},
 
 				"health_check_eviction_time_in_min": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					Computed:     true,
+					Computed:     !features.FourPointOhBeta(),
 					ValidateFunc: validation.IntBetween(2, 10),
-					Description:  "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Defaults to `10`. Only valid in conjunction with `health_check_path`",
+					RequiredWith: func() []string {
+						if features.FourPointOhBeta() {
+							return []string{"site_config.0.health_check_path"}
+						}
+						return []string{}
+					}(),
+					Description: "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Only valid in conjunction with `health_check_path`",
 				},
 
 				"worker_count": {
@@ -247,6 +276,8 @@ func SiteConfigSchemaWindows() *pluginsdk.Schema {
 				},
 
 				"cors": CorsSettingsSchema(),
+
+				"handler_mapping": HandlerMappingSchema(),
 
 				"virtual_application": virtualApplicationsSchema(),
 
@@ -336,12 +367,22 @@ func SiteConfigSchemaWindowsComputed() *pluginsdk.Schema {
 
 				"ip_restriction": IpRestrictionSchemaComputed(),
 
+				"ip_restriction_default_action": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
 				"scm_use_main_ip_restriction": {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
 				},
 
 				"scm_ip_restriction": IpRestrictionSchemaComputed(),
+
+				"scm_ip_restriction_default_action": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
 
 				"local_mysql_enabled": {
 					Type:     pluginsdk.TypeBool,
@@ -415,6 +456,8 @@ func SiteConfigSchemaWindowsComputed() *pluginsdk.Schema {
 
 				"cors": CorsSettingsSchemaComputed(),
 
+				"handler_mapping": HandlerMappingSchemaComputed(),
+
 				"virtual_application": virtualApplicationsSchemaComputed(),
 
 				"detailed_error_logging_enabled": {
@@ -453,8 +496,11 @@ func (s *SiteConfigWindows) ExpandForCreate(appSettings map[string]string) (*web
 	expanded.ScmMinTlsVersion = pointer.To(webapps.SupportedTlsVersions(s.ScmMinTlsVersion))
 	expanded.Use32BitWorkerProcess = pointer.To(s.Use32BitWorker)
 	expanded.WebSocketsEnabled = pointer.To(s.WebSockets)
+	expanded.HandlerMappings = expandHandlerMapping(s.HandlerMapping)
 	expanded.VirtualApplications = expandVirtualApplications(s.VirtualApplications)
 	expanded.VnetRouteAllEnabled = pointer.To(s.VnetRouteAllEnabled)
+	expanded.IPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(s.IpRestrictionDefaultAction))
+	expanded.ScmIPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(s.ScmIpRestrictionDefaultAction))
 
 	if s.ApiManagementConfigId != "" {
 		expanded.ApiManagementConfig = &webapps.ApiManagementConfig{
@@ -478,6 +524,7 @@ func (s *SiteConfigWindows) ExpandForCreate(appSettings map[string]string) (*web
 			if appSettings == nil {
 				appSettings = make(map[string]string)
 			}
+
 			appSettings["WEBSITE_NODE_DEFAULT_VERSION"] = winAppStack.NodeVersion
 		}
 		if winAppStack.NetFrameworkVersion != "" {
@@ -522,6 +569,10 @@ func (s *SiteConfigWindows) ExpandForCreate(appSettings map[string]string) (*web
 		}
 
 		if winAppStack.DockerImageName != "" {
+			if appSettings == nil {
+				appSettings = make(map[string]string)
+			}
+
 			expanded.WindowsFxVersion = pointer.To(EncodeDockerFxStringWindows(winAppStack.DockerImageName, winAppStack.DockerRegistryUrl))
 			appSettings["DOCKER_REGISTRY_SERVER_URL"] = winAppStack.DockerRegistryUrl
 			appSettings["DOCKER_REGISTRY_SERVER_USERNAME"] = winAppStack.DockerRegistryUsername
@@ -597,6 +648,8 @@ func (s *SiteConfigWindows) ExpandForUpdate(metadata sdk.ResourceMetaData, exist
 	expanded.RemoteDebuggingEnabled = pointer.To(s.RemoteDebugging)
 	expanded.Use32BitWorkerProcess = pointer.To(s.Use32BitWorker)
 	expanded.WebSocketsEnabled = pointer.To(s.WebSockets)
+	expanded.IPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(s.IpRestrictionDefaultAction))
+	expanded.ScmIPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(s.ScmIpRestrictionDefaultAction))
 
 	if metadata.ResourceData.HasChange("site_config.0.api_management_api_id") {
 		expanded.ApiManagementConfig = &webapps.ApiManagementConfig{
@@ -616,12 +669,14 @@ func (s *SiteConfigWindows) ExpandForUpdate(metadata sdk.ResourceMetaData, exist
 
 	if len(s.ApplicationStack) == 1 {
 		winAppStack := s.ApplicationStack[0]
-		if metadata.ResourceData.HasChange("site_config.0.application_stack.0.node_version") {
+
+		if metadata.ResourceData.HasChange("site_config.0.application_stack.0.node_version") || winAppStack.NodeVersion != "" {
 			if appSettings == nil {
 				appSettings = make(map[string]string)
 			}
 			appSettings["WEBSITE_NODE_DEFAULT_VERSION"] = winAppStack.NodeVersion
 		}
+
 		if metadata.ResourceData.HasChanges("site_config.0.application_stack.0.dotnet_version", "site_config.0.application_stack.0.dotnet_core_version") {
 			switch {
 			case winAppStack.NetFrameworkVersion != "":
@@ -679,7 +734,6 @@ func (s *SiteConfigWindows) ExpandForUpdate(metadata sdk.ResourceMetaData, exist
 			appSettings["DOCKER_REGISTRY_SERVER_URL"] = winAppStack.DockerRegistryUrl
 			appSettings["DOCKER_REGISTRY_SERVER_USERNAME"] = winAppStack.DockerRegistryUsername
 			appSettings["DOCKER_REGISTRY_SERVER_PASSWORD"] = winAppStack.DockerRegistryPassword
-
 		}
 
 	} else {
@@ -687,6 +741,12 @@ func (s *SiteConfigWindows) ExpandForUpdate(metadata sdk.ResourceMetaData, exist
 	}
 
 	expanded.AppSettings = ExpandAppSettingsForCreate(appSettings)
+
+	if metadata.ResourceData.HasChange("site_config.0.handler_mapping") {
+		expanded.HandlerMappings = expandHandlerMappingForUpdate(s.HandlerMapping)
+	} else {
+		expanded.HandlerMappings = expandHandlerMapping(s.HandlerMapping)
+	}
 
 	if metadata.ResourceData.HasChange("site_config.0.virtual_application") {
 		expanded.VirtualApplications = expandVirtualApplicationsForUpdate(s.VirtualApplications)
@@ -711,12 +771,20 @@ func (s *SiteConfigWindows) ExpandForUpdate(metadata sdk.ResourceMetaData, exist
 		expanded.IPSecurityRestrictions = ipRestrictions
 	}
 
+	if metadata.ResourceData.HasChange("site_config.0.ip_restriction_default_action") {
+		expanded.IPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(s.IpRestrictionDefaultAction))
+	}
+
 	if metadata.ResourceData.HasChange("site_config.0.scm_ip_restriction") {
 		scmIpRestrictions, err := ExpandIpRestrictions(s.ScmIpRestriction)
 		if err != nil {
 			return nil, err
 		}
 		expanded.ScmIPSecurityRestrictions = scmIpRestrictions
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.scm_ip_restriction_default_action") {
+		expanded.ScmIPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(s.ScmIpRestrictionDefaultAction))
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.load_balancing_mode") {
@@ -797,9 +865,12 @@ func (s *SiteConfigWindows) Flatten(appSiteConfig *webapps.SiteConfig, currentSt
 		s.ScmUseMainIpRestriction = pointer.From(appSiteConfig.ScmIPSecurityRestrictionsUseMain)
 		s.Use32BitWorker = pointer.From(appSiteConfig.Use32BitWorkerProcess)
 		s.UseManagedIdentityACR = pointer.From(appSiteConfig.AcrUseManagedIdentityCreds)
+		s.HandlerMapping = flattenHandlerMapping(appSiteConfig.HandlerMappings)
 		s.VirtualApplications = flattenVirtualApplications(appSiteConfig.VirtualApplications)
 		s.WebSockets = pointer.From(appSiteConfig.WebSocketsEnabled)
 		s.VnetRouteAllEnabled = pointer.From(appSiteConfig.VnetRouteAllEnabled)
+		s.IpRestrictionDefaultAction = string(pointer.From(appSiteConfig.IPSecurityRestrictionsDefaultAction))
+		s.ScmIpRestrictionDefaultAction = string(pointer.From(appSiteConfig.ScmIPSecurityRestrictionsDefaultAction))
 	}
 
 	if appSiteConfig.ApiManagementConfig != nil && appSiteConfig.ApiManagementConfig.Id != nil {

@@ -100,6 +100,7 @@ func (c EnvironmentTypesClient) ProjectAllowedEnvironmentTypesListCompleteMatchi
 
 	resp, err := c.ProjectAllowedEnvironmentTypesList(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

@@ -101,6 +101,7 @@ func (c DedicatedHsmsClient) DedicatedHsmListBySubscriptionCompleteMatchingPredi
 
 	resp, err := c.DedicatedHsmListBySubscription(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

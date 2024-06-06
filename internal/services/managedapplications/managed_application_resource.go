@@ -30,9 +30,9 @@ import (
 
 func resourceManagedApplication() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceManagedApplicationCreateUpdate,
+		Create: resourceManagedApplicationCreate,
 		Read:   resourceManagedApplicationRead,
-		Update: resourceManagedApplicationCreateUpdate,
+		Update: resourceManagedApplicationUpdate,
 		Delete: resourceManagedApplicationDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -164,7 +164,7 @@ func resourceManagedApplicationSchema() map[string]*pluginsdk.Schema {
 	return schema
 }
 
-func resourceManagedApplicationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceManagedApplicationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ManagedApplication.ApplicationClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -220,6 +220,48 @@ func resourceManagedApplicationCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	d.SetId(id.ID())
+
+	return resourceManagedApplicationRead(d, meta)
+}
+
+func resourceManagedApplicationUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).ManagedApplication.ApplicationClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := applications.ParseApplicationID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	payload := existing.Model
+
+	if d.HasChange("application_definition_id") {
+		payload.Properties.ApplicationDefinitionId = pointer.To(d.Get("application_definition_id").(string))
+	}
+
+	if d.HasChange("tags") {
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	params, err := expandManagedApplicationParameters(d)
+	if err != nil {
+		if !features.FourPointOhBeta() {
+			return fmt.Errorf("expanding `parameters` or `parameter_values`: %+v", err)
+		}
+		return fmt.Errorf("expanding `parameter_values`: %+v", err)
+	}
+	payload.Properties.Parameters = pointer.To(interface{}(params))
+
+	err = client.CreateOrUpdateThenPoll(ctx, *id, *payload)
+	if err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
 
 	return resourceManagedApplicationRead(d, meta)
 }

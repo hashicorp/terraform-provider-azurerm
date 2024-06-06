@@ -22,8 +22,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-var _ sdk.Resource = VirtualMachineRunCommandResource{}
-var _ sdk.ResourceWithUpdate = VirtualMachineRunCommandResource{}
+var (
+	_ sdk.Resource           = VirtualMachineRunCommandResource{}
+	_ sdk.ResourceWithUpdate = VirtualMachineRunCommandResource{}
+)
 
 type VirtualMachineRunCommandResource struct{}
 
@@ -54,7 +56,7 @@ type VirtualMachineRunCommandInputParameterSchema struct {
 }
 
 type VirtualMachineRunCommandInstanceViewSchema struct {
-	ExitCode         int    `tfschema:"exit_code"`
+	ExitCode         int64  `tfschema:"exit_code"`
 	executionState   string `tfschema:"execution_state"`
 	executionMessage string `tfschema:"execution_message"`
 	output           string `tfschema:"output"`
@@ -304,7 +306,6 @@ func (r VirtualMachineRunCommandResource) Arguments() map[string]*pluginsdk.Sche
 
 		"tags": commonschema.Tags(),
 	}
-
 }
 
 func (r VirtualMachineRunCommandResource) Attributes() map[string]*pluginsdk.Schema {
@@ -515,17 +516,24 @@ func (r VirtualMachineRunCommandResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
+			resp, err := client.GetByVirtualMachine(ctx, *id, virtualmachineruncommands.GetByVirtualMachineOperationOptions{
+				// otherwise, the response will not contain instanceView
+				Expand: pointer.To("instanceView"),
+			})
+			if err != nil {
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+			if resp.Model == nil {
+				return fmt.Errorf("unexpected null model of %s", *id)
+			}
+			payload := resp.Model
+			if payload.Properties == nil {
+				return fmt.Errorf("unexpected null properties of %s", *id)
+			}
+
 			var config VirtualMachineRunCommandResourceSchema
 			if err := metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
-			}
-
-			payload := virtualmachineruncommands.VirtualMachineRunCommandUpdate{
-				Properties: &virtualmachineruncommands.VirtualMachineRunCommandProperties{
-					TreatFailureAsDeploymentFailure: pointer.To(true),
-					AsyncExecution:                  pointer.To(false),
-					TimeoutInSeconds:                pointer.To(int64(metadata.ResourceData.Timeout(pluginsdk.TimeoutUpdate).Seconds())),
-				},
 			}
 
 			if metadata.ResourceData.HasChange("error_blob_managed_identity") {
@@ -568,7 +576,7 @@ func (r VirtualMachineRunCommandResource) Update() sdk.ResourceFunc {
 				payload.Tags = tags.Expand(config.Tags)
 			}
 
-			if err := client.UpdateThenPoll(ctx, *id, payload); err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -680,7 +688,7 @@ func flattenVirtualMachineRunCommandInstanceView(input *virtualmachineruncommand
 
 	return []VirtualMachineRunCommandInstanceViewSchema{
 		{
-			ExitCode:         int(pointer.From(input.ExitCode)),
+			ExitCode:         pointer.From(input.ExitCode),
 			executionState:   string(pointer.From(input.ExecutionState)),
 			executionMessage: pointer.From(input.ExecutionMessage),
 			output:           pointer.From(input.Output),

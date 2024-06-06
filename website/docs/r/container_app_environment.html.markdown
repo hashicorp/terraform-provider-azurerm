@@ -68,6 +68,10 @@ The following arguments are supported:
 
 * `workload_profile` - (Optional) The profile of the workload to scope the container app execution. A `workload_profile` block as defined below.
 
+* `mutual_tls_enabled` - (Optional) Should mutual transport layer security (mTLS) be enabled? Defaults to `false`.
+
+~> **Note:** This feature is in public preview. Enabling mTLS for your applications may increase response latency and reduce maximum throughput in high-load scenarios.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
@@ -76,7 +80,11 @@ A `workload_profile` block supports the following:
 
 * `name` - (Required) The name of the workload profile.
 
-* `workload_profile_type` - (Required) Workload profile type for the workloads to run on. Possible values include `D4`, `D8`, `D16`, `D32`, `E4`, `E8`, `E16` and `E32`.
+* `workload_profile_type` - (Required) Workload profile type for the workloads to run on. Possible values include `Consumption`, `D4`, `D8`, `D16`, `D32`, `E4`, `E8`, `E16` and `E32`.
+
+~> **NOTE:** A `Consumption` type must have a name of `Consumption` and an environment may only have one `Consumption` Workload Profile.  
+
+~> **NOTE:** Defining a `Consumption` profile is optional, however, Environments created without an initial Workload Profile cannot have them added at a later time and must be recreated. Similarly, an environment created with Profiles must always have at least one defined Profile, removing all profiles will force a recreation of the resource. 
 
 * `maximum_count` - (Required) The maximum number of instances of workload profile that can be deployed in the Container App Environment.
 
@@ -87,6 +95,8 @@ A `workload_profile` block supports the following:
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Container App Environment
+
+* `custom_domain_verification_id` - The ID of the Custom Domain Verification for this Container App Environment.
 
 * `default_domain` - The default, publicly resolvable, name of this Container App Environment.
 

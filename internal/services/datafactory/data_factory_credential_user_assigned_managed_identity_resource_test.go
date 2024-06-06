@@ -35,6 +35,20 @@ func TestAccDataFactoryCredentialUserAssignedManagedIdentity_basic(t *testing.T)
 	})
 }
 
+func TestAccDataFactoryCredentialUserAssignedManagedIdentity_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_credential_user_managed_identity", "test")
+	r := CredentialUserAssignedManagedIdentityResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
 func TestAccDataFactoryCredentialUserAssignedManagedIdentity_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_credential_user_managed_identity", "test")
 	r := CredentialUserAssignedManagedIdentityResource{}
@@ -70,7 +84,7 @@ func (t CredentialUserAssignedManagedIdentityResource) Exists(ctx context.Contex
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model.Id != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func templateBase(data acceptance.TestData) string {
@@ -116,6 +130,18 @@ resource "azurerm_data_factory_credential_user_managed_identity" "test" {
   annotations     = ["1"]
 }
 `, base, data.RandomInteger)
+}
+
+func (r CredentialUserAssignedManagedIdentityResource) requiresImport(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_data_factory_credential_user_managed_identity" "import" {
+  name            = azurerm_data_factory_credential_user_managed_identity.test.name
+  data_factory_id = azurerm_data_factory_credential_user_managed_identity.test.data_factory_id
+  identity_id     = azurerm_data_factory_credential_user_managed_identity.test.identity_id
+}
+`, r.basic(data))
 }
 
 func (r CredentialUserAssignedManagedIdentityResource) update(data acceptance.TestData) string {

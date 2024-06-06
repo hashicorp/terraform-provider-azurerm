@@ -81,7 +81,10 @@ func (c OutputsClient) CreateOrReplace(ctx context.Context, id OutputId, input O
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Output
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

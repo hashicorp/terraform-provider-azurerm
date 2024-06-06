@@ -227,8 +227,8 @@ func (k KeyResource) Create() sdk.ResourceFunc {
 				Pending:                   []string{"NotFound", "Forbidden"},
 				Target:                    []string{"Exists"},
 				Refresh:                   appConfigurationGetKeyRefreshFunc(ctx, client, model.Key, model.Label),
-				PollInterval:              10 * time.Second,
-				ContinuousTargetOccurence: 2,
+				PollInterval:              5 * time.Second,
+				ContinuousTargetOccurence: 4,
 				Timeout:                   time.Until(deadline),
 			}
 
@@ -251,8 +251,13 @@ func (k KeyResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("while parsing resource ID: %+v", err)
 			}
 
+			domainSuffix, ok := metadata.Client.Account.Environment.AppConfiguration.DomainSuffix()
+			if !ok {
+				return fmt.Errorf("could not determine AppConfiguration domain suffix for environment %q", metadata.Client.Account.Environment.Name)
+			}
+
 			subscriptionId := commonids.NewSubscriptionID(metadata.Client.Account.SubscriptionId)
-			configurationStoreIdRaw, err := metadata.Client.AppConfiguration.ConfigurationStoreIDFromEndpoint(ctx, subscriptionId, nestedItemId.ConfigurationStoreEndpoint)
+			configurationStoreIdRaw, err := metadata.Client.AppConfiguration.ConfigurationStoreIDFromEndpoint(ctx, subscriptionId, nestedItemId.ConfigurationStoreEndpoint, *domainSuffix)
 			if err != nil {
 				return fmt.Errorf("while retrieving the Resource ID of Configuration Store at Endpoint: %q: %s", nestedItemId.ConfigurationStoreEndpoint, err)
 			}
@@ -267,11 +272,11 @@ func (k KeyResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			ok, err := metadata.Client.AppConfiguration.Exists(ctx, *configurationStoreId)
+			exists, err := metadata.Client.AppConfiguration.Exists(ctx, *configurationStoreId)
 			if err != nil {
 				return fmt.Errorf("while checking Configuration Store %q for feature %q existence: %v", *configurationStoreId, *nestedItemId, err)
 			}
-			if !ok {
+			if !exists {
 				log.Printf("[DEBUG] Configuration Store %q for feature %q was not found - removing from state", *configurationStoreId, *nestedItemId)
 				return metadata.MarkAsGone(nestedItemId)
 			}

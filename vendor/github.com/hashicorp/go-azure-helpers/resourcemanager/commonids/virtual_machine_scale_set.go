@@ -10,6 +10,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+var _ resourceids.ResourceId = &VirtualMachineScaleSetId{}
+
 // VirtualMachineScaleSetId is a struct representing the Resource ID for a Virtual Machine Scale Set
 type VirtualMachineScaleSetId struct {
 	SubscriptionId             string

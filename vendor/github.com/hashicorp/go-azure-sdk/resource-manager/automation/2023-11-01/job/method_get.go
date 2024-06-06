@@ -72,7 +72,10 @@ func (c JobClient) Get(ctx context.Context, id JobId, options GetOperationOption
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Job
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -8,7 +8,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/storageaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -186,27 +189,26 @@ func (r StorageAccountNetworkRulesResource) Exists(ctx context.Context, client *
 		return nil, err
 	}
 
-	resp, err := client.Storage.AccountsClient.GetProperties(ctx, id.ResourceGroupName, id.StorageAccountName, "")
+	resp, err := client.Storage.ResourceManager.StorageAccounts.GetProperties(ctx, *id, storageaccounts.DefaultGetPropertiesOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if resp.AccountProperties == nil {
-		return utils.Bool(false), nil
-	}
-
-	rule := resp.AccountProperties.NetworkRuleSet
-	if rule == nil {
-		return utils.Bool(false), nil
-	}
-
-	if (rule.IPRules != nil && len(*rule.IPRules) != 0) ||
-		(rule.VirtualNetworkRules != nil && len(*rule.VirtualNetworkRules) != 0) ||
-		rule.Bypass != "AzureServices" || rule.DefaultAction != "Allow" {
-		return utils.Bool(true), nil
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			if acls := props.NetworkAcls; acls != nil {
+				hasIPRules := acls.IPRules != nil && len(*acls.IPRules) > 0
+				usesNonDefaultAction := acls.DefaultAction != storageaccounts.DefaultActionAllow
+				usesNonDefaultBypass := acls.Bypass != nil && *acls.Bypass != storageaccounts.BypassAzureServices
+				hasVirtualNetworkRules := acls.VirtualNetworkRules != nil && len(*acls.VirtualNetworkRules) > 0
+				if hasIPRules || usesNonDefaultAction || usesNonDefaultBypass || hasVirtualNetworkRules {
+					return pointer.To(true), nil
+				}
+			}
+		}
 	}
 
 	return utils.Bool(false), nil

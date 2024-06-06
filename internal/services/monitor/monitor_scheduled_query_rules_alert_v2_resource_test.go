@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-08-01/scheduledqueryrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-15-preview/scheduledqueryrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -89,6 +89,69 @@ func TestAccMonitorScheduledQueryRulesAlertV2_update(t *testing.T) {
 	})
 }
 
+func TestAccMonitorScheduledQueryRulesAlertV2_identitySystemAssigned(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_scheduled_query_rules_alert_v2", "test")
+	r := MonitorScheduledQueryRulesAlertV2Resource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.identitySystemAssigned(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
+				check.That(data.ResourceName).Key("identity.0.tenant_id").IsUUID(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMonitorScheduledQueryRulesAlertV2_identityUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_scheduled_query_rules_alert_v2", "test")
+	r := MonitorScheduledQueryRulesAlertV2Resource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.identitySystemAssigned(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
+				check.That(data.ResourceName).Key("identity.0.tenant_id").IsUUID(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.identityUserAssigned(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("UserAssigned"),
+				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("1"),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsEmpty(),
+				check.That(data.ResourceName).Key("identity.0.tenant_id").IsUUID(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r MonitorScheduledQueryRulesAlertV2Resource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := scheduledqueryrules.ParseScheduledQueryRuleID(state.ID)
 	if err != nil {
@@ -128,6 +191,18 @@ resource "azurerm_monitor_action_group" "test" {
   name                = "acctest-mag-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   short_name          = "test mag"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestUAI-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = azurerm_application_insights.test.id
+  role_definition_name = "Reader"
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -294,6 +369,68 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "test" {
     key  = "value"
     key2 = "value2"
   }
+}
+`, template, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r MonitorScheduledQueryRulesAlertV2Resource) identitySystemAssigned(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_monitor_scheduled_query_rules_alert_v2" "test" {
+  name                 = "acctest-isqr-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = "%s"
+  evaluation_frequency = "PT5M"
+  window_duration      = "PT5M"
+  scopes               = [azurerm_application_insights.test.id]
+  severity             = 3
+  criteria {
+    query                   = <<-QUERY
+      requests
+	    | summarize CountByCountry=count() by client_CountryOrRegion
+	  QUERY
+    time_aggregation_method = "Count"
+    threshold               = 5.0
+    operator                = "Equal"
+  }
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, template, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r MonitorScheduledQueryRulesAlertV2Resource) identityUserAssigned(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_monitor_scheduled_query_rules_alert_v2" "test" {
+  name                 = "acctest-isqr-%[2]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = "%s"
+  evaluation_frequency = "PT5M"
+  window_duration      = "PT5M"
+  scopes               = [azurerm_application_insights.test.id]
+  severity             = 3
+  criteria {
+    query                   = <<-QUERY
+      requests
+	    | summarize CountByCountry=count() by client_CountryOrRegion
+	  QUERY
+    time_aggregation_method = "Count"
+    threshold               = 5.0
+    operator                = "Equal"
+  }
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id,
+    ]
+  }
+  depends_on = [azurerm_role_assignment.test]
 }
 `, template, data.RandomInteger, data.Locations.Primary)
 }

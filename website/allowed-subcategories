@@ -14,6 +14,7 @@ Automanage
 Automation
 Azure Managed Lustre File System
 Azure Stack HCI
+Azure VMware Solution
 Base
 Batch
 Billing
@@ -76,11 +77,11 @@ Messaging
 Mixed Reality
 Mobile Network
 Monitor
+NGINX
 NetApp
 Network
 Network Function
 New Relic
-Nginx
 Orbital
 Palo Alto
 Policy
@@ -104,9 +105,10 @@ Storage
 Storage Mover
 Stream Analytics
 Synapse
+System Center Virtual Machine Manager
 Template
 Time Series Insights
-VMware (AVS)
 Video Analyzer
 Voice Services
 Web PubSub
+Workloads

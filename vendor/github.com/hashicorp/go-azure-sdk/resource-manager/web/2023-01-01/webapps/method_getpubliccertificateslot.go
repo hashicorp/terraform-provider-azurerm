@@ -43,7 +43,10 @@ func (c WebAppsClient) GetPublicCertificateSlot(ctx context.Context, id SlotPubl
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model PublicCertificate
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -72,7 +72,10 @@ func (c PoliciesClient) Get(ctx context.Context, id PolicyId, options GetOperati
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Policy
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

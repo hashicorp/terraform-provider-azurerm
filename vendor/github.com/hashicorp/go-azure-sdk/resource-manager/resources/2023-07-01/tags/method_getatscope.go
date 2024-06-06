@@ -45,7 +45,10 @@ func (c TagsClient) GetAtScope(ctx context.Context, id commonids.ScopeId) (resul
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model TagsResource
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

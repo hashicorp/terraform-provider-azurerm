@@ -14,13 +14,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	components "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2021-08-01-preview/registries"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-10-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2024-04-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	appInsightsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -70,7 +70,7 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: appInsightsValidate.ComponentID,
+				ValidateFunc: components.ValidateComponentID,
 				// TODO -- remove when issue https://github.com/Azure/azure-rest-api-specs/issues/8323 is addressed
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
@@ -189,6 +189,23 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 				},
 			},
 
+			"managed_network": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"isolation_mode": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validation.StringInSlice(workspaces.PossibleValuesForIsolationMode(), false),
+						},
+					},
+				},
+			},
+
 			"friendly_name": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -211,6 +228,26 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
+			},
+
+			"serverless_compute": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"subnet_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: commonids.ValidateSubnetID,
+						},
+						"public_ip_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+					},
+				},
 			},
 
 			"discovery_url": {
@@ -288,14 +325,31 @@ func resourceMachineLearningWorkspaceCreateOrUpdate(d *pluginsdk.ResourceData, m
 
 		Identity: expandedIdentity,
 		Properties: &workspaces.WorkspaceProperties{
-			V1LegacyMode:        pointer.To(d.Get("v1_legacy_mode_enabled").(bool)),
-			Encryption:          expandedEncryption,
-			StorageAccount:      pointer.To(d.Get("storage_account_id").(string)),
 			ApplicationInsights: pointer.To(d.Get("application_insights_id").(string)),
+			Encryption:          expandedEncryption,
 			KeyVault:            pointer.To(d.Get("key_vault_id").(string)),
+			ManagedNetwork:      expandMachineLearningWorkspaceManagedNetwork(d.Get("managed_network").([]interface{})),
 			PublicNetworkAccess: pointer.To(workspaces.PublicNetworkAccessDisabled),
+			StorageAccount:      pointer.To(d.Get("storage_account_id").(string)),
+			V1LegacyMode:        pointer.To(d.Get("v1_legacy_mode_enabled").(bool)),
 		},
 	}
+
+	serverlessCompute := expandMachineLearningWorkspaceServerlessCompute(d.Get("serverless_compute").([]interface{}))
+	if serverlessCompute != nil {
+		if *serverlessCompute.ServerlessComputeNoPublicIP && serverlessCompute.ServerlessComputeCustomSubnet == nil && !networkAccessBehindVnetEnabled {
+			return fmt.Errorf("`public_ip_enabled` must be set to  `true` if `subnet_id` is not set and `public_network_access_enabled` is `false`")
+		}
+
+		if serverlessCompute.ServerlessComputeCustomSubnet == nil {
+			oldVal, newVal := d.GetChange("serverless_compute.0.public_ip_enabled")
+			if oldVal.(bool) && !newVal.(bool) {
+				return fmt.Errorf(" Not supported to update `public_ip_enabled` from `true` to `false` when `subnet_id` is null or empty")
+			}
+		}
+	}
+
+	workspace.Properties.ServerlessComputeSettings = serverlessCompute
 
 	if networkAccessBehindVnetEnabled {
 		workspace.Properties.PublicNetworkAccess = pointer.To(workspaces.PublicNetworkAccessEnabled)
@@ -383,7 +437,15 @@ func resourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta interf
 	d.Set("kind", resp.Model.Kind)
 
 	if props := resp.Model.Properties; props != nil {
-		d.Set("application_insights_id", props.ApplicationInsights)
+		appInsightsId := ""
+		if props.ApplicationInsights != nil {
+			applicationInsightsId, err := components.ParseComponentIDInsensitively(*props.ApplicationInsights)
+			if err != nil {
+				return err
+			}
+			appInsightsId = applicationInsightsId.ID()
+		}
+		d.Set("application_insights_id", appInsightsId)
 		d.Set("storage_account_id", props.StorageAccount)
 		d.Set("container_registry_id", props.ContainerRegistry)
 		d.Set("description", props.Description)
@@ -395,6 +457,8 @@ func resourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta interf
 		d.Set("public_network_access_enabled", *props.PublicNetworkAccess == workspaces.PublicNetworkAccessEnabled)
 		d.Set("v1_legacy_mode_enabled", props.V1LegacyMode)
 		d.Set("workspace_id", props.WorkspaceId)
+		d.Set("managed_network", flattenMachineLearningWorkspaceManagedNetwork(props.ManagedNetwork))
+		d.Set("serverless_compute", flattenMachineLearningWorkspaceServerlessCompute(props.ServerlessComputeSettings))
 
 		kvId, err := commonids.ParseKeyVaultIDInsensitively(*props.KeyVault)
 		if err != nil {
@@ -442,7 +506,14 @@ func resourceMachineLearningWorkspaceDelete(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("parsing Machine Learning Workspace ID `%q`: %+v", d.Id(), err)
 	}
 
-	future, err := client.Delete(ctx, *id, workspaces.DefaultDeleteOperationOptions())
+	options := workspaces.DefaultDeleteOperationOptions()
+	if meta.(*clients.Client).Features.MachineLearning.PurgeSoftDeletedWorkspaceOnDestroy {
+		options = workspaces.DeleteOperationOptions{
+			ForceToPurge: pointer.To(true),
+		}
+	}
+
+	future, err := client.Delete(ctx, *id, options)
 	if err != nil {
 		return fmt.Errorf("deleting Machine Learning Workspace %q (Resource Group %q): %+v", id.WorkspaceName, id.ResourceGroupName, err)
 	}
@@ -617,4 +688,66 @@ func flattenMachineLearningWorkspaceFeatureStore(input *workspaces.FeatureStoreS
 			"online_connection_name":         onlineConnectionName,
 		},
 	}
+}
+
+func expandMachineLearningWorkspaceManagedNetwork(i []interface{}) *workspaces.ManagedNetworkSettings {
+	if len(i) == 0 || i[0] == nil {
+		return nil
+	}
+
+	v := i[0].(map[string]interface{})
+
+	return &workspaces.ManagedNetworkSettings{
+		IsolationMode: pointer.To(workspaces.IsolationMode(v["isolation_mode"].(string))),
+	}
+}
+
+func flattenMachineLearningWorkspaceManagedNetwork(i *workspaces.ManagedNetworkSettings) *[]interface{} {
+	if i == nil {
+		return &[]interface{}{}
+	}
+
+	out := map[string]interface{}{}
+
+	if i.IsolationMode != nil {
+		out["isolation_mode"] = *i.IsolationMode
+	}
+
+	return &[]interface{}{out}
+}
+
+func expandMachineLearningWorkspaceServerlessCompute(i []interface{}) *workspaces.ServerlessComputeSettings {
+	if len(i) == 0 || i[0] == nil {
+		return nil
+	}
+
+	v := i[0].(map[string]interface{})
+
+	serverlessCompute := workspaces.ServerlessComputeSettings{
+		ServerlessComputeNoPublicIP: pointer.To(!v["public_ip_enabled"].(bool)),
+	}
+
+	if subnetId, ok := v["subnet_id"].(string); ok && subnetId != "" {
+		serverlessCompute.ServerlessComputeCustomSubnet = pointer.To(subnetId)
+	}
+
+	return &serverlessCompute
+}
+
+func flattenMachineLearningWorkspaceServerlessCompute(i *workspaces.ServerlessComputeSettings) *[]interface{} {
+	if i == nil {
+		return &[]interface{}{}
+	}
+
+	out := map[string]interface{}{}
+
+	if i.ServerlessComputeCustomSubnet != nil {
+		out["subnet_id"] = *i.ServerlessComputeCustomSubnet
+	}
+
+	if i.ServerlessComputeNoPublicIP != nil {
+		out["public_ip_enabled"] = !*i.ServerlessComputeNoPublicIP
+	}
+
+	return &[]interface{}{out}
 }

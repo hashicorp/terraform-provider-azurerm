@@ -47,7 +47,10 @@ func (c WebAppsClient) CreateDeployment(ctx context.Context, id DeploymentId, in
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Deployment
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

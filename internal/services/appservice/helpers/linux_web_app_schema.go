@@ -13,43 +13,46 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
+	appServiceValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 type SiteConfigLinux struct {
-	AlwaysOn                bool                    `tfschema:"always_on"`
-	ApiManagementConfigId   string                  `tfschema:"api_management_api_id"`
-	ApiDefinition           string                  `tfschema:"api_definition_url"`
-	AppCommandLine          string                  `tfschema:"app_command_line"`
-	AutoHeal                bool                    `tfschema:"auto_heal_enabled"`
-	AutoHealSettings        []AutoHealSettingLinux  `tfschema:"auto_heal_setting"`
-	UseManagedIdentityACR   bool                    `tfschema:"container_registry_use_managed_identity"`
-	ContainerRegistryMSI    string                  `tfschema:"container_registry_managed_identity_client_id"`
-	DefaultDocuments        []string                `tfschema:"default_documents"`
-	Http2Enabled            bool                    `tfschema:"http2_enabled"`
-	IpRestriction           []IpRestriction         `tfschema:"ip_restriction"`
-	ScmUseMainIpRestriction bool                    `tfschema:"scm_use_main_ip_restriction"`
-	ScmIpRestriction        []IpRestriction         `tfschema:"scm_ip_restriction"`
-	LoadBalancing           string                  `tfschema:"load_balancing_mode"`
-	LocalMysql              bool                    `tfschema:"local_mysql_enabled"`
-	ManagedPipelineMode     string                  `tfschema:"managed_pipeline_mode"`
-	RemoteDebugging         bool                    `tfschema:"remote_debugging_enabled"`
-	RemoteDebuggingVersion  string                  `tfschema:"remote_debugging_version"`
-	ScmType                 string                  `tfschema:"scm_type"`
-	Use32BitWorker          bool                    `tfschema:"use_32_bit_worker"`
-	WebSockets              bool                    `tfschema:"websockets_enabled"`
-	FtpsState               string                  `tfschema:"ftps_state"`
-	HealthCheckPath         string                  `tfschema:"health_check_path"`
-	HealthCheckEvictionTime int64                   `tfschema:"health_check_eviction_time_in_min"`
-	NumberOfWorkers         int64                   `tfschema:"worker_count"`
-	ApplicationStack        []ApplicationStackLinux `tfschema:"application_stack"`
-	MinTlsVersion           string                  `tfschema:"minimum_tls_version"`
-	ScmMinTlsVersion        string                  `tfschema:"scm_minimum_tls_version"`
-	Cors                    []CorsSetting           `tfschema:"cors"`
-	DetailedErrorLogging    bool                    `tfschema:"detailed_error_logging_enabled"`
-	LinuxFxVersion          string                  `tfschema:"linux_fx_version"`
-	VnetRouteAllEnabled     bool                    `tfschema:"vnet_route_all_enabled"`
+	AlwaysOn                      bool                    `tfschema:"always_on"`
+	ApiManagementConfigId         string                  `tfschema:"api_management_api_id"`
+	ApiDefinition                 string                  `tfschema:"api_definition_url"`
+	AppCommandLine                string                  `tfschema:"app_command_line"`
+	AutoHeal                      bool                    `tfschema:"auto_heal_enabled"`
+	AutoHealSettings              []AutoHealSettingLinux  `tfschema:"auto_heal_setting"`
+	UseManagedIdentityACR         bool                    `tfschema:"container_registry_use_managed_identity"`
+	ContainerRegistryMSI          string                  `tfschema:"container_registry_managed_identity_client_id"`
+	DefaultDocuments              []string                `tfschema:"default_documents"`
+	Http2Enabled                  bool                    `tfschema:"http2_enabled"`
+	IpRestriction                 []IpRestriction         `tfschema:"ip_restriction"`
+	IpRestrictionDefaultAction    string                  `tfschema:"ip_restriction_default_action"`
+	ScmUseMainIpRestriction       bool                    `tfschema:"scm_use_main_ip_restriction"`
+	ScmIpRestriction              []IpRestriction         `tfschema:"scm_ip_restriction"`
+	ScmIpRestrictionDefaultAction string                  `tfschema:"scm_ip_restriction_default_action"`
+	LoadBalancing                 string                  `tfschema:"load_balancing_mode"`
+	LocalMysql                    bool                    `tfschema:"local_mysql_enabled"`
+	ManagedPipelineMode           string                  `tfschema:"managed_pipeline_mode"`
+	RemoteDebugging               bool                    `tfschema:"remote_debugging_enabled"`
+	RemoteDebuggingVersion        string                  `tfschema:"remote_debugging_version"`
+	ScmType                       string                  `tfschema:"scm_type"`
+	Use32BitWorker                bool                    `tfschema:"use_32_bit_worker"`
+	WebSockets                    bool                    `tfschema:"websockets_enabled"`
+	FtpsState                     string                  `tfschema:"ftps_state"`
+	HealthCheckPath               string                  `tfschema:"health_check_path"`
+	HealthCheckEvictionTime       int64                   `tfschema:"health_check_eviction_time_in_min"`
+	NumberOfWorkers               int64                   `tfschema:"worker_count"`
+	ApplicationStack              []ApplicationStackLinux `tfschema:"application_stack"`
+	MinTlsVersion                 string                  `tfschema:"minimum_tls_version"`
+	ScmMinTlsVersion              string                  `tfschema:"scm_minimum_tls_version"`
+	Cors                          []CorsSetting           `tfschema:"cors"`
+	DetailedErrorLogging          bool                    `tfschema:"detailed_error_logging_enabled"`
+	LinuxFxVersion                string                  `tfschema:"linux_fx_version"`
+	VnetRouteAllEnabled           bool                    `tfschema:"vnet_route_all_enabled"`
 	// SiteLimits []SiteLimitsSettings `tfschema:"site_limits"` // TODO - New block to (possibly) support? No way to configure this in the portal?
 }
 
@@ -124,6 +127,13 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 
 				"ip_restriction": IpRestrictionSchema(),
 
+				"ip_restriction_default_action": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Default:      webapps.DefaultActionAllow,
+					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForDefaultAction(), false),
+				},
+
 				"scm_use_main_ip_restriction": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
@@ -131,6 +141,13 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 				},
 
 				"scm_ip_restriction": IpRestrictionSchema(),
+
+				"scm_ip_restriction_default_action": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Default:      webapps.DefaultActionAllow,
+					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForDefaultAction(), false),
+				},
 
 				"local_mysql_enabled": {
 					Type:     pluginsdk.TypeBool,
@@ -210,14 +227,26 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 				"health_check_path": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
+					RequiredWith: func() []string {
+						if features.FourPointOhBeta() {
+							return []string{"site_config.0.health_check_eviction_time_in_min"}
+						}
+						return []string{}
+					}(),
 				},
 
 				"health_check_eviction_time_in_min": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					Computed:     true,
+					Computed:     !features.FourPointOhBeta(),
 					ValidateFunc: validation.IntBetween(2, 10),
-					Description:  "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Defaults to `10`. Only valid in conjunction with `health_check_path`",
+					RequiredWith: func() []string {
+						if features.FourPointOhBeta() {
+							return []string{"site_config.0.health_check_path"}
+						}
+						return []string{}
+					}(),
+					Description: "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Only valid in conjunction with `health_check_path`",
 				},
 
 				"worker_count": {
@@ -324,12 +353,22 @@ func SiteConfigSchemaLinuxComputed() *pluginsdk.Schema {
 
 				"ip_restriction": IpRestrictionSchemaComputed(),
 
+				"ip_restriction_default_action": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
 				"scm_use_main_ip_restriction": {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
 				},
 
 				"scm_ip_restriction": IpRestrictionSchemaComputed(),
+
+				"scm_ip_restriction_default_action": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
 
 				"local_mysql_enabled": {
 					Type:     pluginsdk.TypeBool,
@@ -428,9 +467,10 @@ type AutoHealSettingLinux struct {
 }
 
 type AutoHealTriggerLinux struct {
-	Requests     []AutoHealRequestTrigger    `tfschema:"requests"`
-	StatusCodes  []AutoHealStatusCodeTrigger `tfschema:"status_code"` // 0 or more, ranges split by `-`, ranges cannot use sub-status or win32 code
-	SlowRequests []AutoHealSlowRequest       `tfschema:"slow_request"`
+	Requests             []AutoHealRequestTrigger      `tfschema:"requests"`
+	StatusCodes          []AutoHealStatusCodeTrigger   `tfschema:"status_code"` // 0 or more, ranges split by `-`, ranges cannot use sub-status or win32 code
+	SlowRequests         []AutoHealSlowRequest         `tfschema:"slow_request"`
+	SlowRequestsWithPath []AutoHealSlowRequestWithPath `tfschema:"slow_request_with_path"`
 }
 
 type AutoHealActionLinux struct {
@@ -518,7 +558,7 @@ func autoHealActionSchemaLinuxComputed() *pluginsdk.Schema {
 
 // (@jackofallops) - trigger schemas intentionally left long-hand for now
 func autoHealTriggerSchemaLinux() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	s := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 1,
@@ -596,15 +636,41 @@ func autoHealTriggerSchemaLinux() *pluginsdk.Schema {
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"time_taken": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
-								// ValidateFunc: validation.IsRFC3339Time,
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: appServiceValidate.TimeInterval,
 							},
 
 							"interval": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
-								// ValidateFunc: validation.IsRFC3339Time,
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: appServiceValidate.TimeInterval,
+							},
+
+							"count": {
+								Type:         pluginsdk.TypeInt,
+								Required:     true,
+								ValidateFunc: validation.IntAtLeast(1),
+							},
+						},
+					},
+				},
+
+				"slow_request_with_path": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"time_taken": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: appServiceValidate.TimeInterval,
+							},
+
+							"interval": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: appServiceValidate.TimeInterval,
 							},
 
 							"count": {
@@ -624,10 +690,46 @@ func autoHealTriggerSchemaLinux() *pluginsdk.Schema {
 			},
 		},
 	}
+	if !features.FourPointOhBeta() {
+		s.Elem.(*pluginsdk.Resource).Schema["slow_request"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"time_taken": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: appServiceValidate.TimeInterval,
+					},
+
+					"interval": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: appServiceValidate.TimeInterval,
+					},
+
+					"count": {
+						Type:         pluginsdk.TypeInt,
+						Required:     true,
+						ValidateFunc: validation.IntAtLeast(1),
+					},
+
+					"path": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+						Deprecated:   "`path` will be removed in `slow_request` and please use `slow_request_with_path` to set the path in version 4.0 of the AzureRM Provider.",
+					},
+				},
+			},
+		}
+	}
+	return s
 }
 
 func autoHealTriggerSchemaLinuxComputed() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	s := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
 		Elem: &pluginsdk.Resource{
@@ -707,6 +809,29 @@ func autoHealTriggerSchemaLinuxComputed() *pluginsdk.Schema {
 								Type:     pluginsdk.TypeInt,
 								Computed: true,
 							},
+						},
+					},
+				},
+
+				"slow_request_with_path": {
+					Type:     pluginsdk.TypeList,
+					Computed: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"time_taken": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+
+							"interval": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+
+							"count": {
+								Type:     pluginsdk.TypeInt,
+								Computed: true,
+							},
 
 							"path": {
 								Type:     pluginsdk.TypeString,
@@ -718,6 +843,37 @@ func autoHealTriggerSchemaLinuxComputed() *pluginsdk.Schema {
 			},
 		},
 	}
+	if !features.FourPointOh() {
+		s.Elem.(*pluginsdk.Resource).Schema["slow_request"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"time_taken": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"interval": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"count": {
+						Type:     pluginsdk.TypeInt,
+						Computed: true,
+					},
+
+					"path": {
+						Type:       pluginsdk.TypeString,
+						Computed:   true,
+						Deprecated: "`path` will be removed in `slow_request` and please use `slow_request_with_path` to set the path in version 4.0 of the AzureRM Provider.",
+					},
+				},
+			},
+		}
+	}
+	return s
 }
 
 func (s *SiteConfigLinux) ExpandForCreate(appSettings map[string]string) (*webapps.SiteConfig, error) {
@@ -738,6 +894,8 @@ func (s *SiteConfigLinux) ExpandForCreate(appSettings map[string]string) (*webap
 	expanded.ScmMinTlsVersion = pointer.To(webapps.SupportedTlsVersions(s.ScmMinTlsVersion))
 	expanded.AutoHealEnabled = pointer.To(s.AutoHeal)
 	expanded.VnetRouteAllEnabled = pointer.To(s.VnetRouteAllEnabled)
+	expanded.IPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(s.IpRestrictionDefaultAction))
+	expanded.ScmIPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(s.ScmIpRestrictionDefaultAction))
 
 	if s.ApiManagementConfigId != "" {
 		expanded.ApiManagementConfig = &webapps.ApiManagementConfig{
@@ -957,12 +1115,20 @@ func (s *SiteConfigLinux) ExpandForUpdate(metadata sdk.ResourceMetaData, existin
 		expanded.IPSecurityRestrictions = ipRestrictions
 	}
 
+	if metadata.ResourceData.HasChange("site_config.0.ip_restriction_default_action") {
+		expanded.IPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(s.IpRestrictionDefaultAction))
+	}
+
 	if metadata.ResourceData.HasChange("site_config.0.scm_ip_restriction") {
 		scmIpRestrictions, err := ExpandIpRestrictions(s.ScmIpRestriction)
 		if err != nil {
 			return nil, err
 		}
 		expanded.ScmIPSecurityRestrictions = scmIpRestrictions
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.scm_ip_restriction_default_action") {
+		expanded.ScmIPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(s.ScmIpRestrictionDefaultAction))
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.load_balancing_mode") {
@@ -1043,6 +1209,8 @@ func (s *SiteConfigLinux) Flatten(appSiteConfig *webapps.SiteConfig) {
 		s.WebSockets = pointer.From(appSiteConfig.WebSocketsEnabled)
 		s.VnetRouteAllEnabled = pointer.From(appSiteConfig.VnetRouteAllEnabled)
 		s.Cors = FlattenCorsSettings(appSiteConfig.Cors)
+		s.IpRestrictionDefaultAction = string(pointer.From(appSiteConfig.IPSecurityRestrictionsDefaultAction))
+		s.ScmIpRestrictionDefaultAction = string(pointer.From(appSiteConfig.ScmIPSecurityRestrictionsDefaultAction))
 
 		if appSiteConfig.ApiManagementConfig != nil {
 			s.ApiManagementConfigId = pointer.From(appSiteConfig.ApiManagementConfig.Id)
@@ -1168,6 +1336,22 @@ func expandAutoHealSettingsLinux(autoHealSettings []AutoHealSettingLinux) *webap
 		}
 	}
 
+	if len(triggers.SlowRequestsWithPath) > 0 {
+		slowRequestWithPathTriggers := make([]webapps.SlowRequestsBasedTrigger, 0)
+		for _, sr := range triggers.SlowRequestsWithPath {
+			trigger := webapps.SlowRequestsBasedTrigger{
+				TimeTaken:    pointer.To(sr.TimeTaken),
+				TimeInterval: pointer.To(sr.Interval),
+				Count:        pointer.To(sr.Count),
+			}
+			if sr.Path != "" {
+				trigger.Path = pointer.To(sr.Path)
+			}
+			slowRequestWithPathTriggers = append(slowRequestWithPathTriggers, trigger)
+		}
+		result.Triggers.SlowRequestsWithPath = &slowRequestWithPathTriggers
+	}
+
 	if len(triggers.StatusCodes) > 0 {
 		statusCodeTriggers := make([]webapps.StatusCodesBasedTrigger, 0)
 		statusCodeRangeTriggers := make([]webapps.StatusCodesRangeBasedTrigger, 0)
@@ -1187,6 +1371,10 @@ func expandAutoHealSettingsLinux(autoHealSettings []AutoHealSettingLinux) *webap
 				statusCode, err := strconv.Atoi(s.StatusCodeRange)
 				if err == nil {
 					statusCodeTrigger.Status = pointer.To(int64(statusCode))
+				}
+				statusCodeTrigger.Count = pointer.To(s.Count)
+				if s.Win32Status != 0 {
+					statusCodeTrigger.Win32Status = pointer.To(s.Win32Status)
 				}
 				statusCodeTrigger.Count = pointer.To(s.Count)
 				statusCodeTrigger.TimeInterval = pointer.To(s.Interval)
@@ -1234,7 +1422,7 @@ func flattenAutoHealSettingsLinux(autoHealRules *webapps.AutoHealRules) []AutoHe
 				}
 
 				if s.Status != nil {
-					t.StatusCodeRange = strconv.Itoa(int(*s.Status))
+					t.StatusCodeRange = strconv.FormatInt(*s.Status, 10)
 				}
 
 				if s.Count != nil {
@@ -1243,6 +1431,10 @@ func flattenAutoHealSettingsLinux(autoHealRules *webapps.AutoHealRules) []AutoHe
 
 				if s.SubStatus != nil {
 					t.SubStatus = pointer.From(s.SubStatus)
+				}
+
+				if s.Win32Status != nil {
+					t.Win32Status = pointer.From(s.Win32Status)
 				}
 				statusCodeTriggers = append(statusCodeTriggers, t)
 			}
@@ -1274,7 +1466,21 @@ func flattenAutoHealSettingsLinux(autoHealRules *webapps.AutoHealRules) []AutoHe
 				Path:      pointer.From(triggers.SlowRequests.Path),
 			})
 		}
+
+		slowRequestTriggersWithPaths := make([]AutoHealSlowRequestWithPath, 0)
+		if triggers.SlowRequestsWithPath != nil {
+			for _, v := range *triggers.SlowRequestsWithPath {
+				sr := AutoHealSlowRequestWithPath{
+					TimeTaken: pointer.From(v.TimeTaken),
+					Interval:  pointer.From(v.TimeInterval),
+					Count:     pointer.From(v.Count),
+					Path:      pointer.From(v.Path),
+				}
+				slowRequestTriggersWithPaths = append(slowRequestTriggersWithPaths, sr)
+			}
+		}
 		resultTrigger.SlowRequests = slowRequestTriggers
+		resultTrigger.SlowRequestsWithPath = slowRequestTriggersWithPaths
 		result.Triggers = []AutoHealTriggerLinux{resultTrigger}
 	}
 

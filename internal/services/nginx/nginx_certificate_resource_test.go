@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2023-09-01/nginxcertificate"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-01-01-preview/nginxcertificate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -227,7 +227,7 @@ resource "azurerm_nginx_deployment" "test" {
   resource_group_name      = azurerm_resource_group.test.name
   sku                      = "standard_Monthly"
   location                 = azurerm_resource_group.test.location
-  diagnose_support_enabled = true
+  diagnose_support_enabled = false
 
   identity {
     type         = "UserAssigned"

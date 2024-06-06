@@ -44,7 +44,10 @@ func (c DataExportClient) ListByWorkspace(ctx context.Context, id WorkspaceId) (
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model DataExportListResult
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

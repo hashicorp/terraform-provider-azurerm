@@ -30,7 +30,7 @@ type AlertRuleAnomalyDuplicateModel struct {
 	Enabled                      bool                                    `tfschema:"enabled"`
 	Mode                         string                                  `tfschema:"mode"`
 	AnomalyVersion               string                                  `tfschema:"anomaly_version"`
-	AnomalySettingsVersion       int32                                   `tfschema:"anomaly_settings_version"`
+	AnomalySettingsVersion       int64                                   `tfschema:"anomaly_settings_version"`
 	Description                  string                                  `tfschema:"description"`
 	Frequency                    string                                  `tfschema:"frequency"`
 	IsDefaultSettings            bool                                    `tfschema:"is_default_settings"`
@@ -458,7 +458,7 @@ func (r AlertRuleAnomalyDuplicateResource) Read() sdk.ResourceFunc {
 				state.AnomalyVersion = *resp.AnomalyVersion
 			}
 			if resp.AnomalySettingsVersion != nil {
-				state.AnomalySettingsVersion = *resp.AnomalySettingsVersion
+				state.AnomalySettingsVersion = int64(*resp.AnomalySettingsVersion)
 			}
 			if resp.Description != nil {
 				state.Description = *resp.Description

@@ -1,0 +1,75 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
+package commonids
+
+import (
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
+)
+
+func CommonIds() []resourceids.ResourceId {
+
+	return []resourceids.ResourceId{
+		&AppServiceId{},
+		&AppServiceEnvironmentId{},
+		&AppServicePlanId{},
+		&AutomationCompilationJobId{},
+		&AvailabilitySetId{},
+		&BotServiceId{},
+		&BotServiceChannelId{},
+		&ChaosStudioCapabilityId{},
+		&ChaosStudioTargetId{},
+		&CloudServicesIPConfigurationId{},
+		&CloudServicesPublicIPAddressId{},
+		&DedicatedHostId{},
+		&DedicatedHostGroupId{},
+		&DevCenterId{},
+		&DiskEncryptionSetId{},
+		&ExpressRouteCircuitPeeringId{},
+		&HDInsightClusterId{},
+		&HyperVSiteJobId{},
+		&HyperVSiteMachineId{},
+		&HyperVSiteRunAsAccountId{},
+		&KeyVaultId{},
+		&KeyVaultKeyId{},
+		&KeyVaultKeyVersionId{},
+		&KeyVaultPrivateEndpointConnectionId{},
+		&KubernetesClusterId{},
+		&KubernetesFleetId{},
+		&KustoClusterId{},
+		&KustoDatabaseId{},
+		&ManagedDiskId{},
+		&ManagementGroupId{},
+		&NetworkInterfaceId{},
+		&NetworkInterfaceIPConfigurationId{},
+		&NetworkInterfaceId{},
+		&ProvisioningServiceId{},
+		&PublicIPAddressId{},
+		&ResourceGroupId{},
+		&SharedImageGalleryId{},
+		&SpringCloudServiceId{},
+		&SqlDatabaseId{},
+		&SqlElasticPoolId{},
+		&SqlManagedInstanceId{},
+		&SqlManagedInstanceDatabaseId{},
+		&SqlServerId{},
+		&StorageAccountId{},
+		&StorageContainerId{},
+		&SubnetId{},
+		&SubscriptionId{},
+		&UserAssignedIdentityId{},
+		&VirtualHubBGPConnectionId{},
+		&VirtualHubIPConfigurationId{},
+		&VirtualMachineId{},
+		&VirtualMachineScaleSetNetworkInterfaceId{},
+		&VirtualMachineScaleSetPublicIPAddressId{},
+		&VirtualMachineScaleSetId{},
+		&VirtualNetworkId{},
+		&VirtualRouterPeeringId{},
+		&VirtualWANP2SVPNGatewayId{},
+		&VMwareSiteJobId{},
+		&VMwareSiteMachineId{},
+		&VMwareSiteRunAsAccountId{},
+		&VPNConnectionId{},
+	}
+}

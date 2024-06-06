@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/loadbalancers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/loadbalancers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
@@ -37,8 +37,8 @@ type BackendAddressPoolAddressModel struct {
 
 type inboundNATRulePortMapping struct {
 	Name         string `tfschema:"inbound_nat_rule_name"`
-	FrontendPort int32  `tfschema:"frontend_port"`
-	BackendPort  int32  `tfschema:"backend_port"`
+	FrontendPort int64  `tfschema:"frontend_port"`
+	BackendPort  int64  `tfschema:"backend_port"`
 }
 
 func portMapping() *pluginsdk.Schema {
@@ -308,11 +308,11 @@ func (r BackendAddressPoolAddressResource) Read() sdk.ResourceFunc {
 							rulePortMapping.Name = *rule.InboundNatRuleName
 						}
 						if rule.FrontendPort != nil {
-							rulePortMapping.FrontendPort = int32(*rule.FrontendPort)
+							rulePortMapping.FrontendPort = *rule.FrontendPort
 						}
 
 						if rule.BackendPort != nil {
-							rulePortMapping.BackendPort = int32(*rule.BackendPort)
+							rulePortMapping.BackendPort = *rule.BackendPort
 						}
 						inboundNATRulePortMappingList = append(inboundNATRulePortMappingList, rulePortMapping)
 					}

@@ -578,6 +578,8 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating Linux %s: %+v", id, err)
 			}
 
+			metadata.SetID(id)
+
 			stickySettings := helpers.ExpandStickySettings(functionApp.StickySettings)
 
 			if stickySettings != nil {
@@ -642,7 +644,6 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			metadata.SetID(id)
 			return nil
 		},
 	}
@@ -1352,12 +1353,6 @@ func (m *LinuxFunctionAppModel) unpackLinuxFunctionAppSettings(input webapps.Str
 
 		case "AzureWebJobsDashboard__accountName":
 			m.BuiltinLogging = true
-
-		case "WEBSITE_RUN_FROM_PACKAGE":
-			// Keep if user explicitly set, otherwise filter out as will have been added by ADO et al
-			if _, ok := metadata.ResourceData.GetOk("app_settings.WEBSITE_RUN_FROM_PACKAGE"); ok {
-				appSettings[k] = v
-			}
 
 		case "WEBSITE_VNET_ROUTE_ALL":
 			// Filter out - handled by site_config setting `vnet_route_all_enabled`

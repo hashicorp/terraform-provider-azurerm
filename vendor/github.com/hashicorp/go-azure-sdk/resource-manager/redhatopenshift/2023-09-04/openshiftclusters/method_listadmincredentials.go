@@ -44,7 +44,10 @@ func (c OpenShiftClustersClient) ListAdminCredentials(ctx context.Context, id Pr
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model OpenShiftClusterAdminKubeconfig
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

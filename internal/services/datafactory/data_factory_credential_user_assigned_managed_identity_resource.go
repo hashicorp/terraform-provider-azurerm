@@ -16,13 +16,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type DataFactoryCredentialUserAssignedManagedIdentityResource struct{}
-
-// user managed identities only have one type
-const IDENTITY_TYPE = "ManagedIdentity"
 
 var _ sdk.Resource = DataFactoryCredentialUserAssignedManagedIdentityResource{}
 var _ sdk.ResourceWithUpdate = DataFactoryCredentialUserAssignedManagedIdentityResource{}
@@ -98,32 +94,41 @@ func (DataFactoryCredentialUserAssignedManagedIdentityResource) Read() sdk.Resou
 			d := metadata.ResourceData
 			client := metadata.Client.DataFactory.Credentials
 
-			credentialId, err := credentials.ParseCredentialID(d.Id())
+			id, err := credentials.ParseCredentialID(d.Id())
 			if err != nil {
 				return err
 			}
 
-			var state DataFactoryCredentialUserAssignedManagedIdentityResourceSchema
-
-			existing, err := client.CredentialOperationsGet(ctx, *credentialId, credentials.CredentialOperationsGetOperationOptions{})
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", d.Id(), err)
-			}
-
-			state.Name = credentialId.CredentialName
-
-			if existing.Model != nil {
-				if existing.Model.Properties.Description != nil {
-					state.Description = *existing.Model.Properties.Description
+			existing, err := client.CredentialOperationsGet(ctx, *id, credentials.DefaultCredentialOperationsGetOperationOptions())
+			if err != nil {
+				if response.WasNotFound(existing.HttpResponse) {
+					return metadata.MarkAsGone(id)
 				}
 
-				if existing.Model.Properties.TypeProperties != nil && existing.Model.Properties.TypeProperties.ResourceId != nil {
-					state.IdentityId = *existing.Model.Properties.TypeProperties.ResourceId
-				}
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			state.DataFactoryId = factories.NewFactoryID(credentialId.SubscriptionId, credentialId.ResourceGroupName, credentialId.FactoryName).ID()
-			state.Annotations = flattenDataFactoryAnnotations(existing.Model.Properties.Annotations)
+			state := DataFactoryCredentialUserAssignedManagedIdentityResourceSchema{
+				Name:          id.CredentialName,
+				DataFactoryId: factories.NewFactoryID(id.SubscriptionId, id.ResourceGroupName, id.FactoryName).ID(),
+			}
+
+			if model := existing.Model; model != nil {
+				props, ok := model.Properties.(credentials.ManagedIdentityCredential)
+				if !ok {
+					return fmt.Errorf("retrieving %s: expected `credentials.ManagedIdentityCredential` but got %T", id, model.Properties)
+				}
+
+				if props.Description != nil {
+					state.Description = *props.Description
+				}
+
+				if props.TypeProperties.ResourceId != nil {
+					state.IdentityId = *props.TypeProperties.ResourceId
+				}
+
+				state.Annotations = flattenDataFactoryAnnotations(props.Annotations)
+			}
 
 			return metadata.Encode(&state)
 		},
@@ -146,45 +151,36 @@ func (r DataFactoryCredentialUserAssignedManagedIdentityResource) Create() sdk.R
 				return err
 			}
 
-			id := credentials.CredentialId{
-				SubscriptionId:    dataFactoryId.SubscriptionId,
-				ResourceGroupName: dataFactoryId.ResourceGroupName,
-				FactoryName:       dataFactoryId.FactoryName,
-				CredentialName:    data.Name,
-			}
-
-			existing, err := client.CredentialOperationsGet(ctx, id, credentials.CredentialOperationsGetOperationOptions{})
+			id := credentials.NewCredentialID(dataFactoryId.SubscriptionId, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName, data.Name)
+			existing, err := client.CredentialOperationsGet(ctx, id, credentials.DefaultCredentialOperationsGetOperationOptions())
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 
 			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError("azurerm_data_factory_dataset_http", id.ID())
+				return tf.ImportAsExistsError("azurerm_data_factory_credential_user_managed_identity", id.ID())
 			}
 
-			credential := credentials.ManagedIdentityCredentialResource{
-				Type: utils.String(IDENTITY_TYPE),
-				Properties: credentials.ManagedIdentityCredential{
-					TypeProperties: &credentials.ManagedIdentityTypeProperties{
-						ResourceId: &data.IdentityId,
-					},
+			props := credentials.ManagedIdentityCredential{
+				TypeProperties: &credentials.ManagedIdentityTypeProperties{
+					ResourceId: &data.IdentityId,
 				},
 			}
-
 			if len(data.Annotations) > 0 {
 				annotations := make([]interface{}, len(data.Annotations))
 				for i, v := range data.Annotations {
 					annotations[i] = v
 				}
-				credential.Properties.Annotations = &annotations
+				props.Annotations = &annotations
 			}
-
 			if data.Description != "" {
-				credential.Properties.Description = &data.Description
+				props.Description = &data.Description
 			}
 
-			_, err = client.CredentialOperationsCreateOrUpdate(ctx, id, credential, credentials.CredentialOperationsCreateOrUpdateOperationOptions{})
-			if err != nil {
+			payload := credentials.CredentialResource{
+				Properties: props,
+			}
+			if _, err = client.CredentialOperationsCreateOrUpdate(ctx, id, payload, credentials.DefaultCredentialOperationsCreateOrUpdateOperationOptions()); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -210,19 +206,22 @@ func (r DataFactoryCredentialUserAssignedManagedIdentityResource) Update() sdk.R
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			existing, err := client.CredentialOperationsGet(ctx, *id, credentials.CredentialOperationsGetOperationOptions{})
+			existing, err := client.CredentialOperationsGet(ctx, *id, credentials.DefaultCredentialOperationsGetOperationOptions())
 			if err != nil {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id.ID(), err)
 			}
 
 			if existing.Model == nil {
-				return fmt.Errorf("model was nil for %s", id)
+				return fmt.Errorf("retrieving %s: `model` was nil", *id)
 			}
 
-			credential := *existing.Model
+			props, ok := existing.Model.Properties.(credentials.ManagedIdentityCredential)
+			if !ok {
+				return fmt.Errorf("retrieving %s: expected `credentials.ManagedIdentityCredential` but got %T", id, existing.Model.Properties)
+			}
 
 			if metadata.ResourceData.HasChange("description") {
-				credential.Properties.Description = &data.Description
+				props.Description = &data.Description
 			}
 
 			if metadata.ResourceData.HasChange("annotations") {
@@ -231,14 +230,16 @@ func (r DataFactoryCredentialUserAssignedManagedIdentityResource) Update() sdk.R
 					for i, v := range data.Annotations {
 						annotations[i] = v
 					}
-					credential.Properties.Annotations = &annotations
+					props.Annotations = &annotations
 				} else {
-					credential.Properties.Annotations = nil
+					props.Annotations = nil
 				}
 			}
 
-			_, err = client.CredentialOperationsCreateOrUpdate(ctx, *id, credential, credentials.CredentialOperationsCreateOrUpdateOperationOptions{})
-			if err != nil {
+			payload := credentials.CredentialResource{
+				Properties: props,
+			}
+			if _, err = client.CredentialOperationsCreateOrUpdate(ctx, *id, payload, credentials.DefaultCredentialOperationsCreateOrUpdateOperationOptions()); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
@@ -253,17 +254,15 @@ func (DataFactoryCredentialUserAssignedManagedIdentityResource) Delete() sdk.Res
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			d := metadata.ResourceData
 			client := metadata.Client.DataFactory.Credentials
 
-			credentialId, err := credentials.ParseCredentialID(d.Id())
+			id, err := credentials.ParseCredentialID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			_, err = client.CredentialOperationsDelete(ctx, *credentialId)
-			if err != nil {
-				return err
+			if _, err = client.CredentialOperationsDelete(ctx, *id); err != nil {
+				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
 			return nil

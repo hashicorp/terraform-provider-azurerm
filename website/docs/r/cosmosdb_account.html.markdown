@@ -114,6 +114,8 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
+* `minimal_tls_version` - (Optional) Specifies the minimal TLS version for the CosmosDB account. Possible values are: `Tls`, `Tls11`, and `Tls12`. Defaults to `Tls12`.
+
 * `offer_type` - (Required) Specifies the Offer Type to use for this CosmosDB Account; currently, this can only be set to `Standard`.
 
 * `analytical_storage` - (Optional) An `analytical_storage` block as defined below.
@@ -140,11 +142,11 @@ The following arguments are supported:
 
 ~> **Note:** To enable the "Accept connections from within public Azure datacenters" behavior, you should add `0.0.0.0` to the list, see the [documentation](https://docs.microsoft.com/azure/cosmos-db/how-to-configure-firewall#allow-requests-from-global-azure-datacenters-or-other-sources-within-azure) for more details.
 
-* `enable_free_tier` - (Optional) Enable the Free Tier pricing option for this Cosmos DB account. Defaults to `false`. Changing this forces a new resource to be created.
+* `free_tier_enabled` - (Optional) Enable the Free Tier pricing option for this Cosmos DB account. Defaults to `false`. Changing this forces a new resource to be created.
 
 * `analytical_storage_enabled` - (Optional) Enable Analytical Storage option for this Cosmos DB account. Defaults to `false`. Enabling and then disabling analytical storage forces a new resource to be created.
 
-* `enable_automatic_failover` - (Optional) Enable automatic failover for this Cosmos DB account.
+* `automatic_failover_enabled` - (Optional) Enable automatic failover for this Cosmos DB account.
 
 * `partition_merge_enabled` - (Optional) Is partition merge on the Cosmos DB account enabled? Defaults to `false`.
 
@@ -162,7 +164,7 @@ The following arguments are supported:
 
 * `virtual_network_rule` - (Optional) Specifies a `virtual_network_rule` block as defined below, used to define which subnets are allowed to access this CosmosDB account.
 
-* `enable_multiple_write_locations` - (Optional) Enable multiple write locations for this Cosmos DB account.
+* `multiple_write_locations_enabled` - (Optional) Enable multiple write locations for this Cosmos DB account.
 
 * `access_key_metadata_writes_enabled` - (Optional) Is write operations on metadata resources (databases, containers, throughput) via account keys enabled? Defaults to `true`.
 
@@ -245,6 +247,8 @@ A `backup` block supports the following:
 
 ~> **Note:** Migration of `Periodic` to `Continuous` is one-way, changing `Continuous` to `Periodic` forces a new resource to be created.
 
+* `tier` - (Optional) The continuous backup tier. Possible values are `Continuous7Days` and `Continuous30Days`.
+
 * `interval_in_minutes` - (Optional) The interval in minutes between two backups. Possible values are between 60 and 1440. Defaults to `240`.
 
 * `retention_in_hours` - (Optional) The time in hours that each backup is retained. Possible values are between 8 and 720. Defaults to `8`.
@@ -326,8 +330,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `primary_readonly_key` - The Primary read-only Key for the CosmosDB Account.
 
 * `secondary_readonly_key` - The Secondary read-only key for the CosmosDB Account.
-
-* `connection_strings` - A list of connection strings available for this CosmosDB account.
 
 * `primary_sql_connection_string` - Primary SQL connection string for the CosmosDB Account.
 

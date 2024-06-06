@@ -12,8 +12,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/networkmanagers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/networkmanagers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -107,6 +108,9 @@ func (r ManagerDeploymentResource) Create() sdk.ResourceFunc {
 
 			normalizedLocation := azure.NormalizeLocation(state.Location)
 			id := parse.NewNetworkManagerDeploymentID(networkManagerId.SubscriptionId, networkManagerId.ResourceGroupName, networkManagerId.NetworkManagerName, normalizedLocation, state.ScopeAccess)
+
+			locks.ByID(id.ID())
+			defer locks.UnlockByID(id.ID())
 
 			metadata.Logger.Infof("creating %s", *id)
 
@@ -214,6 +218,9 @@ func (r ManagerDeploymentResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
+			locks.ByID(id.ID())
+			defer locks.UnlockByID(id.ID())
+
 			metadata.Logger.Infof("updating %s..", *id)
 			client := metadata.Client.Network.NetworkManagers
 
@@ -293,6 +300,9 @@ func (r ManagerDeploymentResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
+
+			locks.ByID(id.ID())
+			defer locks.UnlockByID(id.ID())
 
 			metadata.Logger.Infof("deleting %s..", *id)
 			input := networkmanagers.NetworkManagerCommit{

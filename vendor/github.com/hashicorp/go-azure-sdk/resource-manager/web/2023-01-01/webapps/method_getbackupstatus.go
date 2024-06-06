@@ -43,7 +43,10 @@ func (c WebAppsClient) GetBackupStatus(ctx context.Context, id BackupId) (result
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model BackupItem
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

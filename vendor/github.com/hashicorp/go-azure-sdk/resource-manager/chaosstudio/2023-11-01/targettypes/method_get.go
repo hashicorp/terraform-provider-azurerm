@@ -43,7 +43,10 @@ func (c TargetTypesClient) Get(ctx context.Context, id TargetTypeId) (result Get
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model TargetType
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

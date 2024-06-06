@@ -47,7 +47,10 @@ func (c WatcherClient) Update(ctx context.Context, id WatcherId, input WatcherUp
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Watcher
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

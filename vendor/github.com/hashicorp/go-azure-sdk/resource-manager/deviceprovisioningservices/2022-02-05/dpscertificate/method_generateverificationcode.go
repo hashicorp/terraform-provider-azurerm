@@ -103,7 +103,10 @@ func (c DpsCertificateClient) GenerateVerificationCode(ctx context.Context, id C
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model VerificationCodeResponse
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

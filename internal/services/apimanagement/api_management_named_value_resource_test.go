@@ -6,6 +6,7 @@ package apimanagement_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -60,6 +61,18 @@ func TestAccApiManagementNamedValue_keyVaultSystemAssigned(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccApiManagementNamedValue_keyVaultInvalidSecretValue(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_named_value", "test")
+	r := ApiManagementNamedValueResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.keyVaultWithInvalidSecretValue(data),
+			ExpectError: regexp.MustCompile("`secret` must be true when `value_from_key_vault` is set"),
+		},
 	})
 }
 
@@ -342,6 +355,28 @@ resource "azurerm_api_management_named_value" "test" {
   secret              = false
   value               = "Key Vault to Value"
   tags                = ["tag5", "tag6"]
+}
+`, r.keyVaultTemplate(data), data.RandomInteger)
+}
+
+func (r ApiManagementNamedValueResource) keyVaultWithInvalidSecretValue(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_api_management_named_value" "test" {
+  name                = "acctestAMProperty-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
+  display_name        = "TestKeyVault%[2]d"
+  secret              = false
+  value_from_key_vault {
+    secret_id          = azurerm_key_vault_secret.test.id
+    identity_client_id = azurerm_user_assigned_identity.test.client_id
+  }
+
+  tags = ["tag1", "tag2"]
+
+  depends_on = [azurerm_key_vault_access_policy.test2]
 }
 `, r.keyVaultTemplate(data), data.RandomInteger)
 }

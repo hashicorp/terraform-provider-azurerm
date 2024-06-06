@@ -14,7 +14,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2020-04-01-preview/authorization" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2018-01-01-preview/roledefinitions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-05-01-preview/roledefinitions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-12-01/subscriptions"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -156,7 +156,7 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 
 func resourceArmRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	roleAssignmentsClient := meta.(*clients.Client).Authorization.RoleAssignmentsClient
-	roleDefinitionsClient := meta.(*clients.Client).Authorization.RoleDefinitionsClient
+	roleDefinitionsClient := meta.(*clients.Client).Authorization.ScopedRoleDefinitionsClient
 	subscriptionClient := meta.(*clients.Client).Subscription.SubscriptionsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -253,7 +253,11 @@ func resourceArmRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interface{}
 		properties.RoleAssignmentProperties.PrincipalType = authorization.PrincipalType(principalType)
 	}
 
-	if err := pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), retryRoleAssignmentsClient(d, scope, name, properties, meta, tenantId)); err != nil {
+	// LinkedAuthorizationFailed may occur in cross tenant setup because of replication lag.
+	// Let's retry this error for cross tenant setup and when we are skipping principal check.
+	retryLinkedAuthorizationFailedError := len(delegatedManagedIdentityResourceID) > 0 && skipPrincipalCheck
+
+	if err := pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), retryRoleAssignmentsClient(d, scope, name, properties, meta, tenantId, retryLinkedAuthorizationFailedError)); err != nil {
 		return err
 	}
 
@@ -271,7 +275,7 @@ func resourceArmRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interface{}
 
 func resourceArmRoleAssignmentRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Authorization.RoleAssignmentsClient
-	roleDefinitionsClient := meta.(*clients.Client).Authorization.RoleDefinitionsClient
+	roleDefinitionsClient := meta.(*clients.Client).Authorization.ScopedRoleDefinitionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -348,7 +352,7 @@ func resourceArmRoleAssignmentDelete(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func retryRoleAssignmentsClient(d *pluginsdk.ResourceData, scope string, name string, properties authorization.RoleAssignmentCreateParameters, meta interface{}, tenantId string) func() *pluginsdk.RetryError {
+func retryRoleAssignmentsClient(d *pluginsdk.ResourceData, scope string, name string, properties authorization.RoleAssignmentCreateParameters, meta interface{}, tenantId string, retryLinkedAuthorizationFailedError bool) func() *pluginsdk.RetryError {
 	return func() *pluginsdk.RetryError {
 		roleAssignmentsClient := meta.(*clients.Client).Authorization.RoleAssignmentsClient
 		ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -356,14 +360,17 @@ func retryRoleAssignmentsClient(d *pluginsdk.ResourceData, scope string, name st
 
 		resp, err := roleAssignmentsClient.Create(ctx, scope, name, properties)
 		if err != nil {
-			if utils.ResponseErrorIsRetryable(err) {
+			switch {
+			case utils.ResponseErrorIsRetryable(err):
 				return pluginsdk.RetryableError(err)
-			} else if utils.ResponseWasStatusCode(resp.Response, 400) && strings.Contains(err.Error(), "PrincipalNotFound") {
+			case utils.ResponseWasStatusCode(resp.Response, 400) && strings.Contains(err.Error(), "PrincipalNotFound"):
 				// When waiting for service principal to become available
 				return pluginsdk.RetryableError(err)
+			case retryLinkedAuthorizationFailedError && utils.ResponseWasForbidden(resp.Response) && strings.Contains(err.Error(), "LinkedAuthorizationFailed"):
+				return pluginsdk.RetryableError(err)
+			default:
+				return pluginsdk.NonRetryableError(err)
 			}
-
-			return pluginsdk.NonRetryableError(err)
 		}
 
 		if resp.ID == nil {

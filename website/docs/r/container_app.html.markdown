@@ -85,11 +85,19 @@ The following arguments are supported:
 
 A `secret` block supports the following:
 
-* `name` - (Required) The Secret name.
+* `name` - (Required) The secret name.
 
-* `value` - (Required) The value for this secret.
+* `identity` - (Optional) The identity to use for accessing the Key Vault secret reference. This can either be the Resource ID of a User Assigned Identity, or `System` for the System Assigned Identity.
 
-!> **Note:** Secrets cannot be removed from the service once added, attempting to do so will result in an error. Their values may be zeroed, i.e. set to `""`, but the named secret must persist. This is due to a technical limitation on the service which causes the service to become unmanageable. See [this issue](https://github.com/microsoft/azure-container-apps/issues/395) for more details.
+!> **Note:** `identity` must be used together with `key_vault_secret_id`
+
+* `key_vault_secret_id` - (Optional) The ID of a Key Vault secret. This can be a versioned or version-less ID.
+
+!> **Note:** When using `key_vault_secret_id`, `ignore_changes` should be used to ignore any changes to `value`.
+
+* `value` - (Optional) The value for this secret.
+
+!> **Note:** `value` will be ignored if `key_vault_secret_id` and `identity` are provided.
 
 ---
 
@@ -185,7 +193,7 @@ An `init_container` block supports:
 
 * `command` - (Optional) A command to pass to the container to override the default. This is provided as a list of command line elements without spaces.
 
-* `cpu` - (Required) The amount of vCPU to allocate to the container. Possible values include `0.25`, `0.5`, `0.75`, `1.0`, `1.25`, `1.5`, `1.75`, and `2.0`. When there's a workload profile specified, there's no such constraint.
+* `cpu` - (Optional) The amount of vCPU to allocate to the container. Possible values include `0.25`, `0.5`, `0.75`, `1.0`, `1.25`, `1.5`, `1.75`, and `2.0`. When there's a workload profile specified, there's no such constraint.
 
 ~> **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.0` / `2.0` or `0.5` / `1.0`
 
@@ -197,7 +205,7 @@ An `init_container` block supports:
 
 * `image` - (Required) The image to use to create the container.
 
-* `memory` - (Required) The amount of memory to allocate to the container. Possible values are `0.5Gi`, `1Gi`, `1.5Gi`, `2Gi`, `2.5Gi`, `3Gi`, `3.5Gi` and `4Gi`. When there's a workload profile specified, there's no such constraint.
+* `memory` - (Optional) The amount of memory to allocate to the container. Possible values are `0.5Gi`, `1Gi`, `1.5Gi`, `2Gi`, `2.5Gi`, `3Gi`, `3.5Gi` and `4Gi`. When there's a workload profile specified, there's no such constraint.
 
 ~> **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.25` / `2.5Gi` or `0.75` / `1.5Gi`
 
@@ -403,7 +411,7 @@ A `ip_security_restriction` block supports the following:
 
 * `description` - (Optional) Describe the IP restriction rule that is being sent to the container-app.
 
-* `ip_address_range` - (Required) CIDR notation to match incoming IP address.
+* `ip_address_range` - (Required) The incoming IP address or range of IP addresses (in CIDR notation).
 
 * `name` - (Required) Name for the IP restriction rule.
 
@@ -444,6 +452,8 @@ A `registry` block supports the following:
 The authentication details must also be supplied, `identity` and `username`/`password_secret_name` are mutually exclusive.
 
 * `identity` - (Optional) Resource ID for the User Assigned Managed identity to use when pulling from the Container Registry.
+
+~> **Note:** The Resource ID must be of a User Assigned Managed identity defined in an `identity` block.
 
 * `password_secret_name` - (Optional) The name of the Secret Reference containing the password value for this user on the Container Registry, `username` must also be supplied.
 

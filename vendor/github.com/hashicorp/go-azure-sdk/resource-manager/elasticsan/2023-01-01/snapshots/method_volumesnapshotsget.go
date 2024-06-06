@@ -43,7 +43,10 @@ func (c SnapshotsClient) VolumeSnapshotsGet(ctx context.Context, id SnapshotId) 
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Snapshot
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -36,9 +36,12 @@ func (r Registration) DataSources() []sdk.DataSource {
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		ContainerAppEnvironmentCertificateResource{},
+		ContainerAppEnvironmentCustomDomainResource{},
 		ContainerAppEnvironmentDaprComponentResource{},
 		ContainerAppEnvironmentResource{},
 		ContainerAppEnvironmentStorageResource{},
 		ContainerAppResource{},
+		ContainerAppCustomDomainResource{},
+		ContainerAppJobResource{},
 	}
 }

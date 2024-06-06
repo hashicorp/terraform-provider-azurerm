@@ -43,7 +43,10 @@ func (c OpenShiftClustersClient) Get(ctx context.Context, id ProviderOpenShiftCl
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model OpenShiftCluster
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

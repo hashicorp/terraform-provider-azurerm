@@ -47,6 +47,14 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
+* `retention_duration_in_days` - (Optional) The soft delete retention duration for this Backup Vault. Possible values are between `14` and `180`. Defaults to `14`.
+
+-> **Note:** The `retention_duration_in_days` is the number of days for which deleted data is retained before being permanently deleted. Retention period till 14 days are free of cost, however, retention beyond 14 days may incur additional charges. The `retention_duration_in_days` is required when the `soft_delete` is set to `On`.
+
+* `soft_delete` - (Optional) The state of soft delete for this Backup Vault. Possible values are `AlwaysOn`, `Off` and `On`. Defaults to `On`.
+
+-> **Note:** Once the `soft_delete` is set to `AlwaysOn`, the setting cannot be changed.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the Backup Vault.
 
 ---
@@ -71,7 +79,7 @@ An `identity` block exports the following:
 
 * `tenant_id` - The Tenant ID for the Service Principal associated with the Identity of this Backup Vault.
 
--> You can access the Principal ID via `${azurerm_data_protection_backup_vault.example.identity.0.principal_id}` and the Tenant ID via `${azurerm_data_protection_backup_vault.example.identity.0.tenant_id}`
+-> You can access the Principal ID via `${azurerm_data_protection_backup_vault.example.identity[0].principal_id}` and the Tenant ID via `${azurerm_data_protection_backup_vault.example.identity[0].tenant_id}`
 
 ## Timeouts
 

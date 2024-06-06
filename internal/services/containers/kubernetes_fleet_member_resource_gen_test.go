@@ -171,6 +171,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = 1
     vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -183,9 +186,6 @@ resource "azurerm_kubernetes_fleet_manager" "test" {
   name                = "acctestkfm${var.random_string}"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  hub_profile {
-    dns_prefix = "val-${var.random_string}"
-  }
 }
 
 

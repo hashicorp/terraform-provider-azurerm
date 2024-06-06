@@ -11,7 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2018-01-01-preview/roledefinitions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-05-01-preview/roledefinitions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -196,7 +196,7 @@ func (RoleDefinitionResource) Exists(ctx context.Context, client *clients.Client
 	roleId := state.Attributes["role_definition_id"]
 
 	id := roledefinitions.NewScopedRoleDefinitionID(scope, roleId)
-	resp, err := client.Authorization.RoleDefinitionsClient.Get(ctx, id)
+	resp, err := client.Authorization.ScopedRoleDefinitionsClient.Get(ctx, id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return pointer.To(false), nil

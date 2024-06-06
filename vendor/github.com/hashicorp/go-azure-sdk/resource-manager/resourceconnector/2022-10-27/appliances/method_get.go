@@ -43,7 +43,10 @@ func (c AppliancesClient) Get(ctx context.Context, id ApplianceId) (result GetOp
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Appliance
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -10,6 +10,8 @@ description: |-
 
 Manages a Directory within an Azure Storage File Share.
 
+-> **Note on Permissions** When using Azure Active Directory Authentication (i.e. setting the provider property `storage_use_azuread = true`), the principal running Terraform must have the *Storage File Data Privileged Contributor* IAM role assigned. The *Storage File Data SMB Share Contributor* does not have sufficient permissions to create directories. Refer to [official documentation](https://learn.microsoft.com/en-us/rest/api/storageservices/authorize-with-azure-active-directory#permissions-for-file-service-operations) for more details.
+
 ## Example Usage
 
 ```hcl
@@ -33,9 +35,8 @@ resource "azurerm_storage_share" "example" {
 }
 
 resource "azurerm_storage_share_directory" "example" {
-  name                 = "example"
-  share_name           = azurerm_storage_share.example.name
-  storage_account_name = azurerm_storage_account.example.name
+  name             = "example"
+  storage_share_id = azurerm_storage_share.example.id
 }
 ```
 
@@ -45,9 +46,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name (or path) of the Directory that should be created within this File Share. Changing this forces a new resource to be created.
 
-* `share_name` - (Required) The name of the File Share where this Directory should be created. Changing this forces a new resource to be created.
-
-* `storage_account_name` - (Required) The name of the Storage Account within which the File Share is located. Changing this forces a new resource to be created.
+* `storage_share_id` - (Required) The Storage Share ID in which this file will be placed into. Changing this forces a new resource to be created.
 
 * `metadata` - (Optional) A mapping of metadata to assign to this Directory.
 

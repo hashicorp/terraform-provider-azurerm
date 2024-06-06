@@ -49,7 +49,10 @@ func (c DatabasesClient) AddPrincipals(ctx context.Context, id commonids.KustoDa
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model DatabasePrincipalListResult
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -8,9 +8,12 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/alertsmanagement/mgmt/2019-06-01-preview/alertsmanagement" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2019-06-01/smartdetectoralertrules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -18,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -46,7 +48,7 @@ func resourceMonitorSmartDetectorAlertRule() *pluginsdk.Resource {
 		}),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.SmartDetectorAlertRuleID(id)
+			_, err := smartdetectoralertrules.ParseSmartDetectorAlertRuleID(id)
 			return err
 		}),
 
@@ -88,11 +90,11 @@ func resourceMonitorSmartDetectorAlertRule() *pluginsdk.Resource {
 				Required: true,
 				ValidateFunc: validation.StringInSlice(
 					[]string{
-						string(alertsmanagement.Sev0),
-						string(alertsmanagement.Sev1),
-						string(alertsmanagement.Sev2),
-						string(alertsmanagement.Sev3),
-						string(alertsmanagement.Sev4),
+						string(smartdetectoralertrules.SeveritySevZero),
+						string(smartdetectoralertrules.SeveritySevOne),
+						string(smartdetectoralertrules.SeveritySevTwo),
+						string(smartdetectoralertrules.SeveritySevThree),
+						string(smartdetectoralertrules.SeveritySevFour),
 					}, false),
 			},
 
@@ -151,7 +153,7 @@ func resourceMonitorSmartDetectorAlertRule() *pluginsdk.Resource {
 				ValidateFunc: commonValidate.ISO8601Duration,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
@@ -162,49 +164,49 @@ func resourceMonitorSmartDetectorAlertRuleCreateUpdate(d *pluginsdk.ResourceData
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewSmartDetectorAlertRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := smartdetectoralertrules.NewSmartDetectorAlertRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, utils.Bool(true))
+		existing, err := client.Get(ctx, id, smartdetectoralertrules.DefaultGetOperationOptions())
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Monitor %s: %+v", id, err)
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_monitor_smart_detector_alert_rule", id.ID())
 		}
 	}
 
-	state := alertsmanagement.AlertRuleStateDisabled
+	state := smartdetectoralertrules.AlertRuleStateDisabled
 	if d.Get("enabled").(bool) {
-		state = alertsmanagement.AlertRuleStateEnabled
+		state = smartdetectoralertrules.AlertRuleStateEnabled
 	}
 
-	actionRule := alertsmanagement.AlertRule{
+	actionRule := smartdetectoralertrules.AlertRule{
 		// the location is always global from the portal
 		Location: utils.String(location.Normalize("Global")),
-		AlertRuleProperties: &alertsmanagement.AlertRuleProperties{
-			Description: utils.String(d.Get("description").(string)),
+		Properties: &smartdetectoralertrules.AlertRuleProperties{
+			Description: pointer.To(d.Get("description").(string)),
 			State:       state,
-			Severity:    alertsmanagement.Severity(d.Get("severity").(string)),
-			Frequency:   utils.String(d.Get("frequency").(string)),
-			Detector: &alertsmanagement.Detector{
-				ID: utils.String(d.Get("detector_type").(string)),
+			Severity:    smartdetectoralertrules.Severity(d.Get("severity").(string)),
+			Frequency:   d.Get("frequency").(string),
+			Detector: smartdetectoralertrules.Detector{
+				Id: d.Get("detector_type").(string),
 			},
-			Scope:        utils.ExpandStringSlice(d.Get("scope_resource_ids").(*pluginsdk.Set).List()),
-			ActionGroups: expandMonitorSmartDetectorAlertRuleActionGroup(d.Get("action_group").([]interface{})),
+			Scope:        pointer.From(utils.ExpandStringSlice(d.Get("scope_resource_ids").(*pluginsdk.Set).List())),
+			ActionGroups: pointer.From(expandMonitorSmartDetectorAlertRuleActionGroup(d.Get("action_group").([]interface{}))),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if v, ok := d.GetOk("throttling_duration"); ok {
-		actionRule.AlertRuleProperties.Throttling = &alertsmanagement.ThrottlingInformation{
-			Duration: utils.String(v.(string)),
+		actionRule.Properties.Throttling = &smartdetectoralertrules.ThrottlingInformation{
+			Duration: pointer.To(v.(string)),
 		}
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, actionRule); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, actionRule); err != nil {
 		return fmt.Errorf("creating/updating Monitor %s: %+v", id, err)
 	}
 
@@ -217,46 +219,50 @@ func resourceMonitorSmartDetectorAlertRuleRead(d *pluginsdk.ResourceData, meta i
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SmartDetectorAlertRuleID(d.Id())
+	id, err := smartdetectoralertrules.ParseSmartDetectorAlertRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, utils.Bool(true))
+	resp, err := client.Get(ctx, *id, smartdetectoralertrules.DefaultGetOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Monitor Smart Detector Alert Rule %q does not exist - removing from state", d.Id())
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[DEBUG] %s does not exist - removing from state", id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Monitor %s: %+v", *id, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	if props := resp.AlertRuleProperties; props != nil {
-		d.Set("description", props.Description)
-		d.Set("enabled", props.State == alertsmanagement.AlertRuleStateEnabled)
-		d.Set("frequency", props.Frequency)
-		d.Set("severity", string(props.Severity))
-		d.Set("scope_resource_ids", utils.FlattenStringSlice(props.Scope))
+	d.Set("name", id.SmartDetectorAlertRuleName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-		if props.Detector != nil {
-			d.Set("detector_type", props.Detector.ID)
-		}
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("description", props.Description)
+			d.Set("enabled", props.State == smartdetectoralertrules.AlertRuleStateEnabled)
+			d.Set("frequency", props.Frequency)
+			d.Set("severity", string(props.Severity))
+			d.Set("scope_resource_ids", props.Scope)
+			d.Set("detector_type", props.Detector.Id)
 
-		throttlingDuration := ""
-		if props.Throttling != nil && props.Throttling.Duration != nil {
-			throttlingDuration = *props.Throttling.Duration
-		}
-		d.Set("throttling_duration", throttlingDuration)
+			throttlingDuration := ""
+			if props.Throttling != nil && props.Throttling.Duration != nil {
+				throttlingDuration = *props.Throttling.Duration
+			}
+			d.Set("throttling_duration", throttlingDuration)
 
-		if err := d.Set("action_group", flattenMonitorSmartDetectorAlertRuleActionGroup(props.ActionGroups)); err != nil {
-			return fmt.Errorf("setting `action_group`: %+v", err)
+			actionGroup, err := flattenMonitorSmartDetectorAlertRuleActionGroup(&props.ActionGroups)
+			if err != nil {
+				return fmt.Errorf("flatten `action_group`: %+v", err)
+			}
+			if err := d.Set("action_group", actionGroup); err != nil {
+				return fmt.Errorf("setting `action_group`: %+v", err)
+			}
 		}
+		return tags.FlattenAndSet(d, model.Tags)
 	}
-
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceMonitorSmartDetectorAlertRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -264,32 +270,32 @@ func resourceMonitorSmartDetectorAlertRuleDelete(d *pluginsdk.ResourceData, meta
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SmartDetectorAlertRuleID(d.Id())
+	id, err := smartdetectoralertrules.ParseSmartDetectorAlertRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
-		return fmt.Errorf("deleting Monitor %s: %+v", *id, err)
+	if _, err := client.Delete(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 	return nil
 }
 
-func expandMonitorSmartDetectorAlertRuleActionGroup(input []interface{}) *alertsmanagement.ActionGroupsInformation {
+func expandMonitorSmartDetectorAlertRuleActionGroup(input []interface{}) *smartdetectoralertrules.ActionGroupsInformation {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 	v := input[0].(map[string]interface{})
-	return &alertsmanagement.ActionGroupsInformation{
+	return &smartdetectoralertrules.ActionGroupsInformation{
 		CustomEmailSubject:   utils.String(v["email_subject"].(string)),
 		CustomWebhookPayload: utils.String(v["webhook_payload"].(string)),
-		GroupIds:             utils.ExpandStringSlice(v["ids"].(*pluginsdk.Set).List()),
+		GroupIds:             pointer.From(utils.ExpandStringSlice(v["ids"].(*pluginsdk.Set).List())),
 	}
 }
 
-func flattenMonitorSmartDetectorAlertRuleActionGroup(input *alertsmanagement.ActionGroupsInformation) []interface{} {
+func flattenMonitorSmartDetectorAlertRuleActionGroup(input *smartdetectoralertrules.ActionGroupsInformation) ([]interface{}, error) {
 	if input == nil {
-		return []interface{}{}
+		return []interface{}{}, nil
 	}
 
 	var customEmailSubject, CustomWebhookPayload string
@@ -300,11 +306,20 @@ func flattenMonitorSmartDetectorAlertRuleActionGroup(input *alertsmanagement.Act
 		CustomWebhookPayload = *input.CustomWebhookPayload
 	}
 
+	groupIds := make([]string, 0)
+	for _, idRaw := range input.GroupIds {
+		id, err := parse.ActionGroupIDInsensitively(idRaw)
+		if err != nil {
+			return nil, fmt.Errorf("parsing %s: %v", idRaw, err)
+		}
+		groupIds = append(groupIds, id.ID())
+	}
+
 	return []interface{}{
 		map[string]interface{}{
-			"ids":             utils.FlattenStringSlice(input.GroupIds),
+			"ids":             groupIds,
 			"email_subject":   customEmailSubject,
 			"webhook_payload": CustomWebhookPayload,
 		},
-	}
+	}, nil
 }

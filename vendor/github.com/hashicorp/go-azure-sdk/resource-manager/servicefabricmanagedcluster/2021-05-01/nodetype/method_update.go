@@ -47,7 +47,10 @@ func (c NodeTypeClient) Update(ctx context.Context, id NodeTypeId, input NodeTyp
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model NodeType
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

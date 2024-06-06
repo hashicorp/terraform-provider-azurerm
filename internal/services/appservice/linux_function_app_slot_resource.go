@@ -545,6 +545,8 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating Linux %s: %+v", id, err)
 			}
 
+			metadata.SetID(id)
+
 			if !functionAppSlot.PublishingDeployBasicAuthEnabled {
 				sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
 					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
@@ -619,7 +621,6 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			metadata.SetID(id)
 			return nil
 		},
 	}
@@ -1159,11 +1160,6 @@ func (m *LinuxFunctionAppSlotModel) unpackLinuxFunctionAppSettings(input webapps
 
 		case "AzureWebJobsDashboard__accountName":
 			m.BuiltinLogging = true
-
-		case "WEBSITE_RUN_FROM_PACKAGE":
-			if _, ok := metadata.ResourceData.GetOk("app_settings.WEBSITE_RUN_FROM_PACKAGE"); ok {
-				appSettings[k] = v
-			}
 
 		case "WEBSITE_VNET_ROUTE_ALL":
 			// Filter out - handled by site_config setting `vnet_route_all_enabled`

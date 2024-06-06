@@ -7,16 +7,44 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/managedenvironments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2024-03-01/managedenvironments"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-const consumption = "Consumption"
+type WorkloadProfileSku string
+
+// NOTE: the Workload Profile SKUs aren't defined in the Swagger definition so we define them here
+const (
+	WorkloadProfileSkuConsumption WorkloadProfileSku = "Consumption"
+	WorkloadProfileSkuD4          WorkloadProfileSku = "D4"
+	WorkloadProfileSkuD8          WorkloadProfileSku = "D8"
+	WorkloadProfileSkuD16         WorkloadProfileSku = "D16"
+	WorkloadProfileSkuD32         WorkloadProfileSku = "D32"
+	WorkloadProfileSkuE4          WorkloadProfileSku = "E4"
+	WorkloadProfileSkuE8          WorkloadProfileSku = "E8"
+	WorkloadProfileSkuE16         WorkloadProfileSku = "E16"
+	WorkloadProfileSkuE32         WorkloadProfileSku = "E32"
+)
+
+func PossibleValuesForWorkloadProfileSku() []string {
+	return []string{
+		string(WorkloadProfileSkuConsumption),
+		string(WorkloadProfileSkuD4),
+		string(WorkloadProfileSkuD8),
+		string(WorkloadProfileSkuD16),
+		string(WorkloadProfileSkuD32),
+		string(WorkloadProfileSkuE4),
+		string(WorkloadProfileSkuE8),
+		string(WorkloadProfileSkuE16),
+		string(WorkloadProfileSkuE32),
+	}
+}
 
 type WorkloadProfileModel struct {
-	MaximumCount        int    `tfschema:"maximum_count"`
-	MinimumCount        int    `tfschema:"minimum_count"`
+	MaximumCount        int64  `tfschema:"maximum_count"`
+	MinimumCount        int64  `tfschema:"minimum_count"`
 	Name                string `tfschema:"name"`
 	WorkloadProfileType string `tfschema:"workload_profile_type"`
 }
@@ -34,28 +62,19 @@ func WorkloadProfileSchema() *pluginsdk.Schema {
 				},
 
 				"workload_profile_type": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						"D4",
-						"D8",
-						"D16",
-						"D32",
-						"E4",
-						"E8",
-						"E16",
-						"E32",
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringInSlice(PossibleValuesForWorkloadProfileSku(), false),
 				},
 
 				"maximum_count": {
 					Type:     pluginsdk.TypeInt,
-					Required: true,
+					Optional: true,
 				},
 
 				"minimum_count": {
 					Type:     pluginsdk.TypeInt,
-					Required: true,
+					Optional: true,
 				},
 			},
 		},
@@ -69,42 +88,49 @@ func ExpandWorkloadProfiles(input []WorkloadProfileModel) *[]managedenvironments
 
 	result := make([]managedenvironments.WorkloadProfile, 0)
 
+	consumptionDefined := false
+
 	for _, v := range input {
 		r := managedenvironments.WorkloadProfile{
-			Name:                v.Name,
-			WorkloadProfileType: v.WorkloadProfileType,
+			Name: v.Name,
 		}
 
-		if v.Name != consumption {
-			r.MaximumCount = pointer.To(int64(v.MaximumCount))
-			r.MinimumCount = pointer.To(int64(v.MinimumCount))
+		if v.Name != string(WorkloadProfileSkuConsumption) {
+			r.WorkloadProfileType = v.WorkloadProfileType
+			r.MaximumCount = pointer.To(v.MaximumCount)
+			r.MinimumCount = pointer.To(v.MinimumCount)
+		} else {
+			r.WorkloadProfileType = string(WorkloadProfileSkuConsumption)
+			consumptionDefined = true
 		}
 
 		result = append(result, r)
 	}
 
-	result = append(result, managedenvironments.WorkloadProfile{
-		Name:                consumption,
-		WorkloadProfileType: consumption,
-	})
+	if !features.FourPointOhBeta() && !consumptionDefined {
+		result = append(result, managedenvironments.WorkloadProfile{
+			Name:                string(WorkloadProfileSkuConsumption),
+			WorkloadProfileType: string(WorkloadProfileSkuConsumption),
+		})
+	}
 
 	return &result
 }
 
-func FlattenWorkloadProfiles(input *[]managedenvironments.WorkloadProfile) []WorkloadProfileModel {
+func FlattenWorkloadProfiles(input *[]managedenvironments.WorkloadProfile, consumptionDefined bool) []WorkloadProfileModel {
 	if input == nil || len(*input) == 0 {
 		return []WorkloadProfileModel{}
 	}
 	result := make([]WorkloadProfileModel, 0)
 
 	for _, v := range *input {
-		if strings.EqualFold(v.WorkloadProfileType, consumption) {
+		if strings.EqualFold(v.WorkloadProfileType, string(WorkloadProfileSkuConsumption)) && !consumptionDefined {
 			continue
 		}
 		result = append(result, WorkloadProfileModel{
 			Name:                v.Name,
-			MaximumCount:        int(pointer.From(v.MaximumCount)),
-			MinimumCount:        int(pointer.From(v.MinimumCount)),
+			MaximumCount:        pointer.From(v.MaximumCount),
+			MinimumCount:        pointer.From(v.MinimumCount),
 			WorkloadProfileType: v.WorkloadProfileType,
 		})
 	}
