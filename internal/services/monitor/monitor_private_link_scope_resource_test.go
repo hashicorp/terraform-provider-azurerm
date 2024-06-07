@@ -136,8 +136,6 @@ resource "azurerm_monitor_private_link_scope" "import" {
   name                = azurerm_monitor_private_link_scope.test.name
   resource_group_name = azurerm_monitor_private_link_scope.test.resource_group_name
 
-  ingestion_access_mode = "Open"
-  query_access_mode     = "Open"
 }
 `, r.basic(data))
 }
