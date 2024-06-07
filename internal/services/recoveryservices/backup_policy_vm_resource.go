@@ -569,6 +569,12 @@ func expandBackupProtectionPolicyVMRetentionDailyFormat(block map[string]interfa
 func expandBackupProtectionPolicyVMTieringPolicy(input []interface{}) *map[string]protectionpolicies.TieringPolicy {
 	result := make(map[string]protectionpolicies.TieringPolicy)
 	if len(input) == 0 {
+		result["ArchivedRP"] = protectionpolicies.TieringPolicy{
+			TieringMode:  pointer.To(protectionpolicies.TieringModeDoNotTier),
+			DurationType: pointer.To(protectionpolicies.RetentionDurationTypeInvalid),
+			Duration:     pointer.To(int64(0)),
+		}
+
 		return &result
 	}
 
@@ -587,9 +593,15 @@ func expandBackupProtectionPolicyVMArchivedRP(input []interface{}) protectionpol
 	archivedRP := input[0].(map[string]interface{})
 
 	result := protectionpolicies.TieringPolicy{
-		Duration:     pointer.To(int64(archivedRP["duration"].(int))),
-		DurationType: pointer.To(protectionpolicies.RetentionDurationType(archivedRP["duration_type"].(string))),
-		TieringMode:  pointer.To(protectionpolicies.TieringMode(archivedRP["tiering_mode"].(string))),
+		TieringMode: pointer.To(protectionpolicies.TieringMode(archivedRP["tiering_mode"].(string))),
+	}
+
+	if v := archivedRP["duration_type"].(string); v != "" {
+		result.DurationType = pointer.To(protectionpolicies.RetentionDurationType(v))
+	}
+
+	if v := archivedRP["duration"].(int); v != 0 {
+		result.Duration = pointer.To(int64(v))
 	}
 
 	return result
@@ -808,6 +820,10 @@ func flattenBackupProtectionPolicyVMTieringPolicy(input *map[string]protectionpo
 
 	for k, v := range *input {
 		if k == "ArchivedRP" {
+			if pointer.From(v.TieringMode) == protectionpolicies.TieringModeDoNotTier && pointer.From(v.DurationType) == protectionpolicies.RetentionDurationTypeInvalid && pointer.From(v.Duration) == 0 {
+				return results
+			}
+
 			results = append(results, map[string]interface{}{
 				"archived_rp": flattenBackupProtectionPolicyVMArchivedRP(v),
 			})
@@ -820,11 +836,18 @@ func flattenBackupProtectionPolicyVMTieringPolicy(input *map[string]protectionpo
 func flattenBackupProtectionPolicyVMArchivedRP(input protectionpolicies.TieringPolicy) []interface{} {
 	results := make([]interface{}, 0)
 
-	results = append(results, map[string]interface{}{
-		"duration":      int(pointer.From(input.Duration)),
-		"duration_type": string(pointer.From(input.DurationType)),
-		"tiering_mode":  string(pointer.From(input.TieringMode)),
-	})
+	result := map[string]interface{}{
+		"tiering_mode": string(pointer.From(input.TieringMode)),
+		"duration":     int(pointer.From(input.Duration)),
+	}
+
+	durationType := ""
+	if v := input.DurationType; v != nil && pointer.From(v) != protectionpolicies.RetentionDurationTypeInvalid {
+		durationType = string(pointer.From(v))
+	}
+	result["duration_type"] = durationType
+
+	results = append(results, result)
 
 	return results
 }
@@ -938,7 +961,7 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 								"duration": {
 									Type:         pluginsdk.TypeInt,
 									Optional:     true,
-									ValidateFunc: validation.IntBetween(3, 1182),
+									ValidateFunc: validation.IntAtLeast(3),
 								},
 
 								"duration_type": {
