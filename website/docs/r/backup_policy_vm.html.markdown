@@ -168,7 +168,7 @@ The `retention_yearly` block supports:
 
 ---
 
-An `tiering_policy` block supports the following:
+A `tiering_policy` block supports the following:
 
 * `tiering_mode` - (Required) The tiering mode to control automatic tiering of recovery points. Possible values are `TierAfter` and `TierRecommended`.
 
