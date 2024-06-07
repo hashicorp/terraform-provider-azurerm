@@ -45,10 +45,6 @@ func (r IotCentralServicePrincipalUserResource) Arguments() map[string]*pluginsd
 			ForceNew:     true,
 			ValidateFunc: validate.UserUserID,
 		},
-		"type": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
 		"tenant_id": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
@@ -80,7 +76,12 @@ func (r IotCentralServicePrincipalUserResource) Arguments() map[string]*pluginsd
 }
 
 func (r IotCentralServicePrincipalUserResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{}
+	return map[string]*pluginsdk.Schema{
+		"type": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+	}
 }
 
 func (r IotCentralServicePrincipalUserResource) ResourceType() string {
