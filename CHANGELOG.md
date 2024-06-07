@@ -14,9 +14,9 @@ ENHANCEMENTS:
 * `network/serviceendpointpolicies` - update to use `hashicorp/go-azure-sdk` [GH-26196]
 * `network/virtualnetworks` - update to use `hashicorp/go-azure-sdk` [GH-26217]
 * `network/virtualwans`: update route resources to use `hashicorp/go-azure-sdk` [GH-26189]
-* `azurerm_container_app_job` - support new properties `key_vault_secret_id` and `identity` in `secret` block [GH-25969]
-* `azurerm_kubernetes_cluster` - add support for `dns_zone_ids` in the `web_app_routing` block [GH-26117]
-* `azurerm_notification_hub_authorization_rule` - add support for `primary_connection_string` and `secondary_connection_string` properties [GH-26188]
+* `azurerm_container_app_job` - support for the `key_vault_secret_id` and `identity`  properties in the  `secret` block [GH-25969]
+* `azurerm_kubernetes_cluster` -  support forthe  `dns_zone_ids` popperty in the `web_app_routing` block [GH-26117]
+* `azurerm_notification_hub_authorization_rule` - support for the `primary_connection_string` and `secondary_connection_string` properties [GH-26188]
 * `azurerm_subnet` - support for the `default_outbound_access_enabled` property [GH-25259]
 
 BUG FIXES:
