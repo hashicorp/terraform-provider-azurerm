@@ -792,6 +792,70 @@ func TestAccKubernetesCluster_osSku(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesCluster_osSkuUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.osSku(data, "Ubuntu"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_node_pool.0.os_sku").HasValue("Ubuntu"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.osSku(data, "AzureLinux"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_node_pool.0.os_sku").HasValue("AzureLinux"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.osSku(data, "Ubuntu"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_node_pool.0.os_sku").HasValue("Ubuntu"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_osSkuCycleNodePool(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.osSkuCycleNodePool(data, "Ubuntu"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_node_pool.0.os_sku").HasValue("Ubuntu"),
+			),
+		},
+		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
+		{
+			Config: r.osSkuCycleNodePool(data, "Mariner"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_node_pool.0.os_sku").HasValue("Mariner"),
+			),
+		},
+		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
+		{
+			Config: r.osSkuCycleNodePool(data, "AzureLinux"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_node_pool.0.os_sku").HasValue("AzureLinux"),
+			),
+		},
+		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
+	})
+}
+
 func TestAccKubernetesCluster_microsoftDefender(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
@@ -2917,6 +2981,41 @@ resource "azurerm_kubernetes_cluster" "test" {
     node_count = 1
     vm_size    = "Standard_D2s_v3"
     os_sku     = "%s"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, osSKu)
+}
+
+func (KubernetesClusterResource) osSkuCycleNodePool(data acceptance.TestData, osSKu string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name                        = "default"
+    node_count                  = 1
+    vm_size                     = "Standard_D2s_v3"
+    os_sku                      = "%s"
+    temporary_name_for_rotation = "temp"
     upgrade_settings {
       max_surge = "10%%"
     }
