@@ -211,13 +211,10 @@ func (r BackendAddressPoolAddressResource) Create() sdk.ResourceFunc {
 					})
 				}
 
-				backendAddressPool := loadbalancers.BackendAddressPool{
-					Properties: &loadbalancers.BackendAddressPoolPropertiesFormat{
-						LoadBalancerBackendAddresses: &addresses,
-					},
-				}
+				pool.Model.Properties.LoadBalancerBackendAddresses = &addresses
+
 				metadata.Logger.Infof("adding %s..", id)
-				err = lbClient.LoadBalancerBackendAddressPoolsCreateOrUpdateThenPoll(ctx, *poolId, backendAddressPool)
+				err = lbClient.LoadBalancerBackendAddressPoolsCreateOrUpdateThenPoll(ctx, *poolId, *pool.Model)
 				if err != nil {
 					return fmt.Errorf("updating %s: %+v", id, err)
 				}
