@@ -16,23 +16,22 @@ import (
 	dataplane "github.com/tombuildsstuff/kermit/sdk/iotcentral/2022-10-31-preview/iotcentral"
 )
 
-type IotCentralUserResource struct{}
+type IotCentralServicePrincipalUserResource struct{}
 
 var (
-	_ sdk.ResourceWithUpdate = IotCentralUserResource{}
+	_ sdk.ResourceWithUpdate = IotCentralServicePrincipalUserResource{}
 )
 
-type IotCentralUserModel struct {
+type IotCentralServicePrincipalUserModel struct {
 	IotCentralApplicationId string `tfschema:"iotcentral_application_id"`
 	UserId                  string `tfschema:"user_id"`
 	Type                    string `tfschema:"type"`
-	Email                   string `tfschema:"email"`
 	TenantId                string `tfschema:"tenant_id"`
 	ObjectId                string `tfschema:"object_id"`
 	Role                    []Role `tfschema:"role"`
 }
 
-func (r IotCentralUserResource) Arguments() map[string]*pluginsdk.Schema {
+func (r IotCentralServicePrincipalUserResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"iotcentral_application_id": {
 			Type:         pluginsdk.TypeString,
@@ -49,9 +48,14 @@ func (r IotCentralUserResource) Arguments() map[string]*pluginsdk.Schema {
 		"type": {
 			Type:         pluginsdk.TypeString,
 			Computed:     true,
-			ValidateFunc: validate.EmailUserType,
+			ValidateFunc: validate.ServicePrincipalUserType,
 		},
-		"email": {
+		"tenant_id": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+		},
+		"object_id": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			ForceNew: true,
@@ -76,43 +80,44 @@ func (r IotCentralUserResource) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r IotCentralUserResource) Attributes() map[string]*pluginsdk.Schema {
+func (r IotCentralServicePrincipalUserResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r IotCentralUserResource) ResourceType() string {
-	return "azurerm_iotcentral_user"
+func (r IotCentralServicePrincipalUserResource) ResourceType() string {
+	return "azurerm_iotcentral_service_principal_user"
 }
 
-func (r IotCentralUserResource) ModelObject() interface{} {
-	return &IotCentralUserModel{}
+func (r IotCentralServicePrincipalUserResource) ModelObject() interface{} {
+	return &IotCentralServicePrincipalUserModel{}
 }
 
-func (IotCentralUserResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (IotCentralServicePrincipalUserResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return validate.UserID
 }
 
-func (u IotCentralUserModel) AsEmailUser() dataplane.EmailUser {
-	return dataplane.EmailUser{
-		Email: &u.Email,
-		ID:    &u.UserId,
-		Type:  dataplane.TypeBasicUserTypeEmail,
-		Roles: ConvertToRoleAssignments(u.Role),
+func (u IotCentralServicePrincipalUserModel) AsServicePrincipalUser() dataplane.ServicePrincipalUser {
+	return dataplane.ServicePrincipalUser{
+		TenantID: &u.TenantId,
+		ObjectID: &u.ObjectId,
+		ID:       &u.UserId,
+		Type:     dataplane.TypeBasicUserTypeServicePrincipal,
+		Roles:    ConvertToRoleAssignments(u.Role),
 	}
 }
 
-func TryValidateUserExistence(user dataplane.BasicUser) (string, bool) {
-	if userValue, ok := user.AsEmailUser(); ok {
+func TryValidateServicePrincipalUserExistence(user dataplane.BasicUser) (string, bool) {
+	if userValue, ok := user.AsServicePrincipalUser(); ok {
 		return *userValue.ID, true
 	}
 	return "", false
 }
 
-func (r IotCentralUserResource) Create() sdk.ResourceFunc {
+func (r IotCentralServicePrincipalUserResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.IoTCentral
-			var state IotCentralUserModel
+			var state IotCentralServicePrincipalUserModel
 			if err := metadata.Decode(&state); err != nil {
 				return err
 			}
@@ -132,16 +137,16 @@ func (r IotCentralUserResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating user client: %+v", err)
 			}
 
-			userToCreate := state.AsEmailUser()
+			userToCreate := state.AsServicePrincipalUser()
 
 			user, err := userClient.Create(ctx, state.UserId, userToCreate)
 			if err != nil {
 				return fmt.Errorf("creating %s: %+v", state.UserId, err)
 			}
 
-			_, isValid := TryValidateUserExistence(user.Value)
+			_, isValid := TryValidateServicePrincipalUserExistence(user.Value)
 			if !isValid {
-				return fmt.Errorf("unable to validate existence of user: id = %+v, type = Email after creating user: %+v", state.UserId, userToCreate)
+				return fmt.Errorf("unable to validate existence of user: id = %+v, type = ServicePrincipal after creating user: %+v", state.UserId, userToCreate)
 			}
 
 			id := parse.NewUserID(appId.SubscriptionId, appId.ResourceGroupName, appId.IotAppName, state.UserId)
@@ -153,7 +158,7 @@ func (r IotCentralUserResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r IotCentralUserResource) Read() sdk.ResourceFunc {
+func (r IotCentralServicePrincipalUserResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.IoTCentral
@@ -178,7 +183,7 @@ func (r IotCentralUserResource) Read() sdk.ResourceFunc {
 			}
 
 			user, err := userClient.Get(ctx, id.Name)
-			_, isValid := TryValidateUserExistence(user.Value)
+			_, isValid := TryValidateServicePrincipalUserExistence(user.Value)
 			if err != nil {
 				if !isValid {
 					return metadata.MarkAsGone(id)
@@ -187,17 +192,18 @@ func (r IotCentralUserResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			emailUser, isValid := user.Value.AsEmailUser()
+			servicePrincipalUser, isValid := user.Value.AsServicePrincipalUser()
 			if !isValid {
-				return fmt.Errorf("unable to convert user to type EmailUser")
+				return fmt.Errorf("unable to convert user to type ServicePrincipalUser")
 			}
 
-			var state = IotCentralUserModel{
+			var state = IotCentralServicePrincipalUserModel{
 				IotCentralApplicationId: appId.ID(),
 				UserId:                  id.Name,
-				Type:                    "Email",
-				Email:                   *emailUser.Email,
-				Role:                    ConvertFromRoleAssignments(emailUser.Roles),
+				Type:                    "ServicePrincipal",
+				TenantId:                *servicePrincipalUser.TenantID,
+				ObjectId:                *servicePrincipalUser.ObjectID,
+				Role:                    ConvertFromRoleAssignments(servicePrincipalUser.Roles),
 			}
 
 			return metadata.Encode(&state)
@@ -206,11 +212,11 @@ func (r IotCentralUserResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r IotCentralUserResource) Update() sdk.ResourceFunc {
+func (r IotCentralServicePrincipalUserResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.IoTCentral
-			var state IotCentralUserModel
+			var state IotCentralServicePrincipalUserModel
 			if err := metadata.Decode(&state); err != nil {
 				return err
 			}
@@ -236,7 +242,7 @@ func (r IotCentralUserResource) Update() sdk.ResourceFunc {
 			}
 
 			existing, err := userClient.Get(ctx, id.Name)
-			_, isValid := TryValidateUserExistence(existing.Value)
+			_, isValid := TryValidateServicePrincipalUserExistence(existing.Value)
 			if err != nil {
 				if !isValid {
 					return metadata.MarkAsGone(id)
@@ -245,13 +251,13 @@ func (r IotCentralUserResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			emailUser, _ := existing.Value.AsEmailUser()
+			servicePrincipalUser, _ := existing.Value.AsServicePrincipalUser()
 
 			if metadata.ResourceData.HasChange("role") {
-				emailUser.Roles = ConvertToRoleAssignments(state.Role)
+				servicePrincipalUser.Roles = ConvertToRoleAssignments(state.Role)
 			}
 
-			_, err = userClient.Update(ctx, *emailUser.ID, emailUser, "*")
+			_, err = userClient.Update(ctx, *servicePrincipalUser.ID, servicePrincipalUser, "*")
 			if err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
@@ -262,11 +268,11 @@ func (r IotCentralUserResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (r IotCentralUserResource) Delete() sdk.ResourceFunc {
+func (r IotCentralServicePrincipalUserResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.IoTCentral
-			var state IotCentralUserModel
+			var state IotCentralServicePrincipalUserModel
 			if err := metadata.Decode(&state); err != nil {
 				return err
 			}

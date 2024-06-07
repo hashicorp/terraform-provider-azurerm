@@ -16,23 +16,22 @@ import (
 	dataplane "github.com/tombuildsstuff/kermit/sdk/iotcentral/2022-10-31-preview/iotcentral"
 )
 
-type IotCentralUserResource struct{}
+type IotCentralGroupUserResource struct{}
 
 var (
-	_ sdk.ResourceWithUpdate = IotCentralUserResource{}
+	_ sdk.ResourceWithUpdate = IotCentralGroupUserResource{}
 )
 
-type IotCentralUserModel struct {
+type IotCentralGroupUserModel struct {
 	IotCentralApplicationId string `tfschema:"iotcentral_application_id"`
 	UserId                  string `tfschema:"user_id"`
 	Type                    string `tfschema:"type"`
-	Email                   string `tfschema:"email"`
 	TenantId                string `tfschema:"tenant_id"`
 	ObjectId                string `tfschema:"object_id"`
 	Role                    []Role `tfschema:"role"`
 }
 
-func (r IotCentralUserResource) Arguments() map[string]*pluginsdk.Schema {
+func (r IotCentralGroupUserResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"iotcentral_application_id": {
 			Type:         pluginsdk.TypeString,
@@ -49,9 +48,14 @@ func (r IotCentralUserResource) Arguments() map[string]*pluginsdk.Schema {
 		"type": {
 			Type:         pluginsdk.TypeString,
 			Computed:     true,
-			ValidateFunc: validate.EmailUserType,
+			ValidateFunc: validate.GroupUserType,
 		},
-		"email": {
+		"tenant_id": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+		},
+		"object_id": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			ForceNew: true,
@@ -76,43 +80,44 @@ func (r IotCentralUserResource) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r IotCentralUserResource) Attributes() map[string]*pluginsdk.Schema {
+func (r IotCentralGroupUserResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r IotCentralUserResource) ResourceType() string {
-	return "azurerm_iotcentral_user"
+func (r IotCentralGroupUserResource) ResourceType() string {
+	return "azurerm_iotcentral_group_user"
 }
 
-func (r IotCentralUserResource) ModelObject() interface{} {
-	return &IotCentralUserModel{}
+func (r IotCentralGroupUserResource) ModelObject() interface{} {
+	return &IotCentralGroupUserModel{}
 }
 
-func (IotCentralUserResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (IotCentralGroupUserResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return validate.UserID
 }
 
-func (u IotCentralUserModel) AsEmailUser() dataplane.EmailUser {
-	return dataplane.EmailUser{
-		Email: &u.Email,
-		ID:    &u.UserId,
-		Type:  dataplane.TypeBasicUserTypeEmail,
-		Roles: ConvertToRoleAssignments(u.Role),
+func (u IotCentralGroupUserModel) AsGroupUser() dataplane.ADGroupUser {
+	return dataplane.ADGroupUser{
+		TenantID: &u.TenantId,
+		ObjectID: &u.ObjectId,
+		ID:       &u.UserId,
+		Type:     dataplane.TypeBasicUserTypeAdGroup,
+		Roles:    ConvertToRoleAssignments(u.Role),
 	}
 }
 
-func TryValidateUserExistence(user dataplane.BasicUser) (string, bool) {
-	if userValue, ok := user.AsEmailUser(); ok {
+func TryValidateGroupUserExistence(user dataplane.BasicUser) (string, bool) {
+	if userValue, ok := user.AsADGroupUser(); ok {
 		return *userValue.ID, true
 	}
 	return "", false
 }
 
-func (r IotCentralUserResource) Create() sdk.ResourceFunc {
+func (r IotCentralGroupUserResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.IoTCentral
-			var state IotCentralUserModel
+			var state IotCentralGroupUserModel
 			if err := metadata.Decode(&state); err != nil {
 				return err
 			}
@@ -132,16 +137,16 @@ func (r IotCentralUserResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating user client: %+v", err)
 			}
 
-			userToCreate := state.AsEmailUser()
+			userToCreate := state.AsGroupUser()
 
 			user, err := userClient.Create(ctx, state.UserId, userToCreate)
 			if err != nil {
 				return fmt.Errorf("creating %s: %+v", state.UserId, err)
 			}
 
-			_, isValid := TryValidateUserExistence(user.Value)
+			_, isValid := TryValidateGroupUserExistence(user.Value)
 			if !isValid {
-				return fmt.Errorf("unable to validate existence of user: id = %+v, type = Email after creating user: %+v", state.UserId, userToCreate)
+				return fmt.Errorf("unable to validate existence of user: id = %+v, type = Group after creating user: %+v", state.UserId, userToCreate)
 			}
 
 			id := parse.NewUserID(appId.SubscriptionId, appId.ResourceGroupName, appId.IotAppName, state.UserId)
@@ -153,7 +158,7 @@ func (r IotCentralUserResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r IotCentralUserResource) Read() sdk.ResourceFunc {
+func (r IotCentralGroupUserResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.IoTCentral
@@ -178,7 +183,7 @@ func (r IotCentralUserResource) Read() sdk.ResourceFunc {
 			}
 
 			user, err := userClient.Get(ctx, id.Name)
-			_, isValid := TryValidateUserExistence(user.Value)
+			_, isValid := TryValidateGroupUserExistence(user.Value)
 			if err != nil {
 				if !isValid {
 					return metadata.MarkAsGone(id)
@@ -187,17 +192,18 @@ func (r IotCentralUserResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			emailUser, isValid := user.Value.AsEmailUser()
+			groupUser, isValid := user.Value.AsADGroupUser()
 			if !isValid {
-				return fmt.Errorf("unable to convert user to type EmailUser")
+				return fmt.Errorf("unable to convert user to type GroupUser")
 			}
 
-			var state = IotCentralUserModel{
+			var state = IotCentralGroupUserModel{
 				IotCentralApplicationId: appId.ID(),
 				UserId:                  id.Name,
-				Type:                    "Email",
-				Email:                   *emailUser.Email,
-				Role:                    ConvertFromRoleAssignments(emailUser.Roles),
+				Type:                    "Group",
+				TenantId:                *groupUser.TenantID,
+				ObjectId:                *groupUser.ObjectID,
+				Role:                    ConvertFromRoleAssignments(groupUser.Roles),
 			}
 
 			return metadata.Encode(&state)
@@ -206,11 +212,11 @@ func (r IotCentralUserResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r IotCentralUserResource) Update() sdk.ResourceFunc {
+func (r IotCentralGroupUserResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.IoTCentral
-			var state IotCentralUserModel
+			var state IotCentralGroupUserModel
 			if err := metadata.Decode(&state); err != nil {
 				return err
 			}
@@ -236,7 +242,7 @@ func (r IotCentralUserResource) Update() sdk.ResourceFunc {
 			}
 
 			existing, err := userClient.Get(ctx, id.Name)
-			_, isValid := TryValidateUserExistence(existing.Value)
+			_, isValid := TryValidateGroupUserExistence(existing.Value)
 			if err != nil {
 				if !isValid {
 					return metadata.MarkAsGone(id)
@@ -245,13 +251,13 @@ func (r IotCentralUserResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			emailUser, _ := existing.Value.AsEmailUser()
+			groupUser, _ := existing.Value.AsADGroupUser()
 
 			if metadata.ResourceData.HasChange("role") {
-				emailUser.Roles = ConvertToRoleAssignments(state.Role)
+				groupUser.Roles = ConvertToRoleAssignments(state.Role)
 			}
 
-			_, err = userClient.Update(ctx, *emailUser.ID, emailUser, "*")
+			_, err = userClient.Update(ctx, *groupUser.ID, groupUser, "*")
 			if err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
@@ -262,11 +268,11 @@ func (r IotCentralUserResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (r IotCentralUserResource) Delete() sdk.ResourceFunc {
+func (r IotCentralGroupUserResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.IoTCentral
-			var state IotCentralUserModel
+			var state IotCentralGroupUserModel
 			if err := metadata.Decode(&state); err != nil {
 				return err
 			}
