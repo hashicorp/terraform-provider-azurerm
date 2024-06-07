@@ -317,7 +317,6 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	privateDnsZoneGroup := d.Get("private_dns_zone_group").([]interface{})
-	subnetId := d.Get("subnet_id").(string)
 
 	parameters := privateendpoints.PrivateEndpoint{
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
