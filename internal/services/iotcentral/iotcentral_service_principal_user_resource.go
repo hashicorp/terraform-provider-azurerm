@@ -46,9 +46,8 @@ func (r IotCentralServicePrincipalUserResource) Arguments() map[string]*pluginsd
 			ValidateFunc: validate.UserUserID,
 		},
 		"type": {
-			Type:         pluginsdk.TypeString,
-			Computed:     true,
-			ValidateFunc: validate.ServicePrincipalUserType,
+			Type:     pluginsdk.TypeString,
+			Computed: true,
 		},
 		"tenant_id": {
 			Type:     pluginsdk.TypeString,

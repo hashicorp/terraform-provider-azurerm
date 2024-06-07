@@ -47,9 +47,8 @@ func (r IotCentralUserResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.UserUserID,
 		},
 		"type": {
-			Type:         pluginsdk.TypeString,
-			Computed:     true,
-			ValidateFunc: validate.EmailUserType,
+			Type:     pluginsdk.TypeString,
+			Computed: true,
 		},
 		"email": {
 			Type:     pluginsdk.TypeString,

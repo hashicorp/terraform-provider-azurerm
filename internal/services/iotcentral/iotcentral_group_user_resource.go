@@ -46,9 +46,8 @@ func (r IotCentralGroupUserResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.UserUserID,
 		},
 		"type": {
-			Type:         pluginsdk.TypeString,
-			Computed:     true,
-			ValidateFunc: validate.GroupUserType,
+			Type:     pluginsdk.TypeString,
+			Computed: true,
 		},
 		"tenant_id": {
 			Type:     pluginsdk.TypeString,
