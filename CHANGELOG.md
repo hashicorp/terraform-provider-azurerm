@@ -1,37 +1,37 @@
-## 3.107.0 (Unreleased)
+## 3.107.0 (June 06, 2024)
 
 FEATURES:
 
-* **New Resource:** `azurerm_data_protection_backup_policy_postgresql_flexible_server` [GH-26024]
+* **New Resource:** `azurerm_data_protection_backup_policy_postgresql_flexible_server` ([#26024](https://github.com/hashicorp/terraform-provider-azurerm/issues/26024))
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v0.20240604.1114748` of `github.com/hashicorp/go-azure-sdk` [GH-26216]
-* `advisor`: update API version to `2023-01-01` [GH-26205]
-* `keyvault`: handling the Resources API returning Key Vaults that have been deleted when populating the cache [GH-26199]
-* `machinelearning`: update API version to `2024-04-01` [GH-26168]
-* `network/privatelinkservices` - update to use `hashicorp/go-azure-sdk` [GH-26212]
-* `network/serviceendpointpolicies` - update to use `hashicorp/go-azure-sdk` [GH-26196]
-* `network/virtualnetworks` - update to use `hashicorp/go-azure-sdk` [GH-26217]
-* `network/virtualwans`: update route resources to use `hashicorp/go-azure-sdk` [GH-26189]
-* `azurerm_container_app_job` - support for the `key_vault_secret_id` and `identity`  properties in the  `secret` block [GH-25969]
-* `azurerm_kubernetes_cluster` -  support forthe  `dns_zone_ids` popperty in the `web_app_routing` block [GH-26117]
-* `azurerm_notification_hub_authorization_rule` - support for the `primary_connection_string` and `secondary_connection_string` properties [GH-26188]
-* `azurerm_subnet` - support for the `default_outbound_access_enabled` property [GH-25259]
+* dependencies: updating to `v0.20240604.1114748` of `github.com/hashicorp/go-azure-sdk` ([#26216](https://github.com/hashicorp/terraform-provider-azurerm/issues/26216))
+* `advisor`: update API version to `2023-01-01` ([#26205](https://github.com/hashicorp/terraform-provider-azurerm/issues/26205))
+* `keyvault`: handling the Resources API returning Key Vaults that have been deleted when populating the cache ([#26199](https://github.com/hashicorp/terraform-provider-azurerm/issues/26199))
+* `machinelearning`: update API version to `2024-04-01` ([#26168](https://github.com/hashicorp/terraform-provider-azurerm/issues/26168))
+* `network/privatelinkservices` - update to use `hashicorp/go-azure-sdk` ([#26212](https://github.com/hashicorp/terraform-provider-azurerm/issues/26212))
+* `network/serviceendpointpolicies` - update to use `hashicorp/go-azure-sdk` ([#26196](https://github.com/hashicorp/terraform-provider-azurerm/issues/26196))
+* `network/virtualnetworks` - update to use `hashicorp/go-azure-sdk` ([#26217](https://github.com/hashicorp/terraform-provider-azurerm/issues/26217))
+* `network/virtualwans`: update route resources to use `hashicorp/go-azure-sdk` ([#26189](https://github.com/hashicorp/terraform-provider-azurerm/issues/26189))
+* `azurerm_container_app_job` - support for the `key_vault_secret_id` and `identity`  properties in the  `secret` block ([#25969](https://github.com/hashicorp/terraform-provider-azurerm/issues/25969))
+* `azurerm_kubernetes_cluster` -  support forthe  `dns_zone_ids` popperty in the `web_app_routing` block ([#26117](https://github.com/hashicorp/terraform-provider-azurerm/issues/26117))
+* `azurerm_notification_hub_authorization_rule` - support for the `primary_connection_string` and `secondary_connection_string` properties ([#26188](https://github.com/hashicorp/terraform-provider-azurerm/issues/26188))
+* `azurerm_subnet` - support for the `default_outbound_access_enabled` property ([#25259](https://github.com/hashicorp/terraform-provider-azurerm/issues/25259))
 
 BUG FIXES:
 
-* `azurerm_api_management_named_value` - will now enforce setting the `secret` property when setting the `value_from_key_vault` property [GH-26150]
-* `azurerm_storage_sync_server_endpoint` - improve pooling to work around api inconsistencies [GH-26204]
-* `azurerm_virtual_network` - split create and update function to fix lifecycle - ignore [GH-26246]
-* `azurerm_vpn_server_configuration` - split create and update function to fix lifecycle - ignore [GH-26175]
-* `azurerm_vpn_server_configuration_policy_group` - split create and update function to fix lifecycle - ignore [GH-26207]
-* `azurerm_vpn_site` -  split create and update function to fix lifecycle - ignore changes [GH-26163]
+* `azurerm_api_management_named_value` - will now enforce setting the `secret` property when setting the `value_from_key_vault` property ([#26150](https://github.com/hashicorp/terraform-provider-azurerm/issues/26150))
+* `azurerm_storage_sync_server_endpoint` - improve pooling to work around api inconsistencies ([#26204](https://github.com/hashicorp/terraform-provider-azurerm/issues/26204))
+* `azurerm_virtual_network` - split create and update function to fix lifecycle - ignore ([#26246](https://github.com/hashicorp/terraform-provider-azurerm/issues/26246))
+* `azurerm_vpn_server_configuration` - split create and update function to fix lifecycle - ignore ([#26175](https://github.com/hashicorp/terraform-provider-azurerm/issues/26175))
+* `azurerm_vpn_server_configuration_policy_group` - split create and update function to fix lifecycle - ignore ([#26207](https://github.com/hashicorp/terraform-provider-azurerm/issues/26207))
+* `azurerm_vpn_site` -  split create and update function to fix lifecycle - ignore changes ([#26163](https://github.com/hashicorp/terraform-provider-azurerm/issues/26163))
 
 DEPRECATIONS:
 
-* `azurerm_kubernetes_cluster` - the property `dns_zone_id` has been superseded by the property `dns_zone_ids` in the `web_app_routing` block [GH-26117]
-* `azurerm_nginx_deployment` - the block `configuration` has been deprecated and superseded by the resource `azurerm_nginx_configuration` [GH-25773]
+* `azurerm_kubernetes_cluster` - the property `dns_zone_id` has been superseded by the property `dns_zone_ids` in the `web_app_routing` block ([#26117](https://github.com/hashicorp/terraform-provider-azurerm/issues/26117))
+* `azurerm_nginx_deployment` - the block `configuration` has been deprecated and superseded by the resource `azurerm_nginx_configuration` ([#25773](https://github.com/hashicorp/terraform-provider-azurerm/issues/25773))
 
 ## 3.106.1 (May 31, 2024)
 
