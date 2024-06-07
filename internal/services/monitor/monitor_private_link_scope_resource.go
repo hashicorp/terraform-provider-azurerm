@@ -59,12 +59,7 @@ func resourceMonitorPrivateLinkScope() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  string(privatelinkscopesapis.AccessModeOpen),
-				ValidateFunc: validation.StringInSlice(
-					[]string{
-						string(privatelinkscopesapis.AccessModeOpen),
-						string(privatelinkscopesapis.AccessModePrivateOnly),
-					},
-					false),
+				ValidateFunc: validation.StringInSlice(privatelinkscopesapis.PossibleValuesForAccessMode(), false),
 			},
 
 			"resource_group_name": commonschema.ResourceGroupName(),
