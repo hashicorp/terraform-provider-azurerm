@@ -2643,10 +2643,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 				}
 			}
 
-			ignorePodDisruptionBudget := true
-			deleteOpts := agentpools.DeleteOperationOptions{
-				IgnorePodDisruptionBudget: &ignorePodDisruptionBudget,
-			}
+			deleteOpts := agentpools.DeleteOperationOptions{}
 			// delete the old default node pool if it exists
 			if defaultExisting.Model != nil {
 				if err := nodePoolsClient.DeleteThenPoll(ctx, defaultNodePoolId, deleteOpts); err != nil {
