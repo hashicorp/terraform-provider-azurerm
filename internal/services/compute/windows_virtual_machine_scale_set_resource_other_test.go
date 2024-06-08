@@ -2929,7 +2929,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   automatic_instance_repair {
     enabled      = true
     grace_period = "PT30M"
-    action       = "%s"
+    action       = "%[3]s"
   }
 
   depends_on = [azurerm_lb_rule.test]
