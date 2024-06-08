@@ -1939,15 +1939,18 @@ func VirtualMachineScaleSetAutomaticRepairsPolicySchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeBool,
 					Required: true,
 				},
+				// NOTE: 'grace_period' and 'action' must be optional + computed because
+				// the API always returns these values once they have been set.
 				"grace_period": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					Default:      "PT30M",
+					Computed:     true,
 					ValidateFunc: azValidate.ISO8601DurationBetween("PT10M", "PT90M"),
 				},
 				"action": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
+					Computed:     true,
 					ValidateFunc: validation.StringInSlice(virtualmachinescalesets.PossibleValuesForRepairAction(), false),
 				},
 			},
@@ -1966,16 +1969,12 @@ func ExpandVirtualMachineScaleSetAutomaticRepairsPolicy(input []interface{}) *vi
 
 	result.Enabled = utils.Bool(v["enabled"].(bool))
 
-	// Only add the other two values to the AutomaticRepairsPolicy if
-	// the policy is enabled, per MS documentation...
-	// https://learn.microsoft.com/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-automatic-instance-repairs?tabs=rest-api-1%2Crest-api-2%2Crest-api-3%2Crest-api-4#configure-a-repair-action-on-automatic-repairs-policy
-	if v["enabled"].(bool) {
+	if v["grace_period"].(string) != "" {
 		result.GracePeriod = utils.String(v["grace_period"].(string))
+	}
 
-		// The action should only be included if it is defined in the configuration file....
-		if v["action"].(string) != "" {
-			result.RepairAction = pointer.To(virtualmachinescalesets.RepairAction(v["action"].(string)))
-		}
+	if v["action"].(string) != "" {
+		result.RepairAction = pointer.To(virtualmachinescalesets.RepairAction(v["action"].(string)))
 	}
 
 	return &result
@@ -1993,15 +1992,14 @@ func FlattenVirtualMachineScaleSetAutomaticRepairsPolicy(input *virtualmachinesc
 		result["enabled"] = *input.Enabled
 	}
 
-	// Grace Period and Action should not be added if the Repair Policy is disabled...
-	if input.Enabled != nil && *input.Enabled {
-		if input.GracePeriod != nil {
-			result["grace_period"] = *input.GracePeriod
-		}
+	result["grace_period"] = nil
+	if input.GracePeriod != nil {
+		result["grace_period"] = *input.GracePeriod
+	}
 
-		if input.RepairAction != nil {
-			result["action"] = string(*input.RepairAction)
-		}
+	result["action"] = nil
+	if input.RepairAction != nil {
+		result["action"] = string(*input.RepairAction)
 	}
 
 	return append(results, result)

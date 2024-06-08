@@ -542,41 +542,36 @@ func TestAccLinuxVirtualMachineScaleSet_otherAutomaticRepairsPolicy(t *testing.T
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
-		// Enable automatic repair policy
+		{
+			Config: r.otherAutomaticRepairsPolicy(data, "Restart"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
+			Config: r.otherAutomaticRepairsPolicyDisabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
+			Config: r.otherAutomaticRepairsPolicy(data, "Reimage"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
+			Config: r.otherAutomaticRepairsPolicyDisabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
 		{
 			Config: r.otherAutomaticRepairsPolicyEnabled(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("admin_password"),
-		// Disable automatic repair policy
-		{
-			Config: r.otherAutomaticRepairsPolicyDisabled(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("admin_password"),
-		// Enable automatic repair policy with correct action
-		{
-			Config: r.otherAutomaticRepairsPolicyUpdate(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("admin_password"),
-		// Disable automatic repair policy
-		{
-			Config: r.otherAutomaticRepairsPolicyDisabled(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("admin_password"),
-		// Enable automatic repair policy with correct action again
-		{
-			Config: r.otherAutomaticRepairsPolicyUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -2443,7 +2438,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LinuxVirtualMachineScaleSetResource) otherAutomaticRepairsPolicyUpdate(data acceptance.TestData) string {
+func (r LinuxVirtualMachineScaleSetResource) otherAutomaticRepairsPolicy(data acceptance.TestData, action string) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -2544,12 +2539,12 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   automatic_instance_repair {
     enabled      = true
     grace_period = "PT30M"
-    action       = "Reimage"
+    action       = "%s"
   }
 
   depends_on = [azurerm_lb_rule.test]
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, action)
 }
 
 func (r LinuxVirtualMachineScaleSetResource) otherAutomaticRepairsPolicyDisabled(data acceptance.TestData) string {

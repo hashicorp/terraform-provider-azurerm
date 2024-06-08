@@ -194,35 +194,35 @@ func TestAccOrchestratedVirtualMachineScaleSet_otherAutomaticRepairsPolicy(t *te
 	r := OrchestratedVirtualMachineScaleSetResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
+			Config: r.otherAutomaticRepairsPolicy(data, "Restart"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
+		{
+			Config: r.otherAutomaticRepairsPolicyDisabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
+		{
+			Config: r.otherAutomaticRepairsPolicy(data, "Reimage"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
+		{
+			Config: r.otherAutomaticRepairsPolicyDisabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
+		{
 			Config: r.otherAutomaticRepairsPolicyEnabled(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
-		{
-			Config: r.otherAutomaticRepairsPolicyDisabled(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
-		{
-			Config: r.otherAutomaticRepairsPolicyUpdate(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
-		{
-			Config: r.otherAutomaticRepairsPolicyDisabled(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
-		{
-			Config: r.otherAutomaticRepairsPolicyUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1200,7 +1200,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), data.RandomString)
 }
 
-func (OrchestratedVirtualMachineScaleSetResource) otherAutomaticRepairsPolicyUpdate(data acceptance.TestData) string {
+func (OrchestratedVirtualMachineScaleSetResource) otherAutomaticRepairsPolicy(data acceptance.TestData, action string) string {
 	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1268,7 +1268,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   automatic_instance_repair {
     enabled      = true
     grace_period = "PT30M"
-    action       = "Reimage"
+    action       = "%[5]s"
   }
 
   extension {
@@ -1284,7 +1284,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     })
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), data.RandomString, action)
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) otherUltraSsd(data acceptance.TestData) string {
