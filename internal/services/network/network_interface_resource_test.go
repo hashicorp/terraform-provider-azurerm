@@ -90,6 +90,13 @@ func TestAccNetworkInterface_dnsServers(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.dnsServersRemoved(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -566,6 +573,24 @@ resource "azurerm_network_interface" "test" {
     "10.0.0.6",
     "10.0.0.5"
   ]
+
+  ip_configuration {
+    name                          = "primary"
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Dynamic"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r NetworkInterfaceResource) dnsServersRemoved(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_network_interface" "test" {
+  name                = "acctestni-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   ip_configuration {
     name                          = "primary"

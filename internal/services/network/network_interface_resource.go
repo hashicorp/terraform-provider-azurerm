@@ -5,6 +5,7 @@ package network
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"log"
 	"time"
 
@@ -143,7 +144,7 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 			"dns_servers": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: !features.FourPointOhBeta(),
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
