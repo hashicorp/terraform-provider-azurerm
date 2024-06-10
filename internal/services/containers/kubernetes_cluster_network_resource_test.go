@@ -1604,8 +1604,8 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctestvirtnet%d"
-  address_space       = ["10.0.0.0/8"]
+  name                = "acctestvirtnet%[2]d"
+  address_space       = ["10.1.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
@@ -1614,7 +1614,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%[2]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.1.0.0/16"]
+  address_prefixes     = ["10.1.0.0/24"]
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
