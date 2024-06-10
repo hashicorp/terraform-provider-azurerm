@@ -328,6 +328,9 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 									"skip_shutdown_and_force_delete": schema.BoolAttribute{
 										Optional: true,
 									},
+									"detach_implicit_data_disk_on_deletion": schema.BoolAttribute{
+										Optional: true,
+									},
 								},
 							},
 						},

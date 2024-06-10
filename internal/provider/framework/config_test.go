@@ -146,6 +146,10 @@ func TestProviderConfig_LoadDefault(t *testing.T) {
 		t.Errorf("expected virtual_machine.delete_os_disk_on_deletion to be false")
 	}
 
+	if features.VirtualMachine.DetachImplicitDataDiskOnDeletion {
+		t.Errorf("expected virtual_machine.detach_implicit_data_disk_on_deletion to be false")
+	}
+
 	if features.VirtualMachine.GracefulShutdown {
 		t.Errorf("expected virtual_machine.graceful_shutdown to be false")
 	}
