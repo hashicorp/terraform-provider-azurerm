@@ -30,9 +30,9 @@ var expressRouteCircuitResourceName = "azurerm_express_route_circuit"
 
 func resourceExpressRouteCircuit() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceExpressRouteCircuitCreateUpdate,
+		Create: resourceExpressRouteCircuitCreate,
 		Read:   resourceExpressRouteCircuitRead,
-		Update: resourceExpressRouteCircuitCreateUpdate,
+		Update: resourceExpressRouteCircuitUpdate,
 		Delete: resourceExpressRouteCircuitDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := expressroutecircuits.ParseExpressRouteCircuitID(id)
@@ -162,9 +162,9 @@ func resourceExpressRouteCircuit() *pluginsdk.Resource {
 	}
 }
 
-func resourceExpressRouteCircuitCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceExpressRouteCircuitCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ExpressRouteCircuits
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	defer cancel()
 
@@ -175,57 +175,33 @@ func resourceExpressRouteCircuitCreateUpdate(d *pluginsdk.ResourceData, meta int
 	locks.ByName(id.ExpressRouteCircuitName, expressRouteCircuitResourceName)
 	defer locks.UnlockByName(id.ExpressRouteCircuitName, expressRouteCircuitResourceName)
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s : %s", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_express_route_circuit", id.ID())
+			return fmt.Errorf("checking for presence of existing %s : %s", id, err)
 		}
 	}
 
-	// There is the potential for the express route circuit to become out of sync when the service provider updates
-	// the express route circuit. We'll get and update the resource in place as per https://aka.ms/erRefresh
-	// We also want to keep track of the resource obtained from the api and pass down any attributes not
-	// managed by Terraform.
-	erc := expressroutecircuits.ExpressRouteCircuit{}
-	if !d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s : %s", id, err)
-			}
-		}
-
-		if err := client.CreateOrUpdateThenPoll(ctx, id, *existing.Model); err != nil {
-			return fmt.Errorf("creating/updating %s : %+v", id, err)
-		}
-
-		erc = *existing.Model
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_express_route_circuit", id.ID())
 	}
 
-	erc.Name = &id.ExpressRouteCircuitName
-	erc.Location = pointer.To(location.Normalize(d.Get("location").(string)))
-	erc.Sku = expandExpressRouteCircuitSku(d.Get("sku").([]interface{}))
-	erc.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	erc := expressroutecircuits.ExpressRouteCircuit{
+		Name:     &id.ExpressRouteCircuitName,
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
+		Sku:      expandExpressRouteCircuitSku(d.Get("sku").([]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
 
-	if !d.IsNewResource() {
-		erc.Properties.AllowClassicOperations = pointer.To(d.Get("allow_classic_operations").(bool))
+	erc.Properties = &expressroutecircuits.ExpressRouteCircuitPropertiesFormat{
+		AuthorizationKey: pointer.To(d.Get("authorization_key").(string)),
+	}
+
+	// ServiceProviderProperties and expressRoutePorts/bandwidthInGbps properties are mutually exclusive
+	if _, ok := d.GetOk("express_route_port_id"); ok {
+		erc.Properties.ExpressRoutePort = &expressroutecircuits.SubResource{}
 	} else {
-		erc.Properties = &expressroutecircuits.ExpressRouteCircuitPropertiesFormat{
-			AuthorizationKey: pointer.To(d.Get("authorization_key").(string)),
-		}
-
-		// ServiceProviderProperties and expressRoutePorts/bandwidthInGbps properties are mutually exclusive
-		if _, ok := d.GetOk("express_route_port_id"); ok {
-			erc.Properties.ExpressRoutePort = &expressroutecircuits.SubResource{}
-		} else {
-			erc.Properties.ServiceProviderProperties = &expressroutecircuits.ExpressRouteCircuitServiceProviderProperties{}
-		}
+		erc.Properties.ServiceProviderProperties = &expressroutecircuits.ExpressRouteCircuitServiceProviderProperties{}
 	}
 
 	if erc.Properties.ServiceProviderProperties != nil {
@@ -238,7 +214,7 @@ func resourceExpressRouteCircuitCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, erc); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	// API has bug, which appears to be eventually consistent on creation. Tracked by this issue: https://github.com/Azure/azure-rest-api-specs/issues/10148
@@ -259,6 +235,92 @@ func resourceExpressRouteCircuitCreateUpdate(d *pluginsdk.ResourceData, meta int
 	//  authorization_key can only be set after Circuit is created
 	if erc.Properties.AuthorizationKey != nil && *erc.Properties.AuthorizationKey != "" {
 		if err := client.CreateOrUpdateThenPoll(ctx, id, erc); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
+	}
+
+	d.SetId(id.ID())
+
+	return resourceExpressRouteCircuitRead(d, meta)
+}
+
+func resourceExpressRouteCircuitUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.ExpressRouteCircuits
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	log.Printf("[INFO] preparing arguments for Azure ARM ExpressRoute Circuit update.")
+
+	id, err := expressroutecircuits.ParseExpressRouteCircuitID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	locks.ByName(id.ExpressRouteCircuitName, expressRouteCircuitResourceName)
+	defer locks.UnlockByName(id.ExpressRouteCircuitName, expressRouteCircuitResourceName)
+
+	// There is the potential for the express route circuit to become out of sync when the service provider updates
+	// the express route circuit. We'll get and update the resource in place as per https://aka.ms/erRefresh
+	// We also want to keep track of the resource obtained from the api and pass down any attributes not
+	// managed by Terraform.
+
+	existing, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s : %s", id, err)
+
+	}
+
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model); err != nil {
+		return fmt.Errorf("updating %s : %+v", id, err)
+	}
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", *id)
+	}
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", *id)
+	}
+
+	payload := *existing.Model
+
+	if d.HasChange("sku") {
+		payload.Sku = expandExpressRouteCircuitSku(d.Get("sku").([]interface{}))
+	}
+
+	if d.HasChange("tags") {
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if d.HasChange("allow_classic_operations") {
+		payload.Properties.AllowClassicOperations = pointer.To(d.Get("allow_classic_operations").(bool))
+	}
+
+	if d.HasChange("bandwidth_in_gbps") {
+		payload.Properties.BandwidthInGbps = utils.Float(d.Get("bandwidth_in_gbps").(float64))
+	}
+
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, payload); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
+	// API has bug, which appears to be eventually consistent on creation. Tracked by this issue: https://github.com/Azure/azure-rest-api-specs/issues/10148
+	log.Printf("[DEBUG] Waiting for %s to be able to be queried", id)
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending:                   []string{"NotFound"},
+		Target:                    []string{"Exists"},
+		Refresh:                   expressRouteCircuitCreationRefreshFunc(ctx, client, *id),
+		PollInterval:              3 * time.Second,
+		ContinuousTargetOccurence: 3,
+		Timeout:                   d.Timeout(pluginsdk.TimeoutCreate),
+	}
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("for %s to be able to be queried: %+v", id, err)
+	}
+
+	//  authorization_key can only be set after Circuit is created
+	if payload.Properties.AuthorizationKey != nil && *payload.Properties.AuthorizationKey != "" {
+		if err := client.CreateOrUpdateThenPoll(ctx, *id, payload); err != nil {
 			return fmt.Errorf("updating %s: %+v", id, err)
 		}
 	}
