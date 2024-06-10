@@ -176,9 +176,8 @@ func resourceSubnet() *pluginsdk.Resource {
 									},
 
 									"actions": {
-										Type:       pluginsdk.TypeList,
-										Optional:   true,
-										ConfigMode: pluginsdk.SchemaConfigModeAttr,
+										Type:     pluginsdk.TypeSet,
+										Optional: true,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
 											ValidateFunc: validation.StringInSlice([]string{
@@ -273,6 +272,24 @@ func resourceSubnet() *pluginsdk.Resource {
 			Optional:      true,
 			Deprecated:    "`enforce_private_link_service_network_policies` will be removed in favour of the property `private_link_service_network_policies_enabled` in version 4.0 of the AzureRM Provider",
 			ConflictsWith: []string{"private_link_service_network_policies_enabled"},
+		}
+		resource.Schema["delegation"].Elem.(*pluginsdk.Resource).Schema["service_delegation"].Elem.(*pluginsdk.Resource).Schema["actions"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeList,
+			Optional:   true,
+			ConfigMode: pluginsdk.SchemaConfigModeAttr,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+				ValidateFunc: validation.StringInSlice([]string{
+					"Microsoft.Network/networkinterfaces/*",
+					"Microsoft.Network/publicIPAddresses/join/action",
+					"Microsoft.Network/publicIPAddresses/read",
+					"Microsoft.Network/virtualNetworks/read",
+					"Microsoft.Network/virtualNetworks/subnets/action",
+					"Microsoft.Network/virtualNetworks/subnets/join/action",
+					"Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
+					"Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action",
+				}, false),
+			},
 		}
 	}
 
@@ -732,7 +749,13 @@ func expandSubnetDelegation(input []interface{}) *[]subnets.Delegation {
 		srvDelegations := deleData["service_delegation"].([]interface{})
 		srvDelegation := srvDelegations[0].(map[string]interface{})
 		srvName := srvDelegation["name"].(string)
-		srvActions := srvDelegation["actions"].([]interface{})
+
+		var srvActions []interface{}
+		if !features.FourPointOhBeta() {
+			srvActions = srvDelegation["actions"].([]interface{})
+		} else {
+			srvActions = srvDelegation["actions"].(*pluginsdk.Set).List()
+		}
 
 		retSrvActions := make([]string, 0)
 		for _, srvAction := range srvActions {
