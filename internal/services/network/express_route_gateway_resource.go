@@ -139,15 +139,17 @@ func resourceExpressRouteGatewayCreate(d *pluginsdk.ResourceData, meta interface
 func resourceExpressRouteGatewayUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ExpressRouteGateways
 	connectionsClient := meta.(*clients.Client).Network.ExpressRouteConnections
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Println("[INFO] preparing arguments for ExpressRoute Gateway update.")
 
-	id := expressroutegateways.NewExpressRouteGatewayID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id, err := expressroutegateways.ParseExpressRouteGatewayID(d.Id())
+	if err != nil {
+		return err
+	}
 
-	existing, err := client.Get(ctx, id)
+	existing, err := client.Get(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
@@ -194,7 +196,7 @@ func resourceExpressRouteGatewayUpdate(d *pluginsdk.ResourceData, meta interface
 		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, *payload); err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
