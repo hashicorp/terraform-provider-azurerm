@@ -301,30 +301,6 @@ func TestAccKubernetesCluster_advancedNetworkingCalicoPolicyUpdate(t *testing.T)
 	})
 }
 
-func TestAccKubernetesCluster_advancedNetworkingCalicoToAzurePolicyUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	r := KubernetesClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.advancedNetworkingWithPolicyConfig(data, "azure", "calico"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network_profile.0.network_policy").Exists(),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.advancedNetworkingWithPolicyConfig(data, "azure", "azure"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network_profile.0.network_policy").Exists(),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccKubernetesCluster_advancedNetworkingAzureCalicoPolicyComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
@@ -1568,7 +1544,7 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%d"
-  address_space       = ["10.1.0.0/16"]
+  address_space       = ["10.0.0.0/8"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
@@ -1577,7 +1553,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.1.0.0/24"]
+  address_prefixes     = ["10.1.0.0/16"]
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
@@ -1628,8 +1604,8 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctestvirtnet%[2]d"
-  address_space       = ["10.1.0.0/16"]
+  name                = "acctestvirtnet%d"
+  address_space       = ["10.0.0.0/8"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
@@ -1638,7 +1614,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%[2]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.1.0.0/24"]
+  address_prefixes     = ["10.1.0.0/16"]
 }
 
 resource "azurerm_kubernetes_cluster" "test" {

@@ -112,16 +112,14 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				return !strings.EqualFold(new.(string), string(managedclusters.NetworkPluginModeOverlay))
 			}),
 			pluginsdk.ForceNewIfChange("network_profile.0.network_policy", func(ctx context.Context, old, new, meta interface{}) bool {
-				// Follow scenarios are not supported as in-place update:
-				// * Switch from Cilium
-				// * Switch from network policy to non Cilium network policy
-				// * Remove network policy property does not uninstall the network policy, forcing new cluster.
+				// Following scenarios are not supported as in-place update:
+				// * Updating from Cilium, Azure or Calico
+				// * Removing network policy if it has been set
 				//
 				// Omit network_policy does not uninstall the network policy, since it requires an explicit 'none' value.
 				// And an uninstallation of network policy engine is not GA yet.
 				// Once it is GA, an additional logic is needed to handle the uninstallation of network policy.
-				return old.(string) != string(managedclusters.NetworkPolicyCilium) ||
-					old.(string) != "" && new.(string) != string(managedclusters.NetworkPolicyCilium)
+				return old.(string) != ""
 			}),
 			pluginsdk.ForceNewIfChange("custom_ca_trust_certificates_base64", func(ctx context.Context, old, new, meta interface{}) bool {
 				return len(old.([]interface{})) > 0 && len(new.([]interface{})) == 0
@@ -2239,6 +2237,11 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 		if networkProfile.LoadBalancerProfile != nil {
 			loadBalancerProfile := *networkProfile.LoadBalancerProfile
+
+			if key := "network_profile.0.network_policy"; d.HasChange(key) {
+				networkPolicy := d.Get(key).(string)
+				existing.Model.Properties.NetworkProfile.NetworkPolicy = pointer.To(managedclusters.NetworkPolicy(networkPolicy))
+			}
 
 			if key := "network_profile.0.load_balancer_profile.0.effective_outbound_ips"; d.HasChange(key) {
 				effectiveOutboundIPs := idsToResourceReferences(d.Get(key))
