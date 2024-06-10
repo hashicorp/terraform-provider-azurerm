@@ -428,8 +428,8 @@ func resourceVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	networkSecurityGroupNames := make([]string, 0)
 	if payload.Properties != nil && payload.Properties.Subnets != nil {
 		for _, subnet := range *payload.Properties.Subnets {
-			if subnet.Properties != nil && subnet.Properties.NetworkSecurityGroup != nil && subnet.Id != nil {
-				parsedNsgID, err := parse.NetworkSecurityGroupID(*subnet.Id)
+			if subnet.Properties != nil && subnet.Properties.NetworkSecurityGroup != nil && subnet.Properties.NetworkSecurityGroup.Id != nil {
+				parsedNsgID, err := parse.NetworkSecurityGroupID(*subnet.Properties.NetworkSecurityGroup.Id)
 				if err != nil {
 					return err
 				}
