@@ -6,9 +6,10 @@ ENHANCEMENTS:
 * `azurerm_kubernetes_cluster` - updating `network_profile.network_policy` to `azure` and `calico` when it hasn't been previously set is supported [GH-26176]
 
 BUG FIXES:
+* `azurerm_express_route_circuit_peering`, `azurerm_express_route_circuit`, `azurerm_express_route_gateway`, `azurerm_express_route_port` - split create and update [GH-26237]
 * `azurerm_route_filter` - split create and update [GH-26266]
 * `azurerm_route_server` - split create and update [GH-26266]
-* `azurerm_express_route_circuit_peering`, `azurerm_express_route_circuit`, `azurerm_express_route_gateway`, `azurerm_express_route_port` - split create and update [GH-26237]
+* `azurerm_virtual_network` - Fix Parsing of NSG ID [GH-26283]
 
 ## 3.107.0 (June 06, 2024)
 
