@@ -112,7 +112,16 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				return !strings.EqualFold(new.(string), string(managedclusters.NetworkPluginModeOverlay))
 			}),
 			pluginsdk.ForceNewIfChange("network_profile.0.network_policy", func(ctx context.Context, old, new, meta interface{}) bool {
-				return old.(string) != "" || new.(string) != string(managedclusters.NetworkPolicyCilium)
+				// Follow scenarios are not supported as in-place update:
+				// * Switch from Cilium
+				// * Switch from network policy to non Cilium network policy
+				// * Remove network policy property does not uninstall the network policy, forcing new cluster.
+				//
+				// Omit network_policy does not uninstall the network policy, since it requires an explicit 'none' value.
+				// And an uninstallation of network policy engine is not GA yet.
+				// Once it is GA, an additional logic is needed to handle the uninstallation of network policy.
+				return old.(string) != string(managedclusters.NetworkPolicyCilium) ||
+					old.(string) != "" && new.(string) != string(managedclusters.NetworkPolicyCilium)
 			}),
 			pluginsdk.ForceNewIfChange("custom_ca_trust_certificates_base64", func(ctx context.Context, old, new, meta interface{}) bool {
 				return len(old.([]interface{})) > 0 && len(new.([]interface{})) == 0
