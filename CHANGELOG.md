@@ -2,6 +2,7 @@
 
 ENHANCEMENTS:
 
+* provider: support subscription ID hinting when using Azure CLI authentication [GH-26282]
 * `azurerm_kubernetes_cluster` - updating `network_profile.network_policy` to `azure` and `calico` when it hasn't been previously set is supported [GH-26176]
 
 BUG FIXES:
