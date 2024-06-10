@@ -2,7 +2,7 @@
 
 ENHANCEMENTS:
 
-* `azurerm_kubernetes_cluster` - updating `network_profile.network_policy` to `azure`, `calico` and between `azure` and `calico` is supported [GH-26176]
+* `azurerm_kubernetes_cluster` - updating `network_profile.network_policy` to `azure` and `calico` when it hasn't been previously set is supported [GH-26176]
 
 BUG FIXES:
 * `azurerm_route_filter` - split create and update [GH-26266]
