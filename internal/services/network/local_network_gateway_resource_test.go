@@ -14,9 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type LocalNetworkGatewayResource struct{}
@@ -232,17 +230,17 @@ func TestAccLocalNetworkGateway_fqdn(t *testing.T) {
 }
 
 func (t LocalNetworkGatewayResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.LocalNetworkGatewayID(state.ID)
+	id, err := localnetworkgateways.ParseLocalNetworkGatewayID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Network.LocalNetworkGatewaysClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Network.LocalNetworkGateways.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading %s: %+v", *id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (LocalNetworkGatewayResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {

@@ -22,10 +22,12 @@ Manages a Virtual Desktop Scaling Plan.
 
 resource "random_uuid" "example" {
 }
+
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
 }
+
 resource "azurerm_role_definition" "example" {
   name        = "AVD-AutoScale"
   scope       = azurerm_resource_group.example.id
@@ -53,9 +55,11 @@ resource "azurerm_role_definition" "example" {
     azurerm_resource_group.example.id,
   ]
 }
+
 data "azuread_service_principal" "example" {
-  display_name = "Windows Virtual Desktop"
+  display_name = "Azure Virtual Desktop"
 }
+
 resource "azurerm_role_assignment" "example" {
   name                             = random_uuid.example.result
   scope                            = azurerm_resource_group.example.id
@@ -63,6 +67,7 @@ resource "azurerm_role_assignment" "example" {
   principal_id                     = data.azuread_service_principal.example.id
   skip_service_principal_aad_check = true
 }
+
 resource "azurerm_virtual_desktop_host_pool" "example" {
   name                 = "example-hostpool"
   location             = azurerm_resource_group.example.location
@@ -71,6 +76,7 @@ resource "azurerm_virtual_desktop_host_pool" "example" {
   validate_environment = true
   load_balancer_type   = "BreadthFirst"
 }
+
 resource "azurerm_virtual_desktop_scaling_plan" "example" {
   name                = "example-scaling-plan"
   location            = azurerm_resource_group.example.location

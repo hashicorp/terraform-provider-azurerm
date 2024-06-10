@@ -28,9 +28,9 @@ import (
 
 func resourceRouteServer() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceRouteServerCreateUpdate,
+		Create: resourceRouteServerCreate,
 		Read:   resourceRouteServerRead,
-		Update: resourceRouteServerCreateUpdate,
+		Update: resourceRouteServerUpdate,
 		Delete: resourceRouteServerDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := virtualwans.ParseVirtualHubID(id)
@@ -106,10 +106,10 @@ func resourceRouteServer() *pluginsdk.Resource {
 	}
 }
 
-func resourceRouteServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRouteServerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := virtualwans.NewVirtualHubID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
@@ -117,16 +117,14 @@ func resourceRouteServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 	locks.ByName(id.VirtualHubName, "azurerm_route_server")
 	defer locks.UnlockByName(id.VirtualHubName, "azurerm_route_server")
 
-	if d.IsNewResource() {
-		existing, err := client.VirtualHubsGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-		}
+	existing, err := client.VirtualHubsGet(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_route_server", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
+	}
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_route_server", id.ID())
 	}
 
 	parameters := virtualwans.VirtualHub{
@@ -151,9 +149,9 @@ func resourceRouteServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		ContinuousTargetOccurence: 5,
 		Timeout:                   time.Until(timeout),
 	}
-	_, err := stateConf.WaitForStateContext(ctx)
+	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
-		return fmt.Errorf("waiting for creation/update of %s: %+v", id, err)
+		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
 	ipConfigName := "ipConfig1"
@@ -172,7 +170,66 @@ func resourceRouteServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 	ipConfigId := commonids.NewVirtualHubIPConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.VirtualHubName, ipConfigName)
 
 	if err := client.VirtualHubIPConfigurationCreateOrUpdateThenPoll(ctx, ipConfigId, ipConfigs); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", ipConfigId, err)
+		return fmt.Errorf("creating %s: %+v", ipConfigId, err)
+	}
+
+	d.SetId(id.ID())
+
+	return resourceRouteServerRead(d, meta)
+}
+
+func resourceRouteServerUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.VirtualWANs
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := virtualwans.ParseVirtualHubID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	locks.ByName(id.VirtualHubName, "azurerm_route_server")
+	defer locks.UnlockByName(id.VirtualHubName, "azurerm_route_server")
+
+	existing, err := client.VirtualHubsGet(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
+
+	}
+
+	payload := existing.Model
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", *id)
+	}
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", *id)
+	}
+
+	if d.HasChange("branch_to_branch_traffic_enabled") {
+		payload.Properties.AllowBranchToBranchTraffic = pointer.To(d.Get("branch_to_branch_traffic_enabled").(bool))
+	}
+
+	if d.HasChange("tags") {
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if err := client.VirtualHubsCreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
+	timeout, _ := ctx.Deadline()
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending:                   []string{"Provisioning", "Updating"},
+		Target:                    []string{"Succeeded", "Provisioned"},
+		Refresh:                   routeServerCreateRefreshFunc(ctx, client, *id),
+		PollInterval:              15 * time.Second,
+		ContinuousTargetOccurence: 5,
+		Timeout:                   time.Until(timeout),
+	}
+	_, err = stateConf.WaitForStateContext(ctx)
+	if err != nil {
+		return fmt.Errorf("waiting for update of %s: %+v", *id, err)
 	}
 
 	d.SetId(id.ID())

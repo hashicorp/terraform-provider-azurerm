@@ -112,7 +112,14 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				return !strings.EqualFold(new.(string), string(managedclusters.NetworkPluginModeOverlay))
 			}),
 			pluginsdk.ForceNewIfChange("network_profile.0.network_policy", func(ctx context.Context, old, new, meta interface{}) bool {
-				return old.(string) != "" || new.(string) != string(managedclusters.NetworkPolicyCilium)
+				// Following scenarios are not supported as in-place update:
+				// * Updating from Cilium, Azure or Calico
+				// * Removing network policy if it has been set
+				//
+				// Omit network_policy does not uninstall the network policy, since it requires an explicit 'none' value.
+				// And an uninstallation of network policy engine is not GA yet.
+				// Once it is GA, an additional logic is needed to handle the uninstallation of network policy.
+				return old.(string) != ""
 			}),
 			pluginsdk.ForceNewIfChange("custom_ca_trust_certificates_base64", func(ctx context.Context, old, new, meta interface{}) bool {
 				return len(old.([]interface{})) > 0 && len(new.([]interface{})) == 0
@@ -434,14 +441,18 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"dns_zone_id": {
-							Type:     pluginsdk.TypeString,
+						"dns_zone_ids": {
+							Type:     pluginsdk.TypeList,
 							Required: true,
-							ValidateFunc: validation.Any(
-								dnsValidate.ValidateDnsZoneID,
-								privatezones.ValidatePrivateDnsZoneID,
-								validation.StringIsEmpty,
-							),
+							MinItems: 1,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+								ValidateFunc: validation.Any(
+									dnsValidate.ValidateDnsZoneID,
+									privatezones.ValidatePrivateDnsZoneID,
+									validation.StringIsEmpty,
+								),
+							},
 						},
 						"web_app_routing_identity": {
 							Type:     pluginsdk.TypeList,
@@ -1675,6 +1686,31 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				},
 			},
 		}
+		resource.Schema["web_app_routing"].Elem.(*pluginsdk.Resource).Schema["dns_zone_id"] = &pluginsdk.Schema{
+			Deprecated: "`dns_zone_id` has been deprecated in favor of `dns_zone_ids` and will be removed in v4.0 of the AzureRM Provider.",
+			Type:       pluginsdk.TypeString,
+			Optional:   true,
+			ValidateFunc: validation.Any(
+				dnsValidate.ValidateDnsZoneID,
+				privatezones.ValidatePrivateDnsZoneID,
+				validation.StringIsEmpty,
+			),
+			ConflictsWith: []string{"web_app_routing.0.dns_zone_ids"},
+		}
+		resource.Schema["web_app_routing"].Elem.(*pluginsdk.Resource).Schema["dns_zone_ids"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MinItems: 1,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+				ValidateFunc: validation.Any(
+					dnsValidate.ValidateDnsZoneID,
+					privatezones.ValidatePrivateDnsZoneID,
+					validation.StringIsEmpty,
+				),
+			},
+			ConflictsWith: []string{"web_app_routing.0.dns_zone_id"},
+		}
 	}
 
 	if features.FourPointOhBeta() {
@@ -1854,12 +1890,13 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	autoUpgradeProfile := &managedclusters.ManagedClusterAutoUpgradeProfile{}
 
-	autoChannelUpgrade := d.Get("automatic_channel_upgrade").(string)
-	nodeOsChannelUpgrade := d.Get("node_os_channel_upgrade").(string)
-	if features.FourPointOhBeta() {
+	var autoChannelUpgrade, nodeOsChannelUpgrade string
+	if !features.FourPointOhBeta() {
+		autoChannelUpgrade = d.Get("automatic_channel_upgrade").(string)
+		nodeOsChannelUpgrade = d.Get("node_os_channel_upgrade").(string)
+	} else {
 		autoChannelUpgrade = d.Get("automatic_upgrade_channel").(string)
 		nodeOsChannelUpgrade = d.Get("node_os_upgrade_channel").(string)
-
 	}
 
 	// this check needs to be separate and gated since node_os_channel_upgrade is a preview feature
@@ -2200,6 +2237,11 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 		if networkProfile.LoadBalancerProfile != nil {
 			loadBalancerProfile := *networkProfile.LoadBalancerProfile
+
+			if key := "network_profile.0.network_policy"; d.HasChange(key) {
+				networkPolicy := d.Get(key).(string)
+				existing.Model.Properties.NetworkProfile.NetworkPolicy = pointer.To(managedclusters.NetworkPolicy(networkPolicy))
+			}
 
 			if key := "network_profile.0.load_balancer_profile.0.effective_outbound_ips"; d.HasChange(key) {
 				effectiveOutboundIPs := idsToResourceReferences(d.Get(key))
@@ -2980,7 +3022,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 				return fmt.Errorf("setting `microsoft_defender`: %+v", err)
 			}
 
-			ingressProfile := flattenKubernetesClusterIngressProfile(props.IngressProfile)
+			ingressProfile := flattenKubernetesClusterIngressProfile(props.IngressProfile, d.Get("web_app_routing").([]interface{}))
 			if err := d.Set("web_app_routing", ingressProfile); err != nil {
 				return fmt.Errorf("setting `web_app_routing`: %+v", err)
 			}
@@ -3619,10 +3661,12 @@ func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerSe
 	}
 
 	dockerBridgeCidr := ""
-	if len(raw) != 0 && raw[0] != nil {
-		config := raw[0].(map[string]interface{})
-		if v, ok := config["docker_bridge_cidr"]; ok && v.(string) != "" {
-			dockerBridgeCidr = v.(string)
+	if !features.FourPointOhBeta() {
+		if len(raw) != 0 && raw[0] != nil {
+			config := raw[0].(map[string]interface{})
+			if v, ok := config["docker_bridge_cidr"]; ok && v.(string) != "" {
+				dockerBridgeCidr = v.(string)
+			}
 		}
 	}
 
@@ -3749,26 +3793,29 @@ func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerSe
 		ebpfDataPlane = string(*v)
 	}
 
-	return []interface{}{
-		map[string]interface{}{
-			"dns_service_ip":        dnsServiceIP,
-			"docker_bridge_cidr":    dockerBridgeCidr,
-			"ebpf_data_plane":       ebpfDataPlane,
-			"load_balancer_sku":     string(*sku),
-			"load_balancer_profile": lbProfiles,
-			"nat_gateway_profile":   ngwProfiles,
-			"ip_versions":           ipVersions,
-			"network_plugin":        networkPlugin,
-			"network_plugin_mode":   networkPluginMode,
-			"network_mode":          networkMode,
-			"network_policy":        networkPolicy,
-			"pod_cidr":              podCidr,
-			"pod_cidrs":             utils.FlattenStringSlice(profile.PodCidrs),
-			"service_cidr":          serviceCidr,
-			"service_cidrs":         utils.FlattenStringSlice(profile.ServiceCidrs),
-			"outbound_type":         outboundType,
-		},
+	result := map[string]interface{}{
+		"dns_service_ip":        dnsServiceIP,
+		"ebpf_data_plane":       ebpfDataPlane,
+		"load_balancer_sku":     string(*sku),
+		"load_balancer_profile": lbProfiles,
+		"nat_gateway_profile":   ngwProfiles,
+		"ip_versions":           ipVersions,
+		"network_plugin":        networkPlugin,
+		"network_plugin_mode":   networkPluginMode,
+		"network_mode":          networkMode,
+		"network_policy":        networkPolicy,
+		"pod_cidr":              podCidr,
+		"pod_cidrs":             utils.FlattenStringSlice(profile.PodCidrs),
+		"service_cidr":          serviceCidr,
+		"service_cidrs":         utils.FlattenStringSlice(profile.ServiceCidrs),
+		"outbound_type":         outboundType,
 	}
+
+	if !features.FourPointOhBeta() {
+		result["docker_bridge_cidr"] = dockerBridgeCidr
+	}
+
+	return []interface{}{result}
 }
 
 func expandKubernetesClusterAzureActiveDirectoryRoleBasedAccessControl(input []interface{}, providerTenantId string) (*managedclusters.ManagedClusterAADProfile, error) {
@@ -4724,22 +4771,40 @@ func expandKubernetesClusterIngressProfile(d *pluginsdk.ResourceData, input []in
 	}
 	if input[0] != nil {
 		config := input[0].(map[string]interface{})
-		dnsZoneResourceId := config["dns_zone_id"].(string)
-		if dnsZoneResourceId != "" {
-			out.WebAppRouting.DnsZoneResourceIds = pointer.To([]string{dnsZoneResourceId})
+		if !features.FourPointOhBeta() {
+			dnsZoneResourceId := config["dns_zone_id"].(string)
+			if dnsZoneResourceId != "" {
+				out.WebAppRouting.DnsZoneResourceIds = pointer.To([]string{dnsZoneResourceId})
+			}
+		}
+		if v := config["dns_zone_ids"]; v != nil {
+			if dnsZoneResourceIds, ok := v.([]interface{}); ok && len(dnsZoneResourceIds) > 0 {
+				out.WebAppRouting.DnsZoneResourceIds = utils.ExpandStringSlice(dnsZoneResourceIds)
+			}
 		}
 	}
 	return &out
 }
 
-func flattenKubernetesClusterIngressProfile(input *managedclusters.ManagedClusterIngressProfile) []interface{} {
+func flattenKubernetesClusterIngressProfile(input *managedclusters.ManagedClusterIngressProfile, old []interface{}) []interface{} {
 	if input == nil || input.WebAppRouting == nil || (input.WebAppRouting.Enabled != nil && !*input.WebAppRouting.Enabled) {
 		return []interface{}{}
 	}
 
-	dnsZoneId := ""
-	if v := input.WebAppRouting.DnsZoneResourceIds; v != nil && len(*v) != 0 {
-		dnsZoneId = (*v)[0]
+	out := map[string]interface{}{}
+	useDnsZoneId := false
+	if !features.FourPointOhBeta() {
+		if len(old) > 0 && old[0] != nil {
+			oldConfig := old[0].(map[string]interface{})
+			useDnsZoneId = oldConfig["dns_zone_id"].(string) != ""
+		}
+	}
+	if useDnsZoneId {
+		if v := input.WebAppRouting.DnsZoneResourceIds; v != nil && len(*v) != 0 {
+			out["dns_zone_id"] = (*v)[0]
+		}
+	} else {
+		out["dns_zone_ids"] = utils.FlattenStringSlice(input.WebAppRouting.DnsZoneResourceIds)
 	}
 
 	webAppRoutingIdentity := []interface{}{}
@@ -4748,12 +4813,9 @@ func flattenKubernetesClusterIngressProfile(input *managedclusters.ManagedCluste
 		webAppRoutingIdentity = flattenKubernetesClusterAddOnIdentityProfile(v)
 	}
 
-	return []interface{}{
-		map[string]interface{}{
-			"dns_zone_id":              dnsZoneId,
-			"web_app_routing_identity": webAppRoutingIdentity,
-		},
-	}
+	out["web_app_routing_identity"] = webAppRoutingIdentity
+
+	return []interface{}{out}
 }
 
 func expandKubernetesClusterAzureMonitorProfile(input []interface{}) *managedclusters.ManagedClusterAzureMonitorProfile {

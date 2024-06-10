@@ -152,7 +152,7 @@ github.com/hashicorp/go-azure-helpers/resourcemanager/tags
 github.com/hashicorp/go-azure-helpers/resourcemanager/zones
 github.com/hashicorp/go-azure-helpers/sender
 github.com/hashicorp/go-azure-helpers/storage
-# github.com/hashicorp/go-azure-sdk/resource-manager v0.20240604.1114748
+# github.com/hashicorp/go-azure-sdk/resource-manager v0.20240610.1112704
 ## explicit; go 1.21
 github.com/hashicorp/go-azure-sdk/resource-manager/aad/2021-05-01/domainservices
 github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview
@@ -721,6 +721,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/flowlogs
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/loadbalancers
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/natgateways
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkgroups
+github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkinterfaces
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkmanagers
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networksecuritygroups
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkvirtualappliances
@@ -731,6 +732,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/routefilte
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/routetables
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/subnets
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/virtualwans
+github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/vmsspublicipaddresses
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/webapplicationfirewallpolicies
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/adminrulecollections
@@ -1114,7 +1116,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/saplands
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/saprecommendations
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/sapsupportedsku
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/sapvirtualinstances
-# github.com/hashicorp/go-azure-sdk/sdk v0.20240604.1114748
+# github.com/hashicorp/go-azure-sdk/sdk v0.20240610.1112704
 ## explicit; go 1.21
 github.com/hashicorp/go-azure-sdk/sdk/auth
 github.com/hashicorp/go-azure-sdk/sdk/auth/autorest
@@ -1339,7 +1341,6 @@ github.com/tombuildsstuff/kermit/sdk/datafactory/2018-06-01/datafactory
 github.com/tombuildsstuff/kermit/sdk/iotcentral/2022-10-31-preview/iotcentral
 github.com/tombuildsstuff/kermit/sdk/iothub/2022-04-30-preview/iothub
 github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault
-github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network
 github.com/tombuildsstuff/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights
 github.com/tombuildsstuff/kermit/sdk/synapse/2019-06-01-preview/synapse
 github.com/tombuildsstuff/kermit/sdk/synapse/2020-08-01-preview/synapse
