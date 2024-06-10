@@ -8,7 +8,8 @@ ENHANCEMENTS:
 BUG FIXES:
 * `azurerm_route_filter` - split create and update [GH-26266]
 * `azurerm_route_server` - split create and update [GH-26266]
-  
+* `azurerm_express_route_circuit_peering`, `azurerm_express_route_circuit`, `azurerm_express_route_gateway`, `azurerm_express_route_port` - split create and update [GH-26237]
+
 ## 3.107.0 (June 06, 2024)
 
 FEATURES:
