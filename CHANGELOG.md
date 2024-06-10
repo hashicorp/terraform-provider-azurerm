@@ -1,3 +1,9 @@
+## 3.108.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* `azurerm_kubernetes_cluster` - updating `network_profile.network_policy` to `azure`, `calico` and between `azure` and `calico` is supported [GH-26176]
+
 ## 3.107.0 (June 06, 2024)
 
 FEATURES:
