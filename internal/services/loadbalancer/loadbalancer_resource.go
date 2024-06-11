@@ -6,6 +6,7 @@ package loadbalancer
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"log"
 	"reflect"
 	"strconv"
@@ -22,7 +23,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/loadbalancers"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -109,7 +109,6 @@ func resourceArmLoadBalancerCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
 	sku := loadbalancers.LoadBalancerSku{
 		Name: pointer.To(loadbalancers.LoadBalancerSkuName(d.Get("sku").(string))),
 		Tier: pointer.To(loadbalancers.LoadBalancerSkuTier(d.Get("sku_tier").(string))),
@@ -124,7 +123,7 @@ func resourceArmLoadBalancerCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	loadBalancer := loadbalancers.LoadBalancer{
 		Name:             pointer.To(id.LoadBalancerName),
 		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
-		Location:         pointer.To(location),
+		Location:         pointer.To(location.Normalize(d.Get("location").(string))),
 		Tags:             tags.Expand(d.Get("tags").(map[string]interface{})),
 		Sku:              pointer.To(sku),
 		Properties:       pointer.To(properties),
@@ -393,7 +392,12 @@ func resourceArmLoadBalancerSchema() map[string]*pluginsdk.Schema {
 		"sku": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Default:  string(loadbalancers.LoadBalancerSkuNameBasic),
+			Default: func() interface{} {
+				if !features.FourPointOhBeta() {
+					return string(loadbalancers.LoadBalancerSkuNameBasic)
+				}
+				return string(loadbalancers.LoadBalancerSkuNameStandard)
+			}(),
 			ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(loadbalancers.LoadBalancerSkuNameBasic),
