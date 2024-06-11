@@ -212,7 +212,7 @@ func (r MySQLFlexibleServerConfigurationResource) slowQueryLog(data acceptance.T
 }
 
 func (r MySQLFlexibleServerConfigurationResource) multipleServerConfigurations(data acceptance.TestData) string {
-	config := fmt.Sprintf(`
+	config := `
 resource "azurerm_mysql_flexible_server_configuration" "test" {
   name                = "disconnect_on_expired_password"
   resource_group_name = azurerm_resource_group.test.name
@@ -247,7 +247,7 @@ resource "azurerm_mysql_flexible_server_configuration" "test5" {
   server_name         = azurerm_mysql_flexible_server.test.name
   value               = "on"
 }
-`)
+`
 	return r.empty(data) + config
 }
 
