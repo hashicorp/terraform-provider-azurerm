@@ -6,6 +6,8 @@ package parse
 import (
 	"fmt"
 	"strings"
+
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/publicipprefixes"
 )
 
 type NatGatewayPublicIPPrefixAssociationId struct {
@@ -26,7 +28,7 @@ func NatGatewayPublicIPPrefixAssociationID(input string) (*NatGatewayPublicIPPre
 
 	// whilst we need the Resource ID, we may as well validate it
 	publicIPPrefix := segments[1]
-	if _, err := PublicIpPrefixID(publicIPPrefix); err != nil {
+	if _, err := publicipprefixes.ParsePublicIPPrefixID(publicIPPrefix); err != nil {
 		return nil, fmt.Errorf("parsing Public IP Address ID %q: %+v", publicIPPrefix, err)
 	}
 

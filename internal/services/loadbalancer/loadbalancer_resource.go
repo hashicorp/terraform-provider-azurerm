@@ -21,11 +21,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/loadbalancers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipprefixes"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -467,7 +467,7 @@ func resourceArmLoadBalancerSchema() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Computed:     true,
-						ValidateFunc: networkValidate.PublicIpPrefixID,
+						ValidateFunc: publicipprefixes.ValidatePublicIPPrefixID,
 					},
 
 					"private_ip_address_allocation": {

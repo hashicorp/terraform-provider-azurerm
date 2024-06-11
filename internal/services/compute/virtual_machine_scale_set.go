@@ -15,10 +15,10 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/applicationsecuritygroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/networksecuritygroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipprefixes"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -744,7 +744,7 @@ func virtualMachineScaleSetPublicIPAddressSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ForceNew:     true,
-					ValidateFunc: networkValidate.PublicIpPrefixID,
+					ValidateFunc: publicipprefixes.ValidatePublicIPPrefixID,
 				},
 			},
 		},
