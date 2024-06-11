@@ -31,6 +31,19 @@ type SecretStoreModel struct {
 	KeyVaultId string `tfschema:"key_vault_id"`
 }
 
+type ConfigurationInfo struct {
+	Action             string               `tfschema:"action"`
+	ConfigurationStore []ConfigurationStore `tfschema:"configuration_store"`
+}
+
+type ConfigurationStore struct {
+	AppConfigurationId string `tfschema:"app_configuration_id"`
+}
+
+type PublicNetworkSolution struct {
+	Action string `tfschema:"action"`
+}
+
 func secretStoreSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
@@ -305,6 +318,82 @@ func expandSecretStore(input []SecretStoreModel) *servicelinker.SecretStore {
 	keyVaultId := v.KeyVaultId
 	return &servicelinker.SecretStore{
 		KeyVaultId: utils.String(keyVaultId),
+	}
+}
+
+func expandConfigurationInfo(input []ConfigurationInfo) *servicelinker.ConfigurationInfo {
+	if len(input) == 0 {
+		return nil
+	}
+	v := input[0]
+	action := servicelinker.ActionType(v.Action)
+	configurationStore := expandConfigurationStore(v.ConfigurationStore)
+
+	return &servicelinker.ConfigurationInfo{
+		Action:             pointer.To(action),
+		ConfigurationStore: configurationStore,
+	}
+}
+
+func expandConfigurationStore(input []ConfigurationStore) *servicelinker.ConfigurationStore {
+	if len(input) == 0 {
+		return nil
+	}
+	v := input[0]
+
+	appConfigurationId := v.AppConfigurationId
+	return &servicelinker.ConfigurationStore{
+		AppConfigurationId: utils.String(appConfigurationId),
+	}
+}
+
+func expandPublicNetworkSolution(input []PublicNetworkSolution) *servicelinker.PublicNetworkSolution {
+	if len(input) == 0 {
+		return nil
+	}
+	v := input[0]
+
+	action := v.Action
+	return &servicelinker.PublicNetworkSolution{
+		Action: pointer.To(servicelinker.ActionType(action)),
+	}
+}
+
+func flattenConfigurationInfo(input servicelinker.ConfigurationInfo) []ConfigurationInfo {
+	var action string
+	var configurationStore []ConfigurationStore
+
+	if input.Action != nil {
+		action = string(*input.Action)
+	}
+
+	if input.ConfigurationStore != nil {
+		configurationStore = []ConfigurationStore{
+			{
+				AppConfigurationId: pointer.From(input.ConfigurationStore.AppConfigurationId),
+			},
+		}
+	}
+
+	return []ConfigurationInfo{
+		{
+			Action:             action,
+			ConfigurationStore: configurationStore,
+		},
+	}
+}
+
+func flattenPublicNetworkSolution(input servicelinker.PublicNetworkSolution) []PublicNetworkSolution {
+	var action string
+
+	if input.Action != nil {
+		action = string(*input.Action)
+	}
+
+	return []PublicNetworkSolution{
+		{
+			Action: action,
+		},
 	}
 }
 
