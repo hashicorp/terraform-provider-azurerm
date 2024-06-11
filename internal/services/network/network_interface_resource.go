@@ -374,14 +374,18 @@ func resourceNetworkInterfaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 	payload := existing.Model
 
 	if d.HasChange("auxiliary_mode") {
-		if auxiliaryMode, hasAuxiliaryMode := d.GetOk("auxiliary_mode"); hasAuxiliaryMode {
-			payload.Properties.AuxiliaryMode = pointer.To(networkinterfaces.NetworkInterfaceAuxiliaryMode(auxiliaryMode.(string)))
+		if auxiliaryMode := d.Get("auxiliary_mode").(string); auxiliaryMode != "" {
+			payload.Properties.AuxiliaryMode = pointer.To(networkinterfaces.NetworkInterfaceAuxiliaryMode(auxiliaryMode))
+		} else {
+			payload.Properties.AuxiliaryMode = nil
 		}
 	}
 
 	if d.HasChange("auxiliary_sku") {
-		if auxiliarySku, hasAuxiliarySku := d.GetOk("auxiliary_sku"); hasAuxiliarySku {
-			payload.Properties.AuxiliarySku = pointer.To(networkinterfaces.NetworkInterfaceAuxiliarySku(auxiliarySku.(string)))
+		if auxiliarySku := d.Get("auxiliary_sku").(string); auxiliarySku != "" {
+			payload.Properties.AuxiliarySku = pointer.To(networkinterfaces.NetworkInterfaceAuxiliarySku(auxiliarySku))
+		} else {
+			payload.Properties.AuxiliarySku = nil
 		}
 	}
 
