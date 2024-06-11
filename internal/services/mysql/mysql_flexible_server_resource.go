@@ -35,6 +35,8 @@ const (
 	ServerMaintenanceWindowDisabled = "Disabled"
 )
 
+var mysqlFlexibleServerResourceName = "azurerm_mysql_flexible_server"
+
 func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceMysqlFlexibleServerCreate,
