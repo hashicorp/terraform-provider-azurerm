@@ -543,6 +543,19 @@ func TestAccLinuxVirtualMachineScaleSet_otherAutomaticRepairsPolicy(t *testing.T
 	r := LinuxVirtualMachineScaleSetResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
+			Config: r.otherAutomaticRepairsPolicyEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
+			Config: r.otherAutomaticRepairsPolicyDisabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
 			Config: r.otherAutomaticRepairsPolicy(data, "Restart"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
