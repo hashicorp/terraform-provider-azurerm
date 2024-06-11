@@ -122,7 +122,7 @@ func resourceCdnFrontDoorOrigin() *pluginsdk.Resource {
 				Optional: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"location": commonschema.Location(),
+						"location": commonschema.LocationWithoutForceNew(),
 
 						"private_link_target_id": {
 							Type:         pluginsdk.TypeString,
