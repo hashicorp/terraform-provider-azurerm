@@ -460,7 +460,7 @@ func resourceArmLoadBalancerSchema() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Computed:     true, // TODO: why is this computed?
-						ValidateFunc: networkValidate.PublicIpAddressID,
+						ValidateFunc: commonids.ValidatePublicIPAddressID,
 					},
 
 					"public_ip_prefix_id": {

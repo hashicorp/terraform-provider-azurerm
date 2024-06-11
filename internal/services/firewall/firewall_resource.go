@@ -110,7 +110,7 @@ func resourceFirewall() *pluginsdk.Resource {
 						"public_ip_address_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: networkValidate.PublicIpAddressID,
+							ValidateFunc: commonids.ValidatePublicIPAddressID,
 						},
 						"private_ip_address": {
 							Type:     pluginsdk.TypeString,
@@ -141,7 +141,7 @@ func resourceFirewall() *pluginsdk.Resource {
 						"public_ip_address_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: networkValidate.PublicIpAddressID,
+							ValidateFunc: commonids.ValidatePublicIPAddressID,
 						},
 						"private_ip_address": {
 							Type:     pluginsdk.TypeString,

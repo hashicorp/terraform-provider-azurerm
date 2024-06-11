@@ -23,7 +23,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -429,12 +428,12 @@ func resourceVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	if payload.Properties != nil && payload.Properties.Subnets != nil {
 		for _, subnet := range *payload.Properties.Subnets {
 			if subnet.Properties != nil && subnet.Properties.NetworkSecurityGroup != nil && subnet.Properties.NetworkSecurityGroup.Id != nil {
-				parsedNsgID, err := parse.NetworkSecurityGroupID(*subnet.Properties.NetworkSecurityGroup.Id)
+				parsedNsgID, err := networksecuritygroups.ParseNetworkSecurityGroupID(*subnet.Properties.NetworkSecurityGroup.Id)
 				if err != nil {
 					return err
 				}
 
-				networkSecurityGroupName := parsedNsgID.Name
+				networkSecurityGroupName := parsedNsgID.NetworkSecurityGroupName
 				if !utils.SliceContainsValue(networkSecurityGroupNames, networkSecurityGroupName) {
 					networkSecurityGroupNames = append(networkSecurityGroupNames, networkSecurityGroupName)
 				}
@@ -795,12 +794,12 @@ func expandAzureRmVirtualNetworkVirtualNetworkSecurityGroupNames(d *pluginsdk.Re
 
 			networkSecurityGroupId := subnet["security_group"].(string)
 			if networkSecurityGroupId != "" {
-				parsedNsgID, err := parse.NetworkSecurityGroupID(networkSecurityGroupId)
+				parsedNsgID, err := networksecuritygroups.ParseNetworkSecurityGroupID(networkSecurityGroupId)
 				if err != nil {
 					return nil, err
 				}
 
-				networkSecurityGroupName := parsedNsgID.Name
+				networkSecurityGroupName := parsedNsgID.NetworkSecurityGroupName
 				if !utils.SliceContainsValue(nsgNames, networkSecurityGroupName) {
 					nsgNames = append(nsgNames, networkSecurityGroupName)
 				}
