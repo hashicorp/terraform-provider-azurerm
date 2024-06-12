@@ -1060,7 +1060,7 @@ resource "azurerm_backup_policy_vm" "test" {
     archived_rp {
       duration      = 5
       duration_type = "Months"
-      tiering_mode  = "TierAfter"
+      mode          = "TierAfter"
     }
   }
 }

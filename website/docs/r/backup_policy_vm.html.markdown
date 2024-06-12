@@ -170,7 +170,7 @@ The `retention_yearly` block supports:
 
 A `tiering_policy` block supports the following:
 
-* `tiering_mode` - (Required) The tiering mode to control automatic tiering of recovery points. Possible values are `TierAfter` and `TierRecommended`.
+* `mode` - (Required) The tiering mode to control automatic tiering of recovery points. Possible values are `TierAfter` and `TierRecommended`.
 
 * `duration` - (Optional) The number of days/weeks/months/years to retain backups in current tier before tiering.
 
