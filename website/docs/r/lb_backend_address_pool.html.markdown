@@ -52,6 +52,10 @@ The following arguments are supported:
   
 * `loadbalancer_id` - (Required) The ID of the Load Balancer in which to create the Backend Address Pool. Changing this forces a new resource to be created.
 
+* `synchronous_mode` - (Optional) The backend address synchronous mode for the Backend Address Pool. Possible values are `Automatic` and `Manual`. This is required with `virtual_network_id`. Changing this forces a new resource to be created.
+
+-> **NOTE:** The `synchronous_mode` can set only for Load Balancer with `Standard` SKU.
+
 * `tunnel_interface` - (Optional) One or more `tunnel_interface` blocks as defined below.
 
 * `virtual_network_id` - (Optional) The ID of the Virtual Network within which the Backend Address Pool should exist.

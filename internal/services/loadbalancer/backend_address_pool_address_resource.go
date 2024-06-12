@@ -83,16 +83,13 @@ func (r BackendAddressPoolAddressResource) Arguments() map[string]*pluginsdk.Sch
 		"virtual_network_id": {
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
-			RequiredWith:  []string{"ip_address"},
 			ConflictsWith: []string{"backend_address_ip_configuration_id"},
 			ValidateFunc:  commonids.ValidateVirtualNetworkID,
-			Description:   "For regional load balancer, user needs to specify `virtual_network_id` and `ip_address`",
 		},
 
 		"ip_address": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			RequiredWith: []string{"virtual_network_id"},
 			ValidateFunc: validation.IsIPAddress,
 		},
 
@@ -174,6 +171,12 @@ func (r BackendAddressPoolAddressResource) Create() sdk.ResourceFunc {
 					return fmt.Errorf("retrieving %s: `properties` was nil", *poolId)
 				}
 
+				if lb.Sku != nil && pointer.From(lb.Sku.Tier) == loadbalancers.LoadBalancerSkuTierRegional {
+					if pointer.From(pool.Model.Properties.SyncMode) != "Manual" && (model.IPAddress != "" && model.VirtualNetworkId == "" || model.IPAddress == "" && model.VirtualNetworkId != "") {
+						return fmt.Errorf("For regional load balancer, `ip_address` and `virtual_network_id` should be specified when sync mode is not `Manual`")
+					}
+				}
+
 				addresses := make([]loadbalancers.LoadBalancerBackendAddress, 0)
 				if pool.Model.Properties.LoadBalancerBackendAddresses != nil {
 					addresses = *pool.Model.Properties.LoadBalancerBackendAddresses
@@ -200,15 +203,19 @@ func (r BackendAddressPoolAddressResource) Create() sdk.ResourceFunc {
 						},
 					})
 				} else {
-					addresses = append(addresses, loadbalancers.LoadBalancerBackendAddress{
-						Properties: &loadbalancers.LoadBalancerBackendAddressPropertiesFormat{
-							IPAddress: pointer.To(model.IPAddress),
-							VirtualNetwork: &loadbalancers.SubResource{
-								Id: pointer.To(model.VirtualNetworkId),
-							},
-						},
-						Name: pointer.To(model.Name),
-					})
+					address := loadbalancers.LoadBalancerBackendAddress{
+						Properties: &loadbalancers.LoadBalancerBackendAddressPropertiesFormat{},
+						Name:       pointer.To(model.Name),
+					}
+					if model.IPAddress != "" {
+						address.Properties.IPAddress = pointer.To(model.IPAddress)
+					}
+					if model.VirtualNetworkId != "" {
+						address.Properties.VirtualNetwork = &loadbalancers.SubResource{
+							Id: pointer.To(model.VirtualNetworkId),
+						}
+					}
+					addresses = append(addresses, address)
 				}
 
 				pool.Model.Properties.LoadBalancerBackendAddresses = &addresses
@@ -379,13 +386,9 @@ func (r BackendAddressPoolAddressResource) Delete() sdk.ResourceFunc {
 			}
 
 			metadata.Logger.Infof("removing %s..", *id)
-			backendAddress := loadbalancers.BackendAddressPool{
-				Properties: &loadbalancers.BackendAddressPoolPropertiesFormat{
-					LoadBalancerBackendAddresses: &newAddresses,
-				},
-			}
+			pool.Model.Properties.LoadBalancerBackendAddresses = &newAddresses
 
-			err = lbClient.LoadBalancerBackendAddressPoolsCreateOrUpdateThenPoll(ctx, poolId, backendAddress)
+			err = lbClient.LoadBalancerBackendAddressPoolsCreateOrUpdateThenPoll(ctx, poolId, *pool.Model)
 			if err != nil {
 				return fmt.Errorf("removing %s: %+v", *id, err)
 			}
