@@ -6,6 +6,7 @@ ENHANCEMENTS:
 * `serviceconnector`: updating to use API Version `2024-04-01` [GH-26248]
 * `azurerm_kubernetes_cluster` - updating `network_profile.network_policy` to `azure` and `calico` when it hasn't been previously set is supported [GH-26176]
 * `azurerm_kubernetes_cluster` - respect Pod Distruption Budgets when rotating the `default_node_pool` [GH-26274]
+* `azurerm_lb_backend_address_pool` - support for the `synchronous_mode` property [GH-26309]
 
 BUG FIXES:
 
