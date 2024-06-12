@@ -203,7 +203,7 @@ func resourceAutomationJobScheduleRead(d *pluginsdk.ResourceData, meta interface
 
 	id, err := jobschedule.ParseJobScheduleID(pointer.From(js.Id))
 	if err != nil {
-		return fmt.Errorf("parse jobSchedule id %s: %v", pointer.From(js.Id), err)
+		return err
 	}
 
 	d.Set("resource_manager_id", id.ID())
