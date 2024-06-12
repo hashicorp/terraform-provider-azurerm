@@ -124,13 +124,13 @@ func (r DevCenterDevBoxDefinitionResource) Create() sdk.ResourceFunc {
 
 			parameters := devboxdefinitions.DevBoxDefinition{
 				Location: location.Normalize(model.Location),
-				Tags:     pointer.To(model.Tags),
 				Properties: &devboxdefinitions.DevBoxDefinitionProperties{
 					ImageReference: &devboxdefinitions.ImageReference{
 						Id: pointer.To(model.ImageReferenceId),
 					},
 					Sku: expandDevCenterDevBoxDefinitionSku(model.Sku),
 				},
+				Tags: pointer.To(model.Tags),
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
