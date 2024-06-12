@@ -144,7 +144,7 @@ provider "azurerm" {
 
 resource "azurerm_dev_center_dev_box_definition" "test" {
   name               = "acctest-dcet-%d"
-  location           = azurerm_dev_center_dev_box_definition.test.location
+  location           = azurerm_resource_group.test.location
   dev_center_id      = azurerm_dev_center.test.id
   image_reference_id = "${azurerm_dev_center.test.id}/galleries/default/images/microsoftvisualstudio_visualstudioplustools_vs-2022-ent-general-win10-m365-gen2"
 
@@ -170,7 +170,7 @@ provider "azurerm" {
 
 resource "azurerm_dev_center_dev_box_definition" "test" {
   name               = "acctest-dcet-%d"
-  location           = azurerm_dev_center_dev_box_definition.test.location
+  location           = azurerm_resource_group.test.location
   dev_center_id      = azurerm_dev_center.test.id
   image_reference_id = "${azurerm_dev_center.test.id}/galleries/default/images/microsoftvisualstudio_visualstudioplustools_vs-2022-ent-general-win11-m365-gen2"
 
