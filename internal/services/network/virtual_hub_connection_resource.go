@@ -81,7 +81,7 @@ func resourceVirtualHubConnection() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true,
-							ValidateFunc: validate.HubRouteTableID,
+							ValidateFunc: virtualwans.ValidateHubRouteTableID,
 							AtLeastOneOf: []string{"routing.0.associated_route_table_id", "routing.0.propagated_route_table", "routing.0.static_vnet_route"},
 						},
 
@@ -121,7 +121,7 @@ func resourceVirtualHubConnection() *pluginsdk.Resource {
 										Computed: true,
 										Elem: &pluginsdk.Schema{
 											Type:         pluginsdk.TypeString,
-											ValidateFunc: validate.HubRouteTableID,
+											ValidateFunc: virtualwans.ValidateHubRouteTableID,
 										},
 										AtLeastOneOf: []string{"routing.0.propagated_route_table.0.labels", "routing.0.propagated_route_table.0.route_table_ids"},
 									},

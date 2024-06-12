@@ -5,6 +5,7 @@ package network
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/virtualwans"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -110,7 +111,7 @@ func resourceExpressRouteConnection() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true,
-							ValidateFunc: validate.HubRouteTableID,
+							ValidateFunc: virtualwans.ValidateHubRouteTableID,
 							AtLeastOneOf: []string{"routing.0.associated_route_table_id", "routing.0.propagated_route_table"},
 						},
 
@@ -138,7 +139,7 @@ func resourceExpressRouteConnection() *pluginsdk.Resource {
 										Computed: true,
 										Elem: &pluginsdk.Schema{
 											Type:         pluginsdk.TypeString,
-											ValidateFunc: validate.HubRouteTableID,
+											ValidateFunc: virtualwans.ValidateHubRouteTableID,
 										},
 										AtLeastOneOf: []string{"routing.0.propagated_route_table.0.labels", "routing.0.propagated_route_table.0.route_table_ids"},
 									},
@@ -399,7 +400,7 @@ func flattenExpressRouteConnectionRouting(input *expressrouteconnections.Routing
 	if input.AssociatedRouteTable != nil && input.AssociatedRouteTable.Id != nil {
 		associatedRouteTableId = *input.AssociatedRouteTable.Id
 	}
-	routeTableId, err := parse.HubRouteTableIDInsensitively(associatedRouteTableId)
+	routeTableId, err := virtualwans.ParseHubRouteTableIDInsensitively(associatedRouteTableId)
 	if err != nil {
 		return nil, err
 	}

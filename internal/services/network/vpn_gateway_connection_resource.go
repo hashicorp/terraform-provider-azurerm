@@ -80,7 +80,7 @@ func resourceVPNGatewayConnection() *pluginsdk.Resource {
 						"associated_route_table": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: validate.HubRouteTableID,
+							ValidateFunc: virtualwans.ValidateHubRouteTableID,
 						},
 
 						"inbound_route_map_id": {
@@ -107,7 +107,7 @@ func resourceVPNGatewayConnection() *pluginsdk.Resource {
 										Required: true,
 										Elem: &pluginsdk.Schema{
 											Type:         pluginsdk.TypeString,
-											ValidateFunc: validate.HubRouteTableID,
+											ValidateFunc: virtualwans.ValidateHubRouteTableID,
 										},
 									},
 
