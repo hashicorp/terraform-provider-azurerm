@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -36,7 +35,7 @@ func resourceVirtualHub() *pluginsdk.Resource {
 		Update: resourceVirtualHubCreateUpdate,
 		Delete: resourceVirtualHubDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.VirtualHubID(id)
+			_, err := virtualwans.ParseVirtualHubID(id)
 			return err
 		}),
 
@@ -80,7 +79,7 @@ func resourceVirtualHub() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: networkValidate.VirtualWanID,
+				ValidateFunc: virtualwans.ValidateVirtualWANID,
 			},
 
 			"virtual_router_asn": {

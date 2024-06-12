@@ -88,13 +88,13 @@ func resourceVirtualHubConnection() *pluginsdk.Resource {
 						"inbound_route_map_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.RouteMapID,
+							ValidateFunc: virtualwans.ValidateRouteMapID,
 						},
 
 						"outbound_route_map_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.RouteMapID,
+							ValidateFunc: virtualwans.ValidateRouteMapID,
 						},
 
 						"propagated_route_table": {

@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -86,13 +85,13 @@ func resourceVPNGatewayConnection() *pluginsdk.Resource {
 						"inbound_route_map_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.RouteMapID,
+							ValidateFunc: virtualwans.ValidateRouteMapID,
 						},
 
 						"outbound_route_map_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.RouteMapID,
+							ValidateFunc: virtualwans.ValidateRouteMapID,
 						},
 
 						"propagated_route_table": {
@@ -151,7 +150,7 @@ func resourceVPNGatewayConnection() *pluginsdk.Resource {
 							Optional: true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
-								ValidateFunc: validate.VpnGatewayNatRuleID,
+								ValidateFunc: virtualwans.ValidateNatRuleID,
 							},
 						},
 
@@ -160,7 +159,7 @@ func resourceVPNGatewayConnection() *pluginsdk.Resource {
 							Optional: true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
-								ValidateFunc: validate.VpnGatewayNatRuleID,
+								ValidateFunc: virtualwans.ValidateNatRuleID,
 							},
 						},
 
