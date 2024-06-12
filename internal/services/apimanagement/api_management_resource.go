@@ -35,7 +35,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	apimValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -230,7 +229,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 					"public_ip_address_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: networkValidate.PublicIpAddressID,
+						ValidateFunc: commonids.ValidatePublicIPAddressID,
 					},
 
 					"private_ip_addresses": {
@@ -601,7 +600,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 		"public_ip_address_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: networkValidate.PublicIpAddressID,
+			ValidateFunc: commonids.ValidatePublicIPAddressID,
 		},
 
 		"public_network_access_enabled": {

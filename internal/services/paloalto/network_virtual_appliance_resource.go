@@ -53,7 +53,7 @@ func (r NetworkVirtualApplianceResource) Arguments() map[string]*schema.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.VirtualHubID,
+			ValidateFunc: virtualwans.ValidateVirtualHubID,
 		},
 	}
 }
