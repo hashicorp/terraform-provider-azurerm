@@ -32,7 +32,7 @@ resource "azurerm_dev_center_dev_box_definition" "example" {
   name               = "example-dcet"
   location           = azurerm_resource_group.example.location
   dev_center_id      = azurerm_dev_center.example.id
-  image_reference_id = data.azurerm_dev_center_gallery_image.example.id
+  image_reference_id = "${azurerm_dev_center.example.id}/galleries/default/images/microsoftvisualstudio_visualstudioplustools_vs-2022-ent-general-win10-m365-gen2"
 
   sku {
     name = "general_i_8c32gb256ssd_v2"
@@ -69,8 +69,6 @@ A `sku` block supports the following:
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Dev Center Dev Box Definition.
-
----
 
 ## Timeouts
 
