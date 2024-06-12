@@ -926,11 +926,9 @@ resource "azurerm_private_endpoint" "test" {
 
 func (r PrivateEndpointResource) multipleInstances(data acceptance.TestData, count int, useAlias bool) string {
 	privateConnectionAssignment := "private_connection_resource_id = azurerm_private_link_service.test.id"
-	var reqMsgSet bool
 	if useAlias {
 		privateConnectionAssignment = `private_connection_resource_alias = azurerm_private_link_service.test.alias
                                        request_message                   = "test"`
-		reqMsgSet = true
 	}
 
 	return fmt.Sprintf(`
@@ -949,7 +947,7 @@ resource "azurerm_private_endpoint" "test" {
     %s
   }
 }
-`, r.template(data, r.serviceAutoApprove(data)), count, data.RandomInteger, !reqMsgSet, privateConnectionAssignment)
+`, r.template(data, r.serviceAutoApprove(data)), count, data.RandomInteger, useAlias, privateConnectionAssignment)
 }
 
 func (r PrivateEndpointResource) recoveryServiceVaultWithMultiIpConfig(data acceptance.TestData) string {
