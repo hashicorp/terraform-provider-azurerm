@@ -9,13 +9,15 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type LinkerProperties struct {
-	AuthInfo          AuthInfoBase      `json:"authInfo"`
-	ClientType        *ClientType       `json:"clientType,omitempty"`
-	ProvisioningState *string           `json:"provisioningState,omitempty"`
-	Scope             *string           `json:"scope,omitempty"`
-	SecretStore       *SecretStore      `json:"secretStore,omitempty"`
-	TargetService     TargetServiceBase `json:"targetService"`
-	VNetSolution      *VNetSolution     `json:"vNetSolution,omitempty"`
+	AuthInfo              AuthInfoBase           `json:"authInfo"`
+	ClientType            *ClientType            `json:"clientType,omitempty"`
+	ConfigurationInfo     *ConfigurationInfo     `json:"configurationInfo,omitempty"`
+	ProvisioningState     *string                `json:"provisioningState,omitempty"`
+	PublicNetworkSolution *PublicNetworkSolution `json:"publicNetworkSolution,omitempty"`
+	Scope                 *string                `json:"scope,omitempty"`
+	SecretStore           *SecretStore           `json:"secretStore,omitempty"`
+	TargetService         TargetServiceBase      `json:"targetService"`
+	VNetSolution          *VNetSolution          `json:"vNetSolution,omitempty"`
 }
 
 var _ json.Unmarshaler = &LinkerProperties{}
@@ -28,7 +30,9 @@ func (s *LinkerProperties) UnmarshalJSON(bytes []byte) error {
 	}
 
 	s.ClientType = decoded.ClientType
+	s.ConfigurationInfo = decoded.ConfigurationInfo
 	s.ProvisioningState = decoded.ProvisioningState
+	s.PublicNetworkSolution = decoded.PublicNetworkSolution
 	s.Scope = decoded.Scope
 	s.SecretStore = decoded.SecretStore
 	s.VNetSolution = decoded.VNetSolution

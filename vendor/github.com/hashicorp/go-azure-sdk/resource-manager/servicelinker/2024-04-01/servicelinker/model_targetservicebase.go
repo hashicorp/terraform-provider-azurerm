@@ -60,6 +60,14 @@ func unmarshalTargetServiceBaseImplementation(input []byte) (TargetServiceBase, 
 		return out, nil
 	}
 
+	if strings.EqualFold(value, "SelfHostedServer") {
+		var out SelfHostedServer
+		if err := json.Unmarshal(input, &out); err != nil {
+			return nil, fmt.Errorf("unmarshaling into SelfHostedServer: %+v", err)
+		}
+		return out, nil
+	}
+
 	out := RawTargetServiceBaseImpl{
 		Type:   value,
 		Values: temp,

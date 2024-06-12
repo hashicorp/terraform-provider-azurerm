@@ -11,8 +11,12 @@ import (
 var _ AuthInfoBase = SystemAssignedIdentityAuthInfo{}
 
 type SystemAssignedIdentityAuthInfo struct {
+	DeleteOrUpdateBehavior *DeleteOrUpdateBehavior `json:"deleteOrUpdateBehavior,omitempty"`
+	Roles                  *[]string               `json:"roles,omitempty"`
+	UserName               *string                 `json:"userName,omitempty"`
 
 	// Fields inherited from AuthInfoBase
+	AuthMode *AuthMode `json:"authMode,omitempty"`
 }
 
 var _ json.Marshaler = SystemAssignedIdentityAuthInfo{}

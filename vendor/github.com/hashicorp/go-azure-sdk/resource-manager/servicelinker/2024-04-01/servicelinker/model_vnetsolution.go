@@ -4,5 +4,6 @@ package servicelinker
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type VNetSolution struct {
-	Type *VNetSolutionType `json:"type,omitempty"`
+	DeleteOrUpdateBehavior *DeleteOrUpdateBehavior `json:"deleteOrUpdateBehavior,omitempty"`
+	Type                   *VNetSolutionType       `json:"type,omitempty"`
 }

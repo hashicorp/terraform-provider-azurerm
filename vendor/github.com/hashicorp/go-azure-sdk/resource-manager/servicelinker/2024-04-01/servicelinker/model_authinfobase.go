@@ -36,6 +36,22 @@ func unmarshalAuthInfoBaseImplementation(input []byte) (AuthInfoBase, error) {
 		return nil, nil
 	}
 
+	if strings.EqualFold(value, "accessKey") {
+		var out AccessKeyInfoBase
+		if err := json.Unmarshal(input, &out); err != nil {
+			return nil, fmt.Errorf("unmarshaling into AccessKeyInfoBase: %+v", err)
+		}
+		return out, nil
+	}
+
+	if strings.EqualFold(value, "easyAuthMicrosoftEntraID") {
+		var out EasyAuthMicrosoftEntraIDAuthInfo
+		if err := json.Unmarshal(input, &out); err != nil {
+			return nil, fmt.Errorf("unmarshaling into EasyAuthMicrosoftEntraIDAuthInfo: %+v", err)
+		}
+		return out, nil
+	}
+
 	if strings.EqualFold(value, "secret") {
 		var out SecretAuthInfo
 		if err := json.Unmarshal(input, &out); err != nil {
@@ -64,6 +80,14 @@ func unmarshalAuthInfoBaseImplementation(input []byte) (AuthInfoBase, error) {
 		var out SystemAssignedIdentityAuthInfo
 		if err := json.Unmarshal(input, &out); err != nil {
 			return nil, fmt.Errorf("unmarshaling into SystemAssignedIdentityAuthInfo: %+v", err)
+		}
+		return out, nil
+	}
+
+	if strings.EqualFold(value, "userAccount") {
+		var out UserAccountAuthInfo
+		if err := json.Unmarshal(input, &out); err != nil {
+			return nil, fmt.Errorf("unmarshaling into UserAccountAuthInfo: %+v", err)
 		}
 		return out, nil
 	}

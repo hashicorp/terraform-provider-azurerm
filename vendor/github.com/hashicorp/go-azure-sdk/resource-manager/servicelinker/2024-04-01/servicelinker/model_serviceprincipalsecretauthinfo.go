@@ -11,11 +11,15 @@ import (
 var _ AuthInfoBase = ServicePrincipalSecretAuthInfo{}
 
 type ServicePrincipalSecretAuthInfo struct {
-	ClientId    string `json:"clientId"`
-	PrincipalId string `json:"principalId"`
-	Secret      string `json:"secret"`
+	ClientId               string                  `json:"clientId"`
+	DeleteOrUpdateBehavior *DeleteOrUpdateBehavior `json:"deleteOrUpdateBehavior,omitempty"`
+	PrincipalId            string                  `json:"principalId"`
+	Roles                  *[]string               `json:"roles,omitempty"`
+	Secret                 string                  `json:"secret"`
+	UserName               *string                 `json:"userName,omitempty"`
 
 	// Fields inherited from AuthInfoBase
+	AuthMode *AuthMode `json:"authMode,omitempty"`
 }
 
 var _ json.Marshaler = ServicePrincipalSecretAuthInfo{}

@@ -11,10 +11,14 @@ import (
 var _ AuthInfoBase = UserAssignedIdentityAuthInfo{}
 
 type UserAssignedIdentityAuthInfo struct {
-	ClientId       *string `json:"clientId,omitempty"`
-	SubscriptionId *string `json:"subscriptionId,omitempty"`
+	ClientId               *string                 `json:"clientId,omitempty"`
+	DeleteOrUpdateBehavior *DeleteOrUpdateBehavior `json:"deleteOrUpdateBehavior,omitempty"`
+	Roles                  *[]string               `json:"roles,omitempty"`
+	SubscriptionId         *string                 `json:"subscriptionId,omitempty"`
+	UserName               *string                 `json:"userName,omitempty"`
 
 	// Fields inherited from AuthInfoBase
+	AuthMode *AuthMode `json:"authMode,omitempty"`
 }
 
 var _ json.Marshaler = UserAssignedIdentityAuthInfo{}

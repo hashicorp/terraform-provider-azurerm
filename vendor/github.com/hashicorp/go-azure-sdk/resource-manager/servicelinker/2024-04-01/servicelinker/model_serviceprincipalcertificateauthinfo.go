@@ -11,11 +11,14 @@ import (
 var _ AuthInfoBase = ServicePrincipalCertificateAuthInfo{}
 
 type ServicePrincipalCertificateAuthInfo struct {
-	Certificate string `json:"certificate"`
-	ClientId    string `json:"clientId"`
-	PrincipalId string `json:"principalId"`
+	Certificate            string                  `json:"certificate"`
+	ClientId               string                  `json:"clientId"`
+	DeleteOrUpdateBehavior *DeleteOrUpdateBehavior `json:"deleteOrUpdateBehavior,omitempty"`
+	PrincipalId            string                  `json:"principalId"`
+	Roles                  *[]string               `json:"roles,omitempty"`
 
 	// Fields inherited from AuthInfoBase
+	AuthMode *AuthMode `json:"authMode,omitempty"`
 }
 
 var _ json.Marshaler = ServicePrincipalCertificateAuthInfo{}

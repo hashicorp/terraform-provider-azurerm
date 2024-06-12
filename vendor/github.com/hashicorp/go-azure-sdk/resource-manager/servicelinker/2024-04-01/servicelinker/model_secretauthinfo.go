@@ -15,6 +15,7 @@ type SecretAuthInfo struct {
 	SecretInfo SecretInfoBase `json:"secretInfo"`
 
 	// Fields inherited from AuthInfoBase
+	AuthMode *AuthMode `json:"authMode,omitempty"`
 }
 
 var _ json.Marshaler = SecretAuthInfo{}
@@ -50,6 +51,7 @@ func (s *SecretAuthInfo) UnmarshalJSON(bytes []byte) error {
 		return fmt.Errorf("unmarshaling into SecretAuthInfo: %+v", err)
 	}
 
+	s.AuthMode = decoded.AuthMode
 	s.Name = decoded.Name
 
 	var temp map[string]json.RawMessage
