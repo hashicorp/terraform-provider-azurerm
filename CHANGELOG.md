@@ -3,10 +3,12 @@
 ENHANCEMENTS:
 
 * provider: support subscription ID hinting when using Azure CLI authentication [GH-26282]
+* `serviceconnector`: updating to use API Version `2024-04-01` [GH-26248]
 * `azurerm_kubernetes_cluster` - updating `network_profile.network_policy` to `azure` and `calico` when it hasn't been previously set is supported [GH-26176]
 * `azurerm_kubernetes_cluster` - respect Pod Distruption Budgets when rotating the `default_node_pool` [GH-26274]
 
 BUG FIXES:
+
 * `azurerm_express_route_circuit_peering`, `azurerm_express_route_circuit`, `azurerm_express_route_gateway`, `azurerm_express_route_port` - split create and update [GH-26237]
 * `azurerm_lb_backend_address_pool_address` - when using this resource, values are no longer reset on `azurerm_lb_backend_address_pool` [GH-26264]
 * `azurerm_route_filter` - split create and update [GH-26266]
