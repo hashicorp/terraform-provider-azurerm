@@ -75,9 +75,16 @@ function runGraduallyDeprecatedFunctions {
       }
     fi
 
-    # avoid false positives
-    isThisScript=$(echo "$f" | grep "run-gradually-deprecated")
-    if [ "$isThisScript" == "" ];
+    # exceptions to avoid false positives and legacy resources should have their original behaviour preserved
+    exceptions=("run-gradually-deprecated" "/legacy/" "network/ip_group_cidr_resource.go" "network/network_security_group_resource.go" "internal/provider" "vendor/")
+    toSkip=false
+    for e in "${exceptions[@]}"; do
+      isThisException=$(echo "$f" | grep "$e")
+      if [ "$isThisException" != "" ] ; then
+        toSkip=true
+      fi
+    done
+    if [ "$toSkip" = false ];
     then
       # check for d.Get inside Delete
       deleteFuncName=$(grep -o "Delete: .*," "$f" -m1 | grep -o " .*Delete"| tr -d " ")
@@ -108,6 +115,25 @@ function runGraduallyDeprecatedFunctions {
         grep -H -n "Client(o.SubscriptionId)" "$f" && {
             echo "The Azure SDK (track1 & kermit) clients should be created with the function NewFoosClientWithBaseURI() "
             echo "that has the resource manager endpoint explicitly specified. These can be found in:"
+            echo "* $f"
+            exit 1
+        }
+
+        # Resource IDs shouldn't be compared by using a.ID() == b.ID() - but instead use the resourceids.Match method
+        grep -H -n ".ID() ==" "$f" && {
+            echo "Resource IDs should not be compared by using a.ID() == b.ID(), but instead use 'resourceids.Match(a, b)"
+            echo "which can be found in the Go package 'github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids'."
+            echo "These can be found in:"
+            echo "* $f"
+            exit 1
+        }
+
+        # The case-aware comparisons feature flag is problematic until the rollout is completed
+        grep -H -n "\.TreatUserSpecifiedSegmentsAsCaseInsensitive =" "$f" && {
+            echo "The case-aware comparisons feature is not ready for usage and should not be configured/exposed at this time."
+            echo "There's a substantial number of dependencies required for this to not cause more problems then it solves"
+            echo "and as such this is not supported in any form at this point-in-time."
+            echo "Please remove the assignment to 'features.TreatUserSpecifiedSegmentsAsCaseInsensitive', which can be found in:"
             echo "* $f"
             exit 1
         }

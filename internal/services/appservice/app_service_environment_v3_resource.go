@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/virtualnetworks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/appserviceenvironments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
@@ -249,7 +250,7 @@ func (r AppServiceEnvironmentV3Resource) Create() sdk.ResourceFunc {
 		Timeout: 6 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppService.AppServiceEnvironmentClient
-			networksClient := metadata.Client.Network.VnetClient
+			networksClient := metadata.Client.Network.VirtualNetworks
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var model AppServiceEnvironmentV3Model
@@ -262,12 +263,17 @@ func (r AppServiceEnvironmentV3Resource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			vnet, err := networksClient.Get(ctx, subnet.ResourceGroupName, subnet.VirtualNetworkName, "")
+			vnetId := commonids.NewVirtualNetworkID(subnet.SubscriptionId, subnet.ResourceGroupName, subnet.VirtualNetworkName)
+
+			vnet, err := networksClient.Get(ctx, vnetId, virtualnetworks.DefaultGetOperationOptions())
 			if err != nil {
 				return fmt.Errorf("retrieving Virtual Network %q (Resource Group %q): %+v", subnet.VirtualNetworkName, subnet.ResourceGroupName, err)
 			}
+			if vnet.Model == nil {
+				return fmt.Errorf("retrieving %s: `model` was nil", subnet)
+			}
 
-			vnetLoc := location.NormalizeNilable(vnet.Location)
+			vnetLoc := location.NormalizeNilable(vnet.Model.Location)
 			if vnetLoc == "" {
 				return fmt.Errorf("determining Location from Virtual Network %q (Resource Group %q): `location` was missing", subnet.VirtualNetworkName, subnet.ResourceGroupName)
 			}

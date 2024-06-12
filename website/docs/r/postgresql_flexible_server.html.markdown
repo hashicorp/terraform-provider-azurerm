@@ -59,15 +59,16 @@ resource "azurerm_private_dns_zone_virtual_network_link" "example" {
 }
 
 resource "azurerm_postgresql_flexible_server" "example" {
-  name                   = "example-psqlflexibleserver"
-  resource_group_name    = azurerm_resource_group.example.name
-  location               = azurerm_resource_group.example.location
-  version                = "12"
-  delegated_subnet_id    = azurerm_subnet.example.id
-  private_dns_zone_id    = azurerm_private_dns_zone.example.id
-  administrator_login    = "psqladmin"
-  administrator_password = "H@Sh1CoR3!"
-  zone                   = "1"
+  name                          = "example-psqlflexibleserver"
+  resource_group_name           = azurerm_resource_group.example.name
+  location                      = azurerm_resource_group.example.location
+  version                       = "12"
+  delegated_subnet_id           = azurerm_subnet.example.id
+  private_dns_zone_id           = azurerm_private_dns_zone.example.id
+  public_network_access_enabled = false
+  administrator_login           = "psqladmin"
+  administrator_password        = "H@Sh1CoR3!"
+  zone                          = "1"
 
   storage_mb   = 32768
   storage_tier = "P30"
@@ -106,7 +107,9 @@ The following arguments are supported:
 
 * `geo_redundant_backup_enabled` - (Optional) Is Geo-Redundant backup enabled on the PostgreSQL Flexible Server. Defaults to `false`. Changing this forces a new PostgreSQL Flexible Server to be created.
 
-* `create_mode` - (Optional) The creation mode which can be used to restore or replicate existing servers. Possible values are `Default`, `PointInTimeRestore`, `Replica` and `Update`.
+* `create_mode` - (Optional) The creation mode which can be used to restore or replicate existing servers. Possible values are `Default`, `GeoRestore`, `PointInTimeRestore`, `Replica` and `Update`. Changing this forces a new PostgreSQL Flexible Server to be created.
+
+-> **Note:** `create_mode` cannot be changed once it's set since it's a parameter at creation.
 
 -> **Note:** While creating the resource, `create_mode` cannot be set to `Update`.
 
@@ -116,13 +119,17 @@ The following arguments are supported:
 
 ~> **Note:** There will be a breaking change from upstream service at 15th July 2021, the `private_dns_zone_id` will be required when setting a `delegated_subnet_id`. For existing flexible servers who don't want to be recreated, you need to provide the `private_dns_zone_id` to the service team to manually migrate to the specified private DNS zone. The `azurerm_private_dns_zone` should end with suffix `.postgres.database.azure.com`.
 
+* `public_network_access_enabled` - (Optional) Specifies whether this PostgreSQL Flexible Server is publicly accessible. Defaults to `true`.
+
+-> **Note:** `public_network_access_enabled` must be set to `false` when `delegated_subnet_id` and `private_dns_zone_id` have a value.
+
 * `high_availability` - (Optional) A `high_availability` block as defined below.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
 * `maintenance_window` - (Optional) A `maintenance_window` block as defined below.
 
-* `point_in_time_restore_time_in_utc` - (Optional) The point in time to restore from `source_server_id` when `create_mode` is `PointInTimeRestore`. Changing this forces a new PostgreSQL Flexible Server to be created.
+* `point_in_time_restore_time_in_utc` - (Optional) The point in time to restore from `source_server_id` when `create_mode` is `GeoRestore`, `PointInTimeRestore`. Changing this forces a new PostgreSQL Flexible Server to be created.
 
 * `replication_role` - (Optional) The replication role for the PostgreSQL Flexible Server. Possible value is `None`.
 
@@ -130,7 +137,7 @@ The following arguments are supported:
 
 * `sku_name` - (Optional) The SKU Name for the PostgreSQL Flexible Server. The name of the SKU, follows the `tier` + `name` pattern (e.g. `B_Standard_B1ms`, `GP_Standard_D2s_v3`, `MO_Standard_E4s_v3`).
 
-* `source_server_id` - (Optional) The resource ID of the source PostgreSQL Flexible Server to be restored. Required when `create_mode` is `PointInTimeRestore` or `Replica`. Changing this forces a new PostgreSQL Flexible Server to be created.
+* `source_server_id` - (Optional) The resource ID of the source PostgreSQL Flexible Server to be restored. Required when `create_mode` is `GeoRestore`, `PointInTimeRestore` or `Replica`. Changing this forces a new PostgreSQL Flexible Server to be created.
 
 * `auto_grow_enabled` - (Optional) Is the storage auto grow for PostgreSQL Flexible Server enabled? Defaults to `false`.
 
@@ -244,8 +251,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `id` - The ID of the PostgreSQL Flexible Server.
 
 * `fqdn` - The FQDN of the PostgreSQL Flexible Server.
-
-* `public_network_access_enabled` - Is public network access enabled?
 
 ## Timeouts
 

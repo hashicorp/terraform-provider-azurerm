@@ -4,7 +4,7 @@
 ## Community Note
 <!-- Please leave the community note as is. -->
 * Please vote on this PR by adding a :thumbsup: [reaction](https://blog.github.com/2016-03-10-add-reactions-to-pull-requests-issues-and-comments/) to the original PR to help the community and maintainers prioritize for review
-* Please do not leave "+1" or "me too" comments, they generate extra noise for PR followers and do not help prioritize for review
+* Please do not leave comments along the lines of "+1", "me too" or "any updates", they generate extra noise for PR followers and do not help prioritize for review
 
 
 ## Description

@@ -137,7 +137,7 @@ func (r StorageDataLakeGen2PathResource) Exists(ctx context.Context, client *cli
 		return nil, err
 	}
 
-	account, err := client.Storage.FindAccount(ctx, id.AccountId.AccountName)
+	account, err := client.Storage.FindAccount(ctx, client.Account.SubscriptionId, id.AccountId.AccountName)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Account %q for Queue %q: %+v", id.AccountId, id.FileSystemName, err)
 	}

@@ -10,17 +10,20 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesetvms"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkinterfaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/vmsspublicipaddresses"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func dataSourceVirtualMachineScaleSet() *pluginsdk.Resource {
@@ -119,95 +122,86 @@ func dataSourceVirtualMachineScaleSet() *pluginsdk.Resource {
 }
 
 func dataSourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Compute.VMScaleSetClient
-	instancesClient := meta.(*clients.Client).Compute.VMScaleSetVMsClient
-	vmClient := meta.(*clients.Client).Compute.VMClient
-	networkInterfacesClient := meta.(*clients.Client).Network.InterfacesClient
-	publicIPAddressesClient := meta.(*clients.Client).Network.PublicIPsClient
+	client := meta.(*clients.Client).Compute.VirtualMachineScaleSetsClient
+	instancesClient := meta.(*clients.Client).Compute.VirtualMachineScaleSetVMsClient
+	virtualMachinesClient := meta.(*clients.Client).Compute.VirtualMachinesClient
+	networkInterfacesClient := meta.(*clients.Client).Network.NetworkInterfacesClient
+	publicIPAddressesClient := meta.(*clients.Client).Network.PublicIPAddresses
+	vmssPublicIpAddressesClient := meta.(*clients.Client).Network.VMSSPublicIPAddressesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := commonids.NewVirtualMachineScaleSetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := virtualmachinescalesets.NewVirtualMachineScaleSetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
-	resp, err := client.Get(ctx, id.ResourceGroupName, id.VirtualMachineScaleSetName, "")
+	resp, err := client.Get(ctx, id, virtualmachinescalesets.DefaultGetOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 
-		return fmt.Errorf("making Read request on %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("reading %s: ID is empty or nil", id)
-	}
 	d.SetId(id.ID())
 
-	d.Set("location", location.NormalizeNilable(resp.Location))
+	if model := resp.Model; model != nil {
+		d.Set("location", location.Normalize(model.Location))
 
-	if profile := resp.VirtualMachineProfile; profile != nil {
-		if nwProfile := profile.NetworkProfile; nwProfile != nil {
-			flattenedNics := FlattenVirtualMachineScaleSetNetworkInterface(nwProfile.NetworkInterfaceConfigurations)
-			if err := d.Set("network_interface", flattenedNics); err != nil {
-				return fmt.Errorf("setting `network_interface`: %+v", err)
+		identityFlattened, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening `identity`: %+v", err)
+		}
+		if err := d.Set("identity", identityFlattened); err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
+		}
+
+		if props := model.Properties; props != nil {
+			if profile := props.VirtualMachineProfile; profile != nil {
+				if nwProfile := profile.NetworkProfile; nwProfile != nil {
+					flattenedNics := FlattenVirtualMachineScaleSetNetworkInterface(nwProfile.NetworkInterfaceConfigurations)
+					if err := d.Set("network_interface", flattenedNics); err != nil {
+						return fmt.Errorf("setting `network_interface`: %+v", err)
+					}
+				}
 			}
 		}
 	}
 
-	identity, err := flattenVirtualMachineScaleSetIdentity(resp.Identity)
-	if err != nil {
-		return fmt.Errorf("flattening `identity`: %+v", err)
-	}
-	if err := d.Set("identity", identity); err != nil {
-		return fmt.Errorf("setting `identity`: %+v", err)
-	}
-
 	instances := make([]interface{}, 0)
-	result, err := instancesClient.ListComplete(ctx, id.ResourceGroupName, id.VirtualMachineScaleSetName, "", "", "")
+	virtualMachineScaleSetId := virtualmachinescalesetvms.NewVirtualMachineScaleSetID(subscriptionId, id.ResourceGroupName, id.VirtualMachineScaleSetName)
+	result, err := instancesClient.ListComplete(ctx, virtualMachineScaleSetId, virtualmachinescalesetvms.DefaultListOperationOptions())
 	if err != nil {
 		return fmt.Errorf("listing VM Instances for %q: %+v", id, err)
 	}
 
 	var connInfo *connectionInfo
-	for result.NotDone() {
-		instance := result.Value()
-		if instance.InstanceID != nil {
-			nics, err := networkInterfacesClient.ListVirtualMachineScaleSetVMNetworkInterfacesComplete(ctx, id.ResourceGroupName, id.VirtualMachineScaleSetName, *instance.InstanceID)
+	for _, item := range result.Items {
+		if item.InstanceId != nil {
+			vmId := networkinterfaces.NewVirtualMachineID(subscriptionId, id.ResourceGroupName, id.VirtualMachineScaleSetName, *item.InstanceId)
+			nics, err := networkInterfacesClient.ListVirtualMachineScaleSetVMNetworkInterfacesComplete(ctx, vmId)
 			if err != nil {
-				if !utils.ResponseWasNotFound(nics.Response().Response) {
-					return fmt.Errorf("listing Network Interfaces for VM Instance %q for %q: %+v", *instance.InstanceID, id, err)
+				if !response.WasNotFound(nics.LatestHttpResponse) {
+					return fmt.Errorf("listing Network Interfaces for VM Instance %q for %q: %+v", *item.InstanceId, id, err)
 				}
 
 				// Network Interfaces of VM in Flexible VMSS are accessed from single VM
-				vm, err := vmClient.Get(ctx, id.ResourceGroupName, *instance.InstanceID, "")
+				virtualMachineId := virtualmachines.NewVirtualMachineID(subscriptionId, id.ResourceGroupName, *item.InstanceId)
+				vm, err := virtualMachinesClient.Get(ctx, virtualMachineId, virtualmachines.DefaultGetOperationOptions())
 				if err != nil {
-					return fmt.Errorf("retrieving VM Instance %q for %q: %+v", *instance.InstanceID, id, err)
+					return fmt.Errorf("retrieving VM Instance %q for %q: %+v", *item.InstanceId, id, err)
 				}
-				connInfoRaw := retrieveConnectionInformation(ctx, networkInterfacesClient, publicIPAddressesClient, vm.VirtualMachineProperties)
+				connInfoRaw := retrieveConnectionInformation(ctx, networkInterfacesClient, publicIPAddressesClient, vm.Model.Properties)
 				connInfo = &connInfoRaw
 			} else {
-				networkInterfaces := make([]network.Interface, 0)
-				for nics.NotDone() {
-					networkInterfaces = append(networkInterfaces, nics.Value())
-					if err := nics.NextWithContext(ctx); err != nil {
-						return fmt.Errorf("listing next page of Network Interfaces for VM Instance %q of %q: %v", *instance.InstanceID, id, err)
-					}
-				}
-
-				connInfo, err = getVirtualMachineScaleSetVMConnectionInfo(ctx, networkInterfaces, id.ResourceGroupName, id.VirtualMachineScaleSetName, *instance.InstanceID, publicIPAddressesClient)
+				connInfo, err = getVirtualMachineScaleSetVMConnectionInfo(ctx, nics.Items, id.ResourceGroupName, id.VirtualMachineScaleSetName, *item.InstanceId, vmssPublicIpAddressesClient)
 				if err != nil {
 					return err
 				}
 			}
 
-			flattenedInstances := flattenVirtualMachineScaleSetVM(instance, connInfo)
+			flattenedInstances := flattenVirtualMachineScaleSetVM(item, connInfo)
 			instances = append(instances, flattenedInstances)
-		}
-
-		if err := result.NextWithContext(ctx); err != nil {
-			return fmt.Errorf("listing next page VM Instances for %q: %+v", id, err)
 		}
 	}
 	if err := d.Set("instances", instances); err != nil {
@@ -217,7 +211,7 @@ func dataSourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interf
 	return nil
 }
 
-func getVirtualMachineScaleSetVMConnectionInfo(ctx context.Context, networkInterfaces []network.Interface, resourceGroupName string, virtualMachineScaleSetName string, virtualmachineIndex string, publicIPAddressesClient *network.PublicIPAddressesClient) (*connectionInfo, error) {
+func getVirtualMachineScaleSetVMConnectionInfo(ctx context.Context, networkInterfaces []networkinterfaces.NetworkInterface, resourceGroupName string, virtualMachineScaleSetName string, virtualmachineIndex string, publicIPAddressesClient *vmsspublicipaddresses.VMSSPublicIPAddressesClient) (*connectionInfo, error) {
 	if len(networkInterfaces) == 0 {
 		return nil, nil
 	}
@@ -228,30 +222,38 @@ func getVirtualMachineScaleSetVMConnectionInfo(ctx context.Context, networkInter
 	privateIPAddresses := make([]string, 0)
 
 	for _, nic := range networkInterfaces {
-		for _, config := range *nic.IPConfigurations {
-			if props := config.InterfaceIPConfigurationPropertiesFormat; props != nil {
-				if pip := props.PublicIPAddress; pip != nil {
-					pipID, err := networkParse.VirtualMachineScaleSetPublicIPAddressID(*pip.ID)
-					if err != nil {
-						return nil, err
-					}
+		if props := nic.Properties; props != nil {
+			if ipConfigs := props.IPConfigurations; ipConfigs != nil {
+				for _, config := range *ipConfigs {
+					if configProps := config.Properties; configProps != nil {
+						if pip := configProps.PublicIPAddress; pip != nil {
+							pipID, err := commonids.ParseVirtualMachineScaleSetPublicIPAddressIDInsensitively(*pip.Id)
+							if err != nil {
+								return nil, err
+							}
 
-					publicIPAddress, err := publicIPAddressesClient.GetVirtualMachineScaleSetPublicIPAddress(ctx, resourceGroupName, virtualMachineScaleSetName, virtualmachineIndex, pipID.NetworkInterfaceName, pipID.IpConfigurationName, pipID.PublicIPAddressName, "")
-					if err != nil {
-						return nil, fmt.Errorf("reading Public IP Address for VM Instance %q for Virtual Machine Scale Set %q (Resource Group %q): %+v", virtualmachineIndex, virtualMachineScaleSetName, resourceGroupName, err)
-					}
+							publicIPAddress, err := publicIPAddressesClient.PublicIPAddressesGetVirtualMachineScaleSetPublicIPAddress(ctx, *pipID, vmsspublicipaddresses.DefaultPublicIPAddressesGetVirtualMachineScaleSetPublicIPAddressOperationOptions())
+							if err != nil {
+								return nil, fmt.Errorf("reading Public IP Address for VM Instance %q for Virtual Machine Scale Set %q (Resource Group %q): %+v", virtualmachineIndex, virtualMachineScaleSetName, resourceGroupName, err)
+							}
 
-					if pointer.From(nic.Primary) && pointer.From(props.Primary) {
-						primaryPublicAddress = *publicIPAddress.IPAddress
-					}
-					publicIPAddresses = append(publicIPAddresses, *publicIPAddress.IPAddress)
-				}
+							if publicIPAddress.Model == nil || publicIPAddress.Model.Properties == nil {
+								return nil, fmt.Errorf("retrieving %s: `model` or `properties` was nil", pipID)
+							}
 
-				if props.PrivateIPAddress != nil {
-					if pointer.From(nic.Primary) && pointer.From(props.Primary) {
-						primaryPrivateAddress = *props.PrivateIPAddress
+							if pointer.From(props.Primary) && pointer.From(configProps.Primary) {
+								primaryPublicAddress = pointer.From(publicIPAddress.Model.Properties.IPAddress)
+							}
+							publicIPAddresses = append(publicIPAddresses, pointer.From(publicIPAddress.Model.Properties.IPAddress))
+						}
+
+						if configProps.PrivateIPAddress != nil {
+							if pointer.From(props.Primary) && pointer.From(configProps.Primary) {
+								primaryPrivateAddress = pointer.From(configProps.PrivateIPAddress)
+							}
+							privateIPAddresses = append(privateIPAddresses, pointer.From(configProps.PrivateIPAddress))
+						}
 					}
-					privateIPAddresses = append(privateIPAddresses, *props.PrivateIPAddress)
 				}
 			}
 		}
@@ -273,18 +275,18 @@ func getVirtualMachineScaleSetVMConnectionInfo(ctx context.Context, networkInter
 	}, nil
 }
 
-func flattenVirtualMachineScaleSetVM(input compute.VirtualMachineScaleSetVM, connectionInfo *connectionInfo) map[string]interface{} {
+func flattenVirtualMachineScaleSetVM(input virtualmachinescalesetvms.VirtualMachineScaleSetVM, connectionInfo *connectionInfo) map[string]interface{} {
 	output := make(map[string]interface{})
 	output["name"] = *input.Name
-	output["instance_id"] = *input.InstanceID
+	output["instance_id"] = *input.InstanceId
 
-	if props := input.VirtualMachineScaleSetVMProperties; props != nil {
+	if props := input.Properties; props != nil {
 		if props.LatestModelApplied != nil {
 			output["latest_model_applied"] = *props.LatestModelApplied
 		}
 
-		if props.VMID != nil {
-			output["virtual_machine_id"] = *props.VMID
+		if props.VMId != nil {
+			output["virtual_machine_id"] = *props.VMId
 		}
 
 		if profile := props.OsProfile; profile != nil && profile.ComputerName != nil {

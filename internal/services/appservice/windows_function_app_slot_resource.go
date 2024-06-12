@@ -548,6 +548,7 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 
 			if functionAppSlot.VirtualNetworkSubnetID != "" {
 				siteEnvelope.Properties.VirtualNetworkSubnetId = pointer.To(functionAppSlot.VirtualNetworkSubnetID)
+				siteEnvelope.Properties.ServerFarmId = pointer.To(servicePlanId.ID())
 			}
 
 			if functionAppSlot.KeyVaultReferenceIdentityID != "" {
@@ -587,6 +588,8 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 			if err = client.CreateOrUpdateSlotThenPoll(ctx, id, siteEnvelope); err != nil {
 				return fmt.Errorf("updating properties of Windows %s: %+v", id, err)
 			}
+
+			metadata.SetID(id)
 
 			backupConfig, err := helpers.ExpandBackupConfig(functionAppSlot.Backup)
 			if err != nil {
@@ -636,7 +639,6 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			metadata.SetID(id)
 			return nil
 		},
 	}

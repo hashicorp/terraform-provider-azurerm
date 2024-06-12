@@ -106,7 +106,7 @@ for _, item := range items {
 ctx := context.TODO()
 id := availabilitysets.NewAvailabilitySetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "availabilitySetValue")
 
-payload := availabilitysets.ResourcePatch{
+payload := availabilitysets.AvailabilitySetTagsUpdate{
 	// ...
 }
 

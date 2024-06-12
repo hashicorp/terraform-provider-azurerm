@@ -132,26 +132,26 @@ func parseDynamicMemoryEnabled(input string) (*DynamicMemoryEnabled, error) {
 	return &out, nil
 }
 
-type Force string
+type ForceDelete string
 
 const (
-	ForceFalse Force = "false"
-	ForceTrue  Force = "true"
+	ForceDeleteFalse ForceDelete = "false"
+	ForceDeleteTrue  ForceDelete = "true"
 )
 
-func PossibleValuesForForce() []string {
+func PossibleValuesForForceDelete() []string {
 	return []string{
-		string(ForceFalse),
-		string(ForceTrue),
+		string(ForceDeleteFalse),
+		string(ForceDeleteTrue),
 	}
 }
 
-func (s *Force) UnmarshalJSON(bytes []byte) error {
+func (s *ForceDelete) UnmarshalJSON(bytes []byte) error {
 	var decoded string
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)
 	}
-	out, err := parseForce(decoded)
+	out, err := parseForceDelete(decoded)
 	if err != nil {
 		return fmt.Errorf("parsing %q: %+v", decoded, err)
 	}
@@ -159,17 +159,17 @@ func (s *Force) UnmarshalJSON(bytes []byte) error {
 	return nil
 }
 
-func parseForce(input string) (*Force, error) {
-	vals := map[string]Force{
-		"false": ForceFalse,
-		"true":  ForceTrue,
+func parseForceDelete(input string) (*ForceDelete, error) {
+	vals := map[string]ForceDelete{
+		"false": ForceDeleteFalse,
+		"true":  ForceDeleteTrue,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
 	// otherwise presume it's an undefined value and best-effort it
-	out := Force(input)
+	out := ForceDelete(input)
 	return &out, nil
 }
 
@@ -340,38 +340,38 @@ func parseOsType(input string) (*OsType, error) {
 	return &out, nil
 }
 
-type ProvisioningState string
+type ResourceProvisioningState string
 
 const (
-	ProvisioningStateAccepted     ProvisioningState = "Accepted"
-	ProvisioningStateCanceled     ProvisioningState = "Canceled"
-	ProvisioningStateCreated      ProvisioningState = "Created"
-	ProvisioningStateDeleting     ProvisioningState = "Deleting"
-	ProvisioningStateFailed       ProvisioningState = "Failed"
-	ProvisioningStateProvisioning ProvisioningState = "Provisioning"
-	ProvisioningStateSucceeded    ProvisioningState = "Succeeded"
-	ProvisioningStateUpdating     ProvisioningState = "Updating"
+	ResourceProvisioningStateAccepted     ResourceProvisioningState = "Accepted"
+	ResourceProvisioningStateCanceled     ResourceProvisioningState = "Canceled"
+	ResourceProvisioningStateCreated      ResourceProvisioningState = "Created"
+	ResourceProvisioningStateDeleting     ResourceProvisioningState = "Deleting"
+	ResourceProvisioningStateFailed       ResourceProvisioningState = "Failed"
+	ResourceProvisioningStateProvisioning ResourceProvisioningState = "Provisioning"
+	ResourceProvisioningStateSucceeded    ResourceProvisioningState = "Succeeded"
+	ResourceProvisioningStateUpdating     ResourceProvisioningState = "Updating"
 )
 
-func PossibleValuesForProvisioningState() []string {
+func PossibleValuesForResourceProvisioningState() []string {
 	return []string{
-		string(ProvisioningStateAccepted),
-		string(ProvisioningStateCanceled),
-		string(ProvisioningStateCreated),
-		string(ProvisioningStateDeleting),
-		string(ProvisioningStateFailed),
-		string(ProvisioningStateProvisioning),
-		string(ProvisioningStateSucceeded),
-		string(ProvisioningStateUpdating),
+		string(ResourceProvisioningStateAccepted),
+		string(ResourceProvisioningStateCanceled),
+		string(ResourceProvisioningStateCreated),
+		string(ResourceProvisioningStateDeleting),
+		string(ResourceProvisioningStateFailed),
+		string(ResourceProvisioningStateProvisioning),
+		string(ResourceProvisioningStateSucceeded),
+		string(ResourceProvisioningStateUpdating),
 	}
 }
 
-func (s *ProvisioningState) UnmarshalJSON(bytes []byte) error {
+func (s *ResourceProvisioningState) UnmarshalJSON(bytes []byte) error {
 	var decoded string
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)
 	}
-	out, err := parseProvisioningState(decoded)
+	out, err := parseResourceProvisioningState(decoded)
 	if err != nil {
 		return fmt.Errorf("parsing %q: %+v", decoded, err)
 	}
@@ -379,22 +379,22 @@ func (s *ProvisioningState) UnmarshalJSON(bytes []byte) error {
 	return nil
 }
 
-func parseProvisioningState(input string) (*ProvisioningState, error) {
-	vals := map[string]ProvisioningState{
-		"accepted":     ProvisioningStateAccepted,
-		"canceled":     ProvisioningStateCanceled,
-		"created":      ProvisioningStateCreated,
-		"deleting":     ProvisioningStateDeleting,
-		"failed":       ProvisioningStateFailed,
-		"provisioning": ProvisioningStateProvisioning,
-		"succeeded":    ProvisioningStateSucceeded,
-		"updating":     ProvisioningStateUpdating,
+func parseResourceProvisioningState(input string) (*ResourceProvisioningState, error) {
+	vals := map[string]ResourceProvisioningState{
+		"accepted":     ResourceProvisioningStateAccepted,
+		"canceled":     ResourceProvisioningStateCanceled,
+		"created":      ResourceProvisioningStateCreated,
+		"deleting":     ResourceProvisioningStateDeleting,
+		"failed":       ResourceProvisioningStateFailed,
+		"provisioning": ResourceProvisioningStateProvisioning,
+		"succeeded":    ResourceProvisioningStateSucceeded,
+		"updating":     ResourceProvisioningStateUpdating,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
 	// otherwise presume it's an undefined value and best-effort it
-	out := ProvisioningState(input)
+	out := ResourceProvisioningState(input)
 	return &out, nil
 }

@@ -72,6 +72,22 @@ func resourceStorageContainer() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"default_encryption_scope": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true, // needed because a dummy value is returned when unspecified
+				ForceNew:     true,
+				ValidateFunc: validate.StorageEncryptionScopeName,
+			},
+
+			"encryption_scope_override_enabled": {
+				Type:         pluginsdk.TypeBool,
+				Optional:     true,
+				Default:      true, // defaulting to false would be preferable here, but the API defaults this to true when unspecified
+				ForceNew:     true,
+				RequiredWith: []string{"default_encryption_scope"},
+			},
+
 			"metadata": MetaDataComputedSchema(),
 
 			// TODO: support for ACL's, Legal Holds and Immutability Policies
@@ -95,6 +111,7 @@ func resourceStorageContainer() *pluginsdk.Resource {
 
 func resourceStorageContainerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -106,7 +123,7 @@ func resourceStorageContainerCreate(d *pluginsdk.ResourceData, meta interface{})
 	metaDataRaw := d.Get("metadata").(map[string]interface{})
 	metaData := ExpandMetaData(metaDataRaw)
 
-	account, err := storageClient.FindAccount(ctx, accountName)
+	account, err := storageClient.FindAccount(ctx, subscriptionId, accountName)
 	if err != nil {
 		return fmt.Errorf("retrieving Account %q for Container %q: %v", accountName, containerName, err)
 	}
@@ -147,6 +164,15 @@ func resourceStorageContainerCreate(d *pluginsdk.ResourceData, meta interface{})
 		MetaData:    metaData,
 	}
 
+	if encryptionScope := d.Get("default_encryption_scope"); encryptionScope.(string) != "" {
+		input.DefaultEncryptionScope = encryptionScope.(string)
+		input.EncryptionScopeOverrideDisabled = false
+
+		if encryptionScopeOverrideEnabled := d.Get("encryption_scope_override_enabled"); !encryptionScopeOverrideEnabled.(bool) {
+			input.EncryptionScopeOverrideDisabled = true
+		}
+	}
+
 	if err = containersDataPlaneClient.Create(ctx, containerName, input); err != nil {
 		return fmt.Errorf("creating %s: %v", id, err)
 	}
@@ -158,6 +184,7 @@ func resourceStorageContainerCreate(d *pluginsdk.ResourceData, meta interface{})
 
 func resourceStorageContainerUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -166,7 +193,7 @@ func resourceStorageContainerUpdate(d *pluginsdk.ResourceData, meta interface{})
 		return err
 	}
 
-	account, err := storageClient.FindAccount(ctx, id.AccountId.AccountName)
+	account, err := storageClient.FindAccount(ctx, subscriptionId, id.AccountId.AccountName)
 	if err != nil {
 		return fmt.Errorf("retrieving Account %q for Container %q: %v", id.AccountId.AccountName, id.ContainerName, err)
 	}
@@ -225,7 +252,7 @@ func resourceStorageContainerRead(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
-	account, err := storageClient.FindAccount(ctx, id.AccountId.AccountName)
+	account, err := storageClient.FindAccount(ctx, subscriptionId, id.AccountId.AccountName)
 	if err != nil {
 		return fmt.Errorf("retrieving Account %q for Container %q: %v", id.AccountId.AccountName, id.ContainerName, err)
 	}
@@ -245,7 +272,7 @@ func resourceStorageContainerRead(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("retrieving %s: %v", id, err)
 	}
 	if props == nil {
-		log.Printf("[DEBUG] Container %q was not found in Account %q / Resource Group %q - assuming removed & removing from state", id.ContainerName, id.AccountId.AccountName, account.ResourceGroup)
+		log.Printf("[DEBUG] Container %q was not found in %s - assuming removed & removing from state", id.ContainerName, id.AccountId)
 		d.SetId("")
 		return nil
 	}
@@ -255,6 +282,9 @@ func resourceStorageContainerRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 	d.Set("container_access_type", flattenStorageContainerAccessLevel(props.AccessLevel))
 
+	d.Set("default_encryption_scope", props.DefaultEncryptionScope)
+	d.Set("encryption_scope_override_enabled", !props.EncryptionScopeOverrideDisabled)
+
 	if err = d.Set("metadata", FlattenMetaData(props.MetaData)); err != nil {
 		return fmt.Errorf("setting `metadata`: %v", err)
 	}
@@ -262,7 +292,7 @@ func resourceStorageContainerRead(d *pluginsdk.ResourceData, meta interface{}) e
 	d.Set("has_immutability_policy", props.HasImmutabilityPolicy)
 	d.Set("has_legal_hold", props.HasLegalHold)
 
-	resourceManagerId := commonids.NewStorageContainerID(subscriptionId, account.ResourceGroup, id.AccountId.AccountName, id.ContainerName)
+	resourceManagerId := commonids.NewStorageContainerID(account.StorageAccountId.SubscriptionId, account.StorageAccountId.ResourceGroupName, id.AccountId.AccountName, id.ContainerName)
 	d.Set("resource_manager_id", resourceManagerId.ID())
 
 	return nil
@@ -270,6 +300,7 @@ func resourceStorageContainerRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 func resourceStorageContainerDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -278,7 +309,7 @@ func resourceStorageContainerDelete(d *pluginsdk.ResourceData, meta interface{})
 		return err
 	}
 
-	account, err := storageClient.FindAccount(ctx, id.AccountId.AccountName)
+	account, err := storageClient.FindAccount(ctx, subscriptionId, id.AccountId.AccountName)
 	if err != nil {
 		return fmt.Errorf("retrieving Account %q for Container %q: %v", id.AccountId.AccountName, id.ContainerName, err)
 	}

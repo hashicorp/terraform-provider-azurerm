@@ -6,7 +6,6 @@ package provider
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"strings"
 	"time"
@@ -37,18 +36,6 @@ func ValidatePartnerID(i interface{}, k string) ([]string, []error) {
 	//  * a valid UUID prefixed with "pid-"
 	//  * a valid UUID prefixed with "pid-" and suffixed with "-partnercenter"
 
-	debugLog := func(f string, v ...interface{}) {
-		if os.Getenv("TF_LOG") == "" {
-			return
-		}
-
-		if os.Getenv("TF_ACC") != "" {
-			return
-		}
-
-		log.Printf(f, v...)
-	}
-
 	v, ok := i.(string)
 	if !ok {
 		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
@@ -67,7 +54,7 @@ func ValidatePartnerID(i interface{}, k string) ([]string, []error) {
 			return nil, []error{fmt.Errorf("expected %q to contain a valid UUID", v)}
 		}
 
-		debugLog("[DEBUG] %q partner_id matches pid-<GUID>-partnercenter...", v)
+		logEntry("[DEBUG] %q partner_id matches pid-<GUID>-partnercenter...", v)
 		return nil, nil
 	}
 
@@ -79,7 +66,7 @@ func ValidatePartnerID(i interface{}, k string) ([]string, []error) {
 			return nil, []error{fmt.Errorf("expected %q to be a valid UUID", k)}
 		}
 
-		debugLog("[DEBUG] %q partner_id matches pid-<GUID>...", v)
+		logEntry("[DEBUG] %q partner_id matches pid-<GUID>...", v)
 		return nil, nil
 	}
 
@@ -87,31 +74,18 @@ func ValidatePartnerID(i interface{}, k string) ([]string, []error) {
 	if _, err := validation.IsUUID(v, ""); err != nil {
 		return nil, []error{fmt.Errorf("expected %q to be a valid UUID", k)}
 	} else {
-		debugLog("[DEBUG] %q partner_id is an un-prefixed UUID...", v)
+		logEntry("[DEBUG] %q partner_id is an un-prefixed UUID...", v)
 		return nil, nil
 	}
 }
 
 func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
-	// avoids this showing up in test output
-	debugLog := func(f string, v ...interface{}) {
-		if os.Getenv("TF_LOG") == "" {
-			return
-		}
-
-		if os.Getenv("TF_ACC") != "" {
-			return
-		}
-
-		log.Printf(f, v...)
-	}
-
 	dataSources := make(map[string]*schema.Resource)
 	resources := make(map[string]*schema.Resource)
 
 	// first handle the typed services
 	for _, service := range SupportedTypedServices() {
-		debugLog("[DEBUG] Registering Data Sources for %q..", service.Name())
+		logEntry("[DEBUG] Registering Data Sources for %q..", service.Name())
 		for _, ds := range service.DataSources() {
 			key := ds.ResourceType()
 			if existing := dataSources[key]; existing != nil {
@@ -127,7 +101,7 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 			dataSources[key] = dataSource
 		}
 
-		debugLog("[DEBUG] Registering Resources for %q..", service.Name())
+		logEntry("[DEBUG] Registering Resources for %q..", service.Name())
 		for _, r := range service.Resources() {
 			key := r.ResourceType()
 			if existing := resources[key]; existing != nil {
@@ -145,7 +119,7 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 
 	// then handle the untyped services
 	for _, service := range SupportedUntypedServices() {
-		debugLog("[DEBUG] Registering Data Sources for %q..", service.Name())
+		logEntry("[DEBUG] Registering Data Sources for %q..", service.Name())
 		for k, v := range service.SupportedDataSources() {
 			if existing := dataSources[k]; existing != nil {
 				panic(fmt.Sprintf("An existing Data Source exists for %q", k))
@@ -154,7 +128,7 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 			dataSources[k] = v
 		}
 
-		debugLog("[DEBUG] Registering Resources for %q..", service.Name())
+		logEntry("[DEBUG] Registering Resources for %q..", service.Name())
 		for k, v := range service.SupportedResources() {
 			if existing := resources[k]; existing != nil {
 				panic(fmt.Sprintf("An existing Resource exists for %q", k))
@@ -207,7 +181,7 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 				Type:        schema.TypeString,
 				Required:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_ENVIRONMENT", "public"),
-				Description: "The Cloud Environment which should be used. Possible values are public, usgovernment, and china. Defaults to public.",
+				Description: "The Cloud Environment which should be used. Possible values are public, usgovernment, and china. Defaults to public. Not used and should not be specified when `metadata_host` is specified.",
 			},
 
 			"metadata_host": {
@@ -420,11 +394,15 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 		)
 
 		if metadataHost != "" {
-			if env, err = environments.FromEndpoint(ctx, fmt.Sprintf("https://%s", metadataHost), envName); err != nil {
+			logEntry("[DEBUG] Configuring cloud environment from Metadata Service at %q", metadataHost)
+			if env, err = environments.FromEndpoint(ctx, fmt.Sprintf("https://%s", metadataHost)); err != nil {
 				return nil, diag.FromErr(err)
 			}
-		} else if env, err = environments.FromName(envName); err != nil {
-			return nil, diag.FromErr(err)
+		} else {
+			logEntry("[DEBUG] Configuring built-in cloud environment by name: %q", envName)
+			if env, err = environments.FromName(envName); err != nil {
+				return nil, diag.FromErr(err)
+			}
 		}
 
 		var (
@@ -449,6 +427,8 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 			GitHubOIDCTokenRequestToken: d.Get("oidc_request_token").(string),
 
 			CustomManagedIdentityEndpoint: d.Get("msi_endpoint").(string),
+
+			AzureCliSubscriptionIDHint: d.Get("subscription_id").(string),
 
 			EnableAuthenticatingUsingClientCertificate: true,
 			EnableAuthenticatingUsingClientSecret:      true,

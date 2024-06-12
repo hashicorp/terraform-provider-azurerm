@@ -72,6 +72,7 @@ func (c WebAppsClient) ListInstanceIdentifiersSlotCompleteMatchingPredicate(ctx 
 
 	resp, err := c.ListInstanceIdentifiersSlot(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

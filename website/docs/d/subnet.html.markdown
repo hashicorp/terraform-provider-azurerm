@@ -37,7 +37,8 @@ output "subnet_id" {
 * `network_security_group_id` - The ID of the Network Security Group associated with the subnet.
 * `route_table_id` - The ID of the Route Table associated with this subnet.
 * `service_endpoints` - A list of Service Endpoints within this subnet.
-* `private_endpoint_network_policies_enabled` - Enable or Disable network policies for the private endpoint on the subnet.
+* `default_outbound_access_enabled` - Is the default outbound access enabled for the subnet.
+* `private_endpoint_network_policies` - Enable or Disable network policies for the private endpoint on the subnet.
 * `private_link_service_network_policies_enabled` - Enable or Disable network policies for the private link service on the subnet.
 
 ## Timeouts

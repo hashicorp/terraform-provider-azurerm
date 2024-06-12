@@ -74,8 +74,8 @@ type WorkerProfile struct {
 	VmSize                  string `tfschema:"vm_size"`
 	SubnetId                string `tfschema:"subnet_id"`
 	DiskEncryptionSetId     string `tfschema:"disk_encryption_set_id"`
-	DiskSizeGb              int    `tfschema:"disk_size_gb"`
-	NodeCount               int    `tfschema:"node_count"`
+	DiskSizeGb              int64  `tfschema:"disk_size_gb"`
+	NodeCount               int64  `tfschema:"node_count"`
 	EncryptionAtHostEnabled bool   `tfschema:"encryption_at_host_enabled"`
 }
 
@@ -717,9 +717,9 @@ func expandOpenshiftWorkerProfiles(input []WorkerProfile) *[]openshiftclusters.W
 	profile := openshiftclusters.WorkerProfile{
 		Name:                pointer.To("worker"),
 		VMSize:              pointer.To(input[0].VmSize),
-		DiskSizeGB:          pointer.To(int64(input[0].DiskSizeGb)),
+		DiskSizeGB:          pointer.To(input[0].DiskSizeGb),
 		SubnetId:            pointer.To(input[0].SubnetId),
-		Count:               pointer.To(int64(input[0].NodeCount)),
+		Count:               pointer.To(input[0].NodeCount),
 		EncryptionAtHost:    pointer.To(encryptionAtHost),
 		DiskEncryptionSetId: pointer.To(input[0].DiskEncryptionSetId),
 	}
@@ -753,9 +753,9 @@ func flattenOpenShiftWorkerProfiles(profiles *[]openshiftclusters.WorkerProfile)
 
 	return []WorkerProfile{
 		{
-			NodeCount:               int(pointer.From(profile.Count)),
+			NodeCount:               pointer.From(profile.Count),
 			VmSize:                  pointer.From(profile.VMSize),
-			DiskSizeGb:              int(pointer.From(profile.DiskSizeGB)),
+			DiskSizeGb:              pointer.From(profile.DiskSizeGB),
 			SubnetId:                subnetIdString,
 			EncryptionAtHostEnabled: encryptionAtHostEnabled,
 			DiskEncryptionSetId:     pointer.From(profile.DiskEncryptionSetId),

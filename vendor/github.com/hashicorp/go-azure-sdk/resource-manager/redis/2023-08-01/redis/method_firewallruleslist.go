@@ -72,6 +72,7 @@ func (c RedisClient) FirewallRulesListCompleteMatchingPredicate(ctx context.Cont
 
 	resp, err := c.FirewallRulesList(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

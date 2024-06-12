@@ -37,8 +37,8 @@ type BackendAddressPoolAddressModel struct {
 
 type inboundNATRulePortMapping struct {
 	Name         string `tfschema:"inbound_nat_rule_name"`
-	FrontendPort int32  `tfschema:"frontend_port"`
-	BackendPort  int32  `tfschema:"backend_port"`
+	FrontendPort int64  `tfschema:"frontend_port"`
+	BackendPort  int64  `tfschema:"backend_port"`
 }
 
 func portMapping() *pluginsdk.Schema {
@@ -211,13 +211,10 @@ func (r BackendAddressPoolAddressResource) Create() sdk.ResourceFunc {
 					})
 				}
 
-				backendAddressPool := loadbalancers.BackendAddressPool{
-					Properties: &loadbalancers.BackendAddressPoolPropertiesFormat{
-						LoadBalancerBackendAddresses: &addresses,
-					},
-				}
+				pool.Model.Properties.LoadBalancerBackendAddresses = &addresses
+
 				metadata.Logger.Infof("adding %s..", id)
-				err = lbClient.LoadBalancerBackendAddressPoolsCreateOrUpdateThenPoll(ctx, *poolId, backendAddressPool)
+				err = lbClient.LoadBalancerBackendAddressPoolsCreateOrUpdateThenPoll(ctx, *poolId, *pool.Model)
 				if err != nil {
 					return fmt.Errorf("updating %s: %+v", id, err)
 				}
@@ -308,11 +305,11 @@ func (r BackendAddressPoolAddressResource) Read() sdk.ResourceFunc {
 							rulePortMapping.Name = *rule.InboundNatRuleName
 						}
 						if rule.FrontendPort != nil {
-							rulePortMapping.FrontendPort = int32(*rule.FrontendPort)
+							rulePortMapping.FrontendPort = *rule.FrontendPort
 						}
 
 						if rule.BackendPort != nil {
-							rulePortMapping.BackendPort = int32(*rule.BackendPort)
+							rulePortMapping.BackendPort = *rule.BackendPort
 						}
 						inboundNATRulePortMappingList = append(inboundNATRulePortMappingList, rulePortMapping)
 					}
@@ -478,11 +475,7 @@ func (r BackendAddressPoolAddressResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			backendAddressPool := loadbalancers.BackendAddressPool{
-				Properties: &loadbalancers.BackendAddressPoolPropertiesFormat{
-					LoadBalancerBackendAddresses: &addresses,
-				},
-			}
+			pool.Model.Properties.LoadBalancerBackendAddresses = &addresses
 
 			timeout, _ := ctx.Deadline()
 			lbStatus := &pluginsdk.StateChangeConf{
@@ -499,7 +492,7 @@ func (r BackendAddressPoolAddressResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("waiting for parent resource loadbalancer status to be ready error: %+v", err)
 			}
 
-			err = lbClient.LoadBalancerBackendAddressPoolsCreateOrUpdateThenPoll(ctx, poolId, backendAddressPool)
+			err = lbClient.LoadBalancerBackendAddressPoolsCreateOrUpdateThenPoll(ctx, poolId, *pool.Model)
 			if err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
