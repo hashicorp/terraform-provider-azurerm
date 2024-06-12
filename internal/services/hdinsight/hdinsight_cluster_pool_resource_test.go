@@ -159,7 +159,6 @@ resource "azurerm_hdinsight_cluster_pool" "test" {
     vm_size = "Standard_F4s_v2"
   }
   log_analytics_profile {
-    enabled      = true
     workspace_id = azurerm_log_analytics_workspace.test.id
   }
 }
@@ -211,7 +210,6 @@ resource "azurerm_hdinsight_cluster_pool" "test" {
     version = "1.1"
   }
   log_analytics_profile {
-    enabled      = true
     workspace_id = azurerm_log_analytics_workspace.test.id
   }
   network_profile {

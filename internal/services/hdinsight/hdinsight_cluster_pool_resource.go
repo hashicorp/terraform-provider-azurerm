@@ -43,8 +43,7 @@ type ComputeProfile struct {
 }
 
 type LogAnalyticsProfile struct {
-	LogAnalyticsProfileEnabled bool   `tfschema:"enabled"`
-	WorkspaceId                string `tfschema:"workspace_id"`
+	WorkspaceId string `tfschema:"workspace_id"`
 }
 
 type NetworkProfile struct {
@@ -135,10 +134,6 @@ func (r ClusterPoolResource) Arguments() map[string]*pluginsdk.Schema {
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"enabled": {
-						Type:     pluginsdk.TypeBool,
-						Required: true,
-					},
 					"workspace_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
@@ -383,9 +378,10 @@ func expandLogAnalyticsProfile(profiles []LogAnalyticsProfile) *hdinsights.Clust
 		return nil
 	}
 
-	result := hdinsights.ClusterPoolLogAnalyticsProfile{
-		Enabled:     profiles[0].LogAnalyticsProfileEnabled,
-		WorkspaceId: pointer.To(profiles[0].WorkspaceId),
+	var result hdinsights.ClusterPoolLogAnalyticsProfile
+	if profiles[0].WorkspaceId != "" {
+		result.Enabled = true
+		result.WorkspaceId = pointer.To(profiles[0].WorkspaceId)
 	}
 	return &result
 }
@@ -440,8 +436,7 @@ func flattenLogAnalyticsProfile(input *hdinsights.ClusterPoolLogAnalyticsProfile
 	}
 
 	profile := LogAnalyticsProfile{
-		LogAnalyticsProfileEnabled: input.Enabled,
-		WorkspaceId:                pointer.From(input.WorkspaceId),
+		WorkspaceId: pointer.From(input.WorkspaceId),
 	}
 	result = append(result, profile)
 

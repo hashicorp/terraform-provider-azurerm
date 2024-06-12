@@ -62,8 +62,6 @@ The following arguments are supported:
 
 A `log_analytics_profile` block supports the following:
 
-* `enabled` - (Required) Specifies whether the Log Analytics is enabled.
-
 * `workspace_id` - (Required) The ID of the Log Analytics Workspace.
 
 ---
