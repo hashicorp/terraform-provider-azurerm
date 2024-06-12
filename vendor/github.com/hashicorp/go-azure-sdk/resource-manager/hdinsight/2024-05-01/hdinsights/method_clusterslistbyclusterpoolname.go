@@ -72,6 +72,7 @@ func (c HdinsightsClient) ClustersListByClusterPoolNameCompleteMatchingPredicate
 
 	resp, err := c.ClustersListByClusterPoolName(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

@@ -1,8 +1,13 @@
 package hdinsights
 
+import (
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
+)
+
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ComputeProfile struct {
-	Nodes []NodeProfile `json:"nodes"`
+	AvailabilityZones *zones.Schema `json:"availabilityZones,omitempty"`
+	Nodes             []NodeProfile `json:"nodes"`
 }

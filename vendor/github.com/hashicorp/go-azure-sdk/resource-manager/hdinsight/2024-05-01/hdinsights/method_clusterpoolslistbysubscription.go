@@ -73,6 +73,7 @@ func (c HdinsightsClient) ClusterPoolsListBySubscriptionCompleteMatchingPredicat
 
 	resp, err := c.ClusterPoolsListBySubscription(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
