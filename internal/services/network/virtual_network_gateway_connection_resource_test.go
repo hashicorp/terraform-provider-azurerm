@@ -447,9 +447,6 @@ resource "azurerm_local_network_gateway" "test" {
 }
 
 resource "azurerm_virtual_network_gateway_connection" "test" {
-  lifecycle {
-    ignore_changes = ["shared_key"]
-  }
   name                = "acctest-${var.random}"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -457,6 +454,7 @@ resource "azurerm_virtual_network_gateway_connection" "test" {
   type                       = "IPsec"
   virtual_network_gateway_id = azurerm_virtual_network_gateway.test.id
   local_network_gateway_id   = azurerm_local_network_gateway.test.id
+  shared_key                 = "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -564,6 +562,7 @@ resource "azurerm_virtual_network_gateway_connection" "test" {
   express_route_circuit_id   = azurerm_express_route_circuit.test.id
   authorization_key          = azurerm_express_route_circuit_authorization.test.authorization_key
   routing_weight             = "0"
+  shared_key                 = "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -673,6 +672,7 @@ resource "azurerm_virtual_network_gateway_connection" "test" {
   routing_weight                 = "0"
   express_route_gateway_bypass   = true
   private_link_fast_path_enabled = true
+  shared_key                     = "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -1640,6 +1640,8 @@ resource "azurerm_virtual_network_gateway_connection" "test" {
 
   egress_nat_rule_ids  = [azurerm_virtual_network_gateway_nat_rule.test.id]
   ingress_nat_rule_ids = [azurerm_virtual_network_gateway_nat_rule.test2.id]
+
+  shared_key = "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

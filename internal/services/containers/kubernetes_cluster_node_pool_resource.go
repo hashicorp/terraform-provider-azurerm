@@ -1160,14 +1160,13 @@ func upgradeSettingsSchema() *pluginsdk.Schema {
 	}
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
-		Optional: true,
+		Required: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"max_surge": {
 					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  "10%",
+					Required: true,
 				},
 				"drain_timeout_in_minutes": {
 					Type:     pluginsdk.TypeInt,
