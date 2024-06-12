@@ -33,6 +33,36 @@ func testAccNetworkWatcherFlowLog_basic(t *testing.T) {
 	})
 }
 
+func testAccNetworkWatcherFlowLog_basicWithVirtualNetwork(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
+	r := NetworkWatcherFlowLogResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicConfigWithVirtualNetwork(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func testAccNetworkWatcherFlowLog_basicOldNSGProperty(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
+	r := NetworkWatcherFlowLogResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicConfigOldNSGProperty(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func testAccNetworkWatcherFlowLog_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
 	r := NetworkWatcherFlowLogResource{}
@@ -293,6 +323,55 @@ resource "azurerm_network_watcher_flow_log" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   name                 = "flowlog-%d"
 
+  target_resource_id = azurerm_network_security_group.test.id
+  storage_account_id = azurerm_storage_account.test.id
+  enabled            = true
+
+  retention_policy {
+    enabled = false
+    days    = 0
+  }
+}
+`, r.prerequisites(data), data.RandomInteger)
+}
+
+func (r NetworkWatcherFlowLogResource) basicConfigWithVirtualNetwork(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvn-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_network_watcher_flow_log" "test" {
+  network_watcher_name = azurerm_network_watcher.test.name
+  resource_group_name  = azurerm_resource_group.test.name
+  name                 = "flowlog-%d"
+
+  target_resource_id = azurerm_virtual_network.test.id
+  storage_account_id = azurerm_storage_account.test.id
+  enabled            = true
+
+  retention_policy {
+    enabled = false
+    days    = 0
+  }
+}
+`, r.prerequisites(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (r NetworkWatcherFlowLogResource) basicConfigOldNSGProperty(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_network_watcher_flow_log" "test" {
+  network_watcher_name = azurerm_network_watcher.test.name
+  resource_group_name  = azurerm_resource_group.test.name
+  name                 = "flowlog-%d"
+
   network_security_group_id = azurerm_network_security_group.test.id
   storage_account_id        = azurerm_storage_account.test.id
   enabled                   = true
@@ -314,9 +393,9 @@ resource "azurerm_network_watcher_flow_log" "import" {
   resource_group_name  = azurerm_network_watcher_flow_log.test.resource_group_name
   name                 = azurerm_network_watcher_flow_log.test.name
 
-  network_security_group_id = azurerm_network_watcher_flow_log.test.network_security_group_id
-  storage_account_id        = azurerm_network_watcher_flow_log.test.storage_account_id
-  enabled                   = azurerm_network_watcher_flow_log.test.enabled
+  target_resource_id = azurerm_network_watcher_flow_log.test.target_resource_id
+  storage_account_id = azurerm_network_watcher_flow_log.test.storage_account_id
+  enabled            = azurerm_network_watcher_flow_log.test.enabled
 
   retention_policy {
     enabled = false
@@ -335,9 +414,9 @@ resource "azurerm_network_watcher_flow_log" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   name                 = "flowlog-%d"
 
-  network_security_group_id = azurerm_network_security_group.test.id
-  storage_account_id        = azurerm_storage_account.test.id
-  enabled                   = true
+  target_resource_id = azurerm_network_security_group.test.id
+  storage_account_id = azurerm_storage_account.test.id
+  enabled            = true
 
   retention_policy {
     enabled = true
@@ -367,9 +446,9 @@ resource "azurerm_network_watcher_flow_log" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   name                 = "flowlog-%d"
 
-  network_security_group_id = azurerm_network_security_group.test.id
-  storage_account_id        = azurerm_storage_account.testb.id
-  enabled                   = true
+  target_resource_id = azurerm_network_security_group.test.id
+  storage_account_id = azurerm_storage_account.testb.id
+  enabled            = true
 
   retention_policy {
     enabled = true
@@ -389,9 +468,9 @@ resource "azurerm_network_watcher_flow_log" "test" {
   name                 = "flowlog-%d"
   location             = azurerm_network_watcher.test.location
 
-  network_security_group_id = azurerm_network_security_group.test.id
-  storage_account_id        = azurerm_storage_account.test.id
-  enabled                   = false
+  target_resource_id = azurerm_network_security_group.test.id
+  storage_account_id = azurerm_storage_account.test.id
+  enabled            = false
 
   retention_policy {
     enabled = true
@@ -418,9 +497,9 @@ resource "azurerm_network_watcher_flow_log" "test" {
   name                 = "flowlog-%d"
   location             = azurerm_network_watcher.test.location
 
-  network_security_group_id = azurerm_network_security_group.test.id
-  storage_account_id        = azurerm_storage_account.test.id
-  enabled                   = true
+  target_resource_id = azurerm_network_security_group.test.id
+  storage_account_id = azurerm_storage_account.test.id
+  enabled            = true
 
   retention_policy {
     enabled = true
@@ -454,9 +533,9 @@ resource "azurerm_network_watcher_flow_log" "test" {
   name                 = "flowlog-%d"
   location             = azurerm_network_watcher.test.location
 
-  network_security_group_id = azurerm_network_security_group.test.id
-  storage_account_id        = azurerm_storage_account.test.id
-  enabled                   = true
+  target_resource_id = azurerm_network_security_group.test.id
+  storage_account_id = azurerm_storage_account.test.id
+  enabled            = true
 
   retention_policy {
     enabled = true
@@ -491,9 +570,9 @@ resource "azurerm_network_watcher_flow_log" "test" {
   name                 = "flowlog-%d"
   location             = azurerm_network_watcher.test.location
 
-  network_security_group_id = azurerm_network_security_group.test.id
-  storage_account_id        = azurerm_storage_account.test.id
-  enabled                   = true
+  target_resource_id = azurerm_network_security_group.test.id
+  storage_account_id = azurerm_storage_account.test.id
+  enabled            = true
 
   retention_policy {
     enabled = true
@@ -527,10 +606,10 @@ resource "azurerm_network_watcher_flow_log" "test" {
   name                 = "flowlog-%d"
   location             = azurerm_network_watcher.test.location
 
-  network_security_group_id = azurerm_network_security_group.test.id
-  storage_account_id        = azurerm_storage_account.test.id
-  enabled                   = true
-  version                   = %d
+  target_resource_id = azurerm_network_security_group.test.id
+  storage_account_id = azurerm_storage_account.test.id
+  enabled            = true
+  version            = %d
 
   retention_policy {
     enabled = true
@@ -557,9 +636,9 @@ resource "azurerm_network_watcher_flow_log" "test" {
   name                 = "flowlog-%d"
   location             = azurerm_resource_group.test.location
 
-  network_security_group_id = azurerm_network_security_group.test.id
-  storage_account_id        = azurerm_storage_account.test.id
-  enabled                   = true
+  target_resource_id = azurerm_network_security_group.test.id
+  storage_account_id = azurerm_storage_account.test.id
+  enabled            = true
 
   retention_policy {
     enabled = false
@@ -578,9 +657,9 @@ resource "azurerm_network_watcher_flow_log" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   name                 = "flowlog-%d"
 
-  network_security_group_id = azurerm_network_security_group.test.id
-  storage_account_id        = azurerm_storage_account.test.id
-  enabled                   = true
+  target_resource_id = azurerm_network_security_group.test.id
+  storage_account_id = azurerm_storage_account.test.id
+  enabled            = true
 
   retention_policy {
     enabled = false
