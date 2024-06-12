@@ -179,12 +179,13 @@ func dataSourceNetworkInterface() *pluginsdk.Resource {
 
 	if !features.FourPointOhBeta() {
 		dataSource.Schema["enable_ip_forwarding"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
-		}
+			Type:       pluginsdk.TypeBool,
+			Computed:   true,
+			Deprecated: "The property `enable_ip_forwarding` has been superseded by `ip_forwarding_enabled` and will be removed in v4.0 of the AzureRM Provider."}
 		dataSource.Schema["enable_accelerated_networking"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Type:       pluginsdk.TypeBool,
+			Computed:   true,
+			Deprecated: "The property `enable_accelerated_networking` has been superseded by `accelerated_networking_enabled` and will be removed in v4.0 of the AzureRM Provider.",
 		}
 	}
 	return dataSource
