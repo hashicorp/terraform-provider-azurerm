@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/expressroutegateways"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -252,7 +251,7 @@ func resourceExpressRouteConnectionRead(d *pluginsdk.ResourceData, meta interfac
 			if v := props.ExpressRouteCircuitPeering.Id; v != nil {
 				circuitPeeringID = *v
 			}
-			peeringId, err := parse.ExpressRouteCircuitPeeringIDInsensitively(circuitPeeringID)
+			peeringId, err := commonids.ParseExpressRouteCircuitPeeringIDInsensitively(circuitPeeringID)
 			if err != nil {
 				return err
 			}

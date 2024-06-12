@@ -55,7 +55,7 @@ func (CustomIpPrefixResource) ModelObject() interface{} {
 }
 
 func (CustomIpPrefixResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.CustomIpPrefixID
+	return customipprefixes.ValidateCustomIPPrefixID
 }
 func (r CustomIpPrefixResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
@@ -93,7 +93,7 @@ func (r CustomIpPrefixResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.CustomIpPrefixID,
+			ValidateFunc: customipprefixes.ValidateCustomIPPrefixID,
 		},
 
 		"roa_validity_end_date": {
