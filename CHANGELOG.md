@@ -4,6 +4,7 @@ ENHANCEMENTS:
 
 * provider: support subscription ID hinting when using Azure CLI authentication [GH-26282]
 * `serviceconnector`: updating to use API Version `2024-04-01` [GH-26248]
+* `azurerm_container_groups` - Container Groups running Windows can be created with a User Assigned Identity [GH-26308]
 * `azurerm_kubernetes_cluster` - updating `network_profile.network_policy` to `azure` and `calico` when it hasn't been previously set is supported [GH-26176]
 * `azurerm_kubernetes_cluster` - respect Pod Distruption Budgets when rotating the `default_node_pool` [GH-26274]
 * `azurerm_lb_backend_address_pool` - support for the `synchronous_mode` property [GH-26309]
@@ -15,6 +16,13 @@ BUG FIXES:
 * `azurerm_route_filter` - split create and update [GH-26266]
 * `azurerm_route_server` - split create and update [GH-26266]
 * `azurerm_virtual_network` - Fix Parsing of NSG ID [GH-26283]
+
+DEPRECATIONS:
+
+* Data Source: `azurerm_network_interface` - the properties `enable_ip_forwarding` and `enable_accelerated_networking` have been deprecated and superseded by the properties `ip_forwarding_enabled` and `accelerated_networking_enabled` [GH-26293]
+* `azurerm_api_management` - the `policy` block has been deprecated is superseded by the `azurerm_api_management_policy` resource [GH-26305]
+* `azurerm_kubernetes_cluster` - the property `ebpf_data_plane` has been deprecated and superseded by the property `network_data_plane` [GH-26251]
+* `azurerm_network_interface` - the properties `enable_ip_forwarding` and `enable_accelerated_networking` have been deprecated and superseded by the properties `ip_forwarding_enabled` and `accelerated_networking_enabled` [GH-26293]
 
 ## 3.107.0 (June 06, 2024)
 
