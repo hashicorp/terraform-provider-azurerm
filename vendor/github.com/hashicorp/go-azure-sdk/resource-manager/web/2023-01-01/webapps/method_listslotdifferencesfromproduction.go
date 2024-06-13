@@ -73,6 +73,7 @@ func (c WebAppsClient) ListSlotDifferencesFromProductionCompleteMatchingPredicat
 
 	resp, err := c.ListSlotDifferencesFromProduction(ctx, id, input)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

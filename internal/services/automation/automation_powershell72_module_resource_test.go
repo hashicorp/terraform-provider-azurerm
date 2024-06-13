@@ -206,6 +206,10 @@ resource "azurerm_automation_powershell72_module" "test" {
       value     = "5277774C7D6FC0E60986519D2D16C7100B9948B2D0B62091ED7B489A252F0F6D"
     }
   }
+
+  tags = {
+    Env = "ACC"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

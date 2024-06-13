@@ -100,6 +100,7 @@ func (c SnapshotsClient) VolumeSnapshotsListByVolumeGroupCompleteMatchingPredica
 
 	resp, err := c.VolumeSnapshotsListByVolumeGroup(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

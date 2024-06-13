@@ -73,6 +73,7 @@ func (c GalleryImagesClient) ListAllCompleteMatchingPredicate(ctx context.Contex
 
 	resp, err := c.ListAll(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

@@ -190,12 +190,9 @@ func (BackendAddressPoolAddressResourceTests) Destroy(ctx context.Context, clien
 		}
 	}
 
-	backendAddressPool := loadbalancers.BackendAddressPool{
-		Properties: &loadbalancers.BackendAddressPoolPropertiesFormat{
-			LoadBalancerBackendAddresses: &newAddresses,
-		},
-	}
-	err = client.LoadBalancers.LoadBalancersClient.LoadBalancerBackendAddressPoolsCreateOrUpdateThenPoll(ctx, poolId, backendAddressPool)
+	pool.Model.Properties.LoadBalancerBackendAddresses = &newAddresses
+
+	err = client.LoadBalancers.LoadBalancersClient.LoadBalancerBackendAddressPoolsCreateOrUpdateThenPoll(ctx, poolId, *pool.Model)
 	if err != nil {
 		return nil, fmt.Errorf("updating %s: %+v", *id, err)
 	}

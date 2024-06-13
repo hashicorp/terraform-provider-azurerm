@@ -72,6 +72,7 @@ func (c ProductPolicyClient) ListByProductCompleteMatchingPredicate(ctx context.
 
 	resp, err := c.ListByProduct(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

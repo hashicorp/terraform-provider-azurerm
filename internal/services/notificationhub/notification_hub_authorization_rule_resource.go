@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/notificationhubs/2017-04-01/notificationhubs"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -83,13 +84,27 @@ func resourceNotificationHubAuthorizationRule() *pluginsdk.Resource {
 			},
 
 			"primary_access_key": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: features.FourPointOhBeta(),
 			},
 
 			"secondary_access_key": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: features.FourPointOhBeta(),
+			},
+
+			"primary_connection_string": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"secondary_connection_string": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 		},
 	}
@@ -181,6 +196,8 @@ func resourceNotificationHubAuthorizationRuleRead(d *pluginsdk.ResourceData, met
 	if keysModel := keysResp.Model; keysModel != nil {
 		d.Set("primary_access_key", keysModel.PrimaryKey)
 		d.Set("secondary_access_key", keysModel.SecondaryKey)
+		d.Set("primary_connection_string", keysModel.PrimaryConnectionString)
+		d.Set("secondary_connection_string", keysModel.SecondaryConnectionString)
 	}
 
 	return nil

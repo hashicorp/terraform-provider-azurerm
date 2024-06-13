@@ -27,7 +27,7 @@ type MsSqlManagedDatabaseModel struct {
 	Name                    string                    `tfschema:"name"`
 	ManagedInstanceId       string                    `tfschema:"managed_instance_id"`
 	LongTermRetentionPolicy []LongTermRetentionPolicy `tfschema:"long_term_retention_policy"`
-	ShortTermRetentionDays  int32                     `tfschema:"short_term_retention_days"`
+	ShortTermRetentionDays  int64                     `tfschema:"short_term_retention_days"`
 	PointInTimeRestore      []PointInTimeRestore      `tfschema:"point_in_time_restore"`
 }
 
@@ -35,7 +35,7 @@ type LongTermRetentionPolicy struct {
 	WeeklyRetention  string `tfschema:"weekly_retention"`
 	MonthlyRetention string `tfschema:"monthly_retention"`
 	YearlyRetention  string `tfschema:"yearly_retention"`
-	WeekOfYear       int32  `tfschema:"week_of_year"`
+	WeekOfYear       int64  `tfschema:"week_of_year"`
 }
 
 type PointInTimeRestore struct {
@@ -205,7 +205,7 @@ func (r MsSqlManagedDatabaseResource) Create() sdk.ResourceFunc {
 
 				shortTermRetentionPolicy := sql.ManagedBackupShortTermRetentionPolicy{
 					ManagedBackupShortTermRetentionPolicyProperties: &sql.ManagedBackupShortTermRetentionPolicyProperties{
-						RetentionDays: pointer.To(model.ShortTermRetentionDays),
+						RetentionDays: pointer.To(int32(model.ShortTermRetentionDays)),
 					},
 				}
 				if _, err := shortTermRetentionClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ManagedInstanceName, id.DatabaseName, shortTermRetentionPolicy); err != nil {
@@ -263,7 +263,7 @@ func (r MsSqlManagedDatabaseResource) Update() sdk.ResourceFunc {
 
 				shortTermRetentionPolicy := sql.ManagedBackupShortTermRetentionPolicy{
 					ManagedBackupShortTermRetentionPolicyProperties: &sql.ManagedBackupShortTermRetentionPolicyProperties{
-						RetentionDays: pointer.To(model.ShortTermRetentionDays),
+						RetentionDays: pointer.To(int32(model.ShortTermRetentionDays)),
 					},
 				}
 				if _, err := shortTermRetentionClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ManagedInstanceName, id.DatabaseName, shortTermRetentionPolicy); err != nil {
@@ -322,7 +322,7 @@ func (r MsSqlManagedDatabaseResource) Read() sdk.ResourceFunc {
 			}
 
 			if shortTermRetentionResp.RetentionDays != nil {
-				model.ShortTermRetentionDays = *shortTermRetentionResp.RetentionDays
+				model.ShortTermRetentionDays = int64(*shortTermRetentionResp.RetentionDays)
 			}
 
 			d := metadata.ResourceData
@@ -365,7 +365,7 @@ func expandLongTermRetentionPolicy(ltrPolicy []LongTermRetentionPolicy) sql.Base
 		WeeklyRetention:  &ltrPolicy[0].WeeklyRetention,
 		MonthlyRetention: &ltrPolicy[0].MonthlyRetention,
 		YearlyRetention:  &ltrPolicy[0].YearlyRetention,
-		WeekOfYear:       &ltrPolicy[0].WeekOfYear,
+		WeekOfYear:       pointer.To(int32(ltrPolicy[0].WeekOfYear)),
 	}
 }
 
@@ -395,7 +395,7 @@ func flattenLongTermRetentionPolicy(ltrPolicy sql.ManagedInstanceLongTermRetenti
 	}
 
 	if ltrPolicy.WeekOfYear != nil {
-		ltrModel.WeekOfYear = *ltrPolicy.WeekOfYear
+		ltrModel.WeekOfYear = int64(*ltrPolicy.WeekOfYear)
 	}
 
 	return []LongTermRetentionPolicy{ltrModel}

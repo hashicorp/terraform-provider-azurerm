@@ -104,6 +104,7 @@ func (c RecordSetsClient) ListByTypeCompleteMatchingPredicate(ctx context.Contex
 
 	resp, err := c.ListByType(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
