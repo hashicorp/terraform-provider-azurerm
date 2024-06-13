@@ -25,8 +25,8 @@ var _ sdk.DataSource = RoleManagementPolicyDataSource{}
 type RoleManagementPolicyDataSourceModel struct {
 	Scope                   string                                                  `tfschema:"scope"`
 	RoleDefinitionId        string                                                  `tfschema:"role_definition_id"`
-	Description             *string                                                 `tfschema:"description"`
-	DisplayName             *string                                                 `tfschema:"display_name"`
+	Name                    string                                                  `tfschema:"name"`
+	Description             string                                                  `tfschema:"description"`
 	ActiveAssignmentRules   []RoleManagementPolicyDataSourceActiveAssignmentRules   `tfschema:"active_assignment_rules"`
 	EligibleAssignmentRules []RoleManagementPolicyDataSourceEligibleAssignmentRules `tfschema:"eligible_assignment_rules"`
 	ActivationRules         []RoleManagementPolicyDataSourceActivationRules         `tfschema:"activation_rules"`
@@ -84,20 +84,7 @@ type RoleManagementPolicyDataSourceNotificationSettings struct {
 }
 
 func (r RoleManagementPolicyDataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return func(input interface{}, key string) (warnings []string, errors []error) {
-		v, ok := input.(string)
-		if !ok {
-			errors = append(errors, fmt.Errorf("expected %q to be a string", key))
-			return
-		}
-
-		_, err := rolemanagementpolicies.ParseScopedRoleManagementPolicyID(v)
-		if err != nil {
-			errors = append(errors, err)
-		}
-
-		return
-	}
+	return rolemanagementpolicies.ValidateScopedRoleManagementPolicyID
 }
 
 func (r RoleManagementPolicyDataSource) ResourceType() string {
@@ -110,18 +97,22 @@ func (r RoleManagementPolicyDataSource) ModelObject() interface{} {
 
 func (r RoleManagementPolicyDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"scope": {
-			Description:  "The scope of the role to which this policy will apply",
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: validation.StringStartsWithOneOf("/subscriptions/", "/providers/Microsoft.Management/managementGroups/"),
-		},
-
 		"role_definition_id": {
 			Description:  "ID of the Azure Role to which this policy is assigned",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringMatch(regexp.MustCompile("/providers/Microsoft.Authorization/roleDefinitions/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"), "should be in the format /providers/Microsoft.Authorization/roleDefinitions/00000000-0000-0000-0000-000000000000"),
+		},
+
+		"scope": {
+			Description: "The scope of the role to which this policy will apply",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ValidateFunc: validation.Any(
+				commonids.ValidateManagementGroupID,
+				commonids.ValidateResourceGroupID,
+				commonids.ValidateSubscriptionID,
+			),
 		},
 	}
 }
@@ -136,12 +127,6 @@ func (r RoleManagementPolicyDataSource) Attributes() map[string]*pluginsdk.Schem
 
 		"description": {
 			Description: "The Description of the policy",
-			Type:        pluginsdk.TypeString,
-			Computed:    true,
-		},
-
-		"display_name": {
-			Description: "The display name of the policy",
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
 		},
@@ -325,45 +310,35 @@ func (r RoleManagementPolicyDataSource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Authorization.RoleManagementPoliciesClient
 
-			var id *rolemanagementpolicies.ScopedRoleManagementPolicyId
-
-			scope := metadata.ResourceData.Get("scope").(string)
-			roleDefinitionId := metadata.ResourceData.Get("role_definition_id").(string)
-
-			// We need to find the Assignment to get the Role Definition ID
-			assigns, err := metadata.Client.Authorization.RoleManagementPolicyAssignmentsClient.ListForScope(ctx, commonids.NewScopeID(scope))
-			if err != nil {
-				return fmt.Errorf("failed to list Role Management Policy Assignments for scope %s. %+v", scope, err)
+			var config RoleManagementPolicyModel
+			if err := metadata.Decode(&config); err != nil {
+				return fmt.Errorf("decoding %+v", err)
 			}
 
-			for _, assignment := range *assigns.Model {
-				if *assignment.Properties.RoleDefinitionId == roleDefinitionId {
-					id, err = rolemanagementpolicies.ParseScopedRoleManagementPolicyID(*assignment.Properties.PolicyId)
-					if err != nil {
-						return err
-					}
-					break
-				}
+			id, err := FindRoleManagementPolicyId(ctx, metadata.Client.Authorization.RoleManagementPoliciesClient, config.Scope, config.RoleDefinitionId)
+			if err != nil {
+				return err
 			}
 
 			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
-					return fmt.Errorf("role management policy %s not found", id.ID())
+					return fmt.Errorf("could not find Role Management Policy for Role Definition %q and Scope %q", config.RoleDefinitionId, config.Scope)
 				}
 
-				return fmt.Errorf("retrieving %s: %+v", id, err)
+				return fmt.Errorf("retrieving Role Management Policy for Role Definition %q and Scope %q: %+v", config.RoleDefinitionId, config.Scope, err)
 			}
 
 			state := RoleManagementPolicyDataSourceModel{
-				Scope:            id.Scope,
-				RoleDefinitionId: roleDefinitionId,
+				Scope:            config.Scope,
+				RoleDefinitionId: config.RoleDefinitionId,
 			}
 
 			if model := resp.Model; model != nil {
+				state.Name = pointer.From(model.Name)
+
 				if prop := model.Properties; prop != nil {
-					state.Description = prop.Description
-					state.DisplayName = prop.DisplayName
+					state.Description = pointer.From(prop.Description)
 
 					// Create the rules structure so we can populate them
 					if len(state.EligibleAssignmentRules) == 0 {

@@ -10,49 +10,21 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/rolemanagementpolicies"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/parse"
 )
 
 type RoleManagementPolicyResource struct{}
-
-func TestRoleManagementPolicy_resourceGroup(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_role_management_policy", "test")
-	r := RoleManagementPolicyResource{}
-
-	// Ignore the dangling resource post-test as the policy remains while the group is in a pending deletion state
-	data.ResourceTestSkipCheckDestroyed(t, []acceptance.TestStep{
-		{
-			Config: r.resourceGroupCreate(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("active_assignment_rules.0.expire_after").HasValue("P180D"),
-				check.That(data.ResourceName).Key("eligible_assignment_rules.0.expiration_required").HasValue("false"),
-				check.That(data.ResourceName).Key("notification_rules.0.eligible_assignments.0.approver_notifications.0.notification_level").HasValue("Critical"),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.resourceGroupUpdate(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("active_assignment_rules.0.expire_after").HasValue("P365D"),
-				check.That(data.ResourceName).Key("eligible_assignment_rules.0.expiration_required").HasValue("false"),
-				check.That(data.ResourceName).Key("activation_rules.0.approval_stage.0.primary_approver.0.type").HasValue("Group"),
-				check.That(data.ResourceName).Key("notification_rules.0.eligible_assignments.0.approver_notifications.0.notification_level").HasValue("Critical"),
-			),
-		},
-	})
-}
 
 func TestRoleManagementPolicy_managementGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_management_policy", "test")
 	r := RoleManagementPolicyResource{}
 
-	// Ignore the dangling resource post-test as the policy remains while the group is in a pending deletion state
+	// Ignore the dangling resource post-test as the policy remains while the management group exists, or is in a pending deletion state
 	data.ResourceTestSkipCheckDestroyed(t, []acceptance.TestStep{
 		{
 			Config: r.managementGroup(data),
@@ -67,123 +39,88 @@ func TestRoleManagementPolicy_managementGroup(t *testing.T) {
 	})
 }
 
+func TestRoleManagementPolicy_resourceGroup(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_role_management_policy", "test")
+	r := RoleManagementPolicyResource{}
+
+	// Ignore the dangling resource post-test as the policy remains while the resource group exists, or is in a pending deletion state
+	data.ResourceTestSkipCheckDestroyed(t, []acceptance.TestStep{
+		{
+			Config: r.resourceGroup(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("active_assignment_rules.0.expire_after").HasValue("P30D"),
+				check.That(data.ResourceName).Key("eligible_assignment_rules.0.expiration_required").HasValue("false"),
+				check.That(data.ResourceName).Key("notification_rules.0.eligible_assignments.0.approver_notifications.0.notification_level").HasValue("All"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.resourceGroupUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("active_assignment_rules.0.expire_after").HasValue("P15D"),
+				check.That(data.ResourceName).Key("eligible_assignment_rules.0.expiration_required").HasValue("true"),
+				check.That(data.ResourceName).Key("activation_rules.0.approval_stage.0.primary_approver.0.type").HasValue("Group"),
+				check.That(data.ResourceName).Key("notification_rules.0.eligible_assignments.0.approver_notifications.0.notification_level").HasValue("Critical"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestRoleManagementPolicy_subscription(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_role_management_policy", "test")
+	r := RoleManagementPolicyResource{}
+
+	// Ignore the dangling resource post-test as the policy remains while the management group exists, or is in a pending deletion state
+	data.ResourceTestSkipCheckDestroyed(t, []acceptance.TestStep{
+		{
+			Config: r.subscription(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("active_assignment_rules.0.expire_after").HasValue("P180D"),
+				check.That(data.ResourceName).Key("eligible_assignment_rules.0.expiration_required").HasValue("false"),
+				check.That(data.ResourceName).Key("notification_rules.0.eligible_assignments.0.approver_notifications.0.notification_level").HasValue("Critical"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.subscriptionUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("active_assignment_rules.0.expire_after").HasValue("P365D"),
+				check.That(data.ResourceName).Key("eligible_assignment_rules.0.expiration_required").HasValue("false"),
+				check.That(data.ResourceName).Key("activation_rules.0.approval_stage.0.primary_approver.0.type").HasValue("Group"),
+				check.That(data.ResourceName).Key("notification_rules.0.eligible_assignments.0.approver_notifications.0.notification_level").HasValue("Critical"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (RoleManagementPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	client := clients.Authorization.RoleManagementPoliciesClient
 
-	id, err := rolemanagementpolicies.ParseScopedRoleManagementPolicyID(state.ID)
+	id, err := parse.RoleManagementPolicyID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.Get(ctx, *id)
+	policyId, err := authorization.FindRoleManagementPolicyId(ctx, clients.Authorization.RoleManagementPoliciesClient, id.Scope, id.RoleDefinitionId)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := client.Get(ctx, *policyId)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return pointer.To(false), nil
 		}
-		return nil, fmt.Errorf("failed to retrieve role management policy with ID %q: %+v", state.ID, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", policyId, err)
 	}
 
 	return pointer.To(true), nil
-}
-
-func resourceGroupBase(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]s"
-  location = "%[2]s"
-}
-
-data "azurerm_role_definition" "contributor" {
-  name  = "Contributor"
-  scope = azurerm_resource_group.test.id
-}
-`, data.RandomString, data.Locations.Primary)
-}
-
-func (RoleManagementPolicyResource) resourceGroupCreate(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_role_management_policy" "test" {
-  scope              = azurerm_resource_group.test.id
-  role_definition_id = data.azurerm_role_definition.contributor.id
-
-  active_assignment_rules {
-    expire_after = "P180D"
-  }
-
-  eligible_assignment_rules {
-    expiration_required = false
-  }
-
-  notification_rules {
-    eligible_assignments {
-      approver_notifications {
-        notification_level    = "Critical"
-        default_recipients    = false
-        additional_recipients = ["someone@example.com"]
-      }
-    }
-  }
-}
-`, resourceGroupBase(data), data.RandomString)
-}
-
-func (RoleManagementPolicyResource) resourceGroupUpdate(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%[1]s
-
-provider "azuread" {}
-
-resource "azuread_group" "approver" {
-  display_name     = "PIM Approver Test %[2]s"
-  mail_enabled     = false
-  security_enabled = true
-}
-
-resource "azurerm_role_management_policy" "test" {
-  scope              = azurerm_resource_group.test.id
-  role_definition_id = data.azurerm_role_definition.contributor.id
-
-  active_assignment_rules {
-    expire_after = "P365D"
-  }
-
-  eligible_assignment_rules {
-    expiration_required = false
-  }
-
-  activation_rules {
-    maximum_duration = "PT1H"
-    require_approval = true
-    approval_stage {
-      primary_approver {
-        object_id = azuread_group.approver.object_id
-        type      = "Group"
-      }
-    }
-  }
-
-  notification_rules {
-    eligible_assignments {
-      approver_notifications {
-        notification_level    = "Critical"
-        default_recipients    = false
-        additional_recipients = ["someone@example.com"]
-      }
-    }
-    eligible_activations {
-      assignee_notifications {
-        notification_level    = "All"
-        default_recipients    = true
-        additional_recipients = ["someone.else@example.com"]
-      }
-    }
-  }
-}
-`, resourceGroupBase(data), data.RandomString)
 }
 
 func (RoleManagementPolicyResource) managementGroup(data acceptance.TestData) string {
@@ -248,4 +185,201 @@ resource "azurerm_role_management_policy" "test" {
   }
 }
 `, data.RandomString)
+}
+
+func (RoleManagementPolicyResource) resourceGroupTemplate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]s"
+  location = "%[2]s"
+}
+
+data "azurerm_role_definition" "contributor" {
+  name  = "Contributor"
+  scope = azurerm_resource_group.test.id
+}
+`, data.RandomString, data.Locations.Primary)
+}
+
+func (r RoleManagementPolicyResource) resourceGroup(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_role_management_policy" "test" {
+  scope              = azurerm_resource_group.test.id
+  role_definition_id = data.azurerm_role_definition.contributor.id
+
+  active_assignment_rules {
+    expire_after = "P30D"
+  }
+
+  eligible_assignment_rules {
+    expiration_required = false
+  }
+
+  notification_rules {
+    eligible_assignments {
+      approver_notifications {
+        notification_level    = "All"
+        default_recipients    = false
+        additional_recipients = ["someone@example.com"]
+      }
+    }
+  }
+}
+`, r.resourceGroupTemplate(data), data.RandomString)
+}
+
+func (r RoleManagementPolicyResource) resourceGroupUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+provider "azuread" {}
+
+resource "azuread_group" "approver" {
+  display_name     = "PIM Approver Test %[2]s"
+  mail_enabled     = false
+  security_enabled = true
+}
+
+resource "azurerm_role_management_policy" "test" {
+  scope              = azurerm_resource_group.test.id
+  role_definition_id = data.azurerm_role_definition.contributor.id
+
+  active_assignment_rules {
+    expire_after = "P15D"
+  }
+
+  eligible_assignment_rules {
+    expiration_required = true
+  }
+
+  activation_rules {
+    maximum_duration = "PT1H"
+    require_approval = true
+    approval_stage {
+      primary_approver {
+        object_id = azuread_group.approver.object_id
+        type      = "Group"
+      }
+    }
+  }
+
+  notification_rules {
+    eligible_assignments {
+      approver_notifications {
+        notification_level    = "Critical"
+        default_recipients    = false
+        additional_recipients = ["someone@example.com"]
+      }
+    }
+    eligible_activations {
+      assignee_notifications {
+        notification_level    = "All"
+        default_recipients    = true
+        additional_recipients = ["someone.else@example.com"]
+      }
+    }
+  }
+}
+`, r.resourceGroupTemplate(data), data.RandomString)
+}
+
+func (RoleManagementPolicyResource) subscriptionTemplate(data acceptance.TestData) string {
+	return `
+provider "azurerm" {}
+
+data "azurerm_subscription" "test" {}
+
+data "azurerm_role_definition" "contributor" {
+  name  = "Contributor"
+  scope = data.azurerm_subscription.test.id
+}
+`
+}
+
+func (r RoleManagementPolicyResource) subscription(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_role_management_policy" "test" {
+  scope              = data.azurerm_subscription.test.id
+  role_definition_id = data.azurerm_role_definition.contributor.id
+
+  active_assignment_rules {
+    expire_after = "P180D"
+  }
+
+  eligible_assignment_rules {
+    expiration_required = false
+  }
+
+  notification_rules {
+    eligible_assignments {
+      approver_notifications {
+        notification_level    = "Critical"
+        default_recipients    = false
+        additional_recipients = ["someone@example.com"]
+      }
+    }
+  }
+}
+`, r.subscriptionTemplate(data), data.RandomString)
+}
+
+func (r RoleManagementPolicyResource) subscriptionUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+provider "azuread" {}
+
+resource "azuread_group" "approver" {
+  display_name     = "PIM Approver Test %[2]s"
+  mail_enabled     = false
+  security_enabled = true
+}
+
+resource "azurerm_role_management_policy" "test" {
+  scope              = data.azurerm_subscription.test.id
+  role_definition_id = data.azurerm_role_definition.contributor.id
+
+  active_assignment_rules {
+    expire_after = "P365D"
+  }
+
+  eligible_assignment_rules {
+    expiration_required = false
+  }
+
+  activation_rules {
+    maximum_duration = "PT1H"
+    require_approval = true
+    approval_stage {
+      primary_approver {
+        object_id = azuread_group.approver.object_id
+        type      = "Group"
+      }
+    }
+  }
+
+  notification_rules {
+    eligible_assignments {
+      approver_notifications {
+        notification_level    = "Critical"
+        default_recipients    = false
+        additional_recipients = ["someone@example.com"]
+      }
+    }
+    eligible_activations {
+      assignee_notifications {
+        notification_level    = "All"
+        default_recipients    = true
+        additional_recipients = ["someone.else@example.com"]
+      }
+    }
+  }
+}
+`, r.subscriptionTemplate(data), data.RandomString)
 }

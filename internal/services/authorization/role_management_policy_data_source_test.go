@@ -4,34 +4,14 @@
 package authorization_test
 
 import (
-	"context"
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/rolemanagementpolicies"
-	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 )
 
 type RoleManagementPolicyDataSource struct{}
-
-func TestRoleManagementPolicyDataSource_resourceGroup(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_role_management_policy", "test")
-	r := RoleManagementPolicyDataSource{}
-
-	data.DataSourceTest(t, []acceptance.TestStep{
-		{
-			Config: r.resourceGroup(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-	})
-}
 
 func TestRoleManagementPolicyDataSource_managementGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_role_management_policy", "test")
@@ -41,50 +21,38 @@ func TestRoleManagementPolicyDataSource_managementGroup(t *testing.T) {
 		{
 			Config: r.managementGroup(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("name").Exists(),
 			),
 		},
 	})
 }
 
-func (RoleManagementPolicyDataSource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	client := clients.Authorization.RoleManagementPoliciesClient
+func TestRoleManagementPolicyDataSource_resourceGroup(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_role_management_policy", "test")
+	r := RoleManagementPolicyDataSource{}
 
-	id, err := rolemanagementpolicies.ParseScopedRoleManagementPolicyID(state.ID)
-	if err != nil {
-		return nil, err
-	}
-
-	resp, err := client.Get(ctx, *id)
-	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
-			return pointer.To(false), nil
-		}
-		return nil, fmt.Errorf("failed to retrieve role management policy with ID %q: %+v", state.ID, err)
-	}
-
-	return pointer.To(true), nil
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.resourceGroup(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("name").Exists(),
+			),
+		},
+	})
 }
 
-func (RoleManagementPolicyDataSource) resourceGroup(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {}
+func TestRoleManagementPolicyDataSource_subscription(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_role_management_policy", "test")
+	r := RoleManagementPolicyDataSource{}
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]s"
-  location = "%[2]s"
-}
-
-data "azurerm_role_definition" "contributor" {
-  name  = "Contributor"
-  scope = azurerm_resource_group.test.id
-}
-
-data "azurerm_role_management_policy" "test" {
-  scope              = azurerm_resource_group.test.id
-  role_definition_id = data.azurerm_role_definition.contributor.id
-}
-`, data.RandomString, data.Locations.Primary)
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.subscription(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("name").Exists(),
+			),
+		},
+	})
 }
 
 func (RoleManagementPolicyDataSource) managementGroup(data acceptance.TestData) string {
@@ -104,8 +72,47 @@ data "azurerm_role_definition" "contributor" {
 }
 
 data "azurerm_role_management_policy" "test" {
-  scope              = azurerm_management_group.test.id
   role_definition_id = data.azurerm_role_definition.contributor.id
+  scope              = azurerm_management_group.test.id
 }
 `, data.RandomString)
+}
+
+func (RoleManagementPolicyDataSource) resourceGroup(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]s"
+  location = "%[2]s"
+}
+
+data "azurerm_role_definition" "contributor" {
+  name  = "Contributor"
+  scope = azurerm_resource_group.test.id
+}
+
+data "azurerm_role_management_policy" "test" {
+  role_definition_id = data.azurerm_role_definition.contributor.id
+  scope              = azurerm_resource_group.test.id
+}
+`, data.RandomString, data.Locations.Primary)
+}
+
+func (RoleManagementPolicyDataSource) subscription(data acceptance.TestData) string {
+	return `
+provider "azurerm" {}
+
+data "azurerm_subscription" "test" {}
+
+data "azurerm_role_definition" "contributor" {
+  name  = "Contributor"
+  scope = data.azurerm_subscription.test.id
+}
+
+data "azurerm_role_management_policy" "test" {
+  role_definition_id = data.azurerm_role_definition.contributor.id
+  scope              = data.azurerm_subscription.test.id
+}
+`
 }
