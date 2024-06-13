@@ -155,10 +155,9 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 			"target_edge_zone": commonschema.EdgeZoneOptionalForceNew(),
 
 			"unmanaged_disk": {
-				Type:       pluginsdk.TypeSet,
-				ConfigMode: pluginsdk.SchemaConfigModeAttr,
-				Optional:   true,
-				ForceNew:   true,
+				Type:     pluginsdk.TypeSet,
+				Optional: true,
+				ForceNew: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"disk_uri": {
@@ -192,11 +191,10 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 			},
 
 			"managed_disk": {
-				Type:       pluginsdk.TypeSet,
-				ConfigMode: pluginsdk.SchemaConfigModeAttr,
-				Optional:   true,
-				ForceNew:   true,
-				Set:        resourceSiteRecoveryReplicatedVMDiskHash,
+				Type:     pluginsdk.TypeSet,
+				Optional: true,
+				ForceNew: true,
+				Set:      resourceSiteRecoveryReplicatedVMDiskHash,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"disk_id": {
@@ -252,11 +250,10 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 						},
 
 						"target_disk_encryption": {
-							Type:       pluginsdk.TypeList,
-							ConfigMode: pluginsdk.SchemaConfigModeAttr,
-							Optional:   true,
-							MaxItems:   1,
-							Elem:       diskEncryptionResource(),
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem:     diskEncryptionResource(),
 						},
 					},
 				},
@@ -287,11 +284,9 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 			},
 
 			"network_interface": {
-				Type:       pluginsdk.TypeSet, // use set to avoid diff caused by different orders.
-				ConfigMode: pluginsdk.SchemaConfigModeAttr,
-				Computed:   true,
-				Optional:   true,
-				Elem:       networkInterfaceResource(),
+				Type:     pluginsdk.TypeSet, // use set to avoid diff caused by different orders.
+				Optional: true,
+				Elem:     networkInterfaceResource(),
 			},
 		},
 	}
@@ -369,10 +364,9 @@ func diskEncryptionResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Schema: map[string]*pluginsdk.Schema{
 			"disk_encryption_key": {
-				Type:       pluginsdk.TypeList,
-				ConfigMode: pluginsdk.SchemaConfigModeAttr,
-				Required:   true,
-				MaxItems:   1,
+				Type:     pluginsdk.TypeList,
+				Required: true,
+				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"secret_url": {
@@ -388,10 +382,9 @@ func diskEncryptionResource() *pluginsdk.Resource {
 			},
 
 			"key_encryption_key": {
-				Type:       pluginsdk.TypeList,
-				ConfigMode: pluginsdk.SchemaConfigModeAttr,
-				Optional:   true,
-				MaxItems:   1,
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"key_url": {
