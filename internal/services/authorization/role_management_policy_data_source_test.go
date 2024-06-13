@@ -13,7 +13,7 @@ import (
 
 type RoleManagementPolicyDataSource struct{}
 
-func TestRoleManagementPolicyDataSource_managementGroup(t *testing.T) {
+func TestAccRoleManagementPolicyDataSource_managementGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_role_management_policy", "test")
 	r := RoleManagementPolicyDataSource{}
 
@@ -27,7 +27,7 @@ func TestRoleManagementPolicyDataSource_managementGroup(t *testing.T) {
 	})
 }
 
-func TestRoleManagementPolicyDataSource_resourceGroup(t *testing.T) {
+func TestAccRoleManagementPolicyDataSource_resourceGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_role_management_policy", "test")
 	r := RoleManagementPolicyDataSource{}
 
@@ -41,7 +41,7 @@ func TestRoleManagementPolicyDataSource_resourceGroup(t *testing.T) {
 	})
 }
 
-func TestRoleManagementPolicyDataSource_subscription(t *testing.T) {
+func TestAccRoleManagementPolicyDataSource_subscription(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_role_management_policy", "test")
 	r := RoleManagementPolicyDataSource{}
 

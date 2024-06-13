@@ -50,15 +50,15 @@ data "azurerm_role_management_policy" "example" {
 
 ## Argument Reference
 
-* `role_definition_id` - (Required) The scoped Role Definition ID of the role for which this policy will apply
-* `scope` - (Required) The scope to which this Role Management Policy will apply. Can be any scope where a role assignment can be made.
+* `role_definition_id` - (Required) The scoped Role Definition ID of the role for which this policy applies.
+* `scope` - (Required) The scope to which this Role Management Policy applies. Can refer to a management group, a subscription or a resource group.
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
 * `id` (String) The ID of this policy.
-* `display_name` (String) The display name of this policy.
+* `name` (String) The name of this policy, which is typically a UUID and may change over time.
 * `description` (String) The description of this policy.
 * `activation_rules` - An `activation_rules` block as defined below.
 * `active_assignment_rules` - An `active_assignment_rules` block as defined below.

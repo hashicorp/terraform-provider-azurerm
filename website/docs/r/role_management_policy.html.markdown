@@ -119,7 +119,7 @@ resource "azurerm_role_management_policy" "example" {
 * `eligible_assignment_rules` - (Optional) An `eligible_assignment_rules` block as defined below.
 * `notification_rules` - (Optional) A `notification_rules` block as defined below.
 * `role_definition_id` - (Required) The scoped Role Definition ID of the role for which this policy will apply. Changing this forces a new resource to be created.
-* `scope` - (Required) The scope to which this Role Management Policy will apply. Can be any scope where a role assignment can be made. Changing this forces a new resource to be created.
+* `scope` - (Required) The scope to which this Role Management Policy will apply. Can refer to a management group, a subscription or a resource group. Changing this forces a new resource to be created.
 
 ---
 
@@ -200,7 +200,7 @@ A `primary_approver` block supports the following:
 In addition to all arguments above, the following attributes are exported:
 
 * `id` (String) The ID of this policy.
-* `display_name` (String) The display name of this policy.
+* `name` (String) The name of this policy, which is typically a UUID and may change over time.
 * `description` (String) The description of this policy.
 
 ## Import

@@ -20,7 +20,7 @@ import (
 
 type RoleManagementPolicyResource struct{}
 
-func TestRoleManagementPolicy_managementGroup(t *testing.T) {
+func TestAccRoleManagementPolicy_managementGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_management_policy", "test")
 	r := RoleManagementPolicyResource{}
 
@@ -39,7 +39,7 @@ func TestRoleManagementPolicy_managementGroup(t *testing.T) {
 	})
 }
 
-func TestRoleManagementPolicy_resourceGroup(t *testing.T) {
+func TestAccRoleManagementPolicy_resourceGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_management_policy", "test")
 	r := RoleManagementPolicyResource{}
 
@@ -69,7 +69,7 @@ func TestRoleManagementPolicy_resourceGroup(t *testing.T) {
 	})
 }
 
-func TestRoleManagementPolicy_subscription(t *testing.T) {
+func TestAccRoleManagementPolicy_subscription(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_management_policy", "test")
 	r := RoleManagementPolicyResource{}
 
