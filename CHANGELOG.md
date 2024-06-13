@@ -1,5 +1,10 @@
 ## 3.108.0 (Unreleased)
 
+FEATURES:
+
+* **New Data Source:** `azurerm_role_management_policy` [GH-25900]
+* **New Resource:** `azurerm_role_management_policy` [GH-25900]
+
 ENHANCEMENTS:
 
 * provider: support subscription ID hinting when using Azure CLI authentication [GH-26282]
