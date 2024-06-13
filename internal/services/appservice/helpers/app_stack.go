@@ -537,6 +537,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 					"8",
 					"11",
 					"17",
+					"21",
 				}, false),
 				ExactlyOneOf: linuxApplicationStackConstraint,
 				RequiredWith: []string{

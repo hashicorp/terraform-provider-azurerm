@@ -279,7 +279,7 @@ The `site_config` block supports the following:
 
 -> **NOTE** User has to explicitly set `ip_restriction` to empty slice (`[]`) to remove it.
 
-* `java_version` - (Optional) Java version hosted by the function app in Azure. Possible values are `1.8`, `11` & `17` (In-Preview).
+* `java_version` - (Optional) Java version hosted by the function app in Azure. Possible values are `1.8`, `11`, `17`, `21` (In-Preview).
 
 * `linux_fx_version` - (Optional) Linux App Framework and version for the AppService, e.g. `DOCKER|(golang:latest)`.
 

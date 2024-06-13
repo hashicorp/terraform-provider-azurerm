@@ -1185,6 +1185,38 @@ func TestAccLinuxWebApp_withJava8JBOSSEAP73(t *testing.T) {
 	})
 }
 
+func TestAccLinuxWebApp_withJre17Java(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
+	r := LinuxWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.java(data, "17", "JAVA", "17"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("JAVA|17-java17"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+func TestAccLinuxWebApp_withJre21Java(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
+	r := LinuxWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.java(data, "21", "JAVA", "21"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("JAVA|21-21"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
 // TODO - finish known Java matrix combination tests...?
 
 func TestAccLinuxWebApp_withDocker(t *testing.T) {
