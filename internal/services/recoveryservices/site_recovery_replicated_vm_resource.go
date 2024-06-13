@@ -286,6 +286,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 			"network_interface": {
 				Type:     pluginsdk.TypeSet, // use set to avoid diff caused by different orders.
 				Optional: true,
+				Computed: !features.FourPointOh(),
 				Elem:     networkInterfaceResource(),
 			},
 		},
