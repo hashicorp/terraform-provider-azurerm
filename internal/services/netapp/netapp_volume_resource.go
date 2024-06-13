@@ -22,6 +22,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	netAppValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -30,7 +31,7 @@ import (
 )
 
 func resourceNetAppVolume() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceNetAppVolumeCreate,
 		Read:   resourceNetAppVolumeRead,
 		Update: resourceNetAppVolumeUpdate,
@@ -103,7 +104,6 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 			"create_from_snapshot_resource_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
 				ForceNew:     true,
 				ValidateFunc: snapshots.ValidateSnapshotID,
 			},
@@ -111,7 +111,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 			"network_features": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Default:  string(volumes.NetworkFeaturesBasic),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(volumes.NetworkFeaturesBasic),
 					string(volumes.NetworkFeaturesStandard),
@@ -194,7 +194,6 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 						"protocols_enabled": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Computed: true,
 							MaxItems: 1,
 							MinItems: 1,
 							Elem: &pluginsdk.Schema{
@@ -357,6 +356,20 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["network_features"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(volumes.NetworkFeaturesBasic),
+				string(volumes.NetworkFeaturesStandard),
+			}, false),
+		}
+	}
+
+	return resource
 }
 
 func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -392,13 +405,7 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	subnetID := d.Get("subnet_id").(string)
 	kerberosEnabled := d.Get("kerberos_enabled").(bool)
 	smbContiuouslyAvailable := d.Get("smb_continuous_availability_enabled").(bool)
-
-	var networkFeatures volumes.NetworkFeatures
-	networkFeaturesString := d.Get("network_features").(string)
-	if networkFeaturesString == "" {
-		networkFeatures = volumes.NetworkFeaturesBasic
-	}
-	networkFeatures = volumes.NetworkFeatures(networkFeaturesString)
+	networkFeatures := volumes.NetworkFeatures(d.Get("network_features").(string))
 
 	smbNonBrowsable := volumes.SmbNonBrowsableDisabled
 	if d.Get("smb_non_browsable_enabled").(bool) {

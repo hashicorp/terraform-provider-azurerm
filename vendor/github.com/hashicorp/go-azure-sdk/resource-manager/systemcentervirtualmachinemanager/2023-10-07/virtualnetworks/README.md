@@ -106,7 +106,7 @@ for _, item := range items {
 ctx := context.TODO()
 id := virtualnetworks.NewVirtualNetworkID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkValue")
 
-payload := virtualnetworks.ResourcePatch{
+payload := virtualnetworks.VirtualNetworkTagsUpdate{
 	// ...
 }
 

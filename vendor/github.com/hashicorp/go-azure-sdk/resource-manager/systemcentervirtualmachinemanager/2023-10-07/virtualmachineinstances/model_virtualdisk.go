@@ -13,7 +13,7 @@ type VirtualDisk struct {
 	Lun              *int64                   `json:"lun,omitempty"`
 	MaxDiskSizeGB    *int64                   `json:"maxDiskSizeGB,omitempty"`
 	Name             *string                  `json:"name,omitempty"`
-	StorageQoSPolicy *StorageQoSPolicyDetails `json:"storageQoSPolicy,omitempty"`
+	StorageQoSPolicy *StorageQosPolicyDetails `json:"storageQoSPolicy,omitempty"`
 	TemplateDiskId   *string                  `json:"templateDiskId,omitempty"`
 	VhdFormatType    *string                  `json:"vhdFormatType,omitempty"`
 	VhdType          *string                  `json:"vhdType,omitempty"`

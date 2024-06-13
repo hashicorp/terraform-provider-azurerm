@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/expressroutecircuits"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -88,7 +87,7 @@ func resourceExpressRouteCircuitConnection() *pluginsdk.Resource {
 
 func resourceExpressRouteCircuitConnectionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ExpressRouteCircuitConnections
-	circuitClient := meta.(*clients.Client).Network.ExpressRouteCircuitsClient
+	circuitClient := meta.(*clients.Client).Network.ExpressRouteCircuits
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -133,14 +132,14 @@ func resourceExpressRouteCircuitConnectionCreate(d *pluginsdk.ResourceData, meta
 	}
 
 	if v, ok := d.GetOk("address_prefix_ipv6"); ok {
-		circuitId := parse.NewExpressRouteCircuitID(circuitPeeringId.SubscriptionId, circuitPeeringId.ResourceGroupName, circuitPeeringId.CircuitName)
+		circuitId := expressroutecircuits.NewExpressRouteCircuitID(circuitPeeringId.SubscriptionId, circuitPeeringId.ResourceGroupName, circuitPeeringId.CircuitName)
 
-		circuit, err := circuitClient.Get(ctx, circuitId.ResourceGroup, circuitId.Name)
+		circuit, err := circuitClient.Get(ctx, circuitId)
 		if err != nil {
 			return fmt.Errorf("retrieving %s: %+v", circuitId, err)
 		}
 
-		if circuit.ExpressRouteCircuitPropertiesFormat != nil && circuit.ExpressRouteCircuitPropertiesFormat.ExpressRoutePort != nil {
+		if circuit.Model != nil && circuit.Model.Properties != nil && circuit.Model.Properties.ExpressRoutePort != nil {
 			return fmt.Errorf("`address_prefix_ipv6` cannot be set when ExpressRoute Circuit Connection with ExpressRoute Circuit based on ExpressRoute Port")
 		} else {
 			expressRouteCircuitConnectionParameters.Properties.IPv6CircuitConnectionConfig = &expressroutecircuitconnections.IPv6CircuitConnectionConfig{

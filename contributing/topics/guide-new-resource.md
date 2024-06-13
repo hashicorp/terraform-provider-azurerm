@@ -807,9 +807,7 @@ $ make scaffold-website BRAND_NAME="Resource Group Example" RESOURCE_NAME="azure
 
 The documentation should look something like below - containing both an example usage and the required, optional and computed fields:
 
-> **Note:** In the example below you'll need to replace each `[]` with a backtick "`" - as otherwise this gets rendered incorrectly, unfortunately.
-
-```markdown
+````markdown
 ---
 subcategory: "Base"
 layout: "azurerm"
@@ -824,12 +822,12 @@ Manages a Resource Group.
 
 ## Example Usage
 
-[][][]hcl
+```hcl
 resource "azurerm_resource_group_example" "example" {
   name     = "example"
   location = "West Europe"
 }
-[][][]
+```
 
 ## Arguments Reference
 
@@ -862,12 +860,10 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 Resource Groups can be imported using the `resource id`, e.g.
 
-[][][]shell
+```shell
 terraform import azurerm_resource_group_example.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example
-[][][]
 ```
-
-> **Note:** In the example above you'll need to replace each `[]` with a backtick "`" - as otherwise this gets rendered incorrectly, unfortunately.
+````
 
 ### Step 8: Send the Pull Request
 
