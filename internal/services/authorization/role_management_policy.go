@@ -304,13 +304,11 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 			}
 
 			var isEnabled bool
-			if _, set := metadata.ResourceData.GetOk("activation_rules.0.required_conditional_access_authentication_context"); set {
+			if _, ok = metadata.ResourceData.GetOk("activation_rules.0.required_conditional_access_authentication_context"); ok {
 				isEnabled = true
 				if len(model.ActivationRules) == 1 {
 					claimValue = model.ActivationRules[0].RequireConditionalAccessContext
 				}
-			} else {
-				isEnabled = false
 			}
 
 			var id, ruleType string

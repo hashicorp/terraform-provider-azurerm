@@ -73,7 +73,7 @@ func TestRoleManagementPolicy_subscription(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_management_policy", "test")
 	r := RoleManagementPolicyResource{}
 
-	// Ignore the dangling resource post-test as the policy remains while the management group exists, or is in a pending deletion state
+	// Ignore the dangling resource post-test as the policy remains while the subscription exists, or is in a pending deletion state
 	data.ResourceTestSkipCheckDestroyed(t, []acceptance.TestStep{
 		{
 			Config: r.subscription(data),
