@@ -47,7 +47,7 @@ func (r DevCenterEnvironmentTypeResource) Arguments() map[string]*pluginsdk.Sche
 			ValidateFunc: validate.DevCenterEnvironmentTypeName,
 		},
 
-		"dev_center_id": commonschema.ResourceIDReferenceRequiredForceNew(&devboxdefinitions.DevCenterId{}),
+		"dev_center_id": commonschema.ResourceIDReferenceRequiredForceNew(&environmenttypes.DevCenterId{}),
 
 		"tags": commonschema.Tags(),
 	}
