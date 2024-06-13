@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -143,7 +142,7 @@ func TestAccDataConnectorThreatIntelligenceTAXII_requiresImport(t *testing.T) {
 }
 
 func (r DataConnectorThreatIntelligenceTAXIIResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	client := azuresdkhacks.DataConnectorsClient{BaseClient: clients.Sentinel.DataConnectorsClient.BaseClient}
+	client := clients.Sentinel.DataConnectorsClient
 
 	id, err := parse.DataConnectorID(state.ID)
 	if err != nil {
