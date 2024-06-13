@@ -130,11 +130,7 @@ resource "azurerm_hdinsight_cluster_pool" "test" {
 func (r ClusterPoolResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {
-    resource_group {
-      prevent_deletion_if_contains_resources = false
-    }
-  }
+  features {}
 }
 
 %[1]s
@@ -168,11 +164,7 @@ resource "azurerm_hdinsight_cluster_pool" "test" {
 func (r ClusterPoolResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {
-    resource_group {
-      prevent_deletion_if_contains_resources = false
-    }
-  }
+  features {}
 }
 
 %[1]s
