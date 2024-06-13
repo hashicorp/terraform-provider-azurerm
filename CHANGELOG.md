@@ -8,6 +8,10 @@ ENHANCEMENTS:
 * `azurerm_kubernetes_cluster` - updating `network_profile.network_policy` to `azure` and `calico` when it hasn't been previously set is supported [GH-26176]
 * `azurerm_kubernetes_cluster` - respect Pod Distruption Budgets when rotating the `default_node_pool` [GH-26274]
 * `azurerm_lb_backend_address_pool` - support for the `synchronous_mode` property [GH-26309]
+* `azurerm_linux_web_app` - Support Java 21. ([#25490](https://github.com/hashicorp/terraform-provider-azurerm/issues/25490))
+* `azurerm_windows_web_app` - Support Java 21. ([#25490](https://github.com/hashicorp/terraform-provider-azurerm/issues/25490))
+* `azurerm_linux_function_app` - Support Java 21. ([#24754](https://github.com/hashicorp/terraform-provider-azurerm/issues/24754))
+* `azurerm_windows_function_app` - Support Java 21. ([#24754](https://github.com/hashicorp/terraform-provider-azurerm/issues/24754))
 
 BUG FIXES:
 

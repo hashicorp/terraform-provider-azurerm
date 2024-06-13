@@ -166,7 +166,7 @@ An `application_stack` block supports the following:
 
 * `java_server_version` - (Optional) The Version of the `java_server` to use.
 
-* `java_version` - (Optional) The Version of Java to use. Possible values include `8`, `11`, and `17`.
+* `java_version` - (Optional) The Version of Java to use. Possible values include `8`, `11`, `17`, and `21`.
 
 ~> **NOTE:** The valid version combinations for `java_version`, `java_server` and `java_server_version` can be checked from the command line via `az webapp list-runtimes --linux`.
 
