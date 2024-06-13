@@ -10,9 +10,9 @@ description: |-
 
 ~> Provider-defined functions are supported in Terraform 1.8 and later.
 
-Takes an Azure Resource ID and normalises the case-sensitive system segments as required by the AzureRM provider. 
+Takes an Azure Resource ID and attempts to normalises the case-sensitive system segments as required by the AzureRM provider. 
 
-~> **NOTE:** User specified segments are not affected or corrected. (e.g. resource name). Please ensure that these match your configuration correctly to avoid errors.
+~> **NOTE:** User specified segments are not affected or corrected. (e.g. resource names). Please ensure that these match your configuration correctly to avoid errors. If a resource is not supported by the provider, this function may not provide a correct result. 
 
 ## Example Usage
 
@@ -23,6 +23,19 @@ output "test" {
   value = provider::azurerm::format_resource_id("/Subscriptions/12345678-1234-9876-4563-123456789012/ResourceGroups/resGroup1/PROVIDERS/microsoft.apimanagement/service/service1/gateWays/gateway1/hostnameconfigurations/config1")
 }
 
+```
+
+## Example - Import
+```hcl
+import {
+ id = provider::azurerm::normalise_resource_id("/Subscriptions/12345678-1234-9876-4563-123456789012/resourcegroups/import-example")
+ to = azurerm_resource_group.test
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "import-example"
+  location = "westeurope"
+}
 ```
 
 ## Signature
