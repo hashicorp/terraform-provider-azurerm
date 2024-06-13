@@ -190,8 +190,7 @@ func resourceVirtualHubRouteTableRouteUpdate(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
-	routes := make([]virtualwans.HubRoute, 0)
-	routes = *props.Routes
+	routes := *props.Routes
 	for i := range routes {
 		if routes[i].Name == id.RouteName {
 			if d.HasChange("destinations_type") {
