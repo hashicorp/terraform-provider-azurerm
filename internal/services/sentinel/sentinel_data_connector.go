@@ -42,6 +42,7 @@ func importSentinelDataConnector(expectKind securityinsight.DataConnectorKind) f
 		}
 
 		client := meta.(*clients.Client).Sentinel.DataConnectorsClient
+
 		resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
 		if err != nil {
 			return fmt.Errorf("retrieving Sentinel Alert Rule %q: %+v", id, err)
