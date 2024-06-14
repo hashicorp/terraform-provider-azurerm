@@ -5,6 +5,7 @@ package trafficmanager
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -70,9 +71,15 @@ func resourceAzureEndpoint() *pluginsdk.Resource {
 			},
 
 			"weight": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				Computed:     true,
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				Computed: !features.FourPointOh(),
+				Default: func() interface{} {
+					if !features.FourPointOhBeta() {
+						return nil
+					}
+					return 1
+				}(),
 				ValidateFunc: validation.IntBetween(1, 1000),
 			},
 
@@ -108,9 +115,15 @@ func resourceAzureEndpoint() *pluginsdk.Resource {
 			},
 
 			"priority": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				Computed:     true,
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				Computed: !features.FourPointOh(),
+				Default: func() interface{} {
+					if !features.FourPointOhBeta() {
+						return nil
+					}
+					return 1
+				}(),
 				ValidateFunc: validation.IntBetween(1, 1000),
 			},
 
