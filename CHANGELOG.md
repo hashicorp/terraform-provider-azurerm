@@ -1,5 +1,9 @@
 ## 3.109.0 (Unreleased)
 
+ENHANCEMENTS:
+
+* `azurerm_virtual_desktop_host_pool` - remove ForceNew from `preferred_app_group_type` [GH-26333]
+
 BUG FIXES:
 
 * `azurerm_automation_job_schedule` - updates `azurerm_automation_job_schedule` to use a composite resource id and allows `azurerm_automation_runbook` to be updated without causing `azurerm_automation_job_schedule` to recreate [GH-22164]
