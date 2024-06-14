@@ -104,7 +104,7 @@ func (r SystemCenterVirtualMachineManagerCloudResource) Create() sdk.ResourceFun
 					Type: pointer.To("customLocation"),
 					Name: pointer.To(model.CustomLocationId),
 				},
-				Properties: clouds.CloudProperties{
+				Properties: &clouds.CloudProperties{
 					InventoryItemId: pointer.To(scvmmServerInventoryItemId.ID()),
 					Uuid:            pointer.To(scvmmServerInventoryItemId.InventoryItemName),
 					VMmServerId:     pointer.To(vmmservers.NewVMmServerID(scvmmServerInventoryItemId.SubscriptionId, scvmmServerInventoryItemId.ResourceGroupName, scvmmServerInventoryItemId.VmmServerName).ID()),
@@ -174,7 +174,7 @@ func (r SystemCenterVirtualMachineManagerCloudResource) Update() sdk.ResourceFun
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			parameters := clouds.ResourcePatch{}
+			parameters := clouds.CloudTagsUpdate{}
 
 			if metadata.ResourceData.HasChange("tags") {
 				parameters.Tags = pointer.To(model.Tags)
@@ -200,7 +200,7 @@ func (r SystemCenterVirtualMachineManagerCloudResource) Delete() sdk.ResourceFun
 				return err
 			}
 
-			if err := client.DeleteThenPoll(ctx, *id, clouds.DeleteOperationOptions{Force: pointer.To(clouds.ForceTrue)}); err != nil {
+			if err := client.DeleteThenPoll(ctx, *id, clouds.DeleteOperationOptions{Force: pointer.To(clouds.ForceDeleteTrue)}); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
