@@ -191,7 +191,7 @@ func (d DisksPoolIscsiTargetResource) Read() sdk.ResourceFunc {
 				m.Endpoints = *endpoints
 			}
 			if port := resp.Model.Properties.Port; port != nil {
-				m.Port = int64(*port)
+				m.Port = *port
 			}
 			m.TargetIqn = resp.Model.Properties.TargetIqn
 			return metadata.Encode(&m)
