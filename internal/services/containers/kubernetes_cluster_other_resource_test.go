@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-09-02-preview/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-09-02-preview/snapshots"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -886,7 +886,26 @@ func TestAccKubernetesCluster_customCATrustEnabled(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesCluster_webAppRoutingWithMultipleDnsZone(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.webAppRoutingWithMultipleDnsZone(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("web_app_routing.0.web_app_routing_identity.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccKubernetesCluster_webAppRouting(t *testing.T) {
+	if !features.FourPointOhBeta() {
+		t.Skip("Skipping test in 4.0 as `dns_zone_id` is removed")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -912,11 +931,22 @@ func TestAccKubernetesCluster_webAppRouting(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep("web_app_routing.0.dns_zone_id", "web_app_routing.0.dns_zone_ids.#", "web_app_routing.0.dns_zone_ids.0"),
+		{
+			Config: r.webAppRoutingWithMultipleDnsZone(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("web_app_routing.0.web_app_routing_identity.#").HasValue("1"),
+			),
+		},
 		data.ImportStep(),
 	})
 }
 
 func TestAccKubernetesCluster_webAppRoutingPrivateDNS(t *testing.T) {
+	if !features.FourPointOhBeta() {
+		t.Skip("Skipping test in 4.0 as `dns_zone_id` is removed")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -928,7 +958,7 @@ func TestAccKubernetesCluster_webAppRoutingPrivateDNS(t *testing.T) {
 				check.That(data.ResourceName).Key("web_app_routing.0.web_app_routing_identity.#").HasValue("1"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("web_app_routing.0.dns_zone_id", "web_app_routing.0.dns_zone_ids.#", "web_app_routing.0.dns_zone_ids.0"),
 	})
 }
 
@@ -1051,6 +1081,11 @@ func TestAccKubernetesCluster_snapshotId(t *testing.T) {
 			Config: r.snapshotSource(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+					if _, ok := ctx.Deadline(); !ok {
+						var cancel context.CancelFunc
+						ctx, cancel = context.WithTimeout(ctx, 30*time.Minute)
+						defer cancel()
+					}
 					client := clients.Containers.SnapshotClient
 					clusterId, err := commonids.ParseKubernetesClusterID(state.ID)
 					if err != nil {
@@ -1085,6 +1120,11 @@ func TestAccKubernetesCluster_snapshotId(t *testing.T) {
 			Config: r.snapshotSource(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+					if _, ok := ctx.Deadline(); !ok {
+						var cancel context.CancelFunc
+						ctx, cancel = context.WithTimeout(ctx, 30*time.Minute)
+						defer cancel()
+					}
 					client := clients.Containers.SnapshotClient
 					clusterId, err := commonids.ParseKubernetesClusterID(state.ID)
 					if err != nil {
@@ -1140,6 +1180,35 @@ func TestAccKubernetesCluster_supportPlanAKSLongTermSupport(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.supportPlanAKSLongTermSupport(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_costAnalysis(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.costAnalysisEnabled(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.costAnalysisEnabled(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.costAnalysisEnabled(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1348,7 +1417,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     vm_size             = "Standard_DS2_v2"
     enable_auto_scaling = true
     min_count           = 1
-    max_count           = 1000
+    max_count           = 399
     node_count          = 1
     upgrade_settings {
       max_surge = "10%%"
@@ -3041,6 +3110,53 @@ resource "azurerm_kubernetes_cluster" "test" {
  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
+func (KubernetesClusterResource) webAppRoutingWithMultipleDnsZone(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_dns_zone" "test" {
+  name                = "acctestzone%[2]d.com"
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_dns_zone" "test2" {
+  name                = "acctestzone2%[2]d.com"
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[2]d"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  web_app_routing {
+    dns_zone_ids = [azurerm_dns_zone.test.id, azurerm_dns_zone.test2.id]
+  }
+}
+ `, data.Locations.Primary, data.RandomInteger)
+}
+
 func (KubernetesClusterResource) webAppRouting(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3581,4 +3697,38 @@ resource "azurerm_kubernetes_cluster" "test" {
   sku_tier     = "Premium"
 }
 `, data.Locations.Primary, data.RandomInteger)
+}
+
+func (KubernetesClusterResource) costAnalysisEnabled(data acceptance.TestData, enabled bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[2]d"
+  default_node_pool {
+    name       = "default"
+    vm_size    = "Standard_DS2_v2"
+    node_count = 1
+    upgrade_settings {
+      max_surge = "10%%"
+    }
+  }
+  identity {
+    type = "SystemAssigned"
+  }
+  cost_analysis_enabled = %[3]t
+  sku_tier              = "Premium"
+  support_plan          = "AKSLongTermSupport"
+}
+`, data.Locations.Primary, data.RandomInteger, enabled)
 }

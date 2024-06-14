@@ -32,8 +32,8 @@ type ApplicationInsightsStandardWebTestResourceModel struct {
 	ResourceGroupName     string                `tfschema:"resource_group_name"`
 	ApplicationInsightsID string                `tfschema:"application_insights_id"`
 	Location              string                `tfschema:"location"`
-	Frequency             int                   `tfschema:"frequency"`
-	Timeout               int                   `tfschema:"timeout"`
+	Frequency             int64                 `tfschema:"frequency"`
+	Timeout               int64                 `tfschema:"timeout"`
 	Enabled               bool                  `tfschema:"enabled"`
 	Retry                 bool                  `tfschema:"retry_enabled"`
 	Request               []RequestModel        `tfschema:"request"`
@@ -56,8 +56,8 @@ type RequestModel struct {
 }
 
 type ValidationRuleModel struct {
-	ExpectedStatusCode           int            `tfschema:"expected_status_code"`
-	CertificateRemainingLifetime int            `tfschema:"ssl_cert_remaining_lifetime"`
+	ExpectedStatusCode           int64          `tfschema:"expected_status_code"`
+	CertificateRemainingLifetime int64          `tfschema:"ssl_cert_remaining_lifetime"`
 	SSLCheck                     bool           `tfschema:"ssl_check_enabled"`
 	Content                      []ContentModel `tfschema:"content"`
 }
@@ -161,7 +161,7 @@ func (ApplicationInsightsStandardWebTestResource) Arguments() map[string]*plugin
 						Optional: true,
 						Default:  "GET",
 						ValidateFunc: validation.StringInSlice([]string{
-							"GET", "POST", "PUT", "PATCH", "DELETE",
+							"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS",
 						}, false),
 					},
 
@@ -341,11 +341,11 @@ func (r ApplicationInsightsStandardWebTestResource) Create() sdk.ResourceFunc {
 			props := webtests.WebTestProperties{
 				Name:               id.WebTestName, // API requires this to be specified despite ARM spec guidance that it should come from the ID
 				Enabled:            pointer.To(model.Enabled),
-				Frequency:          pointer.To(int64(model.Frequency)),
+				Frequency:          pointer.To(model.Frequency),
 				Kind:               webtests.WebTestKindStandard,
 				SyntheticMonitorId: id.WebTestName,
 				RetryEnabled:       pointer.To(model.Retry),
-				Timeout:            pointer.To(int64(model.Timeout)),
+				Timeout:            pointer.To(model.Timeout),
 				Locations:          expandApplicationInsightsStandardWebTestGeoLocations(model.GeoLocations),
 				ValidationRules:    pointer.To(validations),
 				Request:            expandApplicationInsightsStandardWebTestRequest(model.Request),
@@ -403,11 +403,11 @@ func (r ApplicationInsightsStandardWebTestResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("frequency") {
-				props.Frequency = pointer.To(int64(model.Frequency))
+				props.Frequency = pointer.To(model.Frequency)
 			}
 
 			if metadata.ResourceData.HasChange("timeout") {
-				props.Timeout = pointer.To(int64(model.Timeout))
+				props.Timeout = pointer.To(model.Timeout)
 			}
 
 			props.Enabled = pointer.To(model.Enabled)
@@ -495,8 +495,8 @@ func (ApplicationInsightsStandardWebTestResource) Read() sdk.ResourceFunc {
 					state.SyntheticMonitorID = props.SyntheticMonitorId
 					state.Description = pointer.From(props.Description)
 					state.Enabled = pointer.From(props.Enabled)
-					state.Frequency = int(pointer.From(props.Frequency))
-					state.Timeout = int(pointer.From(props.Timeout))
+					state.Frequency = pointer.From(props.Frequency)
+					state.Timeout = pointer.From(props.Timeout)
 					state.Retry = pointer.From(props.RetryEnabled)
 					req, err := flattenApplicationInsightsStandardWebTestRequest(props.Request)
 					if err != nil {
@@ -641,8 +641,8 @@ func flattenApplicationInsightsStandardWebTestValidations(input *webtests.WebTes
 	}
 
 	result := ValidationRuleModel{
-		ExpectedStatusCode:           int(pointer.From(rules.ExpectedHTTPStatusCode)),
-		CertificateRemainingLifetime: int(pointer.From(rules.SSLCertRemainingLifetimeCheck)),
+		ExpectedStatusCode:           pointer.From(rules.ExpectedHTTPStatusCode),
+		CertificateRemainingLifetime: pointer.From(rules.SSLCertRemainingLifetimeCheck),
 		SSLCheck:                     pointer.From(rules.SSLCheck),
 		Content:                      flattenApplicationInsightsStandardWebTestContentValidations(rules.ContentValidation),
 	}
@@ -674,13 +674,13 @@ func expandApplicationInsightsStandardWebTestValidations(input []ValidationRuleM
 	}
 
 	validationsInput := input[0]
-	rules.ExpectedHTTPStatusCode = pointer.To(int64(validationsInput.ExpectedStatusCode))
+	rules.ExpectedHTTPStatusCode = pointer.To(validationsInput.ExpectedStatusCode)
 
 	// if URL http, sslCheck cannot be enabled - Catch in CustomiseDiff
 	rules.SSLCheck = pointer.To(validationsInput.SSLCheck)
 	// if sslCheck not enabled, SSLCertRemainingLifetimeCheck cannot be enabled
 	if validationsInput.CertificateRemainingLifetime != 0 && validationsInput.SSLCheck {
-		rules.SSLCertRemainingLifetimeCheck = pointer.To(int64(validationsInput.CertificateRemainingLifetime))
+		rules.SSLCertRemainingLifetimeCheck = pointer.To(validationsInput.CertificateRemainingLifetime)
 	}
 	rules.ContentValidation = expandApplicationInsightsStandardWebTestContentValidations(validationsInput.Content)
 

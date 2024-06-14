@@ -100,6 +100,7 @@ func (c ContainerAppsRevisionsClient) ListRevisionsCompleteMatchingPredicate(ctx
 
 	resp, err := c.ListRevisions(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

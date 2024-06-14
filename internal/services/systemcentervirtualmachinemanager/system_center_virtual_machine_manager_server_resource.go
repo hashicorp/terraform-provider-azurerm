@@ -29,7 +29,7 @@ type SystemCenterVirtualMachineManagerServerModel struct {
 	Fqdn              string            `tfschema:"fqdn"`
 	Username          string            `tfschema:"username"`
 	Password          string            `tfschema:"password"`
-	Port              int               `tfschema:"port"`
+	Port              int64             `tfschema:"port"`
 	Tags              map[string]string `tfschema:"tags"`
 }
 
@@ -126,14 +126,14 @@ func (r SystemCenterVirtualMachineManagerServerResource) Create() sdk.ResourceFu
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			parameters := &vmmservers.VMMServer{
+			parameters := &vmmservers.VMmServer{
 				Location: location.Normalize(model.Location),
 				ExtendedLocation: vmmservers.ExtendedLocation{
 					Type: pointer.To("customLocation"),
 					Name: pointer.To(model.CustomLocationId),
 				},
-				Properties: vmmservers.VMMServerProperties{
-					Credentials: &vmmservers.VMMCredential{
+				Properties: &vmmservers.VMmServerProperties{
+					Credentials: &vmmservers.VMmCredential{
 						Username: pointer.To(model.Username),
 						Password: pointer.To(model.Password),
 					},
@@ -143,7 +143,7 @@ func (r SystemCenterVirtualMachineManagerServerResource) Create() sdk.ResourceFu
 			}
 
 			if v := model.Port; v != 0 {
-				parameters.Properties.Port = pointer.To(int64(v))
+				parameters.Properties.Port = pointer.To(v)
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, *parameters); err != nil {
@@ -197,7 +197,7 @@ func (r SystemCenterVirtualMachineManagerServerResource) Read() sdk.ResourceFunc
 				state.CustomLocationId = pointer.From(model.ExtendedLocation.Name)
 				state.Fqdn = model.Properties.Fqdn
 				state.Password = metadata.ResourceData.Get("password").(string)
-				state.Port = int(pointer.From(model.Properties.Port))
+				state.Port = pointer.From(model.Properties.Port)
 				state.Tags = pointer.From(model.Tags)
 
 				if v := model.Properties.Credentials; v != nil {
@@ -227,7 +227,7 @@ func (r SystemCenterVirtualMachineManagerServerResource) Update() sdk.ResourceFu
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			parameters := vmmservers.ResourcePatch{
+			parameters := vmmservers.VMmServerTagsUpdate{
 				Tags: pointer.To(model.Tags),
 			}
 
@@ -251,7 +251,9 @@ func (r SystemCenterVirtualMachineManagerServerResource) Delete() sdk.ResourceFu
 				return err
 			}
 
-			if err := client.DeleteThenPoll(ctx, *id, vmmservers.DeleteOperationOptions{Force: pointer.To(vmmservers.ForceTrue)}); err != nil {
+			opts := vmmservers.DefaultDeleteOperationOptions()
+			opts.Force = pointer.To(vmmservers.ForceDeleteTrue)
+			if err := client.DeleteThenPoll(ctx, *id, opts); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 

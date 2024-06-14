@@ -73,6 +73,7 @@ func (c WebAppsClient) ListProcessesCompleteMatchingPredicate(ctx context.Contex
 
 	resp, err := c.ListProcesses(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

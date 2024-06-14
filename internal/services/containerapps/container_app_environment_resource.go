@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/managedenvironments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2024-03-01/managedenvironments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/helpers"
@@ -38,6 +38,7 @@ type ContainerAppEnvironmentModel struct {
 	Tags                                    map[string]interface{}         `tfschema:"tags"`
 	WorkloadProfiles                        []helpers.WorkloadProfileModel `tfschema:"workload_profile"`
 	InfrastructureResourceGroup             string                         `tfschema:"infrastructure_resource_group_name"`
+	Mtls                                    bool                           `tfschema:"mutual_tls_enabled"`
 
 	CustomDomainVerificationId string `tfschema:"custom_domain_verification_id"`
 
@@ -132,6 +133,13 @@ func (r ContainerAppEnvironmentResource) Arguments() map[string]*pluginsdk.Schem
 			RequiredWith: []string{"infrastructure_subnet_id"},
 		},
 
+		"mutual_tls_enabled": {
+			Description: "Should mutual transport layer security (mTLS) be enabled? Defaults to `false`. **Note:** This feature is in public preview. Enabling mTLS for your applications may increase response latency and reduce maximum throughput in high-load scenarios.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
+		},
+
 		"tags": commonschema.Tags(),
 	}
 }
@@ -209,6 +217,16 @@ func (r ContainerAppEnvironmentResource) Create() sdk.ResourceFunc {
 				Properties: &managedenvironments.ManagedEnvironmentProperties{
 					VnetConfiguration: &managedenvironments.VnetConfiguration{},
 					ZoneRedundant:     pointer.To(containerAppEnvironment.ZoneRedundant),
+					PeerAuthentication: &managedenvironments.ManagedEnvironmentPropertiesPeerAuthentication{
+						Mtls: &managedenvironments.Mtls{
+							Enabled: pointer.To(containerAppEnvironment.Mtls),
+						},
+					},
+					PeerTrafficConfiguration: &managedenvironments.ManagedEnvironmentPropertiesPeerTrafficConfiguration{
+						Encryption: &managedenvironments.ManagedEnvironmentPropertiesPeerTrafficConfigurationEncryption{
+							Enabled: pointer.To(containerAppEnvironment.Mtls),
+						},
+					},
 				},
 				Tags: tags.Expand(containerAppEnvironment.Tags),
 			}
@@ -316,6 +334,7 @@ func (r ContainerAppEnvironmentResource) Read() sdk.ResourceFunc {
 					state.DefaultDomain = pointer.From(props.DefaultDomain)
 					state.WorkloadProfiles = helpers.FlattenWorkloadProfiles(props.WorkloadProfiles, consumptionDefined)
 					state.InfrastructureResourceGroup = pointer.From(props.InfrastructureResourceGroup)
+					state.Mtls = pointer.From(props.PeerAuthentication.Mtls.Enabled)
 				}
 			}
 
@@ -384,6 +403,11 @@ func (r ContainerAppEnvironmentResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("workload_profile") {
 				existing.Model.Properties.WorkloadProfiles = helpers.ExpandWorkloadProfiles(state.WorkloadProfiles)
+			}
+
+			if metadata.ResourceData.HasChange("mutual_tls_enabled") {
+				existing.Model.Properties.PeerAuthentication.Mtls.Enabled = pointer.To(state.Mtls)
+				existing.Model.Properties.PeerTrafficConfiguration.Encryption.Enabled = pointer.To(state.Mtls)
 			}
 
 			// (@jackofallops) This is not updatable and needs to be removed since the read does not return the sensitive Key field.

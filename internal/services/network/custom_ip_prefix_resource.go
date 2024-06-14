@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/customipprefixes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/customipprefixes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -55,7 +55,7 @@ func (CustomIpPrefixResource) ModelObject() interface{} {
 }
 
 func (CustomIpPrefixResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.CustomIpPrefixID
+	return customipprefixes.ValidateCustomIPPrefixID
 }
 func (r CustomIpPrefixResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
@@ -93,7 +93,7 @@ func (r CustomIpPrefixResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.CustomIpPrefixID,
+			ValidateFunc: customipprefixes.ValidateCustomIPPrefixID,
 		},
 
 		"roa_validity_end_date": {

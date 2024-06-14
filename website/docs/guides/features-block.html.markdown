@@ -88,9 +88,10 @@ provider "azurerm" {
     }
 
     virtual_machine {
-      delete_os_disk_on_deletion     = true
-      graceful_shutdown              = false
-      skip_shutdown_and_force_delete = false
+      detach_implicit_data_disk_on_deletion = false
+      delete_os_disk_on_deletion            = true
+      graceful_shutdown                     = false
+      skip_shutdown_and_force_delete        = false
     }
 
     virtual_machine_scale_set {
@@ -178,13 +179,17 @@ The `key_vault` block supports the following:
 
 * `purge_soft_deleted_hardware_security_modules_on_destroy` - (Optional) Should the `azurerm_key_vault_managed_hardware_security_module` resource be permanently deleted (e.g. purged) when destroyed? Defaults to `true`.
 
+* `purge_soft_deleted_hardware_security_module_keys_on_destroy` - (Optional) Should the `azurerm_key_vault_managed_hardware_security_module_key` resource be permanently deleted (e.g. purged) when destroyed? Defaults to `true`.
+
 * `recover_soft_deleted_certificates` - (Optional) Should the `azurerm_key_vault_certificate` resource recover a Soft-Deleted Certificate? Defaults to `true`.
 
 * `recover_soft_deleted_key_vaults` - (Optional) Should the `azurerm_key_vault` resource recover a Soft-Deleted Key Vault? Defaults to `true`.
 
 * `recover_soft_deleted_keys` - (Optional) Should the `azurerm_key_vault_key` resource recover a Soft-Deleted Key? Defaults to `true`.
 
-* `recover_soft_deleted_secrets` - (Optional) Should the `azurerm_key_vault_secret` resource recover a Soft-Deleted Secret? Defaults to `true`.
+* `recover_soft_deleted_secrets` - (Optional) Should the `azurerm_key_vault_secret` resource recover a Soft-Deleted Secret? Defaults to `true`
+
+* `recover_soft_deleted_hardware_security_module_keys` - (Optional) Should the `azurerm_key_vault_managed_hardware_security_module_key` resource recover a Soft-Deleted Key? Defaults to `true`.
 
 ~> **Note:** When recovering soft-deleted Key Vault items (Keys, Certificates, and Secrets) the Principal used by Terraform needs the `"recover"` permission.
 
@@ -251,6 +256,8 @@ The `template_deployment` block supports the following:
 ---
 
 The `virtual_machine` block supports the following:
+
+* `detach_implicit_data_disk_on_deletion` - (Optional) Should we detach the `azurerm_virtual_machine_implicit_data_disk_from_source` from the virtual machine instead of destroying it? Defaults to `false`.
 
 * `delete_os_disk_on_deletion` - (Optional) Should the `azurerm_linux_virtual_machine` and `azurerm_windows_virtual_machine` resources delete the OS Disk attached to the Virtual Machine when the Virtual Machine is destroyed? Defaults to `true`.
 

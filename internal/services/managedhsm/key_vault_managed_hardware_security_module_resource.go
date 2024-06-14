@@ -25,7 +25,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidation "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/custompollers"
 	managedHSMValidation "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -117,7 +116,6 @@ func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
-				ForceNew: true,
 			},
 
 			"network_acls": {
@@ -246,7 +244,9 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleCreate(d *pluginsdk.Resourc
 		if err != nil || resp.Model == nil || resp.Model.Properties == nil || resp.Model.Properties.HsmUri == nil {
 			return fmt.Errorf("got nil HSMUri for %s: %+v", id, err)
 		}
-		encData, err := securityDomainDownload(ctx, client, *resp.Model.Properties.HsmUri, d.Get("security_domain_key_vault_certificate_ids").([]interface{}), d.Get("security_domain_quorum").(int))
+
+		keyVaultClient := meta.(*clients.Client).KeyVault.ManagementClient
+		encData, err := securityDomainDownload(ctx, client.DataPlaneSecurityDomainsClient, *keyVaultClient, *resp.Model.Properties.HsmUri, d.Get("security_domain_key_vault_certificate_ids").([]interface{}), d.Get("security_domain_quorum").(int))
 		if err != nil {
 			return fmt.Errorf("downloading security domain for %q: %+v", id, err)
 		}
@@ -283,6 +283,14 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleUpdate(d *pluginsdk.Resourc
 		hasUpdate = true
 		model.Properties.NetworkAcls = expandMHSMNetworkAcls(d.Get("network_acls").([]interface{}))
 	}
+	if d.HasChange("public_network_access_enabled") {
+		hasUpdate = true
+		publicNetworkAccessEnabled := managedhsms.PublicNetworkAccessEnabled
+		if !d.Get("public_network_access_enabled").(bool) {
+			publicNetworkAccessEnabled = managedhsms.PublicNetworkAccessDisabled
+		}
+		model.Properties.PublicNetworkAccess = pointer.To(publicNetworkAccessEnabled)
+	}
 	if hasUpdate {
 		if err := hsmClient.CreateOrUpdateThenPoll(ctx, *id, *model); err != nil {
 			return fmt.Errorf("updating %s tags: %+v", id, err)
@@ -296,7 +304,9 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleUpdate(d *pluginsdk.Resourc
 		if err != nil || resp.Model == nil || resp.Model.Properties == nil || resp.Model.Properties.HsmUri == nil {
 			return fmt.Errorf("got nil HSMUri for %s: %+v", id, err)
 		}
-		encData, err := securityDomainDownload(ctx, kvClient, *resp.Model.Properties.HsmUri, d.Get("security_domain_key_vault_certificate_ids").([]interface{}), d.Get("security_domain_quorum").(int))
+
+		keyVaultClient := meta.(*clients.Client).KeyVault.ManagementClient
+		encData, err := securityDomainDownload(ctx, kvClient.DataPlaneSecurityDomainsClient, *keyVaultClient, *resp.Model.Properties.HsmUri, d.Get("security_domain_key_vault_certificate_ids").([]interface{}), d.Get("security_domain_quorum").(int))
 		if err != nil {
 			return fmt.Errorf("downloading security domain for %q: %+v", id, err)
 		}
@@ -458,10 +468,7 @@ func flattenMHSMNetworkAcls(acl *managedhsms.MHSMNetworkRuleSet) []interface{} {
 	}
 }
 
-func securityDomainDownload(ctx context.Context, cli *client.Client, vaultBaseUrl string, certIds []interface{}, quorum int) (encDataStr string, err error) {
-	sdClient := cli.DataPlaneSecurityDomainsClient
-	keyClient := cli.DataPlaneClient
-
+func securityDomainDownload(ctx context.Context, sdClient *kv74.HSMSecurityDomainClient, keyClient kv74.BaseClient, vaultBaseUrl string, certIds []interface{}, quorum int) (encDataStr string, err error) {
 	var param kv74.CertificateInfoObject
 
 	param.Required = utils.Int32(int32(quorum))

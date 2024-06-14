@@ -106,7 +106,7 @@ for _, item := range items {
 ctx := context.TODO()
 id := virtualmachinetemplates.NewVirtualMachineTemplateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualMachineTemplateValue")
 
-payload := virtualmachinetemplates.ResourcePatch{
+payload := virtualmachinetemplates.VirtualMachineTemplateTagsUpdate{
 	// ...
 }
 

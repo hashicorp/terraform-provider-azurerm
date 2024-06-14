@@ -27,9 +27,10 @@ type CognitiveAccountFeatures struct {
 }
 
 type VirtualMachineFeatures struct {
-	DeleteOSDiskOnDeletion     bool
-	GracefulShutdown           bool
-	SkipShutdownAndForceDelete bool
+	DetachImplicitDataDiskOnDeletion bool
+	DeleteOSDiskOnDeletion           bool
+	GracefulShutdown                 bool
+	SkipShutdownAndForceDelete       bool
 }
 
 type VirtualMachineScaleSetFeatures struct {
@@ -45,10 +46,12 @@ type KeyVaultFeatures struct {
 	PurgeSoftDeletedCertsOnDestroy   bool
 	PurgeSoftDeletedSecretsOnDestroy bool
 	PurgeSoftDeletedHSMsOnDestroy    bool
+	PurgeSoftDeletedHSMKeysOnDestroy bool
 	RecoverSoftDeletedKeyVaults      bool
 	RecoverSoftDeletedKeys           bool
 	RecoverSoftDeletedCerts          bool
 	RecoverSoftDeletedSecrets        bool
+	RecoverSoftDeletedHSMKeys        bool
 }
 
 type TemplateDeploymentFeatures struct {

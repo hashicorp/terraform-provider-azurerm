@@ -11,17 +11,17 @@ permissions:
 
 jobs:
   go-version:
-    runs-on: [custom, linux, xl]
+    runs-on: custom-linux-xl
     outputs:
       version: ${{ steps.go-version.outputs.version }}
     steps:
-      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+      - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
       - id: go-version
         run: echo "version=$(cat ./.go-version)" >>${GITHUB_OUTPUT}
   release-notes:
-    runs-on: [custom, linux, xl]
+    runs-on: custom-linux-xl
     steps:
-      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+      - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
         with:
           fetch-depth: 0
       - name: Generate Release Notes
@@ -35,7 +35,7 @@ jobs:
   terraform-provider-release:
     name: 'Terraform Provider Release'
     needs: [go-version, release-notes]
-    uses: hashicorp/ghaction-terraform-provider-release/.github/workflows/hashicorp.yml@9b5d2ca4b85f3a54d5c4d12e7690ddad1526ff6c # v3.0.1
+    uses: hashicorp/ghaction-terraform-provider-release/.github/workflows/hashicorp.yml@393dac4dd208c749b1622323f9f0e8d26a6f26cc # v4.0.1
     
     secrets:
       hc-releases-github-token: '${{ secrets.HASHI_RELEASES_GITHUB_TOKEN }}'

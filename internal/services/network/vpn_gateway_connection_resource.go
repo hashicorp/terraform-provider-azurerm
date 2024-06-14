@@ -11,11 +11,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/virtualwans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -80,19 +79,19 @@ func resourceVPNGatewayConnection() *pluginsdk.Resource {
 						"associated_route_table": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: validate.HubRouteTableID,
+							ValidateFunc: virtualwans.ValidateHubRouteTableID,
 						},
 
 						"inbound_route_map_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.RouteMapID,
+							ValidateFunc: virtualwans.ValidateRouteMapID,
 						},
 
 						"outbound_route_map_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.RouteMapID,
+							ValidateFunc: virtualwans.ValidateRouteMapID,
 						},
 
 						"propagated_route_table": {
@@ -107,7 +106,7 @@ func resourceVPNGatewayConnection() *pluginsdk.Resource {
 										Required: true,
 										Elem: &pluginsdk.Schema{
 											Type:         pluginsdk.TypeString,
-											ValidateFunc: validate.HubRouteTableID,
+											ValidateFunc: virtualwans.ValidateHubRouteTableID,
 										},
 									},
 
@@ -151,7 +150,7 @@ func resourceVPNGatewayConnection() *pluginsdk.Resource {
 							Optional: true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
-								ValidateFunc: validate.VpnGatewayNatRuleID,
+								ValidateFunc: virtualwans.ValidateNatRuleID,
 							},
 						},
 
@@ -160,7 +159,7 @@ func resourceVPNGatewayConnection() *pluginsdk.Resource {
 							Optional: true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
-								ValidateFunc: validate.VpnGatewayNatRuleID,
+								ValidateFunc: virtualwans.ValidateNatRuleID,
 							},
 						},
 

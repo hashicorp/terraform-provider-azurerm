@@ -548,6 +548,7 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 
 			if functionAppSlot.VirtualNetworkSubnetID != "" {
 				siteEnvelope.Properties.VirtualNetworkSubnetId = pointer.To(functionAppSlot.VirtualNetworkSubnetID)
+				siteEnvelope.Properties.ServerFarmId = pointer.To(servicePlanId.ID())
 			}
 
 			if functionAppSlot.KeyVaultReferenceIdentityID != "" {
