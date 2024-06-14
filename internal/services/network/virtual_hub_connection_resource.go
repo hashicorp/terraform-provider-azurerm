@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/virtualwans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -81,20 +81,20 @@ func resourceVirtualHubConnection() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true,
-							ValidateFunc: validate.HubRouteTableID,
+							ValidateFunc: virtualwans.ValidateHubRouteTableID,
 							AtLeastOneOf: []string{"routing.0.associated_route_table_id", "routing.0.propagated_route_table", "routing.0.static_vnet_route"},
 						},
 
 						"inbound_route_map_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.RouteMapID,
+							ValidateFunc: virtualwans.ValidateRouteMapID,
 						},
 
 						"outbound_route_map_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.RouteMapID,
+							ValidateFunc: virtualwans.ValidateRouteMapID,
 						},
 
 						"propagated_route_table": {
@@ -121,7 +121,7 @@ func resourceVirtualHubConnection() *pluginsdk.Resource {
 										Computed: true,
 										Elem: &pluginsdk.Schema{
 											Type:         pluginsdk.TypeString,
-											ValidateFunc: validate.HubRouteTableID,
+											ValidateFunc: virtualwans.ValidateHubRouteTableID,
 										},
 										AtLeastOneOf: []string{"routing.0.propagated_route_table.0.labels", "routing.0.propagated_route_table.0.route_table_ids"},
 									},

@@ -4,6 +4,7 @@
 package compute
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -29,9 +30,51 @@ func resourceVirtualMachineDataDiskAttachment() *pluginsdk.Resource {
 		Read:   resourceVirtualMachineDataDiskAttachmentRead,
 		Update: resourceVirtualMachineDataDiskAttachmentCreateUpdate,
 		Delete: resourceVirtualMachineDataDiskAttachmentDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.DataDiskID(id)
 			return err
+		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+			client := meta.(*clients.Client).Compute.VirtualMachinesClient
+			id, err := parse.DataDiskID(d.Id())
+			if err != nil {
+				return nil, err
+			}
+
+			virtualMachineId := virtualmachines.NewVirtualMachineID(id.SubscriptionId, id.ResourceGroup, id.VirtualMachineName)
+			virtualMachine, err := client.Get(ctx, virtualMachineId, virtualmachines.DefaultGetOperationOptions())
+			if err != nil {
+				if response.WasNotFound(virtualMachine.HttpResponse) {
+					return nil, fmt.Errorf("%s was not found therefore Data Disk Attachment cannot be imported", virtualMachineId)
+				}
+
+				return nil, fmt.Errorf("retrieving %s: %+v", id, err)
+			}
+
+			var disk *virtualmachines.DataDisk
+			if model := virtualMachine.Model; model != nil {
+				if props := model.Properties; props != nil {
+					if profile := props.StorageProfile; profile != nil {
+						if dataDisks := profile.DataDisks; dataDisks != nil {
+							for _, dataDisk := range *dataDisks {
+								if *dataDisk.Name == id.Name {
+									disk = &dataDisk
+									break
+								}
+							}
+						}
+					}
+				}
+			}
+
+			if disk == nil {
+				return nil, fmt.Errorf("Data Disk %s was not found", *id)
+			}
+
+			if disk.CreateOption != virtualmachines.DiskCreateOptionTypesAttach && disk.CreateOption != virtualmachines.DiskCreateOptionTypesEmpty {
+				return nil, fmt.Errorf("the value of `create_option` for the imported `azurerm_virtual_machine_data_disk_attachment` instance must be `Attach` or `Empty`, whereas now is %s", disk.CreateOption)
+			}
+
+			return []*pluginsdk.ResourceData{d}, nil
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -152,6 +195,15 @@ func resourceVirtualMachineDataDiskAttachmentCreateUpdate(d *pluginsdk.ResourceD
 			StorageAccountType: pointer.To(virtualmachines.StorageAccountTypes(*managedDisk.Sku.Name)),
 		},
 		WriteAcceleratorEnabled: pointer.To(writeAcceleratorEnabled),
+	}
+
+	// there are ways to provision a VM without a StorageProfile and/or DataDisks
+	if virtualMachine.Model.Properties.StorageProfile == nil {
+		virtualMachine.Model.Properties.StorageProfile = &virtualmachines.StorageProfile{}
+	}
+
+	if virtualMachine.Model.Properties.StorageProfile.DataDisks == nil {
+		virtualMachine.Model.Properties.StorageProfile.DataDisks = pointer.To(make([]virtualmachines.DataDisk, 0))
 	}
 
 	disks := *virtualMachine.Model.Properties.StorageProfile.DataDisks

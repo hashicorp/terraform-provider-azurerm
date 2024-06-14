@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/virtualnetworkpeerings"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/virtualnetworkpeerings"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -129,7 +129,7 @@ func (r VirtualNetworkPeeringResource) Exists(ctx context.Context, clients *clie
 	}
 	resp, err := clients.Network.VirtualNetworkPeerings.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading %s: %+v", *id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	return pointer.To(resp.Model != nil), nil

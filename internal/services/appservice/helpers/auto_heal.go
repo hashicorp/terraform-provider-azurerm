@@ -650,7 +650,7 @@ func flattenAutoHealSettingsWindows(autoHealRules *webapps.AutoHealRules) []Auto
 				}
 
 				if s.Status != nil {
-					t.StatusCodeRange = strconv.Itoa(int(*s.Status))
+					t.StatusCodeRange = strconv.FormatInt(*s.Status, 10)
 				}
 
 				if s.Count != nil {

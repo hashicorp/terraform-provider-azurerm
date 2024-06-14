@@ -48,6 +48,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
 		RoleDefinitionDataSource{},
+		RoleManagementPolicyDataSource{},
 	}
 }
 
@@ -57,6 +58,7 @@ func (r Registration) Resources() []sdk.Resource {
 		PimEligibleRoleAssignmentResource{},
 		RoleAssignmentMarketplaceResource{},
 		RoleDefinitionResource{},
+		RoleManagementPolicyResource{},
 	}
 	return resources
 }

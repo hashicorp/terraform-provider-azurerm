@@ -14,14 +14,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/flowlogs"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkwatchers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/flowlogs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/networksecuritygroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/networkwatchers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -75,7 +75,7 @@ func resourceNetworkWatcherFlowLog() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NetworkSecurityGroupID,
+				ValidateFunc: networksecuritygroups.ValidateNetworkSecurityGroupID,
 			},
 
 			"storage_account_id": {
@@ -191,7 +191,7 @@ func resourceNetworkWatcherFlowLogCreate(d *pluginsdk.ResourceData, meta interfa
 	defer cancel()
 
 	id := flowlogs.NewFlowLogID(subscriptionId, d.Get("resource_group_name").(string), d.Get("network_watcher_name").(string), d.Get("name").(string))
-	nsgId, err := parse.NetworkSecurityGroupID(d.Get("network_security_group_id").(string))
+	nsgId, err := networksecuritygroups.ParseNetworkSecurityGroupID(d.Get("network_security_group_id").(string))
 	if err != nil {
 		return err
 	}
@@ -285,7 +285,7 @@ func resourceNetworkWatcherFlowLogUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	payload := existing.Model
 
-	nsgId, err := parse.NetworkSecurityGroupID(d.Get("network_security_group_id").(string))
+	nsgId, err := networksecuritygroups.ParseNetworkSecurityGroupID(d.Get("network_security_group_id").(string))
 	if err != nil {
 		return err
 	}
@@ -374,7 +374,7 @@ func resourceNetworkWatcherFlowLogRead(d *pluginsdk.ResourceData, meta interface
 			}
 
 			networkSecurityGroupId := ""
-			nsgId, err := parse.NetworkSecurityGroupIDInsensitively(props.TargetResourceId)
+			nsgId, err := networksecuritygroups.ParseNetworkSecurityGroupIDInsensitively(props.TargetResourceId)
 			if err == nil {
 				networkSecurityGroupId = nsgId.ID()
 			}
@@ -409,7 +409,7 @@ func resourceNetworkWatcherFlowLogDelete(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("retreiving %s: `properties` or `properties.TargetResourceID` was nil", id)
 	}
 
-	networkSecurityGroupId, err := parse.NetworkSecurityGroupIDInsensitively(resp.Model.Properties.TargetResourceId)
+	networkSecurityGroupId, err := networksecuritygroups.ParseNetworkSecurityGroupIDInsensitively(resp.Model.Properties.TargetResourceId)
 	if err != nil {
 		return fmt.Errorf("parsing %q as a Network Security Group ID: %+v", resp.Model.Properties.TargetResourceId, err)
 	}
