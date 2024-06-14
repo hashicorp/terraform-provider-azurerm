@@ -1,36 +1,36 @@
-## 3.108.0 (Unreleased)
+## 3.108.0 (June 13, 2024)
 
 FEATURES:
 
-* **New Data Source:** `azurerm_role_management_policy` [GH-25900]
-* **New Resource:** `azurerm_role_management_policy` [GH-25900]
+* **New Data Source:** `azurerm_role_management_policy` ([#25900](https://github.com/hashicorp/terraform-provider-azurerm/issues/25900))
+* **New Resource:** `azurerm_role_management_policy` ([#25900](https://github.com/hashicorp/terraform-provider-azurerm/issues/25900))
 
 ENHANCEMENTS:
 
-* provider: support subscription ID hinting when using Azure CLI authentication [GH-26282]
-* `serviceconnector`: updating to use API Version `2024-04-01` [GH-26248]
-* `azurerm_container_groups` - can now be created with a User Assigned Identity when running Windows [GH-26308]
-* `azurerm_kubernetes_cluster` - updating the `network_profile.network_policy` property to `azure` and `calico` when it hasn't been previously set is supported [GH-26176]
-* `azurerm_kubernetes_cluster` - respect Pod Distruption Budgets when rotating the `default_node_pool` [GH-26274]
-* `azurerm_lb_backend_address_pool` - support for the `synchronous_mode` property [GH-26309]
-* `azurerm_private_endpoint` - support symultaneous creation of multiple resources of this type per subnet [GH-26006]
+* provider: support subscription ID hinting when using Azure CLI authentication ([#26282](https://github.com/hashicorp/terraform-provider-azurerm/issues/26282))
+* `serviceconnector`: updating to use API Version `2024-04-01` ([#26248](https://github.com/hashicorp/terraform-provider-azurerm/issues/26248))
+* `azurerm_container_groups` - can now be created with a User Assigned Identity when running Windows ([#26308](https://github.com/hashicorp/terraform-provider-azurerm/issues/26308))
+* `azurerm_kubernetes_cluster` - updating the `network_profile.network_policy` property to `azure` and `calico` when it hasn't been previously set is supported ([#26176](https://github.com/hashicorp/terraform-provider-azurerm/issues/26176))
+* `azurerm_kubernetes_cluster` - respect Pod Distruption Budgets when rotating the `default_node_pool` ([#26274](https://github.com/hashicorp/terraform-provider-azurerm/issues/26274))
+* `azurerm_lb_backend_address_pool` - support for the `synchronous_mode` property ([#26309](https://github.com/hashicorp/terraform-provider-azurerm/issues/26309))
+* `azurerm_private_endpoint` - support symultaneous creation of multiple resources of this type per subnet ([#26006](https://github.com/hashicorp/terraform-provider-azurerm/issues/26006))
 
 BUG FIXES:
 
-* `azurerm_express_route_circuit_peering`, `azurerm_express_route_circuit`, `azurerm_express_route_gateway`, `azurerm_express_route_port` - split create and update [GH-26237]
-* `azurerm_lb_backend_address_pool_address` - when using this resource, values are no longer reset on `azurerm_lb_backend_address_pool` [GH-26264]
-* `azurerm_route_filter` - spliting create and update so lifecycle ignore changes works correctly [GH-26266]
-* `azurerm_route_server` - spliting create and update so lifecycle ignore changes works correctly [GH-26266]
-* `azurerm_synapse_workspace` - updates the client used in all operations of `azurerm_synapse_workspace_sql_aad_admin` to prevent this resource from modifying the same resource as `azurerm_synapse_workspace_aad_admin` [GH-26317]
-* `azurerm_virtual_network` - correctly parse network securty group IDs [GH-26283]
+* `azurerm_express_route_circuit_peering`, `azurerm_express_route_circuit`, `azurerm_express_route_gateway`, `azurerm_express_route_port` - split create and update ([#26237](https://github.com/hashicorp/terraform-provider-azurerm/issues/26237))
+* `azurerm_lb_backend_address_pool_address` - when using this resource, values are no longer reset on `azurerm_lb_backend_address_pool` ([#26264](https://github.com/hashicorp/terraform-provider-azurerm/issues/26264))
+* `azurerm_route_filter` - spliting create and update so lifecycle ignore changes works correctly ([#26266](https://github.com/hashicorp/terraform-provider-azurerm/issues/26266))
+* `azurerm_route_server` - spliting create and update so lifecycle ignore changes works correctly ([#26266](https://github.com/hashicorp/terraform-provider-azurerm/issues/26266))
+* `azurerm_synapse_workspace` - updates the client used in all operations of `azurerm_synapse_workspace_sql_aad_admin` to prevent this resource from modifying the same resource as `azurerm_synapse_workspace_aad_admin` ([#26317](https://github.com/hashicorp/terraform-provider-azurerm/issues/26317))
+* `azurerm_virtual_network` - correctly parse network securty group IDs ([#26283](https://github.com/hashicorp/terraform-provider-azurerm/issues/26283))
 
 DEPRECATIONS:
 
-* Data Source: `azurerm_network_interface` - the `enable_ip_forwarding` and `enable_accelerated_networking` properties have been deprecated and superseded by the `ip_forwarding_enabled` and `accelerated_networking_enabled` properties [GH-26293]
-* `azurerm_api_management` - the `policy` block has been deprecated is superseded by the `azurerm_api_management_policy` resource [GH-26305]
-* `azurerm_kubernetes_cluster` - the `ebpf_data_plane` property has been deprecated and superseded by the `network_data_plane` property [GH-26251]
-* `azurerm_network_interface` - the `enable_ip_forwarding` and `enable_accelerated_networking` properties have been deprecated and superseded by the `ip_forwarding_enabled` and `accelerated_networking_enabled` properties [GH-26293]
-* `azurerm_synapse_workspace` - the `aad_admin` and `sql_aad_admin` blocks have been deprecated and superseded by the `azurerm_synapse_workspace_aad_admin` and `azurerm_synapse_workspace_sql_aad_admin` resources [GH-26317]
+* Data Source: `azurerm_network_interface` - the `enable_ip_forwarding` and `enable_accelerated_networking` properties have been deprecated and superseded by the `ip_forwarding_enabled` and `accelerated_networking_enabled` properties ([#26293](https://github.com/hashicorp/terraform-provider-azurerm/issues/26293))
+* `azurerm_api_management` - the `policy` block has been deprecated is superseded by the `azurerm_api_management_policy` resource ([#26305](https://github.com/hashicorp/terraform-provider-azurerm/issues/26305))
+* `azurerm_kubernetes_cluster` - the `ebpf_data_plane` property has been deprecated and superseded by the `network_data_plane` property ([#26251](https://github.com/hashicorp/terraform-provider-azurerm/issues/26251))
+* `azurerm_network_interface` - the `enable_ip_forwarding` and `enable_accelerated_networking` properties have been deprecated and superseded by the `ip_forwarding_enabled` and `accelerated_networking_enabled` properties ([#26293](https://github.com/hashicorp/terraform-provider-azurerm/issues/26293))
+* `azurerm_synapse_workspace` - the `aad_admin` and `sql_aad_admin` blocks have been deprecated and superseded by the `azurerm_synapse_workspace_aad_admin` and `azurerm_synapse_workspace_sql_aad_admin` resources ([#26317](https://github.com/hashicorp/terraform-provider-azurerm/issues/26317))
 
 ## 3.107.0 (June 06, 2024)
 
