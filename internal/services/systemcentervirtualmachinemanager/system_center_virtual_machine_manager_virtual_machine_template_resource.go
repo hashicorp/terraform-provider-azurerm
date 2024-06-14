@@ -104,7 +104,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineTemplateResource) Create(
 					Name: pointer.To(model.CustomLocationId),
 				},
 				Location: location.Normalize(model.Location),
-				Properties: virtualmachinetemplates.VirtualMachineTemplateProperties{
+				Properties: &virtualmachinetemplates.VirtualMachineTemplateProperties{
 					InventoryItemId: pointer.To(scvmmServerInventoryItemId.ID()),
 					Uuid:            pointer.To(scvmmServerInventoryItemId.InventoryItemName),
 					VMmServerId:     pointer.To(vmmservers.NewVMmServerID(scvmmServerInventoryItemId.SubscriptionId, scvmmServerInventoryItemId.ResourceGroupName, scvmmServerInventoryItemId.VmmServerName).ID()),
@@ -174,7 +174,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineTemplateResource) Update(
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			parameters := virtualmachinetemplates.ResourcePatch{}
+			parameters := virtualmachinetemplates.VirtualMachineTemplateTagsUpdate{}
 
 			if metadata.ResourceData.HasChange("tags") {
 				parameters.Tags = pointer.To(model.Tags)
@@ -200,7 +200,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineTemplateResource) Delete(
 				return err
 			}
 
-			if err := client.DeleteThenPoll(ctx, *id, virtualmachinetemplates.DeleteOperationOptions{Force: pointer.To(virtualmachinetemplates.ForceTrue)}); err != nil {
+			if err := client.DeleteThenPoll(ctx, *id, virtualmachinetemplates.DeleteOperationOptions{Force: pointer.To(virtualmachinetemplates.ForceDeleteTrue)}); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
