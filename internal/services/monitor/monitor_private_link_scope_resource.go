@@ -49,16 +49,16 @@ func resourceMonitorPrivateLinkScope() *pluginsdk.Resource {
 			},
 
 			"ingestion_access_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(privatelinkscopesapis.AccessModeOpen),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(privatelinkscopesapis.AccessModeOpen),
 				ValidateFunc: validation.StringInSlice(privatelinkscopesapis.PossibleValuesForAccessMode(), false),
 			},
 
 			"query_access_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(privatelinkscopesapis.AccessModeOpen),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(privatelinkscopesapis.AccessModeOpen),
 				ValidateFunc: validation.StringInSlice(privatelinkscopesapis.PossibleValuesForAccessMode(), false),
 			},
 
