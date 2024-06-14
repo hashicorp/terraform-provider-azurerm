@@ -104,7 +104,7 @@ func (r SystemCenterVirtualMachineManagerServerResource) Attributes() map[string
 
 func (r SystemCenterVirtualMachineManagerServerResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 180 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			client := metadata.Client.SystemCenterVirtualMachineManager.VMmServers
@@ -150,14 +150,14 @@ func (r SystemCenterVirtualMachineManagerServerResource) Create() sdk.ResourceFu
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
-			// After System Center Virtual Machine Manager Server is created, it needs some time to sync the Inventory Items. And service team confirmed that the sync would definitely be completed within ten minutes. So we only need to set a timeout of 10 minutes and check the inventory quantity continuously every minute for 10 times. If the quantity doesn't change, then we consider the sync to be complete.
+			// After System Center Virtual Machine Manager Server is created, it needs some time to sync the Inventory Items. And service team confirmed that the sync would definitely be completed within ten minutes. So we only need to set a timeout of 120 minutes and check the inventory quantity continuously every minute for 10 times. If the quantity doesn't change, then we consider the sync to be complete.
 			stateConf := &pluginsdk.StateChangeConf{
 				Delay:        5 * time.Second,
 				Pending:      []string{"SyncNotCompleted"},
 				Target:       []string{"SyncCompleted"},
 				Refresh:      systemCenterVirtualMachineManagerServerStateRefreshFunc(ctx, metadata, id),
 				PollInterval: 1 * time.Minute,
-				Timeout:      5 * time.Minute,
+				Timeout:      120 * time.Minute,
 			}
 
 			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
@@ -213,7 +213,7 @@ func (r SystemCenterVirtualMachineManagerServerResource) Read() sdk.ResourceFunc
 
 func (r SystemCenterVirtualMachineManagerServerResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 180 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.SystemCenterVirtualMachineManager.VMmServers
 
@@ -242,7 +242,7 @@ func (r SystemCenterVirtualMachineManagerServerResource) Update() sdk.ResourceFu
 
 func (r SystemCenterVirtualMachineManagerServerResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 180 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.SystemCenterVirtualMachineManager.VMmServers
 
