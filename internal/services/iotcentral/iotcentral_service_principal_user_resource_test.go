@@ -38,25 +38,6 @@ func TestAccIoTCentralServicePrincipalUser_basic(t *testing.T) {
 	})
 }
 
-// func TestAccIoTCentralUser_basic_type_group(t *testing.T) {
-// 	data := acceptance.BuildTestData(t, "azurerm_iotcentral_user", "test")
-// 	r := IotCentralUserResource{}
-
-// 	data.ResourceTest(t, r, []acceptance.TestStep{
-// 		{
-// 			Config: r.basic_type_group(data, appAdminRoleId),
-// 			Check: acceptance.ComposeTestCheckFunc(
-// 				check.That(data.ResourceName).ExistsInAzure(r),
-// 				check.That(data.ResourceName).Key("type").HasValue("Group"),
-// 				check.That(data.ResourceName).Key("object_id").IsNotEmpty(),
-// 				check.That(data.ResourceName).Key("tenant_id").IsNotEmpty(),
-// 				check.That(data.ResourceName).Key("role.0.role_id").HasValue(appAdminRoleId),
-// 			),
-// 		},
-// 		data.ImportStep(),
-// 	})
-// }
-
 func TestAccIoTCentralServicePrincipalUser_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iotcentral_service_principal_user", "test")
 	r := IotCentralServicePrincipalUserResource{}
@@ -76,26 +57,6 @@ func TestAccIoTCentralServicePrincipalUser_complete(t *testing.T) {
 		data.ImportStep(),
 	})
 }
-
-// func TestAccIoTCentralUser_complete_type_group(t *testing.T) {
-// 	data := acceptance.BuildTestData(t, "azurerm_iotcentral_user", "test")
-// 	r := IotCentralUserResource{}
-
-// 	data.ResourceTest(t, r, []acceptance.TestStep{
-// 		{
-// 			Config: r.complete_type_group(data, orgAdminRoleId),
-// 			Check: acceptance.ComposeTestCheckFunc(
-// 				check.That(data.ResourceName).ExistsInAzure(r),
-// 				check.That(data.ResourceName).Key("type").HasValue("Group"),
-// 				check.That(data.ResourceName).Key("object_id").IsNotEmpty(),
-// 				check.That(data.ResourceName).Key("tenant_id").IsNotEmpty(),
-// 				check.That(data.ResourceName).Key("role.0.role_id").HasValue(orgAdminRoleId),
-// 				check.That(data.ResourceName).Key("role.0.organization_id").IsNotEmpty(),
-// 			),
-// 		},
-// 		data.ImportStep(),
-// 	})
-// }
 
 func TestAccIoTCentralServicePrincipalUser_basicUpdateRole(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iotcentral_service_principal_user", "test")
@@ -120,30 +81,6 @@ func TestAccIoTCentralServicePrincipalUser_basicUpdateRole(t *testing.T) {
 		},
 	})
 }
-
-// func TestAccIoTCentralUser_basicUpdateRole_type_group(t *testing.T) {
-// 	data := acceptance.BuildTestData(t, "azurerm_iotcentral_user", "test")
-// 	r := IotCentralUserResource{}
-
-// 	data.ResourceTest(t, r, []acceptance.TestStep{
-// 		{
-// 			Config: r.basic_type_group(data, appAdminRoleId),
-// 			Check: acceptance.ComposeTestCheckFunc(
-// 				check.That(data.ResourceName).ExistsInAzure(r),
-// 				check.That(data.ResourceName).Key("type").HasValue("Group"),
-// 				check.That(data.ResourceName).Key("role.0.role_id").HasValue(appAdminRoleId),
-// 			),
-// 		},
-// 		{
-// 			Config: r.basic_type_group(data, appBuilderRoleId),
-// 			Check: acceptance.ComposeTestCheckFunc(
-// 				check.That(data.ResourceName).ExistsInAzure(r),
-// 				check.That(data.ResourceName).Key("type").HasValue("Group"),
-// 				check.That(data.ResourceName).Key("role.0.role_id").HasValue(appBuilderRoleId),
-// 			),
-// 		},
-// 	})
-// }
 
 func (IotCentralServicePrincipalUserResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.UserID(state.ID)
@@ -209,38 +146,6 @@ resource "azurerm_iotcentral_service_principal_user" "test" {
 	`, data.RandomInteger, r.templateBasic(data), roleId)
 }
 
-// func (r IotCentralUserResource) basic_type_group(data acceptance.TestData, roleId string) string {
-// 	return fmt.Sprintf(`
-// provider "azurerm" {
-//   features {}
-// }
-
-// provider "azuread" {}
-
-// data "azurerm_client_config" "current" {}
-
-// resource "azuread_group" "test" {
-//   display_name     = "acctest-iotcentraladgroup-%d"
-//   security_enabled = true
-// }
-
-// 	%s
-
-// resource "azurerm_iotcentral_user" "test" {
-//   iotcentral_application_id = azurerm_iotcentral_application.test.id
-//   user_id                   = "test-user-id"
-//   object_id                 = azuread_group.test.object_id
-//   tenant_id                 = data.azurerm_client_config.current.tenant_id
-
-//   type = "Group"
-
-//   role {
-//     role_id = "%s"
-//   }
-// }
-// 	`, data.RandomInteger, r.templateBasic(data), roleId)
-// }
-
 func (r IotCentralServicePrincipalUserResource) complete(data acceptance.TestData, roleId string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -274,39 +179,6 @@ resource "azurerm_iotcentral_service_principal_user" "test" {
 }
 `, data.RandomInteger, r.templateComplete(data), roleId)
 }
-
-// func (r IotCentralUserResource) complete_type_group(data acceptance.TestData, roleId string) string {
-// 	return fmt.Sprintf(`
-// provider "azurerm" {
-//   features {}
-// }
-
-// provider "azuread" {}
-
-// data "azurerm_client_config" "current" {}
-
-// resource "azuread_group" "test" {
-//   display_name     = "acctest-iotcentraladgroup-%d"
-//   security_enabled = true
-// }
-
-// %s
-
-// resource "azurerm_iotcentral_user" "test" {
-//   iotcentral_application_id = azurerm_iotcentral_application.test.id
-//   user_id                   = "test-user-id"
-//   object_id                 = azuread_group.test.object_id
-//   tenant_id                 = data.azurerm_client_config.current.tenant_id
-
-//   type = "Group"
-
-//   role {
-//     role_id         = "%s"
-//     organization_id = azurerm_iotcentral_organization.test.organization_id
-//   }
-// }
-// `, data.RandomInteger, r.templateComplete(data), roleId)
-// }
 
 func (IotCentralServicePrincipalUserResource) templateBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
