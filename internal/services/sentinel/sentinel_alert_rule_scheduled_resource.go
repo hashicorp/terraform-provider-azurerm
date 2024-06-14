@@ -115,7 +115,6 @@ func resourceSentinelAlertRuleScheduled() *pluginsdk.Resource {
 				},
 			},
 
-			// TODO 4.0 - rename this to "incident"
 			"incident": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -358,9 +357,8 @@ func resourceSentinelAlertRuleScheduled() *pluginsdk.Resource {
 
 	if !features.FourPointOhBeta() {
 		resource.Schema["incident_configuration"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			// NOTE: O+C The API creates an incident if omitted but overwriting this/reverting to the default can be done without issue so this can remain
+			Type:          pluginsdk.TypeList,
+			Optional:      true,
 			Computed:      true,
 			MaxItems:      1,
 			MinItems:      1,
