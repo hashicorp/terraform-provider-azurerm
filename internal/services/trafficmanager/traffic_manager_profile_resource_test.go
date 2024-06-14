@@ -96,7 +96,7 @@ func TestAccTrafficManagerProfile_updateEnsureDoNotEraseEndpoints(t *testing.T) 
 	})
 }
 
-func TestAccAzureRMTrafficManagerProfile_requiresImport(t *testing.T) {
+func TestAccTrafficManagerProfile_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_profile", "test")
 	r := TrafficManagerProfileResource{}
 
@@ -112,7 +112,7 @@ func TestAccAzureRMTrafficManagerProfile_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMTrafficManagerProfile_cycleMethod(t *testing.T) {
+func TestAccTrafficManagerProfile_cycleMethod(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_profile", "test")
 	r := TrafficManagerProfileResource{}
 
@@ -174,7 +174,7 @@ func TestAccAzureRMTrafficManagerProfile_cycleMethod(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMTrafficManagerProfile_fastEndpointFailoverSettingsError(t *testing.T) {
+func TestAccTrafficManagerProfile_fastEndpointFailoverSettingsError(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_profile", "test")
 	r := TrafficManagerProfileResource{}
 
@@ -186,7 +186,7 @@ func TestAccAzureRMTrafficManagerProfile_fastEndpointFailoverSettingsError(t *te
 	})
 }
 
-func TestAccAzureRMTrafficManagerProfile_fastMaxReturnSettingError(t *testing.T) {
+func TestAccTrafficManagerProfile_fastMaxReturnSettingError(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_profile", "test")
 	r := TrafficManagerProfileResource{}
 
@@ -198,7 +198,7 @@ func TestAccAzureRMTrafficManagerProfile_fastMaxReturnSettingError(t *testing.T)
 	})
 }
 
-func TestAccAzureRMTrafficManagerProfile_trafficView(t *testing.T) {
+func TestAccTrafficManagerProfile_trafficView(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_profile", "test")
 	r := TrafficManagerProfileResource{}
 
@@ -221,7 +221,7 @@ func TestAccAzureRMTrafficManagerProfile_trafficView(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMTrafficManagerProfile_updateTTL(t *testing.T) {
+func TestAccTrafficManagerProfile_updateTTL(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_profile", "test")
 	r := TrafficManagerProfileResource{}
 
