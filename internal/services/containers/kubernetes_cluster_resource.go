@@ -2613,11 +2613,13 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		cycleNodePool := d.HasChanges(cycleNodePoolProperties...)
 		// os_sku could only be updated if the current and new os_sku are either Ubuntu or AzureLinux
 		if d.HasChange("default_node_pool.0.os_sku") {
-			oldOsSku, newOsSku := d.GetChange("default_node_pool.0.os_sku")
-			if oldOsSku != managedclusters.OSSKUUbuntu && oldOsSku != managedclusters.OSSKUAzureLinux {
+			oldOsSkuRaw, newOsSkuRaw := d.GetChange("default_node_pool.0.os_sku")
+			oldOsSku := oldOsSkuRaw.(string)
+			newOsSku := newOsSkuRaw.(string)
+			if oldOsSku != string(managedclusters.OSSKUUbuntu) && oldOsSku != string(managedclusters.OSSKUAzureLinux) {
 				cycleNodePool = true
 			}
-			if newOsSku != managedclusters.OSSKUUbuntu && newOsSku != managedclusters.OSSKUAzureLinux {
+			if newOsSku != string(managedclusters.OSSKUUbuntu) && newOsSku != string(managedclusters.OSSKUAzureLinux) {
 				cycleNodePool = true
 			}
 		}
