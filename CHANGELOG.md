@@ -1,3 +1,9 @@
+## 3.109.0 (Unreleased)
+
+BUG FIXES:
+
+* `azurerm_automation_job_schedule` - updates `azurerm_automation_job_schedule` to use a composite resource id and allows `azurerm_automation_runbook` to be updated without causing `azurerm_automation_job_schedule` to recreate [GH-8634]
+
 ## 3.108.0 (June 13, 2024)
 
 FEATURES:
