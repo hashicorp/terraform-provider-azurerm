@@ -27,8 +27,6 @@ type IotCentralUserModel struct {
 	UserId                  string `tfschema:"user_id"`
 	Type                    string `tfschema:"type"`
 	Email                   string `tfschema:"email"`
-	TenantId                string `tfschema:"tenant_id"`
-	ObjectId                string `tfschema:"object_id"`
 	Role                    []Role `tfschema:"role"`
 }
 
