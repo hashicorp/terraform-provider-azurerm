@@ -21,6 +21,7 @@ BUG FIXES:
 * `azurerm_lb_backend_address_pool_address` - when using this resource, values are no longer reset on `azurerm_lb_backend_address_pool` [GH-26264]
 * `azurerm_route_filter` - split create and update [GH-26266]
 * `azurerm_route_server` - split create and update [GH-26266]
+* `azurerm_synapse_workspace` - updates the client used in all operations of `azurerm_synapse_workspace_sql_aad_admin` to prevent this resource from modifying the same resource as `azurerm_synapse_workspace_aad_admin` [GH-26317]
 * `azurerm_virtual_network` - Fix Parsing of NSG ID [GH-26283]
 
 DEPRECATIONS:
@@ -29,6 +30,7 @@ DEPRECATIONS:
 * `azurerm_api_management` - the `policy` block has been deprecated is superseded by the `azurerm_api_management_policy` resource [GH-26305]
 * `azurerm_kubernetes_cluster` - the property `ebpf_data_plane` has been deprecated and superseded by the property `network_data_plane` [GH-26251]
 * `azurerm_network_interface` - the properties `enable_ip_forwarding` and `enable_accelerated_networking` have been deprecated and superseded by the properties `ip_forwarding_enabled` and `accelerated_networking_enabled` [GH-26293]
+* `azurerm_synapse_workspace` - the blocks `aad_admin` and `sql_aad_admin` have been deprecated and superseded by the resources `azurerm_synapse_workspace_aad_admin` and `azurerm_synapse_workspace_sql_aad_admin` [GH-26317]
 
 ## 3.107.0 (June 06, 2024)
 
