@@ -208,7 +208,7 @@ In addition to all arguments above, the following attributes are exported:
 Because these policies are created automatically by Azure, they will auto-import on first use. They can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_role_management_policy.example "/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/roleManagementPolicies/00000000-0000-0000-0000-000000000000"
+terraform import azurerm_role_management_policy.example "/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/roleManagementPolicies/00000000-0000-0000-0000-000000000000|<scope>"
 ```
 
 ## Timeouts
