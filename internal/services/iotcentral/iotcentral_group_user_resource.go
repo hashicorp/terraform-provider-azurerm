@@ -47,17 +47,17 @@ func (r IotCentralGroupUserResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 		"tenant_id": {
 			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Required: true,
 			ForceNew: true,
 		},
 		"object_id": {
 			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Required: true,
 			ForceNew: true,
 		},
 		"role": {
 			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Required: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"role_id": {

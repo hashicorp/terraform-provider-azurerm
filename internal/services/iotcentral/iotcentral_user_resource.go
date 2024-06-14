@@ -46,12 +46,12 @@ func (r IotCentralUserResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 		"email": {
 			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Required: true,
 			ForceNew: true,
 		},
 		"role": {
 			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Required: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"role_id": {
