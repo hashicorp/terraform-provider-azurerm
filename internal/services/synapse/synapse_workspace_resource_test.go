@@ -761,12 +761,6 @@ resource "azurerm_synapse_workspace" "test" {
     user_assigned_identity_id = azurerm_user_assigned_identity.test.id
   }
 
-  aad_admin {
-    login     = "AzureAD Admin"
-    object_id = data.azurerm_client_config.current.object_id
-    tenant_id = data.azurerm_client_config.current.tenant_id
-  }
-
   identity {
     type         = "SystemAssigned, UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
