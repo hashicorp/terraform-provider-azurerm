@@ -30,7 +30,7 @@ type DiskPoolIscsiTargetModel struct {
 	DisksPoolId string   `tfschema:"disks_pool_id"`
 	Endpoints   []string `tfschema:"endpoints"`
 	Name        string   `tfschema:"name"`
-	Port        int      `tfschema:"port"`
+	Port        int64    `tfschema:"port"`
 	TargetIqn   string   `tfschema:"target_iqn"`
 }
 
@@ -191,7 +191,7 @@ func (d DisksPoolIscsiTargetResource) Read() sdk.ResourceFunc {
 				m.Endpoints = *endpoints
 			}
 			if port := resp.Model.Properties.Port; port != nil {
-				m.Port = int(*port)
+				m.Port = int64(*port)
 			}
 			m.TargetIqn = resp.Model.Properties.TargetIqn
 			return metadata.Encode(&m)

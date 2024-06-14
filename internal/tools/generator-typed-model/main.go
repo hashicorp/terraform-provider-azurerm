@@ -71,7 +71,7 @@ func modelForSchemaMap(name string, sm map[string]*schema.Schema) []Statement {
 		case schema.TypeBool:
 			fields = append(fields, Id(fieldName).Bool().Tag(tag))
 		case schema.TypeInt:
-			fields = append(fields, Id(fieldName).Int().Tag(tag))
+			fields = append(fields, Id(fieldName).Int64().Tag(tag))
 		case schema.TypeString:
 			fields = append(fields, Id(fieldName).String().Tag(tag))
 		case schema.TypeFloat:
@@ -90,7 +90,7 @@ func modelForSchemaMap(name string, sm map[string]*schema.Schema) []Statement {
 				case schema.TypeBool:
 					fields = append(fields, field.Bool().Tag(tag))
 				case schema.TypeInt:
-					fields = append(fields, field.Int().Tag(tag))
+					fields = append(fields, field.Int64().Tag(tag))
 				case schema.TypeString:
 					fields = append(fields, field.String().Tag(tag))
 				case schema.TypeFloat:
@@ -109,7 +109,7 @@ func modelForSchemaMap(name string, sm map[string]*schema.Schema) []Statement {
 			case schema.TypeBool:
 				fields = append(fields, field.Bool().Tag(tag))
 			case schema.TypeInt:
-				fields = append(fields, field.Int().Tag(tag))
+				fields = append(fields, field.Int64().Tag(tag))
 			case schema.TypeString:
 				fields = append(fields, field.String().Tag(tag))
 			case schema.TypeFloat:
