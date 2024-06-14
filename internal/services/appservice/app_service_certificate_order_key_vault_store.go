@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/appservicecertificateorders"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -76,7 +77,7 @@ func (r CertificateOrderCertificateResource) ModelObject() interface{} {
 }
 
 func (r CertificateOrderCertificateResource) ResourceType() string {
-	return "azurerm_app_service_certificate_order_certificate"
+	return "azurerm_app_service_certificate_order_key_vault_store"
 }
 
 func (r CertificateOrderCertificateResource) Create() sdk.ResourceFunc {
@@ -93,19 +94,18 @@ func (r CertificateOrderCertificateResource) Create() sdk.ResourceFunc {
 
 			certificateOrderId, err := appservicecertificateorders.ParseCertificateOrderID(certificateOrderCertificate.CertificateOrderId)
 			if err != nil {
-				return fmt.Errorf("parsing certificate order error %+v", err)
+				return err
 			}
 			id := appservicecertificateorders.NewCertificateID(subscriptionId, certificateOrderId.ResourceGroupName, certificateOrderId.CertificateOrderName, certificateOrderCertificate.Name)
 
-			keyVaultId, err := commonids.ParseKeyVaultIDInsensitively(certificateOrderCertificate.KeyVaultId)
+			keyVaultId, err := commonids.ParseKeyVaultID(certificateOrderCertificate.KeyVaultId)
 			if err != nil {
 				return err
 			}
-			kvId := commonids.NewKeyVaultID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroupName, keyVaultId.VaultName)
 
 			existing, err := client.GetCertificate(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("retreiving %s: %v", id, err)
+				return fmt.Errorf("retrieving %s: %v", id, err)
 			}
 			if !response.WasNotFound(existing.HttpResponse) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
@@ -114,7 +114,7 @@ func (r CertificateOrderCertificateResource) Create() sdk.ResourceFunc {
 			certOrderCertificate := appservicecertificateorders.AppServiceCertificateResource{
 				Name: pointer.To(certificateOrderCertificate.Name),
 				Properties: &appservicecertificateorders.AppServiceCertificate{
-					KeyVaultId:         pointer.To(kvId.ID()),
+					KeyVaultId:         pointer.To(keyVaultId.ID()),
 					KeyVaultSecretName: pointer.To(certificateOrderCertificate.KeyVaultSecretName),
 				},
 			}
@@ -135,7 +135,7 @@ func (r CertificateOrderCertificateResource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppService.AppServiceCertificatesOrderClient
-			id, err := appservicecertificateorders.ParseCertificateIDInsensitively(metadata.ResourceData.Id())
+			id, err := appservicecertificateorders.ParseCertificateID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -145,7 +145,7 @@ func (r CertificateOrderCertificateResource) Read() sdk.ResourceFunc {
 				if response.WasNotFound(certificateOrderCertificate.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
-				return fmt.Errorf("reading %s: %+v", id, err)
+				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
 			state := CertificateOrderCertificateModel{
@@ -155,8 +155,9 @@ func (r CertificateOrderCertificateResource) Read() sdk.ResourceFunc {
 			certificateOrderId := appservicecertificateorders.NewCertificateOrderID(id.SubscriptionId, id.ResourceGroupName, id.CertificateOrderName)
 			state.CertificateOrderId = certificateOrderId.ID()
 
+			// we need to parse the key vault id insensitively as the resource group part was changed https://github.com/Azure/azure-rest-api-specs/issues/new?assignees=&labels=bug&projects=&template=02_bug.yml&title=%5BBUG%5D
 			if model := certificateOrderCertificate.Model; model != nil {
-				state.Location = model.Location
+				state.Location = location.Normalize(model.Location)
 				if props := model.Properties; props != nil {
 					if props.KeyVaultId != nil {
 						keyVaultId, err := commonids.ParseKeyVaultIDInsensitively(*props.KeyVaultId)
@@ -181,13 +182,12 @@ func (r CertificateOrderCertificateResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			id, err := appservicecertificateorders.ParseCertificateIDInsensitively(metadata.ResourceData.Id())
+			id, err := appservicecertificateorders.ParseCertificateID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
 			client := metadata.Client.AppService.AppServiceCertificatesOrderClient
-			metadata.Logger.Infof("deleting %s", id)
 
 			if _, err := client.DeleteCertificate(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
@@ -202,7 +202,7 @@ func (r CertificateOrderCertificateResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			id, err := appservicecertificateorders.ParseCertificateIDInsensitively(metadata.ResourceData.Id())
+			id, err := appservicecertificateorders.ParseCertificateID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -216,7 +216,7 @@ func (r CertificateOrderCertificateResource) Update() sdk.ResourceFunc {
 
 			existing, err := client.GetCertificate(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("reading %s: %+v", id, err)
+				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
 			model := *existing.Model

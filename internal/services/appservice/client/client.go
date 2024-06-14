@@ -57,7 +57,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	appServiceCertificatesOrderClient, err := appservicecertificateorders.NewAppServiceCertificateOrdersClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, fmt.Errorf("building Appservice Certificate Order client: %+v", err)
+		return nil, fmt.Errorf("building Certificate Order client: %+v", err)
 	}
 	o.Configure(appServiceCertificatesOrderClient.Client, o.Authorizers.ResourceManager)
 

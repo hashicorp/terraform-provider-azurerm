@@ -1,13 +1,13 @@
 ---
 subcategory: "App Service (Web Apps)"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_app_service_certificate_order_certificate"
+page_title: "Azure Resource Manager: azurerm_app_service_certificate_order_key_vault_store"
 description: |-
   Manages an App Service Certificate Order Certificate.
 
 ---
 
-# azurerm_app_service_certificate_order_certificate
+# azurerm_app_service_certificate_order_key_vault_store
 
 Manages an App Service Certificate Order Certificate.
 
@@ -30,7 +30,6 @@ resource "azurerm_key_vault" "test" {
 
   sku_name = "standard"
 
-  // app service object ID
   access_policy {
     tenant_id = data.azurerm_client_config.test.tenant_id
     object_id = "f8daea97-62e7-4026-becf-13c2ea98e8b4"
@@ -53,7 +52,6 @@ resource "azurerm_key_vault" "test" {
     ]
   }
 
-  // Microsoft.Azure.CertificateRegistration object ID
   access_policy {
     tenant_id = data.azurerm_client_config.test.tenant_id
     object_id = "ed47c2a1-bd23-4341-b39c-f4fd69138dd3"
@@ -85,7 +83,7 @@ resource "azurerm_app_service_certificate_order" "example" {
   product_type        = "Standard"
 }
 
-resource "azurerm_app_service_certificate_order_certificate" "test" {
+resource "azurerm_app_service_certificate_order_key_vault_store" "test" {
   name                  = "example-certorder-cert"
   certificate_order_id  = azurerm_app_service_certificate_order.example.id
   key_vault_id          = azurerm_key_vault.example.id
@@ -99,19 +97,19 @@ resource "azurerm_app_service_certificate_order_certificate" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the certificate order certificate key vault binding. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Certificate Key Vault Store. Changing this forces a new resource to be created.
 
-* `certificate_order_id` - (Required) The id of the certificate order in which to configure the certificate. Changing this forces a new resource to be created.
+* `certificate_order_id` - (Required) The ID of the Certificate Order in which to configure the Certificate Key Vault Store Binding. Changing this forces a new resource to be created.
 
-* `key_vault_id` - (Required) The id of the key vault in which to bind the certificate order certificate.
+* `key_vault_id` - (Required) The ID of the Key Vault in which to bind the Certificate.
 
-* `key_vault_secret_name` - (Required) The name of the key vault secrete in which to bind the certificate order certificate.
+* `key_vault_secret_name` - (Required) The name of the Key Vault Secret to bind to the Certificate.
 
 ## Attributes Reference
 
-* `location` - The location of the certificate order certificate.
+* `location` - The location of the certificate.
 
-* `type` - The type of the certificate order certificate.
+* `type` - The type of the certificate.
 
 ## Timeouts
 
@@ -127,7 +125,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 App Service Certificate Order Certificate can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_app_service_certificate_order_certificate.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.CertificateRegistration/certificateOrders/certificateorder1/certificates/certificates1
+terraform import azurerm_app_service_certificate_order_key_vault_store.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.CertificateRegistration/certificateOrders/certificateorder1/certificates/certificates1
 ```
 
 
