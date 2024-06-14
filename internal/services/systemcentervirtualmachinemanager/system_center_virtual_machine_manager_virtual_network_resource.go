@@ -104,7 +104,7 @@ func (r SystemCenterVirtualMachineManagerVirtualNetworkResource) Create() sdk.Re
 					Name: pointer.To(model.CustomLocationId),
 				},
 				Location: location.Normalize(model.Location),
-				Properties: virtualnetworks.VirtualNetworkProperties{
+				Properties: &virtualnetworks.VirtualNetworkProperties{
 					InventoryItemId: pointer.To(scvmmServerInventoryItemId.ID()),
 					Uuid:            pointer.To(scvmmServerInventoryItemId.InventoryItemName),
 					VMmServerId:     pointer.To(vmmservers.NewVMmServerID(scvmmServerInventoryItemId.SubscriptionId, scvmmServerInventoryItemId.ResourceGroupName, scvmmServerInventoryItemId.VmmServerName).ID()),
@@ -173,7 +173,7 @@ func (r SystemCenterVirtualMachineManagerVirtualNetworkResource) Update() sdk.Re
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			parameters := virtualnetworks.ResourcePatch{}
+			parameters := virtualnetworks.VirtualNetworkTagsUpdate{}
 
 			if metadata.ResourceData.HasChange("tags") {
 				parameters.Tags = pointer.To(model.Tags)
@@ -199,7 +199,7 @@ func (r SystemCenterVirtualMachineManagerVirtualNetworkResource) Delete() sdk.Re
 				return err
 			}
 
-			if err := client.DeleteThenPoll(ctx, *id, virtualnetworks.DeleteOperationOptions{Force: pointer.To(virtualnetworks.ForceTrue)}); err != nil {
+			if err := client.DeleteThenPoll(ctx, *id, virtualnetworks.DeleteOperationOptions{Force: pointer.To(virtualnetworks.ForceDeleteTrue)}); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
