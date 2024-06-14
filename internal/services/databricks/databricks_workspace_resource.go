@@ -630,8 +630,9 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 		}
 
 		workspace.Properties.AccessConnector = &accessConnectorProperties
-		workspace.Properties.DefaultStorageFirewall = &defaultStorageFirewallEnabled
 	}
+
+	workspace.Properties.DefaultStorageFirewall = &defaultStorageFirewallEnabled
 
 	if requireNsgRules != "" {
 		requiredNsgRulesConst := workspaces.RequiredNsgRules(requireNsgRules)
