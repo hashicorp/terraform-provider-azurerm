@@ -41,7 +41,7 @@ import (
 )
 
 func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceSiteRecoveryReplicatedItemCreate,
 		Read:   resourceSiteRecoveryReplicatedItemRead,
 		Update: resourceSiteRecoveryReplicatedItemUpdate,
@@ -286,11 +286,21 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 			"network_interface": {
 				Type:     pluginsdk.TypeSet, // use set to avoid diff caused by different orders.
 				Optional: true,
-				Computed: !features.FourPointOh(),
 				Elem:     networkInterfaceResource(),
 			},
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["network_interface"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeSet,
+			ConfigMode: pluginsdk.SchemaConfigModeAttr,
+			Computed:   true,
+			Optional:   true,
+			Elem:       networkInterfaceResource(),
+		}
+	}
+	return resource
 }
 
 func networkInterfaceResource() *pluginsdk.Resource {
