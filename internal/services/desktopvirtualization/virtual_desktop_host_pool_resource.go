@@ -138,7 +138,6 @@ func resourceVirtualDesktopHostPool() *pluginsdk.Resource {
 			"preferred_app_group_type": {
 				Type:        pluginsdk.TypeString,
 				Optional:    true,
-				ForceNew:    true,
 				Description: "Preferred App Group type to display",
 				ValidateFunc: validation.StringInSlice([]string{
 					string(hostpool.PreferredAppGroupTypeDesktop),
