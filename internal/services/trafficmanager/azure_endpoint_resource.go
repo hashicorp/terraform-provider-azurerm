@@ -24,7 +24,7 @@ import (
 )
 
 func resourceAzureEndpoint() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceAzureEndpointCreate,
 		Read:   resourceAzureEndpointRead,
 		Update: resourceAzureEndpointUpdate,
@@ -71,15 +71,9 @@ func resourceAzureEndpoint() *pluginsdk.Resource {
 			},
 
 			"weight": {
-				Type:     pluginsdk.TypeInt,
-				Optional: true,
-				Computed: !features.FourPointOh(),
-				Default: func() interface{} {
-					if !features.FourPointOhBeta() {
-						return nil
-					}
-					return 1
-				}(),
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Default:      1,
 				ValidateFunc: validation.IntBetween(1, 1000),
 			},
 
@@ -115,15 +109,9 @@ func resourceAzureEndpoint() *pluginsdk.Resource {
 			},
 
 			"priority": {
-				Type:     pluginsdk.TypeInt,
-				Optional: true,
-				Computed: !features.FourPointOh(),
-				Default: func() interface{} {
-					if !features.FourPointOhBeta() {
-						return nil
-					}
-					return 1
-				}(),
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Default:      1,
 				ValidateFunc: validation.IntBetween(1, 1000),
 			},
 
@@ -159,6 +147,23 @@ func resourceAzureEndpoint() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["priority"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validation.IntBetween(1, 1000),
+		}
+		resource.Schema["weight"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validation.IntBetween(1, 1000),
+		}
+	}
+
+	return resource
 }
 
 func resourceAzureEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) error {

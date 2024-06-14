@@ -26,7 +26,7 @@ import (
 )
 
 func resourceArmTrafficManagerProfile() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceArmTrafficManagerProfileCreate,
 		Read:   resourceArmTrafficManagerProfileRead,
 		Update: resourceArmTrafficManagerProfileUpdate,
@@ -168,13 +168,7 @@ func resourceArmTrafficManagerProfile() *pluginsdk.Resource {
 			"profile_status": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: !features.FourPointOh(),
-				Default: func() interface{} {
-					if !features.FourPointOhBeta() {
-						return nil
-					}
-					return string(profiles.ProfileStatusEnabled)
-				}(),
+				Default:  string(profiles.ProfileStatusEnabled),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(profiles.ProfileStatusEnabled),
 					string(profiles.ProfileStatusDisabled),
@@ -200,6 +194,19 @@ func resourceArmTrafficManagerProfile() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["profile_status"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(profiles.ProfileStatusEnabled),
+				string(profiles.ProfileStatusDisabled),
+			}, false),
+		}
+	}
+	return resource
 }
 
 func resourceArmTrafficManagerProfileCreate(d *pluginsdk.ResourceData, meta interface{}) error {
