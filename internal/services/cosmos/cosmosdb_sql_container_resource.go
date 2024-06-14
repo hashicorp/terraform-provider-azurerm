@@ -106,7 +106,6 @@ func resourceCosmosDbSQLContainer() *pluginsdk.Resource {
 			"default_ttl": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Computed:     true,
 				ValidateFunc: validation.IntAtLeast(-1),
 			},
 
