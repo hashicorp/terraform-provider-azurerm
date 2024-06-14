@@ -137,7 +137,6 @@ resource "azurerm_traffic_manager_nested_endpoint" "test" {
   target_resource_id      = azurerm_traffic_manager_profile.child.id
   profile_id              = azurerm_traffic_manager_profile.parent.id
   minimum_child_endpoints = 5
-  weight                  = 3
 }
 `, r.template(data), data.RandomInteger)
 }

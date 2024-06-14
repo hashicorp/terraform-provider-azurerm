@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	azSchema "github.com/hashicorp/terraform-provider-azurerm/internal/tf/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -70,9 +71,15 @@ func resourceNestedEndpoint() *pluginsdk.Resource {
 			},
 
 			"weight": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				Computed:     true,
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				Computed: !features.FourPointOh(),
+				Default: func() interface{} {
+					if !features.FourPointOhBeta() {
+						return nil
+					}
+					return 1
+				}(),
 				ValidateFunc: validation.IntBetween(1, 1000),
 			},
 
@@ -118,9 +125,15 @@ func resourceNestedEndpoint() *pluginsdk.Resource {
 			},
 
 			"priority": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				Computed:     true,
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				Computed: !features.FourPointOh(),
+				Default: func() interface{} {
+					if !features.FourPointOhBeta() {
+						return nil
+					}
+					return 1
+				}(),
 				ValidateFunc: validation.IntBetween(1, 1000),
 			},
 

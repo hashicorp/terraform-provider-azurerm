@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -52,16 +53,6 @@ func resourceArmTrafficManagerProfile() *pluginsdk.Resource {
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
-
-			"profile_status": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(profiles.ProfileStatusEnabled),
-					string(profiles.ProfileStatusDisabled),
-				}, false),
-			},
 
 			"traffic_routing_method": {
 				Type:     pluginsdk.TypeString,
@@ -174,9 +165,20 @@ func resourceArmTrafficManagerProfile() *pluginsdk.Resource {
 				},
 			},
 
-			"fqdn": {
+			"profile_status": {
 				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Optional: true,
+				Computed: !features.FourPointOh(),
+				Default: func() interface{} {
+					if !features.FourPointOhBeta() {
+						return nil
+					}
+					return string(profiles.ProfileStatusEnabled)
+				}(),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(profiles.ProfileStatusEnabled),
+					string(profiles.ProfileStatusDisabled),
+				}, false),
 			},
 
 			"max_return": {
@@ -188,6 +190,11 @@ func resourceArmTrafficManagerProfile() *pluginsdk.Resource {
 			"traffic_view_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
+			},
+
+			"fqdn": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
 			},
 
 			"tags": commonschema.Tags(),

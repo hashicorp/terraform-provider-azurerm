@@ -20,7 +20,7 @@ import (
 
 type TrafficManagerProfileResource struct{}
 
-func TestAccAzureRMTrafficManagerProfile_basic(t *testing.T) {
+func TestAccTrafficManagerProfile_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_profile", "test")
 	r := TrafficManagerProfileResource{}
 
@@ -37,7 +37,7 @@ func TestAccAzureRMTrafficManagerProfile_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMTrafficManagerProfile_complete(t *testing.T) {
+func TestAccTrafficManagerProfile_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_profile", "test")
 	r := TrafficManagerProfileResource{}
 
@@ -52,7 +52,7 @@ func TestAccAzureRMTrafficManagerProfile_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMTrafficManagerProfile_update(t *testing.T) {
+func TestAccTrafficManagerProfile_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_profile", "test")
 	r := TrafficManagerProfileResource{}
 
@@ -74,7 +74,7 @@ func TestAccAzureRMTrafficManagerProfile_update(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMTrafficManagerProfile_updateEnsureDoNotEraseEndpoints(t *testing.T) {
+func TestAccTrafficManagerProfile_updateEnsureDoNotEraseEndpoints(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_profile", "test")
 	r := TrafficManagerProfileResource{}
 
