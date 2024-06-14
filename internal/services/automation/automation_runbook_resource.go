@@ -414,16 +414,16 @@ func resourceAutomationRunbookRead(d *pluginsdk.ResourceData, meta interface{}) 
 			}
 			jsId, err := uuid.FromString(*itemProps.JobScheduleId)
 			if err != nil {
-				return fmt.Errorf("parsing job schedule Id listed by Automation Account %q Job Schedule List:%v", id.AutomationAccountName, err)
+				return fmt.Errorf("parsing job schedule Id listed by Automation Account %q Job Schedule List: %v", id.AutomationAccountName, err)
 			}
 			// get job schedule from GET API, `ListByAutomationAccountComplete` lost parameters
 			jobscheduleID, err := jobschedule.ParseJobScheduleID(pointer.From(item.Id))
 			if err != nil {
-				return fmt.Errorf("parsing job schedule Id listed by Automation Account %q Job Schedule List:%v", id.AutomationAccountName, err)
+				return fmt.Errorf("parsing job schedule Id listed by Automation Account %q Job Schedule List: %v", id.AutomationAccountName, err)
 			}
 			jsResult, err := jsClient.Get(ctx, *jobscheduleID)
 			if err != nil {
-				return fmt.Errorf("retreving job schedule by %s: %v", *jobscheduleID, err)
+				return fmt.Errorf("retrieving job schedule by %s: %v", *jobscheduleID, err)
 			}
 			if jsResult.Model != nil && jsResult.Model.Properties != nil {
 				jsMap[jsId] = *jsResult.Model.Properties
