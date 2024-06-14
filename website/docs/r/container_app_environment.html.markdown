@@ -68,6 +68,10 @@ The following arguments are supported:
 
 * `workload_profile` - (Optional) The profile of the workload to scope the container app execution. A `workload_profile` block as defined below.
 
+* `mutual_tls_enabled` - (Optional) Should mutual transport layer security (mTLS) be enabled? Defaults to `false`.
+
+~> **Note:** This feature is in public preview. Enabling mTLS for your applications may increase response latency and reduce maximum throughput in high-load scenarios.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---

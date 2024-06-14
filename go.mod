@@ -17,8 +17,8 @@ require (
 	github.com/google/go-cmp v0.5.9
 	github.com/google/uuid v1.4.0
 	github.com/hashicorp/go-azure-helpers v0.69.0
-	github.com/hashicorp/go-azure-sdk/resource-manager v0.20240523.1095414
-	github.com/hashicorp/go-azure-sdk/sdk v0.20240523.1095414
+	github.com/hashicorp/go-azure-sdk/resource-manager v0.20240610.1112704
+	github.com/hashicorp/go-azure-sdk/sdk v0.20240610.1112704
 	github.com/hashicorp/go-hclog v1.5.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/go-uuid v1.0.3
@@ -32,7 +32,7 @@ require (
 	github.com/tombuildsstuff/giovanni v0.27.0
 	github.com/tombuildsstuff/kermit v0.20240122.1123108
 	golang.org/x/crypto v0.21.0
-	golang.org/x/tools v0.13.0
+	golang.org/x/tools v0.19.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -53,7 +53,7 @@ require (
 	github.com/hashicorp/go-plugin v1.5.1 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.5 // indirect
 	github.com/hashicorp/hc-install v0.6.0 // indirect
-	github.com/hashicorp/hcl/v2 v2.18.0 // indirect
+	github.com/hashicorp/hcl/v2 v2.20.0 // indirect
 	github.com/hashicorp/hcl2 v0.0.0-20191002203319-fb75b3253c80 // indirect
 	github.com/hashicorp/logutils v1.0.0 // indirect
 	github.com/hashicorp/terraform-exec v0.19.0 // indirect
@@ -63,7 +63,7 @@ require (
 	github.com/hashicorp/terraform-registry-address v0.2.2 // indirect
 	github.com/hashicorp/terraform-svchost v0.1.1 // indirect
 	github.com/hashicorp/yamux v0.1.1 // indirect
-	github.com/kr/text v0.2.0 // indirect
+	github.com/kr/pretty v0.3.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.19 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
@@ -76,9 +76,9 @@ require (
 	github.com/vmihailenco/msgpack v4.0.4+incompatible // indirect
 	github.com/vmihailenco/msgpack/v5 v5.3.5 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
-	github.com/zclconf/go-cty v1.14.0 // indirect
+	github.com/zclconf/go-cty v1.14.3 // indirect
 	golang.org/x/exp v0.0.0-20230905200255-921286631fa9 // indirect
-	golang.org/x/mod v0.12.0 // indirect
+	golang.org/x/mod v0.16.0 // indirect
 	golang.org/x/net v0.23.0 // indirect
 	golang.org/x/oauth2 v0.16.0 // indirect
 	golang.org/x/sys v0.18.0 // indirect

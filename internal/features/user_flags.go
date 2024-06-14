@@ -27,9 +27,10 @@ type CognitiveAccountFeatures struct {
 }
 
 type VirtualMachineFeatures struct {
-	DeleteOSDiskOnDeletion     bool
-	GracefulShutdown           bool
-	SkipShutdownAndForceDelete bool
+	DetachImplicitDataDiskOnDeletion bool
+	DeleteOSDiskOnDeletion           bool
+	GracefulShutdown                 bool
+	SkipShutdownAndForceDelete       bool
 }
 
 type VirtualMachineScaleSetFeatures struct {

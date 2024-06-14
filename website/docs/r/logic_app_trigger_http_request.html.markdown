@@ -68,7 +68,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the HTTP Request Trigger within the Logic App Workflow.
 
-* `callback_url` - The URL for the workflow trigger
+* `callback_url` - The URL of the Trigger within the Logic App Workflow. For use with certain resources like [monitor_action_group](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/monitor_action_group) and [security_center_automation](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/security_center_automation).
 
 ## Timeouts
 
