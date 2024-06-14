@@ -45,33 +45,19 @@ func (r LogAnalyticsWorkspaceOnboardResource) IDValidationFunc() pluginsdk.Schem
 
 func (r LogAnalyticsWorkspaceOnboardResource) Arguments() map[string]*pluginsdk.Schema {
 	out := map[string]*pluginsdk.Schema{
-		"resource_group_name": {
-			Deprecated:    "this property has been deprecated in favour of `workspace_id`",
-			Type:          schema.TypeString,
-			Optional:      true,
-			Computed:      true,
-			ForceNew:      true,
-			ConflictsWith: []string{"workspace_id"},
-			ValidateFunc:  resourcegroups.ValidateName,
-		},
-
-		"workspace_name": {
-			Deprecated:    "this property will be removed in favour of `workspace_id` in version 4.0 of the AzureRM Provider",
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			Computed:      true,
-			ForceNew:      true,
-			ConflictsWith: []string{"workspace_id"},
-			ValidateFunc:  validation.StringIsNotEmpty,
-		},
-
 		// lintignore:S013
 		"workspace_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     features.FourPointOhBeta(),
-			Optional:     !features.FourPointOhBeta(),
-			Computed:     !features.FourPointOhBeta(),
-			ForceNew:     true,
+			Type:     pluginsdk.TypeString,
+			Required: features.FourPointOhBeta(),
+			Optional: !features.FourPointOhBeta(),
+			Computed: !features.FourPointOhBeta(),
+			ForceNew: true,
+			ConflictsWith: func() []string {
+				if !features.FourPointOhBeta() {
+					return []string{"resource_group_name", "workspace_name"}
+				}
+				return []string{}
+			}(),
 			ValidateFunc: workspaces.ValidateWorkspaceID,
 		},
 
@@ -83,11 +69,25 @@ func (r LogAnalyticsWorkspaceOnboardResource) Arguments() map[string]*pluginsdk.
 		},
 	}
 
-	if features.FourPointOhBeta() {
-		delete(out, "resource_group_name")
-		delete(out, "workspace_name")
-	} else {
-		out["workspace_id"].ConflictsWith = []string{"resource_group_name", "workspace_name"}
+	if !features.FourPointOhBeta() {
+		out["resource_group_name"] = &pluginsdk.Schema{
+			Deprecated:    "this property has been deprecated in favour of `workspace_id`",
+			Type:          schema.TypeString,
+			Optional:      true,
+			Computed:      true,
+			ForceNew:      true,
+			ConflictsWith: []string{"workspace_id"},
+			ValidateFunc:  resourcegroups.ValidateName,
+		}
+		out["workspace_name"] = &pluginsdk.Schema{
+			Deprecated:    "this property will be removed in favour of `workspace_id` in version 4.0 of the AzureRM Provider",
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			Computed:      true,
+			ForceNew:      true,
+			ConflictsWith: []string{"workspace_id"},
+			ValidateFunc:  validation.StringIsNotEmpty,
+		}
 	}
 
 	return out
@@ -205,9 +205,12 @@ func (r LogAnalyticsWorkspaceOnboardResource) Read() sdk.ResourceFunc {
 			workspaceId := workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName).ID()
 
 			state := SecurityInsightsSentinelOnboardingStateModel{
-				ResourceGroupName: id.ResourceGroupName,
-				WorkspaceName:     id.WorkspaceName,
-				WorkspaceId:       workspaceId,
+				WorkspaceId: workspaceId,
+			}
+
+			if !features.FourPointOhBeta() {
+				state.ResourceGroupName = id.ResourceGroupName
+				state.WorkspaceName = id.WorkspaceName
 			}
 
 			if properties := model.Properties; properties != nil {

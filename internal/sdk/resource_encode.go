@@ -60,12 +60,12 @@ func recurse(objType reflect.Type, objVal reflect.Value, debugLogger Logger) (ou
 		}
 
 		if structTags != nil {
-			if structTags.removedInNextMajorVersion && features.FourPointOh() {
+			if structTags.removedInNextMajorVersion && features.FourPointOhBeta() {
 				debugLogger.Infof("The HCL Path %q is marked as removed - skipping", structTags.hclPath)
 				continue
 			}
 
-			if structTags.addedInNextMajorVersion && !features.FourPointOh() {
+			if structTags.addedInNextMajorVersion && !features.FourPointOhBeta() {
 				debugLogger.Infof("The HCL Path %q is marked as not yet present - skipping", structTags.hclPath)
 				continue
 			}
