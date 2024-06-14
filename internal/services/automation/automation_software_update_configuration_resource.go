@@ -96,7 +96,7 @@ type Schedule struct {
 	LastModifiedTime        string              `tfschema:"last_modified_time"`
 	TimeZone                string              `tfschema:"time_zone"`
 	AdvancedWeekDays        []string            `tfschema:"advanced_week_days"`
-	AdvancedMonthDays       []int               `tfschema:"advanced_month_days"`
+	AdvancedMonthDays       []int64             `tfschema:"advanced_month_days"`
 	MonthlyOccurrence       []MonthlyOccurrence `tfschema:"monthly_occurrence"`
 }
 
@@ -897,13 +897,7 @@ func (m SoftwareUpdateConfigurationResource) Read() sdk.ResourceFunc {
 				// Tracking Issue: https://github.com/Azure/azure-rest-api-specs/issues/24436
 				if advSchedule := scheduleConfiguration.AdvancedSchedule; advSchedule != nil {
 					schedule.AdvancedWeekDays = pointer.From(advSchedule.WeekDays)
-					if monthDays := pointer.From(advSchedule.MonthDays); len(monthDays) > 0 {
-						advMonthDays := make([]int, 0)
-						for _, v := range monthDays {
-							advMonthDays = append(advMonthDays, int(v))
-						}
-						schedule.AdvancedMonthDays = advMonthDays
-					}
+					schedule.AdvancedMonthDays = pointer.From(advSchedule.MonthDays)
 					if monthlyOccurrence := pointer.From(advSchedule.MonthlyOccurrences); len(monthlyOccurrence) > 0 {
 						mo := make([]MonthlyOccurrence, 0)
 						for _, v := range monthlyOccurrence {
@@ -923,9 +917,9 @@ func (m SoftwareUpdateConfigurationResource) Read() sdk.ResourceFunc {
 						schedule.AdvancedWeekDays = wd
 					}
 					if monthDays, ok := meta.ResourceData.GetOk("schedule.0.advanced_month_days"); ok {
-						md := make([]int, 0)
+						md := make([]int64, 0)
 						for _, v := range monthDays.([]interface{}) {
-							md = append(md, v.(int))
+							md = append(md, int64(v.(int)))
 						}
 						schedule.AdvancedMonthDays = md
 					}
@@ -1114,11 +1108,7 @@ func (m SoftwareUpdateConfigurationResource) Update() sdk.ResourceFunc {
 						}
 
 						if len(v.AdvancedMonthDays) > 0 {
-							i := make([]int64, 0)
-							for _, v := range v.AdvancedMonthDays {
-								i = append(i, int64(v))
-							}
-							advSchedule.MonthDays = pointer.To(i)
+							advSchedule.MonthDays = pointer.To(v.AdvancedMonthDays)
 						}
 
 						if len(v.MonthlyOccurrence) > 0 {
@@ -1232,11 +1222,7 @@ func expandUpdateConfig(input SoftwareUpdateConfigurationModel) *softwareupdatec
 			}
 
 			if len(v.AdvancedMonthDays) > 0 {
-				i := make([]int64, 0)
-				for _, v := range v.AdvancedMonthDays {
-					i = append(i, int64(v))
-				}
-				advSchedule.MonthDays = pointer.To(i)
+				advSchedule.MonthDays = pointer.To(v.AdvancedMonthDays)
 			}
 
 			if len(v.MonthlyOccurrence) > 0 {

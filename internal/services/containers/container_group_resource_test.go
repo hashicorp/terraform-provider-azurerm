@@ -1835,6 +1835,13 @@ resource "azurerm_log_analytics_solution" "test" {
   }
 }
 
+resource "azurerm_user_assigned_identity" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  name = "acctest%s"
+}
+
 resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroup-%d"
   location            = azurerm_resource_group.test.location
@@ -1843,6 +1850,11 @@ resource "azurerm_container_group" "test" {
   dns_name_label      = "acctestcontainergroup-%d"
   os_type             = "Windows"
   restart_policy      = "Never"
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
 
   container {
     name   = "windowsservercore"
@@ -1911,7 +1923,7 @@ resource "azurerm_container_group" "test" {
     environment = "Testing"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
 func (ContainerGroupResource) linuxComplete(data acceptance.TestData) string {

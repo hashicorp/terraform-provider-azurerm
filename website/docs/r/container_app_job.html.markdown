@@ -102,9 +102,9 @@ The following arguments are supported:
 
 * `replica_retry_limit` - (Optional) The maximum number of times a replica is allowed to retry.
 
-* `secrets` - (Optional) A `secrets` block as defined below.
+* `secret` - (Optional) One or more `secret` blocks as defined below.
 
-* `registries` - (Optional) A `registries` block as defined below.
+* `registry` - (Optional) One or more `registry` blocks as defined below.
 
 * `manual_trigger_config` - (Optional) A `manual_trigger_config` block as defined below.
 
@@ -312,15 +312,25 @@ A `volume` block supports the following:
 
 ---
 
-A `secrets` block supports the following:
+A `secret` block supports the following:
 
-* `name` - (required) Name of the secret.
+* `name` - (Required) The secret name.
 
-* `value` - (required) Value of the secret.
+* `identity` - (Optional) The identity to use for accessing the Key Vault secret reference. This can either be the Resource ID of a User Assigned Identity, or `System` for the System Assigned Identity.
+
+!> **Note:** `identity` must be used together with `key_vault_secret_id`
+
+* `key_vault_secret_id` - (Optional) The ID of a Key Vault secret. This can be a versioned or version-less ID.
+
+!> **Note:** When using `key_vault_secret_id`, `ignore_changes` should be used to ignore any changes to `value`.
+
+* `value` - (Optional) The value for this secret.
+
+!> **Note:** `value` will be ignored if `key_vault_secret_id` and `identity` are provided.
 
 ---
 
-A `registries` block supports the following:
+A `registry` block supports the following:
 
 * `identity` - (Optional) A Managed Identity to use to authenticate with Azure Container Registry.
 

@@ -62,7 +62,7 @@ type RetentionWeekly struct {
 type RetentionMonthly struct {
 	Count      int64    `tfschema:"count"`
 	FormatType string   `tfschema:"format_type"`
-	Monthdays  []int    `tfschema:"monthdays"`
+	Monthdays  []int64  `tfschema:"monthdays"`
 	Weeks      []string `tfschema:"weeks"`
 	Weekdays   []string `tfschema:"weekdays"`
 }
@@ -71,7 +71,7 @@ type RetentionYearly struct {
 	Count      int64    `tfschema:"count"`
 	FormatType string   `tfschema:"format_type"`
 	Months     []string `tfschema:"months"`
-	Monthdays  []int    `tfschema:"monthdays"`
+	Monthdays  []int64  `tfschema:"monthdays"`
 	Weeks      []string `tfschema:"weeks"`
 	Weekdays   []string `tfschema:"weekdays"`
 }
@@ -999,7 +999,7 @@ func flattenBackupProtectionPolicyVMWorkloadSimpleRetention(input *protectionpol
 	return []SimpleRetention{simpleRetentionBlock}
 }
 
-func expandBackupProtectionPolicyVMWorkloadRetentionDailyFormat(input []int) *protectionpolicies.DailyRetentionFormat {
+func expandBackupProtectionPolicyVMWorkloadRetentionDailyFormat(input []int64) *protectionpolicies.DailyRetentionFormat {
 	if len(input) == 0 {
 		return nil
 	}
@@ -1009,7 +1009,7 @@ func expandBackupProtectionPolicyVMWorkloadRetentionDailyFormat(input []int) *pr
 	days := make([]protectionpolicies.Day, 0)
 	for _, item := range input {
 		day := protectionpolicies.Day{
-			Date: pointer.To(int64(item)),
+			Date: pointer.To(item),
 		}
 
 		if item == 0 {
@@ -1071,12 +1071,12 @@ func flattenBackupProtectionPolicyVMWorkloadRetentionWeeklyFormat(input *protect
 	return weekdays, weeks
 }
 
-func flattenBackupProtectionPolicyVMWorkloadRetentionDailyFormat(input *protectionpolicies.DailyRetentionFormat) []int {
-	result := make([]int, 0)
+func flattenBackupProtectionPolicyVMWorkloadRetentionDailyFormat(input *protectionpolicies.DailyRetentionFormat) []int64 {
+	result := make([]int64, 0)
 
 	if days := input.DaysOfTheMonth; days != nil {
 		for _, d := range *days {
-			result = append(result, int(*d.Date))
+			result = append(result, pointer.From(d.Date))
 		}
 	}
 

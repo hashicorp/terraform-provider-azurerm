@@ -23,7 +23,7 @@ type KubernetesClusterResource struct{}
 
 var (
 	olderKubernetesVersion        = "1.28.5"
-	currentKubernetesVersion      = "1.29.0"
+	currentKubernetesVersion      = "1.29.2"
 	olderKubernetesVersionAlias   = "1.28"
 	currentKubernetesVersionAlias = "1.29"
 )
@@ -246,6 +246,12 @@ func (t KubernetesClusterResource) Exists(ctx context.Context, clients *clients.
 
 func (KubernetesClusterResource) updateDefaultNodePoolAgentCount(nodeCount int) acceptance.ClientCheckFunc {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
+		if _, ok := ctx.Deadline(); !ok {
+			var cancel context.CancelFunc
+			ctx, cancel = context.WithTimeout(ctx, 1*time.Hour)
+			defer cancel()
+		}
+
 		nodePoolName := state.Attributes["default_node_pool.0.name"]
 		clusterName := state.Attributes["name"]
 		resourceGroup := state.Attributes["resource_group_name"]
@@ -265,9 +271,6 @@ func (KubernetesClusterResource) updateDefaultNodePoolAgentCount(nodeCount int) 
 		}
 
 		nodePool.Model.Properties.Count = utils.Int64(int64(nodeCount))
-
-		ctx, cancel := context.WithDeadline(clients.StopContext, time.Now().Add(1*time.Hour))
-		defer cancel()
 
 		err = clients.Containers.AgentPoolsClient.CreateOrUpdateThenPoll(ctx, agentPoolId, *nodePool.Model)
 		if err != nil {
@@ -705,43 +708,6 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion, enabled)
-}
-
-func (r KubernetesClusterResource) upgradeSettingsConfig(data acceptance.TestData, maxSurge string) string {
-	if maxSurge != "" {
-		maxSurge = fmt.Sprintf(`upgrade_settings {
-    max_surge = %q
-  }`, maxSurge)
-	}
-
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
-  location = "%s"
-}
-
-resource "azurerm_kubernetes_cluster" "test" {
-  name                = "acctestaks%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%d"
-
-  default_node_pool {
-    name       = "default"
-    node_count = 1
-    vm_size    = "Standard_DS2_v2"
-    %s
-  }
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
-  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, maxSurge)
 }
 
 func TestAccResourceKubernetesCluster_roleBasedAccessControlAAD_OlderKubernetesVersion(t *testing.T) {
