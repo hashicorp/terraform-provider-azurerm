@@ -221,16 +221,9 @@ resource "azurerm_system_center_virtual_machine_manager_server" "test" {
   password            = "%s"
 }
 
-resource "time_sleep" "wait_1_minute" {
-  depends_on      = [azurerm_system_center_virtual_machine_manager_server.test]
-  create_duration = "1m"
-}
-
 data "azurerm_system_center_virtual_machine_manager_inventory_items" "test" {
   inventory_type                                  = "VirtualNetwork"
   system_center_virtual_machine_manager_server_id = azurerm_system_center_virtual_machine_manager_server.test.id
-
-  depends_on = [time_sleep.wait_1_minute]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, os.Getenv("ARM_TEST_CUSTOM_LOCATION_ID"), os.Getenv("ARM_TEST_FQDN"), os.Getenv("ARM_TEST_USERNAME"), os.Getenv("ARM_TEST_PASSWORD"))
 }
