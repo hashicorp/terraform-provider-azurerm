@@ -28,17 +28,9 @@ resource "azurerm_system_center_virtual_machine_manager_server" "example" {
   password            = "H@Sh1CoR3!"
 }
 
-resource "time_sleep" "wait_1_minute" {
-  depends_on = [azurerm_system_center_virtual_machine_manager_server.example]
-
-  create_duration = "1m"
-}
-
 data "azurerm_system_center_virtual_machine_manager_inventory_items" "example" {
   inventory_type                                  = "Cloud"
   system_center_virtual_machine_manager_server_id = azurerm_system_center_virtual_machine_manager_server.example.id
-
-  depends_on = [time_sleep.wait_1_minute]
 }
 
 resource "azurerm_system_center_virtual_machine_manager_cloud" "example" {
