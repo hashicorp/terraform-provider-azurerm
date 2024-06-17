@@ -227,7 +227,7 @@ resource "azurerm_nginx_deployment" "test" {
   resource_group_name      = azurerm_resource_group.test.name
   sku                      = "standard_Monthly"
   location                 = azurerm_resource_group.test.location
-  diagnose_support_enabled = true
+  diagnose_support_enabled = false
 
   identity {
     type         = "UserAssigned"

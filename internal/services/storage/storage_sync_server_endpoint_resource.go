@@ -12,7 +12,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/registeredserverresource"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/serverendpointresource"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -162,8 +164,15 @@ func (r SyncServerEndpointResource) Create() sdk.ResourceFunc {
 				payload.Properties.TierFilesOlderThanDays = pointer.To(config.TierFilesOlderThanDays)
 			}
 
+			pollerType := custompollers.NewStorageSyncServerEndpointPoller(client, id)
+			poller := pollers.NewPoller(pollerType, 20*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+
 			if _, err = client.ServerEndpointsCreate(ctx, id, payload); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+
+			if err := poller.PollUntilDone(ctx); err != nil {
+				return err
 			}
 
 			metadata.SetID(id)
@@ -267,8 +276,15 @@ func (r SyncServerEndpointResource) Update() sdk.ResourceFunc {
 				payload.Properties.TierFilesOlderThanDays = pointer.To(config.TierFilesOlderThanDays)
 			}
 
+			pollerType := custompollers.NewStorageSyncServerEndpointPoller(client, *id)
+			poller := pollers.NewPoller(pollerType, 20*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+
 			if _, err = client.ServerEndpointsUpdate(ctx, *id, payload); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
+			}
+
+			if err := poller.PollUntilDone(ctx); err != nil {
+				return err
 			}
 
 			return nil

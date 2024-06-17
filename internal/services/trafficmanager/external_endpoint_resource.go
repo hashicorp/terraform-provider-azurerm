@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	azSchema "github.com/hashicorp/terraform-provider-azurerm/internal/tf/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -23,7 +24,7 @@ import (
 )
 
 func resourceExternalEndpoint() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceExternalEndpointCreate,
 		Read:   resourceExternalEndpointRead,
 		Update: resourceExternalEndpointUpdate,
@@ -72,7 +73,7 @@ func resourceExternalEndpoint() *pluginsdk.Resource {
 			"weight": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Computed:     true,
+				Default:      1,
 				ValidateFunc: validation.IntBetween(1, 1000),
 			},
 
@@ -110,7 +111,7 @@ func resourceExternalEndpoint() *pluginsdk.Resource {
 			"priority": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Computed:     true,
+				Default:      1,
 				ValidateFunc: validation.IntBetween(1, 1000),
 			},
 
@@ -154,6 +155,23 @@ func resourceExternalEndpoint() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["priority"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validation.IntBetween(1, 1000),
+		}
+		resource.Schema["weight"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validation.IntBetween(1, 1000),
+		}
+	}
+
+	return resource
 }
 
 func resourceExternalEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) error {

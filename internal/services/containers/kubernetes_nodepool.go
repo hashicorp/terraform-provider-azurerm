@@ -21,11 +21,11 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-09-02-preview/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-09-02-preview/snapshots"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/applicationsecuritygroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipprefixes"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -165,7 +165,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
-						ValidateFunc: networkValidate.PublicIpPrefixID,
+						ValidateFunc: publicipprefixes.ValidatePublicIPPrefixID,
 						RequiredWith: func() []string {
 							if !features.FourPointOhBeta() {
 								return []string{"default_node_pool.0.enable_node_public_ip"}
@@ -1213,10 +1213,13 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 	input := d.Get("default_node_pool").([]interface{})
 
 	raw := input[0].(map[string]interface{})
-	enableAutoScaling := raw["enable_auto_scaling"].(bool)
-	if features.FourPointOhBeta() {
+	var enableAutoScaling bool
+	if !features.FourPointOhBeta() {
+		enableAutoScaling = raw["enable_auto_scaling"].(bool)
+	} else {
 		enableAutoScaling = raw["auto_scaling_enabled"].(bool)
 	}
+
 	nodeLabelsRaw := raw["node_labels"].(map[string]interface{})
 	nodeLabels := expandNodeLabels(nodeLabelsRaw)
 	var nodeTaints *[]string
@@ -1236,13 +1239,17 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 
 	t := raw["tags"].(map[string]interface{})
 
-	nodePublicIp := raw["enable_node_public_ip"].(bool)
-	if features.FourPointOhBeta() {
+	var nodePublicIp bool
+	if !features.FourPointOhBeta() {
+		nodePublicIp = raw["enable_node_public_ip"].(bool)
+	} else {
 		nodePublicIp = raw["node_public_ip_enabled"].(bool)
 	}
 
-	hostEncryption := raw["enable_host_encryption"].(bool)
-	if features.FourPointOhBeta() {
+	var hostEncryption bool
+	if !features.FourPointOhBeta() {
+		hostEncryption = raw["enable_host_encryption"].(bool)
+	} else {
 		nodePublicIp = raw["host_encryption_enabled"].(bool)
 	}
 

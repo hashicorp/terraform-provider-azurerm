@@ -106,7 +106,11 @@ The following arguments are supported:
 
 * `log_activity_trace_level` - (Optional) Specifies the activity-level tracing options of the runbook, available only for Graphical runbooks. Possible values are `0` for None, `9` for Basic, and `15` for Detailed. Must turn on Verbose logging in order to see the tracing.
 
-* `draft` - (Optional) A `draft` block as defined below .
+* `draft` - (Optional) A `draft` block as defined below.
+
+* `job_schedule` - (Optional) One or more `job_schedule` block as defined below.
+
+~> **NOTE** AzureRM provides a stand-alone [azurerm_automation_job_schedule](automation_job_schedule.html.markdown) and this inlined `job_schdule` property to manage the job schedules. At this time you should choose one of them to manage the job schedule resources.
 
 ---
 
@@ -152,11 +156,31 @@ The `parameters` block supports:
 
 * `default_value` - (Optional) Specifies the default value of the parameter.
 
+---
+
+The `job_schedule` block supports:
+
+* `schedule_name` - (Required) The name of the Schedule.
+
+* `parameters` - (Optional) A map of key/value pairs corresponding to the arguments that can be passed to the Runbook.
+
+-> **NOTE:** The parameter keys/names must strictly be in lowercase, even if this is not the case in the runbook. This is due to a limitation in Azure Automation where the parameter names are normalized. The values specified don't have this limitation.
+
+* `run_on` - (Optional) Name of a Hybrid Worker Group the Runbook will be executed on.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The Automation Runbook ID.
+
+* `job_schedule` - One or more `job_schedule` block as defined below.
+
+---
+
+An `job_schedule` block exports the following:
+
+* `job_schedule_id` - The UUID of automation runbook job schedule ID.
 
 ## Timeouts
 

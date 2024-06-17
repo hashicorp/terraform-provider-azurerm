@@ -75,7 +75,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/peerexpressroutecircuitconnections"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/privatednszonegroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/privateendpoints"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/privatelinkservice"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/privatelinkservices"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipaddresses"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipprefixes"
@@ -187,7 +186,6 @@ type Client struct {
 	PeerExpressRouteCircuitConnections               *peerexpressroutecircuitconnections.PeerExpressRouteCircuitConnectionsClient
 	PrivateDnsZoneGroups                             *privatednszonegroups.PrivateDnsZoneGroupsClient
 	PrivateEndpoints                                 *privateendpoints.PrivateEndpointsClient
-	PrivateLinkService                               *privatelinkservice.PrivateLinkServiceClient
 	PrivateLinkServices                              *privatelinkservices.PrivateLinkServicesClient
 	PublicIPAddresses                                *publicipaddresses.PublicIPAddressesClient
 	PublicIPPrefixes                                 *publicipprefixes.PublicIPPrefixesClient
@@ -642,12 +640,6 @@ func NewClientWithBaseURI(sdkApi sdkEnv.Api, configureFunc func(c *resourcemanag
 	}
 	configureFunc(privateEndpointsClient.Client)
 
-	privateLinkServiceClient, err := privatelinkservice.NewPrivateLinkServiceClientWithBaseURI(sdkApi)
-	if err != nil {
-		return nil, fmt.Errorf("building PrivateLinkService client: %+v", err)
-	}
-	configureFunc(privateLinkServiceClient.Client)
-
 	privateLinkServicesClient, err := privatelinkservices.NewPrivateLinkServicesClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building PrivateLinkServices client: %+v", err)
@@ -940,7 +932,6 @@ func NewClientWithBaseURI(sdkApi sdkEnv.Api, configureFunc func(c *resourcemanag
 		PeerExpressRouteCircuitConnections:               peerExpressRouteCircuitConnectionsClient,
 		PrivateDnsZoneGroups:                             privateDnsZoneGroupsClient,
 		PrivateEndpoints:                                 privateEndpointsClient,
-		PrivateLinkService:                               privateLinkServiceClient,
 		PrivateLinkServices:                              privateLinkServicesClient,
 		PublicIPAddresses:                                publicIPAddressesClient,
 		PublicIPPrefixes:                                 publicIPPrefixesClient,

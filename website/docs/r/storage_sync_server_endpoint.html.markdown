@@ -10,6 +10,8 @@ description: |-
 
 Manages a Storage Sync Server Endpoint.
 
+~> **NOTE:** The parent `azurerm_storage_sync_group` must have an `azurerm_storage_sync_cloud_endpoint` available before an `azurerm_storage_sync_server_endpoint` resource can be created.
+
 ## Example Usage
 
 ```hcl
@@ -50,10 +52,19 @@ resource "azurerm_storage_share" "example" {
   }
 }
 
+resource "azurerm_storage_sync_cloud_endpoint" "example" {
+  name                  = "example-ss-ce"
+  storage_sync_group_id = azurerm_storage_sync_group.example.id
+  file_share_name       = azurerm_storage_share.example.name
+  storage_account_id    = azurerm_storage_account.example.id
+}
+
 resource "azurerm_storage_sync_server_endpoint" "example" {
   name                  = "example-storage-sync-server-endpoint"
   storage_sync_group_id = azurerm_storage_sync_group.example.id
   registered_server_id  = azurerm_storage_sync.example.registered_servers[0]
+
+  depends_on = [azurerm_storage_sync_cloud_endpoint.example]
 }
 ```
 
@@ -67,7 +78,7 @@ The following arguments are supported:
 
 * `registered_server_id` - (Required) The ID of the Registered Server that will be associate with the Storage Sync Server Endpoint. Changing this forces a new Storage Sync Server Endpoint to be created.
 
-~> **NOTE:** For more information on registering a server see the [Microsoft documentation](https://learn.microsoft.com/azure/storage/file-sync/file-sync-server-registration)
+~> **NOTE:** The target server must already be registered with the parent `azurerm_storage_sync` prior to creating this endpoint. For more information on registering a server see the [Microsoft documentation](https://learn.microsoft.com/azure/storage/file-sync/file-sync-server-registration)
 
 * `server_local_path` - (Required) The path on the Windows Server to be synced to the Azure file share. Changing this forces a new Storage Sync Server Endpoint to be created.
 

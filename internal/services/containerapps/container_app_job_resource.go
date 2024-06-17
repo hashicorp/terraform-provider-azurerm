@@ -53,7 +53,6 @@ type ContainerAppJobModel struct {
 }
 
 var _ sdk.ResourceWithUpdate = ContainerAppJobResource{}
-var _ sdk.ResourceWithCustomizeDiff = ContainerAppJobResource{}
 
 func (r ContainerAppJobResource) ModelObject() interface{} {
 	return &ContainerAppJobModel{}
@@ -542,38 +541,6 @@ func (r ContainerAppJobResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
-			return nil
-		},
-	}
-}
-
-func (r ContainerAppJobResource) CustomizeDiff() sdk.ResourceFunc {
-	return sdk.ResourceFunc{
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			if metadata.ResourceDiff != nil && metadata.ResourceDiff.HasChange("secrets") {
-				stateSecretsRaw, configSecretsRaw := metadata.ResourceDiff.GetChange("secrets")
-				stateSecrets := stateSecretsRaw.(*schema.Set).List()
-				configSecrets := configSecretsRaw.(*schema.Set).List()
-				// Check there's not less
-				if len(configSecrets) < len(stateSecrets) {
-					return fmt.Errorf("cannot remove secrets from Container Apps at this time due to a limitation in the Container Apps Service. Please see `https://github.com/microsoft/azure-container-apps/issues/395` for more details")
-				}
-				// Check secrets names in state are all present in config, the values don't matter
-				if len(stateSecrets) > 0 {
-					for _, s := range stateSecrets {
-						found := false
-						for _, c := range configSecrets {
-							if s.(map[string]interface{})["name"] == c.(map[string]interface{})["name"] {
-								found = true
-								break
-							}
-						}
-						if !found {
-							return fmt.Errorf("previously configured secret %q was removed. Removing secrets is not supported by the Container Apps Service at this time, see `https://github.com/microsoft/azure-container-apps/issues/395` for more details", s.(map[string]interface{})["name"])
-						}
-					}
-				}
-			}
 			return nil
 		},
 	}

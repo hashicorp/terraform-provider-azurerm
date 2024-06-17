@@ -34,7 +34,7 @@ resource "azurerm_container_registry_cache_rule" "cache_rule" {
   container_registry_id = azurerm_container_registry.acr.id
   target_repo           = "target"
   source_repo           = "docker.io/hello-world"
-  credential_set_id     = "${azurerm_container_registry.id}/credentialSets/example"
+  credential_set_id     = "${azurerm_container_registry.acr.id}/credentialSets/example"
 }
 ```
 

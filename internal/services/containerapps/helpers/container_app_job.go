@@ -114,8 +114,10 @@ func ExpandContainerAppJobSecrets(input []Secret) *[]jobs.Secret {
 
 	for _, v := range input {
 		result = append(result, jobs.Secret{
-			Name:  pointer.To(v.Name),
-			Value: pointer.To(v.Value),
+			Identity:    pointer.To(v.Identity),
+			KeyVaultUrl: pointer.To(v.KeyVaultSecretId),
+			Name:        pointer.To(v.Name),
+			Value:       pointer.To(v.Value),
 		})
 	}
 
@@ -1004,10 +1006,15 @@ func FlattenContainerAppJobSecrets(input *jobs.JobSecretsCollection) []Secret {
 	result := make([]Secret, 0)
 
 	for _, v := range input.Value {
-		result = append(result, Secret{
-			Name:  pointer.From(v.Name),
-			Value: pointer.From(v.Value),
-		})
+		secret := Secret{
+			Identity:         pointer.From(v.Identity),
+			KeyVaultSecretId: pointer.From(v.KeyVaultUrl),
+			Name:             pointer.From(v.Name),
+		}
+		if v.KeyVaultUrl == nil {
+			secret.Value = pointer.From(v.Value)
+		}
+		result = append(result, secret)
 	}
 
 	return result
