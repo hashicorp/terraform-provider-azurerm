@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/containerapps"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/daprcomponents"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2024-03-01/managedenvironments"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/validate"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -161,61 +162,67 @@ type Ingress struct {
 }
 
 func ContainerAppIngressSchema() *pluginsdk.Schema {
+	r := &pluginsdk.Resource{
+		Schema: map[string]*pluginsdk.Schema{
+			"allow_insecure_connections": {
+				Type:        pluginsdk.TypeBool,
+				Optional:    true,
+				Default:     false,
+				Description: "Should this ingress allow insecure connections?",
+			},
+
+			"external_enabled": {
+				Type:        pluginsdk.TypeBool,
+				Optional:    true,
+				Default:     false,
+				Description: "Is this an external Ingress.",
+			},
+
+			"custom_domain": ContainerAppIngressCustomDomainSchemaComputed(),
+
+			"fqdn": {
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Description: "The FQDN of the ingress.",
+			},
+
+			"ip_security_restriction": ContainerAppIngressIpSecurityRestriction(),
+
+			"target_port": {
+				Type:         pluginsdk.TypeInt,
+				Required:     true,
+				ValidateFunc: validation.IntBetween(1, 65535),
+				Description:  "The target port on the container for the Ingress traffic.",
+			},
+
+			"exposed_port": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(1, 65535),
+				Description:  "The exposed port on the container for the Ingress traffic.",
+			},
+
+			"traffic_weight": ContainerAppIngressTrafficWeight(),
+
+			"transport": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(containerapps.IngressTransportMethodAuto),
+				ValidateFunc: validation.StringInSlice(containerapps.PossibleValuesForIngressTransportMethod(), false),
+				Description:  "The transport method for the Ingress. Possible values include `auto`, `http`, and `http2`, `tcp`. Defaults to `auto`",
+			},
+		},
+	}
+
+	if !features.FourPointOhBeta() {
+		r.Schema["custom_domain"] = ContainerAppIngressCustomDomainSchema()
+	}
+
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 1,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"allow_insecure_connections": {
-					Type:        pluginsdk.TypeBool,
-					Optional:    true,
-					Default:     false,
-					Description: "Should this ingress allow insecure connections?",
-				},
-
-				"custom_domain": ContainerAppIngressCustomDomainSchema(),
-
-				"external_enabled": {
-					Type:        pluginsdk.TypeBool,
-					Optional:    true,
-					Default:     false,
-					Description: "Is this an external Ingress.",
-				},
-
-				"fqdn": {
-					Type:        pluginsdk.TypeString,
-					Computed:    true,
-					Description: "The FQDN of the ingress.",
-				},
-
-				"ip_security_restriction": ContainerAppIngressIpSecurityRestriction(),
-
-				"target_port": {
-					Type:         pluginsdk.TypeInt,
-					Required:     true,
-					ValidateFunc: validation.IntBetween(1, 65535),
-					Description:  "The target port on the container for the Ingress traffic.",
-				},
-
-				"exposed_port": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
-					ValidateFunc: validation.IntBetween(1, 65535),
-					Description:  "The exposed port on the container for the Ingress traffic.",
-				},
-
-				"traffic_weight": ContainerAppIngressTrafficWeight(),
-
-				"transport": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					Default:      string(containerapps.IngressTransportMethodAuto),
-					ValidateFunc: validation.StringInSlice(containerapps.PossibleValuesForIngressTransportMethod(), false),
-					Description:  "The transport method for the Ingress. Possible values include `auto`, `http`, and `http2`, `tcp`. Defaults to `auto`",
-				},
-			},
-		},
+		Elem:     r,
 	}
 }
 
@@ -839,7 +846,7 @@ func ContainerTemplateSchema() *pluginsdk.Schema {
 				"min_replicas": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					Computed:     true,
+					Default:      0,
 					ValidateFunc: validation.IntBetween(0, 300),
 					Description:  "The minimum number of replicas for this container.",
 				},

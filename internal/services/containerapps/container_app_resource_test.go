@@ -2115,7 +2115,6 @@ resource "azurerm_container_app" "test" {
       storage_name = azurerm_container_app_environment_storage.test.name
     }
 
-    min_replicas = 1
     max_replicas = 4
 
     revision_suffix = "%[3]s"
