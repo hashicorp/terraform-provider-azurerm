@@ -604,7 +604,7 @@ resource "azurerm_signalr_service" "test" {
     name     = "Standard_S1"
     capacity = 1
   }
-  
+
   lifecycle {
     ignore_changes = [cors]
   }
@@ -750,7 +750,7 @@ resource "azurerm_signalr_service" "test" {
     capacity = %d
   }
 
-    lifecycle {
+  lifecycle {
     ignore_changes = [cors]
   }
 }
