@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/virtualnetworkgateways"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -196,7 +195,7 @@ func resourceVirtualNetworkGatewayNatRuleRead(d *pluginsdk.ResourceData, meta in
 	d.Set("name", id.NatRuleName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	vnetGatewayId := parse.NewVirtualNetworkGatewayID(id.SubscriptionId, id.ResourceGroupName, id.VirtualNetworkGatewayName)
+	vnetGatewayId := virtualnetworkgateways.NewVirtualNetworkGatewayID(id.SubscriptionId, id.ResourceGroupName, id.VirtualNetworkGatewayName)
 	d.Set("virtual_network_gateway_id", vnetGatewayId.ID())
 
 	if model := resp.Model; model != nil {

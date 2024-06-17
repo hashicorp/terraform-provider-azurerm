@@ -15,13 +15,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/expressroutecircuits"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/localnetworkgateways"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/virtualnetworkgatewayconnections"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/virtualnetworkgateways"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -29,7 +28,7 @@ import (
 )
 
 func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceVirtualNetworkGatewayConnectionCreateUpdate,
 		Read:   resourceVirtualNetworkGatewayConnectionRead,
 		Update: resourceVirtualNetworkGatewayConnectionCreateUpdate,
@@ -75,6 +74,12 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: virtualnetworkgateways.ValidateVirtualNetworkGatewayID,
+			},
+
+			"shared_key": {
+				Type:      pluginsdk.TypeString,
+				Required:  true,
+				Sensitive: true,
 			},
 
 			"authorization_key": {
@@ -131,7 +136,7 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 			"local_network_gateway_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.LocalNetworkGatewayID,
+				ValidateFunc: localnetworkgateways.ValidateLocalNetworkGatewayID,
 			},
 
 			// TODO 4.0: change this from enable_* to *_enabled
@@ -152,13 +157,6 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validation.IntBetween(0, 32000),
-			},
-
-			"shared_key": {
-				Type:      pluginsdk.TypeString,
-				Computed:  !features.FourPointOhBeta(),
-				Optional:  true,
-				Sensitive: true,
 			},
 
 			"express_route_gateway_bypass": {
@@ -352,6 +350,16 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["shared_key"] = &pluginsdk.Schema{
+			Type:      pluginsdk.TypeString,
+			Computed:  true,
+			Optional:  true,
+			Sensitive: true,
+		}
+	}
+	return resource
 }
 
 func resourceVirtualNetworkGatewayConnectionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -639,13 +647,13 @@ func getVirtualNetworkGatewayConnectionProperties(d *pluginsdk.ResourceData, vir
 	}
 
 	if v, ok := d.GetOk("peer_virtual_network_gateway_id"); ok {
-		gwid, err := parse.VirtualNetworkGatewayID(v.(string))
+		gwid, err := virtualnetworkgateways.ParseVirtualNetworkGatewayID(v.(string))
 		if err != nil {
 			return nil, err
 		}
 		props.VirtualNetworkGateway2 = &virtualnetworkgatewayconnections.VirtualNetworkGateway{
 			Id:   pointer.To(gwid.ID()),
-			Name: &gwid.Name,
+			Name: &gwid.VirtualNetworkGatewayName,
 			Properties: virtualnetworkgatewayconnections.VirtualNetworkGatewayPropertiesFormat{
 				IPConfigurations: &[]virtualnetworkgatewayconnections.VirtualNetworkGatewayIPConfiguration{},
 			},

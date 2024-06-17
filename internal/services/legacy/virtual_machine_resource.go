@@ -22,12 +22,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/networkinterfaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipaddresses"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	compute2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
-	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	intStor "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -35,7 +36,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/blobs"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func userDataDiffSuppressFunc(_, old, new string, _ *pluginsdk.ResourceData) bool {
@@ -1887,14 +1887,14 @@ func resourceVirtualMachineGetManagedDiskInfo(d *pluginsdk.ResourceData, disk *v
 }
 
 func determineVirtualMachineIPAddress(ctx context.Context, meta interface{}, props *virtualmachines.VirtualMachineProperties) (string, error) {
-	nicClient := meta.(*clients.Client).Network.InterfacesClient
-	pipClient := meta.(*clients.Client).Network.PublicIPsClient
+	nicClient := meta.(*clients.Client).Network.NetworkInterfaces
+	pipClient := meta.(*clients.Client).Network.PublicIPAddresses
 
 	if props == nil {
 		return "", nil
 	}
 
-	var networkInterface *network.Interface
+	var networkInterface *networkinterfaces.NetworkInterface
 
 	if profile := props.NetworkProfile; profile != nil {
 		if nicReferences := profile.NetworkInterfaces; nicReferences != nil {
@@ -1906,17 +1906,17 @@ func determineVirtualMachineIPAddress(ctx context.Context, meta interface{}, pro
 					}
 				}
 
-				id, err := networkParse.NetworkInterfaceID(*nicReference.Id)
+				id, err := commonids.ParseNetworkInterfaceID(*nicReference.Id)
 				if err != nil {
 					return "", err
 				}
 
-				nic, err := nicClient.Get(ctx, id.ResourceGroup, id.Name, "")
+				nic, err := nicClient.Get(ctx, *id, networkinterfaces.DefaultGetOperationOptions())
 				if err != nil {
-					return "", fmt.Errorf("obtaining NIC %q : %+v", id.String(), err)
+					return "", fmt.Errorf("retrieving %s: %+v", id, err)
 				}
 
-				networkInterface = &nic
+				networkInterface = nic.Model
 				break
 			}
 		}
@@ -1926,29 +1926,33 @@ func determineVirtualMachineIPAddress(ctx context.Context, meta interface{}, pro
 		return "", fmt.Errorf("A Network Interface wasn't found on the Virtual Machine")
 	}
 
-	if props := networkInterface.InterfacePropertiesFormat; props != nil {
+	if props := networkInterface.Properties; props != nil {
 		if configs := props.IPConfigurations; configs != nil {
 			for _, config := range *configs {
-				if config.PublicIPAddress != nil {
-					id, err := networkParse.PublicIpAddressID(*config.PublicIPAddress.ID)
-					if err != nil {
-						return "", err
-					}
+				if configProps := config.Properties; configProps != nil {
+					if configProps.PublicIPAddress != nil {
+						id, err := commonids.ParsePublicIPAddressID(*configProps.PublicIPAddress.Id)
+						if err != nil {
+							return "", err
+						}
 
-					pip, err := pipClient.Get(ctx, id.ResourceGroup, id.Name, "")
-					if err != nil {
-						return "", fmt.Errorf("obtaining Public IP %q : %+v", id.String(), err)
-					}
+						pip, err := pipClient.Get(ctx, *id, publicipaddresses.DefaultGetOperationOptions())
+						if err != nil {
+							return "", fmt.Errorf("retrieving %s: %+v", id, err)
+						}
 
-					if pipProps := pip.PublicIPAddressPropertiesFormat; pipProps != nil {
-						if ip := pipProps.IPAddress; ip != nil {
-							return *ip, nil
+						if model := pip.Model; model != nil {
+							if pipProps := model.Properties; pipProps != nil {
+								if ip := pipProps.IPAddress; ip != nil {
+									return *ip, nil
+								}
+							}
 						}
 					}
-				}
 
-				if ip := config.PrivateIPAddress; ip != nil {
-					return *ip, nil
+					if ip := configProps.PrivateIPAddress; ip != nil {
+						return *ip, nil
+					}
 				}
 			}
 		}

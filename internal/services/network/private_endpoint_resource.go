@@ -317,7 +317,6 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	privateDnsZoneGroup := d.Get("private_dns_zone_group").([]interface{})
-	subnetId := d.Get("subnet_id").(string)
 
 	parameters := privateendpoints.PrivateEndpoint{
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
@@ -349,8 +348,6 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		//goland:noinspection GoDeferInLoop
 		defer locks.UnlockByName(cosmosDbResId, "azurerm_private_endpoint")
 	}
-	locks.ByName(subnetId, "azurerm_private_endpoint")
-	defer locks.UnlockByName(subnetId, "azurerm_private_endpoint")
 
 	err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
 		if err = client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
@@ -509,9 +506,6 @@ func resourcePrivateEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	if err != nil {
 		return err
 	}
-
-	locks.ByName(subnetId, "azurerm_private_endpoint")
-	defer locks.UnlockByName(subnetId, "azurerm_private_endpoint")
 
 	err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
 		if err = client.CreateOrUpdateThenPoll(ctx, *id, parameters); err != nil {
@@ -740,8 +734,6 @@ func resourcePrivateEndpointDelete(d *pluginsdk.ResourceData, meta interface{}) 
 		//goland:noinspection GoDeferInLoop
 		defer locks.UnlockByName(cosmosDbResId, "azurerm_private_endpoint")
 	}
-	locks.ByName(subnetId, "azurerm_private_endpoint")
-	defer locks.UnlockByName(subnetId, "azurerm_private_endpoint")
 
 	log.Printf("[DEBUG] Deleting %s", id)
 	if err = client.DeleteThenPoll(ctx, *id); err != nil {

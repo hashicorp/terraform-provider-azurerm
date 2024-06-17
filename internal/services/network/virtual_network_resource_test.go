@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type VirtualNetworkResource struct{}
@@ -305,16 +304,11 @@ func (r VirtualNetworkResource) Destroy(ctx context.Context, client *clients.Cli
 		return nil, err
 	}
 
-	future, err := client.Network.VnetClient.Delete(ctx, id.ResourceGroupName, id.VirtualNetworkName)
-	if err != nil {
-		return nil, fmt.Errorf("deleting on Virtual Network: %+v", err)
+	if err := client.Network.VirtualNetworks.DeleteThenPoll(ctx, *id); err != nil {
+		return nil, fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Network.VnetClient.Client); err != nil {
-		return nil, fmt.Errorf("waiting for deletion of Virtual Network %q: %+v", id, err)
-	}
-
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (VirtualNetworkResource) basic(data acceptance.TestData) string {
