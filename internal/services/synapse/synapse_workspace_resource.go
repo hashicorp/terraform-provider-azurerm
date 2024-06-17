@@ -234,10 +234,15 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 			},
 
 			"customer_managed_key": {
-				Type:          pluginsdk.TypeList,
-				Optional:      true,
-				MaxItems:      1,
-				ConflictsWith: []string{"sql_aad_admin"},
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				ConflictsWith: func() []string {
+					if !features.FourPointOhBeta() {
+						return []string{"sql_aad_admin"}
+					}
+					return []string{}
+				}(),
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"key_versionless_id": {
