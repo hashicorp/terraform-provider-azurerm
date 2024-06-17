@@ -42,7 +42,7 @@ type ApplicationStackWindows struct {
 	NetCoreVersion          string `tfschema:"dotnet_core_version"`
 	NodeVersion             string `tfschema:"node_version"`
 	PhpVersion              string `tfschema:"php_version"`
-	PythonVersion           string `tfschema:"python_version"`
+	PythonVersion           string `tfschema:"python_version,removedInNextMajorVersion"`
 	Python                  bool   `tfschema:"python"`
 	TomcatVersion           string `tfschema:"tomcat_version"`
 

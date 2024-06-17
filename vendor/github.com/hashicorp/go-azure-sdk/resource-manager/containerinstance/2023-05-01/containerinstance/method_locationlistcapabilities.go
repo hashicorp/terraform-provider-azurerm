@@ -72,6 +72,7 @@ func (c ContainerInstanceClient) LocationListCapabilitiesCompleteMatchingPredica
 
 	resp, err := c.LocationListCapabilities(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

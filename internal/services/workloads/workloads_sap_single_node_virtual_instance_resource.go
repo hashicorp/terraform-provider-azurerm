@@ -50,8 +50,8 @@ type SingleServerConfiguration struct {
 
 type SingleServerDiskVolumeConfiguration struct {
 	VolumeName    string `tfschema:"volume_name"`
-	NumberOfDisks int    `tfschema:"number_of_disks"`
-	SizeGb        int    `tfschema:"size_in_gb"`
+	NumberOfDisks int64  `tfschema:"number_of_disks"`
+	SizeGb        int64  `tfschema:"size_in_gb"`
 	SkuName       string `tfschema:"sku_name"`
 }
 
@@ -742,8 +742,8 @@ func expandSAPSingleNodeVirtualInstanceDiskVolumeConfigurations(input []SingleSe
 		skuName := sapvirtualinstances.DiskSkuName(v.SkuName)
 
 		result[v.VolumeName] = sapvirtualinstances.DiskVolumeConfiguration{
-			Count:  utils.Int64(int64(v.NumberOfDisks)),
-			SizeGB: utils.Int64(int64(v.SizeGb)),
+			Count:  utils.Int64(v.NumberOfDisks),
+			SizeGB: utils.Int64(v.SizeGb),
 			Sku: &sapvirtualinstances.DiskSku{
 				Name: &skuName,
 			},
@@ -789,8 +789,8 @@ func flattenSAPSingleNodeVirtualInstanceDiskVolumeConfigurations(input *sapvirtu
 
 	for k, v := range *input.DiskVolumeConfigurations {
 		diskVolumeConfiguration := SingleServerDiskVolumeConfiguration{
-			NumberOfDisks: int(pointer.From(v.Count)),
-			SizeGb:        int(pointer.From(v.SizeGB)),
+			NumberOfDisks: pointer.From(v.Count),
+			SizeGb:        pointer.From(v.SizeGB),
 			VolumeName:    k,
 		}
 

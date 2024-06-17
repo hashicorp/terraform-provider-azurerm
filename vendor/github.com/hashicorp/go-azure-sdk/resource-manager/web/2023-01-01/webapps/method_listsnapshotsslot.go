@@ -72,6 +72,7 @@ func (c WebAppsClient) ListSnapshotsSlotCompleteMatchingPredicate(ctx context.Co
 
 	resp, err := c.ListSnapshotsSlot(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

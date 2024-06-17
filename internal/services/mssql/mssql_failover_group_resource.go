@@ -41,7 +41,7 @@ type PartnerServerModel struct {
 }
 
 type ReadWriteEndpointFailurePolicyModel struct {
-	GraceMinutes int32  `tfschema:"grace_minutes"`
+	GraceMinutes int64  `tfschema:"grace_minutes"`
 	Mode         string `tfschema:"mode"`
 }
 
@@ -225,7 +225,7 @@ func (r MsSqlFailoverGroupResource) Create() sdk.ResourceFunc {
 			if rwPolicy := model.ReadWriteEndpointFailurePolicy; len(rwPolicy) > 0 {
 				properties.FailoverGroupProperties.ReadWriteEndpoint.FailoverPolicy = sql.ReadWriteEndpointFailoverPolicy(rwPolicy[0].Mode)
 				if rwPolicy[0].Mode == string(sql.ReadWriteEndpointFailoverPolicyAutomatic) {
-					properties.FailoverGroupProperties.ReadWriteEndpoint.FailoverWithDataLossGracePeriodMinutes = utils.Int32(rwPolicy[0].GraceMinutes)
+					properties.FailoverGroupProperties.ReadWriteEndpoint.FailoverWithDataLossGracePeriodMinutes = utils.Int32(int32(rwPolicy[0].GraceMinutes))
 				}
 			}
 
@@ -283,7 +283,7 @@ func (r MsSqlFailoverGroupResource) Update() sdk.ResourceFunc {
 			}
 
 			if state.ReadWriteEndpointFailurePolicy[0].Mode == string(sql.ReadWriteEndpointFailoverPolicyAutomatic) {
-				properties.FailoverGroupProperties.ReadWriteEndpoint.FailoverWithDataLossGracePeriodMinutes = utils.Int32(state.ReadWriteEndpointFailurePolicy[0].GraceMinutes)
+				properties.FailoverGroupProperties.ReadWriteEndpoint.FailoverWithDataLossGracePeriodMinutes = utils.Int32(int32(state.ReadWriteEndpointFailurePolicy[0].GraceMinutes))
 			}
 
 			// client.Update doesn't support changing the PartnerServers
@@ -347,7 +347,7 @@ func (r MsSqlFailoverGroupResource) Read() sdk.ResourceFunc {
 					}}
 
 					if endpoint.FailoverWithDataLossGracePeriodMinutes != nil {
-						model.ReadWriteEndpointFailurePolicy[0].GraceMinutes = *endpoint.FailoverWithDataLossGracePeriodMinutes
+						model.ReadWriteEndpointFailurePolicy[0].GraceMinutes = int64(*endpoint.FailoverWithDataLossGracePeriodMinutes)
 					}
 				}
 			}

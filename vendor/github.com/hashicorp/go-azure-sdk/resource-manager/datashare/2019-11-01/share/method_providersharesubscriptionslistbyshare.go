@@ -72,6 +72,7 @@ func (c ShareClient) ProviderShareSubscriptionsListByShareCompleteMatchingPredic
 
 	resp, err := c.ProviderShareSubscriptionsListByShare(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

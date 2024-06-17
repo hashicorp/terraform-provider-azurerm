@@ -113,6 +113,7 @@ func (c WorkbooksAPIsClient) WorkbooksListByResourceGroupCompleteMatchingPredica
 
 	resp, err := c.WorkbooksListByResourceGroup(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

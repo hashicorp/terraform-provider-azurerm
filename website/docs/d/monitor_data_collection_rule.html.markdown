@@ -111,7 +111,7 @@ A `data_sources` block exports the following:
 * `windows_event_log` - One or more `windows_event_log` blocks as defined below.
 
 * `windows_firewall_log` - One or more `windows_firewall_log` blocks as defined below.
- 
+
 ---
 
 A `destinations` block exports the following:

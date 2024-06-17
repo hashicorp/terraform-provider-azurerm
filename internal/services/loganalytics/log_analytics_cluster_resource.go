@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/clusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/clusters"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -28,13 +28,13 @@ import (
 type LogAnalyticsClusterResource struct{}
 
 type LogAnalyticsClusterModel struct {
-	Name              string                         `tfschema:"name"`
-	ResourceGroupName string                         `tfschema:"resource_group_name"`
-	Location          string                         `tfschema:"location"`
-	Identity          []identity.ModelSystemAssigned `tfschema:"identity"`
-	SizeGB            int64                          `tfschema:"size_gb"`
-	Tags              map[string]string              `tfschema:"tags"`
-	ClusterId         string                         `tfschema:"cluster_id"`
+	Name              string                                     `tfschema:"name"`
+	ResourceGroupName string                                     `tfschema:"resource_group_name"`
+	Location          string                                     `tfschema:"location"`
+	Identity          []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	SizeGB            int64                                      `tfschema:"size_gb"`
+	Tags              map[string]string                          `tfschema:"tags"`
+	ClusterId         string                                     `tfschema:"cluster_id"`
 }
 
 var _ sdk.ResourceWithUpdate = LogAnalyticsClusterResource{}
@@ -52,7 +52,7 @@ func (l LogAnalyticsClusterResource) Arguments() map[string]*schema.Schema {
 
 		"location": commonschema.Location(),
 
-		"identity": commonschema.SystemAssignedIdentityRequiredForceNew(),
+		"identity": commonschema.SystemOrUserAssignedIdentityRequiredForceNew(),
 
 		"size_gb": {
 			Type:     pluginsdk.TypeInt,
@@ -118,7 +118,7 @@ func (r LogAnalyticsClusterResource) Create() sdk.ResourceFunc {
 				return tf.ImportAsExistsError(r.ResourceType(), id.ID())
 			}
 
-			expandedIdentity, err := identity.ExpandSystemAssignedFromModel(config.Identity)
+			expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMapFromModel(config.Identity)
 			if err != nil {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
@@ -128,7 +128,7 @@ func (r LogAnalyticsClusterResource) Create() sdk.ResourceFunc {
 				Location: location.Normalize(config.Location),
 				Identity: expandedIdentity,
 				Sku: &clusters.ClusterSku{
-					Capacity: pointer.To(config.SizeGB),
+					Capacity: pointer.To(clusters.Capacity(config.SizeGB)),
 					Name:     &capacityReservation,
 				},
 				Tags: pointer.To(config.Tags),
@@ -172,7 +172,7 @@ func (r LogAnalyticsClusterResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				state.Location = location.NormalizeNilable(&model.Location)
 
-				flattenedIdentity := identity.FlattenSystemAssignedToModel(model.Identity)
+				flattenedIdentity, err := identity.FlattenLegacySystemAndUserAssignedMapToModel(model.Identity)
 				if err != nil {
 					return fmt.Errorf("flattening `identity`: %+v", err)
 				}
@@ -231,7 +231,7 @@ func (r LogAnalyticsClusterResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("size_gb") && model.Sku != nil && model.Sku.Capacity != nil {
-				model.Sku.Capacity = &config.SizeGB
+				model.Sku.Capacity = pointer.To(clusters.Capacity(config.SizeGB))
 			}
 
 			if metadata.ResourceData.HasChange("tags") {

@@ -72,6 +72,7 @@ func (c WebPubSubClient) PrivateLinkResourcesListCompleteMatchingPredicate(ctx c
 
 	resp, err := c.PrivateLinkResourcesList(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

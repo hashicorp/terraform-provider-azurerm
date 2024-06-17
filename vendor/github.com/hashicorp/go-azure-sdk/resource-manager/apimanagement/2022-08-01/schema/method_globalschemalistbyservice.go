@@ -108,6 +108,7 @@ func (c SchemaClient) GlobalSchemaListByServiceCompleteMatchingPredicate(ctx con
 
 	resp, err := c.GlobalSchemaListByService(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

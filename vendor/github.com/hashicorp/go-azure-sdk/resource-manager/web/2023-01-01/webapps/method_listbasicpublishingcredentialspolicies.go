@@ -73,6 +73,7 @@ func (c WebAppsClient) ListBasicPublishingCredentialsPoliciesCompleteMatchingPre
 
 	resp, err := c.ListBasicPublishingCredentialsPolicies(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

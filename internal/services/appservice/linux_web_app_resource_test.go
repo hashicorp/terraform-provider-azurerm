@@ -37,6 +37,49 @@ func TestAccLinuxWebApp_basic(t *testing.T) {
 	})
 }
 
+func TestAccLinuxWebApp_updateTags(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
+	r := LinuxWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("app,linux"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.basicWithTags(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("app,linux"),
+				check.That(data.ResourceName).Key("app_settings.WEBSITE_HEALTHCHECK_MAXPINGFAILURES").DoesNotExist(),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+func TestAccLinuxWebApp_healthCheckTimeoutOnly(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("skipping as not valid config in 4.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
+	r := LinuxWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.healthCheckOnly(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
 func TestAccLinuxWebApp_freeSkuAlwaysOnShouldFail(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
 	r := LinuxWebAppResource{}
@@ -1404,6 +1447,21 @@ func TestAccLinuxWebApp_withAutoHealRulesSlowRequest(t *testing.T) {
 	})
 }
 
+func TestAccLinuxWebApp_withAutoHealRulesSlowRequestWithPath(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
+	r := LinuxWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.autoHealRulesSlowRequestWithPath(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccLinuxWebApp_appSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
 	r := LinuxWebAppResource{}
@@ -1713,6 +1771,50 @@ resource "azurerm_linux_web_app" "test" {
   service_plan_id     = azurerm_service_plan.test.id
 
   site_config {}
+}
+`, r.baseTemplate(data), data.RandomInteger)
+}
+
+func (r LinuxWebAppResource) basicWithTags(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_web_app" "test" {
+  name                = "acctestWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {}
+
+  tags = {
+    foo = "bar"
+  }
+}
+`, r.baseTemplate(data), data.RandomInteger)
+}
+
+func (r LinuxWebAppResource) healthCheckOnly(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_web_app" "test" {
+  name                = "acctestWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {
+    health_check_eviction_time_in_min = 5
+  }
 }
 `, r.baseTemplate(data), data.RandomInteger)
 }
@@ -3300,10 +3402,52 @@ resource "azurerm_linux_web_app" "test" {
           count      = "10"
           interval   = "00:10:00"
           time_taken = "00:00:10"
-          path       = null
         }
       }
 
+      action {
+        action_type                    = "Recycle"
+        minimum_process_execution_time = "00:05:00"
+      }
+    }
+  }
+}
+`, r.baseTemplate(data), data.RandomInteger)
+}
+
+func (r LinuxWebAppResource) autoHealRulesSlowRequestWithPath(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+%s
+resource "azurerm_linux_web_app" "test" {
+  name                = "acctestWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+  site_config {
+    auto_heal_enabled = true
+    auto_heal_setting {
+      trigger {
+        slow_request {
+          count      = "10"
+          interval   = "00:10:00"
+          time_taken = "00:00:10"
+        }
+        slow_request_with_path {
+          count      = "11"
+          interval   = "00:11:00"
+          time_taken = "00:00:11"
+          path       = "/tftest1"
+        }
+        slow_request_with_path {
+          count      = "12"
+          interval   = "00:12:00"
+          time_taken = "00:00:12"
+          path       = "/tftest2"
+        }
+      }
       action {
         action_type                    = "Recycle"
         minimum_process_execution_time = "00:05:00"

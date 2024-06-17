@@ -311,8 +311,8 @@ func (k FeatureResource) Create() sdk.ResourceFunc {
 				Pending:                   []string{"NotFound", "Forbidden"},
 				Target:                    []string{"Exists"},
 				Refresh:                   appConfigurationGetKeyRefreshFunc(ctx, client, featureKey, model.Label),
-				PollInterval:              10 * time.Second,
-				ContinuousTargetOccurence: 2,
+				PollInterval:              5 * time.Second,
+				ContinuousTargetOccurence: 4,
 				Timeout:                   time.Until(deadline),
 			}
 

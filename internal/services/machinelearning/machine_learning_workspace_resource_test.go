@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-10-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2024-04-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -347,6 +347,41 @@ func TestAccMachineLearningWorkspace_purgeSoftDelete(t *testing.T) {
 				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
 				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
 				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMachineLearningWorkspace_serverlessCompute(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
+	r := WorkspaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.serverlessCompute(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("serverless_compute.#").HasValue("1"),
+				check.That(data.ResourceName).Key("serverless_compute.0.subnet_id").Exists(),
+				check.That(data.ResourceName).Key("serverless_compute.0.public_ip_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMachineLearningWorkspace_serverlessCompute_withoutSubnet(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
+	r := WorkspaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.serverlessComputeWithoutSubnet(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("serverless_compute.#").HasValue("1"),
+				check.That(data.ResourceName).Key("serverless_compute.0.public_ip_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -1160,6 +1195,79 @@ resource "azurerm_machine_learning_workspace" "test" {
   key_vault_id            = azurerm_key_vault.test.id
   storage_account_id      = azurerm_storage_account.test.id
 
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r WorkspaceResource) serverlessCompute(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%[2]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+resource "azurerm_subnet" "test" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
+resource "azurerm_machine_learning_workspace" "test" {
+  name                    = "acctest-MLW-%[2]d"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  application_insights_id = azurerm_application_insights.test.id
+  key_vault_id            = azurerm_key_vault.test.id
+  storage_account_id      = azurerm_storage_account.test.id
+
+  serverless_compute {
+    subnet_id = azurerm_subnet.test.id
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r WorkspaceResource) serverlessComputeWithoutSubnet(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%[2]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+resource "azurerm_subnet" "test" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
+resource "azurerm_machine_learning_workspace" "test" {
+  name                    = "acctest-MLW-%[2]d"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  application_insights_id = azurerm_application_insights.test.id
+  key_vault_id            = azurerm_key_vault.test.id
+  storage_account_id      = azurerm_storage_account.test.id
+
+  serverless_compute {
+    public_ip_enabled = true
+  }
   identity {
     type = "SystemAssigned"
   }

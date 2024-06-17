@@ -9,11 +9,12 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2023-05-01/containerinstance"
 	containerregistry_v2019_06_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview"
 	containerregistry_v2021_08_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2021-08-01-preview"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-07-01/cacherules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2019-08-01/containerservices"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/maintenanceconfigurations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/managedclusters"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-09-02-preview/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-09-02-preview/maintenanceconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-09-02-preview/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-09-02-preview/snapshots"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-10-15/fleetupdatestrategies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-10-15/updateruns"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2022-11-01/extensions"
@@ -26,6 +27,7 @@ import (
 type Client struct {
 	AgentPoolsClient                            *agentpools.AgentPoolsClient
 	ContainerInstanceClient                     *containerinstance.ContainerInstanceClient
+	CacheRulesClient                            *cacherules.CacheRulesClient
 	ContainerRegistryClient_v2021_08_01_preview *containerregistry_v2021_08_01_preview.Client
 	// v2019_06_01_preview is needed for container registry agent pools and tasks
 	ContainerRegistryClient_v2019_06_01_preview *containerregistry_v2019_06_01_preview.Client
@@ -60,6 +62,12 @@ func NewContainersClient(o *common.ClientOptions) (*Client, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	cacheRulesClient, err := cacherules.NewCacheRulesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Cache Rules client: %+v", err)
+	}
+	o.Configure(cacheRulesClient.Client, o.Authorizers.ResourceManager)
 
 	// AKS
 	fleetUpdateRunsClient, err := updateruns.NewUpdateRunsClientWithBaseURI(o.Environment.ResourceManager)
@@ -119,6 +127,7 @@ func NewContainersClient(o *common.ClientOptions) (*Client, error) {
 	return &Client{
 		AgentPoolsClient:                            agentPoolsClient,
 		ContainerInstanceClient:                     containerInstanceClient,
+		CacheRulesClient:                            cacheRulesClient,
 		ContainerRegistryClient_v2021_08_01_preview: containerRegistryClient_v2021_08_01_preview,
 		ContainerRegistryClient_v2019_06_01_preview: containerRegistryClient_v2019_06_01_preview,
 		FleetUpdateRunsClient:                       fleetUpdateRunsClient,

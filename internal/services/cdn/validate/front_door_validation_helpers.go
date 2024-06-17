@@ -54,13 +54,8 @@ func CdnFrontDoorCacheDuration(i interface{}, k string) (_ []string, errors []er
 }
 
 func CdnFrontDoorUrlPathConditionMatchValue(i interface{}, k string) (_ []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
+	if _, ok := i.(string); !ok {
 		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
-	}
-
-	if strings.HasPrefix(v, "/") && len(v) != 1 {
-		return nil, []error{fmt.Errorf(`%q must not begin with the URLs leading slash(e.g. /), got %q`, k, v)}
 	}
 
 	return nil, nil

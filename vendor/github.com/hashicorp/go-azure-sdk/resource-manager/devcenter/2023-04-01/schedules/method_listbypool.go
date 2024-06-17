@@ -72,6 +72,7 @@ func (c SchedulesClient) ListByPoolCompleteMatchingPredicate(ctx context.Context
 
 	resp, err := c.ListByPool(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

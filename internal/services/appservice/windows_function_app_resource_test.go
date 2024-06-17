@@ -1295,6 +1295,22 @@ func TestAccWindowsFunctionApp_appStackPowerShellCore72(t *testing.T) {
 	})
 }
 
+func TestAccWindowsFunctionApp_appStackPowerShellCore74(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_function_app", "test")
+	r := WindowsFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.appStackPowerShellCore(data, SkuBasicPlan, "7.4"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
 // Others
 
 func TestAccWindowsFunctionApp_updateServicePlan(t *testing.T) {
@@ -2981,6 +2997,9 @@ resource "azurerm_windows_function_app" "test" {
       powershell_core_version = "%s"
     }
   }
+
+  ftp_publish_basic_authentication_enabled       = false
+  webdeploy_publish_basic_authentication_enabled = false
 }
 `, r.template(data, planSku), data.RandomInteger, version)
 }

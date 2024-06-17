@@ -10,6 +10,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/privatelinkservices"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -17,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
-	privateLinkServiceParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -465,7 +465,7 @@ func expandPrivateLinkSettings(input []interface{}, skuName cdn.SkuName, enableC
 	// Private Link Service ID here...
 	settings := input[0].(map[string]interface{})
 	targetType := settings["target_type"].(string)
-	_, err := privateLinkServiceParse.PrivateLinkServiceID(settings["private_link_target_id"].(string))
+	_, err := privatelinkservices.ParsePrivateLinkServiceID(settings["private_link_target_id"].(string))
 	if err != nil && targetType == "" {
 		// It is not a Load Balancer and the Target Type is empty, which is invalid...
 		return nil, fmt.Errorf("either 'private_link' or 'target_type' must be specified")

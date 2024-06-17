@@ -72,6 +72,7 @@ func (c NodeTypeClient) ListByManagedClustersCompleteMatchingPredicate(ctx conte
 
 	resp, err := c.ListByManagedClusters(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

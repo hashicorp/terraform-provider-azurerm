@@ -72,6 +72,7 @@ func (c TrustedAccessClient) RolesListCompleteMatchingPredicate(ctx context.Cont
 
 	resp, err := c.RolesList(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

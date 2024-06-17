@@ -100,6 +100,7 @@ func (c ProvidersClient) ProviderResourceTypesListCompleteMatchingPredicate(ctx 
 
 	resp, err := c.ProviderResourceTypesList(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

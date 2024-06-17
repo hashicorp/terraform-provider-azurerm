@@ -13,10 +13,10 @@ var _ InventoryItemProperties = VirtualNetworkInventoryItem{}
 type VirtualNetworkInventoryItem struct {
 
 	// Fields inherited from InventoryItemProperties
-	InventoryItemName *string            `json:"inventoryItemName,omitempty"`
-	ManagedResourceId *string            `json:"managedResourceId,omitempty"`
-	ProvisioningState *ProvisioningState `json:"provisioningState,omitempty"`
-	Uuid              *string            `json:"uuid,omitempty"`
+	InventoryItemName *string                    `json:"inventoryItemName,omitempty"`
+	ManagedResourceId *string                    `json:"managedResourceId,omitempty"`
+	ProvisioningState *ResourceProvisioningState `json:"provisioningState,omitempty"`
+	Uuid              *string                    `json:"uuid,omitempty"`
 }
 
 var _ json.Marshaler = VirtualNetworkInventoryItem{}

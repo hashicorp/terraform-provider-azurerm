@@ -73,6 +73,7 @@ func (c ResourceProvidersClient) ListPremierAddOnOffersCompleteMatchingPredicate
 
 	resp, err := c.ListPremierAddOnOffers(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

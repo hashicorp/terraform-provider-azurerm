@@ -90,6 +90,7 @@ func resourceMsSqlElasticPool() *pluginsdk.Resource {
 								"BC_Gen5",
 								"BC_DC",
 								"HS_Gen5",
+								"HS_PRMS",
 							}, false),
 						},
 

@@ -863,10 +863,8 @@ func ParseMonitorDiagnosticId(monitorId string) (*diagnosticsettings.ScopedDiagn
 		return nil, fmt.Errorf("expected the Monitor Diagnostics ID to be in the format `{resourceId}|{name}` but got %d segments", len(v))
 	}
 
-	identifier := diagnosticsettings.ScopedDiagnosticSettingId{
-		ResourceUri:           v[0],
-		DiagnosticSettingName: v[1],
-	}
+	// TODO: this can become a Composite Resource ID once https://github.com/hashicorp/go-azure-helpers/pull/208 is released
+	identifier := diagnosticsettings.NewScopedDiagnosticSettingID(v[0], v[1])
 	return &identifier, nil
 }
 

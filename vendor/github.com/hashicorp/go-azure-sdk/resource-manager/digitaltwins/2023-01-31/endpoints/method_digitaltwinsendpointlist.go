@@ -72,6 +72,7 @@ func (c EndpointsClient) DigitalTwinsEndpointListCompleteMatchingPredicate(ctx c
 
 	resp, err := c.DigitalTwinsEndpointList(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

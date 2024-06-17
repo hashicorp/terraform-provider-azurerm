@@ -73,6 +73,7 @@ func (c PrivateCloudsClient) ListInSubscriptionCompleteMatchingPredicate(ctx con
 
 	resp, err := c.ListInSubscription(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

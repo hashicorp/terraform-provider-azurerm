@@ -73,6 +73,7 @@ func (c IotDpsResourceClient) ListKeysCompleteMatchingPredicate(ctx context.Cont
 
 	resp, err := c.ListKeys(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
