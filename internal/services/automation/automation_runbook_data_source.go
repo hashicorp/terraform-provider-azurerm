@@ -8,11 +8,13 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/runbook"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -34,25 +36,25 @@ type AutomationRunbookDataSourceModel struct {
 
 var _ sdk.DataSource = AutomationRunbookDataSource{}
 
-func (d ResourceGroupExampleDataSource) Arguments() map[string]*pluginsdk.Schema {
+func (d AutomationRunbookDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
 			ValidateFunc: validate.RunbookName(),
 		},
 
 		"automation_account_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ValidateFunc: validate.AutomationAccount()
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validate.AutomationAccount(),
 		},
 
 		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 	}
 }
 
-func (d ResourceGroupExampleDataSource) Attributes() map[string]*pluginsdk.Schema {
+func (d AutomationRunbookDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.LocationComputed(),
 
@@ -90,15 +92,15 @@ func (d ResourceGroupExampleDataSource) Attributes() map[string]*pluginsdk.Schem
 	}
 }
 
-func (d ResourceGroupExampleDataSource) ModelObject() interface{} {
+func (d AutomationRunbookDataSource) ModelObject() interface{} {
 	return &AutomationRunbookDataSourceModel{}
 }
 
-func (d ResourceGroupExampleDataSource) ResourceType() string {
+func (d AutomationRunbookDataSource) ResourceType() string {
 	return "azurerm_automation_runbook"
 }
 
-func (d ResourceGroupExampleDataSource) Read() sdk.ResourceFunc {
+func (d AutomationRunbookDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -135,29 +137,29 @@ func (d ResourceGroupExampleDataSource) Read() sdk.ResourceFunc {
 			state.Location = location.NormalizeNilable(model.Location)
 
 			if model.Properties.Description != nil {
-				state.Description = pointer.From(model.Description)
+				state.Description = pointer.From(model.Properties.Description)
 			}
 
 			if model.Properties.LogProgress != nil {
-				state.LogProgress = pointer.From(model.LogProgress)
+				state.LogProgress = pointer.From(model.Properties.LogProgress)
 			}
 
 			if model.Properties.RunbookType != nil {
-				state.RunbookType = pointer.From(model.RunbookType)
+				state.RunbookType = string(pointer.From(model.Properties.RunbookType))
 			}
 
-			if model.Properties.Logverbose != nil {
-				state.Logverbose = pointer.From(model.Logverbose)
+			if model.Properties.LogVerbose != nil {
+				state.LogVerbose = pointer.From(model.Properties.LogVerbose)
 			}
 
 			if model.Properties.LogActivityTrace != nil {
-				state.LogActivityTrace = pointer.From(model.LogActivityTrace)
+				state.LogActivityTrace = pointer.From(model.Properties.LogActivityTrace)
 			}
 
 			if contentResp.Model != nil {
-				state.Content = pointer.From(contentResp.Model)
+				state.Content = string(pointer.From(contentResp.Model))
 			}
-			
+
 			state.Tags = pointer.From(model.Tags)
 
 			metadata.SetID(id)
