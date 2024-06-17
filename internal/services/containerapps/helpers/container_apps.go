@@ -872,7 +872,7 @@ func ContainerTemplateSchema() *pluginsdk.Schema {
 				"revision_suffix": {
 					Type:        pluginsdk.TypeString,
 					Optional:    true,
-					Computed:    true,
+					Computed:    true, // Note: O+C This value is always present and non-zero but if not user specified, then the service will generate a value.
 					Description: "The suffix for the revision. This value must be unique for the lifetime of the Resource. If omitted the service will use a hash function to create one.",
 				},
 			},
@@ -1774,7 +1774,7 @@ func ContainerAppReadinessProbeSchema() *pluginsdk.Schema {
 				"path": {
 					Type:        pluginsdk.TypeString,
 					Optional:    true,
-					Computed:    true,
+					Computed:    true, // Note: O+C Needs to remain computed as this has a variable default and since it is part of a list we cannot diffsuppress it.
 					Description: "The URI to use for http type probes. Not valid for `TCP` type probes. Defaults to `/`.",
 				},
 
@@ -2041,7 +2041,7 @@ func ContainerAppLivenessProbeSchema() *pluginsdk.Schema {
 				"path": {
 					Type:        pluginsdk.TypeString,
 					Optional:    true,
-					Computed:    true,
+					Computed:    true, // Note: O+C Needs to remain computed as this has a variable default and since it is part of a list we cannot diffsuppress it.
 					Description: "The URI to use with the `host` for http type probes. Not valid for `TCP` type probes. Defaults to `/`.",
 				},
 
@@ -2319,7 +2319,7 @@ func ContainerAppStartupProbeSchema() *pluginsdk.Schema {
 				"path": {
 					Type:        pluginsdk.TypeString,
 					Optional:    true,
-					Computed:    true,
+					Computed:    true, // Note: O+C Needs to remain computed as this has a variable default and since it is part of a list we cannot diffsuppress it.
 					Description: "The URI to use with the `host` for http type probes. Not valid for `TCP` type probes. Defaults to `/`.",
 				},
 
