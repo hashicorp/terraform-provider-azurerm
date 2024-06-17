@@ -25,9 +25,9 @@ import (
 
 func resourceExpressRouteGateway() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceExpressRouteGatewayCreateUpdate,
+		Create: resourceExpressRouteGatewayCreate,
 		Read:   resourceExpressRouteGatewayRead,
-		Update: resourceExpressRouteGatewayCreateUpdate,
+		Update: resourceExpressRouteGatewayUpdate,
 		Delete: resourceExpressRouteGatewayDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := expressroutegateways.ParseExpressRouteGatewayID(id)
@@ -77,27 +77,25 @@ func resourceExpressRouteGateway() *pluginsdk.Resource {
 	}
 }
 
-func resourceExpressRouteGatewayCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceExpressRouteGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ExpressRouteGateways
 	connectionsClient := meta.(*clients.Client).Network.ExpressRouteConnections
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Println("[INFO] preparing arguments for ExpressRoute Gateway creation.")
 
 	id := expressroutegateways.NewExpressRouteGatewayID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
-		resp, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(resp.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
+	resp, err := client.Get(ctx, id)
+	if err != nil {
+		if !response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
-		if resp.Model != nil && resp.Model.Id != nil && *resp.Model.Id != "" {
-			return tf.ImportAsExistsError("azurerm_express_route_gateway", id.ID())
-		}
+	}
+	if resp.Model != nil && resp.Model.Id != nil && *resp.Model.Id != "" {
+		return tf.ImportAsExistsError("azurerm_express_route_gateway", id.ID())
 	}
 
 	gatewayId := expressrouteconnections.NewExpressRouteGatewayID(id.SubscriptionId, id.ResourceGroupName, id.ExpressRouteGatewayName)
@@ -131,6 +129,75 @@ func resourceExpressRouteGatewayCreateUpdate(d *pluginsdk.ResourceData, meta int
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+
+	return resourceExpressRouteGatewayRead(d, meta)
+}
+
+func resourceExpressRouteGatewayUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.ExpressRouteGateways
+	connectionsClient := meta.(*clients.Client).Network.ExpressRouteConnections
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	log.Println("[INFO] preparing arguments for ExpressRoute Gateway update.")
+
+	id, err := expressroutegateways.ParseExpressRouteGatewayID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", id)
+	}
+
+	gatewayId, err := expressrouteconnections.ParseExpressRouteGatewayID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	respConnections, err := connectionsClient.List(ctx, *gatewayId)
+	if err != nil && !response.WasNotFound(respConnections.HttpResponse) {
+		return fmt.Errorf("retrieving %s: %+v", gatewayId, err)
+	}
+
+	payload := existing.Model
+
+	var connections *[]expressroutegateways.ExpressRouteConnection
+	if model := respConnections.Model; model != nil {
+		connections = convertConnectionsToGatewayConnections(model.Value)
+	}
+
+	payload.Properties.ExpressRouteConnections = connections
+
+	if d.HasChange("scale_units") {
+		payload.Properties.AutoScaleConfiguration = &expressroutegateways.ExpressRouteGatewayPropertiesAutoScaleConfiguration{
+			Bounds: &expressroutegateways.ExpressRouteGatewayPropertiesAutoScaleConfigurationBounds{
+				Min: pointer.To(int64(d.Get("scale_units").(int))),
+			},
+		}
+	}
+
+	if d.HasChange("allow_non_virtual_wan_traffic") {
+		payload.Properties.AllowNonVirtualWanTraffic = pointer.To(d.Get("allow_non_virtual_wan_traffic").(bool))
+	}
+
+	if d.HasChange("tags") {
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())

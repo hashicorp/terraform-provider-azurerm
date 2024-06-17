@@ -62,7 +62,7 @@ func (r RouteMapResource) ModelObject() interface{} {
 }
 
 func (r RouteMapResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.RouteMapID
+	return virtualwans.ValidateRouteMapID
 }
 
 func (r RouteMapResource) Arguments() map[string]*pluginsdk.Schema {
@@ -78,7 +78,7 @@ func (r RouteMapResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.VirtualHubID,
+			ValidateFunc: virtualwans.ValidateVirtualHubID,
 		},
 
 		"rule": {

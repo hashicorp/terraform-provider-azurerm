@@ -8,12 +8,12 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type VirtualMachineTemplate struct {
-	ExtendedLocation ExtendedLocation                 `json:"extendedLocation"`
-	Id               *string                          `json:"id,omitempty"`
-	Location         string                           `json:"location"`
-	Name             *string                          `json:"name,omitempty"`
-	Properties       VirtualMachineTemplateProperties `json:"properties"`
-	SystemData       *systemdata.SystemData           `json:"systemData,omitempty"`
-	Tags             *map[string]string               `json:"tags,omitempty"`
-	Type             *string                          `json:"type,omitempty"`
+	ExtendedLocation ExtendedLocation                  `json:"extendedLocation"`
+	Id               *string                           `json:"id,omitempty"`
+	Location         string                            `json:"location"`
+	Name             *string                           `json:"name,omitempty"`
+	Properties       *VirtualMachineTemplateProperties `json:"properties,omitempty"`
+	SystemData       *systemdata.SystemData            `json:"systemData,omitempty"`
+	Tags             *map[string]string                `json:"tags,omitempty"`
+	Type             *string                           `json:"type,omitempty"`
 }

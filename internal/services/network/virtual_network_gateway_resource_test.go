@@ -8,11 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/virtualnetworkgateways"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type VirtualNetworkGatewayResource struct{}
@@ -405,15 +406,17 @@ func TestAccVirtualNetworkGateway_updateWithNatRule(t *testing.T) {
 }
 
 func (t VirtualNetworkGatewayResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	gatewayName := state.Attributes["name"]
-	resourceGroup := state.Attributes["resource_group_name"]
-
-	resp, err := clients.Network.VnetGatewayClient.Get(ctx, resourceGroup, gatewayName)
+	id, err := virtualnetworkgateways.ParseVirtualNetworkGatewayID(state.ID)
 	if err != nil {
-		return nil, fmt.Errorf("reading Virtual Network Gateway (%s): %+v", state.ID, err)
+		return nil, err
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	resp, err := clients.Network.VirtualNetworkGateways.Get(ctx, *id)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving %s: %+v", state.ID, err)
+	}
+
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (VirtualNetworkGatewayResource) basic(data acceptance.TestData) string {

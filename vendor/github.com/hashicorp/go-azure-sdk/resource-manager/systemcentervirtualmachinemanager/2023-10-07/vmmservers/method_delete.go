@@ -21,7 +21,7 @@ type DeleteOperationResponse struct {
 }
 
 type DeleteOperationOptions struct {
-	Force *Force
+	Force *ForceDelete
 }
 
 func DefaultDeleteOperationOptions() DeleteOperationOptions {
