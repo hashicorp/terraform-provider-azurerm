@@ -27,10 +27,10 @@ type ClusterPoolModel struct {
 	ResourceGroup            string                 `tfschema:"resource_group_name"`
 	Location                 string                 `tfschema:"location"`
 	ManagedResourceGroupName string                 `tfschema:"managed_resource_group_name"`
-	ClusterPoolProfile       []ClusterPoolProfile   `tfschema:"cluster_pool_profile"`
-	ComputeProfile           []ComputeProfile       `tfschema:"compute_profile"`
-	LogAnalyticsProfile      []LogAnalyticsProfile  `tfschema:"log_analytics_profile"`
-	NetworkProfile           []NetworkProfile       `tfschema:"network_profile"`
+	ClusterPoolProfile       []ClusterPoolProfile   `tfschema:"cluster_pool"`
+	ComputeProfile           []ComputeProfile       `tfschema:"compute"`
+	LogAnalyticsProfile      []LogAnalyticsProfile  `tfschema:"log_analytics"`
+	NetworkProfile           []NetworkProfile       `tfschema:"network"`
 	Tags                     map[string]interface{} `tfschema:"tags"`
 }
 
@@ -39,7 +39,9 @@ type ClusterPoolProfile struct {
 }
 
 type ComputeProfile struct {
-	VmSize string `tfschema:"vm_size"`
+	VmSize            string   `tfschema:"vm_size"`
+	Count             int64    `tfschema:"count"`
+	AvailabilityZones []string `tfschema:"availability_zones"`
 }
 
 type LogAnalyticsProfile struct {
@@ -89,7 +91,7 @@ func (r ClusterPoolResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"compute_profile": {
+		"compute": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
 			ForceNew: true,
@@ -100,6 +102,21 @@ func (r ClusterPoolResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"count": {
+						Type:     pluginsdk.TypeInt,
+						Optional: true,
+						Default:  3,
+					},
+
+					"availability_zones": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
 					},
 				},
 			},
@@ -112,7 +129,7 @@ func (r ClusterPoolResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"cluster_pool_profile": {
+		"cluster_pool": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
 			MaxItems: 1,
@@ -128,7 +145,7 @@ func (r ClusterPoolResource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"log_analytics_profile": {
+		"log_analytics": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			MaxItems: 1,
@@ -143,7 +160,7 @@ func (r ClusterPoolResource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"network_profile": {
+		"network": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			MaxItems: 1,
@@ -261,19 +278,19 @@ func (r ClusterPoolResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retreiving properties for %s for update: %+v", *id, err)
 			}
 
-			if metadata.ResourceData.HasChange("cluster_pool_profile") {
+			if metadata.ResourceData.HasChange("cluster_pool") {
 				existing.Model.Properties.ClusterPoolProfile = expandClusterPoolProfile(state.ClusterPoolProfile)
 			}
 
-			if metadata.ResourceData.HasChange("compute_profile") {
+			if metadata.ResourceData.HasChange("compute") {
 				existing.Model.Properties.ComputeProfile = expandComputeProfile(state.ComputeProfile)
 			}
 
-			if metadata.ResourceData.HasChange("log_analytics_profile") {
+			if metadata.ResourceData.HasChange("log_analytics") {
 				existing.Model.Properties.LogAnalyticsProfile = expandLogAnalyticsProfile(state.LogAnalyticsProfile)
 			}
 
-			if metadata.ResourceData.HasChange("network_profile") {
+			if metadata.ResourceData.HasChange("network") {
 				existing.Model.Properties.NetworkProfile = expandNetworkProfile(state.NetworkProfile)
 			}
 
@@ -370,6 +387,14 @@ func expandComputeProfile(profiles []ComputeProfile) hdinsights.ClusterPoolCompu
 	result := hdinsights.ClusterPoolComputeProfile{
 		VMSize: profiles[0].VmSize,
 	}
+
+	if profiles[0].Count != 0 {
+		result.Count = pointer.To(profiles[0].Count)
+	}
+
+	if profiles[0].AvailabilityZones != nil {
+		result.AvailabilityZones = pointer.To(profiles[0].AvailabilityZones)
+	}
 	return result
 }
 
@@ -424,6 +449,15 @@ func flattenComputeProfile(input hdinsights.ClusterPoolComputeProfile) []Compute
 	profile := ComputeProfile{
 		VmSize: input.VMSize,
 	}
+
+	if input.Count != nil {
+		profile.Count = pointer.From(input.Count)
+	}
+
+	if input.AvailabilityZones != nil && len(pointer.From(input.AvailabilityZones)) > 0 {
+		profile.AvailabilityZones = pointer.From(input.AvailabilityZones)
+	}
+
 	result = append(result, profile)
 
 	return result

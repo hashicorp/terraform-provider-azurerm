@@ -24,10 +24,10 @@ resource "azurerm_hdinsight_cluster_pool" "example" {
   location                    = azurerm_resource_group.example.location
   managed_resource_group_name = "test-rg"
 
-  cluster_pool_profile {
+  cluster_pool {
     version = "1.1"
   }
-  compute_profile {
+  compute {
     vm_size = "Standard_F4s_v2"
   }
 }
@@ -44,29 +44,39 @@ The following arguments are supported:
 
 * `managed_resource_group_name` - (Required) A resource group created by RP, to hold the resources created by RP on-behalf of customers. Changing this forces a new resource to be created.
 
-* `cluster_pool_profile` - (Required) The profile of the HDInsight Cluster Pool. A `cluster_pool_profile` block supports the following:
+* `cluster_pool` - (Required) The profile of the HDInsight Cluster Pool. A `cluster_pool` block supports the following:
 
   * `version` - (Required) The version of the HDInsight Cluster Pool. Changing this forces a new resource to be created.
 
-* `compute_profile` - (Required) The compute profile of the HDInsight Cluster Pool. Chaning this forces a new resource to be created. A `compute_profile` block supports the following:
+* `compute` - (Required) The compute profile of the HDInsight Cluster Pool. Chaning this forces a new resource to be created. A `compute` block as defined below.
     
   * `vm_size` - (Required) The size of the Virtual Machine. Changing this forces a new resource to be created.
 
-* `log_analytics_profile` - (Optional) A `log_analytics_profile` block as defined below.
+* `log_analytics` - (Optional) A `log_analytics` block as defined below.
 
-* `network_profile` - (Optional) A `network_profile` block as defined below.
+* `network` - (Optional) A `network` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
 
-A `log_analytics_profile` block supports the following:
+A `compute` block supports the following:
+
+* `vm_size` - (Required) The size of the Virtual Machine. Changing this forces a new resource to be created.
+
+* `count` - (Optional) The number of Virtual Machines.
+
+* `availability_zones` - (Optional) The list of Availability Zones can use.
+
+---
+
+A `log_analytics` block supports the following:
 
 * `workspace_id` - (Required) The ID of the Log Analytics Workspace.
 
 ---
 
-A `network_profile` block supports the following:
+A `network` block supports the following:
 
 * `subnet_id` - (Required) The cluster pool subnet ID.
 
