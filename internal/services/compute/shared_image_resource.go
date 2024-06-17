@@ -258,6 +258,12 @@ func resourceSharedImage() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
+			"disk_controller_type_nvme_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
+			},
+
 			"tags": commonschema.Tags(),
 		},
 
@@ -516,6 +522,7 @@ func resourceSharedImageRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			cvmEnabled := false
 			cvmSupported := false
 			acceleratedNetworkSupportEnabled := false
+			diskControllerTypeNVMEEnabled := false
 			if features := props.Features; features != nil {
 				for _, feature := range *features {
 					if feature.Name == nil || feature.Value == nil {
@@ -532,6 +539,10 @@ func resourceSharedImageRead(d *pluginsdk.ResourceData, meta interface{}) error 
 					if strings.EqualFold(*feature.Name, "IsAcceleratedNetworkSupported") {
 						acceleratedNetworkSupportEnabled = strings.EqualFold(*feature.Value, "true")
 					}
+
+					if strings.EqualFold(*feature.Name, "DiskControllerTypes") {
+						diskControllerTypeNVMEEnabled = strings.Contains(*feature.Value, "NVMe")
+					}
 				}
 			}
 			d.Set("confidential_vm_supported", cvmSupported)
@@ -539,6 +550,7 @@ func resourceSharedImageRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			d.Set("trusted_launch_supported", trustedLaunchSupported)
 			d.Set("trusted_launch_enabled", trustedLaunchEnabled)
 			d.Set("accelerated_network_support_enabled", acceleratedNetworkSupportEnabled)
+			d.Set("disk_controller_type_nvme_enabled", diskControllerTypeNVMEEnabled)
 		}
 
 		return tags.FlattenAndSet(d, model.Tags)
@@ -728,6 +740,13 @@ func expandSharedImageFeatures(d *pluginsdk.ResourceData) *[]galleryimages.Galle
 		features = append(features, galleryimages.GalleryImageFeature{
 			Name:  pointer.To("IsAcceleratedNetworkSupported"),
 			Value: pointer.To("true"),
+		})
+	}
+
+	if d.Get("disk_controller_type_nvme_enabled").(bool) {
+		features = append(features, galleryimages.GalleryImageFeature{
+			Name:  pointer.To("DiskControllerTypes"),
+			Value: pointer.To("SCSI, NVMe"),
 		})
 	}
 
