@@ -98,15 +98,15 @@ func (l SystemCenterVirtualMachineManagerInventoryItemsDataSource) Read() sdk.Re
 				return err
 			}
 
-			resp, err := client.ListByVMMServer(ctx, *scvmmServerId)
+			resp, err := client.ListByVMmServerComplete(ctx, *scvmmServerId)
 			if err != nil {
-				if response.WasNotFound(resp.HttpResponse) {
+				if response.WasNotFound(resp.LatestHttpResponse) {
 					return fmt.Errorf("%s was not found", scvmmServerId)
 				}
 				return fmt.Errorf("reading %s: %+v", scvmmServerId, err)
 			}
 
-			if model := resp.Model; model != nil {
+			if model := resp.Items; model != nil {
 				inventoryItems, err := flattenInventoryItems(model, state.InventoryType)
 				if err != nil {
 					return err
@@ -124,13 +124,10 @@ func (l SystemCenterVirtualMachineManagerInventoryItemsDataSource) Read() sdk.Re
 	}
 }
 
-func flattenInventoryItems(input *[]inventoryitems.InventoryItem, inventoryType string) (*[]InventoryItem, error) {
+func flattenInventoryItems(input []inventoryitems.InventoryItem, inventoryType string) (*[]InventoryItem, error) {
 	results := make([]InventoryItem, 0)
-	if input == nil {
-		return &results, nil
-	}
 
-	for _, item := range *input {
+	for _, item := range input {
 		if props := item.Properties; props != nil {
 			inventoryItem := InventoryItem{}
 

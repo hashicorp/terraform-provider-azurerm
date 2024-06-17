@@ -2512,11 +2512,11 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_network_interface" "test" {
-  name                          = "acctestni-%d"
-  location                      = azurerm_resource_group.test.location
-  resource_group_name           = azurerm_resource_group.test.name
-  enable_ip_forwarding          = false
-  enable_accelerated_networking = true
+  name                           = "acctestni-%d"
+  location                       = azurerm_resource_group.test.location
+  resource_group_name            = azurerm_resource_group.test.name
+  ip_forwarding_enabled          = false
+  accelerated_networking_enabled = true
 
   ip_configuration {
     name                          = "testconfiguration1"

@@ -796,15 +796,11 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		Zones: &zones,
 	}
 
-	// Container Groups with OS Type Windows do not support managed identities but the API also does not accept Identity Type: None
-	// https://github.com/Azure/azure-rest-api-specs/issues/18122
-	if OSType != string(containerinstance.OperatingSystemTypesWindows) {
-		expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
-		if err != nil {
-			return fmt.Errorf("expanding `identity`: %+v", err)
-		}
-		containerGroup.Identity = expandedIdentity
+	expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
+	containerGroup.Identity = expandedIdentity
 
 	if IPAddressType != "None" {
 		containerGroup.Properties.IPAddress = &containerinstance.IPAddress{

@@ -16,12 +16,12 @@ import (
 type ListByResourceGroupOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *[]VMMServer
+	Model        *[]VMmServer
 }
 
 type ListByResourceGroupCompleteResult struct {
 	LatestHttpResponse *http.Response
-	Items              []VMMServer
+	Items              []VMmServer
 }
 
 // ListByResourceGroup ...
@@ -51,7 +51,7 @@ func (c VMmServersClient) ListByResourceGroup(ctx context.Context, id commonids.
 	}
 
 	var values struct {
-		Values *[]VMMServer `json:"value"`
+		Values *[]VMmServer `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return
@@ -64,12 +64,12 @@ func (c VMmServersClient) ListByResourceGroup(ctx context.Context, id commonids.
 
 // ListByResourceGroupComplete retrieves all the results into a single object
 func (c VMmServersClient) ListByResourceGroupComplete(ctx context.Context, id commonids.ResourceGroupId) (ListByResourceGroupCompleteResult, error) {
-	return c.ListByResourceGroupCompleteMatchingPredicate(ctx, id, VMMServerOperationPredicate{})
+	return c.ListByResourceGroupCompleteMatchingPredicate(ctx, id, VMmServerOperationPredicate{})
 }
 
 // ListByResourceGroupCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c VMmServersClient) ListByResourceGroupCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, predicate VMMServerOperationPredicate) (result ListByResourceGroupCompleteResult, err error) {
-	items := make([]VMMServer, 0)
+func (c VMmServersClient) ListByResourceGroupCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, predicate VMmServerOperationPredicate) (result ListByResourceGroupCompleteResult, err error) {
+	items := make([]VMmServer, 0)
 
 	resp, err := c.ListByResourceGroup(ctx, id)
 	if err != nil {

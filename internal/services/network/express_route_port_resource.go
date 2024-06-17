@@ -102,9 +102,9 @@ var expressRoutePortSchema = &pluginsdk.Schema{
 
 func resourceArmExpressRoutePort() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceArmExpressRoutePortCreateUpdate,
+		Create: resourceArmExpressRoutePortCreate,
 		Read:   resourceArmExpressRoutePortRead,
-		Update: resourceArmExpressRoutePortCreateUpdate,
+		Update: resourceArmExpressRoutePortUpdate,
 		Delete: resourceArmExpressRoutePortDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -191,25 +191,23 @@ func resourceArmExpressRoutePort() *pluginsdk.Resource {
 	}
 }
 
-func resourceArmExpressRoutePortCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmExpressRoutePortCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ExpressRoutePorts
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := expressrouteports.NewExpressRoutePortID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
-		resp, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(resp.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
-		}
-
+	resp, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(resp.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_express_route_port", id.ID())
+			return fmt.Errorf("checking for existing %s: %+v", id, err)
 		}
+	}
+
+	if !response.WasNotFound(resp.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_express_route_port", id.ID())
 	}
 
 	expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
@@ -237,17 +235,75 @@ func resourceArmExpressRoutePortCreateUpdate(d *pluginsdk.ResourceData, meta int
 	defer locks.UnlockByID(id.ID())
 
 	// The link properties can't be specified in first creation. It will result into either error (e.g. setting `adminState`) or being ignored (e.g. setting MACSec)
-	// Hence, if this is a new creation we will do a create-then-update here.
-	if d.IsNewResource() {
-		if err := client.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
-			return fmt.Errorf("creating %s: %+v", id, err)
-		}
+	if err := client.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	param.Properties.Links = expandExpressRoutePortLinks(d.Get("link1").([]interface{}), d.Get("link2").([]interface{}))
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+
+	return resourceArmExpressRoutePortRead(d, meta)
+}
+
+func resourceArmExpressRoutePortUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.ExpressRoutePorts
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := expressrouteports.ParseExpressRoutePortID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", *id)
+	}
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", *id)
+	}
+
+	payload := existing.Model
+
+	if d.HasChange("identity") {
+		expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+		payload.Identity = expandedIdentity
+	}
+
+	if d.HasChange("billing_type") {
+		if v, ok := d.GetOk("billing_type"); ok {
+			payload.Properties.BillingType = pointer.To(expressrouteports.ExpressRoutePortsBillingType(v.(string)))
+		}
+	}
+
+	if d.HasChanges("link1", "link2") {
+		payload.Properties.Links = expandExpressRoutePortLinks(d.Get("link1").([]interface{}), d.Get("link2").([]interface{}))
+	}
+
+	if d.HasChange("tags") {
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	// a lock is needed here for subresource express_route_port_authorization needs a lock.
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
+
+	payload.Properties.Links = expandExpressRoutePortLinks(d.Get("link1").([]interface{}), d.Get("link2").([]interface{}))
+
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())

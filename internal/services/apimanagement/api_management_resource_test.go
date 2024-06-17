@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/testclient"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -250,6 +251,9 @@ func TestAccApiManagement_delegationSettings(t *testing.T) {
 }
 
 func TestAccApiManagement_policy(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("Skipping since `policy` has been deprecated and removed in 4.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 	r := ApiManagementResource{}
 
