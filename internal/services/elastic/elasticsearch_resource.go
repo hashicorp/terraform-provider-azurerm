@@ -43,7 +43,6 @@ func resourceElasticsearch() *pluginsdk.Resource {
 		}),
 
 		Schema: map[string]*pluginsdk.Schema{
-			// Required
 			"name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
@@ -68,7 +67,6 @@ func resourceElasticsearch() *pluginsdk.Resource {
 				ValidateFunc: validate.ElasticEmailAddress,
 			},
 
-			// Optional
 			"monitoring_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -79,7 +77,6 @@ func resourceElasticsearch() *pluginsdk.Resource {
 			"logs": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -133,7 +130,6 @@ func resourceElasticsearch() *pluginsdk.Resource {
 
 			"tags": commonschema.Tags(),
 
-			// Computed
 			"elastic_cloud_deployment_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
