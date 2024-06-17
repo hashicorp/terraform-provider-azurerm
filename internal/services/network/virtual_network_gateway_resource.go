@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/localnetworkgateways"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/virtualnetworkgateways"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -612,7 +613,7 @@ func resourceVirtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 		"default_local_network_gateway_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validate.LocalNetworkGatewayID,
+			ValidateFunc: localnetworkgateways.ValidateLocalNetworkGatewayID,
 		},
 
 		"bgp_route_translation_for_nat_enabled": {

@@ -633,6 +633,10 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 		workspace.Properties.DefaultStorageFirewall = &defaultStorageFirewallEnabled
 	}
 
+	if !d.IsNewResource() && d.HasChange("default_storage_firewall_enabled") {
+		workspace.Properties.DefaultStorageFirewall = &defaultStorageFirewallEnabled
+	}
+
 	if requireNsgRules != "" {
 		requiredNsgRulesConst := workspaces.RequiredNsgRules(requireNsgRules)
 		workspace.Properties.RequiredNsgRules = &requiredNsgRulesConst
@@ -734,7 +738,9 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 
 		if defaultStorageFirewall := model.Properties.DefaultStorageFirewall; defaultStorageFirewall != nil {
 			d.Set("default_storage_firewall_enabled", *defaultStorageFirewall != workspaces.DefaultStorageFirewallDisabled)
-			d.Set("access_connector_id", model.Properties.AccessConnector.Id)
+			if model.Properties.AccessConnector != nil {
+				d.Set("access_connector_id", model.Properties.AccessConnector.Id)
+			}
 		}
 
 		publicNetworkAccess := model.Properties.PublicNetworkAccess

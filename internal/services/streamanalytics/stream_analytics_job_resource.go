@@ -20,6 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -29,7 +30,7 @@ import (
 )
 
 func resourceStreamAnalyticsJob() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceStreamAnalyticsJobCreateUpdate,
 		Read:   resourceStreamAnalyticsJobRead,
 		Update: resourceStreamAnalyticsJobCreateUpdate,
@@ -73,6 +74,7 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 			"compatibility_level": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				// NOTE: O+C Best Practice from MSFT is to use the latest version 1.2, but API uses 1.0 as the default
 				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					// values found in the other API the portal uses
@@ -85,7 +87,7 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 			"data_locale": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Default:      "en-US",
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
@@ -208,6 +210,16 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["data_locale"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		}
+	}
+	return resource
 }
 
 func resourceStreamAnalyticsJobCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {

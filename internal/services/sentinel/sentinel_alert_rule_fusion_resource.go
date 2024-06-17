@@ -67,7 +67,8 @@ func resourceSentinelAlertRuleFusion() *pluginsdk.Resource {
 			"source": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				// Service will auto-fill this if not given in request, based on the "alert_rule_template_guid".
+				// NOTE: O+C The API creates a source if omitted based on the `alert_rule_template_guid`
+				// but overwriting this/reverting to the default can be done without issue so this can remain
 				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
