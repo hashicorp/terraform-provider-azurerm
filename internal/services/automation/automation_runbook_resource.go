@@ -247,7 +247,7 @@ func resourceAutomationRunbook() *pluginsdk.Resource {
 	}
 }
 
-func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {   
+func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	autoCli := meta.(*clients.Client).Automation
 	client := autoCli.Runbook
 	jsClient := autoCli.JobSchedule
