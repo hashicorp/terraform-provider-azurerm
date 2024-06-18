@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2022-11-01/fluxconfiguration"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2023-05-01/fluxconfiguration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
@@ -31,15 +31,16 @@ const (
 )
 
 type KubernetesFluxConfigurationModel struct {
-	Name                            string                         `tfschema:"name"`
-	ClusterID                       string                         `tfschema:"cluster_id"`
-	BlobStorage                     []AzureBlobDefinitionModel     `tfschema:"blob_storage"`
-	Bucket                          []BucketDefinitionModel        `tfschema:"bucket"`
-	GitRepository                   []GitRepositoryDefinitionModel `tfschema:"git_repository"`
-	Kustomizations                  []KustomizationDefinitionModel `tfschema:"kustomizations"`
-	Namespace                       string                         `tfschema:"namespace"`
-	Scope                           string                         `tfschema:"scope"`
-	ContinuousReconciliationEnabled bool                           `tfschema:"continuous_reconciliation_enabled"`
+	Name           string                         `tfschema:"name"`
+	ClusterID      string                         `tfschema:"cluster_id"`
+	BlobStorage    []AzureBlobDefinitionModel     `tfschema:"blob_storage"`
+	Bucket         []BucketDefinitionModel        `tfschema:"bucket"`
+	GitRepository  []GitRepositoryDefinitionModel `tfschema:"git_repository"`
+	Kustomizations []KustomizationDefinitionModel `tfschema:"kustomizations"`
+	Namespace      string                         `tfschema:"namespace"`
+
+	Scope                           string `tfschema:"scope"`
+	ContinuousReconciliationEnabled bool   `tfschema:"continuous_reconciliation_enabled"`
 }
 
 type AzureBlobDefinitionModel struct {
@@ -88,14 +89,27 @@ type GitRepositoryDefinitionModel struct {
 }
 
 type KustomizationDefinitionModel struct {
-	Name                   string   `tfschema:"name"`
-	Path                   string   `tfschema:"path"`
-	TimeoutInSeconds       int64    `tfschema:"timeout_in_seconds"`
-	SyncIntervalInSeconds  int64    `tfschema:"sync_interval_in_seconds"`
-	RetryIntervalInSeconds int64    `tfschema:"retry_interval_in_seconds"`
-	Force                  bool     `tfschema:"recreating_enabled"`
-	Prune                  bool     `tfschema:"garbage_collection_enabled"`
-	DependsOn              []string `tfschema:"depends_on"`
+	Name                   string                     `tfschema:"name"`
+	Path                   string                     `tfschema:"path"`
+	TimeoutInSeconds       int64                      `tfschema:"timeout_in_seconds"`
+	SyncIntervalInSeconds  int64                      `tfschema:"sync_interval_in_seconds"`
+	RetryIntervalInSeconds int64                      `tfschema:"retry_interval_in_seconds"`
+	Force                  bool                       `tfschema:"recreating_enabled"`
+	Prune                  bool                       `tfschema:"garbage_collection_enabled"`
+	DependsOn              []string                   `tfschema:"depends_on"`
+	PostBuild              []PostBuildDefinitionModel `tfschema:"post_build"`
+	Wait                   bool                       `tfschema:"wait"`
+}
+
+type PostBuildDefinitionModel struct {
+	Substitute     map[string]string               `tfschema:"substitute"`
+	SubstituteFrom []SubstituteFromDefinitionModel `tfschema:"substitute_from"`
+}
+
+type SubstituteFromDefinitionModel struct {
+	Kind     string `tfschema:"kind"`
+	Name     string `tfschema:"name"`
+	Optional bool   `tfschema:"optional"`
 }
 
 type ManagedIdentityDefinitionModel struct {
@@ -219,6 +233,46 @@ func (r KubernetesFluxConfigurationResource) Arguments() map[string]*pluginsdk.S
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
+					},
+
+					"post_build": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"substitute": {
+									Type:     pluginsdk.TypeMap,
+									Optional: true,
+									Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+								},
+								"substitute_from": {
+									Type:     pluginsdk.TypeList,
+									Optional: true,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"kind": {
+												Type:     pluginsdk.TypeString,
+												Required: true,
+											},
+											"name": {
+												Type:     pluginsdk.TypeString,
+												Required: true,
+											},
+											"optional": {
+												Type:     pluginsdk.TypeBool,
+												Optional: true,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					"wait": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
 					},
 				},
 			},
@@ -843,10 +897,12 @@ func expandKustomizationDefinitionModel(inputList []KustomizationDefinitionModel
 			DependsOn:              &input.DependsOn,
 			Force:                  &input.Force,
 			Name:                   &input.Name,
+			PostBuild:              expandPostBuildDefinitionModel(input.PostBuild),
 			Prune:                  &input.Prune,
 			RetryIntervalInSeconds: &input.RetryIntervalInSeconds,
 			SyncIntervalInSeconds:  &input.SyncIntervalInSeconds,
 			TimeoutInSeconds:       &input.TimeoutInSeconds,
+			Wait:                   &input.Wait,
 		}
 
 		if input.Path != "" {
@@ -857,6 +913,40 @@ func expandKustomizationDefinitionModel(inputList []KustomizationDefinitionModel
 	}
 
 	return &outputList
+}
+
+func expandPostBuildDefinitionModel(inputList []PostBuildDefinitionModel) *fluxconfiguration.PostBuildDefinition {
+	if len(inputList) == 0 {
+		return nil
+	}
+
+	input := &inputList[0]
+
+	output := fluxconfiguration.PostBuildDefinition{
+		Substitute:     &input.Substitute,
+		SubstituteFrom: expandSubstituteFromDefinitionModel(input.SubstituteFrom),
+	}
+
+	return &output
+}
+
+func expandSubstituteFromDefinitionModel(inputList []SubstituteFromDefinitionModel) *[]fluxconfiguration.SubstituteFromDefinition {
+	if len(inputList) == 0 {
+		return nil
+	}
+
+	input := &inputList
+	output := make([]fluxconfiguration.SubstituteFromDefinition, 0)
+
+	for _, v := range *input {
+		output = append(output, fluxconfiguration.SubstituteFromDefinition{
+			Kind:     &v.Kind,
+			Name:     &v.Name,
+			Optional: &v.Optional,
+		})
+	}
+
+	return &output
 }
 
 func expandServicePrincipalDefinitionModel(inputList []ServicePrincipalDefinitionModel) *fluxconfiguration.ServicePrincipalDefinition {
@@ -1059,10 +1149,46 @@ func flattenKustomizationDefinitionModel(inputList *map[string]fluxconfiguration
 			Force:                  pointer.From(input.Force),
 			Name:                   pointer.From(input.Name),
 			Path:                   pointer.From(input.Path),
+			PostBuild:              flattenPostBuildDefinitionModel(input.PostBuild),
 			Prune:                  pointer.From(input.Prune),
 			RetryIntervalInSeconds: pointer.From(input.RetryIntervalInSeconds),
 			SyncIntervalInSeconds:  pointer.From(input.SyncIntervalInSeconds),
 			TimeoutInSeconds:       pointer.From(input.TimeoutInSeconds),
+			Wait:                   pointer.From(input.Wait),
+		}
+
+		outputList = append(outputList, output)
+	}
+
+	return outputList
+}
+
+func flattenPostBuildDefinitionModel(input *fluxconfiguration.PostBuildDefinition) []PostBuildDefinitionModel {
+	outputList := make([]PostBuildDefinitionModel, 0)
+
+	if input == nil {
+		return outputList
+	}
+
+	output := PostBuildDefinitionModel{
+		Substitute:     pointer.From(input.Substitute),
+		SubstituteFrom: flattenSubstituteFromDefinitionModel(input.SubstituteFrom),
+	}
+
+	return append(outputList, output)
+}
+
+func flattenSubstituteFromDefinitionModel(input *[]fluxconfiguration.SubstituteFromDefinition) []SubstituteFromDefinitionModel {
+	outputList := make([]SubstituteFromDefinitionModel, 0)
+	if input == nil {
+		return outputList
+	}
+
+	for _, v := range *input {
+		output := SubstituteFromDefinitionModel{
+			Kind:     pointer.From(v.Kind),
+			Name:     pointer.From(v.Name),
+			Optional: pointer.From(v.Optional),
 		}
 
 		outputList = append(outputList, output)
