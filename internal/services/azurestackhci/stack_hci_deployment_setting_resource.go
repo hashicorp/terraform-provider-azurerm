@@ -47,7 +47,7 @@ type ScaleUnitModel struct {
 	DomainFqdn            string                       `tfschema:"domain_fqdn"`
 	HostNetwork           []HostNetworkModel           `tfschema:"host_network"`
 	InfrastructureNetwork []InfrastructureNetworkModel `tfschema:"infrastructure_network"`
-	NamingPrefix          string                       `tfschema:"naming_prefix"`
+	NamePrefix            string                       `tfschema:"name_prefix"`
 	OptionalService       []OptionalServiceModel       `tfschema:"optional_service"`
 	PhysicalNode          []PhysicalNodeModel          `tfschema:"physical_node"`
 	SecretsLocation       string                       `tfschema:"secrets_location"`
@@ -88,29 +88,29 @@ type HostNetworkModel struct {
 
 type HostNetworkIntentModel struct {
 	Adapter                                   []string                                                   `tfschema:"adapter"`
+	AdapterPropertyOverride                   []HostNetworkIntentAdapterPropertyOverrideModel            `tfschema:"adapter_property_override"`
+	AdapterPropertyOverrideEnabled            bool                                                       `tfschema:"adapter_property_override_enabled"`
 	Name                                      string                                                     `tfschema:"name"`
-	OverrideAdapterProperty                   []OverrideHostNetworkIntentAdapterPropertyModel            `tfschema:"override_adapter_property"`
-	OverrideAdapterPropertyEnabled            bool                                                       `tfschema:"override_adapter_property_enabled"`
-	OverrideQosPolicy                         []OverrideHostNetworkIntentQosPolicyModel                  `tfschema:"override_qos_policy"`
-	OverrideQosPolicyEnabled                  bool                                                       `tfschema:"override_qos_policy_enabled"`
-	OverrideVirtualSwitchConfiguration        []OverrideHostNetworkIntentVirtualSwitchConfigurationModel `tfschema:"override_virtual_switch_configuration"`
-	OverrideVirtualSwitchConfigurationEnabled bool                                                       `tfschema:"override_virtual_switch_configuration_enabled"`
+	QosPolicyOverride                         []HostNetworkIntentQosPolicyOverrideModel                  `tfschema:"qos_policy_override"`
+	QosPolicyOverrideEnabled                  bool                                                       `tfschema:"qos_policy_override_enabled"`
 	TrafficType                               []string                                                   `tfschema:"traffic_type"`
+	VirtualSwitchConfigurationOverride        []HostNetworkIntentVirtualSwitchConfigurationOverrideModel `tfschema:"virtual_switch_configuration_override"`
+	VirtualSwitchConfigurationOverrideEnabled bool                                                       `tfschema:"virtual_switch_configuration_override_enabled"`
 }
 
-type OverrideHostNetworkIntentAdapterPropertyModel struct {
+type HostNetworkIntentAdapterPropertyOverrideModel struct {
 	JumboPacket             string `tfschema:"jumbo_packet"`
 	NetworkDirect           string `tfschema:"network_direct"`
 	NetworkDirectTechnology string `tfschema:"network_direct_technology"`
 }
 
-type OverrideHostNetworkIntentQosPolicyModel struct {
+type HostNetworkIntentQosPolicyOverrideModel struct {
 	BandWidthPercentageSMB         string `tfschema:"bandwidth_percentage_smb"`
 	PriorityValue8021ActionCluster string `tfschema:"priority_value8021_action_cluster"`
 	PriorityValue8021ActionSMB     string `tfschema:"priority_value8021_action_smb"`
 }
 
-type OverrideHostNetworkIntentVirtualSwitchConfigurationModel struct {
+type HostNetworkIntentVirtualSwitchConfigurationOverrideModel struct {
 	EnableIov              string `tfschema:"enable_iov"`
 	LoadBalancingAlgorithm string `tfschema:"load_balancing_algorithm"`
 }
@@ -294,7 +294,7 @@ func (StackHCIDeploymentSettingResource) Arguments() map[string]*pluginsdk.Schem
 												},
 											},
 
-											"override_adapter_property": {
+											"adapter_property_override": {
 												Type:     pluginsdk.TypeList,
 												Optional: true,
 												ForceNew: true,
@@ -325,14 +325,14 @@ func (StackHCIDeploymentSettingResource) Arguments() map[string]*pluginsdk.Schem
 												},
 											},
 
-											"override_adapter_property_enabled": {
+											"adapter_property_override_enabled": {
 												Type:     pluginsdk.TypeBool,
 												Optional: true,
 												ForceNew: true,
 												Default:  false,
 											},
 
-											"override_qos_policy": {
+											"qos_policy_override": {
 												Type:     pluginsdk.TypeList,
 												Optional: true,
 												ForceNew: true,
@@ -363,14 +363,14 @@ func (StackHCIDeploymentSettingResource) Arguments() map[string]*pluginsdk.Schem
 												},
 											},
 
-											"override_qos_policy_enabled": {
+											"qos_policy_override_enabled": {
 												Type:     pluginsdk.TypeBool,
 												Optional: true,
 												ForceNew: true,
 												Default:  false,
 											},
 
-											"override_virtual_switch_configuration": {
+											"virtual_switch_configuration_override": {
 												Type:     pluginsdk.TypeList,
 												Optional: true,
 												ForceNew: true,
@@ -394,7 +394,7 @@ func (StackHCIDeploymentSettingResource) Arguments() map[string]*pluginsdk.Schem
 												},
 											},
 
-											"override_virtual_switch_configuration_enabled": {
+											"virtual_switch_configuration_override_enabled": {
 												Type:     pluginsdk.TypeBool,
 												Optional: true,
 												ForceNew: true,
@@ -518,7 +518,7 @@ func (StackHCIDeploymentSettingResource) Arguments() map[string]*pluginsdk.Schem
 						},
 					},
 
-					"naming_prefix": {
+					"name_prefix": {
 						Type:     pluginsdk.TypeString,
 						Required: true,
 						ForceNew: true,
@@ -733,12 +733,18 @@ func (r StackHCIDeploymentSettingResource) Create() sdk.ResourceFunc {
 				},
 			}
 
+			// do validation
+			future, err := client.CreateOrUpdate(ctx, id, payload)
+			if err != nil {
+				return fmt.Errorf("validate %s: %+v", id, err)
+			}
+
 			// the resource may exist even validation error
 			metadata.SetID(id)
 
-			// do validation
-			if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
-				return fmt.Errorf("creating %s: %+v", id, err)
+			// poll validation
+			if err := future.Poller.PollUntilDone(ctx); err != nil {
+				return fmt.Errorf("polling after validate %s: %+v", id, err)
 			}
 
 			// do deployment
@@ -888,7 +894,7 @@ func ExpandDeploymentSettingScaleUnits(input []ScaleUnitModel) []deploymentsetti
 				DomainFqdn:            pointer.To(item.DomainFqdn),
 				HostNetwork:           ExpandDeploymentSettingHostNetwork(item.HostNetwork),
 				InfrastructureNetwork: ExpandDeploymentSettingInfrastructureNetwork(item.InfrastructureNetwork),
-				NamingPrefix:          pointer.To(item.NamingPrefix),
+				NamingPrefix:          pointer.To(item.NamePrefix),
 				Observability:         ExpandDeploymentSettingObservability(item),
 				OptionalServices:      ExpandDeploymentSettingOptionalService(item.OptionalService),
 				PhysicalNodes:         ExpandDeploymentSettingPhysicalNode(item.PhysicalNode),
@@ -915,7 +921,7 @@ func FlattenDeploymentSettingScaleUnits(input []deploymentsettings.ScaleUnits) [
 			DomainFqdn:            pointer.From(item.DeploymentData.DomainFqdn),
 			HostNetwork:           FlattenDeploymentSettingHostNetwork(item.DeploymentData.HostNetwork),
 			InfrastructureNetwork: FlattenDeploymentSettingInfrastructureNetwork(item.DeploymentData.InfrastructureNetwork),
-			NamingPrefix:          pointer.From(item.DeploymentData.NamingPrefix),
+			NamePrefix:            pointer.From(item.DeploymentData.NamingPrefix),
 			OptionalService:       FlattenDeploymentSettingOptionalService(item.DeploymentData.OptionalServices),
 			PhysicalNode:          FlattenDeploymentSettingPhysicalNode(item.DeploymentData.PhysicalNodes),
 			SecretsLocation:       pointer.From(item.DeploymentData.SecretsLocation),
@@ -1014,14 +1020,14 @@ func ExpandDeploymentSettingHostNetworkIntent(input []HostNetworkIntentModel) *[
 	for _, item := range input {
 		results = append(results, deploymentsettings.Intents{
 			Adapter:                             pointer.To(item.Adapter),
-			AdapterPropertyOverrides:            ExpandHostNetworkIntentAdapterPropertyOverride(item.OverrideAdapterProperty),
+			AdapterPropertyOverrides:            ExpandHostNetworkIntentAdapterPropertyOverride(item.AdapterPropertyOverride),
 			Name:                                pointer.To(item.Name),
-			OverrideAdapterProperty:             pointer.To(item.OverrideAdapterPropertyEnabled),
-			OverrideQosPolicy:                   pointer.To(item.OverrideQosPolicyEnabled),
-			OverrideVirtualSwitchConfiguration:  pointer.To(item.OverrideVirtualSwitchConfigurationEnabled),
-			QosPolicyOverrides:                  ExpandHostNetworkIntentQosPolicyOverride(item.OverrideQosPolicy),
+			OverrideAdapterProperty:             pointer.To(item.AdapterPropertyOverrideEnabled),
+			OverrideQosPolicy:                   pointer.To(item.QosPolicyOverrideEnabled),
+			OverrideVirtualSwitchConfiguration:  pointer.To(item.VirtualSwitchConfigurationOverrideEnabled),
+			QosPolicyOverrides:                  ExpandHostNetworkIntentQosPolicyOverride(item.QosPolicyOverride),
 			TrafficType:                         pointer.To(item.TrafficType),
-			VirtualSwitchConfigurationOverrides: ExpandHostNetworkIntentVirtualSwitchConfigurationOverride(item.OverrideVirtualSwitchConfiguration),
+			VirtualSwitchConfigurationOverrides: ExpandHostNetworkIntentVirtualSwitchConfigurationOverride(item.VirtualSwitchConfigurationOverride),
 		})
 	}
 
@@ -1037,21 +1043,21 @@ func FlattenDeploymentSettingHostNetworkIntent(input *[]deploymentsettings.Inten
 	for _, item := range *input {
 		results = append(results, HostNetworkIntentModel{
 			Adapter:                        pointer.From(item.Adapter),
-			OverrideAdapterProperty:        FlattenHostNetworkIntentAdapterPropertyOverride(item.AdapterPropertyOverrides),
+			AdapterPropertyOverride:        FlattenHostNetworkIntentAdapterPropertyOverride(item.AdapterPropertyOverrides),
 			Name:                           pointer.From(item.Name),
-			OverrideAdapterPropertyEnabled: pointer.From(item.OverrideAdapterProperty),
-			OverrideQosPolicyEnabled:       pointer.From(item.OverrideQosPolicy),
-			OverrideVirtualSwitchConfigurationEnabled: pointer.From(item.OverrideVirtualSwitchConfiguration),
-			OverrideQosPolicy:                         FlattenHostNetworkIntentQosPolicyOverride(item.QosPolicyOverrides),
+			AdapterPropertyOverrideEnabled: pointer.From(item.OverrideAdapterProperty),
+			QosPolicyOverrideEnabled:       pointer.From(item.OverrideQosPolicy),
+			VirtualSwitchConfigurationOverrideEnabled: pointer.From(item.OverrideVirtualSwitchConfiguration),
+			QosPolicyOverride:                         FlattenHostNetworkIntentQosPolicyOverride(item.QosPolicyOverrides),
 			TrafficType:                               pointer.From(item.TrafficType),
-			OverrideVirtualSwitchConfiguration:        FlattenHostNetworkIntentVirtualSwitchConfigurationOverride(item.VirtualSwitchConfigurationOverrides),
+			VirtualSwitchConfigurationOverride:        FlattenHostNetworkIntentVirtualSwitchConfigurationOverride(item.VirtualSwitchConfigurationOverrides),
 		})
 	}
 
 	return results
 }
 
-func ExpandHostNetworkIntentAdapterPropertyOverride(input []OverrideHostNetworkIntentAdapterPropertyModel) *deploymentsettings.AdapterPropertyOverrides {
+func ExpandHostNetworkIntentAdapterPropertyOverride(input []HostNetworkIntentAdapterPropertyOverrideModel) *deploymentsettings.AdapterPropertyOverrides {
 	if len(input) == 0 {
 		return &deploymentsettings.AdapterPropertyOverrides{
 			JumboPacket:             pointer.To(""),
@@ -1069,9 +1075,9 @@ func ExpandHostNetworkIntentAdapterPropertyOverride(input []OverrideHostNetworkI
 	}
 }
 
-func FlattenHostNetworkIntentAdapterPropertyOverride(input *deploymentsettings.AdapterPropertyOverrides) []OverrideHostNetworkIntentAdapterPropertyModel {
+func FlattenHostNetworkIntentAdapterPropertyOverride(input *deploymentsettings.AdapterPropertyOverrides) []HostNetworkIntentAdapterPropertyOverrideModel {
 	if input == nil {
-		return make([]OverrideHostNetworkIntentAdapterPropertyModel, 0)
+		return make([]HostNetworkIntentAdapterPropertyOverrideModel, 0)
 	}
 
 	jumboPacket := pointer.From(input.JumboPacket)
@@ -1080,17 +1086,17 @@ func FlattenHostNetworkIntentAdapterPropertyOverride(input *deploymentsettings.A
 
 	// server will return the block with empty string in all fields by default
 	if jumboPacket == "" && networkDirect == "" && networkDirectTechnology == "" {
-		return make([]OverrideHostNetworkIntentAdapterPropertyModel, 0)
+		return make([]HostNetworkIntentAdapterPropertyOverrideModel, 0)
 	}
 
-	return []OverrideHostNetworkIntentAdapterPropertyModel{{
+	return []HostNetworkIntentAdapterPropertyOverrideModel{{
 		JumboPacket:             jumboPacket,
 		NetworkDirect:           networkDirect,
 		NetworkDirectTechnology: networkDirectTechnology,
 	}}
 }
 
-func ExpandHostNetworkIntentQosPolicyOverride(input []OverrideHostNetworkIntentQosPolicyModel) *deploymentsettings.QosPolicyOverrides {
+func ExpandHostNetworkIntentQosPolicyOverride(input []HostNetworkIntentQosPolicyOverrideModel) *deploymentsettings.QosPolicyOverrides {
 	if len(input) == 0 {
 		return &deploymentsettings.QosPolicyOverrides{
 			BandwidthPercentageSMB:         pointer.To(""),
@@ -1108,9 +1114,9 @@ func ExpandHostNetworkIntentQosPolicyOverride(input []OverrideHostNetworkIntentQ
 	}
 }
 
-func FlattenHostNetworkIntentQosPolicyOverride(input *deploymentsettings.QosPolicyOverrides) []OverrideHostNetworkIntentQosPolicyModel {
+func FlattenHostNetworkIntentQosPolicyOverride(input *deploymentsettings.QosPolicyOverrides) []HostNetworkIntentQosPolicyOverrideModel {
 	if input == nil {
-		return make([]OverrideHostNetworkIntentQosPolicyModel, 0)
+		return make([]HostNetworkIntentQosPolicyOverrideModel, 0)
 	}
 
 	bandwidthPercentageSMB := pointer.From(input.BandwidthPercentageSMB)
@@ -1119,17 +1125,17 @@ func FlattenHostNetworkIntentQosPolicyOverride(input *deploymentsettings.QosPoli
 
 	// server will return the block with empty string in all fields by default
 	if bandwidthPercentageSMB == "" && priorityValue8021ActionCluster == "" && priorityValue8021ActionSMB == "" {
-		return make([]OverrideHostNetworkIntentQosPolicyModel, 0)
+		return make([]HostNetworkIntentQosPolicyOverrideModel, 0)
 	}
 
-	return []OverrideHostNetworkIntentQosPolicyModel{{
+	return []HostNetworkIntentQosPolicyOverrideModel{{
 		BandWidthPercentageSMB:         bandwidthPercentageSMB,
 		PriorityValue8021ActionCluster: priorityValue8021ActionCluster,
 		PriorityValue8021ActionSMB:     priorityValue8021ActionSMB,
 	}}
 }
 
-func ExpandHostNetworkIntentVirtualSwitchConfigurationOverride(input []OverrideHostNetworkIntentVirtualSwitchConfigurationModel) *deploymentsettings.VirtualSwitchConfigurationOverrides {
+func ExpandHostNetworkIntentVirtualSwitchConfigurationOverride(input []HostNetworkIntentVirtualSwitchConfigurationOverrideModel) *deploymentsettings.VirtualSwitchConfigurationOverrides {
 	if len(input) == 0 {
 		return &deploymentsettings.VirtualSwitchConfigurationOverrides{
 			EnableIov:              pointer.To(""),
@@ -1145,9 +1151,9 @@ func ExpandHostNetworkIntentVirtualSwitchConfigurationOverride(input []OverrideH
 	}
 }
 
-func FlattenHostNetworkIntentVirtualSwitchConfigurationOverride(input *deploymentsettings.VirtualSwitchConfigurationOverrides) []OverrideHostNetworkIntentVirtualSwitchConfigurationModel {
+func FlattenHostNetworkIntentVirtualSwitchConfigurationOverride(input *deploymentsettings.VirtualSwitchConfigurationOverrides) []HostNetworkIntentVirtualSwitchConfigurationOverrideModel {
 	if input == nil {
-		return make([]OverrideHostNetworkIntentVirtualSwitchConfigurationModel, 0)
+		return make([]HostNetworkIntentVirtualSwitchConfigurationOverrideModel, 0)
 	}
 
 	enableIov := pointer.From(input.EnableIov)
@@ -1155,10 +1161,10 @@ func FlattenHostNetworkIntentVirtualSwitchConfigurationOverride(input *deploymen
 
 	// server will return the block with empty string in all fields by default
 	if enableIov == "" && loadBalancingAlgorithm == "" {
-		return make([]OverrideHostNetworkIntentVirtualSwitchConfigurationModel, 0)
+		return make([]HostNetworkIntentVirtualSwitchConfigurationOverrideModel, 0)
 	}
 
-	return []OverrideHostNetworkIntentVirtualSwitchConfigurationModel{{
+	return []HostNetworkIntentVirtualSwitchConfigurationOverrideModel{{
 		EnableIov:              enableIov,
 		LoadBalancingAlgorithm: loadBalancingAlgorithm,
 	}}

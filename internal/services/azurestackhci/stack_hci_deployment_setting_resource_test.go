@@ -131,7 +131,7 @@ resource "azurerm_stack_hci_deployment_setting" "test" {
     adou_path                     = "OU=hci${var.random_string},DC=jumpstart,DC=local"
     domain_fqdn                   = "jumpstart.local"
     secrets_location              = azurerm_key_vault.DeploymentKeyVault.vault_uri
-    naming_prefix                 = "hci${var.random_string}"
+    name_prefix                   = "hci${var.random_string}"
     streaming_data_client_enabled = true
     eu_location_enabled           = false
     episodic_data_upload_enabled  = true
@@ -242,7 +242,7 @@ resource "azurerm_stack_hci_deployment_setting" "import" {
     adou_path                     = azurerm_stack_hci_deployment_setting.test.scale_unit.0.adou_path
     domain_fqdn                   = azurerm_stack_hci_deployment_setting.test.scale_unit.0.domain_fqdn
     secrets_location              = azurerm_stack_hci_deployment_setting.test.scale_unit.0.secrets_location
-    naming_prefix                 = azurerm_stack_hci_deployment_setting.test.scale_unit.0.naming_prefix
+    name_prefix                   = azurerm_stack_hci_deployment_setting.test.scale_unit.0.name_prefix
     streaming_data_client_enabled = azurerm_stack_hci_deployment_setting.test.scale_unit.0.streaming_data_client_enabled
     eu_location_enabled           = azurerm_stack_hci_deployment_setting.test.scale_unit.0.eu_location_enabled
     episodic_data_upload_enabled  = azurerm_stack_hci_deployment_setting.test.scale_unit.0.episodic_data_upload_enabled
@@ -351,7 +351,7 @@ resource "azurerm_stack_hci_deployment_setting" "test" {
     adou_path                       = "OU=hci${var.random_string},DC=jumpstart,DC=local"
     domain_fqdn                     = "jumpstart.local"
     secrets_location                = azurerm_key_vault.DeploymentKeyVault.vault_uri
-    naming_prefix                   = "hci${var.random_string}"
+    name_prefix                     = "hci${var.random_string}"
     streaming_data_client_enabled   = true
     eu_location_enabled             = false
     episodic_data_upload_enabled    = true
@@ -381,9 +381,9 @@ resource "azurerm_stack_hci_deployment_setting" "test" {
 
       intent {
         name                                          = "ManagementCompute"
-        override_adapter_property_enabled             = true
-        override_qos_policy_enabled                   = false
-        override_virtual_switch_configuration_enabled = false
+        adapter_property_override_enabled             = true
+        qos_policy_override_enabled                   = false
+        virtual_switch_configuration_override_enabled = false
         adapter = [
           "FABRIC",
           "FABRIC2",
@@ -392,21 +392,21 @@ resource "azurerm_stack_hci_deployment_setting" "test" {
           "Management",
           "Compute",
         ]
-        override_qos_policy {
+        qos_policy_override {
           priority_value8021_action_cluster = "7"
           priority_value8021_action_smb     = "3"
           bandwidth_percentage_smb          = "50"
         }
-        override_adapter_property {
+        adapter_property_override {
           network_direct = "Disabled"
         }
       }
 
       intent {
         name                                          = "Storage"
-        override_adapter_property_enabled             = true
-        override_qos_policy_enabled                   = false
-        override_virtual_switch_configuration_enabled = false
+        adapter_property_override_enabled             = true
+        qos_policy_override_enabled                   = false
+        virtual_switch_configuration_override_enabled = false
         adapter = [
           "StorageA",
           "StorageB",
@@ -414,12 +414,12 @@ resource "azurerm_stack_hci_deployment_setting" "test" {
         traffic_type = [
           "Storage",
         ]
-        override_qos_policy {
+        qos_policy_override {
           priority_value8021_action_cluster = "7"
           priority_value8021_action_smb     = "3"
           bandwidth_percentage_smb          = "50"
         }
-        override_adapter_property {
+        adapter_property_override {
           network_direct = "Disabled"
         }
       }

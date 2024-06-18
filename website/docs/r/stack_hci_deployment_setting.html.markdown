@@ -248,7 +248,7 @@ resource "azurerm_stack_hci_deployment_setting" "example" {
     adou_path        = "OU=hci,DC=jumpstart,DC=local"
     domain_fqdn      = "jumpstart.local"
     secrets_location = azurerm_key_vault.DeploymentKeyVault.vault_uri
-    naming_prefix    = "hci"
+    name_prefix      = "hci"
 
     cluster {
       azure_service_endpoint = "core.windows.net"
@@ -263,9 +263,9 @@ resource "azurerm_stack_hci_deployment_setting" "example" {
       storage_connectivity_switchless_enabled = false
       intent {
         name                                          = "ManagementCompute"
-        override_adapter_property_enabled             = false
-        override_qos_policy_enabled                   = false
-        override_virtual_switch_configuration_enabled = false
+        adapter_property_override_enabled             = false
+        qos_policy_override_enabled                   = false
+        virtual_switch_configuration_override_enabled = false
         adapter = [
           "FABRIC",
           "FABRIC2",
@@ -274,12 +274,12 @@ resource "azurerm_stack_hci_deployment_setting" "example" {
           "Management",
           "Compute",
         ]
-        override_qos_policy {
+        qos_policy_override {
           priority_value8021_action_cluster = "7"
           priority_value8021_action_smb     = "3"
           bandwidth_percentage_smb          = "50"
         }
-        override_adapter_property {
+        adapter_property_override {
           jumbo_packet              = "9014"
           network_direct            = "Disabled"
           network_direct_technology = "RoCEv2"
@@ -288,9 +288,9 @@ resource "azurerm_stack_hci_deployment_setting" "example" {
 
       intent {
         name                                          = "Storage"
-        override_adapter_property_enabled             = false
-        override_qos_policy_enabled                   = false
-        override_virtual_switch_configuration_enabled = false
+        adapter_property_override_enabled             = false
+        qos_policy_override_enabled                   = false
+        virtual_switch_configuration_override_enabled = false
         adapter = [
           "StorageA",
           "StorageB",
@@ -298,12 +298,12 @@ resource "azurerm_stack_hci_deployment_setting" "example" {
         traffic_type = [
           "Storage",
         ]
-        override_qos_policy {
+        qos_policy_override {
           priority_value8021_action_cluster = "7"
           priority_value8021_action_smb     = "3"
           bandwidth_percentage_smb          = "50"
         }
-        override_adapter_property {
+        adapter_property_override {
           jumbo_packet              = "9014"
           network_direct            = "Enabled"
           network_direct_technology = "RoCEv2"
@@ -390,6 +390,16 @@ The following arguments are supported:
 
 ---
 
+A `adapter_property_override` block supports the following:
+
+* `jumbo_packet` - (Optional) The jumbo frame size of the adapter. This parameter should only be modified based on your OEM guidance. Changing this forces a new Stack HCI Deployment Setting to be created.
+
+* `network_direct` - (Optional) The network direct of the adapter. This parameter should only be modified based on your OEM guidance. Changing this forces a new Stack HCI Deployment Setting to be created.
+
+* `network_direct_technology` - (Optional) The network direct technology of the adapter. This parameter should only be modified based on your OEM guidance. Changing this forces a new Stack HCI Deployment Setting to be created.
+
+---
+
 A `cluster` block supports the following:
 
 * `azure_service_endpoint` - (Required) Specifies the Azure blob service endpoint, for example, `core.windows.net`. Changing this forces a new Stack HCI Deployment Setting to be created.
@@ -410,7 +420,7 @@ A `host_network` block supports the following:
 
 * `storage_network` - (Required) One or more `storage_network` blocks as defined below. Changing this forces a new Stack HCI Deployment Setting to be created.
 
-* `storage_auto_ip_enabled` - (Optional) Whether allows users to specify IPs and Mask for Storage NICs when Network ATC is not assigning the IPs for storage automatically. Optional parameter required only for [3 Nodes Switchless deployments](https://learn.microsoft.com/azure-stack/hci/concepts/physical-network-requirements?tabs=overview%2C23H2reqs#using-switchless). Possible values are `true` and `false`. Defaults to `true`. Changing this forces a new Stack HCI Deployment Setting to be created.
+* `storage_auto_ip_enabled` - (Optional) Whether allows users to specify IPs and Mask for Storage NICs when Network ATC is not assigning the IPs for storage automatically. Optional parameter required only for [3 nodes switchless deployments](https://learn.microsoft.com/azure-stack/hci/concepts/physical-network-requirements?tabs=overview%2C23H2reqs#using-switchless). Possible values are `true` and `false`. Defaults to `true`. Changing this forces a new Stack HCI Deployment Setting to be created.
 
 * `storage_connectivity_switchless_enabled` - (Optional) Defines how the storage adapters between nodes are connected either switch or switch less. Possible values are `true` and `false`. Defaults to `false`. Changing this forces a new Stack HCI Deployment Setting to be created.
 
@@ -440,17 +450,17 @@ A `intent` block supports the following:
 
 * `traffic_type` - (Required) Specifies a list of network traffic types. Possible values are `Compute`, `Storage`, `Management`. Changing this forces a new Stack HCI Deployment Setting to be created.
 
-* `override_adapter_property` - (Optional) A `override_adapter_property` block as defined above. Changing this forces a new Stack HCI Deployment Setting to be created.
+* `adapter_property_override` - (Optional) A `adapter_property_override` block as defined above. Changing this forces a new Stack HCI Deployment Setting to be created.
 
-* `override_adapter_property_enabled` - (Optional) Whether to override adapter properties. Possible values are `true` and `false`. defaults to `false`. Changing this forces a new Stack HCI Deployment Setting to be created.
+* `adapter_property_override_enabled` - (Optional) Whether to override adapter properties. Possible values are `true` and `false`. defaults to `false`. Changing this forces a new Stack HCI Deployment Setting to be created.
 
-* `override_qos_policy` - (Optional) A `override_qos_policy` block as defined below. Changing this forces a new Stack HCI Deployment Setting to be created.
+* `qos_policy_override` - (Optional) A `qos_policy_override` block as defined below. Changing this forces a new Stack HCI Deployment Setting to be created.
 
-* `override_qos_policy_enabled` - (Optional) Whether to override QoS policy. Possible values are `true` and `false`. defaults to `false`. Changing this forces a new Stack HCI Deployment Setting to be created.
+* `qos_policy_override_enabled` - (Optional) Whether to override QoS policy. Possible values are `true` and `false`. defaults to `false`. Changing this forces a new Stack HCI Deployment Setting to be created.
 
-* `override_virtual_switch_configuration` - (Optional) A `override_virtual_switch_configuration` block as defined below. Changing this forces a new Stack HCI Deployment Setting to be created.
+* `virtual_switch_configuration_override` - (Optional) A `virtual_switch_configuration_override` block as defined below. Changing this forces a new Stack HCI Deployment Setting to be created.
 
-* `override_virtual_switch_configuration_enabled` - (Optional) Whether to override virtual switch configuration. Possible values are `true` and `false`. defaults to `false`. Changing this forces a new Stack HCI Deployment Setting to be created.
+* `virtual_switch_configuration_override_enabled` - (Optional) Whether to override virtual switch configuration. Possible values are `true` and `false`. defaults to `false`. Changing this forces a new Stack HCI Deployment Setting to be created.
 
 ---
 
@@ -478,39 +488,21 @@ A `optional_service` block supports the following:
 
 ---
 
-A `override_adapter_property` block supports the following:
+A `physical_node` block supports the following:
 
-* `jumbo_packet` - (Optional) The jumbo frame size of the adapter. This parameter should only be modified based on your OEM guidance. Changing this forces a new Stack HCI Deployment Setting to be created.
+* `ipv4_address` - (Required) Specifies the IPv4 address assigned to each physical server on your Azure Stack HCI cluster. Changing this forces a new Stack HCI Deployment Setting to be created.
 
-* `network_direct` - (Optional) The network direct of the adapter. This parameter should only be modified based on your OEM guidance. Changing this forces a new Stack HCI Deployment Setting to be created.
-
-* `network_direct_technology` - (Optional) The network direct technology of the adapter. This parameter should only be modified based on your OEM guidance. Changing this forces a new Stack HCI Deployment Setting to be created.
+* `name` - (Required) The NETBIOS name of each physical server on your Azure Stack HCI cluster. Changing this forces a new Stack HCI Deployment Setting to be created.
 
 ---
 
-A `override_qos_policy` block supports the following:
+A `qos_policy_override` block supports the following:
 
 * `bandwidth_percentage_smb` - (Optional) Specifies the percentage of the allocated storage traffic bandwidth. This parameter should only be modified based on your OEM guidance. Changing this forces a new Stack HCI Deployment Setting to be created.
 
 * `priority_value8021_action_cluster` - (Optional) Specifies the Cluster traffic priority. This parameter should only be modified based on your OEM guidance. Changing this forces a new Stack HCI Deployment Setting to be created.
 
 * `priority_value8021_action_smb` - (Optional) Specifies the Priority Flow Control where Data Center Bridging (DCB) is used. This parameter should only be modified based on your OEM guidance. Changing this forces a new Stack HCI Deployment Setting to be created.
-
----
-
-A `override_virtual_switch_configuration` block supports the following:
-
-* `enable_iov` - (Optional) Specifies the IoV enable status for Virtual Switch. Changing this forces a new Stack HCI Deployment Setting to be created.
-
-* `load_balancing_algorithm` - (Optional) Specifies the load balancing algorithm for Virtual Switch. Changing this forces a new Stack HCI Deployment Setting to be created.
-
----
-
-A `physical_node` block supports the following:
-
-* `ipv4_address` - (Required) Specifies the IPv4 address assigned to each physical server on your Azure Stack HCI cluster. Changing this forces a new Stack HCI Deployment Setting to be created.
-
-* `name` - (Required) The NETBIOS name of each physical server on your Azure Stack HCI cluster. Changing this forces a new Stack HCI Deployment Setting to be created.
 
 ---
 
@@ -526,7 +518,7 @@ A `scale_unit` block supports the following:
 
 * `infrastructure_network` - (Required) One or more `infrastructure_network` blocks as defined above. Changing this forces a new Stack HCI Deployment Setting to be created.
 
-* `naming_prefix` - (Required) Specifies the naming prefix to deploy cluster. It must be 1-8 characters long and contain only letters, numbers and hyphens Changing this forces a new Stack HCI Deployment Setting to be created.
+* `name_prefix` - (Required) Specifies the name prefix to deploy cluster. It must be 1-8 characters long and contain only letters, numbers and hyphens Changing this forces a new Stack HCI Deployment Setting to be created.
 
 * `optional_service` - (Required) A `optional_service` block as defined above. Changing this forces a new Stack HCI Deployment Setting to be created.
 
@@ -579,6 +571,14 @@ A `storage_network` block supports the following:
 * `network_adapter_name` - (Required) The name of the network adapter. Changing this forces a new Stack HCI Deployment Setting to be created.
 
 * `vlan_id` - (Required) Specifies the ID for the VLAN storage network. This setting is applied to the network interfaces that route the storage and VM migration traffic. Changing this forces a new Stack HCI Deployment Setting to be created.
+
+---
+
+A `virtual_switch_configuration_override` block supports the following:
+
+* `enable_iov` - (Optional) Specifies the IoV enable status for Virtual Switch. Changing this forces a new Stack HCI Deployment Setting to be created.
+
+* `load_balancing_algorithm` - (Optional) Specifies the load balancing algorithm for Virtual Switch. Changing this forces a new Stack HCI Deployment Setting to be created.
 
 ## Attributes Reference
 
