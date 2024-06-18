@@ -74,6 +74,7 @@ func resourceCosmosDbSQLContainer() *pluginsdk.Resource {
 				ValidateFunc: validate.CosmosEntityName,
 			},
 
+			// lintignore:S013
 			"partition_key_paths": {
 				Type:     pluginsdk.TypeList,
 				Required: features.FourPointOhBeta(),
