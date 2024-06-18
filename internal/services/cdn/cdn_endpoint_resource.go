@@ -4,18 +4,23 @@
 package cdn
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"strconv"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -24,7 +29,7 @@ import (
 )
 
 func resourceCdnEndpoint() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceCdnEndpointCreate,
 		Read:   resourceCdnEndpointRead,
 		Update: resourceCdnEndpointUpdate,
@@ -79,46 +84,6 @@ func resourceCdnEndpoint() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
-			},
-
-			// NOTE: Need to update this as it is nolonger force new...
-			"origin": {
-				Type:       pluginsdk.TypeSet,
-				Required:   true,
-				Deprecated: "",
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"name": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ForceNew: true,
-						},
-
-						"host_name": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ForceNew: true,
-						},
-
-						"http_port": {
-							Type:     pluginsdk.TypeInt,
-							Optional: true,
-							ForceNew: true,
-							Default:  80,
-						},
-
-						"https_port": {
-							Type:     pluginsdk.TypeInt,
-							Optional: true,
-							ForceNew: true,
-							Default:  443,
-						},
-						"id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
 			},
 
 			"origin_path": {
@@ -212,6 +177,192 @@ func resourceCdnEndpoint() *pluginsdk.Resource {
 			"tags": tags.Schema(),
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["origin"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeSet,
+			Optional:      true,
+			Computed:      true,
+			ForceNew:      true,
+			ConflictsWith: []string{"origins"},
+			Deprecated:    "This property has been deprecated in favour of the `origins` property and will be removed from the v4.0 azurerm provider.",
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validate.OriginName,
+					},
+
+					"host_name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"http_port": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						ForceNew:     true,
+						Default:      80,
+						ValidateFunc: validation.IntBetween(1, 65535),
+					},
+
+					"https_port": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						ForceNew:     true,
+						Default:      443,
+						ValidateFunc: validation.IntBetween(1, 65535),
+					},
+				},
+			},
+		}
+
+		resource.Schema["origins"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeSet,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"origin"},
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validate.OriginName,
+					},
+
+					"host_name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.Any(validation.IsIPv6Address, validation.IsIPv4Address, validation.StringIsNotEmpty),
+					},
+
+					"http_port": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						Default:      80,
+						ValidateFunc: validation.IntBetween(1, 65535),
+					},
+
+					"https_port": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						Default:      443,
+						ValidateFunc: validation.IntBetween(1, 65535),
+					},
+
+					// NOTE: If this is not defined in the configuration file it will default
+					// to the `host_name` value...
+					"origin_host_header": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: validation.Any(validation.IsIPv6Address, validation.IsIPv4Address, validation.StringIsNotEmpty),
+					},
+
+					"priority": {
+						Type:     pluginsdk.TypeInt,
+						Optional: true,
+						// Default:      1,
+						ValidateFunc: validation.IntBetween(1, 5),
+					},
+
+					"weight": {
+						Type:     pluginsdk.TypeInt,
+						Optional: true,
+						// Default:      1000,
+						ValidateFunc: validation.IntBetween(1, 1000),
+					},
+
+					"id": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+				},
+			},
+		}
+
+		// Origin or Origins is a required field, one or the other must be defined...
+		resource.CustomizeDiff = pluginsdk.CustomDiffWithAll(
+			func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+				origin := diff.Get("origin").(*pluginsdk.Set).List()
+				origins := diff.Get("origins").(*pluginsdk.Set).List()
+
+				if len(origin) == 0 && len(origins) == 0 {
+					return fmt.Errorf("at least one of the following fields must be defined: `origin` or `origins`")
+				}
+
+				return nil
+			},
+		)
+	} else {
+		resource.Schema["origins"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeSet,
+			Required: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validate.OriginName,
+					},
+
+					"host_name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"http_port": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						Default:      80,
+						ValidateFunc: validation.IntBetween(1, 65535),
+					},
+
+					"https_port": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						Default:      443,
+						ValidateFunc: validation.IntBetween(1, 65535),
+					},
+
+					// NOTE: If this is not defined in the configuration file it will default
+					// to the `host_name` value...
+					"origin_host_header": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: validation.Any(validation.IsIPv6Address, validation.IsIPv4Address, validation.StringIsNotEmpty),
+					},
+
+					"priority": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						Default:      1,
+						ValidateFunc: validation.IntBetween(1, 5),
+					},
+
+					"weight": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						Default:      1000,
+						ValidateFunc: validation.IntBetween(1, 1000),
+					},
+
+					"id": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+				},
+			},
+		}
+	}
+
+	return resource
 }
 
 func resourceCdnEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -284,15 +435,33 @@ func resourceCdnEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		endpoint.EndpointProperties.ProbePath = utils.String(probePath)
 	}
 
-	// NOTE: You can only create more than one origin if the default
-	// origin group has been set...
-	origins := expandAzureRmCdnEndpointOrigins(d)
-	originCount := len(origins)
+	if !features.FourPointOhBeta() {
+		originCount := len(d.Get("origin").(*pluginsdk.Set).List())
 
-	if originCount == 1 {
+		if originCount > 0 {
+			origins := expandAzureRmCdnEndpointOrigin(d)
+			if len(origins) > 0 {
+				endpoint.EndpointProperties.Origins = &origins
+			}
+		}
+	}
+
+	originsRaw := d.Get("origins").(*pluginsdk.Set).List()
+	originsCount := len(originsRaw)
+	if originsCount > 0 {
+		origins := expandAzureRmCdnEndpointOrigins(originsRaw, nil)
+
+		if originsCount > 1 {
+			return fmt.Errorf("%s: creating more than one 'origins' is not allowed if the Default Origin Group has not been set", id)
+		}
+
+		// NOTE: If the endpoint does not have an origin group associated with it you cannot
+		// specify priority, weight or origin_host_header for the origin (e.g., it's in single origin mode)...
+		if err := validateAzureRmCdnEndpointOriginsInvalidProperties(originsRaw[0].(map[string]interface{}), id); err != nil {
+			return err
+		}
+
 		endpoint.EndpointProperties.Origins = &origins
-	} else if originCount > 1 {
-		return fmt.Errorf("%s creating more than one 'origin' is not allowed if the Default Origin Group has not been set", id)
 	}
 
 	profile, err := profilesClient.Get(ctx, id.ResourceGroup, id.ProfileName)
@@ -343,6 +512,11 @@ func resourceCdnEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return err
 	}
 
+	existing, err := endpointsClient.Get(ctx, id.ResourceGroup, id.ProfileName, id.Name)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
+
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	httpAllowed := d.Get("is_http_allowed").(bool)
 	httpsAllowed := d.Get("is_https_allowed").(bool)
@@ -361,7 +535,7 @@ func resourceCdnEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	if d.HasChanges("is_http_allowed", "is_https_allowed", "querystring_caching_behaviour", "origin_path",
 		"probe_path", "optimization_type", "origin_host_header", "content_types_to_compress", "geo_filter",
 		"is_compression_enabled", "probe_path", "geo_filter", "optimization_type", "global_delivery_rule",
-		"delivery_rule") {
+		"delivery_rule", "origins") {
 		updateTypePATCH = false
 	}
 
@@ -429,10 +603,16 @@ func resourceCdnEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 			endpoint.EndpointProperties.ProbePath = utils.String(probePath)
 		}
 
-		origins := expandAzureRmCdnEndpointOrigins(d)
-		if len(origins) > 0 {
-			endpoint.EndpointProperties.Origins = &origins
+		// NOTE: Origin is ForceNew so there will never be an update, only create...
+		originsRaw := d.Get("origins").(*pluginsdk.Set).List()
+		origins := expandAzureRmCdnEndpointOrigins(originsRaw, &existing)
+		originsCount := len(origins)
+
+		if originsCount > 1 && existing.DefaultOriginGroup == nil {
+			return fmt.Errorf("%s: creating more than one 'origins' is not allowed if the Default Origin Group has not been set", id)
 		}
+
+		endpoint.EndpointProperties.Origins = &origins
 
 		profile, err := profilesClient.Get(ctx, id.ResourceGroup, id.ProfileName)
 		if err != nil {
@@ -471,6 +651,7 @@ func resourceCdnEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 func resourceCdnEndpointRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.EndpointsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -520,9 +701,16 @@ func resourceCdnEndpointRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			return fmt.Errorf("setting `geo_filter`: %+v", err)
 		}
 
-		origins := flattenAzureRMCdnEndpointOrigin(props.Origins, *id)
-		if err := d.Set("origin", origins); err != nil {
-			return fmt.Errorf("setting `origin`: %+v", err)
+		if !features.FourPointOhBeta() {
+			origins := flattenAzureRMCdnEndpointOrigin(props.Origins)
+			if err := d.Set("origin", origins); err != nil {
+				return fmt.Errorf("setting `origin`: %+v", err)
+			}
+		}
+
+		origins := flattenAzureRMCdnEndpointOrigins(props.Origins, subscriptionId, id)
+		if err := d.Set("origins", origins); err != nil {
+			return fmt.Errorf("setting `origins`: %+v", err)
 		}
 
 		flattenedDeliveryPolicies, err := flattenEndpointDeliveryPolicy(props.DeliveryPolicy)
@@ -644,7 +832,8 @@ func flattenAzureRMCdnEndpointContentTypes(input *[]string) []interface{} {
 	return output
 }
 
-func expandAzureRmCdnEndpointOrigins(d *pluginsdk.ResourceData) []cdn.DeepCreatedOrigin {
+// TODO: Remove in 4.0
+func expandAzureRmCdnEndpointOrigin(d *pluginsdk.ResourceData) []cdn.DeepCreatedOrigin {
 	configs := d.Get("origin").(*pluginsdk.Set).List()
 	origins := make([]cdn.DeepCreatedOrigin, 0)
 
@@ -677,7 +866,60 @@ func expandAzureRmCdnEndpointOrigins(d *pluginsdk.ResourceData) []cdn.DeepCreate
 	return origins
 }
 
-func flattenAzureRMCdnEndpointOrigin(input *[]cdn.DeepCreatedOrigin, endpointId parse.EndpointId) []interface{} {
+func expandAzureRmCdnEndpointOrigins(input []interface{}, endpoint *cdn.Endpoint) []cdn.DeepCreatedOrigin {
+	origins := make([]cdn.DeepCreatedOrigin, 0)
+
+	if len(input) == 0 {
+		return origins
+	}
+
+	for _, v := range input {
+		data := v.(map[string]interface{})
+
+		origin := cdn.DeepCreatedOrigin{
+			DeepCreatedOriginProperties: &cdn.DeepCreatedOriginProperties{},
+		}
+
+		if v, ok := data["name"]; ok {
+			origin.Name = pointer.To(v.(string))
+		}
+
+		if v, ok := data["host_name"]; ok {
+			origin.DeepCreatedOriginProperties.HostName = pointer.To(v.(string))
+		}
+
+		if v, ok := data["http_port"]; ok {
+			origin.DeepCreatedOriginProperties.HTTPPort = pointer.To(int32(v.(int)))
+		}
+
+		if v, ok := data["https_port"]; ok {
+			origin.DeepCreatedOriginProperties.HTTPSPort = pointer.To(int32(v.(int)))
+		}
+
+		// NOTE: If the endpoint does not have an origin group associated with it you cannot
+		// specify priority, weight or origin_host_header for the origin...
+		if endpoint != nil && endpoint.DefaultOriginGroup != nil {
+			if v, ok := data["priority"]; ok {
+				origin.DeepCreatedOriginProperties.Priority = pointer.To(int32(v.(int)))
+			}
+
+			if v, ok := data["weight"]; ok {
+				origin.DeepCreatedOriginProperties.Weight = pointer.To(int32(v.(int)))
+			}
+
+			if v, ok := data["origin_host_header"]; ok {
+				origin.DeepCreatedOriginProperties.OriginHostHeader = pointer.To(v.(string))
+			}
+		}
+
+		origins = append(origins, origin)
+	}
+
+	return origins
+}
+
+// TODO: Remove in 4.0
+func flattenAzureRMCdnEndpointOrigin(input *[]cdn.DeepCreatedOrigin) []interface{} {
 	results := make([]interface{}, 0)
 
 	if list := input; list != nil {
@@ -702,14 +944,72 @@ func flattenAzureRMCdnEndpointOrigin(input *[]cdn.DeepCreatedOrigin, endpointId 
 				}
 			}
 
-			id := parse.NewOriginID(endpointId.SubscriptionId, endpointId.ResourceGroup, endpointId.ProfileName, endpointId.Name, name)
-
 			results = append(results, map[string]interface{}{
-				"id":         id.ID(),
 				"name":       name,
 				"host_name":  hostName,
 				"http_port":  httpPort,
 				"https_port": httpsPort,
+			})
+		}
+	}
+
+	return results
+}
+
+func flattenAzureRMCdnEndpointOrigins(input *[]cdn.DeepCreatedOrigin, subscriptionId string, endpointId *parse.EndpointId) []interface{} {
+	results := make([]interface{}, 0)
+
+	if list := input; list != nil {
+		for _, i := range *list {
+			name := ""
+			if i.Name != nil {
+				name = *i.Name
+			}
+
+			id := parse.NewOriginID(subscriptionId, endpointId.ResourceGroup, endpointId.ProfileName, endpointId.Name, name)
+
+			var hostName string
+			var httpPort int32
+			var httpsPort int32
+			var originHostHeader string
+			var priority int32
+			var weight int32
+
+			if props := i.DeepCreatedOriginProperties; props != nil {
+				if v := props.HostName; v != nil {
+					hostName = pointer.From(v)
+				}
+
+				if v := props.HTTPPort; v != nil {
+					httpPort = pointer.From(v)
+				}
+
+				if v := props.HTTPSPort; v != nil {
+					httpsPort = pointer.From(v)
+				}
+
+				if v := props.OriginHostHeader; v != nil {
+					originHostHeader = pointer.From(v)
+				}
+
+				if v := props.Priority; v != nil {
+					priority = pointer.From(v)
+				}
+
+				if v := props.Weight; v != nil {
+					weight = pointer.From(v)
+				}
+			}
+
+			results = append(results, map[string]interface{}{
+				"name":               name,
+				"host_name":          hostName,
+				"http_port":          httpPort,
+				"https_port":         httpsPort,
+				"origin_host_header": originHostHeader,
+				"priority":           priority,
+				"weight":             weight,
+				"id":                 id.ID(),
 			})
 		}
 	}
@@ -783,4 +1083,43 @@ func flattenEndpointDeliveryPolicy(input *cdn.EndpointPropertiesUpdateParameters
 	}
 
 	return &output, nil
+}
+
+func validateAzureRmCdnEndpointOriginsInvalidProperties(origin map[string]interface{}, id parse.EndpointId) error {
+	var invalidProps []string
+	var propsValue []string
+	if v, ok := origin["priority"]; ok && v.(int) != 0 {
+		invalidProps = append(invalidProps, "priority")
+		propsValue = append(propsValue, strconv.Itoa(v.(int)))
+	}
+
+	if v, ok := origin["weight"]; ok && v.(int) != 0 {
+		invalidProps = append(invalidProps, "weight")
+		propsValue = append(propsValue, strconv.Itoa(v.(int)))
+	}
+
+	if v, ok := origin["origin_host_header"]; ok && v.(string) != "" {
+		invalidProps = append(invalidProps, "origin_host_header")
+		propsValue = append(propsValue, fmt.Sprintf("%q", v.(string)))
+	}
+
+	if len(invalidProps) > 0 {
+		errTxt := ""
+		valueTxt := ""
+		switch len(invalidProps) {
+		case 1:
+			errTxt = fmt.Sprintf("`%s`", invalidProps[0])
+			valueTxt = fmt.Sprintf(", got (`%s = %s`)", invalidProps[0], propsValue[0])
+		case 2:
+			errTxt = fmt.Sprintf("`%s` and `%s`", invalidProps[0], invalidProps[1])
+			valueTxt = fmt.Sprintf(", got (`%s = %s` and `%s = %s`)", invalidProps[0], propsValue[0], invalidProps[1], propsValue[1])
+		case 3:
+			errTxt = fmt.Sprintf("`%s`, `%s` and `%s`", invalidProps[0], invalidProps[1], invalidProps[2])
+			valueTxt = fmt.Sprintf(", got (`%s = %s`, `%s = %s` and `%s = %s`)", invalidProps[0], propsValue[0], invalidProps[1], propsValue[1], invalidProps[2], propsValue[2])
+		}
+
+		return fmt.Errorf("%s: %s cannot be set for single origin endpoints, %s are only supported for multi-origin endpoints%s", id, errTxt, errTxt, valueTxt)
+	}
+
+	return nil
 }
