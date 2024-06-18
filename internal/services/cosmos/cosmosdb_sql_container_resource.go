@@ -83,6 +83,7 @@ func resourceCosmosDbSQLContainer() *pluginsdk.Resource {
 			"partition_key_kind": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				ForceNew: true,
 				Default:  string(cosmosdb.PartitionKindHash),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(cosmosdb.PartitionKindHash),
