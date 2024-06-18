@@ -244,7 +244,10 @@ func (r KubernetesFluxConfigurationResource) Arguments() map[string]*pluginsdk.S
 								"substitute": {
 									Type:     pluginsdk.TypeMap,
 									Optional: true,
-									Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+									Elem: &pluginsdk.Schema{
+										Type:         pluginsdk.TypeString,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
 								},
 								"substitute_from": {
 									Type:     pluginsdk.TypeList,
@@ -252,16 +255,19 @@ func (r KubernetesFluxConfigurationResource) Arguments() map[string]*pluginsdk.S
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"kind": {
-												Type:     pluginsdk.TypeString,
-												Required: true,
+												Type:         pluginsdk.TypeString,
+												Required:     true,
+												ValidateFunc: validation.StringIsNotEmpty,
 											},
 											"name": {
-												Type:     pluginsdk.TypeString,
-												Required: true,
+												Type:         pluginsdk.TypeString,
+												Required:     true,
+												ValidateFunc: validation.StringIsNotEmpty,
 											},
 											"optional": {
 												Type:     pluginsdk.TypeBool,
 												Optional: true,
+												Default:  true,
 											},
 										},
 									},
@@ -922,9 +928,14 @@ func expandPostBuildDefinitionModel(inputList []PostBuildDefinitionModel) *fluxc
 
 	input := &inputList[0]
 
-	output := fluxconfiguration.PostBuildDefinition{
-		Substitute:     &input.Substitute,
-		SubstituteFrom: expandSubstituteFromDefinitionModel(input.SubstituteFrom),
+	output := fluxconfiguration.PostBuildDefinition{}
+
+	if len(input.Substitute) > 0 {
+		output.Substitute = &input.Substitute
+	}
+
+	if len(input.SubstituteFrom) > 0 {
+		output.SubstituteFrom = expandSubstituteFromDefinitionModel(input.SubstituteFrom)
 	}
 
 	return &output
