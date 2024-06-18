@@ -268,7 +268,7 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
   database_name       = azurerm_cosmosdb_sql_database.test.name
-  partition_key_path  = "/definition/id"
+  partition_key_paths = ["/definition/id"]
 }
 `, CosmosSqlDatabaseResource{}.basic(data), data.RandomInteger)
 }
@@ -282,7 +282,7 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
   database_name       = azurerm_cosmosdb_sql_database.test.name
-  partition_key_path  = "/definition/id"
+  partition_key_paths = ["/definition/id"]
 }
 `, CosmosSqlDatabaseResource{}.serverless(data), data.RandomInteger)
 }
@@ -296,7 +296,7 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
   database_name       = azurerm_cosmosdb_sql_database.test.name
-  partition_key_path  = "/definition/id"
+  partition_key_paths = ["/definition/id"]
   unique_key {
     paths = ["/definition/id1", "/definition/id2"]
   }
@@ -357,7 +357,7 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   resource_group_name    = azurerm_cosmosdb_account.test.resource_group_name
   account_name           = azurerm_cosmosdb_account.test.name
   database_name          = azurerm_cosmosdb_sql_database.test.name
-  partition_key_path     = "/definition/id"
+  partition_key_paths    = ["/definition/id"]
   analytical_storage_ttl = 600
 }
 `, CosmosDBAccountResource{}.analyticalStorage(data, "GlobalDocumentDB", "Eventual", true), data.RandomInteger, data.RandomInteger)
@@ -378,7 +378,7 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
   database_name       = azurerm_cosmosdb_sql_database.test.name
-  partition_key_path  = "/definition/id"
+  partition_key_paths = ["/definition/id"]
 }
 `, CosmosDBAccountResource{}.analyticalStorage(data, "GlobalDocumentDB", "Eventual", true), data.RandomInteger, data.RandomInteger)
 }
@@ -392,7 +392,7 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
   database_name       = azurerm_cosmosdb_sql_database.test.name
-  partition_key_path  = "/definition/id"
+  partition_key_paths = ["/definition/id"]
   unique_key {
     paths = ["/definition/id1", "/definition/id2"]
   }
@@ -447,7 +447,7 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
   database_name       = azurerm_cosmosdb_sql_database.test.name
-  partition_key_path  = "/definition/id"
+  partition_key_paths = ["/definition/id"]
   autoscale_settings {
     max_throughput = %[3]d
   }
@@ -464,7 +464,7 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
   database_name       = azurerm_cosmosdb_sql_database.test.name
-  partition_key_path  = "/definition/id"
+  partition_key_paths = ["/definition/id"]
 
   indexing_policy {
     indexing_mode = "consistent"
@@ -516,7 +516,7 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
   database_name       = azurerm_cosmosdb_sql_database.test.name
-  partition_key_path  = "/definition/id"
+  partition_key_paths = ["/definition/id"]
 
   indexing_policy {
     indexing_mode = "consistent"
@@ -576,7 +576,7 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
   database_name       = azurerm_cosmosdb_sql_database.test.name
-  partition_key_path  = "/definition/id"
+  partition_key_paths = ["/definition/id"]
 
   indexing_policy {
     indexing_mode = "none"
@@ -593,7 +593,7 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   resource_group_name   = azurerm_cosmosdb_account.test.resource_group_name
   account_name          = azurerm_cosmosdb_account.test.name
   database_name         = azurerm_cosmosdb_sql_database.test.name
-  partition_key_path    = "/definition/id"
+  partition_key_paths   = ["/definition/id"]
   partition_key_version = %[3]d
 }
 `, CosmosSqlDatabaseResource{}.basic(data), data.RandomInteger, version)
@@ -608,7 +608,7 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
   database_name       = azurerm_cosmosdb_sql_database.test.name
-  partition_key_path  = "/definition/id"
+  partition_key_paths = ["/definition/id"]
 
   conflict_resolution_policy {
     mode                          = "Custom"
@@ -623,12 +623,13 @@ func (CosmosSqlContainerResource) hierarchicalPartitionKeys(data acceptance.Test
 %[1]s
 
 resource "azurerm_cosmosdb_sql_container" "test" {
-  name                = "acctest-CSQLC-%[2]d"
-  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
-  account_name        = azurerm_cosmosdb_account.test.name
-  database_name       = azurerm_cosmosdb_sql_database.test.name
-  partition_key_kind  = "MultiHash"
-  partition_key_path  = "/definition/id"
+  name                  = "acctest-CSQLC-%[2]d"
+  resource_group_name   = azurerm_cosmosdb_account.test.resource_group_name
+  account_name          = azurerm_cosmosdb_account.test.name
+  database_name         = azurerm_cosmosdb_sql_database.test.name
+  partition_key_kind    = "MultiHash"
+  partition_key_paths   = ["/definition", "/id", "/sessionId"]
+  partition_key_version = 2
 }
 `, CosmosSqlDatabaseResource{}.basic(data), data.RandomInteger)
 }
