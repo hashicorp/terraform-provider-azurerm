@@ -74,20 +74,10 @@ func resourceCosmosDbSQLContainer() *pluginsdk.Resource {
 				ValidateFunc: validate.CosmosEntityName,
 			},
 
-			"partition_key_kind": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(cosmosdb.PartitionKindHash),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(cosmosdb.PartitionKindHash),
-					string(cosmosdb.PartitionKindMultiHash),
-				}, false),
-			},
-
 			"partition_key_paths": {
 				Type:     pluginsdk.TypeList,
-				Optional: true,
+				Required: features.FourPointOhBeta(),
+				Optional: !features.FourPointOhBeta(),
 				Computed: !features.FourPointOhBeta(),
 				ForceNew: true,
 				Elem: &pluginsdk.Schema{
@@ -100,6 +90,17 @@ func resourceCosmosDbSQLContainer() *pluginsdk.Resource {
 					}
 					return []string{}
 				}(),
+			},
+
+			"partition_key_kind": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  string(cosmosdb.PartitionKindHash),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(cosmosdb.PartitionKindHash),
+					string(cosmosdb.PartitionKindMultiHash),
+				}, false),
 			},
 
 			"partition_key_version": {
