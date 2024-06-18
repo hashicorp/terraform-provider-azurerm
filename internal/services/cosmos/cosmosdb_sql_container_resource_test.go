@@ -230,6 +230,21 @@ func TestAccCosmosDbSqlContainer_customConflictResolutionPolicy(t *testing.T) {
 	})
 }
 
+func TestAccCosmosDbSqlContainer_hierarchicalPartitionKeys(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_container", "test")
+	r := CosmosSqlContainerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.hierarchicalPartitionKeys(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t CosmosSqlContainerResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := cosmosdb.ParseContainerID(state.ID)
 	if err != nil {
@@ -599,6 +614,21 @@ resource "azurerm_cosmosdb_sql_container" "test" {
     mode                          = "Custom"
     conflict_resolution_procedure = "dbs/{0}/colls/{1}/sprocs/{2}"
   }
+}
+`, CosmosSqlDatabaseResource{}.basic(data), data.RandomInteger)
+}
+
+func (CosmosSqlContainerResource) hierarchicalPartitionKeys(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cosmosdb_sql_container" "test" {
+  name                = "acctest-CSQLC-%[2]d"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
+  database_name       = azurerm_cosmosdb_sql_database.test.name
+  partition_key_kind  = "MultiHash"
+  partition_key_path  = "/definition/id"
 }
 `, CosmosSqlDatabaseResource{}.basic(data), data.RandomInteger)
 }

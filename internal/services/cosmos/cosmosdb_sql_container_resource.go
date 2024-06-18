@@ -9,6 +9,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2023-04-15/cosmosdb"
@@ -77,6 +78,16 @@ func resourceCosmosDbSQLContainer() *pluginsdk.Resource {
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"partition_key_kind": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(cosmosdb.PartitionKindHash),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(cosmosdb.PartitionKindHash),
+					string(cosmosdb.PartitionKindMultiHash),
+				}, false),
 			},
 
 			"partition_key_version": {
@@ -176,10 +187,9 @@ func resourceCosmosDbSQLContainerCreate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if partitionkeypaths != "" {
-		partitionKindHash := cosmosdb.PartitionKindHash
 		db.Properties.Resource.PartitionKey = &cosmosdb.ContainerPartitionKey{
 			Paths: &[]string{partitionkeypaths},
-			Kind:  &partitionKindHash,
+			Kind:  pointer.To(cosmosdb.PartitionKind(d.Get("partition_key_kind").(string))),
 		}
 
 		if partitionKeyVersion, ok := d.GetOk("partition_key_version"); ok {
@@ -255,10 +265,9 @@ func resourceCosmosDbSQLContainerUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if partitionkeypaths != "" {
-		partitionKindHash := cosmosdb.PartitionKindHash
 		db.Properties.Resource.PartitionKey = &cosmosdb.ContainerPartitionKey{
 			Paths: &[]string{partitionkeypaths},
-			Kind:  &partitionKindHash,
+			Kind:  pointer.To(cosmosdb.PartitionKind(d.Get("partition_key_kind").(string))),
 		}
 
 		if partitionKeyVersion, ok := d.GetOk("partition_key_version"); ok {
@@ -329,6 +338,8 @@ func resourceCosmosDbSQLContainerRead(d *pluginsdk.ResourceData, meta interface{
 		if props := model.Properties; props != nil {
 			if res := props.Resource; res != nil {
 				if pk := res.PartitionKey; pk != nil {
+					d.Set("partition_key_kind", string(pointer.From(pk.Kind)))
+
 					if paths := pk.Paths; paths != nil {
 						if len(*paths) > 1 {
 							return fmt.Errorf("reading PartitionKey Paths, more then 1 returned")
