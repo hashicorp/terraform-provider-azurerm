@@ -31,16 +31,15 @@ const (
 )
 
 type KubernetesFluxConfigurationModel struct {
-	Name           string                         `tfschema:"name"`
-	ClusterID      string                         `tfschema:"cluster_id"`
-	BlobStorage    []AzureBlobDefinitionModel     `tfschema:"blob_storage"`
-	Bucket         []BucketDefinitionModel        `tfschema:"bucket"`
-	GitRepository  []GitRepositoryDefinitionModel `tfschema:"git_repository"`
-	Kustomizations []KustomizationDefinitionModel `tfschema:"kustomizations"`
-	Namespace      string                         `tfschema:"namespace"`
-
-	Scope                           string `tfschema:"scope"`
-	ContinuousReconciliationEnabled bool   `tfschema:"continuous_reconciliation_enabled"`
+	Name                            string                         `tfschema:"name"`
+	ClusterID                       string                         `tfschema:"cluster_id"`
+	BlobStorage                     []AzureBlobDefinitionModel     `tfschema:"blob_storage"`
+	Bucket                          []BucketDefinitionModel        `tfschema:"bucket"`
+	GitRepository                   []GitRepositoryDefinitionModel `tfschema:"git_repository"`
+	Kustomizations                  []KustomizationDefinitionModel `tfschema:"kustomizations"`
+	Namespace                       string                         `tfschema:"namespace"`
+	Scope                           string                         `tfschema:"scope"`
+	ContinuousReconciliationEnabled bool                           `tfschema:"continuous_reconciliation_enabled"`
 }
 
 type AzureBlobDefinitionModel struct {
