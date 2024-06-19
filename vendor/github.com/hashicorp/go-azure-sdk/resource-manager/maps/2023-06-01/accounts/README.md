@@ -1,7 +1,7 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/maps/2021-02-01/accounts` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/maps/2023-06-01/accounts` Documentation
 
-The `accounts` SDK allows for interaction with the Azure Resource Manager Service `maps` (API Version `2021-02-01`).
+The `accounts` SDK allows for interaction with the Azure Resource Manager Service `maps` (API Version `2023-06-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -9,7 +9,7 @@ This readme covers example usages, but further information on [using this SDK ca
 
 ```go
 import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-import "github.com/hashicorp/go-azure-sdk/resource-manager/maps/2021-02-01/accounts"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/maps/2023-06-01/accounts"
 ```
 
 
@@ -115,6 +115,27 @@ ctx := context.TODO()
 id := accounts.NewAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
 
 read, err := client.ListKeys(ctx, id)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
+### Example Usage: `AccountsClient.ListSas`
+
+```go
+ctx := context.TODO()
+id := accounts.NewAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+
+payload := accounts.AccountSasParameters{
+	// ...
+}
+
+
+read, err := client.ListSas(ctx, id, payload)
 if err != nil {
 	// handle the error
 }
