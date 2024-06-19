@@ -89,7 +89,8 @@ func resourceKeyVault() *pluginsdk.Resource {
 			},
 
 			"access_policy": {
-				Type:       pluginsdk.TypeList,
+				Type: pluginsdk.TypeList,
+				// TODO 5.0 Remove Computed and ConfigModeAttr and recommend adding this block to ignore_changes
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Optional:   true,
 				Computed:   true,

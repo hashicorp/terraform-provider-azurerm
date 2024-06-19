@@ -4,6 +4,7 @@
 package mariadb
 
 import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -30,18 +31,24 @@ func (r Registration) WebsiteCategories() []string {
 
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
-	return map[string]*pluginsdk.Resource{
-		"azurerm_mariadb_server": dataSourceMariaDbServer(),
+	if !features.FourPointOhBeta() {
+		return map[string]*pluginsdk.Resource{
+			"azurerm_mariadb_server": dataSourceMariaDbServer(),
+		}
 	}
+	return map[string]*pluginsdk.Resource{}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
-	return map[string]*pluginsdk.Resource{
-		"azurerm_mariadb_configuration":        resourceMariaDbConfiguration(),
-		"azurerm_mariadb_database":             resourceMariaDbDatabase(),
-		"azurerm_mariadb_firewall_rule":        resourceArmMariaDBFirewallRule(),
-		"azurerm_mariadb_server":               resourceMariaDbServer(),
-		"azurerm_mariadb_virtual_network_rule": resourceMariaDbVirtualNetworkRule(),
+	if !features.FourPointOh() {
+		return map[string]*pluginsdk.Resource{
+			"azurerm_mariadb_configuration":        resourceMariaDbConfiguration(),
+			"azurerm_mariadb_database":             resourceMariaDbDatabase(),
+			"azurerm_mariadb_firewall_rule":        resourceArmMariaDBFirewallRule(),
+			"azurerm_mariadb_server":               resourceMariaDbServer(),
+			"azurerm_mariadb_virtual_network_rule": resourceMariaDbVirtualNetworkRule(),
+		}
 	}
+	return map[string]*pluginsdk.Resource{}
 }
