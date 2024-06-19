@@ -467,7 +467,7 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 								"tag_filter": {
 									Type:     pluginsdk.TypeString,
 									Optional: true,
-									Computed: true,
+									Computed: !features.FourPointOhBeta(),
 									ValidateFunc: validation.StringInSlice([]string{
 										string(softwareupdateconfiguration.TagOperatorsAny),
 										string(softwareupdateconfiguration.TagOperatorsAll),
@@ -514,7 +514,7 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 					"start_time": {
 						Type:             pluginsdk.TypeString,
 						Optional:         true,
-						Computed:         true,
+						Computed:         !features.FourPointOhBeta(),
 						DiffSuppressFunc: suppress.RFC3339MinuteTime,
 						ValidateFunc:     validation.IsRFC3339Time,
 					},
@@ -522,13 +522,13 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 					"start_time_offset_minutes": {
 						Type:     pluginsdk.TypeFloat,
 						Optional: true,
-						Computed: true,
+						Computed: !features.FourPointOhBeta(),
 					},
 
 					"expiry_time": {
 						Type:             pluginsdk.TypeString,
 						Optional:         true,
-						Computed:         true,
+						Computed:         !features.FourPointOhBeta(),
 						DiffSuppressFunc: suppress.RFC3339MinuteTime,
 						ValidateFunc:     validation.IsRFC3339Time,
 					},
@@ -536,7 +536,7 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 					"expiry_time_offset_minutes": {
 						Type:     pluginsdk.TypeFloat,
 						Optional: true,
-						Computed: true,
+						Computed: !features.FourPointOhBeta(),
 					},
 
 					"is_enabled": {
@@ -548,7 +548,7 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 					"next_run": {
 						Type:             pluginsdk.TypeString,
 						Optional:         true,
-						Computed:         true,
+						Computed:         !features.FourPointOhBeta(),
 						DiffSuppressFunc: suppress.RFC3339MinuteTime,
 						ValidateFunc:     validation.IsRFC3339Time,
 					},
@@ -556,7 +556,7 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 					"next_run_offset_minutes": {
 						Type:     pluginsdk.TypeFloat,
 						Optional: true,
-						Computed: true,
+						Computed: !features.FourPointOhBeta(),
 					},
 
 					"interval": {

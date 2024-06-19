@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azvalidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
@@ -81,14 +82,14 @@ func resourceAutomationSchedule() *pluginsdk.Resource {
 			"interval": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Computed:     true, // defaults to 1 if frequency is not OneTime
+				Computed:     !features.FourPointOhBeta(), // defaults to 1 if frequency is not OneTime
 				ValidateFunc: validation.IntBetween(1, 100),
 			},
 
 			"start_time": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
-				Computed:         true,
+				Computed:         !features.FourPointOhBeta(),
 				DiffSuppressFunc: suppress.RFC3339MinuteTime,
 				ValidateFunc:     validation.IsRFC3339Time,
 				// defaults to now + 7 minutes in create function if not set
@@ -97,7 +98,7 @@ func resourceAutomationSchedule() *pluginsdk.Resource {
 			"expiry_time": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
-				Computed:         true, // same as start time when OneTime, ridiculous value when recurring: "9999-12-31T15:59:00-08:00"
+				Computed:         !features.FourPointOhBeta(), // same as start time when OneTime, ridiculous value when recurring: "9999-12-31T15:59:00-08:00"
 				DiffSuppressFunc: suppress.RFC3339MinuteTime,
 				ValidateFunc:     validation.IsRFC3339Time,
 			},

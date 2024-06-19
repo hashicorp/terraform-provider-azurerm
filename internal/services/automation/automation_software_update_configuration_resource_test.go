@@ -307,12 +307,17 @@ resource "azurerm_automation_software_update_configuration" "test" {
   }
 
   depends_on = [azurerm_log_analytics_linked_service.test]
+
+  lifecycle {
+    ignore_changes = [schedule[0].expiry_time, schedule[0].next_run]
+  }
 }
 `, a.template(data), data.RandomInteger, a.startTime, a.expireTime)
 }
 
 func (a SoftwareUpdateConfigurationResource) linuxBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+
 
 %s
 
@@ -336,12 +341,18 @@ resource "azurerm_automation_software_update_configuration" "test" {
   }
 
   depends_on = [azurerm_log_analytics_linked_service.test]
+
+  lifecycle {
+    ignore_changes = [schedule[0].start_time, schedule[0].expiry_time, schedule[0].next_run]
+  }
 }
 `, a.template(data), data.RandomInteger)
 }
 
 func (a SoftwareUpdateConfigurationResource) linuxComplete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+
+
 
 
 %s
@@ -389,6 +400,9 @@ resource "azurerm_automation_software_update_configuration" "test" {
   }
 
   depends_on = [azurerm_log_analytics_linked_service.test]
+  lifecycle {
+    ignore_changes = [schedule[0].next_run]
+  }
 }
 `, a.template(data), data.RandomInteger, a.startTime, a.expireTime)
 }
@@ -473,12 +487,17 @@ resource "azurerm_automation_software_update_configuration" "test" {
   }
 
   depends_on = [azurerm_log_analytics_linked_service.test]
+
+  lifecycle {
+    ignore_changes = [schedule[0].expiry_time, schedule[0].next_run]
+  }
 }
 `, a.template(data), data.RandomInteger, a.startTime, a.expireTime)
 }
 
 func (a SoftwareUpdateConfigurationResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+
 
 %s
 
@@ -527,6 +546,10 @@ resource "azurerm_automation_software_update_configuration" "test" {
   }
 
   depends_on = [azurerm_log_analytics_linked_service.test]
+
+  lifecycle {
+    ignore_changes = [schedule[0].start_time, schedule[0].expiry_time, schedule[0].next_run]
+  }
 }
 `, a.template(data), data.RandomInteger, a.startTime, a.expireTime)
 }
@@ -555,12 +578,18 @@ resource "azurerm_automation_software_update_configuration" "test" {
   }
 
   depends_on = [azurerm_log_analytics_linked_service.test]
+
+  lifecycle {
+    ignore_changes = [schedule[0].start_time, schedule[0].expiry_time, schedule[0].next_run]
+  }
 }
 `, a.template(data), data.RandomInteger, a.startTime, a.expireTime)
 }
 
 func (a SoftwareUpdateConfigurationResource) windowsComplete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+
+
 
 
 %s
@@ -611,6 +640,10 @@ resource "azurerm_automation_software_update_configuration" "test" {
   }
 
   depends_on = [azurerm_log_analytics_linked_service.test]
+
+  lifecycle {
+    ignore_changes = [schedule[0].next_run]
+  }
 }
 `, a.template(data), data.RandomInteger, a.startTime, a.expireTime)
 }
