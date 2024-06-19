@@ -259,6 +259,10 @@ func resourceMapsAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		payload.Properties.LinkedResources = dataStores
 	}
 
+	if d.HasChange("tags") {
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
 	if _, err := client.CreateOrUpdate(ctx, *id, *payload); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
