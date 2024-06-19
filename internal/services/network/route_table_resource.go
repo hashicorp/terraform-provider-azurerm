@@ -56,7 +56,8 @@ func resourceRouteTable() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"route": {
-				Type:       pluginsdk.TypeSet,
+				Type: pluginsdk.TypeSet,
+				// TODO 5.0 Remove Computed and ConfigModeAttr and recommend adding this block to ignore_changes
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Optional:   true,
 				Computed:   true,
