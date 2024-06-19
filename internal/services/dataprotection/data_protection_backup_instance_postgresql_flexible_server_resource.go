@@ -191,7 +191,7 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Read() sdk
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
-					state.Location = location.Normalize(pointer.From(props.DataSourceInfo.ResourceLocation))
+					state.Location = location.NormalizeNilable(props.DataSourceInfo.ResourceLocation)
 
 					serverId, err := servers.ParseFlexibleServerID(props.DataSourceInfo.ResourceID)
 					if err != nil {
