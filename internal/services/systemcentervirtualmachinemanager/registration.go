@@ -38,7 +38,6 @@ func (r Registration) Resources() []sdk.Resource {
 		SystemCenterVirtualMachineManagerCloudResource{},
 		SystemCenterVirtualMachineManagerServerResource{},
 		SystemCenterVirtualMachineManagerAvailabilitySetResource{},
-		SystemCenterVirtualMachineManagerServerResource{},
 		SystemCenterVirtualMachineManagerVirtualMachineTemplateResource{},
 	}
 }
