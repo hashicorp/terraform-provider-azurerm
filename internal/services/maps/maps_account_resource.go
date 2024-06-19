@@ -172,7 +172,7 @@ func resourceMapsAccountCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("expanding `data_store`: %+v", err)
 	}
 
-	loc := "Global"
+	loc := "global"
 	if v, ok := d.GetOk("location"); ok {
 		loc = location.Normalize(v.(string))
 	}
