@@ -147,7 +147,6 @@ resource "azurerm_stack_hci_deployment_setting" "test" {
     smb_signing_enabled             = true
     wdac_enabled                    = true
 
-
     cluster {
       azure_service_endpoint = "core.windows.net"
       cloud_account_name     = azurerm_storage_account.witness.name
@@ -158,7 +157,11 @@ resource "azurerm_stack_hci_deployment_setting" "test" {
 
     host_network {
       intent {
-        name = "ManagementCompute"
+        name                              = "ManagementCompute"
+        adapter_property_override_enabled = true
+        adapter_property_override {
+          network_direct = "Disabled"
+        }
         adapter = [
           "FABRIC",
           "FABRIC2",
@@ -170,7 +173,11 @@ resource "azurerm_stack_hci_deployment_setting" "test" {
       }
 
       intent {
-        name = "Storage"
+        name                              = "Storage"
+        adapter_property_override_enabled = true
+        adapter_property_override {
+          network_direct = "Disabled"
+        }
         adapter = [
           "StorageA",
           "StorageB",
@@ -269,15 +276,23 @@ resource "azurerm_stack_hci_deployment_setting" "import" {
 
     host_network {
       intent {
-        name         = azurerm_stack_hci_deployment_setting.test.scale_unit.0.host_network.0.intent.0.name
-        adapter      = azurerm_stack_hci_deployment_setting.test.scale_unit.0.host_network.0.intent.0.adapter
-        traffic_type = azurerm_stack_hci_deployment_setting.test.scale_unit.0.host_network.0.intent.0.traffic_type
+        name                              = azurerm_stack_hci_deployment_setting.test.scale_unit.0.host_network.0.intent.0.name
+        adapter                           = azurerm_stack_hci_deployment_setting.test.scale_unit.0.host_network.0.intent.0.adapter
+        adapter_property_override_enabled = azurerm_stack_hci_deployment_setting.test.scale_unit.0.host_network.0.intent.0.adapter_property_override_enabled
+        traffic_type                      = azurerm_stack_hci_deployment_setting.test.scale_unit.0.host_network.0.intent.0.traffic_type
+        adapter_property_override {
+          network_direct = azurerm_stack_hci_deployment_setting.test.scale_unit.0.host_network.0.intent.0.adapter_property_override.0.network_direct
+        }
       }
 
       intent {
-        name         = azurerm_stack_hci_deployment_setting.test.scale_unit.0.host_network.0.intent.1.name
-        adapter      = azurerm_stack_hci_deployment_setting.test.scale_unit.0.host_network.0.intent.1.adapter
-        traffic_type = azurerm_stack_hci_deployment_setting.test.scale_unit.0.host_network.0.intent.1.traffic_type
+        name                              = azurerm_stack_hci_deployment_setting.test.scale_unit.0.host_network.0.intent.1.name
+        adapter                           = azurerm_stack_hci_deployment_setting.test.scale_unit.0.host_network.0.intent.1.adapter
+        adapter_property_override_enabled = azurerm_stack_hci_deployment_setting.test.scale_unit.0.host_network.0.intent.0.adapter_property_override_enabled
+        traffic_type                      = azurerm_stack_hci_deployment_setting.test.scale_unit.0.host_network.0.intent.1.traffic_type
+        adapter_property_override {
+          network_direct = azurerm_stack_hci_deployment_setting.test.scale_unit.0.host_network.0.intent.0.adapter_property_override.0.network_direct
+        }
       }
 
       storage_network {
