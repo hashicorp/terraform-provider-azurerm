@@ -162,11 +162,13 @@ func (r DevCenterDevBoxDefinitionResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			state := DevCenterDevBoxDefinitionResourceModel{}
+			state := DevCenterDevBoxDefinitionResourceModel{
+				Name:        id.DevBoxDefinitionName,
+				DevCenterId: devboxdefinitions.NewDevCenterID(id.SubscriptionId, id.ResourceGroupName, id.DevCenterName).ID(),
+			}
+
 			if model := resp.Model; model != nil {
-				state.Name = id.DevBoxDefinitionName
 				state.Location = location.Normalize(model.Location)
-				state.DevCenterId = devboxdefinitions.NewDevCenterID(id.SubscriptionId, id.ResourceGroupName, id.DevCenterName).ID()
 				state.Tags = pointer.From(model.Tags)
 
 				if props := model.Properties; props != nil {
@@ -222,13 +224,21 @@ func (r DevCenterDevBoxDefinitionResource) Update() sdk.ResourceFunc {
 			}
 
 			parameters := devboxdefinitions.DevBoxDefinitionUpdate{
-				Properties: &devboxdefinitions.DevBoxDefinitionUpdateProperties{
-					ImageReference: &devboxdefinitions.ImageReference{
-						Id: pointer.To(model.ImageReferenceId),
-					},
-					Sku: expandDevCenterDevBoxDefinitionSku(model.Sku),
-				},
-				Tags: pointer.To(model.Tags),
+				Properties: &devboxdefinitions.DevBoxDefinitionUpdateProperties{},
+			}
+
+			if metadata.ResourceData.HasChange("image_reference_id") {
+				parameters.Properties.ImageReference = &devboxdefinitions.ImageReference{
+					Id: pointer.To(model.ImageReferenceId),
+				}
+			}
+
+			if metadata.ResourceData.HasChange("sku") {
+				parameters.Properties.Sku = expandDevCenterDevBoxDefinitionSku(model.Sku)
+			}
+
+			if metadata.ResourceData.HasChange("tags") {
+				parameters.Tags = pointer.To(model.Tags)
 			}
 
 			if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
