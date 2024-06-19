@@ -479,8 +479,8 @@ resource "azurerm_linux_web_app" "test" {
       app_settings,
       identity,
       sticky_settings,
-	  ftp_publish_basic_authentication_enabled,
-	  webdeploy_publish_basic_authentication_enabled,
+      ftp_publish_basic_authentication_enabled,
+      webdeploy_publish_basic_authentication_enabled,
     ]
   }
 }
@@ -496,13 +496,13 @@ resource "azurerm_app_service_connection" "test" {
   }
   scope = "default"
   configuration_info {
-	action = "optOut"
-	configuration_store {
-	  app_configuration_id = "foo"
-	}
+    action = "optOut"
+    configuration_store {
+      app_configuration_id = "foo"
+    }
   }
   public_network_solution {
-	action = "enable"
+    action = "enable"
   }
 }
 `, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString)
