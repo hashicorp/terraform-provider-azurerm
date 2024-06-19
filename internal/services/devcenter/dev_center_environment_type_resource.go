@@ -121,11 +121,11 @@ func (r DevCenterEnvironmentTypeResource) Read() sdk.ResourceFunc {
 			}
 
 			state := DevCenterEnvironmentTypeResourceModel{
+				Name:        id.EnvironmentTypeName,
 				DevCenterId: environmenttypes.NewDevCenterID(id.SubscriptionId, id.ResourceGroupName, id.DevCenterName).ID(),
 			}
 
 			if model := resp.Model; model != nil {
-				state.Name = id.EnvironmentTypeName
 				state.Tags = pointer.From(model.Tags)
 			}
 
