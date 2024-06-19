@@ -236,6 +236,23 @@ func TestAccCognitiveAIServicesAccount_customerManagedKey_update(t *testing.T) {
 	})
 }
 
+func TestAccCognitiveAIServicesAccount_KVHsmManagedKey(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_ai_services", "test")
+	r := CognitiveAIServicesAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.kvHsmManagedKey(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("customer_managed_key.0.managed_hsm_key_id").Exists(),
+				check.That(data.ResourceName).Key("customer_managed_key.0.identity_client_id").IsUUID(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (CognitiveAIServicesAccountResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := cognitiveservicesaccounts.ParseAccountID(state.ID)
 	if err != nil {
@@ -789,4 +806,181 @@ resource "azurerm_cognitive_account_ai_services" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Secondary, data.RandomString, data.RandomString, data.RandomString, data.RandomInteger, data.RandomInteger)
+}
+
+func (CognitiveAIServicesAccountResource) kvHsmManagedKey(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
+    }
+  }
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cognitive-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  name                = "%[3]s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                     = "acctestkv%[3]s"
+  location                 = azurerm_resource_group.test.location
+  resource_group_name      = azurerm_resource_group.test.name
+  tenant_id                = data.azurerm_client_config.current.tenant_id
+  sku_name                 = "standard"
+  purge_protection_enabled = true
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+    key_permissions = [
+      "Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify", "GetRotationPolicy"
+    ]
+    certificate_permissions = [
+      "Get",
+      "Create",
+      "Delete",
+      "Recover",
+      "List"
+    ]
+  }
+
+  access_policy {
+    tenant_id = azurerm_user_assigned_identity.test.tenant_id
+    object_id = azurerm_user_assigned_identity.test.principal_id
+    key_permissions = [
+      "Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify", "GetRotationPolicy"
+    ]
+    certificate_permissions = [
+      "Get",
+      "Create",
+      "Delete",
+      "Recover",
+      "List"
+    ]
+  }
+}
+
+resource "azurerm_key_vault_certificate" "cert" {
+  count        = 3
+  name         = "acchsmcert${count.index}"
+  key_vault_id = azurerm_key_vault.test.id
+  certificate_policy {
+    issuer_parameters {
+      name = "Self"
+    }
+    key_properties {
+      exportable = true
+      key_size   = 2048
+      key_type   = "RSA"
+      reuse_key  = true
+    }
+    lifetime_action {
+      action {
+        action_type = "AutoRenew"
+      }
+      trigger {
+        days_before_expiry = 30
+      }
+    }
+    secret_properties {
+      content_type = "application/x-pkcs12"
+    }
+    x509_certificate_properties {
+      extended_key_usage = []
+      key_usage = [
+        "cRLSign",
+        "dataEncipherment",
+        "digitalSignature",
+        "keyAgreement",
+        "keyCertSign",
+        "keyEncipherment",
+      ]
+      subject            = "CN=hello-world"
+      validity_in_months = 12
+    }
+  }
+}
+resource "azurerm_key_vault_managed_hardware_security_module" "test" {
+  name                = "kvHsm%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  #   location                 = azurerm_resource_group.test.location
+  location                 = "westus"
+  sku_name                 = "Standard_B1"
+  tenant_id                = data.azurerm_client_config.current.tenant_id
+  admin_object_ids         = [data.azurerm_client_config.current.object_id]
+  purge_protection_enabled = true
+
+  security_domain_key_vault_certificate_ids = [for cert in azurerm_key_vault_certificate.cert : cert.id]
+  security_domain_quorum                    = 3
+}
+
+resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "test" {
+  vault_base_url     = azurerm_key_vault_managed_hardware_security_module.test.hsm_uri
+  name               = "1e243909-064c-6ac3-84e9-1c8bf8d6ad16"
+  scope              = "/keys"
+  role_definition_id = "/Microsoft.KeyVault/providers/Microsoft.Authorization/roleDefinitions/21dbd100-6940-42c2-9190-5d6cb909625b"
+  principal_id       = azurerm_user_assigned_identity.test.principal_id
+}
+
+resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "test1" {
+  vault_base_url     = azurerm_key_vault_managed_hardware_security_module.test.hsm_uri
+  name               = "1e243909-064c-6ac3-84e9-1c8bf8d6ad17"
+  scope              = "/keys"
+  role_definition_id = "/Microsoft.KeyVault/providers/Microsoft.Authorization/roleDefinitions/21dbd100-6940-42c2-9190-5d6cb909625b"
+  principal_id       = data.azurerm_client_config.current.object_id
+}
+
+resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "test2" {
+  vault_base_url     = azurerm_key_vault_managed_hardware_security_module.test.hsm_uri
+  name               = "1e243909-064c-6ac3-84e9-1c8bf8d6ad18"
+  scope              = "/keys"
+  role_definition_id = "/Microsoft.KeyVault/providers/Microsoft.Authorization/roleDefinitions/515eb02d-2335-4d2d-92f2-b1cbdf9c3778"
+  principal_id       = data.azurerm_client_config.current.object_id
+}
+
+resource "azurerm_key_vault_managed_hardware_security_module_key" "test" {
+  name           = "acctestHSMK-%[2]s"
+  managed_hsm_id = azurerm_key_vault_managed_hardware_security_module.test.id
+  key_type       = "RSA-HSM"
+  key_size       = 2048
+  key_opts       = ["wrapKey", "unwrapKey"]
+
+  depends_on = [
+    azurerm_key_vault_managed_hardware_security_module_role_assignment.test,
+    azurerm_key_vault_managed_hardware_security_module_role_assignment.test1,
+    azurerm_key_vault_managed_hardware_security_module_role_assignment.test2
+  ]
+}
+
+resource "azurerm_cognitive_account_ai_services" "test" {
+  name                  = "acctest-cogacc-%[1]d"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  sku_name              = "S0"
+  custom_subdomain_name = "acctest-cogacc-%[1]d"
+
+  identity {
+    type = "SystemAssigned, UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id
+    ]
+  }
+
+  customer_managed_key {
+    managed_hsm_key_id = azurerm_key_vault_managed_hardware_security_module_key.test.versioned_id
+    identity_client_id = azurerm_user_assigned_identity.test.client_id
+  }
+}
+`, data.RandomInteger, data.Locations.Secondary, data.RandomString)
 }
