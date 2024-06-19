@@ -79,7 +79,7 @@ func resourceMapsAccount() *pluginsdk.Resource {
 					Schema: map[string]*pluginsdk.Schema{
 						"allowed_origins": {
 							Type:     pluginsdk.TypeList,
-							Optional: true,
+							Required: true,
 							MinItems: 1,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
