@@ -1,5 +1,9 @@
 ## 3.109.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_system_center_virtual_machine_manager_cloud` [GH-25429]
+
 ENHANCEMENTS:
 
 * `azurerm_virtual_desktop_host_pool` - remove ForceNew from `preferred_app_group_type` [GH-26333]
