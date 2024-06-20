@@ -69,7 +69,7 @@ func resourceComputeCluster() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{string(machinelearningcomputes.VMPriorityDedicated), string(machinelearningcomputes.VMPriorityLowPriority)}, false),
 			},
 
-			"identity": commonschema.SystemAssignedUserAssignedIdentityOptionalForceNew(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"scale_settings": {
 				Type:     pluginsdk.TypeList,
