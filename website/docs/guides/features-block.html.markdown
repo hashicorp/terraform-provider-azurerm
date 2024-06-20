@@ -114,8 +114,6 @@ The `features` block supports the following:
 
 * `cognitive_account` - (Optional) A `cognitive_account` block as defined below.
 
-* `cognitive_account_ai_services` - (Optional) A `cognitive_account_ai_services` block as defined below.
-
 * `key_vault` - (Optional) A `key_vault` block as defined below.
 
 * `log_analytics_workspace` - (Optional) A `log_analytics_workspace` block as defined below.
@@ -163,12 +161,6 @@ The `application_insights` block supports the following:
 The `cognitive_account` block supports the following:
 
 * `purge_soft_delete_on_destroy` - (Optional) Should the `azurerm_cognitive_account` resources be permanently deleted (e.g. purged) when destroyed? Defaults to `true`.
-
----
-
-The `cognitive_account_ai_services` block supports the following:
-
-* `purge_soft_delete_on_destroy` - (Optional) Should the `azurerm_cognitive_account_ai_services` resources be permanently deleted (e.g. purged) when destroyed? Defaults to `true`.
 
 ---
 
