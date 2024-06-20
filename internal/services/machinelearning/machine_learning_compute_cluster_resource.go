@@ -27,6 +27,7 @@ func resourceComputeCluster() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceComputeClusterCreate,
 		Read:   resourceComputeClusterRead,
+		Update: resourceComputeClusterUpdate,
 		Delete: resourceComputeClusterDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -353,6 +354,88 @@ func resourceComputeClusterRead(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	return tags.FlattenAndSet(d, computeResource.Model.Tags)
+}
+
+func resourceComputeClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	mlWorkspacesClient := meta.(*clients.Client).MachineLearning.Workspaces
+	client := meta.(*clients.Client).MachineLearning.MachineLearningComputes
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	workspaceID, err := workspaces.ParseWorkspaceID(d.Get("machine_learning_workspace_id").(string))
+	if err != nil {
+		return err
+	}
+
+	id, err := machinelearningcomputes.ParseComputeID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	workspace, err := mlWorkspacesClient.Get(ctx, *workspaceID)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", workspaceID, err)
+	}
+
+	workspaceModel := workspace.Model
+	if workspaceModel == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", workspaceID)
+	}
+
+	identity, err := expandIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+
+	vmPriority := machinelearningcomputes.VMPriority(d.Get("vm_priority").(string))
+	computeClusterAmlComputeProperties := machinelearningcomputes.AmlComputeProperties{
+		VMSize:                 utils.String(d.Get("vm_size").(string)),
+		VMPriority:             &vmPriority,
+		ScaleSettings:          expandScaleSettings(d.Get("scale_settings").([]interface{})),
+		UserAccountCredentials: expandUserAccountCredentials(d.Get("ssh").([]interface{})),
+		EnableNodePublicIP:     pointer.To(d.Get("node_public_ip_enabled").(bool)),
+	}
+
+	computeClusterAmlComputeProperties.RemoteLoginPortPublicAccess = pointer.To(machinelearningcomputes.RemoteLoginPortPublicAccessDisabled)
+	if d.Get("ssh_public_access_enabled").(bool) {
+		computeClusterAmlComputeProperties.RemoteLoginPortPublicAccess = pointer.To(machinelearningcomputes.RemoteLoginPortPublicAccessEnabled)
+	}
+
+	if subnetId, ok := d.GetOk("subnet_resource_id"); ok && subnetId.(string) != "" {
+		computeClusterAmlComputeProperties.Subnet = &machinelearningcomputes.ResourceId{Id: subnetId.(string)}
+	}
+
+	// NOTE: The 'AmlCompute' 'ComputeLocation' field should always point
+	// to configuration files 'location' field...
+	computeClusterProperties := machinelearningcomputes.AmlCompute{
+		Properties:       &computeClusterAmlComputeProperties,
+		ComputeLocation:  utils.String(d.Get("location").(string)),
+		Description:      utils.String(d.Get("description").(string)),
+		DisableLocalAuth: utils.Bool(!d.Get("local_auth_enabled").(bool)),
+	}
+
+	// NOTE: The 'ComputeResource' 'Location' field should always point
+	// to the workspace's 'location'...
+	computeClusterParameters := machinelearningcomputes.ComputeResource{
+		Properties: computeClusterProperties,
+		Identity:   identity,
+		Location:   workspaceModel.Location,
+		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
+		Sku: &machinelearningcomputes.Sku{
+			Name: workspaceModel.Sku.Name,
+			Tier: pointer.To(machinelearningcomputes.SkuTier(*workspaceModel.Sku.Tier)),
+		},
+	}
+
+	future, err := client.ComputeCreateOrUpdate(ctx, *id, computeClusterParameters)
+	if err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+	if err := future.Poller.PollUntilDone(ctx); err != nil {
+		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
+	}
+
+	return resourceComputeClusterRead(d, meta)
 }
 
 func resourceComputeClusterDelete(d *pluginsdk.ResourceData, meta interface{}) error {
