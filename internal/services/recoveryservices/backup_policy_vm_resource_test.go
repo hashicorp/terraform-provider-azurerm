@@ -1057,7 +1057,7 @@ resource "azurerm_backup_policy_vm" "test" {
   }
 
   tiering_policy {
-    archived_rp {
+    archived_restore_point {
       duration      = 5
       duration_type = "Months"
       mode          = "TierAfter"

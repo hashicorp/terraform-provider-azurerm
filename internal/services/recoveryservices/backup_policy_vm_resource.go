@@ -579,7 +579,7 @@ func expandBackupProtectionPolicyVMTieringPolicy(input []interface{}) *map[strin
 	}
 
 	tieringPolicy := input[0].(map[string]interface{})
-	archivedRP := tieringPolicy["archived_rp"].([]interface{})
+	archivedRP := tieringPolicy["archived_restore_point"].([]interface{})
 	result["ArchivedRP"] = expandBackupProtectionPolicyVMArchivedRP(archivedRP)
 
 	return &result
@@ -825,7 +825,7 @@ func flattenBackupProtectionPolicyVMTieringPolicy(input *map[string]protectionpo
 			}
 
 			results = append(results, map[string]interface{}{
-				"archived_rp": flattenBackupProtectionPolicyVMArchivedRP(v),
+				"archived_restore_point": flattenBackupProtectionPolicyVMArchivedRP(v),
 			})
 		}
 	}
@@ -943,7 +943,7 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 			Optional: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"archived_rp": {
+					"archived_restore_point": {
 						Type:     pluginsdk.TypeList,
 						MaxItems: 1,
 						Required: true,
