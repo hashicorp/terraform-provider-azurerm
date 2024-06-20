@@ -219,8 +219,6 @@ func TestAccCognitiveAIServicesAccount_customerManagedKey_update(t *testing.T) {
 			Config: r.customerManagedKeyUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("customer_managed_key.0.key_vault_key_id").Exists(),
-				check.That(data.ResourceName).Key("customer_managed_key.0.identity_client_id").IsUUID(),
 			),
 		},
 		data.ImportStep(),

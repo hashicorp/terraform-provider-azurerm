@@ -451,7 +451,7 @@ func (AIServicesAccountResource) Read() sdk.ResourceFunc {
 
 func (AIServicesAccountResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Cognitive.AccountsClient
 
