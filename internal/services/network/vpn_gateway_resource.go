@@ -27,7 +27,7 @@ import (
 var VPNGatewayResourceName = "azurerm_vpn_gateway"
 
 func resourceVPNGateway() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceVPNGatewayCreate,
 		Read:   resourceVPNGatewayRead,
 		Update: resourceVPNGatewayUpdate,
@@ -66,7 +66,7 @@ func resourceVPNGateway() *pluginsdk.Resource {
 			"routing_preference": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Default:  "Microsoft Network",
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"Microsoft Network",
@@ -197,6 +197,8 @@ func resourceVPNGateway() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
+
+	return resource
 }
 
 func resourceVPNGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error {
