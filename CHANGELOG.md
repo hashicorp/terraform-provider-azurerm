@@ -9,12 +9,22 @@ FEATURES:
 ENHANCEMENTS:
 
 * `azurerm_virtual_desktop_host_pool` - remove ForceNew from `preferred_app_group_type` [GH-26333]
+* `azurerm_maps_account` - add support for the `location`, `identity`, `cors` and `data_store` properties [GH-26397]
 
 BUG FIXES:
 
 * `azurerm_automation_job_schedule` - updates `azurerm_automation_job_schedule` to use a composite resource id and allows `azurerm_automation_runbook` to be updated without causing `azurerm_automation_job_schedule` to recreate [GH-22164]
 * `azurerm_databricks_workspace`: Fix disabling default firewall [GH-26339]
 * `azurerm_virtual_hub_*` - spliting create and update so lifecycle ignore changes works correctly [GH-26310]
+
+DEPRECATIONS:
+
+* Data Source: `azurerm_mariadb_server` - deprecated since the service is retiring. Please use `azurerm_mysql_flexible_server` instead [GH-26354]
+* `azurerm_mariadb_configuration` - deprecated since the service is retiring. Please use `azurerm_mysql_flexible_server_configuration` instead [GH-26354]
+* `azurerm_mariadb_database` - deprecated since the service is retiring. Please use `azurerm_mysql_flexible_database` instead [GH-26354]
+* `azurerm_mariadb_firewall_rule` - deprecated since the service is retiring. Please use `azurerm_mysql_flexible_server_firewall_rule` instead [GH-26354]
+* `azurerm_mariadb_server` - deprecated since the service is retiring. Please use `azurerm_mysql_flexible_server` instead [GH-26354]
+* `azurerm_mariadb_virtual_network_rule` - deprecated since the service is retiring [GH-26354]
 
 ## 3.108.0 (June 13, 2024)
 
