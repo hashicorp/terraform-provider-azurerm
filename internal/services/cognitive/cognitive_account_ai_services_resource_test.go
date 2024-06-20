@@ -912,10 +912,9 @@ resource "azurerm_key_vault_certificate" "cert" {
   }
 }
 resource "azurerm_key_vault_managed_hardware_security_module" "test" {
-  name                = "kvHsm%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  #   location                 = azurerm_resource_group.test.location
-  location                 = "westus"
+  name                     = "kvHsm%[1]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   sku_name                 = "Standard_B1"
   tenant_id                = data.azurerm_client_config.current.tenant_id
   admin_object_ids         = [data.azurerm_client_config.current.object_id]
