@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Resource:** `azurerm_system_center_virtual_machine_manager_cloud` [GH-25429]
+* **New Resource:** `azurerm_system_center_virtual_machine_manager_virtual_machine_template` [GH-25449]
 
 ENHANCEMENTS:
 
