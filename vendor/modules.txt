@@ -628,8 +628,8 @@ github.com/hashicorp/go-azure-sdk/resource-manager/managedidentity/2023-01-31
 github.com/hashicorp/go-azure-sdk/resource-manager/managedidentity/2023-01-31/managedidentities
 github.com/hashicorp/go-azure-sdk/resource-manager/managedservices/2022-10-01/registrationassignments
 github.com/hashicorp/go-azure-sdk/resource-manager/managedservices/2022-10-01/registrationdefinitions
-github.com/hashicorp/go-azure-sdk/resource-manager/maps/2021-02-01/accounts
-github.com/hashicorp/go-azure-sdk/resource-manager/maps/2021-02-01/creators
+github.com/hashicorp/go-azure-sdk/resource-manager/maps/2023-06-01/accounts
+github.com/hashicorp/go-azure-sdk/resource-manager/maps/2023-06-01/creators
 github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/configurations
 github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/databases
 github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/firewallrules
