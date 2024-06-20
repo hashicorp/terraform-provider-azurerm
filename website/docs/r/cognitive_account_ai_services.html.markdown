@@ -52,7 +52,7 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `local_auth_enabled` - (Optional) Whether local authentication methods is enabled for the Cognitive AI Service Account. Defaults to `true`.
+* `local_authentication_enabled` - (Optional) Whether local authentication methods is enabled for the Cognitive AI Service Account. Defaults to `true`.
 
 * `network_acls` - (Optional) A `network_acls` block as defined below. When this property is specified, `custom_subdomain_name` is also required to be set.
 

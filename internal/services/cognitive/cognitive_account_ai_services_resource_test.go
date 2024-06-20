@@ -475,7 +475,7 @@ resource "azurerm_cognitive_account_ai_services" "test" {
   resource_group_name                = azurerm_resource_group.test.name
   sku_name                           = "S0"
   fqdns                              = ["foo.com", "bar.com"]
-  local_auth_enabled                 = false
+  local_authentication_enabled       = false
   outbound_network_access_restricted = false
   public_network_access              = "Disabled"
   custom_subdomain_name              = "acctestcogacc-%[1]d"
