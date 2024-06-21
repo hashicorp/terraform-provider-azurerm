@@ -4,6 +4,10 @@ FEATURES:
 
 * **New Data Source:** `azurerm_load_test` [GH-26376]
 
+ENHANCEMENTS:
+
+* `azurerm_redhat_openshift_cluster` - support for the `managed_resource_group_name` property [GH-25529]
+
 BUG FIXES:
 
 * `azurerm_virtual_network_dns_servers` - split create and update function to fix lifecycle - ignore [GH-26427]
