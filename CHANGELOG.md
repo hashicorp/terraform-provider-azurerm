@@ -7,20 +7,20 @@ FEATURES:
 * **New Resource:** `azurerm_email_communication_service_domain` [GH-26179]
 * **New Resource:** `azurerm_system_center_virtual_machine_manager_cloud` [GH-25429]
 * **New Resource:** `azurerm_system_center_virtual_machine_manager_virtual_machine_template` [GH-25449]
-
+* **New Resource:** `azurerm_system_center_virtual_machine_manager_virtual_network` [GH-25451]
 
 ENHANCEMENTS:
 
 * Data Source: `azurerm_hdinsight_cluster` - export the `cluster_id` attribute [GH-26228]
 * `azurerm_data_protection_backup_instance_blob_storage` - support for the `storage_account_container_names` property [GH-26232]
 * `azurerm_virtual_network_peering` - support for the `peer_complete_virtual_networks_enabled`, `only_ipv6_peering_enabled`, `local_subnet_names`, and `remote_subnet_names` properties [GH-26229]
-* `azurerm_virtual_desktop_host_pool` - remove ForceNew from `preferred_app_group_type` [GH-26333]
-* `azurerm_maps_account` - add support for the `location`, `identity`, `cors` and `data_store` properties [GH-26397]
+* `azurerm_virtual_desktop_host_pool` - changing the `preferred_app_group_type` property no longer creates a new resource [GH-26333]
+* `azurerm_maps_account` - support for the `location`, `identity`, `cors` and `data_store` properties [GH-26397]
 
 BUG FIXES:
 
 * `azurerm_automation_job_schedule` - updates `azurerm_automation_job_schedule` to use a composite resource id and allows `azurerm_automation_runbook` to be updated without causing `azurerm_automation_job_schedule` to recreate [GH-22164]
-* `azurerm_databricks_workspace`: Fix disabling default firewall [GH-26339]
+* `azurerm_databricks_workspace`- correctly allow disabling the default firewall [GH-26339]
 * `azurerm_virtual_hub_*` - spliting create and update so lifecycle ignore changes works correctly [GH-26310]
 
 DEPRECATIONS:
