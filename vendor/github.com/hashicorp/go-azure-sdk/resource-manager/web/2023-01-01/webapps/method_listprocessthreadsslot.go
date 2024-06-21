@@ -72,6 +72,7 @@ func (c WebAppsClient) ListProcessThreadsSlotCompleteMatchingPredicate(ctx conte
 
 	resp, err := c.ListProcessThreadsSlot(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

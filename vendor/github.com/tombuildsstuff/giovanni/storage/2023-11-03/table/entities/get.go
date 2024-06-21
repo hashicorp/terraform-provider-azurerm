@@ -59,10 +59,12 @@ func (c Client) Get(ctx context.Context, tableName string, input GetEntityInput)
 	if resp != nil && resp.Response != nil {
 		result.HttpResponse = resp.Response
 
-		err = resp.Unmarshal(&result.Entity)
-		if err != nil {
-			err = fmt.Errorf("unmarshalling response: %+v", err)
-			return
+		if err == nil {
+			err = resp.Unmarshal(&result.Entity)
+			if err != nil {
+				err = fmt.Errorf("unmarshalling response: %+v", err)
+				return
+			}
 		}
 	}
 	if err != nil {

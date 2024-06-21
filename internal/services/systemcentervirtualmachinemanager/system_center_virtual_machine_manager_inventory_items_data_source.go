@@ -98,20 +98,23 @@ func (l SystemCenterVirtualMachineManagerInventoryItemsDataSource) Read() sdk.Re
 				return err
 			}
 
-			resp, err := client.ListByVMMServer(ctx, *scvmmServerId)
+			resp, err := client.ListByVMmServerComplete(ctx, *scvmmServerId)
 			if err != nil {
-				if response.WasNotFound(resp.HttpResponse) {
+				if response.WasNotFound(resp.LatestHttpResponse) {
 					return fmt.Errorf("%s was not found", scvmmServerId)
 				}
 				return fmt.Errorf("reading %s: %+v", scvmmServerId, err)
 			}
 
-			if model := resp.Model; model != nil {
-				inventoryItems := flattenInventoryItems(model, state.InventoryType)
-				if len(inventoryItems) == 0 {
+			if model := resp.Items; model != nil {
+				inventoryItems, err := flattenInventoryItems(model, state.InventoryType)
+				if err != nil {
+					return err
+				}
+				if len(pointer.From(inventoryItems)) == 0 {
 					return fmt.Errorf("no inventory items were found for %s", scvmmServerId)
 				}
-				state.InventoryItems = inventoryItems
+				state.InventoryItems = pointer.From(inventoryItems)
 			}
 
 			metadata.ResourceData.SetId(scvmmServerId.ID())
@@ -121,33 +124,52 @@ func (l SystemCenterVirtualMachineManagerInventoryItemsDataSource) Read() sdk.Re
 	}
 }
 
-func flattenInventoryItems(input *[]inventoryitems.InventoryItem, inventoryType string) []InventoryItem {
+func flattenInventoryItems(input []inventoryitems.InventoryItem, inventoryType string) (*[]InventoryItem, error) {
 	results := make([]InventoryItem, 0)
-	if input == nil {
-		return results
-	}
 
-	for _, item := range *input {
+	for _, item := range input {
 		if props := item.Properties; props != nil {
 			inventoryItem := InventoryItem{}
 
 			if v, ok := props.(inventoryitems.CloudInventoryItem); ok && inventoryType == string(inventoryitems.InventoryTypeCloud) {
-				inventoryItem.id = pointer.From(item.Id)
+				// Service API indicates that the static segment `inventoryItems` in the resource ID of the Inventory Item should start with lowercase. See more details from https://github.com/Azure/azure-rest-api-specs/blob/92c409d93f895a30d51603b2fda78a49b3a2cd60/specification/scvmm/resource-manager/Microsoft.ScVmm/stable/2023-10-07/scvmm.json#L1785
+				// But the static segment `InventoryItems` in the resource ID of the Inventory Item returned by the API starts with uppercase. So all instances of setting the inventory item ID must use ParseInventoryItemIDInsensitively() in Read() to normalize the resource ID
+				scvmmServerInventoryItemId, err := inventoryitems.ParseInventoryItemIDInsensitively(pointer.From(item.Id))
+				if err != nil {
+					return nil, err
+				}
+				inventoryItem.id = scvmmServerInventoryItemId.ID()
+
 				inventoryItem.name = pointer.From(v.InventoryItemName)
 				inventoryItem.Uuid = pointer.From(v.Uuid)
 				results = append(results, inventoryItem)
 			} else if v, ok := props.(inventoryitems.VirtualMachineInventoryItem); ok && inventoryType == string(inventoryitems.InventoryTypeVirtualMachine) {
-				inventoryItem.id = pointer.From(item.Id)
+				scvmmServerInventoryItemId, err := inventoryitems.ParseInventoryItemIDInsensitively(pointer.From(item.Id))
+				if err != nil {
+					return nil, err
+				}
+				inventoryItem.id = scvmmServerInventoryItemId.ID()
+
 				inventoryItem.name = pointer.From(v.InventoryItemName)
 				inventoryItem.Uuid = pointer.From(v.Uuid)
 				results = append(results, inventoryItem)
 			} else if v, ok := props.(inventoryitems.VirtualMachineTemplateInventoryItem); ok && inventoryType == string(inventoryitems.InventoryTypeVirtualMachineTemplate) {
-				inventoryItem.id = pointer.From(item.Id)
+				scvmmServerInventoryItemId, err := inventoryitems.ParseInventoryItemIDInsensitively(pointer.From(item.Id))
+				if err != nil {
+					return nil, err
+				}
+				inventoryItem.id = scvmmServerInventoryItemId.ID()
+
 				inventoryItem.name = pointer.From(v.InventoryItemName)
 				inventoryItem.Uuid = pointer.From(v.Uuid)
 				results = append(results, inventoryItem)
 			} else if v, ok := props.(inventoryitems.VirtualNetworkInventoryItem); ok && inventoryType == string(inventoryitems.InventoryTypeVirtualNetwork) {
-				inventoryItem.id = pointer.From(item.Id)
+				scvmmServerInventoryItemId, err := inventoryitems.ParseInventoryItemIDInsensitively(pointer.From(item.Id))
+				if err != nil {
+					return nil, err
+				}
+				inventoryItem.id = scvmmServerInventoryItemId.ID()
+
 				inventoryItem.name = pointer.From(v.InventoryItemName)
 				inventoryItem.Uuid = pointer.From(v.Uuid)
 				results = append(results, inventoryItem)
@@ -155,5 +177,5 @@ func flattenInventoryItems(input *[]inventoryitems.InventoryItem, inventoryType 
 		}
 	}
 
-	return results
+	return &results, nil
 }

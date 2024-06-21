@@ -11,6 +11,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -21,7 +22,7 @@ import (
 )
 
 func resourceSynapseSparkPool() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceSynapseSparkPoolCreate,
 		Read:   resourceSynapseSparkPoolRead,
 		Update: resourceSynapseSparkPoolUpdate,
@@ -213,7 +214,7 @@ func resourceSynapseSparkPool() *pluginsdk.Resource {
 			"spark_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  "2.4", // TODO: make this field Required in 4.0 since the default value changes over time
+				Default:  "2.4",
 				ValidateFunc: validation.StringInSlice([]string{
 					"2.4",
 					"3.1",
@@ -226,6 +227,20 @@ func resourceSynapseSparkPool() *pluginsdk.Resource {
 			"tags": tags.Schema(),
 		},
 	}
+
+	if features.FourPointOh() {
+		resource.Schema["spark_version"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				"3.2",
+				"3.3",
+				"3.4",
+			}, false),
+		}
+	}
+
+	return resource
 }
 
 func resourceSynapseSparkPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error {

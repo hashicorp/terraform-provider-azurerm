@@ -15,7 +15,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/blobs"
 )
 
@@ -26,16 +26,17 @@ type BlobUpload struct {
 	BlobName      string
 	ContainerName string
 
-	BlobType      string
-	CacheControl  string
-	ContentType   string
-	ContentMD5    string
-	MetaData      map[string]string
-	Parallelism   int
-	Size          int
-	Source        string
-	SourceContent string
-	SourceUri     string
+	BlobType        string
+	CacheControl    string
+	ContentType     string
+	ContentMD5      string
+	EncryptionScope string
+	MetaData        map[string]string
+	Parallelism     int
+	Size            int
+	Source          string
+	SourceContent   string
+	SourceUri       string
 }
 
 func (sbu BlobUpload) Create(ctx context.Context) error {
@@ -93,6 +94,9 @@ func (sbu BlobUpload) copy(ctx context.Context) error {
 		CopySource: sbu.SourceUri,
 		MetaData:   sbu.MetaData,
 	}
+	if sbu.EncryptionScope != "" {
+		input.EncryptionScope = pointer.To(sbu.EncryptionScope)
+	}
 	if err := sbu.Client.CopyAndWait(ctx, sbu.ContainerName, sbu.BlobName, input); err != nil {
 		return fmt.Errorf("copy/waiting: %s", err)
 	}
@@ -102,8 +106,11 @@ func (sbu BlobUpload) copy(ctx context.Context) error {
 
 func (sbu BlobUpload) createEmptyAppendBlob(ctx context.Context) error {
 	input := blobs.PutAppendBlobInput{
-		ContentType: utils.String(sbu.ContentType),
+		ContentType: pointer.To(sbu.ContentType),
 		MetaData:    sbu.MetaData,
+	}
+	if sbu.EncryptionScope != "" {
+		input.EncryptionScope = pointer.To(sbu.EncryptionScope)
 	}
 	if _, err := sbu.Client.PutAppendBlob(ctx, sbu.ContainerName, sbu.BlobName, input); err != nil {
 		return fmt.Errorf("PutAppendBlob: %s", err)
@@ -118,8 +125,11 @@ func (sbu BlobUpload) createEmptyBlockBlob(ctx context.Context) error {
 	}
 
 	input := blobs.PutBlockBlobInput{
-		ContentType: utils.String(sbu.ContentType),
+		ContentType: pointer.To(sbu.ContentType),
 		MetaData:    sbu.MetaData,
+	}
+	if sbu.EncryptionScope != "" {
+		input.EncryptionScope = pointer.To(sbu.EncryptionScope)
 	}
 	if _, err := sbu.Client.PutBlockBlob(ctx, sbu.ContainerName, sbu.BlobName, input); err != nil {
 		return fmt.Errorf("PutBlockBlob: %s", err)
@@ -152,11 +162,14 @@ func (sbu BlobUpload) uploadBlockBlob(ctx context.Context) error {
 	defer file.Close()
 
 	input := blobs.PutBlockBlobInput{
-		ContentType: utils.String(sbu.ContentType),
+		ContentType: pointer.To(sbu.ContentType),
 		MetaData:    sbu.MetaData,
 	}
 	if sbu.ContentMD5 != "" {
-		input.ContentMD5 = utils.String(sbu.ContentMD5)
+		input.ContentMD5 = pointer.To(sbu.ContentMD5)
+	}
+	if sbu.EncryptionScope != "" {
+		input.EncryptionScope = pointer.To(sbu.EncryptionScope)
 	}
 	if err := sbu.Client.PutBlockBlobFromFile(ctx, sbu.ContainerName, sbu.BlobName, file, input); err != nil {
 		return fmt.Errorf("PutBlockBlobFromFile: %s", err)
@@ -172,8 +185,11 @@ func (sbu BlobUpload) createEmptyPageBlob(ctx context.Context) error {
 
 	input := blobs.PutPageBlobInput{
 		BlobContentLengthBytes: int64(sbu.Size),
-		ContentType:            utils.String(sbu.ContentType),
+		ContentType:            pointer.To(sbu.ContentType),
 		MetaData:               sbu.MetaData,
+	}
+	if sbu.EncryptionScope != "" {
+		input.EncryptionScope = pointer.To(sbu.EncryptionScope)
 	}
 	if _, err := sbu.Client.PutPageBlob(ctx, sbu.ContainerName, sbu.BlobName, input); err != nil {
 		return fmt.Errorf("PutPageBlob: %s", err)
@@ -222,8 +238,11 @@ func (sbu BlobUpload) uploadPageBlob(ctx context.Context) error {
 	// first let's create a file of the specified file size
 	input := blobs.PutPageBlobInput{
 		BlobContentLengthBytes: fileSize,
-		ContentType:            utils.String(sbu.ContentType),
+		ContentType:            pointer.To(sbu.ContentType),
 		MetaData:               sbu.MetaData,
+	}
+	if sbu.EncryptionScope != "" {
+		input.EncryptionScope = pointer.To(sbu.EncryptionScope)
 	}
 	if _, err := sbu.Client.PutPageBlob(ctx, sbu.ContainerName, sbu.BlobName, input); err != nil {
 		return fmt.Errorf("PutPageBlob: %s", err)

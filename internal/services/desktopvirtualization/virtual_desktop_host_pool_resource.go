@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -114,6 +115,13 @@ func resourceVirtualDesktopHostPool() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"public_network_access": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(hostpool.PossibleValuesForHostpoolPublicNetworkAccess(), false),
+				Default:      string(hostpool.HostpoolPublicNetworkAccessEnabled),
+			},
+
 			"maximum_sessions_allowed": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
@@ -130,7 +138,6 @@ func resourceVirtualDesktopHostPool() *pluginsdk.Resource {
 			"preferred_app_group_type": {
 				Type:        pluginsdk.TypeString,
 				Optional:    true,
-				ForceNew:    true,
 				Description: "Preferred App Group type to display",
 				ValidateFunc: validation.StringInSlice([]string{
 					string(hostpool.PreferredAppGroupTypeDesktop),
@@ -250,6 +257,7 @@ func resourceVirtualDesktopHostPoolCreate(d *pluginsdk.ResourceData, meta interf
 			LoadBalancerType:              hostpool.LoadBalancerType(d.Get("load_balancer_type").(string)),
 			PersonalDesktopAssignmentType: &personalDesktopAssignmentType,
 			PreferredAppGroupType:         hostpool.PreferredAppGroupType(d.Get("preferred_app_group_type").(string)),
+			PublicNetworkAccess:           pointer.To(hostpool.HostpoolPublicNetworkAccess(d.Get("public_network_access").(string))),
 			AgentUpdate:                   expandAgentUpdateCreate(d.Get("scheduled_agent_updates").([]interface{})),
 			VMTemplate:                    &vmTemplate,
 		},
@@ -282,7 +290,7 @@ func resourceVirtualDesktopHostPoolUpdate(d *pluginsdk.ResourceData, meta interf
 		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	if d.HasChanges("custom_rdp_properties", "description", "friendly_name", "load_balancer_type", "maximum_sessions_allowed", "preferred_app_group_type", "start_vm_on_connect", "validate_environment", "scheduled_agent_updates") {
+	if d.HasChanges("custom_rdp_properties", "description", "friendly_name", "load_balancer_type", "maximum_sessions_allowed", "preferred_app_group_type", "public_network_access", "start_vm_on_connect", "validate_environment", "scheduled_agent_updates") {
 		payload.Properties = &hostpool.HostPoolPatchProperties{}
 
 		if d.HasChange("custom_rdp_properties") {
@@ -309,6 +317,10 @@ func resourceVirtualDesktopHostPoolUpdate(d *pluginsdk.ResourceData, meta interf
 		if d.HasChange("preferred_app_group_type") {
 			preferredAppGroupType := hostpool.PreferredAppGroupType(d.Get("preferred_app_group_type").(string))
 			payload.Properties.PreferredAppGroupType = &preferredAppGroupType
+		}
+
+		if d.HasChange("public_network_access") {
+			payload.Properties.PublicNetworkAccess = pointer.To(hostpool.HostpoolPublicNetworkAccess(d.Get("public_network_access").(string)))
 		}
 
 		if d.HasChange("start_vm_on_connect") {
@@ -382,6 +394,7 @@ func resourceVirtualDesktopHostPoolRead(d *pluginsdk.ResourceData, meta interfac
 		}
 		d.Set("personal_desktop_assignment_type", personalDesktopAssignmentType)
 		d.Set("preferred_app_group_type", string(props.PreferredAppGroupType))
+		d.Set("public_network_access", string(pointer.From(props.PublicNetworkAccess)))
 		d.Set("start_vm_on_connect", props.StartVMOnConnect)
 		d.Set("type", string(props.HostPoolType))
 		d.Set("validate_environment", props.ValidationEnvironment)

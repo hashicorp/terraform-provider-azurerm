@@ -45,6 +45,8 @@ The following arguments are supported:
 
 * `module_link` - (Required) A `module_link` block as defined below.
 
+* `tags` - (Optional) A mapping of tags to assign to the resource.
+
 ---
 
 The `module_link` block supports the following:

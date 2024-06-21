@@ -40,6 +40,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/notificationrecipientuser"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/openidconnectprovider"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/policy"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/policyfragment"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/product"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/productapi"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/productgroup"
@@ -90,6 +91,7 @@ type Client struct {
 	NotificationRecipientUserClient    *notificationrecipientuser.NotificationRecipientUserClient
 	OpenIdConnectClient                *openidconnectprovider.OpenidConnectProviderClient
 	PolicyClient                       *policy.PolicyClient
+	PolicyFragmentClient               *policyfragment.PolicyFragmentClient
 	ProductApisClient                  *productapi.ProductApiClient
 	ProductGroupsClient                *productgroup.ProductGroupClient
 	ProductPoliciesClient              *productpolicy.ProductPolicyClient
@@ -309,6 +311,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(policyClient.Client, o.Authorizers.ResourceManager)
 
+	policyFragmentClient, err := policyfragment.NewPolicyFragmentClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Policy Fragment client: %+v", err)
+	}
+	o.Configure(policyFragmentClient.Client, o.Authorizers.ResourceManager)
+
 	productsClient, err := product.NewProductClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Products client: %+v", err)
@@ -416,6 +424,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		NotificationRecipientUserClient:    notificationRecipientUserClient,
 		OpenIdConnectClient:                openIdConnectClient,
 		PolicyClient:                       policyClient,
+		PolicyFragmentClient:               policyFragmentClient,
 		ProductApisClient:                  productApisClient,
 		ProductGroupsClient:                productGroupsClient,
 		ProductPoliciesClient:              productPoliciesClient,

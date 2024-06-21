@@ -8,12 +8,14 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/virtualnetworks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type VirtualNetworkDnsServersResource struct{}
@@ -39,15 +41,23 @@ func (t VirtualNetworkDnsServersResource) Exists(ctx context.Context, clients *c
 		return nil, err
 	}
 
-	resp, err := clients.Network.VnetClient.Get(ctx, id.ResourceGroup, id.VirtualNetworkName, "")
+	vnetId := commonids.NewVirtualNetworkID(id.SubscriptionId, id.ResourceGroup, id.VirtualNetworkName)
+
+	resp, err := clients.Network.VirtualNetworks.Get(ctx, vnetId, virtualnetworks.DefaultGetOperationOptions())
 	if err != nil {
-		return nil, fmt.Errorf("reading %s: %+v", *id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	exists := resp.ID != nil && resp.VirtualNetworkPropertiesFormat != nil && resp.VirtualNetworkPropertiesFormat.DhcpOptions != nil &&
-		resp.VirtualNetworkPropertiesFormat.DhcpOptions.DNSServers != nil && len(*resp.VirtualNetworkPropertiesFormat.DhcpOptions.DNSServers) > 0
+	exists := false
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			if props.DhcpOptions != nil && props.DhcpOptions.DnsServers != nil && len(*props.DhcpOptions.DnsServers) > 0 {
+				exists = true
+			}
+		}
+	}
 
-	return utils.Bool(exists), nil
+	return pointer.To(exists), nil
 }
 
 func (VirtualNetworkDnsServersResource) basic(data acceptance.TestData) string {

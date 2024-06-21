@@ -352,6 +352,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     node_count     = 1
     vm_size        = "Standard_DS2_v2"
     vnet_subnet_id = azurerm_subnet.test.id
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   aci_connector_linux {
@@ -412,6 +415,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     node_count     = 1
     vm_size        = "Standard_DS2_v2"
     vnet_subnet_id = azurerm_subnet.test.id
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -454,6 +460,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = 1
     vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   azure_policy_enabled = %t
@@ -514,6 +523,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = 1
     vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   oms_agent {
@@ -576,6 +588,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = 1
     vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   oms_agent {
@@ -619,6 +634,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = 1
     vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -657,6 +675,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = 1
     vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   http_application_routing_enabled = %t
@@ -778,6 +799,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = 1
     vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   ingress_application_gateway {
@@ -824,6 +848,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = 1
     vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   ingress_application_gateway {
@@ -867,6 +894,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = 1
     vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -919,6 +949,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = 1
     vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   ingress_application_gateway {
@@ -966,6 +999,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = 1
     vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   open_service_mesh_enabled = %t
@@ -1006,6 +1042,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = 1
     vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   key_vault_secrets_provider {
@@ -1049,6 +1088,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = 1
     vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   confidential_computing {
@@ -1091,6 +1133,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = 1
     vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {

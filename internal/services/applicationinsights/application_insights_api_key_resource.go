@@ -30,9 +30,10 @@ func resourceApplicationInsightsAPIKey() *pluginsdk.Resource {
 			return err
 		}),
 
-		SchemaVersion: 1,
+		SchemaVersion: 2,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
 			0: migration.ApiKeyUpgradeV0ToV1{},
+			1: migration.ApiKeyUpgradeV1ToV2{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{

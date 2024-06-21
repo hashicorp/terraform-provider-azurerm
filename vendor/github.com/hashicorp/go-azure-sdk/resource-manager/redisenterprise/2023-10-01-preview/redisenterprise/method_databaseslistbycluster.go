@@ -72,6 +72,7 @@ func (c RedisEnterpriseClient) DatabasesListByClusterCompleteMatchingPredicate(c
 
 	resp, err := c.DatabasesListByCluster(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

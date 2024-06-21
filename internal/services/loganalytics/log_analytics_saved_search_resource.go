@@ -86,7 +86,7 @@ func resourceLogAnalyticsSavedSearch() *pluginsdk.Resource {
 			},
 
 			"function_parameters": {
-				Type:     pluginsdk.TypeSet,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				ForceNew: true,
 				Elem: &pluginsdk.Schema{
@@ -138,7 +138,7 @@ func resourceLogAnalyticsSavedSearchCreate(d *pluginsdk.ResourceData, meta inter
 	}
 
 	if v, ok := d.GetOk("function_parameters"); ok {
-		attrs := v.(*pluginsdk.Set).List()
+		attrs := v.([]interface{})
 		result := make([]string, 0)
 		for _, item := range attrs {
 			if item != nil {

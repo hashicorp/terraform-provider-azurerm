@@ -46,6 +46,13 @@ func TestAccBotWebApp_update(t *testing.T) {
 		},
 		data.ImportStep("developer_app_insights_api_key"),
 		{
+			Config: r.completeConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("developer_app_insights_api_key"),
+		{
 			Config: r.updateConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -189,6 +196,7 @@ resource "azurerm_bot_web_app" "test" {
   endpoint                              = "https://example.com"
   developer_app_insights_api_key        = azurerm_application_insights_api_key.test.api_key
   developer_app_insights_application_id = azurerm_application_insights.test.app_id
+  developer_app_insights_key            = azurerm_application_insights.test.instrumentation_key
 
   tags = {
     environment = "production"

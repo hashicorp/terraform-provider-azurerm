@@ -116,7 +116,7 @@ func (DataFactoryCredentialUserAssignedManagedIdentityResource) Read() sdk.Resou
 			if model := existing.Model; model != nil {
 				props, ok := model.Properties.(credentials.ManagedIdentityCredential)
 				if !ok {
-					return fmt.Errorf("retrieving %s: expected `credentials.ManagedIdentityCredential` but got %+v", id, model.Properties)
+					return fmt.Errorf("retrieving %s: expected `credentials.ManagedIdentityCredential` but got %T", id, model.Properties)
 				}
 
 				if props.Description != nil {
@@ -158,11 +158,11 @@ func (r DataFactoryCredentialUserAssignedManagedIdentityResource) Create() sdk.R
 			}
 
 			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError("azurerm_data_factory_dataset_http", id.ID())
+				return tf.ImportAsExistsError("azurerm_data_factory_credential_user_managed_identity", id.ID())
 			}
 
 			props := credentials.ManagedIdentityCredential{
-				TypeProperties: credentials.ManagedIdentityTypeProperties{
+				TypeProperties: &credentials.ManagedIdentityTypeProperties{
 					ResourceId: &data.IdentityId,
 				},
 			}
@@ -217,7 +217,7 @@ func (r DataFactoryCredentialUserAssignedManagedIdentityResource) Update() sdk.R
 
 			props, ok := existing.Model.Properties.(credentials.ManagedIdentityCredential)
 			if !ok {
-				return fmt.Errorf("retrieving %s: expected `credentials.ManagedIdentityCredential` but got %+v", id, existing.Model.Properties)
+				return fmt.Errorf("retrieving %s: expected `credentials.ManagedIdentityCredential` but got %T", id, existing.Model.Properties)
 			}
 
 			if metadata.ResourceData.HasChange("description") {

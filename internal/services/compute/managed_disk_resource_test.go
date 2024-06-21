@@ -2697,7 +2697,10 @@ func (ManagedDiskResource) checkLinuxVirtualMachineWasNotRestarted(ctx context.C
 	subscriptionId := commonids.NewSubscriptionID(client.Account.SubscriptionId)
 	opts := activitylogs.DefaultListOperationOptions()
 	opts.Filter = pointer.To(filter)
-	logs, err := activityLogsClient.ListComplete(ctx, subscriptionId, opts)
+
+	ctx2, cancel := context.WithTimeout(ctx, 5*time.Minute)
+	defer cancel()
+	logs, err := activityLogsClient.ListComplete(ctx2, subscriptionId, opts)
 	if err != nil {
 		return fmt.Errorf("retrieving activity logs for Virtual Machine %q: %+v", state.ID, err)
 	}

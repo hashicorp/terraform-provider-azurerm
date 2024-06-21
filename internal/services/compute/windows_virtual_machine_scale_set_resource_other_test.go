@@ -8,14 +8,14 @@ import (
 	"fmt"
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 )
 
 func TestAccWindowsVirtualMachineScaleSet_otherAdditionalUnattendContent(t *testing.T) {
@@ -919,40 +919,44 @@ func TestAccWindowsVirtualMachineScaleSet_otherCancelRollingUpgrades(t *testing.
 				data.CheckWithClientForResource(func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
 					// This function manually updates the value for the image sku which triggers rolling upgrades
 					// and simulates the scenario where rolling upgrades are running when we try to delete a VMSS
-					client := clients.Compute.VMScaleSetClient
+					client := clients.Compute.VirtualMachineScaleSetsClient
 
-					id, err := commonids.ParseVirtualMachineScaleSetID(state.Attributes["id"])
+					id, err := virtualmachinescalesets.ParseVirtualMachineScaleSetID(state.Attributes["id"])
 					if err != nil {
 						return err
 					}
 
-					existing, err := client.Get(ctx, id.ResourceGroupName, id.VirtualMachineScaleSetName, compute.ExpandTypesForGetVMScaleSetsUserData)
+					ctx2, cancel := context.WithTimeout(ctx, 5*time.Minute)
+					defer cancel()
+					options := virtualmachinescalesets.DefaultGetOperationOptions()
+					options.Expand = pointer.To(virtualmachinescalesets.ExpandTypesForGetVMScaleSetsUserData)
+					existing, err := client.Get(ctx2, *id, options)
 					if err != nil {
 						return fmt.Errorf("retrieving %s: %+v", *id, err)
 					}
 
-					existingImageReference := existing.VirtualMachineScaleSetProperties.VirtualMachineProfile.StorageProfile.ImageReference
+					existingImageReference := existing.Model.Properties.VirtualMachineProfile.StorageProfile.ImageReference
 
-					imageReference := compute.ImageReference{
+					imageReference := virtualmachinescalesets.ImageReference{
 						Publisher: existingImageReference.Publisher,
 						Offer:     existingImageReference.Offer,
 						Sku:       pointer.To("2019-Datacenter"),
 						Version:   existingImageReference.Version,
 					}
 
-					updateProps := compute.VirtualMachineScaleSetUpdateProperties{
-						VirtualMachineProfile: &compute.VirtualMachineScaleSetUpdateVMProfile{
-							StorageProfile: &compute.VirtualMachineScaleSetUpdateStorageProfile{
+					updateProps := virtualmachinescalesets.VirtualMachineScaleSetUpdateProperties{
+						VirtualMachineProfile: &virtualmachinescalesets.VirtualMachineScaleSetUpdateVMProfile{
+							StorageProfile: &virtualmachinescalesets.VirtualMachineScaleSetUpdateStorageProfile{
 								ImageReference: &imageReference,
 							},
 						},
-						UpgradePolicy: existing.VirtualMachineScaleSetProperties.UpgradePolicy,
+						UpgradePolicy: existing.Model.Properties.UpgradePolicy,
 					}
-					update := compute.VirtualMachineScaleSetUpdate{
-						VirtualMachineScaleSetUpdateProperties: &updateProps,
+					update := virtualmachinescalesets.VirtualMachineScaleSetUpdate{
+						Properties: &updateProps,
 					}
 
-					if _, err := client.Update(ctx, id.ResourceGroupName, id.VirtualMachineScaleSetName, update); err != nil {
+					if err := client.UpdateThenPoll(ctx2, *id, update, virtualmachinescalesets.DefaultUpdateOperationOptions()); err != nil {
 						return fmt.Errorf("updating %s: %+v", *id, err)
 					}
 

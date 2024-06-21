@@ -18,6 +18,9 @@ type SetMetaDataInput struct {
 
 	// Any metadata which should be added to this blob
 	MetaData map[string]string
+
+	// The encryption scope for the blob.
+	EncryptionScope *string
 }
 
 type SetMetaDataResponse struct {
@@ -84,6 +87,9 @@ func (s setMetadataOptions) ToHeaders() *client.Headers {
 	headers := &client.Headers{}
 	if s.input.LeaseID != nil {
 		headers.Append("x-ms-lease-id", *s.input.LeaseID)
+	}
+	if s.input.EncryptionScope != nil {
+		headers.Append("x-ms-encryption-scope", *s.input.EncryptionScope)
 	}
 	headers.Merge(metadata.SetMetaDataHeaders(s.input.MetaData))
 	return headers

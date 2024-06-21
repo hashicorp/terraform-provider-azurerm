@@ -19,6 +19,7 @@ import (
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/migration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
@@ -251,7 +252,11 @@ func resourceMonitorSmartDetectorAlertRuleRead(d *pluginsdk.ResourceData, meta i
 			}
 			d.Set("throttling_duration", throttlingDuration)
 
-			if err := d.Set("action_group", flattenMonitorSmartDetectorAlertRuleActionGroup(&props.ActionGroups)); err != nil {
+			actionGroup, err := flattenMonitorSmartDetectorAlertRuleActionGroup(&props.ActionGroups)
+			if err != nil {
+				return fmt.Errorf("flatten `action_group`: %+v", err)
+			}
+			if err := d.Set("action_group", actionGroup); err != nil {
 				return fmt.Errorf("setting `action_group`: %+v", err)
 			}
 		}
@@ -288,9 +293,9 @@ func expandMonitorSmartDetectorAlertRuleActionGroup(input []interface{}) *smartd
 	}
 }
 
-func flattenMonitorSmartDetectorAlertRuleActionGroup(input *smartdetectoralertrules.ActionGroupsInformation) []interface{} {
+func flattenMonitorSmartDetectorAlertRuleActionGroup(input *smartdetectoralertrules.ActionGroupsInformation) ([]interface{}, error) {
 	if input == nil {
-		return []interface{}{}
+		return []interface{}{}, nil
 	}
 
 	var customEmailSubject, CustomWebhookPayload string
@@ -301,11 +306,20 @@ func flattenMonitorSmartDetectorAlertRuleActionGroup(input *smartdetectoralertru
 		CustomWebhookPayload = *input.CustomWebhookPayload
 	}
 
+	groupIds := make([]string, 0)
+	for _, idRaw := range input.GroupIds {
+		id, err := parse.ActionGroupIDInsensitively(idRaw)
+		if err != nil {
+			return nil, fmt.Errorf("parsing %s: %v", idRaw, err)
+		}
+		groupIds = append(groupIds, id.ID())
+	}
+
 	return []interface{}{
 		map[string]interface{}{
-			"ids":             input.GroupIds,
+			"ids":             groupIds,
 			"email_subject":   customEmailSubject,
 			"webhook_payload": CustomWebhookPayload,
 		},
-	}
+	}, nil
 }

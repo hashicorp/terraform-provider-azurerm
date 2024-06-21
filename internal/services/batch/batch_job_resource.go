@@ -28,8 +28,8 @@ type BatchJobModel struct {
 	Name                        string            `tfschema:"name"`
 	BatchPoolId                 string            `tfschema:"batch_pool_id"`
 	DisplayName                 string            `tfschema:"display_name"`
-	Priority                    int               `tfschema:"priority"`
-	TaskRetryMaximum            int               `tfschema:"task_retry_maximum"`
+	Priority                    int64             `tfschema:"priority"`
+	TaskRetryMaximum            int64             `tfschema:"task_retry_maximum"`
 	CommonEnvironmentProperties map[string]string `tfschema:"common_environment_properties"`
 }
 
@@ -175,7 +175,7 @@ func (r BatchJobResource) Read() sdk.ResourceFunc {
 			}
 
 			if resp.Priority != nil {
-				model.Priority = int(*resp.Priority)
+				model.Priority = int64(*resp.Priority)
 			}
 
 			if resp.DisplayName != nil {
@@ -184,7 +184,7 @@ func (r BatchJobResource) Read() sdk.ResourceFunc {
 
 			if prop := resp.Constraints; prop != nil {
 				if prop.MaxTaskRetryCount != nil {
-					model.TaskRetryMaximum = int(*prop.MaxTaskRetryCount)
+					model.TaskRetryMaximum = int64(*prop.MaxTaskRetryCount)
 				}
 			}
 

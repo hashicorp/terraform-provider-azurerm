@@ -7,14 +7,14 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-09-02-preview/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/applicationgateways"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
-	applicationGatewayValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -37,11 +37,11 @@ const (
 // the list of unsupported addons in the defined region - e.g. by being
 // omitted from this list an addon/environment combination will be supported
 var unsupportedAddonsForEnvironment = map[string][]string{
-	azure.ChinaCloud.Name: {
+	environments.AzureChinaCloud: {
 		aciConnectorKey,           // https://github.com/hashicorp/terraform-provider-azurerm/issues/5510
 		httpApplicationRoutingKey, // https://github.com/hashicorp/terraform-provider-azurerm/issues/5960
 	},
-	azure.USGovernmentCloud.Name: {
+	environments.AzureUSGovernmentCloud: {
 		httpApplicationRoutingKey, // https://github.com/hashicorp/terraform-provider-azurerm/issues/5960
 	},
 }
@@ -163,7 +163,7 @@ func schemaKubernetesAddOns() map[string]*pluginsdk.Schema {
 							"ingress_application_gateway.0.subnet_cidr",
 							"ingress_application_gateway.0.subnet_id",
 						},
-						ValidateFunc: applicationGatewayValidate.ApplicationGatewayID,
+						ValidateFunc: applicationgateways.ValidateApplicationGatewayID,
 					},
 					"gateway_name": {
 						Type:         pluginsdk.TypeString,
@@ -282,7 +282,7 @@ func schemaKubernetesAddOns() map[string]*pluginsdk.Schema {
 	return out
 }
 
-func expandKubernetesAddOns(d *pluginsdk.ResourceData, input map[string]interface{}, env azure.Environment) (*map[string]managedclusters.ManagedClusterAddonProfile, error) {
+func expandKubernetesAddOns(d *pluginsdk.ResourceData, input map[string]interface{}, env environments.Environment) (*map[string]managedclusters.ManagedClusterAddonProfile, error) {
 	disabled := managedclusters.ManagedClusterAddonProfile{
 		Enabled: false,
 	}
@@ -421,7 +421,7 @@ func expandKubernetesAddOns(d *pluginsdk.ResourceData, input map[string]interfac
 	return filterUnsupportedKubernetesAddOns(addonProfiles, env)
 }
 
-func filterUnsupportedKubernetesAddOns(input map[string]managedclusters.ManagedClusterAddonProfile, env azure.Environment) (*map[string]managedclusters.ManagedClusterAddonProfile, error) {
+func filterUnsupportedKubernetesAddOns(input map[string]managedclusters.ManagedClusterAddonProfile, env environments.Environment) (*map[string]managedclusters.ManagedClusterAddonProfile, error) {
 	filter := func(input map[string]managedclusters.ManagedClusterAddonProfile, key string) (map[string]managedclusters.ManagedClusterAddonProfile, error) {
 		output := input
 		if v, ok := output[key]; ok {

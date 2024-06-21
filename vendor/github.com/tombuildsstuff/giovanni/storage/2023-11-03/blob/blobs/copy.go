@@ -155,9 +155,11 @@ func (c Client) Copy(ctx context.Context, containerName, blobName string, input 
 	if resp != nil && resp.Response != nil {
 		result.HttpResponse = resp.Response
 
-		if resp.Header != nil {
-			result.CopyID = resp.Header.Get("x-ms-copy-id")
-			result.CopyStatus = resp.Header.Get("x-ms-copy-status")
+		if err == nil {
+			if resp.Header != nil {
+				result.CopyID = resp.Header.Get("x-ms-copy-id")
+				result.CopyStatus = resp.Header.Get("x-ms-copy-status")
+			}
 		}
 	}
 	if err != nil {

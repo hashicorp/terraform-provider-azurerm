@@ -33,6 +33,24 @@ func TestAccRedisCacheAccessPolicy_basic(t *testing.T) {
 	})
 }
 
+func TestAccRedisCacheAccessPolicy_multi(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_redis_cache_access_policy", "test")
+	r := RedisCacheAccessPolicyResource{}
+	accessPolicyTwo := "azurerm_redis_cache_access_policy.test2"
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.multi(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(accessPolicyTwo).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		data.ImportStep(accessPolicyTwo),
+	})
+}
+
 func TestAccRedisCacheAccessPolicy_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_cache_access_policy", "test")
 	r := RedisCacheAccessPolicyResource{}
@@ -105,6 +123,18 @@ resource "azurerm_redis_cache_access_policy" "import" {
   name           = azurerm_redis_cache_access_policy.test.name
   redis_cache_id = azurerm_redis_cache_access_policy.test.redis_cache_id
   permissions    = azurerm_redis_cache_access_policy.test.permissions
+}
+`, r.basic(data))
+}
+
+func (r RedisCacheAccessPolicyResource) multi(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_redis_cache_access_policy" "test2" {
+  name           = "acctestRedisAccessPolicytest2"
+  redis_cache_id = azurerm_redis_cache.test.id
+  permissions    = "+@read +@connection +cluster|info allkeys"
 }
 `, r.basic(data))
 }

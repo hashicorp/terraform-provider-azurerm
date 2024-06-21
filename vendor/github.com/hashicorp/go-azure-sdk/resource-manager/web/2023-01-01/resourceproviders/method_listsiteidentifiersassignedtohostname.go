@@ -73,6 +73,7 @@ func (c ResourceProvidersClient) ListSiteIdentifiersAssignedToHostNameCompleteMa
 
 	resp, err := c.ListSiteIdentifiersAssignedToHostName(ctx, id, input)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

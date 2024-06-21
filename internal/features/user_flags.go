@@ -14,9 +14,11 @@ type UserFeatures struct {
 	TemplateDeployment       TemplateDeploymentFeatures
 	LogAnalyticsWorkspace    LogAnalyticsWorkspaceFeatures
 	ResourceGroup            ResourceGroupFeatures
+	RecoveryServicesVault    RecoveryServicesVault
 	ManagedDisk              ManagedDiskFeatures
 	Subscription             SubscriptionFeatures
 	PostgresqlFlexibleServer PostgresqlFlexibleServerFeatures
+	MachineLearning          MachineLearningFeatures
 	RecoveryService          RecoveryServiceFeatures
 }
 
@@ -25,9 +27,10 @@ type CognitiveAccountFeatures struct {
 }
 
 type VirtualMachineFeatures struct {
-	DeleteOSDiskOnDeletion     bool
-	GracefulShutdown           bool
-	SkipShutdownAndForceDelete bool
+	DetachImplicitDataDiskOnDeletion bool
+	DeleteOSDiskOnDeletion           bool
+	GracefulShutdown                 bool
+	SkipShutdownAndForceDelete       bool
 }
 
 type VirtualMachineScaleSetFeatures struct {
@@ -43,10 +46,12 @@ type KeyVaultFeatures struct {
 	PurgeSoftDeletedCertsOnDestroy   bool
 	PurgeSoftDeletedSecretsOnDestroy bool
 	PurgeSoftDeletedHSMsOnDestroy    bool
+	PurgeSoftDeletedHSMKeysOnDestroy bool
 	RecoverSoftDeletedKeyVaults      bool
 	RecoverSoftDeletedKeys           bool
 	RecoverSoftDeletedCerts          bool
 	RecoverSoftDeletedSecrets        bool
+	RecoverSoftDeletedHSMKeys        bool
 }
 
 type TemplateDeploymentFeatures struct {
@@ -83,8 +88,16 @@ type SubscriptionFeatures struct {
 	PreventCancellationOnDestroy bool
 }
 
+type RecoveryServicesVault struct {
+	RecoverSoftDeletedBackupProtectedVM bool
+}
+
 type PostgresqlFlexibleServerFeatures struct {
 	RestartServerOnConfigurationValueChange bool
+}
+
+type MachineLearningFeatures struct {
+	PurgeSoftDeletedWorkspaceOnDestroy bool
 }
 
 type RecoveryServiceFeatures struct {

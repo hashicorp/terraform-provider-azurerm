@@ -108,6 +108,7 @@ func (c StreamingPoliciesAndStreamingLocatorsClient) StreamingLocatorsListComple
 
 	resp, err := c.StreamingLocatorsList(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

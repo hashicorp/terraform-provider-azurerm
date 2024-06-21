@@ -72,6 +72,7 @@ func (c AppPlatformClient) CustomizedAcceleratorsListCompleteMatchingPredicate(c
 
 	resp, err := c.CustomizedAcceleratorsList(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

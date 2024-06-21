@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/vminstanceguestagents"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/guestagents"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	computevalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/systemcentervirtualmachinemanager/parse"
@@ -88,7 +88,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResourc
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringInSlice(vminstanceguestagents.PossibleValuesForProvisioningAction(), false),
+			ValidateFunc: validation.StringInSlice(guestagents.PossibleValuesForProvisioningAction(), false),
 		},
 	}
 }
@@ -101,7 +101,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResourc
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.SystemCenterVirtualMachineManager.VMInstanceGuestAgents
+			client := metadata.Client.SystemCenterVirtualMachineManager.GuestAgents
 
 			var model SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentModel
 			if err := metadata.Decode(&model); err != nil {
@@ -120,10 +120,10 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResourc
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			parameters := vminstanceguestagents.GuestAgent{
-				Properties: vminstanceguestagents.GuestAgentProperties{
+			parameters := guestagents.GuestAgent{
+				Properties: &guestagents.GuestAgentProperties{
 					Credentials:     expandSystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentCredential(model.Credential),
-					HTTPProxyConfig: &vminstanceguestagents.HTTPProxyConfiguration{},
+					HTTPProxyConfig: &guestagents.HTTPProxyConfiguration{},
 				},
 			}
 
@@ -132,7 +132,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResourc
 			}
 
 			if v := model.ProvisioningAction; v != "" {
-				parameters.Properties.ProvisioningAction = pointer.To(vminstanceguestagents.ProvisioningAction(model.ProvisioningAction))
+				parameters.Properties.ProvisioningAction = pointer.To(guestagents.ProvisioningAction(model.ProvisioningAction))
 			}
 
 			if err := client.CreateThenPoll(ctx, commonids.NewScopeID(id.Scope), parameters); err != nil {
@@ -149,7 +149,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResourc
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.SystemCenterVirtualMachineManager.VMInstanceGuestAgents
+			client := metadata.Client.SystemCenterVirtualMachineManager.GuestAgents
 
 			id, err := parse.SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentID(metadata.ResourceData.Id())
 			if err != nil {
@@ -184,7 +184,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResourc
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.SystemCenterVirtualMachineManager.VMInstanceGuestAgents
+			client := metadata.Client.SystemCenterVirtualMachineManager.GuestAgents
 
 			id, err := parse.SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentID(metadata.ResourceData.Id())
 			if err != nil {
@@ -207,8 +207,8 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResourc
 			}
 
 			parameters.Properties.Credentials = expandSystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentCredential(model.Credential)
-			parameters.Properties.ProvisioningAction = pointer.To(vminstanceguestagents.ProvisioningAction(model.ProvisioningAction))
-			parameters.Properties.HTTPProxyConfig = &vminstanceguestagents.HTTPProxyConfiguration{
+			parameters.Properties.ProvisioningAction = pointer.To(guestagents.ProvisioningAction(model.ProvisioningAction))
+			parameters.Properties.HTTPProxyConfig = &guestagents.HTTPProxyConfiguration{
 				HTTPSProxy: utils.String(model.HttpsProxy),
 			}
 
@@ -225,7 +225,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResourc
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.SystemCenterVirtualMachineManager.VMInstanceGuestAgents
+			client := metadata.Client.SystemCenterVirtualMachineManager.GuestAgents
 
 			id, err := parse.SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentID(metadata.ResourceData.Id())
 			if err != nil {
@@ -241,20 +241,20 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResourc
 	}
 }
 
-func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentCredential(input []Credential) *vminstanceguestagents.GuestCredential {
+func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentCredential(input []Credential) *guestagents.GuestCredential {
 	if len(input) == 0 {
 		return nil
 	}
 
 	credential := input[0]
 
-	return &vminstanceguestagents.GuestCredential{
+	return &guestagents.GuestCredential{
 		Username: credential.Username,
 		Password: credential.Password,
 	}
 }
 
-func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentCredential(input *vminstanceguestagents.GuestCredential) []Credential {
+func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentCredential(input *guestagents.GuestCredential) []Credential {
 	result := make([]Credential, 0)
 	if input == nil {
 		return result

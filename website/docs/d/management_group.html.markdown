@@ -30,13 +30,15 @@ The following arguments are supported:
 
 * `display_name` - Specifies the display name of this Management Group.
 
-~> **NOTE** Whilst multiple management groups may share the same display name, when filtering Terraform expects a single management group to be found with this name.  
+~> **NOTE** Whilst multiple management groups may share the same display name, when filtering Terraform expects a single management group to be found with this name.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
 * `id` - The ID of the Management Group.
+
+* `tenant_scoped_id` - The Management Group ID with the Tenant ID prefix.
 
 * `parent_management_group_id` - The ID of any Parent Management Group.
 

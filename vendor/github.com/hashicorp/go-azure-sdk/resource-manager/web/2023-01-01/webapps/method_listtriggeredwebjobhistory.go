@@ -72,6 +72,7 @@ func (c WebAppsClient) ListTriggeredWebJobHistoryCompleteMatchingPredicate(ctx c
 
 	resp, err := c.ListTriggeredWebJobHistory(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

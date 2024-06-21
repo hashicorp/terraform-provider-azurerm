@@ -45,10 +45,12 @@ func (c Client) Query(ctx context.Context, input QueryInput) (result GetResponse
 	if resp != nil && resp.Response != nil {
 		result.HttpResponse = resp.Response
 
-		err = resp.Unmarshal(&result)
-		if err != nil {
-			err = fmt.Errorf("unmarshalling response: %+v", err)
-			return
+		if err == nil {
+			err = resp.Unmarshal(&result)
+			if err != nil {
+				err = fmt.Errorf("unmarshalling response: %+v", err)
+				return
+			}
 		}
 	}
 	if err != nil {

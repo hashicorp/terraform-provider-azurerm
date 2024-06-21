@@ -54,3 +54,8 @@ type ResponseMiddleware func(*http.Request, *http.Response) (*http.Response, err
 
 // ValidStatusFunc is a function that tests whether an HTTP response is considered valid for the particular request.
 type ValidStatusFunc func(*http.Response, *odata.OData) bool
+
+// ResponseErrorParser is an optional custom parser that can parse an API error response to provide a friendly error
+type ResponseErrorParser interface {
+	FromResponse(*http.Response) error
+}

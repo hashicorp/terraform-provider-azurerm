@@ -4,6 +4,7 @@
 package mysql
 
 import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -43,25 +44,35 @@ func (r Registration) WebsiteCategories() []string {
 
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
-	return map[string]*pluginsdk.Resource{
-		"azurerm_mysql_server":          dataSourceMySqlServer(),
+	dataSources := map[string]*pluginsdk.Resource{
 		"azurerm_mysql_flexible_server": dataSourceMysqlFlexibleServer(),
 	}
+
+	if !features.FourPointOhBeta() {
+		dataSources["azurerm_mysql_server"] = dataSourceMySqlServer()
+	}
+
+	return dataSources
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
-	return map[string]*pluginsdk.Resource{
-		"azurerm_mysql_configuration":                  resourceMySQLConfiguration(),
-		"azurerm_mysql_database":                       resourceMySqlDatabase(),
-		"azurerm_mysql_firewall_rule":                  resourceMySqlFirewallRule(),
-		"azurerm_mysql_flexible_server":                resourceMysqlFlexibleServer(),
-		"azurerm_mysql_flexible_database":              resourceMySqlFlexibleDatabase(),
-		"azurerm_mysql_flexible_server_configuration":  resourceMySQLFlexibleServerConfiguration(),
-		"azurerm_mysql_flexible_server_firewall_rule":  resourceMySqlFlexibleServerFirewallRule(),
-		"azurerm_mysql_server":                         resourceMySqlServer(),
-		"azurerm_mysql_server_key":                     resourceMySQLServerKey(),
-		"azurerm_mysql_virtual_network_rule":           resourceMySQLVirtualNetworkRule(),
-		"azurerm_mysql_active_directory_administrator": resourceMySQLAdministrator(),
+	resources := map[string]*pluginsdk.Resource{
+		"azurerm_mysql_flexible_server":               resourceMysqlFlexibleServer(),
+		"azurerm_mysql_flexible_database":             resourceMySqlFlexibleDatabase(),
+		"azurerm_mysql_flexible_server_configuration": resourceMySQLFlexibleServerConfiguration(),
+		"azurerm_mysql_flexible_server_firewall_rule": resourceMySqlFlexibleServerFirewallRule(),
 	}
+
+	if !features.FourPointOhBeta() {
+		resources["azurerm_mysql_active_directory_administrator"] = resourceMySQLAdministrator()
+		resources["azurerm_mysql_configuration"] = resourceMySQLConfiguration()
+		resources["azurerm_mysql_database"] = resourceMySqlDatabase()
+		resources["azurerm_mysql_firewall_rule"] = resourceMySqlFirewallRule()
+		resources["azurerm_mysql_server_key"] = resourceMySQLServerKey()
+		resources["azurerm_mysql_server"] = resourceMySqlServer()
+		resources["azurerm_mysql_virtual_network_rule"] = resourceMySQLVirtualNetworkRule()
+	}
+
+	return resources
 }

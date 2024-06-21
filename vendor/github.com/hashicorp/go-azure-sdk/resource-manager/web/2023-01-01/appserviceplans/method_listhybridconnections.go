@@ -73,6 +73,7 @@ func (c AppServicePlansClient) ListHybridConnectionsCompleteMatchingPredicate(ct
 
 	resp, err := c.ListHybridConnections(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

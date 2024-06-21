@@ -242,6 +242,8 @@ The following arguments are supported:
 
 * `express_route_gateway_bypass` - (Optional) If `true`, data packets will bypass ExpressRoute Gateway for data forwarding This is only valid for ExpressRoute connections.
 
+* `private_link_fast_path_enabled` - (Optional) Bypass the Express Route gateway when accessing private-links. When enabled `express_route_gateway_bypass` must be set to `true`. Defaults to `false`.
+
 * `egress_nat_rule_ids` - (Optional) A list of the egress NAT Rule Ids.
 
 * `ingress_nat_rule_ids` - (Optional) A list of the ingress NAT Rule Ids.

@@ -7,21 +7,22 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 )
 
 func importOrchestratedVirtualMachineScaleSet(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) (data []*pluginsdk.ResourceData, err error) {
-	id, err := commonids.ParseVirtualMachineScaleSetID(d.Id())
+	id, err := virtualmachinescalesets.ParseVirtualMachineScaleSetID(d.Id())
 	if err != nil {
 		return []*pluginsdk.ResourceData{}, err
 	}
 
-	client := meta.(*clients.Client).Compute.VMScaleSetClient
-	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
-	_, err = client.Get(ctx, id.ResourceGroupName, id.VirtualMachineScaleSetName, compute.ExpandTypesForGetVMScaleSetsUserData)
+	client := meta.(*clients.Client).Compute.VirtualMachineScaleSetsClient
+	options := virtualmachinescalesets.DefaultGetOperationOptions()
+	options.Expand = pointer.To(virtualmachinescalesets.ExpandTypesForGetVMScaleSetsUserData)
+	_, err = client.Get(ctx, *id, options)
 	if err != nil {
 		return []*pluginsdk.ResourceData{}, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
@@ -29,44 +30,49 @@ func importOrchestratedVirtualMachineScaleSet(ctx context.Context, d *pluginsdk.
 	return []*pluginsdk.ResourceData{d}, nil
 }
 
-func importVirtualMachineScaleSet(osType compute.OperatingSystemTypes, resourceType string) pluginsdk.ImporterFunc {
+func importVirtualMachineScaleSet(osType virtualmachinescalesets.OperatingSystemTypes, resourceType string) pluginsdk.ImporterFunc {
 	return func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) (data []*pluginsdk.ResourceData, err error) {
-		id, err := commonids.ParseVirtualMachineScaleSetID(d.Id())
+		id, err := virtualmachinescalesets.ParseVirtualMachineScaleSetID(d.Id())
 		if err != nil {
 			return []*pluginsdk.ResourceData{}, err
 		}
 
-		client := meta.(*clients.Client).Compute.VMScaleSetClient
-		// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
-		vm, err := client.Get(ctx, id.ResourceGroupName, id.VirtualMachineScaleSetName, compute.ExpandTypesForGetVMScaleSetsUserData)
+		client := meta.(*clients.Client).Compute.VirtualMachineScaleSetsClient
+		options := virtualmachinescalesets.DefaultGetOperationOptions()
+		options.Expand = pointer.To(virtualmachinescalesets.ExpandTypesForGetVMScaleSetsUserData)
+		vm, err := client.Get(ctx, *id, options)
 		if err != nil {
 			return []*pluginsdk.ResourceData{}, fmt.Errorf("retrieving %s: %+v", id, err)
 		}
 
-		if vm.VirtualMachineScaleSetProperties == nil {
+		if vm.Model == nil {
+			return []*pluginsdk.ResourceData{}, fmt.Errorf("retrieving %s: `model` was nil", id)
+		}
+
+		if vm.Model.Properties == nil {
 			return []*pluginsdk.ResourceData{}, fmt.Errorf("retrieving %s: `properties` was nil", id)
 		}
 
-		if vm.VirtualMachineScaleSetProperties.VirtualMachineProfile == nil {
+		if vm.Model.Properties.VirtualMachineProfile == nil {
 			return []*pluginsdk.ResourceData{}, fmt.Errorf("retrieving %s: `properties.virtualMachineProfile` was nil", id)
 		}
 
-		if vm.VirtualMachineScaleSetProperties.VirtualMachineProfile.OsProfile == nil {
+		if vm.Model.Properties.VirtualMachineProfile.OsProfile == nil {
 			return []*pluginsdk.ResourceData{}, fmt.Errorf("retrieving %s: `properties.virtualMachineProfile.osProfile` was nil", id)
 		}
 
 		isCorrectOS := false
 		hasSshKeys := false
-		if profile := vm.VirtualMachineScaleSetProperties.VirtualMachineProfile.OsProfile; profile != nil {
-			if profile.LinuxConfiguration != nil && osType == compute.OperatingSystemTypesLinux {
+		if profile := vm.Model.Properties.VirtualMachineProfile.OsProfile; profile != nil {
+			if profile.LinuxConfiguration != nil && osType == virtualmachinescalesets.OperatingSystemTypesLinux {
 				isCorrectOS = true
 
-				if profile.LinuxConfiguration.SSH != nil && profile.LinuxConfiguration.SSH.PublicKeys != nil {
-					hasSshKeys = len(*profile.LinuxConfiguration.SSH.PublicKeys) > 0
+				if profile.LinuxConfiguration.Ssh != nil && profile.LinuxConfiguration.Ssh.PublicKeys != nil {
+					hasSshKeys = len(*profile.LinuxConfiguration.Ssh.PublicKeys) > 0
 				}
 			}
 
-			if profile.WindowsConfiguration != nil && osType == compute.OperatingSystemTypesWindows {
+			if profile.WindowsConfiguration != nil && osType == virtualmachinescalesets.OperatingSystemTypesWindows {
 				isCorrectOS = true
 			}
 		}
@@ -80,10 +86,12 @@ func importVirtualMachineScaleSet(osType compute.OperatingSystemTypes, resourceT
 		}
 
 		var updatedExtensions []map[string]interface{}
-		if vm.VirtualMachineScaleSetProperties.VirtualMachineProfile.ExtensionProfile != nil {
-			if extensionsProfile := vm.VirtualMachineScaleSetProperties.VirtualMachineProfile.ExtensionProfile; extensionsProfile != nil {
+		if vm.Model.Properties.VirtualMachineProfile.ExtensionProfile != nil {
+			if extensionsProfile := vm.Model.Properties.VirtualMachineProfile.ExtensionProfile; extensionsProfile != nil {
 				for _, v := range *extensionsProfile.Extensions {
-					v.ProtectedSettings = ""
+					if v.Properties != nil {
+						v.Properties.ProtectedSettings = nil
+					}
 				}
 				updatedExtensions, err = flattenVirtualMachineScaleSetExtensions(extensionsProfile, d)
 				if err != nil {

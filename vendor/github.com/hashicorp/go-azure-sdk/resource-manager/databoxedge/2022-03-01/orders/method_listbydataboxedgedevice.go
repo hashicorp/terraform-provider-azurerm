@@ -72,6 +72,7 @@ func (c OrdersClient) ListByDataBoxEdgeDeviceCompleteMatchingPredicate(ctx conte
 
 	resp, err := c.ListByDataBoxEdgeDevice(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

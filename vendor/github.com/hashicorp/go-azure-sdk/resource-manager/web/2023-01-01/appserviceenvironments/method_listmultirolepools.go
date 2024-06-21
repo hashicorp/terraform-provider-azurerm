@@ -73,6 +73,7 @@ func (c AppServiceEnvironmentsClient) ListMultiRolePoolsCompleteMatchingPredicat
 
 	resp, err := c.ListMultiRolePools(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

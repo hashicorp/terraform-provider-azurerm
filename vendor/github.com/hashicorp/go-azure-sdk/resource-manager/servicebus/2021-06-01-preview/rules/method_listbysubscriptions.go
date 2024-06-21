@@ -104,6 +104,7 @@ func (c RulesClient) ListBySubscriptionsCompleteMatchingPredicate(ctx context.Co
 
 	resp, err := c.ListBySubscriptions(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

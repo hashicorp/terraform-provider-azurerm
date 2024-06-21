@@ -38,9 +38,10 @@ func resourceApplicationInsights() *pluginsdk.Resource {
 			return err
 		}),
 
-		SchemaVersion: 1,
+		SchemaVersion: 2,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
 			0: migration.ComponentUpgradeV0ToV1{},
+			1: migration.ComponentUpgradeV1ToV2{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
