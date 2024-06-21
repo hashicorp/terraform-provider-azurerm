@@ -1,3 +1,9 @@
+## 3.110.0 (Unreleased)
+
+FEATURES:
+
+* **New Data Source:** `azurerm_load_test` [GH-26376]
+
 ## 3.109.0 (June 20, 2024)
 
 FEATURES:
