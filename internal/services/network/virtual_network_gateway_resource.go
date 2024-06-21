@@ -51,7 +51,7 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 }
 
 func resourceVirtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	resource := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -123,7 +123,7 @@ func resourceVirtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 		"generation": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
+			Default:  string(virtualnetworkgateways.VpnGatewayGenerationGenerationOne),
 			ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(virtualnetworkgateways.VpnGatewayGenerationGenerationOne),
@@ -647,6 +647,8 @@ func resourceVirtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
+
+	return resource
 }
 
 func resourceVirtualNetworkGatewayCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
