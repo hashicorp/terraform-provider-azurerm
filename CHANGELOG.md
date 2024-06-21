@@ -10,6 +10,7 @@ FEATURES:
 ENHANCEMENTS:
 
 * Data Source: `azurerm_hdinsight_cluster` - export the `cluster_id` attribute [GH-26228]
+* `azurerm_virtual_network_peering` - support for the `peer_complete_virtual_networks_enabled`, `only_ipv6_peering_enabled`, `local_subnet_names`, and `remote_subnet_names` properties [GH-26229]
 * `azurerm_virtual_desktop_host_pool` - remove ForceNew from `preferred_app_group_type` [GH-26333]
 * `azurerm_maps_account` - add support for the `location`, `identity`, `cors` and `data_store` properties [GH-26397]
 
