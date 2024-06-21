@@ -12,6 +12,7 @@ FEATURES:
 ENHANCEMENTS:
 
 * Data Source: `azurerm_hdinsight_cluster` - export the `cluster_id` attribute [GH-26228]
+* `azurerm_cosmosdb_sql_container` - support for the `partition_key_kind` and `partition_key_paths` properties [GH-26372]
 * `azurerm_data_protection_backup_instance_blob_storage` - support for the `storage_account_container_names` property [GH-26232]
 * `azurerm_virtual_network_peering` - support for the `peer_complete_virtual_networks_enabled`, `only_ipv6_peering_enabled`, `local_subnet_names`, and `remote_subnet_names` properties [GH-26229]
 * `azurerm_virtual_desktop_host_pool` - changing the `preferred_app_group_type` property no longer creates a new resource [GH-26333]
