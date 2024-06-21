@@ -23,9 +23,9 @@ import (
 
 func resourceVPNGatewayConnection() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceVpnGatewayConnectionResourceCreateUpdate,
+		Create: resourceVpnGatewayConnectionResourceCreate,
 		Read:   resourceVpnGatewayConnectionResourceRead,
-		Update: resourceVpnGatewayConnectionResourceCreateUpdate,
+		Update: resourceVpnGatewayConnectionResourceUpdate,
 		Delete: resourceVpnGatewayConnectionResourceDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -328,9 +328,9 @@ func resourceVPNGatewayConnection() *pluginsdk.Resource {
 	}
 }
 
-func resourceVpnGatewayConnectionResourceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVpnGatewayConnectionResourceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
@@ -340,17 +340,15 @@ func resourceVpnGatewayConnectionResourceCreateUpdate(d *pluginsdk.ResourceData,
 	}
 
 	id := commonids.NewVPNConnectionID(gatewayId.SubscriptionId, gatewayId.ResourceGroupName, gatewayId.VpnGatewayName, name)
-	if d.IsNewResource() {
-		resp, err := client.VpnConnectionsGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(resp.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
-		}
-
+	resp, err := client.VpnConnectionsGet(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(resp.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_vpn_gateway_connection", id.ID())
+			return fmt.Errorf("checking for existing %s: %+v", id, err)
 		}
+	}
+
+	if !response.WasNotFound(resp.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_vpn_gateway_connection", id.ID())
 	}
 
 	locks.ByName(gatewayId.VpnGatewayName, VPNGatewayResourceName)
@@ -372,7 +370,7 @@ func resourceVpnGatewayConnectionResourceCreateUpdate(d *pluginsdk.ResourceData,
 	}
 
 	if err := client.VpnConnectionsCreateOrUpdateThenPoll(ctx, id, payload); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -436,6 +434,60 @@ func resourceVpnGatewayConnectionResourceRead(d *pluginsdk.ResourceData, meta in
 	}
 
 	return nil
+}
+
+func resourceVpnGatewayConnectionResourceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.VirtualWANs
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := commonids.ParseVPNConnectionID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.VpnConnectionsGet(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", id)
+	}
+
+	payload := existing.Model
+
+	gatewayId := virtualwans.NewVpnGatewayID(id.SubscriptionId, id.ResourceGroupName, id.GatewayName)
+
+	locks.ByName(gatewayId.VpnGatewayName, VPNGatewayResourceName)
+	defer locks.UnlockByName(gatewayId.VpnGatewayName, VPNGatewayResourceName)
+
+	if d.HasChange("internet_security_enabled") {
+		payload.Properties.EnableInternetSecurity = pointer.To(d.Get("internet_security_enabled").(bool))
+	}
+
+	if d.HasChange("routing") {
+		payload.Properties.RoutingConfiguration = expandVpnGatewayConnectionRoutingConfiguration(d.Get("routing").([]interface{}))
+	}
+
+	if d.HasChange("vpn_link") {
+		payload.Properties.VpnLinkConnections = expandVpnGatewayConnectionVpnSiteLinkConnections(d.Get("vpn_link").([]interface{}))
+	}
+
+	if d.HasChange("traffic_selector_policy") {
+		payload.Properties.TrafficSelectorPolicies = expandVpnGatewayConnectionTrafficSelectorPolicy(d.Get("traffic_selector_policy").(*pluginsdk.Set).List())
+	}
+
+	if err = client.VpnConnectionsCreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+	return resourceVpnGatewayConnectionResourceRead(d, meta)
 }
 
 func resourceVpnGatewayConnectionResourceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
