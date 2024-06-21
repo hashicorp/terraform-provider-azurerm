@@ -1386,7 +1386,8 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 
 		if maxCount > 0 {
 			profile.MaxCount = utils.Int64(int64(maxCount))
-			if maxCount < count {
+
+			if maxCount < count && d.IsNewResource() {
 				return nil, fmt.Errorf("`node_count`(%d) must be equal to or less than `max_count`(%d) when `enable_auto_scaling` is set to `true`", count, maxCount)
 			}
 		} else {
