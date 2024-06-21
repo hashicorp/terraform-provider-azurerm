@@ -3,9 +3,11 @@
 FEATURES:
 
 * **New Data Source:** `azurerm_automation_runbook` [GH-26359]
+* **New Resource:** `azurerm_data_protection_backup_instance_postgresql_flexible_server` [GH-26249]
 * **New Resource:** `azurerm_email_communication_service_domain` [GH-26179]
 * **New Resource:** `azurerm_system_center_virtual_machine_manager_cloud` [GH-25429]
 * **New Resource:** `azurerm_system_center_virtual_machine_manager_virtual_machine_template` [GH-25449]
+
 
 ENHANCEMENTS:
 
