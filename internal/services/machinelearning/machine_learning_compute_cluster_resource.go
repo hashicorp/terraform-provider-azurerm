@@ -428,12 +428,8 @@ func resourceComputeClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		},
 	}
 
-	future, err := client.ComputeCreateOrUpdate(ctx, *id, computeClusterParameters)
-	if err != nil {
-		return fmt.Errorf("creating %s: %+v", id, err)
-	}
-	if err := future.Poller.PollUntilDone(ctx); err != nil {
-		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
+	if err := client.ComputeCreateOrUpdateThenPoll(ctx, *id, computeClusterParameters); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	return resourceComputeClusterRead(d, meta)
