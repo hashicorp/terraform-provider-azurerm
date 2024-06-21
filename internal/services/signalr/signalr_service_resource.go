@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/migration"
 	signalrValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/validate"
@@ -828,13 +829,15 @@ func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 							"Free_F1",
 							"Standard_S1",
 							"Premium_P1",
+							"Premium_P2",
 						}, false),
 					},
 
 					"capacity": {
-						Type:         pluginsdk.TypeInt,
-						Required:     true,
-						ValidateFunc: validation.IntInSlice([]int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100}),
+						Type:     pluginsdk.TypeInt,
+						Required: true,
+						ValidateFunc: validation.IntInSlice([]int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 200,
+							300, 400, 500, 600, 700, 800, 900, 1000}),
 					},
 				},
 			},
@@ -989,7 +992,7 @@ func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 		"cors": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
+			Computed: !features.FourPointOhBeta(),
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"allowed_origins": {

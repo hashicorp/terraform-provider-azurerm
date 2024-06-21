@@ -100,6 +100,7 @@ func (c OutputsClient) ListByStreamingJobCompleteMatchingPredicate(ctx context.C
 
 	resp, err := c.ListByStreamingJob(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

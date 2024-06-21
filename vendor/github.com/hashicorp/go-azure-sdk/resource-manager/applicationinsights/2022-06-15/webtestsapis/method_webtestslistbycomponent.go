@@ -72,6 +72,7 @@ func (c WebTestsAPIsClient) WebTestsListByComponentCompleteMatchingPredicate(ctx
 
 	resp, err := c.WebTestsListByComponent(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

@@ -70,17 +70,18 @@ func resourceWebPubSub() *pluginsdk.Resource {
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"Premium_P1",
+					"Premium_P2",
 					"Standard_S1",
 					"Free_F1",
 				}, false),
 			},
 
 			"capacity": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				Default:      1,
-				ValidateFunc: validation.IntInSlice([]int{1, 2, 5, 10, 20, 50, 100}),
-			},
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				Default:  1,
+				ValidateFunc: validation.IntInSlice([]int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 200,
+					300, 400, 500, 600, 700, 800, 900, 1000})},
 
 			"live_trace": {
 				Type:     pluginsdk.TypeList,

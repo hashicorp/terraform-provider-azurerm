@@ -112,6 +112,7 @@ func (c UserClient) ListByServiceCompleteMatchingPredicate(ctx context.Context, 
 
 	resp, err := c.ListByService(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

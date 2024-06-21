@@ -83,6 +83,7 @@ An `identity` block supports the following:
 * `type` - (Required) Specifies the identity type of the Datadog Monitor. At this time the only allowed value is `SystemAssigned`.
 
 > **NOTE:** The assigned `principal_id` and `tenant_id` can be retrieved after the identity `type` has been set to `SystemAssigned` and the Datadog Monitor has been created. More details are available below.
+
 ---
 
 An `user` block exports the following:

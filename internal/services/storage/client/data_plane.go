@@ -44,9 +44,15 @@ func (Client) DataPlaneOperationSupportingOnlySharedKeyAuth() DataPlaneOperation
 	}
 }
 
-func (c Client) configureDataPlane(ctx context.Context, clientName string, baseClient client.BaseClient, account accountDetails, operation DataPlaneOperation) error {
-	if operation.SupportsAadAuthentication && c.authorizerForAad != nil {
-		baseClient.SetAuthorizer(c.authorizerForAad)
+func (c Client) configureDataPlane(ctx context.Context, clientName, resourceIdentifier string, baseClient client.BaseClient, account accountDetails, operation DataPlaneOperation) error {
+	if operation.SupportsAadAuthentication && c.authConfigForAzureAD != nil {
+		api := c.authConfigForAzureAD.Environment.Storage.WithResourceIdentifier(resourceIdentifier)
+		storageAuth, err := auth.NewAuthorizerFromCredentials(ctx, *c.authConfigForAzureAD, api)
+		if err != nil {
+			return fmt.Errorf("unable to build authorizer for Storage API: %+v", err)
+		}
+
+		baseClient.SetAuthorizer(storageAuth)
 		return nil
 	}
 
@@ -82,7 +88,7 @@ func (c Client) AccountsDataPlaneClient(ctx context.Context, account accountDeta
 		return nil, fmt.Errorf("building %s client: %+v", clientName, err)
 	}
 
-	err = c.configureDataPlane(ctx, clientName, apiClient.Client, account, operation)
+	err = c.configureDataPlane(ctx, clientName, *baseUri, apiClient.Client, account, operation)
 	if err != nil {
 		return nil, err
 	}
@@ -104,7 +110,7 @@ func (c Client) BlobsDataPlaneClient(ctx context.Context, account accountDetails
 		return nil, fmt.Errorf("building %s client: %+v", clientName, err)
 	}
 
-	err = c.configureDataPlane(ctx, clientName, apiClient.Client, account, operation)
+	err = c.configureDataPlane(ctx, clientName, *baseUri, apiClient.Client, account, operation)
 	if err != nil {
 		return nil, err
 	}
@@ -126,7 +132,7 @@ func (c Client) ContainersDataPlaneClient(ctx context.Context, account accountDe
 		return nil, fmt.Errorf("building %s client: %+v", clientName, err)
 	}
 
-	err = c.configureDataPlane(ctx, clientName, apiClient.Client, account, operation)
+	err = c.configureDataPlane(ctx, clientName, *baseUri, apiClient.Client, account, operation)
 	if err != nil {
 		return nil, err
 	}
@@ -148,7 +154,7 @@ func (c Client) DataLakeFilesystemsDataPlaneClient(ctx context.Context, account 
 		return nil, fmt.Errorf("building %s client: %+v", clientName, err)
 	}
 
-	err = c.configureDataPlane(ctx, clientName, apiClient.Client, account, operation)
+	err = c.configureDataPlane(ctx, clientName, *baseUri, apiClient.Client, account, operation)
 	if err != nil {
 		return nil, err
 	}
@@ -170,7 +176,7 @@ func (c Client) DataLakePathsDataPlaneClient(ctx context.Context, account accoun
 		return nil, fmt.Errorf("building %s client: %+v", clientName, err)
 	}
 
-	err = c.configureDataPlane(ctx, clientName, apiClient.Client, account, operation)
+	err = c.configureDataPlane(ctx, clientName, *baseUri, apiClient.Client, account, operation)
 	if err != nil {
 		return nil, err
 	}
@@ -192,7 +198,7 @@ func (c Client) FileShareDirectoriesDataPlaneClient(ctx context.Context, account
 		return nil, fmt.Errorf("building %s client: %+v", clientName, err)
 	}
 
-	err = c.configureDataPlane(ctx, clientName, apiClient.Client, account, operation)
+	err = c.configureDataPlane(ctx, clientName, *baseUri, apiClient.Client, account, operation)
 	if err != nil {
 		return nil, err
 	}
@@ -214,7 +220,7 @@ func (c Client) FileShareFilesDataPlaneClient(ctx context.Context, account accou
 		return nil, fmt.Errorf("building %s client: %+v", clientName, err)
 	}
 
-	err = c.configureDataPlane(ctx, clientName, apiClient.Client, account, operation)
+	err = c.configureDataPlane(ctx, clientName, *baseUri, apiClient.Client, account, operation)
 	if err != nil {
 		return nil, err
 	}
@@ -236,7 +242,7 @@ func (c Client) FileSharesDataPlaneClient(ctx context.Context, account accountDe
 		return nil, fmt.Errorf("building %s client: %+v", clientName, err)
 	}
 
-	err = c.configureDataPlane(ctx, clientName, apiClient.Client, account, operation)
+	err = c.configureDataPlane(ctx, clientName, *baseUri, apiClient.Client, account, operation)
 	if err != nil {
 		return nil, err
 	}
@@ -258,7 +264,7 @@ func (c Client) QueuesDataPlaneClient(ctx context.Context, account accountDetail
 		return nil, fmt.Errorf("building %s client: %+v", clientName, err)
 	}
 
-	err = c.configureDataPlane(ctx, clientName, apiClient.Client, account, operation)
+	err = c.configureDataPlane(ctx, clientName, *baseUri, apiClient.Client, account, operation)
 	if err != nil {
 		return nil, err
 	}
@@ -280,7 +286,7 @@ func (c Client) TableEntityDataPlaneClient(ctx context.Context, account accountD
 		return nil, fmt.Errorf("building %s client: %+v", clientName, err)
 	}
 
-	err = c.configureDataPlane(ctx, clientName, apiClient.Client, account, operation)
+	err = c.configureDataPlane(ctx, clientName, *baseUri, apiClient.Client, account, operation)
 	if err != nil {
 		return nil, err
 	}
@@ -302,7 +308,7 @@ func (c Client) TablesDataPlaneClient(ctx context.Context, account accountDetail
 		return nil, fmt.Errorf("building %s client: %+v", clientName, err)
 	}
 
-	err = c.configureDataPlane(ctx, clientName, apiClient.Client, account, operation)
+	err = c.configureDataPlane(ctx, clientName, *baseUri, apiClient.Client, account, operation)
 	if err != nil {
 		return nil, err
 	}

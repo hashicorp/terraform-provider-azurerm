@@ -74,8 +74,10 @@ func (c Client) PutBlockFromURL(ctx context.Context, containerName, blobName str
 	if resp != nil && resp.Response != nil {
 		result.HttpResponse = resp.Response
 
-		if resp.Header != nil {
-			result.ContentMD5 = resp.Header.Get("Content-MD5")
+		if err == nil {
+			if resp.Header != nil {
+				result.ContentMD5 = resp.Header.Get("Content-MD5")
+			}
 		}
 	}
 	if err != nil {

@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -203,6 +204,10 @@ func TestAccKeyVault_upgradeSKU(t *testing.T) {
 }
 
 func TestAccKeyVault_updateContacts(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skipf("Skippped as deprecated property removed in 4.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_key_vault", "test")
 	r := KeyVaultResource{}
 
@@ -1159,6 +1164,7 @@ resource "azurerm_key_vault" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
+// TODO: Remove in 4.0
 func (KeyVaultResource) updateContacts(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {

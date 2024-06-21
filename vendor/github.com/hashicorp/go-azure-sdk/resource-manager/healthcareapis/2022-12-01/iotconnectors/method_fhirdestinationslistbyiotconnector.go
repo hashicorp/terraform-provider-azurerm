@@ -72,6 +72,7 @@ func (c IotConnectorsClient) FhirDestinationsListByIotConnectorCompleteMatchingP
 
 	resp, err := c.FhirDestinationsListByIotConnector(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

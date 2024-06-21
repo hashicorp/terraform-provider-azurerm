@@ -33,7 +33,7 @@ var protocolApplicationDefault = "application-default"
 type LocalRuleModel struct {
 	Name        string `tfschema:"name"`
 	RuleStackID string `tfschema:"rulestack_id"`
-	Priority    int    `tfschema:"priority"`
+	Priority    int64  `tfschema:"priority"`
 
 	Action                  string                 `tfschema:"action"`
 	Applications            []string               `tfschema:"applications"`
@@ -206,7 +206,7 @@ func (r LocalRuleStackRule) Create() sdk.ResourceFunc {
 			defer locks.UnlockByID(rulestackId.ID())
 
 			// API uses Priority not Name for ID, despite swagger defining `ruleName` as required, not Priority - https://github.com/Azure/azure-rest-api-specs/issues/24697
-			id := localrules.NewLocalRuleID(metadata.Client.Account.SubscriptionId, rulestackId.ResourceGroupName, rulestackId.LocalRulestackName, strconv.Itoa(model.Priority))
+			id := localrules.NewLocalRuleID(metadata.Client.Account.SubscriptionId, rulestackId.ResourceGroupName, rulestackId.LocalRulestackName, strconv.FormatInt(model.Priority, 10))
 
 			existing, err := client.Get(ctx, id)
 			if err != nil {
@@ -270,7 +270,7 @@ func (r LocalRuleStackRule) Create() sdk.ResourceFunc {
 			}
 
 			if model.Priority != 0 {
-				props.Priority = pointer.To(int64(model.Priority))
+				props.Priority = pointer.To(model.Priority)
 			}
 
 			if len(model.ProtocolPorts) != 0 {
@@ -318,7 +318,7 @@ func (r LocalRuleStackRule) Read() sdk.ResourceFunc {
 			}
 
 			state.RuleStackID = localrulestacks.NewLocalRulestackID(id.SubscriptionId, id.ResourceGroupName, id.LocalRulestackName).ID()
-			p, err := strconv.Atoi(id.LocalRuleName)
+			p, err := strconv.ParseInt(id.LocalRuleName, 10, 0)
 			if err != nil {
 				return fmt.Errorf("parsing Rule Priortiy for %s: %+v", *id, err)
 			}

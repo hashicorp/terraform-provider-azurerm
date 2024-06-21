@@ -193,6 +193,8 @@ A `blob_properties` block supports the following:
 
 -> **NOTE:** This field cannot be configured when `kind` is set to `Storage` (V1).
 
+-> **NOTE:** `restore_policy` can not be configured when `dns_endpoint_type` is `AzureDnsZone`.
+
 * `versioning_enabled` - (Optional) Is versioning enabled? Default to `false`.
 
 -> **NOTE:** This field cannot be configured when `kind` is set to `Storage` (V1).
@@ -240,7 +242,9 @@ A `custom_domain` block supports the following:
 
 A `customer_managed_key` block supports the following:
 
-* `key_vault_key_id` - (Required) The ID of the Key Vault Key, supplying a version-less key ID will enable auto-rotation of this key.
+* `key_vault_key_id` - (Optional) The ID of the Key Vault Key, supplying a version-less key ID will enable auto-rotation of this key. Exactly one of `key_vault_key_id` and `managed_hsm_key_id` may be specified.
+
+* `managed_hsm_key_id` -  (Optional) The ID of the managed HSM Key. Exactly one of `key_vault_key_id` and `managed_hsm_key_id` may be specified.
 
 * `user_assigned_identity_id` - (Required) The ID of a user assigned identity.
 
@@ -251,6 +255,10 @@ A `customer_managed_key` block supports the following:
 A `delete_retention_policy` block supports the following:
 
 * `days` - (Optional) Specifies the number of days that the blob should be retained, between `1` and `365` days. Defaults to `7`.
+
+* `permanent_delete_enabled` - (Optional) Indicates whether permanent deletion of the soft deleted blob versions and snapshots is allowed. Defaults to `false`.
+
+~> **NOTE:** `permanent_delete_enabled` cannot be set to true if a `restore_policy` block is defined.
 
 ---
 

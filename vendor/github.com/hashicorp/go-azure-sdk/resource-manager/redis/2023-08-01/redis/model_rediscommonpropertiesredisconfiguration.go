@@ -14,7 +14,7 @@ type RedisCommonPropertiesRedisConfiguration struct {
 	MaxmemoryDelta                     *string `json:"maxmemory-delta,omitempty"`
 	MaxmemoryPolicy                    *string `json:"maxmemory-policy,omitempty"`
 	MaxmemoryReserved                  *string `json:"maxmemory-reserved,omitempty"`
-	NotifyKeyspaceEvents               string  `json:"notify-keyspace-events"`
+	NotifyKeyspaceEvents               *string `json:"notify-keyspace-events,omitempty"`
 	PreferredDataArchiveAuthMethod     *string `json:"preferred-data-archive-auth-method,omitempty"`
 	PreferredDataPersistenceAuthMethod *string `json:"preferred-data-persistence-auth-method,omitempty"`
 	RdbBackupEnabled                   *string `json:"rdb-backup-enabled,omitempty"`

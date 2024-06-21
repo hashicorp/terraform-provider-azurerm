@@ -71,7 +71,11 @@ func RequestRetryAll(retryFuncs ...RequestRetryFunc) func(resp *http.Response, o
 // RetryableErrorHandler simply returns the resp and err, this is needed to make the Do() method
 // of retryablehttp client return early with the response body not drained.
 func RetryableErrorHandler(resp *http.Response, err error, _ int) (*http.Response, error) {
-	return resp, err
+	if resp == nil {
+		return nil, err
+	}
+
+	return resp, nil
 }
 
 // Request embeds *http.Request and adds useful metadata
@@ -82,6 +86,8 @@ type Request struct {
 
 	Client BaseClient
 	Pager  odata.CustomPager
+
+	CustomErrorParser ResponseErrorParser
 
 	// Embed *http.Request so that we can send this to an *http.Client
 	*http.Request
@@ -532,22 +538,33 @@ func (c *Client) Execute(ctx context.Context, req *Request) (*Response, error) {
 
 		// Determine suitable error text
 		var errText string
-		switch {
-		case resp.OData != nil && resp.OData.Error != nil && resp.OData.Error.String() != "":
-			errText = fmt.Sprintf("error: %s", resp.OData.Error)
 
-		default:
-			defer resp.Body.Close()
-
-			respBody, err := io.ReadAll(resp.Body)
-			if err != nil {
-				return resp, fmt.Errorf("unexpected status %s, could not read response body", status)
+		// Use a custom response error handler if provided
+		if req.CustomErrorParser != nil {
+			if err = req.CustomErrorParser.FromResponse(resp.Response); err != nil {
+				errText = err.Error()
 			}
-			if len(respBody) == 0 {
-				return resp, fmt.Errorf("unexpected status %s received with no body", status)
-			}
+		}
 
-			errText = fmt.Sprintf("response: %s", respBody)
+		// Fall back to parsing error text from OData
+		if errText == "" {
+			switch {
+			case resp.OData != nil && resp.OData.Error != nil && resp.OData.Error.String() != "":
+				errText = fmt.Sprintf("error: %s", resp.OData.Error)
+
+			default:
+				defer resp.Body.Close()
+
+				respBody, err := io.ReadAll(resp.Body)
+				if err != nil {
+					return resp, fmt.Errorf("unexpected status %s, could not read response body", status)
+				}
+				if len(respBody) == 0 {
+					return resp, fmt.Errorf("unexpected status %s received with no body", status)
+				}
+
+				errText = fmt.Sprintf("response: %s", respBody)
+			}
 		}
 
 		return resp, fmt.Errorf("unexpected status %s with %s", status, errText)

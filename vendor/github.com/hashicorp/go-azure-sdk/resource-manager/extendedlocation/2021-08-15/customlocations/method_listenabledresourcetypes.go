@@ -72,6 +72,7 @@ func (c CustomLocationsClient) ListEnabledResourceTypesCompleteMatchingPredicate
 
 	resp, err := c.ListEnabledResourceTypes(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

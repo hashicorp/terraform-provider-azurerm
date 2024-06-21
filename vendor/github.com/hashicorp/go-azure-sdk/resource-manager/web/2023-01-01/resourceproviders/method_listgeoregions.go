@@ -113,6 +113,7 @@ func (c ResourceProvidersClient) ListGeoRegionsCompleteMatchingPredicate(ctx con
 
 	resp, err := c.ListGeoRegions(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

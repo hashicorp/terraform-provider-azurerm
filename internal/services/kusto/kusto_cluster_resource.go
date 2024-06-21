@@ -25,7 +25,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/validate"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -33,7 +32,7 @@ import (
 )
 
 func resourceKustoCluster() *pluginsdk.Resource {
-	s := &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceKustoClusterCreate,
 		Read:   resourceKustoClusterRead,
 		Update: resourceKustoClusterUpdate,
@@ -112,10 +111,8 @@ func resourceKustoCluster() *pluginsdk.Resource {
 			},
 
 			"trusted_external_tenants": {
-				Type:       pluginsdk.TypeList,
-				Optional:   true,
-				Computed:   true,
-				ConfigMode: pluginsdk.SchemaConfigModeAttr,
+				Type:     pluginsdk.TypeList,
+				Optional: true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.Any(validation.IsUUID, validation.StringIsEmpty, validation.StringInSlice([]string{"*"}, false)),
@@ -158,13 +155,13 @@ func resourceKustoCluster() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ForceNew:     true,
-							ValidateFunc: networkValidate.PublicIpAddressID,
+							ValidateFunc: commonids.ValidatePublicIPAddressID,
 						},
 						"data_management_public_ip_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ForceNew:     true,
-							ValidateFunc: networkValidate.PublicIpAddressID,
+							ValidateFunc: commonids.ValidatePublicIPAddressID,
 						},
 					},
 				},
@@ -243,7 +240,7 @@ func resourceKustoCluster() *pluginsdk.Resource {
 	}
 
 	if features.FourPointOhBeta() {
-		s.Schema["language_extensions"] = &pluginsdk.Schema{
+		resource.Schema["language_extensions"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			Elem: &pluginsdk.Resource{
@@ -261,8 +258,18 @@ func resourceKustoCluster() *pluginsdk.Resource {
 				},
 			},
 		}
+		resource.Schema["trusted_external_tenants"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeList,
+			Optional:   true,
+			Computed:   true,
+			ConfigMode: pluginsdk.SchemaConfigModeAttr,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.Any(validation.IsUUID, validation.StringIsEmpty, validation.StringInSlice([]string{"*"}, false)),
+			},
+		}
 	} else {
-		s.Schema["language_extensions"] = &pluginsdk.Schema{
+		resource.Schema["language_extensions"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
 			Elem: &pluginsdk.Schema{
@@ -272,7 +279,7 @@ func resourceKustoCluster() *pluginsdk.Resource {
 		}
 	}
 
-	return s
+	return resource
 }
 
 func resourceKustoClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {

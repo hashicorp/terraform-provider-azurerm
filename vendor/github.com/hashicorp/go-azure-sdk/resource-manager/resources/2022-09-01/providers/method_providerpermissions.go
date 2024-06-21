@@ -72,6 +72,7 @@ func (c ProvidersClient) ProviderPermissionsCompleteMatchingPredicate(ctx contex
 
 	resp, err := c.ProviderPermissions(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

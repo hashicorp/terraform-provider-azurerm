@@ -21,6 +21,8 @@ import (
 type LogzSubAccountTagRuleResource struct{}
 
 func TestAccLogzSubAccountTagRule_basic(t *testing.T) {
+	t.Skipf("This resource is being deprecated by Azure and will be removed by end of 2025.")
+
 	data := acceptance.BuildTestData(t, "azurerm_logz_sub_account_tag_rule", "test")
 	r := LogzSubAccountTagRuleResource{}
 	email := "72776074-85d8-47fc-a1c2-cd23693522da@example.com"
@@ -36,6 +38,8 @@ func TestAccLogzSubAccountTagRule_basic(t *testing.T) {
 }
 
 func TestAccLogzSubAccountTagRule_requiresImport(t *testing.T) {
+	t.Skipf("This resource is being deprecated by Azure and will be removed by end of 2025.")
+
 	data := acceptance.BuildTestData(t, "azurerm_logz_sub_account_tag_rule", "test")
 	r := LogzSubAccountTagRuleResource{}
 	email := "59cb83fc-bb49-414b-8762-e5cd463f1463@example.com"
@@ -54,6 +58,8 @@ func TestAccLogzSubAccountTagRule_requiresImport(t *testing.T) {
 }
 
 func TestAccLogzSubAccountTagRule_complete(t *testing.T) {
+	t.Skipf("This resource is being deprecated by Azure and will be removed by end of 2025.")
+
 	data := acceptance.BuildTestData(t, "azurerm_logz_sub_account_tag_rule", "test")
 	r := LogzSubAccountTagRuleResource{}
 	email := "77e97659-200c-41f1-824d-f596c9566aee@example.com"
@@ -69,6 +75,8 @@ func TestAccLogzSubAccountTagRule_complete(t *testing.T) {
 }
 
 func TestAccLogzSubAccountTagRule_update(t *testing.T) {
+	t.Skipf("This resource is being deprecated by Azure and will be removed by end of 2025.")
+
 	data := acceptance.BuildTestData(t, "azurerm_logz_sub_account_tag_rule", "test")
 	r := LogzSubAccountTagRuleResource{}
 	email := "a9c283cf-9045-40f0-aecf-d8738e5ed103@example.com"

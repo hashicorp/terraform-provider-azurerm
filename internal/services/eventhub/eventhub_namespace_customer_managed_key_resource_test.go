@@ -208,32 +208,20 @@ resource "azurerm_eventhub_namespace_customer_managed_key" "test" {
 func (r EventHubNamespaceCustomerManagedKeyResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {
-    key_vault {
-      purge_soft_delete_on_destroy       = false
-      purge_soft_deleted_keys_on_destroy = false
-    }
-  }
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-namespacecmk-%d"
-  location = "%s"
-}
-
-resource "azurerm_eventhub_cluster" "test" {
-  name                = "acctest-cluster-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku_name            = "Dedicated_1"
+  name     = "acctestRG-namespacecmk-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_eventhub_namespace" "test" {
-  name                 = "acctest-namespace-%d"
-  location             = azurerm_resource_group.test.location
-  resource_group_name  = azurerm_resource_group.test.name
-  sku                  = "Standard"
-  dedicated_cluster_id = azurerm_eventhub_cluster.test.id
+  name                = "acctest-namespace-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Premium"
+  zone_redundant      = true
 
   identity {
     type = "SystemAssigned"
@@ -243,7 +231,7 @@ resource "azurerm_eventhub_namespace" "test" {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "test" {
-  name                     = "acctestkv%s"
+  name                     = "acctestkv%[3]s"
   location                 = azurerm_resource_group.test.location
   resource_group_name      = azurerm_resource_group.test.name
   tenant_id                = data.azurerm_client_config.current.tenant_id
@@ -276,7 +264,7 @@ resource "azurerm_key_vault_access_policy" "test2" {
 }
 
 resource "azurerm_key_vault_key" "test" {
-  name         = "acctestkvkey%s"
+  name         = "acctestkvkey%[3]s"
   key_vault_id = azurerm_key_vault.test.id
   key_type     = "RSA"
   key_size     = 2048
@@ -287,44 +275,32 @@ resource "azurerm_key_vault_key" "test" {
     azurerm_key_vault_access_policy.test2,
   ]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (r EventHubNamespaceCustomerManagedKeyResource) templateWithUserAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {
-    key_vault {
-      purge_soft_delete_on_destroy       = false
-      purge_soft_deleted_keys_on_destroy = false
-    }
-  }
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-namespacecmk-%d"
-  location = "%s"
-}
-
-resource "azurerm_eventhub_cluster" "test" {
-  name                = "acctest-cluster-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku_name            = "Dedicated_1"
+  name     = "acctestRG-namespacecmk-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_user_assigned_identity" "test" {
   location            = azurerm_resource_group.test.location
-  name                = "acctest-identity-%s"
+  name                = "acctest-identity-%[3]s"
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_eventhub_namespace" "test" {
-  name                 = "acctest-namespace-%d"
-  location             = azurerm_resource_group.test.location
-  resource_group_name  = azurerm_resource_group.test.name
-  sku                  = "Standard"
-  dedicated_cluster_id = azurerm_eventhub_cluster.test.id
+  name                = "acctest-namespace-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Premium"
+  zone_redundant      = true
 
   identity {
     type         = "UserAssigned"
@@ -335,7 +311,7 @@ resource "azurerm_eventhub_namespace" "test" {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "test" {
-  name                     = "acctestkv%s"
+  name                     = "acctestkv%[3]s"
   location                 = azurerm_resource_group.test.location
   resource_group_name      = azurerm_resource_group.test.name
   tenant_id                = data.azurerm_client_config.current.tenant_id
@@ -368,7 +344,7 @@ resource "azurerm_key_vault_access_policy" "test2" {
 }
 
 resource "azurerm_key_vault_key" "test" {
-  name         = "acctestkvkey%s"
+  name         = "acctestkvkey%[3]s"
   key_vault_id = azurerm_key_vault.test.id
   key_type     = "RSA"
   key_size     = 2048
@@ -379,5 +355,5 @@ resource "azurerm_key_vault_key" "test" {
     azurerm_key_vault_access_policy.test2,
   ]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

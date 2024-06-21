@@ -1,7 +1,7 @@
 ## Developer Requirements
 
 * [Terraform (Core)](https://www.terraform.io/downloads.html) - version 1.x (0.12.x and above are compatible however 1.x is recommended)
-* [Go](https://golang.org/doc/install) version 1.18.x (to build the provider plugin)
+* [Go](https://golang.org/doc/install) version 1.21.x (to build the provider plugin)
 
 ## Contributor Guides
 
@@ -10,6 +10,7 @@ A Collection of guides geared towards contributors can be found in the [`/contri
 ### On Windows
 
 If you're on Windows you'll also need:
+
 * [Git Bash for Windows](https://git-scm.com/download/win)
 * [Make for Windows](http://gnuwin32.sourceforge.net/packages/make.htm)
 
@@ -32,7 +33,7 @@ You may get errors when cloning the repository on Windows that end with `Filenam
 
 ## Developing the Provider
 
-If you wish to work on the provider, you'll first need [Go](http://www.golang.org) installed on your machine. You'll also need to correctly setup a [GOPATH](http://golang.org/doc/code.html#GOPATH), as well as adding `$GOPATH/bin` to your `$PATH`.
+If you wish to work on the provider, you'll first need [Go](https://go.dev/) installed on your machine. You'll also need to correctly setup a [GOPATH](https://pkg.go.dev/cmd/go#hdr-GOPATH_environment_variable), as well as adding `$GOPATH/bin` to your `$PATH`.
 
 First clone the repository to: `$GOPATH/src/github.com/hashicorp/terraform-provider-azurerm`
 
@@ -92,7 +93,7 @@ The following Environment Variables must be set in your shell prior to running a
 
 ## Developer: Using the locally compiled Azure Provider binary
 
-After successfully compiling the Azure Provider, you must [instruct Terraform to use your locally compiled provider binary](https://www.terraform.io/docs/commands/cli-config.html#development-overrides-for-provider-developers) instead of the official binary from the Terraform Registry.
+After successfully compiling the Azure Provider, you must [instruct Terraform to use your locally compiled provider binary](https://developer.hashicorp.com/terraform/cli/config/config-file#development-overrides-for-provider-developers) instead of the official binary from the Terraform Registry.
 
 For example, add the following to `~/.terraformrc` for a provider binary located in `/home/developer/go/bin`:
 

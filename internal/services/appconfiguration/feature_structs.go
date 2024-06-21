@@ -108,7 +108,7 @@ type PercentageFeatureFilter struct {
 
 type TargetingGroupParameter struct {
 	Name              string `json:"Name" tfschema:"name"`
-	RolloutPercentage int    `json:"RolloutPercentage" tfschema:"rollout_percentage"`
+	RolloutPercentage int64  `json:"RolloutPercentage" tfschema:"rollout_percentage"`
 }
 
 type TargetingFilterParameters struct {
@@ -116,7 +116,7 @@ type TargetingFilterParameters struct {
 }
 
 type TargetingFilterAudience struct {
-	DefaultRolloutPercentage int                       `json:"DefaultRolloutPercentage" tfschema:"default_rollout_percentage"`
+	DefaultRolloutPercentage int64                     `json:"DefaultRolloutPercentage" tfschema:"default_rollout_percentage"`
 	Users                    []string                  `json:"Users" tfschema:"users"`
 	Groups                   []TargetingGroupParameter `json:"Groups" tfschema:"groups"`
 }

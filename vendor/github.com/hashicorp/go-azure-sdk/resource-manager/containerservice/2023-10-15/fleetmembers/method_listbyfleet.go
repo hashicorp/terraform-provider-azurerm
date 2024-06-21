@@ -72,6 +72,7 @@ func (c FleetMembersClient) ListByFleetCompleteMatchingPredicate(ctx context.Con
 
 	resp, err := c.ListByFleet(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

@@ -19,8 +19,10 @@ type StorageContainerWrapper interface {
 }
 
 type StorageContainerProperties struct {
-	AccessLevel           containers.AccessLevel
-	MetaData              map[string]string
-	HasImmutabilityPolicy bool
-	HasLegalHold          bool
+	AccessLevel                     containers.AccessLevel
+	DefaultEncryptionScope          string
+	EncryptionScopeOverrideDisabled bool
+	MetaData                        map[string]string
+	HasImmutabilityPolicy           bool
+	HasLegalHold                    bool
 }

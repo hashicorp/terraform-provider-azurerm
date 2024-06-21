@@ -254,7 +254,7 @@ func TestAccVirtualMachine_linuxNoConfig(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.linuxNoConfig(data),
-			ExpectError: regexp.MustCompile("Error: either a `os_profile_linux_config` or a `os_profile_windows_config` must be specified."),
+			ExpectError: regexp.MustCompile("either a `os_profile_linux_config` or a `os_profile_windows_config` must be specified"),
 		},
 	})
 }
@@ -266,7 +266,7 @@ func TestAccVirtualMachine_windowsNoConfig(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.windowsNoConfig(data),
-			ExpectError: regexp.MustCompile("Error: either a `os_profile_linux_config` or a `os_profile_windows_config` must be specified."),
+			ExpectError: regexp.MustCompile("either a `os_profile_linux_config` or a `os_profile_windows_config` must be specified"),
 		},
 	})
 }
@@ -2512,11 +2512,11 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_network_interface" "test" {
-  name                          = "acctestni-%d"
-  location                      = azurerm_resource_group.test.location
-  resource_group_name           = azurerm_resource_group.test.name
-  enable_ip_forwarding          = false
-  enable_accelerated_networking = true
+  name                           = "acctestni-%d"
+  location                       = azurerm_resource_group.test.location
+  resource_group_name            = azurerm_resource_group.test.name
+  ip_forwarding_enabled          = false
+  accelerated_networking_enabled = true
 
   ip_configuration {
     name                          = "testconfiguration1"

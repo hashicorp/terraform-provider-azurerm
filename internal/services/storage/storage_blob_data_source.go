@@ -63,6 +63,11 @@ func dataSourceStorageBlob() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"encryption_scope": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"url": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -135,6 +140,8 @@ func dataSourceStorageBlobRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 	}
 	d.Set("content_md5", contentMD5)
+
+	d.Set("encryption_scope", props.EncryptionScope)
 
 	d.Set("type", strings.TrimSuffix(string(props.BlobType), "Blob"))
 

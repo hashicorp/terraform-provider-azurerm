@@ -63,7 +63,7 @@ type NetAppVolumeGroupSapHanaDataSourceModel struct {
 }
 
 type ExportPolicyRule struct {
-	RuleIndex         int    `tfschema:"rule_index"`
+	RuleIndex         int64  `tfschema:"rule_index"`
 	AllowedClients    string `tfschema:"allowed_clients"`
 	Nfsv3Enabled      bool   `tfschema:"nfsv3_enabled"`
 	Nfsv41Enabled     bool   `tfschema:"nfsv41_enabled"`

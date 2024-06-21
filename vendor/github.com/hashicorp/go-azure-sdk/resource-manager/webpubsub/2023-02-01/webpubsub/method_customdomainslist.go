@@ -72,6 +72,7 @@ func (c WebPubSubClient) CustomDomainsListCompleteMatchingPredicate(ctx context.
 
 	resp, err := c.CustomDomainsList(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

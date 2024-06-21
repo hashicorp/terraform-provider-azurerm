@@ -84,6 +84,7 @@ func (c SynchronizationSettingClient) ListByShareCompleteMatchingPredicate(ctx c
 
 	resp, err := c.ListByShare(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

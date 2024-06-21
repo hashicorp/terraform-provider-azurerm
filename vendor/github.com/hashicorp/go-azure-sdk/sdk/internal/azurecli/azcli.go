@@ -103,6 +103,23 @@ func GetDefaultSubscriptionID() (*string, error) {
 	return account.Id, nil
 }
 
+// ListAvailableSubscriptionIDs lists the available subscriptions
+func ListAvailableSubscriptionIDs() (*[]string, error) {
+	accounts, err := listAzAccounts()
+	if err != nil {
+		return nil, fmt.Errorf("obtaining subscription ID: %s", err)
+	}
+	subscriptionIds := make([]string, 0)
+	if accounts != nil {
+		for _, account := range *accounts {
+			if account.Id != nil {
+				subscriptionIds = append(subscriptionIds, *account.Id)
+			}
+		}
+	}
+	return &subscriptionIds, nil
+}
+
 // GetAccountName returns the name of the authenticated principal
 func GetAccountName() (*string, error) {
 	account, err := getAzAccount()
@@ -131,6 +148,15 @@ func GetAccountType() (*string, error) {
 func getAzAccount() (*azAccount, error) {
 	var account azAccount
 	if err := JSONUnmarshalAzCmd(true, &account, "account", "show"); err != nil {
+		return nil, fmt.Errorf("obtaining account details: %s", err)
+	}
+	return &account, nil
+}
+
+// listAzAccounts returns the output of `az account list`
+func listAzAccounts() (*[]azAccount, error) {
+	var account []azAccount
+	if err := JSONUnmarshalAzCmd(true, &account, "account", "list"); err != nil {
 		return nil, fmt.Errorf("obtaining account details: %s", err)
 	}
 	return &account, nil

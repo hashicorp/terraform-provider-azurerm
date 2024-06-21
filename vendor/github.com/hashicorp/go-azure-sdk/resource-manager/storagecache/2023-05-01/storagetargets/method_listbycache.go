@@ -72,6 +72,7 @@ func (c StorageTargetsClient) ListByCacheCompleteMatchingPredicate(ctx context.C
 
 	resp, err := c.ListByCache(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

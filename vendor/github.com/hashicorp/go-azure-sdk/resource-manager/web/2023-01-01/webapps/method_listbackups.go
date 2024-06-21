@@ -73,6 +73,7 @@ func (c WebAppsClient) ListBackupsCompleteMatchingPredicate(ctx context.Context,
 
 	resp, err := c.ListBackups(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

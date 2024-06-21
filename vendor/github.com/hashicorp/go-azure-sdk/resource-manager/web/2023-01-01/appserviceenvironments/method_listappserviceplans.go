@@ -73,6 +73,7 @@ func (c AppServiceEnvironmentsClient) ListAppServicePlansCompleteMatchingPredica
 
 	resp, err := c.ListAppServicePlans(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

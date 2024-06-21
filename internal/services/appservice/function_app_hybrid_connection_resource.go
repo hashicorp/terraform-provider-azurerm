@@ -162,7 +162,7 @@ func (r FunctionAppHybridConnectionResource) Create() sdk.ResourceFunc {
 				return tf.ImportAsExistsError(r.ResourceType(), id.ID())
 			}
 
-			sendKeyValue, err := helpers.GetSendKeyValue(ctx, metadata, id, appHybridConn.SendKeyName)
+			sendKeyValue, err := helpers.GetSendKeyValue(ctx, metadata, *relayId, appHybridConn.SendKeyName)
 			if err != nil {
 				return err
 			}
@@ -312,7 +312,12 @@ func (r FunctionAppHybridConnectionResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("send_key_name") {
-				key, err := helpers.GetSendKeyValue(ctx, metadata, *id, appHybridConn.SendKeyName)
+				relayId, err := hybridconnections.ParseHybridConnectionID(appHybridConn.RelayId)
+				if err != nil {
+					return err
+				}
+
+				key, err := helpers.GetSendKeyValue(ctx, metadata, *relayId, appHybridConn.SendKeyName)
 				if err != nil {
 					return err
 				}

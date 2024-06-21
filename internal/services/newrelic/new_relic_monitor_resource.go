@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2022-07-01/monitors"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -193,6 +194,8 @@ func (r NewRelicMonitorResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
+		"identity": commonschema.SystemAssignedIdentityOptionalForceNew(),
+
 		"ingestion_key": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -265,6 +268,13 @@ func (r NewRelicMonitorResource) Create() sdk.ResourceFunc {
 				},
 			}
 
+			identityValue := expandSystemAssigned(metadata.ResourceData.Get("identity").([]interface{}))
+
+			// Currently the API does not accept `None` type: https://github.com/Azure/azure-rest-api-specs/issues/29257
+			if identityValue.Type != identity.TypeNone {
+				properties.Identity = identityValue
+			}
+
 			if err := client.CreateOrUpdateThenPoll(ctx, id, *properties); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
@@ -308,6 +318,10 @@ func (r NewRelicMonitorResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				state.Location = location.Normalize(model.Location)
+
+				if err := metadata.ResourceData.Set("identity", flattenSystemAssigned(model.Identity)); err != nil {
+					return fmt.Errorf("setting `identity`: %+v", err)
+				}
 
 				properties := &model.Properties
 				if properties.AccountCreationSource != nil {
@@ -519,4 +533,35 @@ func flattenUserInfoModel(input *monitors.UserInfo) []UserInfoModel {
 	}
 
 	return append(outputList, output)
+}
+
+// Currently the API only supports `SystemAssigned` type: https://github.com/Azure/azure-rest-api-specs/issues/29256
+func expandSystemAssigned(input []interface{}) *identity.SystemAndUserAssignedMap {
+	if len(input) == 0 || input[0] == nil {
+		return &identity.SystemAndUserAssignedMap{
+			Type: identity.TypeNone,
+		}
+	}
+
+	return &identity.SystemAndUserAssignedMap{
+		Type: identity.TypeSystemAssigned,
+	}
+}
+
+func flattenSystemAssigned(input *identity.SystemAndUserAssignedMap) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	if input.Type == identity.TypeNone {
+		return []interface{}{}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"type":         input.Type,
+			"principal_id": input.PrincipalId,
+			"tenant_id":    input.TenantId,
+		},
+	}
 }

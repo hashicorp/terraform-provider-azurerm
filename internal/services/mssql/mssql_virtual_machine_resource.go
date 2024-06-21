@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2022-02-01/sqlvirtualmachinegroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2022-02-01/sqlvirtualmachines"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -494,11 +495,11 @@ func resourceMsSqlVirtualMachineCustomDiff(ctx context.Context, d *pluginsdk.Res
 
 func resourceMsSqlVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.VirtualMachinesClient
-	vmclient := meta.(*clients.Client).Compute.VMClient
+	vmclient := meta.(*clients.Client).Compute.VirtualMachinesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	vmId, err := commonids.ParseVirtualMachineID(d.Get("virtual_machine_id").(string))
+	vmId, err := virtualmachines.ParseVirtualMachineID(d.Get("virtual_machine_id").(string))
 	if err != nil {
 		return err
 	}
@@ -517,13 +518,16 @@ func resourceMsSqlVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	// get location from vm
-	respvm, err := vmclient.Get(ctx, id.ResourceGroupName, id.SqlVirtualMachineName, "")
+	respvm, err := vmclient.Get(ctx, *vmId, virtualmachines.DefaultGetOperationOptions())
 	if err != nil {
-		return fmt.Errorf("making Read request on Azure Virtual Machine %s: %+v", id.SqlVirtualMachineName, err)
+		return fmt.Errorf("retrieving %s: %+v", vmId, err)
 	}
 
-	if *respvm.Location == "" {
-		return fmt.Errorf("location is empty from making Read request on Azure Virtual Machine %s: %+v", id.SqlVirtualMachineName, err)
+	if respvm.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", vmId)
+	}
+	if respvm.Model.Location == "" {
+		return fmt.Errorf("retrieving %s: `location` is empty", vmId)
 	}
 	sqlVmGroupId := ""
 	if sqlVmGroupId = d.Get("sql_virtual_machine_group_id").(string); sqlVmGroupId != "" {
@@ -548,7 +552,7 @@ func resourceMsSqlVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	parameters := sqlvirtualmachines.SqlVirtualMachine{
-		Location: *respvm.Location,
+		Location: respvm.Model.Location,
 		Properties: &sqlvirtualmachines.SqlVirtualMachineProperties{
 			AutoBackupSettings:               autoBackupSettings,
 			AutoPatchingSettings:             expandSqlVirtualMachineAutoPatchingSettings(d.Get("auto_patching").([]interface{})),

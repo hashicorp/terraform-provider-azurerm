@@ -72,6 +72,7 @@ func (c NetworkConnectionsClient) ListHealthDetailsCompleteMatchingPredicate(ctx
 
 	resp, err := c.ListHealthDetails(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
