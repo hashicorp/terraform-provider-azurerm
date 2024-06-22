@@ -604,6 +604,10 @@ resource "azurerm_signalr_service" "test" {
     name     = "Standard_S1"
     capacity = 1
   }
+
+  lifecycle {
+    ignore_changes = [cors]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -634,6 +638,10 @@ resource "azurerm_signalr_service" "test" {
   aad_auth_enabled                         = false
   tls_client_cert_enabled                  = false
   serverless_connection_timeout_in_seconds = 5
+
+  lifecycle {
+    ignore_changes = [cors]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -675,6 +683,10 @@ resource "azurerm_signalr_service" "test" {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
+
+  lifecycle {
+    ignore_changes = [cors]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -709,6 +721,10 @@ resource "azurerm_signalr_service" "test" {
   identity {
     type = "SystemAssigned"
   }
+
+  lifecycle {
+    ignore_changes = [cors]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -732,6 +748,10 @@ resource "azurerm_signalr_service" "test" {
   sku {
     name     = "%s"
     capacity = %d
+  }
+
+  lifecycle {
+    ignore_changes = [cors]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, planSku, capacity)
@@ -773,6 +793,10 @@ resource "azurerm_signalr_service" "test" {
   sku {
     name     = "Standard_S1"
     capacity = %d
+  }
+
+  lifecycle {
+    ignore_changes = [cors]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, capacity)
@@ -833,6 +857,10 @@ resource "azurerm_signalr_service" "test" {
   service_mode              = "%[3]s"
   connectivity_logs_enabled = false
   messaging_logs_enabled    = false
+
+  lifecycle {
+    ignore_changes = [cors]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, serviceMode)
 }
@@ -889,6 +917,10 @@ resource "azurerm_signalr_service" "test" {
     hub_pattern      = ["*"]
     url_template     = "http://foo4.com"
   }
+
+  lifecycle {
+    ignore_changes = [cors]
+  }
 }
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -938,6 +970,10 @@ resource "azurerm_signalr_service" "test" {
     url_template              = "http://foo.com"
     user_assigned_identity_id = azurerm_user_assigned_identity.test.client_id
   }
+
+  lifecycle {
+    ignore_changes = [cors]
+  }
 }
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -968,6 +1004,9 @@ resource "azurerm_signalr_service" "test" {
   live_trace_enabled        = true
   service_mode              = "Serverless"
 
+  lifecycle {
+    ignore_changes = [cors]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -998,6 +1037,9 @@ resource "azurerm_signalr_service" "test" {
   live_trace_enabled        = false
   service_mode              = "Classic"
 
+  lifecycle {
+    ignore_changes = [cors]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -1024,6 +1066,9 @@ resource "azurerm_signalr_service" "test" {
   }
   tags = {
     ENV = "test"
+  }
+  lifecycle {
+    ignore_changes = [cors]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -1054,6 +1099,10 @@ resource "azurerm_signalr_service" "test" {
   sku {
     name     = "Standard_S1"
     capacity = 1
+  }
+
+  lifecycle {
+    ignore_changes = [cors]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -1086,6 +1135,10 @@ resource "azurerm_signalr_service" "test" {
     name     = "Standard_S1"
     capacity = 1
   }
+
+  lifecycle {
+    ignore_changes = [cors]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -1112,6 +1165,10 @@ resource "azurerm_signalr_service" "test" {
   sku {
     name     = "Standard_S1"
     capacity = 1
+  }
+
+  lifecycle {
+    ignore_changes = [cors]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -1140,6 +1197,10 @@ resource "azurerm_signalr_service" "test" {
   sku {
     name     = "Standard_S1"
     capacity = 1
+  }
+
+  lifecycle {
+    ignore_changes = [cors]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)

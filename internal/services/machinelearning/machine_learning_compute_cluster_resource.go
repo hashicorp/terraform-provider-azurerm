@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -24,7 +25,7 @@ import (
 )
 
 func resourceComputeCluster() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceComputeClusterCreate,
 		Read:   resourceComputeClusterRead,
 		Delete: resourceComputeClusterDelete,
@@ -149,7 +150,7 @@ func resourceComputeCluster() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				ForceNew: true,
-				Computed: true, // `ssh_public_access_enabled` sets to `true` by default even if unspecified
+				Default:  false,
 			},
 
 			"subnet_resource_id": {
@@ -161,6 +162,16 @@ func resourceComputeCluster() *pluginsdk.Resource {
 			"tags": commonschema.TagsForceNew(),
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["ssh_public_access_enabled"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			ForceNew: true,
+			Computed: true,
+		}
+	}
+	return resource
 }
 
 func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
