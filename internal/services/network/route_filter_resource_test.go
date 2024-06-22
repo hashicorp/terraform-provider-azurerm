@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -119,6 +120,7 @@ func TestAccRouteFilter_withRules(t *testing.T) {
 				check.That(data.ResourceName).Key("rule.0.communities.1").HasValue("12076:53006"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.withRulesUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -130,6 +132,14 @@ func TestAccRouteFilter_withRules(t *testing.T) {
 				check.That(data.ResourceName).Key("rule.0.communities.1").HasValue("12076:52006"),
 			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.withRulesRemoved(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -308,4 +318,43 @@ resource "azurerm_route_filter" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (RouteFilterResource) withRulesRemoved(data acceptance.TestData) string {
+	if !features.FourPointOhBeta() {
+		return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_route_filter" "test" {
+  name                = "acctestrf%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  rule                = []
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+	}
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_route_filter" "test" {
+  name                = "acctestrf%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

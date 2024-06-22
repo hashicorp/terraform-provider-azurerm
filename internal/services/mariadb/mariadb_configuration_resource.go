@@ -29,6 +29,8 @@ func resourceMariaDbConfiguration() *pluginsdk.Resource {
 			return err
 		}),
 
+		DeprecationMessage: "Azure Database for MariaDB and its sub resources are scheduled for retirement by 2024-09-19 and will migrate to using Azure Database for MySQL Flexible Server: https://learn.microsoft.com/en-us/azure/mariadb/whats-happening-to-mariadb. The `azurerm_mariadb_configuration` resource is deprecated and will be removed in v4.0 of the AzureRM Provider. Please use the `azurerm_mysql_flexible_server_configuration` resource instead.",
+
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),

@@ -16,6 +16,7 @@ var _ sdk.TypedServiceRegistrationWithAGitHubLabel = Registration{}
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
 		AutomationVariablesDataSource{},
+		AutomationRunbookDataSource{},
 	}
 }
 
