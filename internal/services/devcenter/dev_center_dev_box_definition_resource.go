@@ -213,7 +213,7 @@ func (r DevCenterDevBoxDefinitionResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			if metadata.ResourceData.HasChange("sku") {
+			if metadata.ResourceData.HasChange("sku_name") {
 				parameters.Properties.Sku = expandDevCenterDevBoxDefinitionSku(model.SkuName)
 			}
 
