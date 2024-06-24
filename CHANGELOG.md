@@ -11,7 +11,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
-* Data Source: `azurerm_express_route_circuit_peering` - fix issue where data source attempts to parse an empty string instead of generating the resource ID [GH-26418]
+* Data Source: `azurerm_express_route_circuit_peering` - fix issue where data source attempts to parse an empty string instead of generating the resource ID [GH-26441]
 * `azurerm_security_center_automation` - prevent resource recreation when `tags` are updated [GH-26292]
 * `azurerm_synapse_workspace` - fix issue where `azure_devops_repo` or `github_repo` configuration could not be removed [GH-26421]
 * `azurerm_virtual_network_dns_servers` - split create and update function to fix lifecycle - ignore [GH-26427]
