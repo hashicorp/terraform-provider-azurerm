@@ -398,6 +398,10 @@ func resourceVirtualNetworkGatewayConnectionCreate(d *pluginsdk.ResourceData, me
 			return err
 		}
 
+		if resp.Model == nil {
+			return fmt.Errorf("retrieving %s: %+v", gwid, err)
+		}
+
 		virtualNetworkGateway = *resp.Model
 	}
 
@@ -571,7 +575,7 @@ func resourceVirtualNetworkGatewayConnectionUpdate(d *pluginsdk.ResourceData, me
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM Virtual Network Gateway Connection creation.")
+	log.Printf("[INFO] preparing arguments for AzureRM Virtual Network Gateway Connection update.")
 
 	id, err := virtualnetworkgatewayconnections.ParseConnectionID(d.Id())
 	if err != nil {
@@ -601,6 +605,10 @@ func resourceVirtualNetworkGatewayConnectionUpdate(d *pluginsdk.ResourceData, me
 		resp, err := vnetGatewayClient.Get(ctx, *gwid)
 		if err != nil {
 			return err
+		}
+
+		if resp.Model == nil {
+			return fmt.Errorf("retrieving %s: %+v", gwid, err)
 		}
 
 		virtualNetworkGateway = *resp.Model
@@ -660,7 +668,7 @@ func resourceVirtualNetworkGatewayConnectionUpdate(d *pluginsdk.ResourceData, me
 
 	if d.HasChange("custom_bgp_addresses") {
 		if virtualNetworkGateway.Properties.BgpSettings == nil || virtualNetworkGateway.Properties.BgpSettings.BgpPeeringAddresses == nil {
-			return fmt.Errorf("retrieving BGP peering address from `virtual_network_gateway `%s (%s) failed: get nil", *virtualNetworkGateway.Name, *virtualNetworkGateway.Id)
+			return fmt.Errorf("retrieving BGP peering address from `virtual_network_gateway` %s (%s) failed: get nil", *virtualNetworkGateway.Name, *virtualNetworkGateway.Id)
 		}
 
 		gatewayCustomBgpIPAddresses, err := expandGatewayCustomBgpIPAddresses(d, virtualNetworkGateway.Properties.BgpSettings.BgpPeeringAddresses)
@@ -846,7 +854,7 @@ func getVirtualNetworkGatewayConnectionProperties(d *pluginsdk.ResourceData, vir
 	if utils.NormaliseNilableBool(props.EnableBgp) {
 		if _, ok := d.GetOk("custom_bgp_addresses"); ok {
 			if virtualNetworkGateway.Properties.BgpSettings == nil || virtualNetworkGateway.Properties.BgpSettings.BgpPeeringAddresses == nil {
-				return nil, fmt.Errorf("retrieving BGP peering address from `virtual_network_gateway `%s (%s) failed: get nil", *virtualNetworkGateway.Name, *virtualNetworkGateway.Id)
+				return nil, fmt.Errorf("retrieving BGP peering address from `virtual_network_gateway` %s (%s) failed: get nil", *virtualNetworkGateway.Name, *virtualNetworkGateway.Id)
 			}
 
 			gatewayCustomBgpIPAddresses, err := expandGatewayCustomBgpIPAddresses(d, virtualNetworkGateway.Properties.BgpSettings.BgpPeeringAddresses)
