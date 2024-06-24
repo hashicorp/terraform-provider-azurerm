@@ -13,9 +13,10 @@ import (
 )
 
 type Client struct {
-	ConfigurationProfilesClient              *configurationprofiles.ConfigurationProfilesClient
-	ConfigurationProfileHCIAssignmentsClient *configurationprofilehciassignments.ConfigurationProfileHCIAssignmentsClient
-	ConfigurationProfileVMAssignmentsClient  *configurationprofileassignments.ConfigurationProfileAssignmentsClient
+	ConfigurationProfilesClient                     *configurationprofiles.ConfigurationProfilesClient
+	ConfigurationProfileArcMachineAssignmentsClient *configurationprofileassignments.ConfigurationProfileAssignmentsClient
+	ConfigurationProfileHCIAssignmentsClient        *configurationprofilehciassignments.ConfigurationProfileHCIAssignmentsClient
+	ConfigurationProfileVMAssignmentsClient         *configurationprofileassignments.ConfigurationProfileAssignmentsClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -24,6 +25,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		return nil, fmt.Errorf("building ConfigurationProfiles client: %+v", err)
 	}
 	o.Configure(configurationProfilesClient.Client, o.Authorizers.ResourceManager)
+
+	configurationProfileArcMachineAssignmentsClient, err := configurationprofileassignments.NewConfigurationProfileAssignmentsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building ConfigurationProfilesHCIAssignments client: %+v", err)
+	}
+	o.Configure(configurationProfileArcMachineAssignmentsClient.Client, o.Authorizers.ResourceManager)
 
 	configurationProfileHCIAssignmentsClient, err := configurationprofilehciassignments.NewConfigurationProfileHCIAssignmentsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -38,8 +45,9 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	o.Configure(configurationProfileVMAssignmentsClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
-		ConfigurationProfilesClient:              configurationProfilesClient,
-		ConfigurationProfileHCIAssignmentsClient: configurationProfileHCIAssignmentsClient,
-		ConfigurationProfileVMAssignmentsClient:  configurationProfileVMAssignmentsClient,
+		ConfigurationProfilesClient:                     configurationProfilesClient,
+		ConfigurationProfileArcMachineAssignmentsClient: configurationProfileArcMachineAssignmentsClient,
+		ConfigurationProfileHCIAssignmentsClient:        configurationProfileHCIAssignmentsClient,
+		ConfigurationProfileVMAssignmentsClient:         configurationProfileVMAssignmentsClient,
 	}, nil
 }
