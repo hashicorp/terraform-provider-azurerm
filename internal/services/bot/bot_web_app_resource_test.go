@@ -29,7 +29,7 @@ func TestAccBotWebApp_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("developer_app_insights_api_key"),
+		data.ImportStep(),
 	})
 }
 
@@ -44,21 +44,21 @@ func TestAccBotWebApp_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("developer_app_insights_api_key"),
+		data.ImportStep(),
 		{
 			Config: r.completeConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("developer_app_insights_api_key"),
+		data.ImportStep(),
 		{
 			Config: r.updateConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("developer_app_insights_api_key"),
+		data.ImportStep(),
 	})
 }
 
@@ -73,7 +73,7 @@ func TestAccBotWebApp_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("developer_app_insights_api_key"),
+		data.ImportStep(),
 	})
 }
 

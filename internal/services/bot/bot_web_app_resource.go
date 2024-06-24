@@ -231,6 +231,7 @@ func resourceBotWebAppRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		d.Set("endpoint", props.Endpoint)
 		d.Set("display_name", props.DisplayName)
 		d.Set("developer_app_insights_key", props.DeveloperAppInsightKey)
+		d.Set("developer_app_insights_key", props.DeveloperAppInsightsAPIKey)
 		d.Set("developer_app_insights_application_id", props.DeveloperAppInsightsApplicationID)
 		d.Set("luis_app_ids", props.LuisAppIds)
 	}
