@@ -50,7 +50,7 @@ variable "random_string" {
 }
 
 provider "azurerm" {
-  features{}
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
@@ -86,9 +86,9 @@ locals {
 resource "terraform_data" "test" {
   input = {
     resource_group_name = azurerm_resource_group.test.name
-    elastic_san_name = azurerm_elastic_san.test.name
-    volume_group_name = azurerm_elastic_san_volume_group.test.name
-    snapshot_name = local.snapshot_name
+    elastic_san_name    = azurerm_elastic_san.test.name
+    volume_group_name   = azurerm_elastic_san_volume_group.test.name
+    snapshot_name       = local.snapshot_name
   }
 
   provisioner "local-exec" {
@@ -108,7 +108,7 @@ resource "terraform_data" "test" {
 data "azurerm_elastic_san_volume_snapshot" "test" {
   name            = local.snapshot_name
   volume_group_id = azurerm_elastic_san_volume_group.test.id
-  depends_on = [terraform_data.test]
+  depends_on      = [terraform_data.test]
 }
 `, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }
