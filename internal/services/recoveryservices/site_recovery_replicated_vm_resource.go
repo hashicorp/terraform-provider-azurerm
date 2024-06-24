@@ -390,10 +390,11 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 					},
 
 					"target_disk_encryption": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 1,
-						Elem:     diskEncryptionResource(),
+						Type:       pluginsdk.TypeList,
+						Optional:   true,
+						MaxItems:   1,
+						ConfigMode: pluginsdk.SchemaConfigModeAttr,
+						Elem:       diskEncryptionResource(),
 					},
 				},
 			},
@@ -471,6 +472,49 @@ func networkInterfaceResource() *pluginsdk.Resource {
 }
 
 func diskEncryptionResource() *pluginsdk.Resource {
+	if !features.FourPointOhBeta() {
+		return &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"disk_encryption_key": {
+					Type:       pluginsdk.TypeList,
+					Required:   true,
+					MaxItems:   1,
+					ConfigMode: pluginsdk.SchemaConfigModeAttr,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"secret_url": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ForceNew:     true,
+								ValidateFunc: keyVaultValidate.NestedItemId,
+							},
+
+							"vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.KeyVaultId{}),
+						},
+					},
+				},
+
+				"key_encryption_key": {
+					Type:       pluginsdk.TypeList,
+					Optional:   true,
+					MaxItems:   1,
+					ConfigMode: pluginsdk.SchemaConfigModeAttr,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"key_url": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ForceNew:     true,
+								ValidateFunc: keyVaultValidate.NestedItemId,
+							},
+
+							"vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.KeyVaultId{}),
+						},
+					},
+				},
+			},
+		}
+	}
 	return &pluginsdk.Resource{
 		Schema: map[string]*pluginsdk.Schema{
 			"disk_encryption_key": {
