@@ -773,12 +773,12 @@ resource "azurerm_kubernetes_flux_configuration" "test" {
   kustomizations {
     name = "kustomization-1"
     path = "./test/path"
-    postBuild {
+    post_build {
       substitute = {
         "key"  = "value",
         "key2" = "value2"
       }
-      substituteFrom {
+      substitute_from {
         kind     = "Secret"
         name     = "secret-name"
         optional = false
