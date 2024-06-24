@@ -22,16 +22,16 @@ import (
 )
 
 type SystemCenterVirtualMachineManagerVirtualMachineInstanceModel struct {
-	ScopedResourceId                                    string                  `tfschema:"scoped_resource_id"`
-	CustomLocationId                                    string                  `tfschema:"custom_location_id"`
-	HardwareProfile                                     []HardwareProfile       `tfschema:"hardware_profile"`
-	InfrastructureProfile                               []InfrastructureProfile `tfschema:"infrastructure_profile"`
-	NetworkInterfaces                                   []NetworkInterface      `tfschema:"network_interface"`
-	OSProfile                                           []OSProfile             `tfschema:"os_profile"`
-	SystemCenterVirtualMachineManagerAvailabilitySetIds []string                `tfschema:"system_center_virtual_machine_manager_availability_set_id"`
+	ScopedResourceId                                    string             `tfschema:"scoped_resource_id"`
+	CustomLocationId                                    string             `tfschema:"custom_location_id"`
+	Hardware                                            []Hardware         `tfschema:"hardware"`
+	Infrastructure                                      []Infrastructure   `tfschema:"infrastructure"`
+	NetworkInterfaces                                   []NetworkInterface `tfschema:"network_interface"`
+	OS                                                  []OS               `tfschema:"os"`
+	SystemCenterVirtualMachineManagerAvailabilitySetIds []string           `tfschema:"system_center_virtual_machine_manager_availability_set_id"`
 }
 
-type HardwareProfile struct {
+type Hardware struct {
 	CpuCount                    int  `tfschema:"cpu_count"`
 	DynamicMemoryEnabled        bool `tfschema:"dynamic_memory_enabled"`
 	DynamicMemoryMaxInMb        int  `tfschema:"dynamic_memory_max_in_mb"`
@@ -40,24 +40,16 @@ type HardwareProfile struct {
 	MemoryInMb                  int  `tfschema:"memory_in_mb"`
 }
 
-type InfrastructureProfile struct {
-	BiosGuid                                                string       `tfschema:"bios_guid"`
-	CheckpointType                                          string       `tfschema:"checkpoint_type"`
-	Checkpoints                                             []Checkpoint `tfschema:"checkpoint"`
-	Generation                                              int          `tfschema:"generation"`
-	SystemCenterVirtualMachineManagerCloudId                string       `tfschema:"system_center_virtual_machine_manager_cloud_id"`
-	SystemCenterVirtualMachineManagerInventoryItemId        string       `tfschema:"system_center_virtual_machine_manager_inventory_item_id"`
-	SystemCenterVirtualMachineManagerTemplateId             string       `tfschema:"system_center_virtual_machine_manager_template_id"`
-	SystemCenterVirtualMachineManagerVirtualMachineName     string       `tfschema:"system_center_virtual_machine_manager_virtual_machine_name"`
-	SystemCenterVirtualMachineManagerVirtualMachineServerId string       `tfschema:"system_center_virtual_machine_manager_virtual_machine_server_id"`
-	Uuid                                                    string       `tfschema:"uuid"`
-}
-
-type Checkpoint struct {
-	CheckpointId       string `tfschema:"checkpoint_id"`
-	Description        string `tfschema:"description"`
-	Name               string `tfschema:"name"`
-	ParentCheckpointId string `tfschema:"parent_checkpoint_id"`
+type Infrastructure struct {
+	BiosGuid                                                string `tfschema:"bios_guid"`
+	CheckpointType                                          string `tfschema:"checkpoint_type"`
+	Generation                                              int    `tfschema:"generation"`
+	SystemCenterVirtualMachineManagerCloudId                string `tfschema:"system_center_virtual_machine_manager_cloud_id"`
+	SystemCenterVirtualMachineManagerInventoryItemId        string `tfschema:"system_center_virtual_machine_manager_inventory_item_id"`
+	SystemCenterVirtualMachineManagerTemplateId             string `tfschema:"system_center_virtual_machine_manager_template_id"`
+	SystemCenterVirtualMachineManagerVirtualMachineName     string `tfschema:"system_center_virtual_machine_manager_virtual_machine_name"`
+	SystemCenterVirtualMachineManagerVirtualMachineServerId string `tfschema:"system_center_virtual_machine_manager_virtual_machine_server_id"`
+	Uuid                                                    string `tfschema:"uuid"`
 }
 
 type NetworkInterface struct {
@@ -70,7 +62,7 @@ type NetworkInterface struct {
 	VirtualNetworkId string `tfschema:"virtual_network_id"`
 }
 
-type OSProfile struct {
+type OS struct {
 	ComputerName  string `tfschema:"computer_name"`
 	AdminPassword string `tfschema:"admin_password"`
 }
@@ -103,7 +95,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Argumen
 
 		"custom_location_id": commonschema.ResourceIDReferenceRequiredForceNew(&customlocations.CustomLocationId{}),
 
-		"hardware_profile ": {
+		"hardware": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			MaxItems: 1,
@@ -142,7 +134,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Argumen
 			},
 		},
 
-		"infrastructure_profile": {
+		"infrastructure": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			MaxItems: 1,
@@ -157,39 +149,6 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Argumen
 					"checkpoint_type": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
-					},
-
-					"checkpoint": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						ForceNew: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"checkpoint_id": {
-									Type:     pluginsdk.TypeString,
-									Optional: true,
-									ForceNew: true,
-								},
-
-								"description": {
-									Type:     pluginsdk.TypeString,
-									Optional: true,
-									ForceNew: true,
-								},
-
-								"name": {
-									Type:     pluginsdk.TypeString,
-									Optional: true,
-									ForceNew: true,
-								},
-
-								"parent_checkpoint_id": {
-									Type:     pluginsdk.TypeString,
-									Optional: true,
-									ForceNew: true,
-								},
-							},
-						},
 					},
 
 					"generation": {
@@ -280,7 +239,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Argumen
 			},
 		},
 
-		"os_profile": {
+		"os": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			ForceNew: true,
@@ -304,6 +263,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Argumen
 		"system_center_virtual_machine_manager_availability_set_ids": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
+			ForceNew: true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: availabilitysets.ValidateAvailabilitySetID,
@@ -345,12 +305,12 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Create(
 					Name: utils.String(model.CustomLocationId),
 				},
 				Properties: &virtualmachineinstances.VirtualMachineInstanceProperties{
-					HardwareProfile:       expandSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfileForCreate(model.HardwareProfile),
-					InfrastructureProfile: expandSystemCenterVirtualMachineManagerVirtualMachineInstanceInfrastructureProfileForCreate(model.InfrastructureProfile),
+					HardwareProfile:       expandSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfileForCreate(model.Hardware),
+					InfrastructureProfile: expandSystemCenterVirtualMachineManagerVirtualMachineInstanceInfrastructureProfileForCreate(model.Infrastructure),
 					NetworkProfile: &virtualmachineinstances.NetworkProfile{
 						NetworkInterfaces: expandSystemCenterVirtualMachineManagerVirtualMachineInstanceNetworkInterfacesForCreate(model.NetworkInterfaces),
 					},
-					OsProfile: expandSystemCenterVirtualMachineManagerVirtualMachineInstanceOSProfile(model.OSProfile),
+					OsProfile: expandSystemCenterVirtualMachineManagerVirtualMachineInstanceOSProfile(model.OS),
 				},
 			}
 
@@ -389,13 +349,15 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Read() 
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			state := SystemCenterVirtualMachineManagerVirtualMachineInstanceModel{}
-			state.ScopedResourceId = id.Scope
+			state := SystemCenterVirtualMachineManagerVirtualMachineInstanceModel{
+				ScopedResourceId: id.Scope,
+			}
+
 			if model := resp.Model; model != nil {
 				state.CustomLocationId = pointer.From(model.ExtendedLocation.Name)
-				state.HardwareProfile = flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfile(model.Properties.HardwareProfile)
-				state.InfrastructureProfile = flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceInfrastructureProfile(model.Properties.InfrastructureProfile)
-				state.OSProfile = flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceOSProfile(model.Properties.OsProfile)
+				state.Hardware = flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfile(model.Properties.HardwareProfile)
+				state.Infrastructure = flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceInfrastructureProfile(model.Properties.InfrastructureProfile)
+				state.OS = flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceOSProfile(model.Properties.OsProfile)
 				state.SystemCenterVirtualMachineManagerAvailabilitySetIds = flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceAvailabilitySets(model.Properties.AvailabilitySets)
 
 				if v := model.Properties.NetworkProfile; v != nil {
@@ -436,12 +398,12 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Update(
 				parameters.Properties.AvailabilitySets = availabilitySets
 			}
 
-			if metadata.ResourceData.HasChange("hardware_profile") {
-				parameters.Properties.HardwareProfile = expandSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfileForUpdate(model.HardwareProfile)
+			if metadata.ResourceData.HasChange("hardware") {
+				parameters.Properties.HardwareProfile = expandSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfileForUpdate(model.Hardware)
 			}
 
-			if metadata.ResourceData.HasChange("infrastructure_profile") {
-				parameters.Properties.InfrastructureProfile = expandSystemCenterVirtualMachineManagerVirtualMachineInstanceInfrastructureProfileForUpdate(model.InfrastructureProfile)
+			if metadata.ResourceData.HasChange("infrastructure") {
+				parameters.Properties.InfrastructureProfile = expandSystemCenterVirtualMachineManagerVirtualMachineInstanceInfrastructureProfileForUpdate(model.Infrastructure)
 			}
 
 			if metadata.ResourceData.HasChange("network_interface") {
@@ -482,7 +444,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Delete(
 	}
 }
 
-func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfileForCreate(input []HardwareProfile) *virtualmachineinstances.HardwareProfile {
+func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfileForCreate(input []Hardware) *virtualmachineinstances.HardwareProfile {
 	if len(input) == 0 {
 		return nil
 	}
@@ -499,7 +461,7 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfil
 	}
 }
 
-func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceInfrastructureProfileForCreate(input []InfrastructureProfile) *virtualmachineinstances.InfrastructureProfile {
+func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceInfrastructureProfileForCreate(input []Infrastructure) *virtualmachineinstances.InfrastructureProfile {
 	if len(input) == 0 {
 		return nil
 	}
@@ -509,7 +471,6 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceInfrastructure
 	return &virtualmachineinstances.InfrastructureProfile{
 		BiosGuid:           pointer.To(infrastructureProfile.BiosGuid),
 		CheckpointType:     pointer.To(infrastructureProfile.CheckpointType),
-		Checkpoints:        expandSystemCenterVirtualMachineManagerVirtualMachineInstanceCheckpoints(infrastructureProfile.Checkpoints),
 		Generation:         pointer.To(int64(infrastructureProfile.Generation)),
 		CloudId:            pointer.To(infrastructureProfile.SystemCenterVirtualMachineManagerCloudId),
 		InventoryItemId:    pointer.To(infrastructureProfile.SystemCenterVirtualMachineManagerInventoryItemId),
@@ -520,27 +481,7 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceInfrastructure
 	}
 }
 
-func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceCheckpoints(input []Checkpoint) *[]virtualmachineinstances.Checkpoint {
-	result := make([]virtualmachineinstances.Checkpoint, 0)
-	if len(input) == 0 {
-		return &result
-	}
-
-	for _, v := range input {
-		checkpoint := virtualmachineinstances.Checkpoint{
-			CheckpointID:       pointer.To(v.CheckpointId),
-			Name:               pointer.To(v.Name),
-			Description:        pointer.To(v.Description),
-			ParentCheckpointID: pointer.To(v.ParentCheckpointId),
-		}
-
-		result = append(result, checkpoint)
-	}
-
-	return &result
-}
-
-func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfileForUpdate(input []HardwareProfile) *virtualmachineinstances.HardwareProfileUpdate {
+func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfileForUpdate(input []Hardware) *virtualmachineinstances.HardwareProfileUpdate {
 	if len(input) == 0 {
 		return nil
 	}
@@ -557,7 +498,7 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfil
 	}
 }
 
-func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceInfrastructureProfileForUpdate(input []InfrastructureProfile) *virtualmachineinstances.InfrastructureProfileUpdate {
+func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceInfrastructureProfileForUpdate(input []Infrastructure) *virtualmachineinstances.InfrastructureProfileUpdate {
 	if len(input) == 0 {
 		return nil
 	}
@@ -615,7 +556,7 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceNetworkInterfa
 	return &result
 }
 
-func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceOSProfile(input []OSProfile) *virtualmachineinstances.OsProfileForVMInstance {
+func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceOSProfile(input []OS) *virtualmachineinstances.OsProfileForVMInstance {
 	if len(input) == 0 {
 		return nil
 	}
@@ -649,13 +590,13 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceAvailabilitySe
 	return &result, nil
 }
 
-func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfile(input *virtualmachineinstances.HardwareProfile) []HardwareProfile {
-	result := make([]HardwareProfile, 0)
+func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfile(input *virtualmachineinstances.HardwareProfile) []Hardware {
+	result := make([]Hardware, 0)
 	if input == nil {
 		return result
 	}
 
-	return append(result, HardwareProfile{
+	return append(result, Hardware{
 		CpuCount:                    int(pointer.From(input.CpuCount)),
 		DynamicMemoryEnabled:        pointer.From(input.DynamicMemoryEnabled) == virtualmachineinstances.DynamicMemoryEnabledTrue,
 		DynamicMemoryMaxInMb:        int(pointer.From(input.DynamicMemoryMaxMB)),
@@ -665,16 +606,15 @@ func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfi
 	})
 }
 
-func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceInfrastructureProfile(input *virtualmachineinstances.InfrastructureProfile) []InfrastructureProfile {
-	result := make([]InfrastructureProfile, 0)
+func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceInfrastructureProfile(input *virtualmachineinstances.InfrastructureProfile) []Infrastructure {
+	result := make([]Infrastructure, 0)
 	if input == nil {
 		return result
 	}
 
-	return append(result, InfrastructureProfile{
+	return append(result, Infrastructure{
 		BiosGuid:                                 pointer.From(input.BiosGuid),
 		CheckpointType:                           pointer.From(input.CheckpointType),
-		Checkpoints:                              flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceCheckpoints(input.Checkpoints),
 		Generation:                               int(pointer.From(input.Generation)),
 		SystemCenterVirtualMachineManagerCloudId: pointer.From(input.CloudId),
 		SystemCenterVirtualMachineManagerInventoryItemId:        pointer.From(input.InventoryItemId),
@@ -683,24 +623,6 @@ func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceInfrastructur
 		SystemCenterVirtualMachineManagerVirtualMachineServerId: pointer.From(input.VMmServerId),
 		Uuid: pointer.From(input.Uuid),
 	})
-}
-
-func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceCheckpoints(input *[]virtualmachineinstances.Checkpoint) []Checkpoint {
-	result := make([]Checkpoint, 0)
-	if input == nil {
-		return result
-	}
-
-	for _, v := range *input {
-		result = append(result, Checkpoint{
-			CheckpointId:       pointer.From(v.CheckpointID),
-			Name:               pointer.From(v.Name),
-			Description:        pointer.From(v.Description),
-			ParentCheckpointId: pointer.From(v.ParentCheckpointID),
-		})
-	}
-
-	return result
 }
 
 func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceNetworkInterfaces(input *[]virtualmachineinstances.NetworkInterface) []NetworkInterface {
@@ -724,13 +646,13 @@ func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceNetworkInterf
 	return result
 }
 
-func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceOSProfile(input *virtualmachineinstances.OsProfileForVMInstance) []OSProfile {
-	result := make([]OSProfile, 0)
+func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceOSProfile(input *virtualmachineinstances.OsProfileForVMInstance) []OS {
+	result := make([]OS, 0)
 	if input == nil {
 		return result
 	}
 
-	return append(result, OSProfile{
+	return append(result, OS{
 		ComputerName:  pointer.From(input.ComputerName),
 		AdminPassword: pointer.From(input.AdminPassword),
 	})
