@@ -11,13 +11,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/extendedlocation/2021-08-15/customlocations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-11-10/machines"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/availabilitysets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/virtualmachineinstances"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/systemcentervirtualmachinemanager/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/systemcentervirtualmachinemanager/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
@@ -98,7 +98,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Argumen
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: machines.ValidateMachineID,
 		},
 
 		"custom_location_id": commonschema.ResourceIDReferenceRequiredForceNew(&customlocations.CustomLocationId{}),
@@ -344,7 +344,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Create(
 					Type: utils.String("customLocation"),
 					Name: utils.String(model.CustomLocationId),
 				},
-				Properties: virtualmachineinstances.VirtualMachineInstanceProperties{
+				Properties: &virtualmachineinstances.VirtualMachineInstanceProperties{
 					HardwareProfile:       expandSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfileForCreate(model.HardwareProfile),
 					InfrastructureProfile: expandSystemCenterVirtualMachineManagerVirtualMachineInstanceInfrastructureProfileForCreate(model.InfrastructureProfile),
 					NetworkProfile: &virtualmachineinstances.NetworkProfile{
@@ -472,7 +472,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Delete(
 
 			if err := client.DeleteThenPoll(ctx, commonids.NewScopeID(id.Scope), virtualmachineinstances.DeleteOperationOptions{
 				DeleteFromHost: pointer.To(virtualmachineinstances.DeleteFromHostTrue),
-				Force:          pointer.To(virtualmachineinstances.ForceTrue),
+				Force:          pointer.To(virtualmachineinstances.ForceDeleteTrue),
 			}); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
@@ -628,8 +628,8 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceOSProfile(inpu
 	}
 }
 
-func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceAvailabilitySets(input []string) (*[]virtualmachineinstances.AvailabilitySetListAvailabilitySetsInlined, error) {
-	result := make([]virtualmachineinstances.AvailabilitySetListAvailabilitySetsInlined, 0)
+func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceAvailabilitySets(input []string) (*[]virtualmachineinstances.AvailabilitySetListItem, error) {
+	result := make([]virtualmachineinstances.AvailabilitySetListItem, 0)
 	if len(input) == 0 {
 		return &result, nil
 	}
@@ -640,7 +640,7 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceAvailabilitySe
 			return nil, err
 		}
 
-		result = append(result, virtualmachineinstances.AvailabilitySetListAvailabilitySetsInlined{
+		result = append(result, virtualmachineinstances.AvailabilitySetListItem{
 			Id:   pointer.To(availabilitySetId.ID()),
 			Name: pointer.To(availabilitySetId.AvailabilitySetName),
 		})
@@ -736,7 +736,7 @@ func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceOSProfile(inp
 	})
 }
 
-func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceAvailabilitySets(input *[]virtualmachineinstances.AvailabilitySetListAvailabilitySetsInlined) []string {
+func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceAvailabilitySets(input *[]virtualmachineinstances.AvailabilitySetListItem) []string {
 	result := make([]string, 0)
 	if input == nil {
 		return result
