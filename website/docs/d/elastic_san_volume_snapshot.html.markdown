@@ -54,6 +54,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 A `creation_source` block exports the following arguments:
 
 * `source_id` - The Resource ID from which the Snapshot is created.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
