@@ -10,6 +10,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_synapse_workspace` - fix issue where `azure_devops_repo` or `github_repo` configuration could not be removed [GH-26421]
 * `azurerm_virtual_network_dns_servers` - split create and update function to fix lifecycle - ignore [GH-26427]
 
 ## 3.109.0 (June 20, 2024)
