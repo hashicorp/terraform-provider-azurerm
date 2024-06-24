@@ -6,6 +6,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* Data Source: `azurerm_nginx_certificate` - export the properties `sha1_thumbprint`, `key_vault_secret_version`, `key_vault_secret_creation_date`, `error_code` and `error_message` [GH-26160]
 * `azurerm_redhat_openshift_cluster` - support for the `managed_resource_group_name` property [GH-25529]
 
 BUG FIXES:
