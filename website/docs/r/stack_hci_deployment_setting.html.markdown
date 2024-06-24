@@ -476,7 +476,7 @@ A `observability` block supports the following:
 
 * `episodic_data_upload_enabled` - (Required) Whether to collect log data to facilitate quicker issue resolution. Possible values are `true` and `false`. Changing this forces a new Stack HCI Deployment Setting to be created.
 
-* `eu_location_enabled` - (Required) Whether to store data sent to Microsoft in EU. The log and diagnostic data is sent to the appropriate diagnostics servers depending upon where your cluster resides. Setting this to `false` results in all data sent to Microsoft to be stored outside of the EU. Possible values are `true` and `false`. Changing this forces a new Stack HCI Deployment Setting to be created.
+* `eu_location_enabled` - (Required) Whether to store log and diagnostic data sent to Microsoft in EU or outside of EU. The log and diagnostic data is sent to the appropriate diagnostics servers depending upon where your cluster resides. Setting this to `false` results in all data sent to Microsoft to be stored outside of EU. Possible values are `true` and `false`. Changing this forces a new Stack HCI Deployment Setting to be created.
 
 * `streaming_data_client_enabled` - (Required) Whether the telemetry data will be sent to Microsoft. Possible values are `true` and `false`. Changing this forces a new Stack HCI Deployment Setting to be created.
 
