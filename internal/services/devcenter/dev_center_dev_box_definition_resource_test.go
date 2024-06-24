@@ -109,10 +109,7 @@ resource "azurerm_dev_center_dev_box_definition" "test" {
   location           = azurerm_resource_group.test.location
   dev_center_id      = azurerm_dev_center.test.id
   image_reference_id = "${azurerm_dev_center.test.id}/galleries/default/images/microsoftvisualstudio_visualstudioplustools_vs-2022-ent-general-win10-m365-gen2"
-
-  sku {
-    name = "general_i_8c32gb256ssd_v2"
-  }
+  sku_name           = "general_i_8c32gb256ssd_v2"
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -126,10 +123,7 @@ resource "azurerm_dev_center_dev_box_definition" "import" {
   location           = azurerm_dev_center_dev_box_definition.test.location
   dev_center_id      = azurerm_dev_center_dev_box_definition.test.dev_center_id
   image_reference_id = azurerm_dev_center_dev_box_definition.test.image_reference_id
-
-  sku {
-    name = "general_i_8c32gb256ssd_v2"
-  }
+  sku_name           = "general_i_8c32gb256ssd_v2"
 }
 `, r.basic(data))
 }
@@ -147,11 +141,7 @@ resource "azurerm_dev_center_dev_box_definition" "test" {
   location           = azurerm_resource_group.test.location
   dev_center_id      = azurerm_dev_center.test.id
   image_reference_id = "${azurerm_dev_center.test.id}/galleries/default/images/microsoftvisualstudio_visualstudioplustools_vs-2022-ent-general-win10-m365-gen2"
-
-  sku {
-    name = "general_i_8c32gb256ssd_v2"
-    tier = "Basic"
-  }
+  sku_name           = "general_i_8c32gb256ssd_v2"
 
   tags = {
     Env = "Test"
@@ -173,11 +163,7 @@ resource "azurerm_dev_center_dev_box_definition" "test" {
   location           = azurerm_resource_group.test.location
   dev_center_id      = azurerm_dev_center.test.id
   image_reference_id = "${azurerm_dev_center.test.id}/galleries/default/images/microsoftvisualstudio_visualstudioplustools_vs-2022-ent-general-win11-m365-gen2"
-
-  sku {
-    name = "general_i_8c32gb512ssd_v2"
-    tier = "Standard"
-  }
+  sku_name           = "general_i_8c32gb512ssd_v2"
 
   tags = {
     Env = "Test2"

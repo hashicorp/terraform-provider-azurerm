@@ -33,10 +33,7 @@ resource "azurerm_dev_center_dev_box_definition" "example" {
   location           = azurerm_resource_group.example.location
   dev_center_id      = azurerm_dev_center.example.id
   image_reference_id = "${azurerm_dev_center.example.id}/galleries/default/images/microsoftvisualstudio_visualstudioplustools_vs-2022-ent-general-win10-m365-gen2"
-
-  sku {
-    name = "general_i_8c32gb256ssd_v2"
-  }
+  sku_name           = "general_i_8c32gb256ssd_v2"
 }
 ```
 
@@ -52,17 +49,9 @@ The following arguments are supported:
 
 * `image_reference_id` - (Required) The ID of the image for Dev Center Dev Box Definition.
 
-* `sku` - (Required) A `sku` block as documented below.
+* `sku_name` - (Required) The name of the SKU for Dev Center Dev Box Definition.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Dev Center Dev Box Definition.
-
----
-
-A `sku` block supports the following:
-
-* `name` - (Required) The name of the SKU for Dev Center Dev Box Definition.
-
-* `tier` - (Optional) The SKU tier for Dev Center Dev Box Definition. Possible values are `Basic`, `Free`, `Premium` and `Standard`.
 
 ## Attributes Reference
 

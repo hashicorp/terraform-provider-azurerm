@@ -31,13 +31,8 @@ type DevCenterDevBoxDefinitionResourceModel struct {
 	Location         string            `tfschema:"location"`
 	DevCenterId      string            `tfschema:"dev_center_id"`
 	ImageReferenceId string            `tfschema:"image_reference_id"`
-	Sku              []Sku             `tfschema:"sku"`
+	SkuName          string            `tfschema:"sku_name"`
 	Tags             map[string]string `tfschema:"tags"`
-}
-
-type Sku struct {
-	Name string `tfschema:"name"`
-	Tier string `tfschema:"tier"`
 }
 
 func (r DevCenterDevBoxDefinitionResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -63,25 +58,10 @@ func (r DevCenterDevBoxDefinitionResource) Arguments() map[string]*pluginsdk.Sch
 
 		"image_reference_id": commonschema.ResourceIDReferenceRequired(&images.ImageId{}),
 
-		"sku": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"name": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-
-					"tier": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validation.StringInSlice(devboxdefinitions.PossibleValuesForSkuTier(), false),
-					},
-				},
-			},
+		"sku_name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"tags": commonschema.Tags(),
@@ -128,7 +108,7 @@ func (r DevCenterDevBoxDefinitionResource) Create() sdk.ResourceFunc {
 					ImageReference: &devboxdefinitions.ImageReference{
 						Id: pointer.To(model.ImageReferenceId),
 					},
-					Sku: expandDevCenterDevBoxDefinitionSku(model.Sku),
+					Sku: expandDevCenterDevBoxDefinitionSku(model.SkuName),
 				},
 				Tags: pointer.To(model.Tags),
 			}
@@ -177,7 +157,7 @@ func (r DevCenterDevBoxDefinitionResource) Read() sdk.ResourceFunc {
 					}
 
 					if v := props.Sku; v != nil {
-						state.Sku = flattenDevCenterDevBoxDefinition(props.Sku)
+						state.SkuName = flattenDevCenterDevBoxDefinition(props.Sku)
 					}
 				}
 			}
@@ -234,7 +214,7 @@ func (r DevCenterDevBoxDefinitionResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("sku") {
-				parameters.Properties.Sku = expandDevCenterDevBoxDefinitionSku(model.Sku)
+				parameters.Properties.Sku = expandDevCenterDevBoxDefinitionSku(model.SkuName)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -250,36 +230,25 @@ func (r DevCenterDevBoxDefinitionResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func expandDevCenterDevBoxDefinitionSku(input []Sku) *devboxdefinitions.Sku {
-	if len(input) == 0 {
+func expandDevCenterDevBoxDefinitionSku(input string) *devboxdefinitions.Sku {
+	if input == "" {
 		return nil
 	}
 
-	sku := input[0]
-
 	result := &devboxdefinitions.Sku{
-		Name: sku.Name,
-	}
-
-	if v := sku.Tier; v != "" {
-		result.Tier = pointer.To(devboxdefinitions.SkuTier(v))
+		Name: input,
 	}
 
 	return result
 }
 
-func flattenDevCenterDevBoxDefinition(input *devboxdefinitions.Sku) []Sku {
-	results := make([]Sku, 0)
+func flattenDevCenterDevBoxDefinition(input *devboxdefinitions.Sku) string {
+	var skuName string
 	if input == nil {
-		return results
+		return skuName
 	}
 
-	result := Sku{
-		Name: input.Name,
-		Tier: string(pointer.From(input.Tier)),
-	}
+	skuName = pointer.From(input).Name
 
-	results = append(results, result)
-
-	return results
+	return skuName
 }
