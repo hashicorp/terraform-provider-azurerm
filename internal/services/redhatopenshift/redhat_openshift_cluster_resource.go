@@ -58,9 +58,10 @@ type ClusterProfile struct {
 }
 
 type NetworkProfile struct {
-	OutboundType string `tfschema:"outbound_type"`
-	PodCidr      string `tfschema:"pod_cidr"`
-	ServiceCidr  string `tfschema:"service_cidr"`
+	OutboundType                             string `tfschema:"outbound_type"`
+	PodCidr                                  string `tfschema:"pod_cidr"`
+	ServiceCidr                              string `tfschema:"service_cidr"`
+	PreconfiguredNetworkSecurityGroupEnabled bool   `tfschema:"preconfigured_network_security_group_enabled"`
 }
 
 type MainProfile struct {
@@ -206,6 +207,12 @@ func (r RedHatOpenShiftCluster) Arguments() map[string]*pluginsdk.Schema {
 							openshiftclusters.PossibleValuesForOutboundType(),
 							false,
 						),
+					},
+					"preconfigured_network_security_group_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						ForceNew: true,
+						Default:  false,
 					},
 				},
 			},
@@ -643,10 +650,16 @@ func expandOpenshiftNetworkProfile(input []NetworkProfile) *openshiftclusters.Ne
 		return nil
 	}
 
+	preconfiguredNSG := openshiftclusters.PreconfiguredNSGDisabled
+	if input[0].PreconfiguredNetworkSecurityGroupEnabled {
+		preconfiguredNSG = openshiftclusters.PreconfiguredNSGEnabled
+	}
+
 	return &openshiftclusters.NetworkProfile{
-		OutboundType: pointer.To(openshiftclusters.OutboundType(input[0].OutboundType)),
-		PodCidr:      pointer.To(input[0].PodCidr),
-		ServiceCidr:  pointer.To(input[0].ServiceCidr),
+		OutboundType:     pointer.To(openshiftclusters.OutboundType(input[0].OutboundType)),
+		PodCidr:          pointer.To(input[0].PodCidr),
+		ServiceCidr:      pointer.To(input[0].ServiceCidr),
+		PreconfiguredNSG: pointer.To(preconfiguredNSG),
 	}
 }
 
@@ -655,11 +668,17 @@ func flattenOpenShiftNetworkProfile(profile *openshiftclusters.NetworkProfile) [
 		return []NetworkProfile{}
 	}
 
+	preconfiguredNetworkSecurityGroupEnabled := false
+	if profile.PreconfiguredNSG != nil {
+		preconfiguredNetworkSecurityGroupEnabled = *profile.PreconfiguredNSG == openshiftclusters.PreconfiguredNSGEnabled
+	}
+
 	return []NetworkProfile{
 		{
-			OutboundType: string(pointer.From(profile.OutboundType)),
-			PodCidr:      pointer.From(profile.PodCidr),
-			ServiceCidr:  pointer.From(profile.ServiceCidr),
+			OutboundType:                             string(pointer.From(profile.OutboundType)),
+			PodCidr:                                  pointer.From(profile.PodCidr),
+			ServiceCidr:                              pointer.From(profile.ServiceCidr),
+			PreconfiguredNetworkSecurityGroupEnabled: preconfiguredNetworkSecurityGroupEnabled,
 		},
 	}
 }
