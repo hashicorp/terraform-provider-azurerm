@@ -157,28 +157,28 @@ func (NetworkServiceTagsDataSource) tagName() string {
 
 func (NetworkServiceTagsDataSource) azureFrontDoor() string {
 	return `data "azurerm_network_service_tags" "test" {
-  location        = "northeurope"
-  service         = "AzureFrontDoor"
+  location = "northeurope"
+  service  = "AzureFrontDoor"
 }`
 }
 
 func (NetworkServiceTagsDataSource) azureFrontDoorBackend() string {
 	return `data "azurerm_network_service_tags" "test" {
-  location        = "northeurope"
-  service         = "AzureFrontDoor.Backend"
+  location = "northeurope"
+  service  = "AzureFrontDoor.Backend"
 }`
 }
 
 func (NetworkServiceTagsDataSource) azureFrontDoorFrontend() string {
 	return `data "azurerm_network_service_tags" "test" {
-  location        = "northeurope"
-  service         = "AzureFrontDoor.Frontend"
+  location = "northeurope"
+  service  = "AzureFrontDoor.Frontend"
 }`
 }
 
 func (NetworkServiceTagsDataSource) azureFrontDoorFirstParty() string {
 	return `data "azurerm_network_service_tags" "test" {
-  location        = "northeurope"
-  service         = "AzureFrontDoor.FirstParty"
+  location = "northeurope"
+  service  = "AzureFrontDoor.FirstParty"
 }`
 }
