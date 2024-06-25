@@ -280,61 +280,59 @@ func convertConnectionsToGatewayConnections(input *[]expressrouteconnections.Exp
 				AuthorizationKey:          props.AuthorizationKey,
 				EnableInternetSecurity:    props.EnableInternetSecurity,
 				EnablePrivateLinkFastPath: props.EnablePrivateLinkFastPath,
+				ExpressRouteCircuitPeering: expressroutegateways.ExpressRouteCircuitPeeringId{
+					Id: props.ExpressRouteCircuitPeering.Id,
+				},
 				ExpressRouteGatewayBypass: props.ExpressRouteGatewayBypass,
 				ProvisioningState:         (*expressroutegateways.ProvisioningState)(props.ProvisioningState),
+				RoutingWeight:             props.RoutingWeight,
 			}
 
-			if props.ExpressRouteCircuitPeering != nil {
-				o.Properties.ExpressRouteCircuitPeering = expressroutegateways.ExpressRouteCircuitPeeringId{
-					Id: props.ExpressRouteCircuitPeering.Id,
-				}
-			}
+			if routingConfiguration := props.RoutingConfiguration; routingConfiguration != nil {
+				rc := &expressroutegateways.RoutingConfiguration{}
 
-			if props.RoutingConfiguration != nil {
-				o.Properties.RoutingConfiguration = &expressroutegateways.RoutingConfiguration{
-					AssociatedRouteTable: &expressroutegateways.SubResource{},
-					InboundRouteMap:      &expressroutegateways.SubResource{},
-					OutboundRouteMap:     &expressroutegateways.SubResource{},
-					PropagatedRouteTables: &expressroutegateways.PropagatedRouteTable{
-						Ids:    make([]expressroutegateways.SubResource, 0),
-						Labels: props.RoutingConfiguration.PropagatedRouteTables.Labels,
-					},
-					VnetRoutes: &expressroutegateways.VnetRoute{
-						BgpConnections: make([]expressroutegateways.SubResource, 0),
-						StaticRoutes:   make([]expressroutegateways.StaticRoute, 0),
-					},
+				if routingConfiguration.AssociatedRouteTable != nil {
+					rc.AssociatedRouteTable = &expressroutegateways.SubResource{
+						Id: routingConfiguration.AssociatedRouteTable.Id,
+					}
 				}
 
-				if props.RoutingConfiguration.AssociatedRouteTable != nil {
-					o.Properties.RoutingConfiguration.AssociatedRouteTable.Id = props.RoutingConfiguration.AssociatedRouteTable.Id
+				if routingConfiguration.InboundRouteMap != nil {
+					rc.InboundRouteMap = &expressroutegateways.SubResource{
+						Id: routingConfiguration.InboundRouteMap.Id,
+					}
 				}
 
-				if props.RoutingConfiguration.InboundRouteMap != nil {
-					o.Properties.RoutingConfiguration.InboundRouteMap.Id = props.RoutingConfiguration.InboundRouteMap.Id
+				if routingConfiguration.OutboundRouteMap != nil {
+					rc.OutboundRouteMap = &expressroutegateways.SubResource{
+						Id: routingConfiguration.OutboundRouteMap.Id,
+					}
 				}
 
-				if props.RoutingConfiguration.OutboundRouteMap != nil {
-					o.Properties.RoutingConfiguration.OutboundRouteMap.Id = props.RoutingConfiguration.OutboundRouteMap.Id
+				if routingConfiguration.PropagatedRouteTables != nil {
+					rc.PropagatedRouteTables = &expressroutegateways.PropagatedRouteTable{
+						Ids:    convertConnectionsSubresourceToGatewaySubResource(props.RoutingConfiguration.PropagatedRouteTables.Ids),
+						Labels: routingConfiguration.PropagatedRouteTables.Labels,
+					}
 				}
 
-				if props.RoutingConfiguration.PropagatedRouteTables != nil {
-					o.Properties.RoutingConfiguration.PropagatedRouteTables.Ids = convertConnectionsSubresourceToGatewaySubResource(props.RoutingConfiguration.PropagatedRouteTables.Ids)
-				}
+				if vnewt := routingConfiguration.VnetRoutes; vnewt != nil {
+					rc.VnetRoutes = &expressroutegateways.VnetRoute{
+						BgpConnections: convertConnectionsSubresourceToGatewaySubResource(vnewt.BgpConnections),
+						StaticRoutes:   convertConnectionsStaticRouteToGatewayStaticRoute(vnewt.StaticRoutes),
+					}
 
-				if props.RoutingConfiguration.VnetRoutes != nil {
-					o.Properties.RoutingConfiguration.VnetRoutes.BgpConnections = convertConnectionsSubresourceToGatewaySubResource(props.RoutingConfiguration.VnetRoutes.BgpConnections)
-					o.Properties.RoutingConfiguration.VnetRoutes.StaticRoutes = convertConnectionsStaticRouteToGatewayStaticRoute(props.RoutingConfiguration.VnetRoutes.StaticRoutes)
-
-					if props.RoutingConfiguration.VnetRoutes.StaticRoutesConfig != nil {
-						o.Properties.RoutingConfiguration.VnetRoutes.StaticRoutesConfig = &expressroutegateways.StaticRoutesConfig{
-							PropagateStaticRoutes:          props.RoutingConfiguration.VnetRoutes.StaticRoutesConfig.PropagateStaticRoutes,
-							VnetLocalRouteOverrideCriteria: (*expressroutegateways.VnetLocalRouteOverrideCriteria)(props.RoutingConfiguration.VnetRoutes.StaticRoutesConfig.VnetLocalRouteOverrideCriteria),
+					if src := vnewt.StaticRoutesConfig; src != nil {
+						rc.VnetRoutes.StaticRoutesConfig = &expressroutegateways.StaticRoutesConfig{
+							PropagateStaticRoutes:          src.PropagateStaticRoutes,
+							VnetLocalRouteOverrideCriteria: (*expressroutegateways.VnetLocalRouteOverrideCriteria)(src.VnetLocalRouteOverrideCriteria),
 						}
 					}
 				}
+
+				o.Properties.RoutingConfiguration = rc
 			}
 
-			o.Properties.RoutingWeight = props.RoutingWeight
 		}
 		output = append(output, o)
 	}
