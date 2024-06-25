@@ -14,10 +14,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	keyVaultParser "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	mhsmParser "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	mssqlValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -56,9 +59,17 @@ func resourceMsSqlTransparentDataEncryption() *pluginsdk.Resource {
 			},
 
 			"key_vault_key_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: keyVaultValidate.NestedItemId,
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				ValidateFunc:  keyVaultValidate.NestedItemId,
+				ConflictsWith: []string{"managed_hsm_key_id"},
+			},
+
+			"managed_hsm_key_id": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				ValidateFunc:  validation.Any(validate.ManagedHSMDataPlaneVersionedKeyID, validate.ManagedHSMDataPlaneVersionlessKeyID),
+				ConflictsWith: []string{"key_vault_id"},
 			},
 
 			"auto_rotation_enabled": {
@@ -94,10 +105,8 @@ func resourceMsSqlTransparentDataEncryptionCreateUpdate(d *pluginsdk.ResourceDat
 	serverKeyName := ""
 	serverKeyType := sql.ServerKeyTypeServiceManaged
 
-	keyVaultKeyId := strings.TrimSpace(d.Get("key_vault_key_id").(string))
-
-	// If it has content, then we assume it's a key vault key id
-	if keyVaultKeyId != "" {
+	if v, ok := d.GetOk("key_vault_id"); ok {
+		keyVaultKeyId := strings.TrimSpace(v.(string))
 		// Update the server key type to AKV
 		serverKeyType = sql.ServerKeyTypeAzureKeyVault
 
@@ -134,6 +143,49 @@ func resourceMsSqlTransparentDataEncryptionCreateUpdate(d *pluginsdk.ResourceDat
 		} else {
 			return fmt.Errorf("key vault key id must be a reference to a key, but got: %s", keyId.NestedItemType)
 		}
+	}
+
+	if v, ok := d.GetOk("managed_hsm_key_id"); ok {
+		mhsmKeyId := strings.TrimSpace(v.(string))
+		// Update the server key type to AKV
+		serverKeyType = sql.ServerKeyTypeAzureKeyVault
+
+		// Set the SQL Server Key properties z
+		serverKeyProperties := sql.ServerKeyProperties{
+			ServerKeyType:       serverKeyType,
+			URI:                 &mhsmKeyId,
+			AutoRotationEnabled: utils.Bool(d.Get("auto_rotation_enabled").(bool)),
+		}
+		serverKey.ServerKeyProperties = &serverKeyProperties
+
+		keyName := ""
+		keyVersion := ""
+		keyVaultURI := ""
+
+		// Make sure it's a key, if not, throw an error
+		if keyId, err := mhsmParser.ManagedHSMDataPlaneVersionedKeyID(mhsmKeyId, nil); err != nil {
+			keyName = keyId.KeyName
+			keyVersion = keyId.KeyVersion
+			keyVaultURI = keyId.BaseUri()
+		} else if keyId, err := mhsmParser.ManagedHSMDataPlaneVersionlessKeyID(mhsmKeyId, nil); err != nil {
+			keyName = keyId.KeyName
+			keyVersion = ""
+			keyVaultURI = keyId.BaseUri()
+		} else {
+			return fmt.Errorf("failed to parse '%s' as HSM key ID", mhsmKeyId)
+		}
+
+		// Extract the vault name from the keyvault base url
+		idURL, err := url.ParseRequestURI(keyVaultURI)
+		if err != nil {
+			return fmt.Errorf("unable to parse key vault hostname: %s", keyVaultURI)
+		}
+
+		hostParts := strings.Split(idURL.Host, ".")
+		vaultName := hostParts[0]
+
+		// Create the key path for the Encryption Protector. Format is: {vaultname}_{key}_{key_version}
+		serverKeyName = fmt.Sprintf("%s_%s_%s", vaultName, keyName, keyVersion)
 	}
 
 	// Service managed doesn't require a key name
