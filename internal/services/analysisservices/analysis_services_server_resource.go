@@ -199,9 +199,19 @@ func resourceAnalysisServicesServerCreate(d *pluginsdk.ResourceData, meta interf
 	}
 
 	if v, ok := d.GetOk("enable_power_bi_service"); ok && !features.FourPointOhBeta() {
+		if analysisServicesServer.Properties.IPV4FirewallSettings == nil {
+			analysisServicesServer.Properties.IPV4FirewallSettings = &servers.IPv4FirewallSettings{
+				FirewallRules: pointer.To(make([]servers.IPv4FirewallRule, 0)),
+			}
+		}
 		analysisServicesServer.Properties.IPV4FirewallSettings.EnablePowerBIService = pointer.To(v.(bool))
 	}
 	if v, ok := d.GetOk("power_bi_service_enabled"); ok {
+		if analysisServicesServer.Properties.IPV4FirewallSettings == nil {
+			analysisServicesServer.Properties.IPV4FirewallSettings = &servers.IPv4FirewallSettings{
+				FirewallRules: pointer.To(make([]servers.IPv4FirewallRule, 0)),
+			}
+		}
 		analysisServicesServer.Properties.IPV4FirewallSettings.EnablePowerBIService = pointer.To(v.(bool))
 	}
 
@@ -334,11 +344,21 @@ func resourceAnalysisServicesServerUpdate(d *pluginsdk.ResourceData, meta interf
 	}
 
 	if d.HasChange("power_bi_service_enabled") {
+		if analysisServicesServer.Properties.IPV4FirewallSettings == nil {
+			analysisServicesServer.Properties.IPV4FirewallSettings = &servers.IPv4FirewallSettings{
+				FirewallRules: pointer.To(make([]servers.IPv4FirewallRule, 0)),
+			}
+		}
 		analysisServicesServer.Properties.IPV4FirewallSettings.EnablePowerBIService = pointer.To(d.Get("power_bi_service_enabled").(bool))
 	}
 
 	if !features.FourPointOhBeta() {
 		if d.HasChange("enable_power_bi_service") {
+			if analysisServicesServer.Properties.IPV4FirewallSettings == nil {
+				analysisServicesServer.Properties.IPV4FirewallSettings = &servers.IPv4FirewallSettings{
+					FirewallRules: pointer.To(make([]servers.IPv4FirewallRule, 0)),
+				}
+			}
 			analysisServicesServer.Properties.IPV4FirewallSettings.EnablePowerBIService = pointer.To(d.Get("enable_power_bi_service").(bool))
 		}
 	}
