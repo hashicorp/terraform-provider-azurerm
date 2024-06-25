@@ -132,7 +132,7 @@ func (r RedisCacheAccessPolicyResource) Update() sdk.ResourceFunc {
 			}
 
 			if existing.Model == nil {
-				return fmt.Errorf("retrieving %s: model was nil", *id)
+				return fmt.Errorf("retrieving %s: `model` was nil", *id)
 			}
 
 			if existing.Model.Properties == nil {
