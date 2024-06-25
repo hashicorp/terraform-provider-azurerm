@@ -69,7 +69,7 @@ func resourceMsSqlTransparentDataEncryption() *pluginsdk.Resource {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
 				ValidateFunc:  validation.Any(validate.ManagedHSMDataPlaneVersionedKeyID, validate.ManagedHSMDataPlaneVersionlessKeyID),
-				ConflictsWith: []string{"key_vault_id"},
+				ConflictsWith: []string{"key_vault_key_id"},
 			},
 
 			"auto_rotation_enabled": {
