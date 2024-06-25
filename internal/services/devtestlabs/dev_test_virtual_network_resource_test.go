@@ -203,9 +203,13 @@ resource "azurerm_dev_test_virtual_network" "test" {
   subnet {
     use_public_ip_address           = "Deny"
     use_in_virtual_machine_creation = "Allow"
-    shared_public_ip_address_configuration {
+    shared_public_ip_address {
       allowed_ports {
         backend_port       = 22
+        transport_protocol = "Tcp"
+      }
+      allowed_ports {
+        backend_port       = 80
         transport_protocol = "Tcp"
       }
     }

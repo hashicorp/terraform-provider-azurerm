@@ -64,11 +64,11 @@ A `subnet` block supports the following:
 
 * `use_in_virtual_machine_creation` - (Optional) Can this subnet be used for creating Virtual Machines? Possible values are `Allow`, `Default` and `Deny`. Defaults to `Allow`.
 
-* `shared_public_ip_address_configuration` - (Optional) A `shared_public_ip_address_configuration` block as defined below.
+* `shared_public_ip_address` - (Optional) A `shared_public_ip_address` block as defined below.
 
 ---
 
-A `shared_public_ip_address_configuration` block supports the following:
+A `shared_public_ip_address` block supports the following:
 
 * `allowed_ports` - (Optional) A list of `allowed_ports` blocks as defined below.
 

@@ -100,7 +100,7 @@ func resourceArmDevTestVirtualNetwork() *pluginsdk.Resource {
 							ValidateFunc: validate.DevTestVirtualNetworkUsagePermissionType(),
 						},
 
-						"shared_public_ip_address_configuration": {
+						"shared_public_ip_address": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
 							MaxItems: 1,
@@ -336,7 +336,7 @@ func expandDevTestVirtualNetworkSubnets(input []interface{}, subscriptionId, res
 
 	for _, val := range input {
 		v := val.(map[string]interface{})
-		sharedPublicIpAddressConfiguration := expandDevTestVirtualNetworkSubnetIpAddressConfiguration(v["shared_public_ip_address_configuration"].([]interface{}))
+		sharedPublicIpAddressConfiguration := expandDevTestVirtualNetworkSubnetIpAddressConfiguration(v["shared_public_ip_address"].([]interface{}))
 
 		subnet := virtualnetworks.SubnetOverride{
 			ResourceId:                         pointer.To(subnetId.ID()),
@@ -396,7 +396,7 @@ func flattenDevTestVirtualNetworkSubnets(input *[]virtualnetworks.SubnetOverride
 		}
 		output["use_public_ip_address"] = v.UsePublicIPAddressPermission
 		output["use_in_virtual_machine_creation"] = v.UseInVMCreationPermission
-		output["shared_public_ip_address_configuration"] = flattenDevTestVirtualNetworkSubnetIpAddressConfiguration(v.SharedPublicIPAddressConfiguration)
+		output["shared_public_ip_address"] = flattenDevTestVirtualNetworkSubnetIpAddressConfiguration(v.SharedPublicIPAddressConfiguration)
 
 		outputs = append(outputs, output)
 	}
