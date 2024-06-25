@@ -11,6 +11,7 @@ ENHANCEMENTS:
 * `azurerm_monitor_data_collection_endpoint` - support for the `immutable_id` property [GH-26380]
 * `azurerm_redis_cache_access_policy` - allow updates to `permissions` [GH-26440]
 * `azurerm_redhat_openshift_cluster` - support for the `managed_resource_group_name` property [GH-25529]
+* `azurerm_redhat_openshift_cluster` - support for the `preconfigured_network_security_group_enabled` property [GH-26082]
 
 BUG FIXES:
 
