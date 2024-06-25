@@ -280,36 +280,61 @@ func convertConnectionsToGatewayConnections(input *[]expressrouteconnections.Exp
 				AuthorizationKey:          props.AuthorizationKey,
 				EnableInternetSecurity:    props.EnableInternetSecurity,
 				EnablePrivateLinkFastPath: props.EnablePrivateLinkFastPath,
-				ExpressRouteCircuitPeering: expressroutegateways.ExpressRouteCircuitPeeringId{
-					Id: props.ExpressRouteCircuitPeering.Id,
-				},
 				ExpressRouteGatewayBypass: props.ExpressRouteGatewayBypass,
 				ProvisioningState:         (*expressroutegateways.ProvisioningState)(props.ProvisioningState),
-				RoutingConfiguration: &expressroutegateways.RoutingConfiguration{
-					AssociatedRouteTable: &expressroutegateways.SubResource{
-						Id: props.RoutingConfiguration.AssociatedRouteTable.Id,
-					},
-					InboundRouteMap: &expressroutegateways.SubResource{
-						Id: props.RoutingConfiguration.InboundRouteMap.Id,
-					},
-					OutboundRouteMap: &expressroutegateways.SubResource{
-						Id: props.RoutingConfiguration.OutboundRouteMap.Id,
-					},
+			}
+
+			if props.ExpressRouteCircuitPeering != nil {
+				o.Properties.ExpressRouteCircuitPeering = expressroutegateways.ExpressRouteCircuitPeeringId{
+					Id: props.ExpressRouteCircuitPeering.Id,
+				}
+			}
+
+			if props.RoutingConfiguration != nil {
+				o.Properties.RoutingConfiguration = &expressroutegateways.RoutingConfiguration{
+					AssociatedRouteTable: &expressroutegateways.SubResource{},
+					InboundRouteMap:      &expressroutegateways.SubResource{},
+					OutboundRouteMap:     &expressroutegateways.SubResource{},
 					PropagatedRouteTables: &expressroutegateways.PropagatedRouteTable{
-						Ids:    convertConnectionsSubresourceToGatewaySubResource(props.RoutingConfiguration.PropagatedRouteTables.Ids),
+						Ids:    make([]expressroutegateways.SubResource, 0),
 						Labels: props.RoutingConfiguration.PropagatedRouteTables.Labels,
 					},
 					VnetRoutes: &expressroutegateways.VnetRoute{
-						BgpConnections: convertConnectionsSubresourceToGatewaySubResource(props.RoutingConfiguration.VnetRoutes.BgpConnections),
-						StaticRoutes:   convertConnectionsStaticRouteToGatewayStaticRoute(props.RoutingConfiguration.VnetRoutes.StaticRoutes),
-						StaticRoutesConfig: &expressroutegateways.StaticRoutesConfig{
-							PropagateStaticRoutes:          i.Properties.RoutingConfiguration.VnetRoutes.StaticRoutesConfig.PropagateStaticRoutes,
-							VnetLocalRouteOverrideCriteria: (*expressroutegateways.VnetLocalRouteOverrideCriteria)(i.Properties.RoutingConfiguration.VnetRoutes.StaticRoutesConfig.VnetLocalRouteOverrideCriteria),
-						},
+						BgpConnections: make([]expressroutegateways.SubResource, 0),
+						StaticRoutes:   make([]expressroutegateways.StaticRoute, 0),
 					},
-				},
-				RoutingWeight: props.RoutingWeight,
+				}
+
+				if props.RoutingConfiguration.AssociatedRouteTable != nil {
+					o.Properties.RoutingConfiguration.AssociatedRouteTable.Id = props.RoutingConfiguration.AssociatedRouteTable.Id
+				}
+
+				if props.RoutingConfiguration.InboundRouteMap != nil {
+					o.Properties.RoutingConfiguration.InboundRouteMap.Id = props.RoutingConfiguration.InboundRouteMap.Id
+				}
+
+				if props.RoutingConfiguration.OutboundRouteMap != nil {
+					o.Properties.RoutingConfiguration.OutboundRouteMap.Id = props.RoutingConfiguration.OutboundRouteMap.Id
+				}
+
+				if props.RoutingConfiguration.PropagatedRouteTables != nil {
+					o.Properties.RoutingConfiguration.PropagatedRouteTables.Ids = convertConnectionsSubresourceToGatewaySubResource(props.RoutingConfiguration.PropagatedRouteTables.Ids)
+				}
+
+				if props.RoutingConfiguration.VnetRoutes != nil {
+					o.Properties.RoutingConfiguration.VnetRoutes.BgpConnections = convertConnectionsSubresourceToGatewaySubResource(props.RoutingConfiguration.VnetRoutes.BgpConnections)
+					o.Properties.RoutingConfiguration.VnetRoutes.StaticRoutes = convertConnectionsStaticRouteToGatewayStaticRoute(props.RoutingConfiguration.VnetRoutes.StaticRoutes)
+
+					if props.RoutingConfiguration.VnetRoutes.StaticRoutesConfig != nil {
+						o.Properties.RoutingConfiguration.VnetRoutes.StaticRoutesConfig = &expressroutegateways.StaticRoutesConfig{
+							PropagateStaticRoutes:          props.RoutingConfiguration.VnetRoutes.StaticRoutesConfig.PropagateStaticRoutes,
+							VnetLocalRouteOverrideCriteria: (*expressroutegateways.VnetLocalRouteOverrideCriteria)(props.RoutingConfiguration.VnetRoutes.StaticRoutesConfig.VnetLocalRouteOverrideCriteria),
+						}
+					}
+				}
 			}
+
+			o.Properties.RoutingWeight = props.RoutingWeight
 		}
 		output = append(output, o)
 	}
