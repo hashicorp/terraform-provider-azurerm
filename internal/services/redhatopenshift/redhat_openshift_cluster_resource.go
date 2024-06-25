@@ -584,7 +584,7 @@ func flattenOpenShiftClusterProfile(profile *openshiftclusters.ClusterProfile, c
 		fipsEnabled = *profile.FipsValidatedModules == openshiftclusters.FipsValidatedModulesEnabled
 	}
 
-	resourceGroupId, err := commonids.ParseResourceGroupID(*profile.ResourceGroupId)
+	resourceGroupId, err := commonids.ParseResourceGroupIDInsensitively(*profile.ResourceGroupId)
 	if err != nil {
 		return nil, err
 	}
