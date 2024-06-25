@@ -393,10 +393,13 @@ func expandAnalysisServicesServerAdminUsers(d *pluginsdk.ResourceData) *servers.
 }
 
 func expandAnalysisServicesServerFirewallSettings(d *pluginsdk.ResourceData) *servers.IPv4FirewallSettings {
-	firewallSettings := servers.IPv4FirewallSettings{}
-
 	firewallRules := d.Get("ipv4_firewall_rule").(*pluginsdk.Set).List()
 
+	if len(firewallRules) == 0 {
+		return nil
+	}
+
+	firewallSettings := servers.IPv4FirewallSettings{}
 	fwRules := make([]servers.IPv4FirewallRule, len(firewallRules))
 	for i, v := range firewallRules {
 		fwRule := v.(map[string]interface{})
