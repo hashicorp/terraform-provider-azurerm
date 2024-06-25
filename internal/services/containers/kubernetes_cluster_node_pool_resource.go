@@ -69,11 +69,11 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 		CustomizeDiff: pluginsdk.CustomDiffInSequence(
 			pluginsdk.ForceNewIfChange("os_sku", func(ctx context.Context, old, new, meta interface{}) bool {
 				// Ubuntu and AzureLinux are currently the only allowed Linux OSSKU Migration targets.
-				if old != agentpools.OSSKUUbuntu && old != agentpools.OSSKUAzureLinux {
+				if old != string(agentpools.OSSKUUbuntu) && old != string(agentpools.OSSKUAzureLinux) {
 					return true
 				}
 
-				if new != agentpools.OSSKUUbuntu && new != agentpools.OSSKUAzureLinux {
+				if new != string(agentpools.OSSKUUbuntu) && new != string(agentpools.OSSKUAzureLinux) {
 					return true
 				}
 
@@ -849,6 +849,10 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 	if d.HasChange("tags") {
 		t := d.Get("tags").(map[string]interface{})
 		props.Tags = tags.Expand(t)
+	}
+
+	if d.HasChange("os_sku") {
+		props.OsSKU = pointer.To(agentpools.OSSKU(d.Get("os_sku").(string)))
 	}
 
 	if d.HasChange("upgrade_settings") {
