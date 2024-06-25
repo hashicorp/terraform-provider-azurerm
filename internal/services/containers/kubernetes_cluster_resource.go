@@ -3394,6 +3394,14 @@ func expandGmsaProfile(input []interface{}) *managedclusters.WindowsGmsaProfile 
 		return nil
 	}
 
+	if input[0] == nil {
+		return &managedclusters.WindowsGmsaProfile{
+			Enabled:        utils.Bool(true),
+			DnsServer:      utils.String(""),
+			RootDomainName: utils.String(""),
+		}
+	}
+
 	config := input[0].(map[string]interface{})
 	return &managedclusters.WindowsGmsaProfile{
 		Enabled:        utils.Bool(true),
