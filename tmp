@@ -1,0 +1,24 @@
+File: internal/services/cdn/cdn_endpoint_resource.go
+                        action
+
+Processing Test File: internal/services/cdn/cdn_endpoint_resource_test.go
+azurerm_cdn_endpoint
+
+
+to
+
+azurerm_cdn_endpoint - action
+
+and
+
+File: internal/services/web/app_service_certificate_order_resource.go
+            product_type
+
+Processing Test File: internal/services/web/app_service_certificate_order_resource_test.go
+azurerm_app_service_certificate_order
+
+to
+
+
+azurerm_app_service_certificate_order - product_type
+

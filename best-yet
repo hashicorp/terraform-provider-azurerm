@@ -1,0 +1,1549 @@
+File: get-docs-thing.go
+
+File: internal/services/advisor/advisor_recommendations_data_source.go
+            filter_by_category
+
+Processing Test File: internal/services/advisor/advisor_recommendations_data_source_test.go
+	data := acceptance.BuildTestData(t, "data.azurerm_advisor_recommendations", "test")
+	data := acceptance.BuildTestData(t, "data.azurerm_advisor_recommendations", "test")
+	data := acceptance.BuildTestData(t, "data.azurerm_advisor_recommendations", "test")
+File: internal/services/analysisservices/analysis_services_server_resource.go
+            querypool_connection_mode
+
+Processing Test File: internal/services/analysisservices/analysis_services_server_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
+	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
+	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
+	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
+	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
+	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
+	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
+	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
+File: internal/services/appservice/helpers/web_app_schema.go
+                type
+
+File: internal/services/automation/automation_runbook_resource.go
+            runbook_type
+
+Processing Test File: internal/services/automation/automation_runbook_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_automation_runbook", "test")
+	data := acceptance.BuildTestData(t, "azurerm_automation_runbook", "test")
+	data := acceptance.BuildTestData(t, "azurerm_automation_runbook", "test")
+	data := acceptance.BuildTestData(t, "azurerm_automation_runbook", "test")
+	data := acceptance.BuildTestData(t, "azurerm_automation_runbook", "test")
+	data := acceptance.BuildTestData(t, "azurerm_automation_runbook", "test")
+File: internal/services/automation/automation_schedule_resource.go
+            frequency
+
+Processing Test File: internal/services/automation/automation_schedule_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_automation_schedule", "test")
+	data := acceptance.BuildTestData(t, "azurerm_automation_schedule", "test")
+	data := acceptance.BuildTestData(t, "azurerm_automation_schedule", "test")
+	data := acceptance.BuildTestData(t, "azurerm_automation_schedule", "test")
+	data := acceptance.BuildTestData(t, "azurerm_automation_schedule", "test")
+	data := acceptance.BuildTestData(t, "azurerm_automation_schedule", "test")
+	data := acceptance.BuildTestData(t, "azurerm_automation_schedule", "test")
+	data := acceptance.BuildTestData(t, "azurerm_automation_schedule", "test")
+	data := acceptance.BuildTestData(t, "azurerm_automation_schedule", "test")
+	data := acceptance.BuildTestData(t, "azurerm_automation_schedule", "test")
+	data := acceptance.BuildTestData(t, "azurerm_automation_schedule", "test")
+File: internal/services/cdn/cdn_endpoint_resource.go
+                        action
+
+Processing Test File: internal/services/cdn/cdn_endpoint_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
+File: internal/services/cdn/cdn_profile_resource.go
+            sku
+
+Processing Test File: internal/services/cdn/cdn_profile_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_cdn_profile", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cdn_profile", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cdn_profile", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cdn_profile", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cdn_profile", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cdn_profile", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cdn_profile", "test")
+File: internal/services/compute/image_resource.go
+                        os_type
+
+Processing Test File: internal/services/compute/image_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_image", "test")
+	data := acceptance.BuildTestData(t, "azurerm_image", "test")
+	data := acceptance.BuildTestData(t, "azurerm_image", "test")
+	data := acceptance.BuildTestData(t, "azurerm_image", "test")
+	data := acceptance.BuildTestData(t, "azurerm_image", "test")
+	data := acceptance.BuildTestData(t, "azurerm_image", "test")
+	data := acceptance.BuildTestData(t, "azurerm_image", "test")
+File: internal/services/compute/managed_disk_resource.go
+                os_type
+
+Processing Test File: internal/services/compute/managed_disk_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+File: internal/services/compute/snapshot_resource.go
+            create_option
+
+Processing Test File: internal/services/compute/snapshot_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_snapshot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_snapshot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_snapshot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_snapshot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_snapshot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_snapshot", "second")
+	data := acceptance.BuildTestData(t, "azurerm_snapshot", "test")
+File: internal/services/compute/virtual_machine_data_disk_attachment_resource.go
+            caching
+
+Processing Test File: internal/services/compute/virtual_machine_data_disk_attachment_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_data_disk_attachment", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_data_disk_attachment", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_data_disk_attachment", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_data_disk_attachment", "first")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_data_disk_attachment", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_data_disk_attachment", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_data_disk_attachment", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_data_disk_attachment", "test")
+File: internal/services/compute/virtual_machine_resource.go
+            license_type
+
+Processing Test File: internal/services/compute/virtual_machine_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
+File: internal/services/compute/virtual_machine_scale_set_resource.go
+            license_type
+
+Processing Test File: internal/services/compute/virtual_machine_scale_set_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
+File: internal/services/containers/container_group_resource.go
+            ip_address_type
+
+Processing Test File: internal/services/containers/container_group_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+File: internal/services/containers/container_registry_resource.go
+            sku
+
+Processing Test File: internal/services/containers/container_registry_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
+	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
+	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
+	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
+	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
+	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
+	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
+	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
+	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
+	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
+	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
+	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
+	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
+	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
+	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
+	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
+	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
+	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
+	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
+	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
+	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
+	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
+File: internal/services/containers/kubernetes_cluster_resource.go
+                        load_balancer_sku
+
+Processing Test File: internal/services/containers/kubernetes_cluster_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+File: internal/services/cosmos/cosmosdb_account_resource.go
+            offer_type
+
+Processing Test File: internal/services/cosmos/cosmosdb_account_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+File: internal/services/datalake/data_lake_analytics_account_resource.go
+            tier
+
+Processing Test File: internal/services/datalake/data_lake_analytics_account_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_data_lake_analytics_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_data_lake_analytics_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_data_lake_analytics_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_data_lake_analytics_account", "test")
+File: internal/services/datalake/data_lake_store_resource.go
+            tier
+
+Processing Test File: internal/services/datalake/data_lake_store_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_data_lake_store", "test")
+	data := acceptance.BuildTestData(t, "azurerm_data_lake_store", "test")
+	data := acceptance.BuildTestData(t, "azurerm_data_lake_store", "test")
+	data := acceptance.BuildTestData(t, "azurerm_data_lake_store", "test")
+	data := acceptance.BuildTestData(t, "azurerm_data_lake_store", "test")
+	data := acceptance.BuildTestData(t, "azurerm_data_lake_store", "test")
+	data := acceptance.BuildTestData(t, "azurerm_data_lake_store", "test")
+	data := acceptance.BuildTestData(t, "azurerm_data_lake_store", "test")
+File: internal/services/dns/dns_caa_record_resource.go
+                        tag
+
+Processing Test File: internal/services/dns/dns_caa_record_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_dns_caa_record", "test")
+	data := acceptance.BuildTestData(t, "azurerm_dns_caa_record", "test")
+	data := acceptance.BuildTestData(t, "azurerm_dns_caa_record", "test")
+	data := acceptance.BuildTestData(t, "azurerm_dns_caa_record", "test")
+File: internal/services/eventhub/eventhub_namespace_resource.go
+            sku
+
+Processing Test File: internal/services/eventhub/eventhub_namespace_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+File: internal/services/eventhub/eventhub_resource.go
+                        encoding
+
+Processing Test File: internal/services/eventhub/eventhub_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
+	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
+	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
+	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
+	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
+	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
+	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
+	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
+	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
+File: internal/services/firewall/firewall_policy_resource.go
+                                protocol
+
+Processing Test File: internal/services/firewall/firewall_policy_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_firewall_policy", "test")
+	data := acceptance.BuildTestData(t, "azurerm_firewall_policy", "test")
+	data := acceptance.BuildTestData(t, "azurerm_firewall_policy", "test")
+	data := acceptance.BuildTestData(t, "azurerm_firewall_policy", "test")
+	data := acceptance.BuildTestData(t, "azurerm_firewall_policy", "test")
+	data := acceptance.BuildTestData(t, "azurerm_firewall_policy", "test")
+	data := acceptance.BuildTestData(t, "azurerm_firewall_policy", "test")
+	data := acceptance.BuildTestData(t, "azurerm_firewall_policy", "test")
+	data := acceptance.BuildTestData(t, "azurerm_firewall_policy", "test")
+File: internal/services/hdinsight/hdinsight_hadoop_cluster_resource.go
+                                    vm_size
+
+Processing Test File: internal/services/hdinsight/hdinsight_hadoop_cluster_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_hadoop_cluster", "test")
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_hadoop_cluster", "test")
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_hadoop_cluster", "test")
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_hadoop_cluster", "test")
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_hadoop_cluster", "test")
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_hadoop_cluster", "test")
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_hadoop_cluster", "test")
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_hadoop_cluster", "test")
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_hadoop_cluster", "test")
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_hadoop_cluster", "test")
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_hadoop_cluster", "test")
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_hadoop_cluster", "test")
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_hadoop_cluster", "test")
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_hadoop_cluster", "test")
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_hadoop_cluster", "test")
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_hadoop_cluster", "test")
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_hadoop_cluster", "test")
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_hadoop_cluster", "test")
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_hadoop_cluster", "test")
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_hadoop_cluster", "test")
+File: internal/services/hdinsight/schema.go
+
+Processing Test File: internal/services/hdinsight/schema_test.go
+File: internal/services/iotcentral/iotcentral_application_resource.go
+            sku
+
+Processing Test File: internal/services/iotcentral/iotcentral_application_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_iotcentral_application", "test")
+	data := acceptance.BuildTestData(t, "azurerm_iotcentral_application", "test")
+	data := acceptance.BuildTestData(t, "azurerm_iotcentral_application", "test")
+	data := acceptance.BuildTestData(t, "azurerm_iotcentral_application", "test")
+File: internal/services/iothub/iothub_endpoint_storage_container_resource.go
+            encoding
+
+Processing Test File: internal/services/iothub/iothub_endpoint_storage_container_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_iothub_endpoint_storage_container", "test")
+	data := acceptance.BuildTestData(t, "azurerm_iothub_endpoint_storage_container", "test")
+	data := acceptance.BuildTestData(t, "azurerm_iothub_endpoint_storage_container", "test")
+	data := acceptance.BuildTestData(t, "azurerm_iothub_endpoint_storage_container", "test")
+	data := acceptance.BuildTestData(t, "azurerm_iothub_endpoint_storage_container", "test")
+	data := acceptance.BuildTestData(t, "azurerm_iothub_endpoint_storage_container", "test")
+	data := acceptance.BuildTestData(t, "azurerm_iothub_endpoint_storage_container", "test")
+File: internal/services/iothub/iothub_resource.go
+                        encoding
+
+Processing Test File: internal/services/iothub/iothub_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
+	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
+	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
+	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
+	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
+	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
+	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
+	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
+	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
+	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
+	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
+	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
+	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
+	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
+	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
+	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
+	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
+	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
+	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
+File: internal/services/keyvault/access_policy_schema.go
+
+File: internal/services/keyvault/key_vault_certificate_resource.go
+                                    key_type
+
+Processing Test File: internal/services/keyvault/key_vault_certificate_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
+File: internal/services/loadbalancer/loadbalancer_resource.go
+            sku
+
+Processing Test File: internal/services/loadbalancer/loadbalancer_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
+	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
+	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
+	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
+	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
+	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
+	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
+	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
+	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
+	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
+	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
+	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
+	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
+	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
+	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
+File: internal/services/loadbalancer/nat_pool_resource.go
+            protocol
+
+File: internal/services/loadbalancer/nat_rule_resource.go
+            protocol
+
+File: internal/services/loadbalancer/probe_resource.go
+            protocol
+
+File: internal/services/loadbalancer/rule_resource.go
+            protocol
+
+File: internal/services/loganalytics/log_analytics_datasource_windows_event_resource.go
+            event_types
+
+Processing Test File: internal/services/loganalytics/log_analytics_datasource_windows_event_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_datasource_windows_event", "test")
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_datasource_windows_event", "test")
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_datasource_windows_event", "test")
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_datasource_windows_event", "test")
+File: internal/services/loganalytics/log_analytics_workspace_resource.go
+            secondary_shared_key
+
+Processing Test File: internal/services/loganalytics/log_analytics_workspace_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace", "test")
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace", "test")
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace", "test")
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace", "test")
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace", "test")
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace", "test")
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace", "test")
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace", "test")
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace", "test")
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace", "test")
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace", "test")
+File: internal/services/logic/logic_app_integration_account_batch_configuration_resource.go
+                                    frequency
+
+Processing Test File: internal/services/logic/logic_app_integration_account_batch_configuration_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_integration_account_batch_configuration", "test")
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_integration_account_batch_configuration", "test")
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_integration_account_batch_configuration", "test")
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_integration_account_batch_configuration", "test")
+File: internal/services/logic/logic_app_standard_resource.go
+                        type
+
+Processing Test File: internal/services/logic/logic_app_standard_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+File: internal/services/logz/logz_monitor_resource.go
+                        billing_cycle
+
+Processing Test File: internal/services/logz/logz_monitor_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_logz_monitor", "test")
+	data := acceptance.BuildTestData(t, "azurerm_logz_monitor", "test")
+	data := acceptance.BuildTestData(t, "azurerm_logz_monitor", "test")
+	data := acceptance.BuildTestData(t, "azurerm_logz_monitor", "test")
+File: internal/services/machinelearning/machine_learning_workspace_resource.go
+            sku_name
+
+Processing Test File: internal/services/machinelearning/machine_learning_workspace_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
+	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
+	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
+	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
+	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
+File: internal/services/media/media_services_account_resource.go
+            storage_authentication_type
+
+Processing Test File: internal/services/media/media_services_account_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_media_services_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_media_services_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_media_services_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_media_services_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_media_services_account", "test")
+File: internal/services/monitor/monitor_autoscale_setting_resource.go
+                                                statistic
+
+Processing Test File: internal/services/monitor/monitor_autoscale_setting_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_monitor_autoscale_setting", "test")
+	data := acceptance.BuildTestData(t, "azurerm_monitor_autoscale_setting", "test")
+	data := acceptance.BuildTestData(t, "azurerm_monitor_autoscale_setting", "test")
+	data := acceptance.BuildTestData(t, "azurerm_monitor_autoscale_setting", "test")
+	data := acceptance.BuildTestData(t, "azurerm_monitor_autoscale_setting", "test")
+	data := acceptance.BuildTestData(t, "azurerm_monitor_autoscale_setting", "test")
+	data := acceptance.BuildTestData(t, "azurerm_monitor_autoscale_setting", "test")
+	data := acceptance.BuildTestData(t, "azurerm_monitor_autoscale_setting", "test")
+	data := acceptance.BuildTestData(t, "azurerm_monitor_autoscale_setting", "test")
+	data := acceptance.BuildTestData(t, "azurerm_monitor_autoscale_setting", "test")
+File: internal/services/mssql/mssql_database_resource.go
+        sku_name
+
+Processing Test File: internal/services/mssql/mssql_database_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "copy")
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "secondary")
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "secondary")
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "primary")
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "secondary")
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+File: internal/services/mssql/mssql_elasticpool_resource.go
+                        name
+
+Processing Test File: internal/services/mssql/mssql_elasticpool_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
+	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
+	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
+	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
+	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
+	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
+	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
+	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
+	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
+	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
+	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
+	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
+File: internal/services/mssql/mssql_server_security_alert_policy_resource.go
+            state
+
+Processing Test File: internal/services/mssql/mssql_server_security_alert_policy_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_mssql_server_security_alert_policy", "test")
+	data := acceptance.BuildTestData(t, "azurerm_mssql_server_security_alert_policy", "test")
+File: internal/services/mysql/mysql_server_resource.go
+            ssl_enforcement
+
+Processing Test File: internal/services/mysql/mysql_server_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
+	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
+	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
+	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
+	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
+	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
+	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
+	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
+	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
+	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
+File: internal/services/network/application_gateway_resource.go
+                        protocol
+
+Processing Test File: internal/services/network/application_gateway_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+File: internal/services/network/express_route_circuit_resource.go
+                        tier
+
+Processing Test File: internal/services/network/express_route_circuit_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit", "test")
+	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit", "test")
+	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit", "test")
+	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit", "test")
+	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit", "test")
+	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit", "test")
+	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit", "test")
+	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit", "test")
+	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit", "test")
+	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit", "test")
+	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit", "test")
+	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit", "test")
+File: internal/services/network/network_interface_resource.go
+                        private_ip_address_allocation
+
+Processing Test File: internal/services/network/network_interface_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
+	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
+	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
+	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
+	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
+	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
+	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
+	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
+	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
+	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
+	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
+	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
+	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
+	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
+	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
+	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
+File: internal/services/network/network_security_group_resource.go
+                        protocol
+
+Processing Test File: internal/services/network/network_security_group_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_network_security_group", "test")
+	data := acceptance.BuildTestData(t, "azurerm_network_security_group", "test")
+	data := acceptance.BuildTestData(t, "azurerm_network_security_group", "test")
+	data := acceptance.BuildTestData(t, "azurerm_network_security_group", "test")
+	data := acceptance.BuildTestData(t, "azurerm_network_security_group", "test")
+	data := acceptance.BuildTestData(t, "azurerm_network_security_group", "test")
+	data := acceptance.BuildTestData(t, "azurerm_network_security_group", "test")
+	data := acceptance.BuildTestData(t, "azurerm_network_security_group", "test")
+	data := acceptance.BuildTestData(t, "azurerm_network_security_group", "test")
+	data := acceptance.BuildTestData(t, "azurerm_network_security_group", "test")
+File: internal/services/network/network_security_rule_resource.go
+            protocol
+
+Processing Test File: internal/services/network/network_security_rule_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_network_security_rule", "test")
+	data := acceptance.BuildTestData(t, "azurerm_network_security_rule", "test")
+	data := acceptance.BuildTestData(t, "azurerm_network_security_rule", "test")
+	data := acceptance.BuildTestData(t, "azurerm_network_security_rule", "test1")
+	data := acceptance.BuildTestData(t, "azurerm_network_security_rule", "test1")
+	data := acceptance.BuildTestData(t, "azurerm_network_security_rule", "test1")
+File: internal/services/network/public_ip_prefix_resource.go
+                ip_version
+
+Processing Test File: internal/services/network/public_ip_prefix_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
+	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
+	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
+	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
+	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
+	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
+	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
+	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
+	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
+	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
+	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
+	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
+File: internal/services/network/public_ip_resource.go
+                ip_version
+
+Processing Test File: internal/services/network/public_ip_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
+	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
+	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
+	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
+	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
+	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
+	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
+	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
+	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
+	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
+	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
+	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
+	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
+	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
+	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
+	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
+	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
+	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
+	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
+	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
+	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
+	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
+	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
+	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
+	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
+File: internal/services/network/route_resource.go
+            next_hop_type
+
+Processing Test File: internal/services/network/route_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_route", "test")
+	data := acceptance.BuildTestData(t, "azurerm_route", "test")
+	data := acceptance.BuildTestData(t, "azurerm_route", "test")
+	data := acceptance.BuildTestData(t, "azurerm_route", "test")
+	data := acceptance.BuildTestData(t, "azurerm_route", "test")
+File: internal/services/network/route_table_resource.go
+                        next_hop_type
+
+Processing Test File: internal/services/network/route_table_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_route_table", "test")
+	data := acceptance.BuildTestData(t, "azurerm_route_table", "test")
+	data := acceptance.BuildTestData(t, "azurerm_route_table", "test")
+	data := acceptance.BuildTestData(t, "azurerm_route_table", "test")
+	data := acceptance.BuildTestData(t, "azurerm_route_table", "test")
+	data := acceptance.BuildTestData(t, "azurerm_route_table", "test")
+	data := acceptance.BuildTestData(t, "azurerm_route_table", "test")
+	data := acceptance.BuildTestData(t, "azurerm_route_table", "test")
+	data := acceptance.BuildTestData(t, "azurerm_route_table", "test")
+File: internal/services/network/virtual_network_gateway_connection_resource.go
+            type
+
+Processing Test File: internal/services/network/virtual_network_gateway_connection_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test")
+	data1 := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test_1")
+	data2 := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test_2")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test")
+	data1 := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test_1")
+	data2 := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test_2")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test")
+File: internal/services/network/virtual_network_gateway_resource.go
+            type
+
+Processing Test File: internal/services/network/virtual_network_gateway_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
+File: internal/services/notificationhub/notification_hub_namespace_resource.go
+            namespace_type
+
+Processing Test File: internal/services/notificationhub/notification_hub_namespace_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_notification_hub_namespace", "test")
+	data := acceptance.BuildTestData(t, "azurerm_notification_hub_namespace", "test")
+	data := acceptance.BuildTestData(t, "azurerm_notification_hub_namespace", "test")
+File: internal/services/policy/policy_definition_resource.go
+            policy_type
+
+Processing Test File: internal/services/policy/policy_definition_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_policy_definition", "test")
+	data := acceptance.BuildTestData(t, "azurerm_policy_definition", "test")
+	data := acceptance.BuildTestData(t, "azurerm_policy_definition", "test")
+	data := acceptance.BuildTestData(t, "azurerm_policy_definition", "test")
+	data := acceptance.BuildTestData(t, "azurerm_policy_definition", "test")
+	data := acceptance.BuildTestData(t, "azurerm_policy_definition", "test")
+File: internal/services/postgres/postgresql_server_resource.go
+            version
+
+Processing Test File: internal/services/postgres/postgresql_server_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "replica")
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "replica")
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
+File: internal/services/recoveryservices/backup_policy_file_share_resource.go
+                        weeks
+
+Processing Test File: internal/services/recoveryservices/backup_policy_file_share_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
+File: internal/services/recoveryservices/backup_policy_vm_resource.go
+                        frequency
+
+Processing Test File: internal/services/recoveryservices/backup_policy_vm_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
+File: internal/services/recoveryservices/recovery_services_vault_resource.go
+            sku
+
+Processing Test File: internal/services/recoveryservices/recovery_services_vault_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault", "test")
+	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault", "test")
+	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault", "test")
+	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault", "test")
+	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault", "test")
+	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault", "test")
+	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault", "test")
+	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault", "test")
+	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault", "test")
+	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault", "test")
+	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault", "test")
+	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault", "test")
+File: internal/services/recoveryservices/site_recovery_replicated_vm_resource.go
+                        target_disk_type
+
+Processing Test File: internal/services/recoveryservices/site_recovery_replicated_vm_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replicated_vm", "test")
+	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replicated_vm", "test")
+File: internal/services/redis/redis_cache_resource.go
+            sku_name
+
+Processing Test File: internal/services/redis/redis_cache_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
+	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
+	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
+	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
+	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
+	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
+	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
+	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
+	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
+	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
+	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
+	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
+	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
+	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
+	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
+	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
+	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
+	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
+	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
+	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
+	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
+	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
+	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
+	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
+	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
+	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
+	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
+File: internal/services/resource/template_deployment_resource.go
+            deployment_mode
+
+Processing Test File: internal/services/resource/template_deployment_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_template_deployment", "test")
+	data := acceptance.BuildTestData(t, "azurerm_template_deployment", "test")
+	data := acceptance.BuildTestData(t, "azurerm_template_deployment", "test")
+	data := acceptance.BuildTestData(t, "azurerm_template_deployment", "test")
+	data := acceptance.BuildTestData(t, "azurerm_template_deployment", "test")
+	data := acceptance.BuildTestData(t, "azurerm_template_deployment", "test")
+	data := acceptance.BuildTestData(t, "azurerm_template_deployment", "test")
+	data := acceptance.BuildTestData(t, "azurerm_template_deployment", "test")
+File: internal/services/securitycenter/security_center_automation_resource.go
+                        type
+
+Processing Test File: internal/services/securitycenter/security_center_automation_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_security_center_automation", "test")
+	data := acceptance.BuildTestData(t, "azurerm_security_center_automation", "test")
+	data := acceptance.BuildTestData(t, "azurerm_security_center_automation", "test")
+	data := acceptance.BuildTestData(t, "azurerm_security_center_automation", "test")
+	data := acceptance.BuildTestData(t, "azurerm_security_center_automation", "test")
+	data := acceptance.BuildTestData(t, "azurerm_security_center_automation", "test")
+	data := acceptance.BuildTestData(t, "azurerm_security_center_automation", "test")
+	data := acceptance.BuildTestData(t, "azurerm_security_center_automation", "test")
+	data := acceptance.BuildTestData(t, "azurerm_security_center_automation", "test")
+	data := acceptance.BuildTestData(t, "azurerm_security_center_automation", "test")
+	data := acceptance.BuildTestData(t, "azurerm_security_center_automation", "test")
+File: internal/services/servicebus/servicebus_namespace_resource.go
+            sku
+
+Processing Test File: internal/services/servicebus/servicebus_namespace_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
+File: internal/services/servicebus/servicebus_subscription_rule_resource.go
+            filter_type
+
+Processing Test File: internal/services/servicebus/servicebus_subscription_rule_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription_rule", "test")
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription_rule", "test")
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription_rule", "test")
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription_rule", "test")
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription_rule", "test")
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription_rule", "test")
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription_rule", "test")
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription_rule", "test")
+File: internal/services/servicebus/servicebus_topic_resource.go
+            status
+
+Processing Test File: internal/services/servicebus/servicebus_topic_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic", "test")
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic", "test")
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic", "test")
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic", "test")
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic", "test")
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic", "test")
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic", "test")
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic", "test")
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic", "test")
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic", "test")
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic", "test")
+File: internal/services/sql/sql_database_resource.go
+        create_mode
+
+Processing Test File: internal/services/sql/sql_database_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
+	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
+	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
+	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
+	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
+	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
+	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
+	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
+	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
+	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
+	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
+	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
+	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
+	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
+	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
+	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
+File: internal/services/sql/sql_managed_instance_resource.go
+            license_type
+
+Processing Test File: internal/services/sql/sql_managed_instance_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_sql_managed_instance", "test")
+	data := acceptance.BuildTestData(t, "azurerm_sql_managed_instance", "test")
+	data := acceptance.BuildTestData(t, "azurerm_sql_managed_instance", "test")
+	data := acceptance.BuildTestData(t, "azurerm_sql_managed_instance", "test")
+	data := acceptance.BuildTestData(t, "azurerm_sql_managed_instance", "test")
+	data := acceptance.BuildTestData(t, "azurerm_sql_managed_instance", "test")
+	data := acceptance.BuildTestData(t, "azurerm_sql_managed_instance", "test")
+File: internal/services/sql/sql_server_resource.go
+                        disabled_alerts
+
+Processing Test File: internal/services/sql/sql_server_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_sql_server", "test")
+	data := acceptance.BuildTestData(t, "azurerm_sql_server", "test")
+	data := acceptance.BuildTestData(t, "azurerm_sql_server", "test")
+	data := acceptance.BuildTestData(t, "azurerm_sql_server", "test")
+	data := acceptance.BuildTestData(t, "azurerm_sql_server", "test")
+	data := acceptance.BuildTestData(t, "azurerm_sql_server", "test")
+	data := acceptance.BuildTestData(t, "azurerm_sql_server", "test")
+	data := acceptance.BuildTestData(t, "azurerm_sql_server", "test")
+File: internal/services/storage/storage_account_resource.go
+            account_kind
+
+Processing Test File: internal/services/storage/storage_account_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+File: internal/services/synapse/synapse_sql_pool_security_alert_policy_resource.go
+            policy_state
+
+Processing Test File: internal/services/synapse/synapse_sql_pool_security_alert_policy_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_synapse_sql_pool_security_alert_policy", "test")
+	data := acceptance.BuildTestData(t, "azurerm_synapse_sql_pool_security_alert_policy", "test")
+File: internal/services/synapse/synapse_workspace_security_alert_policy_resource.go
+            policy_state
+
+Processing Test File: internal/services/synapse/synapse_workspace_security_alert_policy_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_synapse_workspace_security_alert_policy", "test")
+	data := acceptance.BuildTestData(t, "azurerm_synapse_workspace_security_alert_policy", "test")
+File: internal/services/trafficmanager/traffic_manager_endpoint_resource.go
+            type
+
+Processing Test File: internal/services/trafficmanager/traffic_manager_endpoint_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_endpoint", "testExternal")
+	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_endpoint", "testAzure")
+	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_endpoint", "testAzure")
+	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_endpoint", "testAzure")
+	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_endpoint", "testExternal")
+	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_endpoint", "testExternal")
+	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_endpoint", "testExternal")
+	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_endpoint", "testExternal")
+	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_endpoint", "nested")
+	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_endpoint", "test")
+	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_endpoint", "test")
+File: internal/services/trafficmanager/traffic_manager_profile_resource.go
+            profile_status
+
+Processing Test File: internal/services/trafficmanager/traffic_manager_profile_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_profile", "test")
+	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_profile", "test")
+	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_profile", "test")
+	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_profile", "test")
+	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_profile", "test")
+	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_profile", "test")
+	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_profile", "test")
+	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_profile", "test")
+	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_profile", "test")
+	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_profile", "test")
+File: internal/services/web/app_service.go
+                type
+
+File: internal/services/web/app_service_certificate_order_resource.go
+            product_type
+
+Processing Test File: internal/services/web/app_service_certificate_order_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_app_service_certificate_order", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_certificate_order", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_certificate_order", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_certificate_order", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_certificate_order", "test")
+File: internal/services/web/app_service_plan_resource.go
+            kind
+
+Processing Test File: internal/services/web/app_service_plan_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
+File: internal/services/web/app_service_resource.go
+                        type
+
+Processing Test File: internal/services/web/app_service_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+File: internal/services/web/app_service_slot_resource.go
+                        type
+
+Processing Test File: internal/services/web/app_service_slot_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
+File: internal/services/web/function_app.go
+                dotnet_framework_version
+
+File: internal/services/web/function_app_resource.go
+                        type
+
+Processing Test File: internal/services/web/function_app_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+File: internal/services/web/function_app_slot_resource.go
+                        type
+
+Processing Test File: internal/services/web/function_app_slot_resource_test.go
+	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
+File: internal/tf/suppress/string.go
+
+Processing Test File: internal/tf/suppress/string_test.go
