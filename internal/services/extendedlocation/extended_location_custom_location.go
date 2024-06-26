@@ -41,10 +41,13 @@ type AuthModel struct {
 func (r CustomLocationResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringMatch(
+				regexp.MustCompile(`^[A-Za-z\d.\-_]*[A-Za-z\d]$`),
+				"supported alphanumeric characters and periods, underscores, hyphens. Name should end with an alphanumeric character.",
+			),
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
