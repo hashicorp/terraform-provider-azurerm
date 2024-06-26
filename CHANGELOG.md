@@ -13,6 +13,10 @@ ENHANCEMENTS:
 * `azurerm_redis_cache_access_policy` - allow updates to `permissions` [GH-26440]
 * `azurerm_redhat_openshift_cluster` - support for the `managed_resource_group_name` property [GH-25529]
 * `azurerm_redhat_openshift_cluster` - support for the `preconfigured_network_security_group_enabled` property [GH-26082]
+* `azurerm_linux_web_app` - Support Java 21. ([#25490](https://github.com/hashicorp/terraform-provider-azurerm/issues/25490))
+* `azurerm_windows_web_app` - Support Java 21. ([#25490](https://github.com/hashicorp/terraform-provider-azurerm/issues/25490))
+* `azurerm_linux_function_app` - Support Java 21. ([#24754](https://github.com/hashicorp/terraform-provider-azurerm/issues/24754))
+* `azurerm_windows_function_app` - Support Java 21. ([#24754](https://github.com/hashicorp/terraform-provider-azurerm/issues/24754))
 
 BUG FIXES:
 
