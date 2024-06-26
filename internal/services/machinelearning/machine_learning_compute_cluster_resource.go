@@ -358,29 +358,23 @@ func resourceComputeClusterRead(d *pluginsdk.ResourceData, meta interface{}) err
 }
 
 func resourceComputeClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	mlWorkspacesClient := meta.(*clients.Client).MachineLearning.Workspaces
 	client := meta.(*clients.Client).MachineLearning.MachineLearningComputes
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	workspaceID, err := workspaces.ParseWorkspaceID(d.Get("machine_learning_workspace_id").(string))
-	if err != nil {
-		return err
-	}
 
 	id, err := machinelearningcomputes.ParseComputeID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	workspace, err := mlWorkspacesClient.Get(ctx, *workspaceID)
+	compute, err := client.ComputeGet(ctx, *id)
 	if err != nil {
-		return fmt.Errorf("retrieving %s: %+v", workspaceID, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	workspaceModel := workspace.Model
-	if workspaceModel == nil {
-		return fmt.Errorf("retrieving %s: `model` was nil", workspaceID)
+	computeModel := compute.Model
+	if computeModel == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", *id)
 	}
 
 	identity, err := expandIdentity(d.Get("identity").([]interface{}))
@@ -406,8 +400,6 @@ func resourceComputeClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		computeClusterAmlComputeProperties.Subnet = &machinelearningcomputes.ResourceId{Id: subnetId.(string)}
 	}
 
-	// NOTE: The 'AmlCompute' 'ComputeLocation' field should always point
-	// to configuration files 'location' field...
 	computeClusterProperties := machinelearningcomputes.AmlCompute{
 		Properties:       &computeClusterAmlComputeProperties,
 		ComputeLocation:  utils.String(d.Get("location").(string)),
@@ -415,17 +407,11 @@ func resourceComputeClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		DisableLocalAuth: utils.Bool(!d.Get("local_auth_enabled").(bool)),
 	}
 
-	// NOTE: The 'ComputeResource' 'Location' field should always point
-	// to the workspace's 'location'...
 	computeClusterParameters := machinelearningcomputes.ComputeResource{
 		Properties: computeClusterProperties,
 		Identity:   identity,
-		Location:   workspaceModel.Location,
+		Location:   computeModel.Location,
 		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
-		Sku: &machinelearningcomputes.Sku{
-			Name: workspaceModel.Sku.Name,
-			Tier: pointer.To(machinelearningcomputes.SkuTier(*workspaceModel.Sku.Tier)),
-		},
 	}
 
 	if err := client.ComputeCreateOrUpdateThenPoll(ctx, *id, computeClusterParameters); err != nil {
