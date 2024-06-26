@@ -21,6 +21,14 @@ BUG FIXES:
 * `azurerm_security_center_automation` - prevent resource recreation when `tags` are updated [GH-26292]
 * `azurerm_synapse_workspace` - fix issue where `azure_devops_repo` or `github_repo` configuration could not be removed [GH-26421]
 * `azurerm_virtual_network_dns_servers` - split create and update function to fix lifecycle - ignore [GH-26427]
+* `azurerm_linux_function_app` - set `allowed_applications` in the request payload [GH-26462]
+* `azurerm_linux_function_app_slot` - set `allowed_applications` in the request payload [GH-26462]
+* `azurerm_windows_function_app` - set `allowed_applications` in the request payload [GH-26462]
+* `azurerm_windows_function_app_slot` - set `allowed_applications` in the request payload [GH-26462]
+* `azurerm_linux_web_app` - set `allowed_applications` in the request payload [GH-26462]
+* `azurerm_linux_web_app_slot` - set `allowed_applications` in the request payload [GH-26462]
+* `azurerm_windows_web_app` - set `allowed_applications` in the request payload [GH-26462]
+* `azurerm_windows_web_app_slot` - set `allowed_applications` in the request payload [GH-26462]
 
 ## 3.109.0 (June 20, 2024)
 
