@@ -30,6 +30,10 @@ BUG FIXES:
 * `azurerm_windows_web_app` - set `allowed_applications` in the request payload [GH-26462]
 * `azurerm_windows_web_app_slot` - set `allowed_applications` in the request payload [GH-26462]
 
+DEPRECATIONS:
+
+* `azurerm_analysis_service_server` - the property `enable_power_bi_service` has been superseded by `power_bi_service_enabled` [GH-26456]
+
 ## 3.109.0 (June 20, 2024)
 
 FEATURES:
