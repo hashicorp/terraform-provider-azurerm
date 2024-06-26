@@ -340,9 +340,18 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	enableBatchedOperations := d.Get("batched_operations_enabled").(bool)
 
 	if !features.FourPointOhBeta() {
-		enableExpress = d.Get("enable_express").(bool)
-		enablePartitioning = d.Get("enable_partitioning").(bool)
-		enableBatchedOperations = d.Get("enable_batched_operations").(bool)
+
+		if v, ok := d.GetOkExists("enable_express"); ok {
+			enableExpress = v.(bool)
+		}
+
+		if v, ok := d.GetOkExists("enable_partitioning"); ok {
+			enablePartitioning = v.(bool)
+		}
+
+		if v, ok := d.GetOkExists("enable_batched_operations"); ok {
+			enableBatchedOperations = v.(bool)
+		}
 	}
 	userConfig["enableExpress"] = enableExpress
 	userConfig["enablePartitioning"] = enablePartitioning

@@ -94,7 +94,7 @@ func resourceServicebusSubscriptionSchema() map[string]*pluginsdk.Schema {
 		"dead_lettering_on_filter_evaluation_error": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			//	Default:  true,
+			Default:  true,
 		},
 
 		"batched_operations_enabled": {
@@ -250,11 +250,11 @@ func resourceServiceBusSubscriptionCreateUpdate(d *pluginsdk.ResourceData, meta 
 		}
 	}
 
-	var enableBatchedOperations bool
+	enableBatchedOperations := d.Get("batched_operations_enabled").(bool)
 	if !features.FourPointOhBeta() {
-		enableBatchedOperations = d.Get("enable_batched_operations").(bool)
-	} else {
-		enableBatchedOperations = d.Get("batched_operations_enabled").(bool)
+		if v, ok := d.GetOkExists("enable_batched_operations"); ok {
+			enableBatchedOperations = v.(bool)
+		}
 	}
 
 	status := subscriptions.EntityStatus(d.Get("status").(string))

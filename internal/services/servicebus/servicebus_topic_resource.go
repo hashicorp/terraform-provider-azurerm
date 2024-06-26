@@ -228,15 +228,19 @@ func resourceServiceBusTopicCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	var enableBatchedOperations, enableExpress, enablePartitioning bool
-	if features.FourPointOh() {
-		enableBatchedOperations = d.Get("batched_operations_enabled").(bool)
-		enableExpress = d.Get("express_enabled").(bool)
-		enablePartitioning = d.Get("partitioning_enabled").(bool)
-	} else {
-		enableBatchedOperations = d.Get("enable_batched_operations").(bool)
-		enableExpress = d.Get("enable_express").(bool)
-		enablePartitioning = d.Get("enable_partitioning").(bool)
+	enableBatchedOperations := d.Get("batched_operations_enabled").(bool)
+	enableExpress := d.Get("express_enabled").(bool)
+	enablePartitioning := d.Get("partitioning_enabled").(bool)
+	if !features.FourPointOh() {
+		if v, ok := d.GetOkExists("enable_batched_operations"); ok {
+			enableBatchedOperations = v.(bool)
+		}
+		if v, ok := d.GetOkExists("enable_express"); ok {
+			enableExpress = v.(bool)
+		}
+		if v, ok := d.GetOkExists("enable_partitioning"); ok {
+			enablePartitioning = v.(bool)
+		}
 	}
 
 	status := topics.EntityStatus(d.Get("status").(string))
