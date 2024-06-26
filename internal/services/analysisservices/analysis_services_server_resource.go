@@ -27,7 +27,7 @@ import (
 )
 
 func resourceAnalysisServicesServer() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceAnalysisServicesServerCreate,
 		Read:   resourceAnalysisServicesServerRead,
 		Update: resourceAnalysisServicesServerUpdate,
@@ -116,7 +116,7 @@ func resourceAnalysisServicesServer() *pluginsdk.Resource {
 			"querypool_connection_mode": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Default:  string(servers.ConnectionModeAll),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(servers.ConnectionModeAll),
 					string(servers.ConnectionModeReadOnly),
@@ -138,6 +138,8 @@ func resourceAnalysisServicesServer() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
+
+	return resource
 }
 
 func resourceAnalysisServicesServerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
