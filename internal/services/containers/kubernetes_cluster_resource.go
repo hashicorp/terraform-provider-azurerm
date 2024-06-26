@@ -1311,6 +1311,16 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 						},
+						"revisions": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MinItems: 1,
+							MaxItems: 2,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
 					},
 				},
 			},
@@ -4812,6 +4822,14 @@ func expandKubernetesClusterServiceMeshProfile(input []interface{}, existing *ma
 		}
 
 		profile.Istio.Components.IngressGateways = &istioIngressGatewaysList
+
+		if existing != nil && existing.Istio != nil && existing.Istio.Revisions != nil {
+			profile.Istio.Revisions = existing.Istio.Revisions
+		}
+
+		if raw["revisions"] != nil {
+			profile.Istio.Revisions = utils.ExpandStringSlice(raw["revisions"].([]interface{}))
+		}
 	}
 
 	return &profile
@@ -4935,6 +4953,10 @@ func flattenKubernetesClusterAzureServiceMeshProfile(input *managedclusters.Serv
 
 			returnMap[currentIngressKey] = enabled
 		}
+	}
+
+	if input.Istio.Revisions != nil {
+		returnMap["revisions"] = utils.FlattenStringSlice(input.Istio.Revisions)
 	}
 
 	return []interface{}{returnMap}

@@ -592,6 +592,66 @@ func TestAccDataSourceKubernetesCluster_serviceMesh(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceKubernetesCluster_serviceMeshRevisions(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			// create a cluster with an istio revision with revision currently at asm-1-20
+			Config: r.serviceMesRevisions(data, `["asm-1-20"]`),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("service_mesh_profile.0.mode").HasValue("Istio"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.internal_ingress_gateway_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.external_ingress_gateway_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.revisions.0").HasValue("asm-1-20"),
+			),
+		},
+		{
+			// start istio revision canary upgrade to asm-1-21
+			Config: r.serviceMesRevisions(data, `["asm-1-20", "asm-1-21"]`),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("service_mesh_profile.0.mode").HasValue("Istio"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.internal_ingress_gateway_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.external_ingress_gateway_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.revisions.0").HasValue("asm-1-20"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.revisions.1").HasValue("asm-1-21"),
+			),
+		},
+		{
+			// rollback the istio revision back to asm-1-20
+			Config: r.serviceMesRevisions(data, `["asm-1-20"]`),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("service_mesh_profile.0.mode").HasValue("Istio"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.internal_ingress_gateway_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.external_ingress_gateway_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.revisions.0").HasValue("asm-1-20"),
+			),
+		},
+		{
+			// start istio revision canary upgrade to asm-1-21
+			Config: r.serviceMesRevisions(data, `["asm-1-20", "asm-1-21"]`),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("service_mesh_profile.0.mode").HasValue("Istio"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.internal_ingress_gateway_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.external_ingress_gateway_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.revisions.0").HasValue("asm-1-20"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.revisions.1").HasValue("asm-1-21"),
+			),
+		},
+		{
+			// complete the istio revision upgrade to asm-1-21
+			Config: r.serviceMesRevisions(data, `["asm-1-21"]`),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("service_mesh_profile.0.mode").HasValue("Istio"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.internal_ingress_gateway_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.external_ingress_gateway_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.revisions.0").HasValue("asm-1-21"),
+			),
+		},
+	})
+}
+
 func (KubernetesClusterDataSource) basicConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -927,4 +987,14 @@ data "azurerm_kubernetes_cluster" "test" {
   resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
 `, KubernetesClusterResource{}.serviceMeshProfile(data, true, true))
+}
+
+func (KubernetesClusterDataSource) serviceMesRevisions(data acceptance.TestData, revisions string) string {
+	return fmt.Sprintf(`
+%s
+data "azurerm_kubernetes_cluster" "test" {
+  name                = azurerm_kubernetes_cluster.test.name
+  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
+}
+`, KubernetesClusterResource{}.addonProfileServiceMeshProfileRevisionsConfig(data, revisions))
 }

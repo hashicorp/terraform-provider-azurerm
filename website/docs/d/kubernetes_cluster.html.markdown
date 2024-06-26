@@ -385,6 +385,8 @@ A `service_mesh_profile` block exports the following:
 
 * `external_ingress_gateway_enabled` - Is Istio External Ingress Gateway enabled?
 
+* `revisions` - List of revisions of the Istio control plane. When an upgrade is not in progress, this holds one value. When canary upgrade is in progress, this can only hold two consecutive values. [Learn More](https://learn.microsoft.com/en-us/azure/aks/istio-upgrade).
+
 ---
 
 ## Timeouts
