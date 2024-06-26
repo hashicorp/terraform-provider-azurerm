@@ -25,11 +25,11 @@ data "azurerm_elastic_san_volume_group" "example" {
 
 data "azurerm_elastic_san_volume_snapshot" "example" {
   name            = "existing"
-  volume_group_id = data.azurerm_elastic_san.example.id
+  volume_group_id = data.azurerm_elastic_san_volume_group.example.id
 }
 
 output "id" {
-  value = data.azurerm_elastic_san_volume_group.example.id
+  value = data.azurerm_elastic_san_volume_snapshot.example.id
 }
 ```
 
@@ -47,13 +47,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Elastic SAN.
 
-* `creation_source` - A `creation_source` block as defined below.
-
----
-
-A `creation_source` block exports the following arguments:
-
 * `source_id` - The Resource ID from which the Snapshot is created.
+
+* `source_volume_size_gib` - Size of Source Volume.
+
+* `volume_name` - Source Volume Name of the Snapshot.
 
 ## Timeouts
 

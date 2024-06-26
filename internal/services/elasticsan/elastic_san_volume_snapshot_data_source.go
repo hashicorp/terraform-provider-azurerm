@@ -19,15 +19,11 @@ type ElasticSANVolumeSnapshotDataSource struct{}
 var _ sdk.DataSource = ElasticSANVolumeSnapshotDataSource{}
 
 type ElasticSANVolumeSnapshotDataSourceModel struct {
-	Name                string                                 `tfschema:"name"`
-	SourceVolumeSizeGiB int64                                  `tfschema:"source_volume_size_gib"`
-	CreateSource        []ElasticSANVolumeSnapshotCreateSource `tfschema:"creation_source"`
-	VolumeGroupId       string                                 `tfschema:"volume_group_id"`
-	VolumeName          string                                 `tfschema:"volume_name"`
-}
-
-type ElasticSANVolumeSnapshotCreateSource struct {
-	SourceId string `tfschema:"source_id"`
+	Name                  string `tfschema:"name"`
+	SourceId              string `tfschema:"source_id"`
+	SourceVolumeSizeInGiB int64  `tfschema:"source_volume_size_in_gib"`
+	VolumeGroupId         string `tfschema:"volume_group_id"`
+	VolumeName            string `tfschema:"volume_name"`
 }
 
 func (r ElasticSANVolumeSnapshotDataSource) ResourceType() string {
@@ -47,31 +43,26 @@ func (r ElasticSANVolumeSnapshotDataSource) Arguments() map[string]*pluginsdk.Sc
 		},
 
 		"volume_group_id": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: snapshots.ValidateVolumeGroupID,
 		},
 	}
 }
 
 func (r ElasticSANVolumeSnapshotDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"creation_source": {
-			Type:     pluginsdk.TypeList,
+		"source_id": {
+			Type:     pluginsdk.TypeString,
 			Computed: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"source_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-				},
-			},
 		},
-		"source_volume_size_gib": {
+
+		"source_volume_size_in_gib": {
 			Computed: true,
 			Type:     pluginsdk.TypeInt,
 		},
+
 		"volume_name": {
 			Computed: true,
 			Type:     pluginsdk.TypeString,
@@ -110,38 +101,20 @@ func (r ElasticSANVolumeSnapshotDataSource) Read() sdk.ResourceFunc {
 			state.Name = id.SnapshotName
 			if model := resp.Model; model != nil {
 				// these properties are not pointer so we don't need to check for nil
-				state.SourceVolumeSizeGiB = pointer.From(model.Properties.SourceVolumeSizeGiB)
+				state.SourceVolumeSizeInGiB = pointer.From(model.Properties.SourceVolumeSizeGiB)
 				state.VolumeName = pointer.From(model.Properties.VolumeName)
 
-				createSource, err := FlattenElasticSANVolumeSnapshotCreateSource(model.Properties.CreationData)
+				// only ElasticSAN Volumes are supported for now
+				volumeId, err := volumes.ParseVolumeIDInsensitively(model.Properties.CreationData.SourceId)
 				if err != nil {
-					return err
+					return fmt.Errorf("parsing source ID as ElasticSAN Volume ID: %+v", err)
 				}
-				state.CreateSource = *createSource
+
+				state.SourceId = volumeId.ID()
 			}
 			metadata.SetID(id)
 
 			return metadata.Encode(&state)
 		},
 	}
-}
-
-func FlattenElasticSANVolumeSnapshotCreateSource(input snapshots.SnapshotCreationData) (*[]ElasticSANVolumeSnapshotCreateSource, error) {
-	if input.SourceId == "" {
-		return &[]ElasticSANVolumeSnapshotCreateSource{}, nil
-	}
-
-	// for now source ID can only be ElasticSAN Volume ID
-	var sourceId string
-	parsedSourceId, err := volumes.ParseVolumeIDInsensitively(input.SourceId)
-	if err != nil {
-		return nil, fmt.Errorf("parsing source ID as ElasticSAN Volume ID: %+v", err)
-	}
-	sourceId = parsedSourceId.ID()
-
-	return &[]ElasticSANVolumeSnapshotCreateSource{
-		{
-			SourceId: sourceId,
-		},
-	}, nil
 }
