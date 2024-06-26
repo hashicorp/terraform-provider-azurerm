@@ -15,10 +15,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type RedisCacheAccessPolicyResource struct {
-}
+type RedisCacheAccessPolicyResource struct{}
 
-var _ sdk.Resource = RedisCacheAccessPolicyResource{}
+var _ sdk.ResourceWithUpdate = RedisCacheAccessPolicyResource{}
 
 type RedisCacheAccessPolicyResourceModel struct {
 	Name         string `tfschema:"name"`
@@ -42,7 +41,6 @@ func (r RedisCacheAccessPolicyResource) Arguments() map[string]*pluginsdk.Schema
 		"permissions": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
-			ForceNew: true,
 		},
 	}
 }
@@ -107,6 +105,52 @@ func (r RedisCacheAccessPolicyResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			return nil
+		},
+	}
+}
+
+func (r RedisCacheAccessPolicyResource) Update() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Redis.Redis
+
+			var state RedisCacheAccessPolicyResourceModel
+			if err := metadata.Decode(&state); err != nil {
+				return fmt.Errorf("decoding %+v", err)
+			}
+
+			id, err := redis.ParseAccessPolicyID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			existing, err := client.AccessPolicyGet(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: `model` was nil", *id)
+			}
+
+			if existing.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: `properties` was nil", *id)
+			}
+
+			model := *existing.Model
+			if metadata.ResourceData.HasChange("permissions") {
+				model.Properties.Permissions = state.Permissions
+			}
+
+			locks.ByID(state.RedisCacheID)
+			defer locks.UnlockByID(state.RedisCacheID)
+
+			if err := client.AccessPolicyCreateUpdateThenPoll(ctx, *id, model); err != nil {
+				return fmt.Errorf("updating %s: %+v", *id, err)
+			}
+
 			return nil
 		},
 	}

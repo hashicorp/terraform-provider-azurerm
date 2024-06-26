@@ -108,8 +108,9 @@ func resourceSynapseSqlPool() *pluginsdk.Resource {
 			},
 
 			"collation": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// NOTE: O+C The default of this is configurable by the user, so this should remain
 				Computed:     true,
 				ForceNew:     true,
 				ValidateFunc: mssqlValidate.DatabaseCollation(),

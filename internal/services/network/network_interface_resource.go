@@ -177,7 +177,6 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 			"internal_dns_name_label": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 

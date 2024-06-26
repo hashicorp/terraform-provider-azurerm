@@ -24,6 +24,9 @@ func TestAccNginxCertificateDataSource_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("certificate_virtual_path").Exists(),
 				check.That(data.ResourceName).Key("key_vault_secret_id").Exists(),
 				check.That(data.ResourceName).Key("key_virtual_path").Exists(),
+				check.That(data.ResourceName).Key("sha1_thumbprint").Exists(),
+				check.That(data.ResourceName).Key("key_vault_secret_version").Exists(),
+				check.That(data.ResourceName).Key("key_vault_secret_creation_date").Exists(),
 			),
 		},
 	})

@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2019-10-17-preview/privatelinkscopesapis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-07-01-preview/privatelinkscopesapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -55,7 +55,7 @@ func TestAccMonitorPrivateLinkScope_complete(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data, "Test"),
+			Config: r.complete(data, "Test", "Open", "Open"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -70,14 +70,14 @@ func TestAccMonitorPrivateLinkScope_update(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data, "Test1"),
+			Config: r.complete(data, "Test1", "Open", "Open"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.complete(data, "Test2"),
+			Config: r.complete(data, "Test2", "PrivateOnly", "PrivateOnly"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -123,6 +123,7 @@ func (r MonitorPrivateLinkScopeResource) basic(data acceptance.TestData) string 
 resource "azurerm_monitor_private_link_scope" "test" {
   name                = "acctest-ampls-%d"
   resource_group_name = azurerm_resource_group.test.name
+
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -134,11 +135,12 @@ func (r MonitorPrivateLinkScopeResource) requiresImport(data acceptance.TestData
 resource "azurerm_monitor_private_link_scope" "import" {
   name                = azurerm_monitor_private_link_scope.test.name
   resource_group_name = azurerm_monitor_private_link_scope.test.resource_group_name
+
 }
 `, r.basic(data))
 }
 
-func (r MonitorPrivateLinkScopeResource) complete(data acceptance.TestData, tag string) string {
+func (r MonitorPrivateLinkScopeResource) complete(data acceptance.TestData, tag string, ingestionAccessMode string, queryAccessMode string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -146,9 +148,12 @@ resource "azurerm_monitor_private_link_scope" "test" {
   name                = "acctest-AMPLS-%d"
   resource_group_name = azurerm_resource_group.test.name
 
+  ingestion_access_mode = "%s"
+  query_access_mode     = "%s"
+
   tags = {
     ENV = "%s"
   }
 }
-`, r.template(data), data.RandomInteger, tag)
+`, r.template(data), data.RandomInteger, ingestionAccessMode, queryAccessMode, tag)
 }

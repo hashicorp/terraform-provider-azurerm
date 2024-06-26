@@ -49,6 +49,11 @@ func (d DataCollectionEndpointDataSource) Attributes() map[string]*pluginsdk.Sch
 			Computed: true,
 		},
 
+		"immutable_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
 		"location": commonschema.LocationComputed(),
 
 		"logs_ingestion_endpoint": {
@@ -96,7 +101,7 @@ func (d DataCollectionEndpointDataSource) Read() sdk.ResourceFunc {
 			}
 
 			var enablePublicNetWorkAccess bool
-			var description, kind, location, configurationAccessEndpoint, logsIngestionEndpoint string
+			var description, kind, location, configurationAccessEndpoint, logsIngestionEndpoint, immutableId string
 			var tag map[string]interface{}
 			if model := resp.Model; model != nil {
 				kind = flattenDataCollectionEndpointKind(model.Kind)
@@ -115,6 +120,10 @@ func (d DataCollectionEndpointDataSource) Read() sdk.ResourceFunc {
 					if prop.LogsIngestion != nil && prop.LogsIngestion.Endpoint != nil {
 						logsIngestionEndpoint = *prop.LogsIngestion.Endpoint
 					}
+
+					if prop.ImmutableId != nil {
+						immutableId = *prop.ImmutableId
+					}
 				}
 			}
 
@@ -124,6 +133,7 @@ func (d DataCollectionEndpointDataSource) Read() sdk.ResourceFunc {
 				ConfigurationAccessEndpoint: configurationAccessEndpoint,
 				Description:                 description,
 				Kind:                        kind,
+				ImmutableId:                 immutableId,
 				Location:                    location,
 				LogsIngestionEndpoint:       logsIngestionEndpoint,
 				Name:                        id.DataCollectionEndpointName,

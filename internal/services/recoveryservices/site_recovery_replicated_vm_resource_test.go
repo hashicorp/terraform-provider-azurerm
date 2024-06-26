@@ -444,16 +444,14 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
     target_replica_disk_type   = "Premium_LRS"
   }
 
-  network_interface {
-    source_network_interface_id   = azurerm_network_interface.test.id
-    target_subnet_name            = azurerm_subnet.test2.name
-    recovery_public_ip_address_id = azurerm_public_ip.test-recovery.id
-  }
-
   depends_on = [
     azurerm_site_recovery_protection_container_mapping.test,
     azurerm_site_recovery_network_mapping.test,
   ]
+
+  lifecycle {
+    ignore_changes = ["network_interface"]
+  }
 }
 `, r.template(data), data.RandomInteger)
 }

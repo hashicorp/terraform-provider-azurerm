@@ -86,6 +86,8 @@ func resourceBatchAccount() *pluginsdk.Resource {
 			"allowed_authentication_modes": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
+				// NOTE: O+C This can remain since we need to send an empty slice to properly remove this, which means this can't be set back to
+				// its default which is to return all three values
 				Computed: true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,

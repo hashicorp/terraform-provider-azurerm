@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -81,6 +82,37 @@ func resourceVirtualNetworkPeering() *pluginsdk.Resource {
 				Default:  false,
 			},
 
+			"local_subnet_names": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+
+			"only_ipv6_peering_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
+			},
+
+			"peer_complete_virtual_networks_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+				ForceNew: true,
+			},
+
+			"remote_subnet_names": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+
 			"use_remote_gateways": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -121,11 +153,24 @@ func resourceVirtualNetworkPeeringCreate(d *pluginsdk.ResourceData, meta interfa
 			AllowVirtualNetworkAccess: pointer.To(d.Get("allow_virtual_network_access").(bool)),
 			AllowForwardedTraffic:     pointer.To(d.Get("allow_forwarded_traffic").(bool)),
 			AllowGatewayTransit:       pointer.To(d.Get("allow_gateway_transit").(bool)),
+			PeerCompleteVnets:         pointer.To(d.Get("peer_complete_virtual_networks_enabled").(bool)),
 			UseRemoteGateways:         pointer.To(d.Get("use_remote_gateways").(bool)),
 			RemoteVirtualNetwork: &virtualnetworkpeerings.SubResource{
 				Id: pointer.To(d.Get("remote_virtual_network_id").(string)),
 			},
 		},
+	}
+
+	if v, ok := d.GetOk("only_ipv6_peering_enabled"); ok {
+		peer.Properties.EnableOnlyIPv6Peering = pointer.To(v.(bool))
+	}
+
+	if v, ok := d.GetOk("local_subnet_names"); ok {
+		peer.Properties.LocalSubnetNames = utils.ExpandStringSlice(v.([]interface{}))
+	}
+
+	if v, ok := d.GetOk("remote_subnet_names"); ok {
+		peer.Properties.RemoteSubnetNames = utils.ExpandStringSlice(v.([]interface{}))
 	}
 
 	locks.ByID(virtualNetworkPeeringResourceType)
@@ -202,6 +247,12 @@ func resourceVirtualNetworkPeeringUpdate(d *pluginsdk.ResourceData, meta interfa
 	if d.HasChange("allow_virtual_network_access") {
 		existing.Model.Properties.AllowVirtualNetworkAccess = pointer.To(d.Get("allow_virtual_network_access").(bool))
 	}
+	if d.HasChange("local_subnet_names") {
+		existing.Model.Properties.LocalSubnetNames = utils.ExpandStringSlice(d.Get("local_subnet_names").([]interface{}))
+	}
+	if d.HasChange("remote_subnet_names") {
+		existing.Model.Properties.RemoteSubnetNames = utils.ExpandStringSlice(d.Get("remote_subnet_names").([]interface{}))
+	}
 	if d.HasChange("use_remote_gateways") {
 		existing.Model.Properties.UseRemoteGateways = pointer.To(d.Get("use_remote_gateways").(bool))
 	}
@@ -246,6 +297,10 @@ func resourceVirtualNetworkPeeringRead(d *pluginsdk.ResourceData, meta interface
 			d.Set("allow_virtual_network_access", peer.AllowVirtualNetworkAccess)
 			d.Set("allow_forwarded_traffic", peer.AllowForwardedTraffic)
 			d.Set("allow_gateway_transit", peer.AllowGatewayTransit)
+			d.Set("peer_complete_virtual_networks_enabled", pointer.From(peer.PeerCompleteVnets))
+			d.Set("only_ipv6_peering_enabled", pointer.From(peer.EnableOnlyIPv6Peering))
+			d.Set("local_subnet_names", pointer.From(peer.LocalSubnetNames))
+			d.Set("remote_subnet_names", pointer.From(peer.RemoteSubnetNames))
 			d.Set("use_remote_gateways", peer.UseRemoteGateways)
 
 			remoteVirtualNetworkId := ""

@@ -55,7 +55,7 @@ func TestAccSynapseSparkPool_complete(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data, "2.4"),
+			Config: r.complete(data, "3.4"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -78,7 +78,7 @@ func TestAccSynapseSparkPool_update(t *testing.T) {
 		},
 		data.ImportStep("spark_events_folder", "spark_log_folder"),
 		{
-			Config: r.complete(data, "2.4"),
+			Config: r.complete(data, "3.4"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -99,22 +99,6 @@ func TestAccSynapseSparkPool_sparkVersion(t *testing.T) {
 	r := SynapseSparkPoolResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.sparkVersion(data, "2.4"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		// not returned by service
-		data.ImportStep("spark_events_folder", "spark_log_folder"),
-		{
-			Config: r.sparkVersion(data, "3.1"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		// not returned by service
-		data.ImportStep("spark_events_folder", "spark_log_folder"),
 		{
 			Config: r.sparkVersion(data, "3.2"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -164,7 +148,7 @@ func TestAccSynapseSpark3Pool_complete(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data, "3.1"),
+			Config: r.complete(data, "3.4"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -187,7 +171,7 @@ func TestAccSynapseSpark3Pool_update(t *testing.T) {
 		},
 		data.ImportStep("spark_events_folder", "spark_log_folder"),
 		{
-			Config: r.complete(data, "3.1"),
+			Config: r.complete(data, "3.3"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -231,6 +215,7 @@ resource "azurerm_synapse_spark_pool" "test" {
   node_size_family     = "MemoryOptimized"
   node_size            = "Small"
   node_count           = 3
+  spark_version        = "3.4"
 }
 `, template, data.RandomString)
 }
@@ -328,6 +313,7 @@ resource "azurerm_synapse_spark_pool" "test" {
   node_size                 = "XXXLarge"
   node_count                = 3
   compute_isolation_enabled = true
+  spark_version             = "3.4"
 }
 `, template, data.RandomString)
 }

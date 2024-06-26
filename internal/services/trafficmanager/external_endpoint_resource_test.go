@@ -150,7 +150,6 @@ provider "azurerm" {
 resource "azurerm_traffic_manager_external_endpoint" "test" {
   name       = "acctestend-azure%d"
   target     = "www.example.com"
-  weight     = 3
   profile_id = azurerm_traffic_manager_profile.test.id
 }
 `, r.template(data), data.RandomInteger)

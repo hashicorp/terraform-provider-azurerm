@@ -22,6 +22,10 @@ data "azurerm_hdinsight_cluster" "example" {
 output "https_endpoint" {
   value = data.azurerm_hdinsight_cluster.example.https_endpoint
 }
+
+output "cluster_id" {
+  value = data.azurerm_hdinsight_cluster.example.cluster_id
+}
 ```
 
 ## Argument Reference
@@ -31,6 +35,12 @@ output "https_endpoint" {
 * `resource_group_name` - Specifies the name of the Resource Group in which this HDInsight Cluster exists.
 
 ## Attributes Reference
+
+* `id` - The fully qualified HDInsight resource ID.
+
+* `name` - The HDInsight Cluster name.
+
+* `cluster_id` - The HDInsight Cluster ID.
 
 * `location` - The Azure Region in which this HDInsight Cluster exists.
 

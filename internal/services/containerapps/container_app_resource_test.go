@@ -1970,7 +1970,7 @@ resource "azurerm_container_app" "test" {
       command = ["sh", "-c", "CONTAINER=two python3 -m flask run --host=0.0.0.0"]
 
       readiness_probe {
-        transport = "HTTP"
+        transport = "TCP"
         port      = 5000
       }
 
@@ -1988,11 +1988,6 @@ resource "azurerm_container_app" "test" {
         interval_seconds        = 20
         timeout                 = 2
         failure_count_threshold = 1
-      }
-
-      startup_probe {
-        transport = "TCP"
-        port      = 5000
       }
 
       volume_mounts {
@@ -2115,7 +2110,6 @@ resource "azurerm_container_app" "test" {
       storage_name = azurerm_container_app_environment_storage.test.name
     }
 
-    min_replicas = 1
     max_replicas = 4
 
     revision_suffix = "%[3]s"

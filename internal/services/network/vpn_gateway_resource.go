@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -27,7 +28,7 @@ import (
 var VPNGatewayResourceName = "azurerm_vpn_gateway"
 
 func resourceVPNGateway() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceVPNGatewayCreate,
 		Read:   resourceVPNGatewayRead,
 		Update: resourceVPNGatewayUpdate,
@@ -66,7 +67,7 @@ func resourceVPNGateway() *pluginsdk.Resource {
 			"routing_preference": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Default:  "Microsoft Network",
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"Microsoft Network",
@@ -197,6 +198,21 @@ func resourceVPNGateway() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["routing_preference"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				"Microsoft Network",
+				"Internet",
+			}, false),
+		}
+	}
+
+	return resource
 }
 
 func resourceVPNGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error {

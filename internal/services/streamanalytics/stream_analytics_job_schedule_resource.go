@@ -53,8 +53,9 @@ func (r JobScheduleResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"start_time": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// NOTE: O+C There is no sensible default that we can set here, this should remain Computed
 			Computed:     true,
 			ValidateFunc: validate.ISO8601DateTime,
 		},

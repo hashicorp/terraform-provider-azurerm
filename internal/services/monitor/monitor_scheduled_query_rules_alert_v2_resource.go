@@ -107,7 +107,6 @@ func (r ScheduledQueryRulesAlertV2Resource) Arguments() map[string]*pluginsdk.Sc
 			Required: true,
 			MinItems: 1,
 			Elem: &pluginsdk.Resource{
-
 				Schema: map[string]*pluginsdk.Schema{
 					"query": {
 						Type:         pluginsdk.TypeString,
@@ -431,11 +430,6 @@ func (r ScheduledQueryRulesAlertV2Resource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			ExpanededIdentity, err := identity.ExpandSystemOrUserAssignedMapFromModel(model.Identity)
-			if err != nil {
-				return fmt.Errorf("expanding SystemOrUserAssigned Identity: %+v", err)
-			}
-
 			kind := scheduledqueryrules.KindLogAlert
 			properties := &scheduledqueryrules.ScheduledQueryRuleResource{
 				Kind:     &kind,
@@ -449,8 +443,7 @@ func (r ScheduledQueryRulesAlertV2Resource) Create() sdk.ResourceFunc {
 					SkipQueryValidation:                   &model.SkipQueryValidation,
 					TargetResourceTypes:                   &model.TargetResourceTypes,
 				},
-				Identity: ExpanededIdentity,
-				Tags:     &model.Tags,
+				Tags: &model.Tags,
 			}
 
 			properties.Properties.Actions = expandScheduledQueryRulesAlertV2ActionsModel(model.Actions)
@@ -467,6 +460,14 @@ func (r ScheduledQueryRulesAlertV2Resource) Create() sdk.ResourceFunc {
 
 			if model.EvaluationFrequency != "" {
 				properties.Properties.EvaluationFrequency = &model.EvaluationFrequency
+			}
+
+			if len(model.Identity) != 0 {
+				ExpandedIdentity, err := identity.ExpandSystemOrUserAssignedMapFromModel(model.Identity)
+				if err != nil {
+					return fmt.Errorf("expanding SystemOrUserAssigned Identity: %+v", err)
+				}
+				properties.Identity = ExpandedIdentity
 			}
 
 			if model.MuteActionsDuration != "" {
@@ -596,9 +597,13 @@ func (r ScheduledQueryRulesAlertV2Resource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("identity") {
-				model.Identity, err = identity.ExpandSystemOrUserAssignedMapFromModel(resourceModel.Identity)
-				if err != nil {
-					return fmt.Errorf("expanding SystemOrUserAssigned Identity: %+v", err)
+				if len(resourceModel.Identity) != 0 {
+					model.Identity, err = identity.ExpandSystemOrUserAssignedMapFromModel(resourceModel.Identity)
+					if err != nil {
+						return fmt.Errorf("expanding SystemOrUserAssigned Identity: %+v", err)
+					}
+				} else {
+					model.Identity = nil
 				}
 			}
 

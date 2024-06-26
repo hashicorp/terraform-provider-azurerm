@@ -129,7 +129,6 @@ func (r MachineLearningDataStoreDataLakeGen2) Arguments() map[string]*pluginsdk.
 		"authority_url": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 

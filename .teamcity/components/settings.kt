@@ -119,6 +119,9 @@ var serviceTestConfigurationOverrides = mapOf(
         // Logz is only available in certain locations
         "logz" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "westus2", "eastus2", false)),
 
+        // Maps is only available in certain locations
+        "maps" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "westus2", "eastus", false)),
+
         // MobileNetwork is only available in certain locations
         "mobilenetwork" to testConfiguration(locationOverride = LocationConfiguration("eastus", "westeurope", "centraluseuap", false)),
 

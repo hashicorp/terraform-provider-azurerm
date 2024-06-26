@@ -119,6 +119,7 @@ func resourceSentinelAlertRuleNrt() *pluginsdk.Resource {
 			"incident": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
+				// NOTE: O+C The API creates an incident if omitted but overwriting this/reverting to the default can be done without issue so this can remain
 				Computed: true,
 				MaxItems: 1,
 				MinItems: 1,

@@ -266,6 +266,10 @@ resource "azurerm_security_center_automation" "test" {
   source {
     event_source = "Alerts"
   }
+
+  tags = {
+    Env2 = "Test2"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
 }
