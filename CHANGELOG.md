@@ -29,6 +29,7 @@ BUG FIXES:
 * `azurerm_linux_web_app_slot` - set `allowed_applications` in the request payload [GH-26462]
 * `azurerm_windows_web_app` - set `allowed_applications` in the request payload [GH-26462]
 * `azurerm_windows_web_app_slot` - set `allowed_applications` in the request payload [GH-26462]
+* `azurerm_api_management` - remove ForceNew from `additional_location.zones` [GH-26384]
 
 DEPRECATIONS:
 
