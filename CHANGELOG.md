@@ -10,6 +10,7 @@ ENHANCEMENTS:
 * Data Source: `azurerm_nginx_certificate` - export the properties `sha1_thumbprint`, `key_vault_secret_version`, `key_vault_secret_creation_date`, `error_code` and `error_message` [GH-26160]
 * `azurerm_kubernetes_cluster_node_pool` - Pod Disruption Budgets are now respected when deleting a node pool [GH-26471]
 * `azurerm_monitor_data_collection_endpoint` - support for the `immutable_id` property [GH-26380]
+* `azurerm_mssql_managed_instance` - support the value `GZRS` for the `storage_account_type` property [GH-26448]
 * `azurerm_redis_cache_access_policy` - allow updates to `permissions` [GH-26440]
 * `azurerm_redhat_openshift_cluster` - support for the `managed_resource_group_name` property [GH-25529]
 * `azurerm_redhat_openshift_cluster` - support for the `preconfigured_network_security_group_enabled` property [GH-26082]
