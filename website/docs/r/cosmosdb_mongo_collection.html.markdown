@@ -72,7 +72,7 @@ The `index` block supports the following:
 
 * `unique` - (Optional) Is the index unique or not? Defaults to `false`.
 
-~> **Note:** An index with an "_id" key must be specified.
+~> **Note:** An index with an "_id" key must be specified and it must have 'unique' property set to true.
 
 ## Attributes Reference
 
