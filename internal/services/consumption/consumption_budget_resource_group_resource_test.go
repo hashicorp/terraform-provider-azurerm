@@ -219,7 +219,7 @@ resource "azurerm_consumption_budget_resource_group" "test" {
     threshold      = 95.0
     operator       = "GreaterThan"
     threshold_type = "Forecasted"
-    locale         = "en-US"
+    locale         = "en-us"
 
     contact_emails = [
       "foo@example.com",
