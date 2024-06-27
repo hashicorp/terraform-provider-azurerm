@@ -258,6 +258,8 @@ func resourceMsSqlTransparentDataEncryptionRead(d *pluginsdk.ResourceData, meta 
 		}
 	}
 
+	hsmKey := ""
+	keyVaultKeyId := ""
 	if keyId != "" {
 		isHSMURI, err, _, _ := managedHsmHelpers.IsManagedHSMURI(env, keyId)
 		if err != nil {
@@ -265,14 +267,19 @@ func resourceMsSqlTransparentDataEncryptionRead(d *pluginsdk.ResourceData, meta 
 		}
 
 		if isHSMURI {
-			if err := d.Set("managed_hsm_key_id", keyId); err != nil {
-				return fmt.Errorf("setting `managed_hsm_key_id`: %+v", err)
-			}
+			hsmKey = keyId
 		} else {
-			if err := d.Set("key_vault_key_id", keyId); err != nil {
-				return fmt.Errorf("setting `key_vault_key_id`: %+v", err)
-			}
+			keyVaultKeyId = keyId
+
 		}
+	}
+
+	if err := d.Set("managed_hsm_key_id", hsmKey); err != nil {
+		return fmt.Errorf("setting `managed_hsm_key_id`: %+v", err)
+	}
+
+	if err := d.Set("key_vault_key_id", keyVaultKeyId); err != nil {
+		return fmt.Errorf("setting `key_vault_key_id`: %+v", err)
 	}
 
 	if err := d.Set("auto_rotation_enabled", autoRotationEnabled); err != nil {
