@@ -15,6 +15,7 @@ ENHANCEMENTS:
 * `azurerm_redhat_openshift_cluster` - support for the `managed_resource_group_name` property [GH-25529]
 * `azurerm_redhat_openshift_cluster` - support for the `preconfigured_network_security_group_enabled` property [GH-26082]
 * `azurerm_iotcentral_application` - remove Computed from `template` and set default of `iotc-pnp-preview@1.0.0` in 4.0  [GH-26485]
+* `azurerm_digital_twins_time_series_database_connection` - remove Computed from `kusto_table_name` and set a default of `AdtPropertyEvents` in 4.0 [GH-26484]
 
 BUG FIXES:
 
