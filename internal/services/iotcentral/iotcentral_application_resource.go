@@ -105,6 +105,16 @@ func resourceIotCentralApplication() *pluginsdk.Resource {
 		},
 	}
 
+	if !features.FourPointOhBeta() {
+		resource.Schema["template"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			Computed:     true,
+			ValidateFunc: validate.ApplicationTemplateName,
+		}
+	}
+
 	return resource
 }
 
