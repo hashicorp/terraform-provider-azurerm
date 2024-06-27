@@ -5,7 +5,6 @@ package mssql
 
 import (
 	"fmt"
-	managedHsmHelpers "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/helpers"
 	"log"
 	"net/url"
 	"strings"
@@ -15,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	keyVaultParser "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	managedHsmHelpers "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/helpers"
 	mhsmParser "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/migration"

@@ -262,7 +262,16 @@ resource "azurerm_mssql_server" "test" {
 
 func (r MsSqlServerTransparentDataEncryptionResource) withManagedHSM(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-mssql-%[2]s"
+  location = "%[1]s"
+}
 
 resource "azurerm_key_vault" "test" {
   name                       = "acc%[2]s"
@@ -419,5 +428,5 @@ resource "azurerm_mssql_server" "test" {
     ignore_changes = [transparent_data_encryption_key_vault_key_id]
   }
 }
-`, r.server(data), data.RandomStringOfLength(5))
+`, data.Locations.Primary, data.RandomStringOfLength(5))
 }
