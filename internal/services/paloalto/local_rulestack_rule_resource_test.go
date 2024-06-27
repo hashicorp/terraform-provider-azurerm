@@ -212,14 +212,6 @@ resource "azurerm_palo_alto_local_rulestack_rule" "test" {
     countries = ["US", "GB"]
   }
 }
-
-
-
-
-
-
-
-
 `, r.template(data), data.RandomInteger)
 }
 
@@ -316,7 +308,7 @@ resource "azurerm_palo_alto_local_rulestack_rule" "test" {
   negate_destination = false
   negate_source      = false
 
-  protocol = "TCP:8080"
+  protocol_ports = ["TCP:8080", "TCP:8081"]
 
   enabled = true
 

@@ -341,8 +341,8 @@ func (r LocalRuleStackRule) Read() sdk.ResourceFunc {
 				}
 				state.NegateDestination = boolEnumAsBoolRule(props.NegateDestination)
 				state.NegateSource = boolEnumAsBoolRule(props.NegateSource)
-				if v := pointer.From(props.Protocol); !strings.EqualFold(v, protocolApplicationDefault) {
-					state.Protocol = pointer.From(props.Protocol)
+				if v := pointer.From(props.Protocol); v != "" && !strings.EqualFold(v, protocolApplicationDefault) {
+					state.Protocol = v
 				} else {
 					state.Protocol = protocolApplicationDefault
 				}
@@ -470,11 +470,19 @@ func (r LocalRuleStackRule) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("protocol") {
-				ruleEntry.Properties.Protocol = pointer.To(model.Protocol)
+				if model.Protocol != "" && !strings.EqualFold(model.Protocol, protocolApplicationDefault) && len(model.ProtocolPorts) == 0 {
+					ruleEntry.Properties.Protocol = pointer.To(model.Protocol)
+				} else {
+					ruleEntry.Properties.Protocol = nil
+				}
 			}
 
 			if metadata.ResourceData.HasChange("protocol_ports") {
-				ruleEntry.Properties.ProtocolPortList = pointer.To(model.ProtocolPorts)
+				if len(model.ProtocolPorts) != 0 {
+					ruleEntry.Properties.ProtocolPortList = pointer.To(model.ProtocolPorts)
+				} else {
+					ruleEntry.Properties.ProtocolPortList = nil
+				}
 			}
 
 			if metadata.ResourceData.HasChange("enabled") {
