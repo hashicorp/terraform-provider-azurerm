@@ -128,7 +128,6 @@ func resourceNestedEndpoint() *pluginsdk.Resource {
 			"endpoint_location": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
-				Computed:         true,
 				StateFunc:        location.StateFunc,
 				DiffSuppressFunc: location.DiffSuppressFunc,
 			},
