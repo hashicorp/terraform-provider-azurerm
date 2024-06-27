@@ -13,6 +13,7 @@ ENHANCEMENTS:
 * `azurerm_redis_cache_access_policy` - allow updates to `permissions` [GH-26440]
 * `azurerm_redhat_openshift_cluster` - support for the `managed_resource_group_name` property [GH-25529]
 * `azurerm_redhat_openshift_cluster` - support for the `preconfigured_network_security_group_enabled` property [GH-26082]
+* `azurerm_iotcentral_application` - remove Computed from `template` and set default of `iotc-pnp-preview@1.0.0` in 4.0  [GH-26485]
 
 BUG FIXES:
 
