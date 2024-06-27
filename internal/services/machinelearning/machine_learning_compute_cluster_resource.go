@@ -367,54 +367,20 @@ func resourceComputeClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
-	compute, err := client.ComputeGet(ctx, *id)
+	existing, err := client.ComputeGet(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-
-	computeModel := compute.Model
-	if computeModel == nil {
+	payload := existing.Model
+	if payload == nil {
 		return fmt.Errorf("retrieving %s: `model` was nil", *id)
 	}
-
 	identity, err := expandIdentity(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
-
-	vmPriority := machinelearningcomputes.VMPriority(d.Get("vm_priority").(string))
-	computeClusterAmlComputeProperties := machinelearningcomputes.AmlComputeProperties{
-		VMSize:                 utils.String(d.Get("vm_size").(string)),
-		VMPriority:             &vmPriority,
-		ScaleSettings:          expandScaleSettings(d.Get("scale_settings").([]interface{})),
-		UserAccountCredentials: expandUserAccountCredentials(d.Get("ssh").([]interface{})),
-		EnableNodePublicIP:     pointer.To(d.Get("node_public_ip_enabled").(bool)),
-	}
-
-	computeClusterAmlComputeProperties.RemoteLoginPortPublicAccess = pointer.To(machinelearningcomputes.RemoteLoginPortPublicAccessDisabled)
-	if d.Get("ssh_public_access_enabled").(bool) {
-		computeClusterAmlComputeProperties.RemoteLoginPortPublicAccess = pointer.To(machinelearningcomputes.RemoteLoginPortPublicAccessEnabled)
-	}
-
-	if subnetId, ok := d.GetOk("subnet_resource_id"); ok && subnetId.(string) != "" {
-		computeClusterAmlComputeProperties.Subnet = &machinelearningcomputes.ResourceId{Id: subnetId.(string)}
-	}
-
-	computeClusterProperties := machinelearningcomputes.AmlCompute{
-		Properties:       &computeClusterAmlComputeProperties,
-		ComputeLocation:  utils.String(d.Get("location").(string)),
-		Description:      utils.String(d.Get("description").(string)),
-		DisableLocalAuth: utils.Bool(!d.Get("local_auth_enabled").(bool)),
-	}
-
-	computeClusterParameters := machinelearningcomputes.ComputeResource{
-		Properties: computeClusterProperties,
-		Identity:   identity,
-		Location:   computeModel.Location,
-		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
-	}
-
-	if err := client.ComputeCreateOrUpdateThenPoll(ctx, *id, computeClusterParameters); err != nil {
+	payload.Identity = identity
+	if err := client.ComputeCreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
