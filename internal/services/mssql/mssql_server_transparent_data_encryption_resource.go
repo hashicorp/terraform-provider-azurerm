@@ -105,7 +105,7 @@ func resourceMsSqlTransparentDataEncryptionCreateUpdate(d *pluginsdk.ResourceDat
 	serverKeyName := ""
 	serverKeyType := sql.ServerKeyTypeServiceManaged
 
-	if v, ok := d.GetOk("key_vault_id"); ok {
+	if v, ok := d.GetOk("key_vault_key_id"); ok {
 		keyVaultKeyId := strings.TrimSpace(v.(string))
 		// Update the server key type to AKV
 		serverKeyType = sql.ServerKeyTypeAzureKeyVault

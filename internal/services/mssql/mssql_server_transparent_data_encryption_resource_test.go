@@ -199,7 +199,7 @@ func (r MsSqlServerTransparentDataEncryptionResource) managedHSM(data acceptance
 	return fmt.Sprintf(`
 %s
 
-resource "managed_hsm_key_id" "test" {
+resource "azurerm_mssql_server_transparent_data_encryption" "test" {
   server_id          = azurerm_mssql_server.test.id
   managed_hsm_key_id = azurerm_key_vault_managed_hardware_security_module_key.test.versioned_id
 }
