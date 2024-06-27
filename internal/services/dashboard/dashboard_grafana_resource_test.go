@@ -266,6 +266,16 @@ resource "azurerm_dashboard_grafana" "test" {
     resource_id = "${azurerm_resource_group.test.id}/providers/microsoft.monitor/accounts/a-mwr-%[2]d-2"
   }
 
+  smtp {
+    enabled          = true
+    host             = "localhost:26"
+    user             = "user"
+    password         = "password"
+    from_address     = "admin@grafana.localhost"
+    from_name        = "Grafana"
+    start_tls_policy = "OpportunisticStartTLS"
+  }
+
   tags = {
     key2 = "value2"
   }
