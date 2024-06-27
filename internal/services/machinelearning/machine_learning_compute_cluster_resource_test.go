@@ -178,7 +178,6 @@ resource "azurerm_machine_learning_compute_cluster" "test" {
   vm_priority                   = "LowPriority"
   vm_size                       = "STANDARD_DS2_V2"
   machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
-  local_auth_enabled            = false
 
   scale_settings {
     min_node_count                       = 0
