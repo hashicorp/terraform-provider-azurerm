@@ -30,6 +30,7 @@ BUG FIXES:
 * `azurerm_windows_web_app` - set `allowed_applications` in the request payload [GH-26462]
 * `azurerm_windows_web_app_slot` - set `allowed_applications` in the request payload [GH-26462]
 * `azurerm_api_management` - remove ForceNew from `additional_location.zones` [GH-26384]
+* `azurerm_logic_app_integration_account_schema` - `name` now allows underscores [GH-26475]
 
 DEPRECATIONS:
 
