@@ -518,9 +518,6 @@ func validateKeyVaultDetails(keyVaultDetails *diskEncryptionSetKeyVault) error {
 		return fmt.Errorf("validating Key Vault %q (Resource Group %q) for Disk Encryption Set: Soft Delete must be enabled", keyVaultDetails.keyVaultName, keyVaultDetails.resourceGroupName)
 	}
 
-	if !keyVaultDetails.purgeProtectionEnabled {
-		return fmt.Errorf("validating Key Vault %q (Resource Group %q) for Disk Encryption Set: Purge Protection must be enabled", keyVaultDetails.keyVaultName, keyVaultDetails.resourceGroupName)
-	}
 	return nil
 }
 
