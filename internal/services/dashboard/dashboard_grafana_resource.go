@@ -391,6 +391,10 @@ func (r DashboardGrafanaResource) Update() sdk.ResourceFunc {
 				properties.Tags = &model.Tags
 			}
 
+			if metadata.ResourceData.HasChange("smtp") {
+				properties.Properties.GrafanaConfigurations = expandSMTPConfigurationModel(model.SMTP)
+			}
+
 			if err := client.GrafanaCreateThenPoll(ctx, *id, *properties); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
