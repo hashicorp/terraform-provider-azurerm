@@ -1,3 +1,10 @@
+## 3.111.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* `azurerm_firewall_polic`y - remove Computed from the `sku` property and add a default of `Standard` in 4.0 [GH-26499]
+
+
 ## 3.110.0 (June 27, 2024)
 
 FEATURES:
