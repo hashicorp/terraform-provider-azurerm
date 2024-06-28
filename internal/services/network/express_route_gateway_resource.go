@@ -322,7 +322,7 @@ func convertConnectionsToGatewayConnections(input *[]expressrouteconnections.Exp
 						StaticRoutes:   convertConnectionsStaticRouteToGatewayStaticRoute(vnet.StaticRoutes),
 					}
 
-					if src := vnewt.StaticRoutesConfig; src != nil {
+					if src := vnet.StaticRoutesConfig; src != nil {
 						rc.VnetRoutes.StaticRoutesConfig = &expressroutegateways.StaticRoutesConfig{
 							PropagateStaticRoutes:          src.PropagateStaticRoutes,
 							VnetLocalRouteOverrideCriteria: (*expressroutegateways.VnetLocalRouteOverrideCriteria)(src.VnetLocalRouteOverrideCriteria),
