@@ -79,6 +79,7 @@ var PublishedApis = map[string]string{
 	"MileIqRestService":                 mileIqRestServiceAppId,
 	"MixedReality":                      mixedRealityAppId,
 	"Microsoft365DataAtRestEncryption":  microsoft365DataAtRestEncryptionAppId,
+	"MicrosoftAppAccessPanel":           microsoftAppAccessPanel,
 	"MicrosoftAzureCli":                 microsoftAzureCliAppId,
 	"MicrosoftGraph":                    microsoftGraphAppId,
 	"MicrosoftIntuneEnrollment":         microsoftIntuneEnrollment,
