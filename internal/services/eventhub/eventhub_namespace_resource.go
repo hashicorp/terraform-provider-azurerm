@@ -285,6 +285,17 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 			Default:  false,
 			ForceNew: true,
 		}
+
+		resource.Schema["minimum_tls_version"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(namespaces.TlsVersionOnePointZero),
+				string(namespaces.TlsVersionOnePointOne),
+				string(namespaces.TlsVersionOnePointTwo),
+			}, false),
+		}
 	}
 	return resource
 }
