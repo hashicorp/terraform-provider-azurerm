@@ -318,7 +318,7 @@ func convertConnectionsToGatewayConnections(input *[]expressrouteconnections.Exp
 
 				if vnet := routingConfiguration.VnetRoutes; vnet != nil {
 					rc.VnetRoutes = &expressroutegateways.VnetRoute{
-						BgpConnections: convertConnectionsSubresourceToGatewaySubResource(vnewt.BgpConnections),
+						BgpConnections: convertConnectionsSubresourceToGatewaySubResource(vnet.BgpConnections),
 						StaticRoutes:   convertConnectionsStaticRouteToGatewayStaticRoute(vnewt.StaticRoutes),
 					}
 
