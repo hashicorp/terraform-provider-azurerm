@@ -115,7 +115,6 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 			"maximum_throughput_units": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Computed:     true,
 				ValidateFunc: validation.IntBetween(0, 40),
 			},
 
@@ -212,7 +211,7 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 			"minimum_tls_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Default:  string(namespaces.TlsVersionOnePointTwo),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(namespaces.TlsVersionOnePointZero),
 					string(namespaces.TlsVersionOnePointOne),
