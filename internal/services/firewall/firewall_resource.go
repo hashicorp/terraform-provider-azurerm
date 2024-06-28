@@ -154,7 +154,7 @@ func resourceFirewall() *pluginsdk.Resource {
 			"threat_intel_mode": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Default:  string(azurefirewalls.AzureFirewallThreatIntelModeAlert),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(azurefirewalls.AzureFirewallThreatIntelModeOff),
 					string(azurefirewalls.AzureFirewallThreatIntelModeAlert),
@@ -175,7 +175,6 @@ func resourceFirewall() *pluginsdk.Resource {
 			"dns_proxy_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: true,
 			},
 
 			"private_ip_ranges": {
