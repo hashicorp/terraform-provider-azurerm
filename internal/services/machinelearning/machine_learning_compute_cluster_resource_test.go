@@ -351,10 +351,10 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_machine_learning_compute_cluster" "test" {
-  name                          = "CC-%d"
-  location                      = azurerm_resource_group.test.location
-  vm_priority                   = "LowPriority"
-  vm_size                       = "STANDARD_DS2_V2"
+  name        = "CC-%d"
+  location    = azurerm_resource_group.test.location
+  vm_priority = "LowPriority"
+  vm_size     = "STANDARD_DS2_V2"
 
   machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
   scale_settings {
