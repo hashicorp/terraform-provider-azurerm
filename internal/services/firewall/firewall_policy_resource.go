@@ -637,7 +637,7 @@ func flattenFirewallPolicyLogAnalyticsResources(input *firewallpolicies.Firewall
 }
 
 func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	resource := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -650,7 +650,7 @@ func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
 		"sku": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
+			Default:  string(firewallpolicies.FirewallPolicySkuTierStandard),
 			ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(firewallpolicies.FirewallPolicySkuTierPremium),
@@ -987,4 +987,6 @@ func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
+
+	return resource
 }
