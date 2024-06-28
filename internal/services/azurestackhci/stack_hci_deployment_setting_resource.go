@@ -728,7 +728,7 @@ func (r StackHCIDeploymentSettingResource) Create() sdk.ResourceFunc {
 					DeploymentMode:     deploymentsettings.DeploymentModeValidate,
 					DeploymentConfiguration: deploymentsettings.DeploymentConfiguration{
 						Version:    pointer.To(config.Version),
-						ScaleUnits: ExpandDeploymentSettingScaleUnits(config.ScaleUnit),
+						ScaleUnits: expandDeploymentSettingScaleUnits(config.ScaleUnit),
 					},
 				},
 			}
@@ -786,7 +786,7 @@ func (StackHCIDeploymentSettingResource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					schema.ArcResourceIds = props.ArcNodeResourceIds
 					schema.Version = pointer.From(props.DeploymentConfiguration.Version)
-					schema.ScaleUnit = FlattenDeploymentSettingScaleUnits(props.DeploymentConfiguration.ScaleUnits)
+					schema.ScaleUnit = flattenDeploymentSettingScaleUnits(props.DeploymentConfiguration.ScaleUnits)
 				}
 			}
 
@@ -880,7 +880,7 @@ func (StackHCIDeploymentSettingResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func ExpandDeploymentSettingScaleUnits(input []ScaleUnitModel) []deploymentsettings.ScaleUnits {
+func expandDeploymentSettingScaleUnits(input []ScaleUnitModel) []deploymentsettings.ScaleUnits {
 	if len(input) == 0 {
 		return nil
 	}
@@ -890,17 +890,17 @@ func ExpandDeploymentSettingScaleUnits(input []ScaleUnitModel) []deploymentsetti
 		results = append(results, deploymentsettings.ScaleUnits{
 			DeploymentData: deploymentsettings.DeploymentData{
 				AdouPath:              pointer.To(item.AdouPath),
-				Cluster:               ExpandDeploymentSettingCluster(item.Cluster),
+				Cluster:               expandDeploymentSettingCluster(item.Cluster),
 				DomainFqdn:            pointer.To(item.DomainFqdn),
-				HostNetwork:           ExpandDeploymentSettingHostNetwork(item.HostNetwork),
-				InfrastructureNetwork: ExpandDeploymentSettingInfrastructureNetwork(item.InfrastructureNetwork),
+				HostNetwork:           expandDeploymentSettingHostNetwork(item.HostNetwork),
+				InfrastructureNetwork: expandDeploymentSettingInfrastructureNetwork(item.InfrastructureNetwork),
 				NamingPrefix:          pointer.To(item.NamePrefix),
-				Observability:         ExpandDeploymentSettingObservability(item),
-				OptionalServices:      ExpandDeploymentSettingOptionalService(item.OptionalService),
-				PhysicalNodes:         ExpandDeploymentSettingPhysicalNode(item.PhysicalNode),
+				Observability:         expandDeploymentSettingObservability(item),
+				OptionalServices:      expandDeploymentSettingOptionalService(item.OptionalService),
+				PhysicalNodes:         expandDeploymentSettingPhysicalNode(item.PhysicalNode),
 				SecretsLocation:       pointer.To(item.SecretsLocation),
-				SecuritySettings:      ExpandDeploymentSettingSecuritySetting(item),
-				Storage:               ExpandDeploymentSettingStorage(item.Storage),
+				SecuritySettings:      expandDeploymentSettingSecuritySetting(item),
+				Storage:               expandDeploymentSettingStorage(item.Storage),
 			},
 		})
 	}
@@ -908,7 +908,7 @@ func ExpandDeploymentSettingScaleUnits(input []ScaleUnitModel) []deploymentsetti
 	return results
 }
 
-func FlattenDeploymentSettingScaleUnits(input []deploymentsettings.ScaleUnits) []ScaleUnitModel {
+func flattenDeploymentSettingScaleUnits(input []deploymentsettings.ScaleUnits) []ScaleUnitModel {
 	if len(input) == 0 {
 		return make([]ScaleUnitModel, 0)
 	}
@@ -917,15 +917,15 @@ func FlattenDeploymentSettingScaleUnits(input []deploymentsettings.ScaleUnits) [
 	for _, item := range input {
 		result := ScaleUnitModel{
 			AdouPath:              pointer.From(item.DeploymentData.AdouPath),
-			Cluster:               FlattenDeploymentSettingCluster(item.DeploymentData.Cluster),
+			Cluster:               flattenDeploymentSettingCluster(item.DeploymentData.Cluster),
 			DomainFqdn:            pointer.From(item.DeploymentData.DomainFqdn),
-			HostNetwork:           FlattenDeploymentSettingHostNetwork(item.DeploymentData.HostNetwork),
-			InfrastructureNetwork: FlattenDeploymentSettingInfrastructureNetwork(item.DeploymentData.InfrastructureNetwork),
+			HostNetwork:           flattenDeploymentSettingHostNetwork(item.DeploymentData.HostNetwork),
+			InfrastructureNetwork: flattenDeploymentSettingInfrastructureNetwork(item.DeploymentData.InfrastructureNetwork),
 			NamePrefix:            pointer.From(item.DeploymentData.NamingPrefix),
-			OptionalService:       FlattenDeploymentSettingOptionalService(item.DeploymentData.OptionalServices),
-			PhysicalNode:          FlattenDeploymentSettingPhysicalNode(item.DeploymentData.PhysicalNodes),
+			OptionalService:       flattenDeploymentSettingOptionalService(item.DeploymentData.OptionalServices),
+			PhysicalNode:          flattenDeploymentSettingPhysicalNode(item.DeploymentData.PhysicalNodes),
 			SecretsLocation:       pointer.From(item.DeploymentData.SecretsLocation),
-			Storage:               FlattenDeploymentSettingStorage(item.DeploymentData.Storage),
+			Storage:               flattenDeploymentSettingStorage(item.DeploymentData.Storage),
 		}
 
 		if observability := item.DeploymentData.Observability; observability != nil {
@@ -953,7 +953,7 @@ func FlattenDeploymentSettingScaleUnits(input []deploymentsettings.ScaleUnits) [
 	return results
 }
 
-func ExpandDeploymentSettingCluster(input []ClusterModel) *deploymentsettings.DeploymentCluster {
+func expandDeploymentSettingCluster(input []ClusterModel) *deploymentsettings.DeploymentCluster {
 	if len(input) == 0 {
 		return nil
 	}
@@ -969,7 +969,7 @@ func ExpandDeploymentSettingCluster(input []ClusterModel) *deploymentsettings.De
 	}
 }
 
-func FlattenDeploymentSettingCluster(input *deploymentsettings.DeploymentCluster) []ClusterModel {
+func flattenDeploymentSettingCluster(input *deploymentsettings.DeploymentCluster) []ClusterModel {
 	if input == nil {
 		return make([]ClusterModel, 0)
 	}
@@ -983,7 +983,7 @@ func FlattenDeploymentSettingCluster(input *deploymentsettings.DeploymentCluster
 	}}
 }
 
-func ExpandDeploymentSettingHostNetwork(input []HostNetworkModel) *deploymentsettings.HostNetwork {
+func expandDeploymentSettingHostNetwork(input []HostNetworkModel) *deploymentsettings.HostNetwork {
 	if len(input) == 0 {
 		return nil
 	}
@@ -991,27 +991,27 @@ func ExpandDeploymentSettingHostNetwork(input []HostNetworkModel) *deploymentset
 	v := input[0]
 
 	return &deploymentsettings.HostNetwork{
-		Intents:                       ExpandDeploymentSettingHostNetworkIntent(v.Intent),
+		Intents:                       expandDeploymentSettingHostNetworkIntent(v.Intent),
 		EnableStorageAutoIP:           pointer.To(v.StorageAutoIpEnabled),
 		StorageConnectivitySwitchless: pointer.To(v.StorageConnectivitySwitchlessEnabled),
-		StorageNetworks:               ExpandDeploymentSettingHostNetworkStorageNetwork(v.StorageNetwork),
+		StorageNetworks:               expandDeploymentSettingHostNetworkStorageNetwork(v.StorageNetwork),
 	}
 }
 
-func FlattenDeploymentSettingHostNetwork(input *deploymentsettings.HostNetwork) []HostNetworkModel {
+func flattenDeploymentSettingHostNetwork(input *deploymentsettings.HostNetwork) []HostNetworkModel {
 	if input == nil {
 		return make([]HostNetworkModel, 0)
 	}
 
 	return []HostNetworkModel{{
-		Intent:                               FlattenDeploymentSettingHostNetworkIntent(input.Intents),
+		Intent:                               flattenDeploymentSettingHostNetworkIntent(input.Intents),
 		StorageAutoIpEnabled:                 pointer.From(input.EnableStorageAutoIP),
 		StorageConnectivitySwitchlessEnabled: pointer.From(input.StorageConnectivitySwitchless),
-		StorageNetwork:                       FlattenDeploymentSettingHostNetworkStorageNetwork(input.StorageNetworks),
+		StorageNetwork:                       flattenDeploymentSettingHostNetworkStorageNetwork(input.StorageNetworks),
 	}}
 }
 
-func ExpandDeploymentSettingHostNetworkIntent(input []HostNetworkIntentModel) *[]deploymentsettings.Intents {
+func expandDeploymentSettingHostNetworkIntent(input []HostNetworkIntentModel) *[]deploymentsettings.Intents {
 	if len(input) == 0 {
 		return nil
 	}
@@ -1020,21 +1020,21 @@ func ExpandDeploymentSettingHostNetworkIntent(input []HostNetworkIntentModel) *[
 	for _, item := range input {
 		results = append(results, deploymentsettings.Intents{
 			Adapter:                             pointer.To(item.Adapter),
-			AdapterPropertyOverrides:            ExpandHostNetworkIntentAdapterPropertyOverride(item.AdapterPropertyOverride),
+			AdapterPropertyOverrides:            expandHostNetworkIntentAdapterPropertyOverride(item.AdapterPropertyOverride),
 			Name:                                pointer.To(item.Name),
 			OverrideAdapterProperty:             pointer.To(item.AdapterPropertyOverrideEnabled),
 			OverrideQosPolicy:                   pointer.To(item.QosPolicyOverrideEnabled),
 			OverrideVirtualSwitchConfiguration:  pointer.To(item.VirtualSwitchConfigurationOverrideEnabled),
-			QosPolicyOverrides:                  ExpandHostNetworkIntentQosPolicyOverride(item.QosPolicyOverride),
+			QosPolicyOverrides:                  expandHostNetworkIntentQosPolicyOverride(item.QosPolicyOverride),
 			TrafficType:                         pointer.To(item.TrafficType),
-			VirtualSwitchConfigurationOverrides: ExpandHostNetworkIntentVirtualSwitchConfigurationOverride(item.VirtualSwitchConfigurationOverride),
+			VirtualSwitchConfigurationOverrides: expandHostNetworkIntentVirtualSwitchConfigurationOverride(item.VirtualSwitchConfigurationOverride),
 		})
 	}
 
 	return &results
 }
 
-func FlattenDeploymentSettingHostNetworkIntent(input *[]deploymentsettings.Intents) []HostNetworkIntentModel {
+func flattenDeploymentSettingHostNetworkIntent(input *[]deploymentsettings.Intents) []HostNetworkIntentModel {
 	if input == nil {
 		return make([]HostNetworkIntentModel, 0)
 	}
@@ -1043,21 +1043,21 @@ func FlattenDeploymentSettingHostNetworkIntent(input *[]deploymentsettings.Inten
 	for _, item := range *input {
 		results = append(results, HostNetworkIntentModel{
 			Adapter:                        pointer.From(item.Adapter),
-			AdapterPropertyOverride:        FlattenHostNetworkIntentAdapterPropertyOverride(item.AdapterPropertyOverrides),
+			AdapterPropertyOverride:        flattenHostNetworkIntentAdapterPropertyOverride(item.AdapterPropertyOverrides),
 			Name:                           pointer.From(item.Name),
 			AdapterPropertyOverrideEnabled: pointer.From(item.OverrideAdapterProperty),
 			QosPolicyOverrideEnabled:       pointer.From(item.OverrideQosPolicy),
 			VirtualSwitchConfigurationOverrideEnabled: pointer.From(item.OverrideVirtualSwitchConfiguration),
-			QosPolicyOverride:                         FlattenHostNetworkIntentQosPolicyOverride(item.QosPolicyOverrides),
+			QosPolicyOverride:                         flattenHostNetworkIntentQosPolicyOverride(item.QosPolicyOverrides),
 			TrafficType:                               pointer.From(item.TrafficType),
-			VirtualSwitchConfigurationOverride:        FlattenHostNetworkIntentVirtualSwitchConfigurationOverride(item.VirtualSwitchConfigurationOverrides),
+			VirtualSwitchConfigurationOverride:        flattenHostNetworkIntentVirtualSwitchConfigurationOverride(item.VirtualSwitchConfigurationOverrides),
 		})
 	}
 
 	return results
 }
 
-func ExpandHostNetworkIntentAdapterPropertyOverride(input []HostNetworkIntentAdapterPropertyOverrideModel) *deploymentsettings.AdapterPropertyOverrides {
+func expandHostNetworkIntentAdapterPropertyOverride(input []HostNetworkIntentAdapterPropertyOverrideModel) *deploymentsettings.AdapterPropertyOverrides {
 	if len(input) == 0 {
 		return &deploymentsettings.AdapterPropertyOverrides{
 			JumboPacket:             pointer.To(""),
@@ -1075,7 +1075,7 @@ func ExpandHostNetworkIntentAdapterPropertyOverride(input []HostNetworkIntentAda
 	}
 }
 
-func FlattenHostNetworkIntentAdapterPropertyOverride(input *deploymentsettings.AdapterPropertyOverrides) []HostNetworkIntentAdapterPropertyOverrideModel {
+func flattenHostNetworkIntentAdapterPropertyOverride(input *deploymentsettings.AdapterPropertyOverrides) []HostNetworkIntentAdapterPropertyOverrideModel {
 	if input == nil {
 		return make([]HostNetworkIntentAdapterPropertyOverrideModel, 0)
 	}
@@ -1096,7 +1096,7 @@ func FlattenHostNetworkIntentAdapterPropertyOverride(input *deploymentsettings.A
 	}}
 }
 
-func ExpandHostNetworkIntentQosPolicyOverride(input []HostNetworkIntentQosPolicyOverrideModel) *deploymentsettings.QosPolicyOverrides {
+func expandHostNetworkIntentQosPolicyOverride(input []HostNetworkIntentQosPolicyOverrideModel) *deploymentsettings.QosPolicyOverrides {
 	if len(input) == 0 {
 		return &deploymentsettings.QosPolicyOverrides{
 			BandwidthPercentageSMB:         pointer.To(""),
@@ -1114,7 +1114,7 @@ func ExpandHostNetworkIntentQosPolicyOverride(input []HostNetworkIntentQosPolicy
 	}
 }
 
-func FlattenHostNetworkIntentQosPolicyOverride(input *deploymentsettings.QosPolicyOverrides) []HostNetworkIntentQosPolicyOverrideModel {
+func flattenHostNetworkIntentQosPolicyOverride(input *deploymentsettings.QosPolicyOverrides) []HostNetworkIntentQosPolicyOverrideModel {
 	if input == nil {
 		return make([]HostNetworkIntentQosPolicyOverrideModel, 0)
 	}
@@ -1135,7 +1135,7 @@ func FlattenHostNetworkIntentQosPolicyOverride(input *deploymentsettings.QosPoli
 	}}
 }
 
-func ExpandHostNetworkIntentVirtualSwitchConfigurationOverride(input []HostNetworkIntentVirtualSwitchConfigurationOverrideModel) *deploymentsettings.VirtualSwitchConfigurationOverrides {
+func expandHostNetworkIntentVirtualSwitchConfigurationOverride(input []HostNetworkIntentVirtualSwitchConfigurationOverrideModel) *deploymentsettings.VirtualSwitchConfigurationOverrides {
 	if len(input) == 0 {
 		return &deploymentsettings.VirtualSwitchConfigurationOverrides{
 			EnableIov:              pointer.To(""),
@@ -1151,7 +1151,7 @@ func ExpandHostNetworkIntentVirtualSwitchConfigurationOverride(input []HostNetwo
 	}
 }
 
-func FlattenHostNetworkIntentVirtualSwitchConfigurationOverride(input *deploymentsettings.VirtualSwitchConfigurationOverrides) []HostNetworkIntentVirtualSwitchConfigurationOverrideModel {
+func flattenHostNetworkIntentVirtualSwitchConfigurationOverride(input *deploymentsettings.VirtualSwitchConfigurationOverrides) []HostNetworkIntentVirtualSwitchConfigurationOverrideModel {
 	if input == nil {
 		return make([]HostNetworkIntentVirtualSwitchConfigurationOverrideModel, 0)
 	}
@@ -1170,7 +1170,7 @@ func FlattenHostNetworkIntentVirtualSwitchConfigurationOverride(input *deploymen
 	}}
 }
 
-func ExpandDeploymentSettingHostNetworkStorageNetwork(input []HostNetworkStorageNetworkModel) *[]deploymentsettings.StorageNetworks {
+func expandDeploymentSettingHostNetworkStorageNetwork(input []HostNetworkStorageNetworkModel) *[]deploymentsettings.StorageNetworks {
 	if len(input) == 0 {
 		return nil
 	}
@@ -1187,7 +1187,7 @@ func ExpandDeploymentSettingHostNetworkStorageNetwork(input []HostNetworkStorage
 	return &results
 }
 
-func FlattenDeploymentSettingHostNetworkStorageNetwork(input *[]deploymentsettings.StorageNetworks) []HostNetworkStorageNetworkModel {
+func flattenDeploymentSettingHostNetworkStorageNetwork(input *[]deploymentsettings.StorageNetworks) []HostNetworkStorageNetworkModel {
 	if input == nil {
 		return make([]HostNetworkStorageNetworkModel, 0)
 	}
@@ -1204,7 +1204,7 @@ func FlattenDeploymentSettingHostNetworkStorageNetwork(input *[]deploymentsettin
 	return results
 }
 
-func ExpandDeploymentSettingInfrastructureNetwork(input []InfrastructureNetworkModel) *[]deploymentsettings.InfrastructureNetwork {
+func expandDeploymentSettingInfrastructureNetwork(input []InfrastructureNetworkModel) *[]deploymentsettings.InfrastructureNetwork {
 	if len(input) == 0 {
 		return nil
 	}
@@ -1214,7 +1214,7 @@ func ExpandDeploymentSettingInfrastructureNetwork(input []InfrastructureNetworkM
 		results = append(results, deploymentsettings.InfrastructureNetwork{
 			DnsServers: pointer.To(item.DnsServer),
 			Gateway:    pointer.To(item.Gateway),
-			IPPools:    ExpandDeploymentSettingInfrastructureNetworkIpPool(item.IpPool),
+			IPPools:    expandDeploymentSettingInfrastructureNetworkIpPool(item.IpPool),
 			SubnetMask: pointer.To(item.SubnetMask),
 			UseDhcp:    pointer.To(item.DhcpEnabled),
 		})
@@ -1223,7 +1223,7 @@ func ExpandDeploymentSettingInfrastructureNetwork(input []InfrastructureNetworkM
 	return &results
 }
 
-func FlattenDeploymentSettingInfrastructureNetwork(input *[]deploymentsettings.InfrastructureNetwork) []InfrastructureNetworkModel {
+func flattenDeploymentSettingInfrastructureNetwork(input *[]deploymentsettings.InfrastructureNetwork) []InfrastructureNetworkModel {
 	if input == nil {
 		return make([]InfrastructureNetworkModel, 0)
 	}
@@ -1234,7 +1234,7 @@ func FlattenDeploymentSettingInfrastructureNetwork(input *[]deploymentsettings.I
 			DhcpEnabled: pointer.From(item.UseDhcp),
 			DnsServer:   pointer.From(item.DnsServers),
 			Gateway:     pointer.From(item.Gateway),
-			IpPool:      FlattenDeploymentSettingInfrastructureNetworkIpPool(item.IPPools),
+			IpPool:      flattenDeploymentSettingInfrastructureNetworkIpPool(item.IPPools),
 			SubnetMask:  pointer.From(item.SubnetMask),
 		})
 	}
@@ -1242,7 +1242,7 @@ func FlattenDeploymentSettingInfrastructureNetwork(input *[]deploymentsettings.I
 	return results
 }
 
-func ExpandDeploymentSettingInfrastructureNetworkIpPool(input []IpPoolModel) *[]deploymentsettings.IPPools {
+func expandDeploymentSettingInfrastructureNetworkIpPool(input []IpPoolModel) *[]deploymentsettings.IPPools {
 	if len(input) == 0 {
 		return nil
 	}
@@ -1258,7 +1258,7 @@ func ExpandDeploymentSettingInfrastructureNetworkIpPool(input []IpPoolModel) *[]
 	return &results
 }
 
-func FlattenDeploymentSettingInfrastructureNetworkIpPool(input *[]deploymentsettings.IPPools) []IpPoolModel {
+func flattenDeploymentSettingInfrastructureNetworkIpPool(input *[]deploymentsettings.IPPools) []IpPoolModel {
 	if input == nil {
 		return make([]IpPoolModel, 0)
 	}
@@ -1274,7 +1274,7 @@ func FlattenDeploymentSettingInfrastructureNetworkIpPool(input *[]deploymentsett
 	return results
 }
 
-func ExpandDeploymentSettingObservability(input ScaleUnitModel) *deploymentsettings.Observability {
+func expandDeploymentSettingObservability(input ScaleUnitModel) *deploymentsettings.Observability {
 	return &deploymentsettings.Observability{
 		EpisodicDataUpload:  pointer.To(input.EpisodicDataUploadEnabled),
 		EuLocation:          pointer.To(input.EuLocationEnabled),
@@ -1282,7 +1282,7 @@ func ExpandDeploymentSettingObservability(input ScaleUnitModel) *deploymentsetti
 	}
 }
 
-func ExpandDeploymentSettingOptionalService(input []OptionalServiceModel) *deploymentsettings.OptionalServices {
+func expandDeploymentSettingOptionalService(input []OptionalServiceModel) *deploymentsettings.OptionalServices {
 	if len(input) == 0 {
 		return nil
 	}
@@ -1294,7 +1294,7 @@ func ExpandDeploymentSettingOptionalService(input []OptionalServiceModel) *deplo
 	}
 }
 
-func FlattenDeploymentSettingOptionalService(input *deploymentsettings.OptionalServices) []OptionalServiceModel {
+func flattenDeploymentSettingOptionalService(input *deploymentsettings.OptionalServices) []OptionalServiceModel {
 	if input == nil {
 		return make([]OptionalServiceModel, 0)
 	}
@@ -1304,7 +1304,7 @@ func FlattenDeploymentSettingOptionalService(input *deploymentsettings.OptionalS
 	}}
 }
 
-func ExpandDeploymentSettingPhysicalNode(input []PhysicalNodeModel) *[]deploymentsettings.PhysicalNodes {
+func expandDeploymentSettingPhysicalNode(input []PhysicalNodeModel) *[]deploymentsettings.PhysicalNodes {
 	if len(input) == 0 {
 		return nil
 	}
@@ -1320,7 +1320,7 @@ func ExpandDeploymentSettingPhysicalNode(input []PhysicalNodeModel) *[]deploymen
 	return &results
 }
 
-func FlattenDeploymentSettingPhysicalNode(input *[]deploymentsettings.PhysicalNodes) []PhysicalNodeModel {
+func flattenDeploymentSettingPhysicalNode(input *[]deploymentsettings.PhysicalNodes) []PhysicalNodeModel {
 	if input == nil {
 		return make([]PhysicalNodeModel, 0)
 	}
@@ -1336,7 +1336,7 @@ func FlattenDeploymentSettingPhysicalNode(input *[]deploymentsettings.PhysicalNo
 	return results
 }
 
-func ExpandDeploymentSettingSecuritySetting(input ScaleUnitModel) *deploymentsettings.DeploymentSecuritySettings {
+func expandDeploymentSettingSecuritySetting(input ScaleUnitModel) *deploymentsettings.DeploymentSecuritySettings {
 	return &deploymentsettings.DeploymentSecuritySettings{
 		BitlockerBootVolume:           pointer.To(input.BitlockerBootVolumeEnabled),
 		BitlockerDataVolumes:          pointer.To(input.BitlockerDataVolumeEnabled),
@@ -1351,7 +1351,7 @@ func ExpandDeploymentSettingSecuritySetting(input ScaleUnitModel) *deploymentset
 	}
 }
 
-func ExpandDeploymentSettingStorage(input []StorageModel) *deploymentsettings.Storage {
+func expandDeploymentSettingStorage(input []StorageModel) *deploymentsettings.Storage {
 	if len(input) == 0 {
 		return nil
 	}
@@ -1363,7 +1363,7 @@ func ExpandDeploymentSettingStorage(input []StorageModel) *deploymentsettings.St
 	}
 }
 
-func FlattenDeploymentSettingStorage(input *deploymentsettings.Storage) []StorageModel {
+func flattenDeploymentSettingStorage(input *deploymentsettings.Storage) []StorageModel {
 	if input == nil {
 		return make([]StorageModel, 0)
 	}
