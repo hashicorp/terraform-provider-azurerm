@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Data Source:** `azurerm_load_test` [GH-26376]
+* **New Resource:** `azurerm_virtual_desktop_scaling_plan_host_pool_association` [GH-24670]
 
 ENHANCEMENTS:
 
