@@ -2,8 +2,8 @@
 
 ENHANCEMENTS:
 
-* `azurerm_firewall_polic`y - remove Computed from the `sku` property and add a default of `Standard` in 4.0 [GH-26499]
-
+* `azurerm_firewall_policy` - remove Computed from the `sku` property and add a default of `Standard` in 4.0 [GH-26499]
+* `azurerm_disk_encryption_set` - support for the `managed_hsm_key_id` property [GH-26201]
 
 ## 3.110.0 (June 27, 2024)
 
