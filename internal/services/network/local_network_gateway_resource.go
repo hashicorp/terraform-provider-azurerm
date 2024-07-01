@@ -238,13 +238,13 @@ func resourceLocalNetworkGatewayDelete(d *pluginsdk.ResourceData, meta interface
 	return nil
 }
 
-func resourceGroupAndLocalNetworkGatewayFromId(localNetworkGatewayId string) (string, string, error) {
+func localNetworkGatewayFromId(localNetworkGatewayId string) (string, error) {
 	id, err := localnetworkgateways.ParseLocalNetworkGatewayID(localNetworkGatewayId)
 	if err != nil {
-		return "", "", err
+		return "", err
 	}
 
-	return id.ResourceGroupName, id.LocalNetworkGatewayName, nil
+	return id.LocalNetworkGatewayName, nil
 }
 
 func expandLocalNetworkGatewayBGPSettings(d *pluginsdk.ResourceData) *localnetworkgateways.BgpSettings {
