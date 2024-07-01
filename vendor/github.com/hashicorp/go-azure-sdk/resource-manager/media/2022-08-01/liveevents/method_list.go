@@ -23,6 +23,18 @@ type ListCompleteResult struct {
 	Items              []LiveEvent
 }
 
+type ListCustomPager struct {
+	NextLink *odata.Link `json:"@odata.nextLink"`
+}
+
+func (p *ListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // List ...
 func (c LiveEventsClient) List(ctx context.Context, id MediaServiceId) (result ListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c LiveEventsClient) List(ctx context.Context, id MediaServiceId) (result L
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListCustomPager{},
 		Path:       fmt.Sprintf("%s/liveEvents", id.ID()),
 	}
 

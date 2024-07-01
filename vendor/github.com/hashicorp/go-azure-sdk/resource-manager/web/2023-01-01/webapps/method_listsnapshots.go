@@ -24,6 +24,18 @@ type ListSnapshotsCompleteResult struct {
 	Items              []Snapshot
 }
 
+type ListSnapshotsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListSnapshotsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListSnapshots ...
 func (c WebAppsClient) ListSnapshots(ctx context.Context, id commonids.AppServiceId) (result ListSnapshotsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c WebAppsClient) ListSnapshots(ctx context.Context, id commonids.AppServic
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListSnapshotsCustomPager{},
 		Path:       fmt.Sprintf("%s/snapshots", id.ID()),
 	}
 

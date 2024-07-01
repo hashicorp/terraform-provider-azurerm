@@ -24,6 +24,18 @@ type ListInstanceIdentifiersCompleteResult struct {
 	Items              []WebSiteInstanceStatus
 }
 
+type ListInstanceIdentifiersCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListInstanceIdentifiersCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListInstanceIdentifiers ...
 func (c WebAppsClient) ListInstanceIdentifiers(ctx context.Context, id commonids.AppServiceId) (result ListInstanceIdentifiersOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c WebAppsClient) ListInstanceIdentifiers(ctx context.Context, id commonids
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListInstanceIdentifiersCustomPager{},
 		Path:       fmt.Sprintf("%s/instances", id.ID()),
 	}
 

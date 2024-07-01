@@ -23,6 +23,18 @@ type LinkedServerListCompleteResult struct {
 	Items              []RedisLinkedServerWithProperties
 }
 
+type LinkedServerListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *LinkedServerListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // LinkedServerList ...
 func (c RedisClient) LinkedServerList(ctx context.Context, id RediId) (result LinkedServerListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c RedisClient) LinkedServerList(ctx context.Context, id RediId) (result Li
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &LinkedServerListCustomPager{},
 		Path:       fmt.Sprintf("%s/linkedServers", id.ID()),
 	}
 

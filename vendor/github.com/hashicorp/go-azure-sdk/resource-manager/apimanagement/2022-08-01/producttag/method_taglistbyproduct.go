@@ -58,6 +58,18 @@ func (o TagListByProductOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type TagListByProductCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *TagListByProductCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // TagListByProduct ...
 func (c ProductTagClient) TagListByProduct(ctx context.Context, id ProductId, options TagListByProductOperationOptions) (result TagListByProductOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -66,8 +78,9 @@ func (c ProductTagClient) TagListByProduct(ctx context.Context, id ProductId, op
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/tags", id.ID()),
 		OptionsObject: options,
+		Pager:         &TagListByProductCustomPager{},
+		Path:          fmt.Sprintf("%s/tags", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

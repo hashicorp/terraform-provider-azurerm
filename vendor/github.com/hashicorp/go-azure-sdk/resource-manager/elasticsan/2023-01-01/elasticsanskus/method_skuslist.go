@@ -51,6 +51,18 @@ func (o SkusListOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type SkusListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *SkusListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // SkusList ...
 func (c ElasticSanSkusClient) SkusList(ctx context.Context, id commonids.SubscriptionId, options SkusListOperationOptions) (result SkusListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -59,8 +71,9 @@ func (c ElasticSanSkusClient) SkusList(ctx context.Context, id commonids.Subscri
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/providers/Microsoft.ElasticSan/skus", id.ID()),
 		OptionsObject: options,
+		Pager:         &SkusListCustomPager{},
+		Path:          fmt.Sprintf("%s/providers/Microsoft.ElasticSan/skus", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

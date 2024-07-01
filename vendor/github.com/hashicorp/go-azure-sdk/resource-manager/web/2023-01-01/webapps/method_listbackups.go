@@ -24,6 +24,18 @@ type ListBackupsCompleteResult struct {
 	Items              []BackupItem
 }
 
+type ListBackupsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListBackupsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListBackups ...
 func (c WebAppsClient) ListBackups(ctx context.Context, id commonids.AppServiceId) (result ListBackupsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c WebAppsClient) ListBackups(ctx context.Context, id commonids.AppServiceI
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListBackupsCustomPager{},
 		Path:       fmt.Sprintf("%s/backups", id.ID()),
 	}
 

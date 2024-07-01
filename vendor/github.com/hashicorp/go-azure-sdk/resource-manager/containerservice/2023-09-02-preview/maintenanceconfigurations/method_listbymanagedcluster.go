@@ -24,6 +24,18 @@ type ListByManagedClusterCompleteResult struct {
 	Items              []MaintenanceConfiguration
 }
 
+type ListByManagedClusterCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByManagedClusterCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByManagedCluster ...
 func (c MaintenanceConfigurationsClient) ListByManagedCluster(ctx context.Context, id commonids.KubernetesClusterId) (result ListByManagedClusterOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c MaintenanceConfigurationsClient) ListByManagedCluster(ctx context.Contex
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByManagedClusterCustomPager{},
 		Path:       fmt.Sprintf("%s/maintenanceConfigurations", id.ID()),
 	}
 

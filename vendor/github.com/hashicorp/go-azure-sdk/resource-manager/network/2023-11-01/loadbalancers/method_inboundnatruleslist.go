@@ -23,6 +23,18 @@ type InboundNatRulesListCompleteResult struct {
 	Items              []InboundNatRule
 }
 
+type InboundNatRulesListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *InboundNatRulesListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // InboundNatRulesList ...
 func (c LoadBalancersClient) InboundNatRulesList(ctx context.Context, id ProviderLoadBalancerId) (result InboundNatRulesListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c LoadBalancersClient) InboundNatRulesList(ctx context.Context, id Provide
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &InboundNatRulesListCustomPager{},
 		Path:       fmt.Sprintf("%s/inboundNatRules", id.ID()),
 	}
 

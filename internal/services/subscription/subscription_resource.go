@@ -426,7 +426,10 @@ func resourceSubscriptionDelete(d *pluginsdk.ResourceData, meta interface{}) err
 	if !meta.(*clients.Client).Features.Subscription.PreventCancellationOnDestroy {
 		log.Printf("[DEBUG] Cancelling subscription %s", subscriptionId)
 
-		if _, err := aliasClient.SubscriptionCancel(ctx, subscriptionResourceId); err != nil {
+		opts := subscriptionAlias.DefaultSubscriptionCancelOperationOptions()
+		// TODO: support a Provider `features` flag to enable deleting a Subscription containing Resources
+		// This is a dangerous operation, and likely wants a similar default value as to that for Resource Groups
+		if _, err := aliasClient.SubscriptionCancel(ctx, subscriptionResourceId, opts); err != nil {
 			return fmt.Errorf("failed to cancel Subscription: %+v", err)
 		}
 

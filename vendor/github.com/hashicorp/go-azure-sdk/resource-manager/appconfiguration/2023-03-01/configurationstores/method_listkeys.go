@@ -23,6 +23,18 @@ type ListKeysCompleteResult struct {
 	Items              []ApiKey
 }
 
+type ListKeysCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListKeysCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListKeys ...
 func (c ConfigurationStoresClient) ListKeys(ctx context.Context, id ConfigurationStoreId) (result ListKeysOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c ConfigurationStoresClient) ListKeys(ctx context.Context, id Configuratio
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodPost,
+		Pager:      &ListKeysCustomPager{},
 		Path:       fmt.Sprintf("%s/listKeys", id.ID()),
 	}
 

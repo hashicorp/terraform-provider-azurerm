@@ -23,6 +23,18 @@ type ListByApiCompleteResult struct {
 	Items              []PolicyContract
 }
 
+type ListByApiCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByApiCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByApi ...
 func (c ApiPolicyClient) ListByApi(ctx context.Context, id ApiId) (result ListByApiOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c ApiPolicyClient) ListByApi(ctx context.Context, id ApiId) (result ListBy
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByApiCustomPager{},
 		Path:       fmt.Sprintf("%s/policies", id.ID()),
 	}
 

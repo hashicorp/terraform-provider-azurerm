@@ -56,8 +56,8 @@ func (c VirtualMachinesClient) PowerOff(ctx context.Context, id VirtualMachineId
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPost,
-		Path:          fmt.Sprintf("%s/powerOff", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/powerOff", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

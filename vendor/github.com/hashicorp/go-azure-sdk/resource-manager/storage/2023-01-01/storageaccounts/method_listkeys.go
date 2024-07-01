@@ -54,8 +54,8 @@ func (c StorageAccountsClient) ListKeys(ctx context.Context, id commonids.Storag
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPost,
-		Path:          fmt.Sprintf("%s/listKeys", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/listKeys", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

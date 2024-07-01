@@ -24,6 +24,18 @@ type ApplicationLiveViewsListCompleteResult struct {
 	Items              []ApplicationLiveViewResource
 }
 
+type ApplicationLiveViewsListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ApplicationLiveViewsListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ApplicationLiveViewsList ...
 func (c AppPlatformClient) ApplicationLiveViewsList(ctx context.Context, id commonids.SpringCloudServiceId) (result ApplicationLiveViewsListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c AppPlatformClient) ApplicationLiveViewsList(ctx context.Context, id comm
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ApplicationLiveViewsListCustomPager{},
 		Path:       fmt.Sprintf("%s/applicationLiveViews", id.ID()),
 	}
 

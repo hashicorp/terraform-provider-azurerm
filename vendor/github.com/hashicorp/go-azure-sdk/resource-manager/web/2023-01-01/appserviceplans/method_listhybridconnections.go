@@ -24,6 +24,18 @@ type ListHybridConnectionsCompleteResult struct {
 	Items              []HybridConnection
 }
 
+type ListHybridConnectionsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListHybridConnectionsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListHybridConnections ...
 func (c AppServicePlansClient) ListHybridConnections(ctx context.Context, id commonids.AppServicePlanId) (result ListHybridConnectionsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c AppServicePlansClient) ListHybridConnections(ctx context.Context, id com
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListHybridConnectionsCustomPager{},
 		Path:       fmt.Sprintf("%s/hybridConnectionRelays", id.ID()),
 	}
 

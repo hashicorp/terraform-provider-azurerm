@@ -24,6 +24,18 @@ type TableListCompleteResult struct {
 	Items              []Table
 }
 
+type TableListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *TableListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // TableList ...
 func (c TableServiceClient) TableList(ctx context.Context, id commonids.StorageAccountId) (result TableListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c TableServiceClient) TableList(ctx context.Context, id commonids.StorageA
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &TableListCustomPager{},
 		Path:       fmt.Sprintf("%s/tableServices/default/tables", id.ID()),
 	}
 

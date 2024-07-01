@@ -24,6 +24,18 @@ type MediaservicesListBySubscriptionCompleteResult struct {
 	Items              []MediaService
 }
 
+type MediaservicesListBySubscriptionCustomPager struct {
+	NextLink *odata.Link `json:"@odata.nextLink"`
+}
+
+func (p *MediaservicesListBySubscriptionCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // MediaservicesListBySubscription ...
 func (c AccountsClient) MediaservicesListBySubscription(ctx context.Context, id commonids.SubscriptionId) (result MediaservicesListBySubscriptionOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c AccountsClient) MediaservicesListBySubscription(ctx context.Context, id 
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &MediaservicesListBySubscriptionCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.Media/mediaServices", id.ID()),
 	}
 
