@@ -23,6 +23,18 @@ type ListWorkerPoolSkusCompleteResult struct {
 	Items              []SkuInfo
 }
 
+type ListWorkerPoolSkusCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListWorkerPoolSkusCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListWorkerPoolSkus ...
 func (c AppServiceEnvironmentsClient) ListWorkerPoolSkus(ctx context.Context, id WorkerPoolId) (result ListWorkerPoolSkusOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c AppServiceEnvironmentsClient) ListWorkerPoolSkus(ctx context.Context, id
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListWorkerPoolSkusCustomPager{},
 		Path:       fmt.Sprintf("%s/skus", id.ID()),
 	}
 

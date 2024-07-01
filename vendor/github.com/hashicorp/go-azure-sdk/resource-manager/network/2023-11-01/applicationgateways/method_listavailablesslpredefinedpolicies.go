@@ -24,6 +24,18 @@ type ListAvailableSslPredefinedPoliciesCompleteResult struct {
 	Items              []ApplicationGatewaySslPredefinedPolicy
 }
 
+type ListAvailableSslPredefinedPoliciesCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListAvailableSslPredefinedPoliciesCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListAvailableSslPredefinedPolicies ...
 func (c ApplicationGatewaysClient) ListAvailableSslPredefinedPolicies(ctx context.Context, id commonids.SubscriptionId) (result ListAvailableSslPredefinedPoliciesOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c ApplicationGatewaysClient) ListAvailableSslPredefinedPolicies(ctx contex
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListAvailableSslPredefinedPoliciesCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.Network/applicationGatewayAvailableSslOptions/default/predefinedPolicies", id.ID()),
 	}
 

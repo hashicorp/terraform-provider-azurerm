@@ -24,6 +24,18 @@ type NetworkInterfaceLoadBalancersListCompleteResult struct {
 	Items              []LoadBalancer
 }
 
+type NetworkInterfaceLoadBalancersListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *NetworkInterfaceLoadBalancersListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // NetworkInterfaceLoadBalancersList ...
 func (c NetworkInterfacesClient) NetworkInterfaceLoadBalancersList(ctx context.Context, id commonids.NetworkInterfaceId) (result NetworkInterfaceLoadBalancersListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c NetworkInterfacesClient) NetworkInterfaceLoadBalancersList(ctx context.C
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &NetworkInterfaceLoadBalancersListCustomPager{},
 		Path:       fmt.Sprintf("%s/loadBalancers", id.ID()),
 	}
 

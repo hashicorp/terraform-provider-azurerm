@@ -58,6 +58,18 @@ func (o VirtualNetworksListDdosProtectionStatusOperationOptions) ToQuery() *clie
 	return &out
 }
 
+type VirtualNetworksListDdosProtectionStatusCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *VirtualNetworksListDdosProtectionStatusCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // VirtualNetworksListDdosProtectionStatus ...
 func (c VirtualNetworksClient) VirtualNetworksListDdosProtectionStatus(ctx context.Context, id commonids.VirtualNetworkId, options VirtualNetworksListDdosProtectionStatusOperationOptions) (result VirtualNetworksListDdosProtectionStatusOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -67,8 +79,9 @@ func (c VirtualNetworksClient) VirtualNetworksListDdosProtectionStatus(ctx conte
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPost,
-		Path:          fmt.Sprintf("%s/ddosProtectionStatus", id.ID()),
 		OptionsObject: options,
+		Pager:         &VirtualNetworksListDdosProtectionStatusCustomPager{},
+		Path:          fmt.Sprintf("%s/ddosProtectionStatus", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

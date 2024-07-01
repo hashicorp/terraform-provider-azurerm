@@ -54,8 +54,8 @@ func (c ScheduledQueryRulesClient) ListBySubscription(ctx context.Context, id co
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/providers/Microsoft.Insights/scheduledQueryRules", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/providers/Microsoft.Insights/scheduledQueryRules", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

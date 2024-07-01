@@ -53,8 +53,8 @@ func (c AnalyticsItemsAPIsClient) AnalyticsItemsPut(ctx context.Context, id Prov
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPut,
-		Path:          fmt.Sprintf("%s/item", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/item", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

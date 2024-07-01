@@ -23,6 +23,18 @@ type LoadBalancerBackendAddressPoolsListCompleteResult struct {
 	Items              []BackendAddressPool
 }
 
+type LoadBalancerBackendAddressPoolsListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *LoadBalancerBackendAddressPoolsListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // LoadBalancerBackendAddressPoolsList ...
 func (c LoadBalancersClient) LoadBalancerBackendAddressPoolsList(ctx context.Context, id ProviderLoadBalancerId) (result LoadBalancerBackendAddressPoolsListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c LoadBalancersClient) LoadBalancerBackendAddressPoolsList(ctx context.Con
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &LoadBalancerBackendAddressPoolsListCustomPager{},
 		Path:       fmt.Sprintf("%s/backendAddressPools", id.ID()),
 	}
 

@@ -23,6 +23,18 @@ type ListProcessThreadsSlotCompleteResult struct {
 	Items              []ProcessThreadInfo
 }
 
+type ListProcessThreadsSlotCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListProcessThreadsSlotCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListProcessThreadsSlot ...
 func (c WebAppsClient) ListProcessThreadsSlot(ctx context.Context, id SlotProcessId) (result ListProcessThreadsSlotOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c WebAppsClient) ListProcessThreadsSlot(ctx context.Context, id SlotProces
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListProcessThreadsSlotCustomPager{},
 		Path:       fmt.Sprintf("%s/threads", id.ID()),
 	}
 

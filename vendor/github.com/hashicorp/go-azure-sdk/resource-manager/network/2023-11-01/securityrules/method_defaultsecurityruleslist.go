@@ -23,6 +23,18 @@ type DefaultSecurityRulesListCompleteResult struct {
 	Items              []SecurityRule
 }
 
+type DefaultSecurityRulesListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *DefaultSecurityRulesListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // DefaultSecurityRulesList ...
 func (c SecurityRulesClient) DefaultSecurityRulesList(ctx context.Context, id NetworkSecurityGroupId) (result DefaultSecurityRulesListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c SecurityRulesClient) DefaultSecurityRulesList(ctx context.Context, id Ne
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &DefaultSecurityRulesListCustomPager{},
 		Path:       fmt.Sprintf("%s/defaultSecurityRules", id.ID()),
 	}
 

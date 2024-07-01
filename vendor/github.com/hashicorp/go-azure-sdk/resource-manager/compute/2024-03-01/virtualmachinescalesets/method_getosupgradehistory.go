@@ -23,6 +23,18 @@ type GetOSUpgradeHistoryCompleteResult struct {
 	Items              []UpgradeOperationHistoricalStatusInfo
 }
 
+type GetOSUpgradeHistoryCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *GetOSUpgradeHistoryCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // GetOSUpgradeHistory ...
 func (c VirtualMachineScaleSetsClient) GetOSUpgradeHistory(ctx context.Context, id VirtualMachineScaleSetId) (result GetOSUpgradeHistoryOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c VirtualMachineScaleSetsClient) GetOSUpgradeHistory(ctx context.Context, 
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &GetOSUpgradeHistoryCustomPager{},
 		Path:       fmt.Sprintf("%s/osUpgradeHistory", id.ID()),
 	}
 

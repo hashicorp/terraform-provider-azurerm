@@ -23,6 +23,18 @@ type WorkbooksRevisionsListCompleteResult struct {
 	Items              []Workbook
 }
 
+type WorkbooksRevisionsListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *WorkbooksRevisionsListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // WorkbooksRevisionsList ...
 func (c WorkbooksAPIsClient) WorkbooksRevisionsList(ctx context.Context, id WorkbookId) (result WorkbooksRevisionsListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c WorkbooksAPIsClient) WorkbooksRevisionsList(ctx context.Context, id Work
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &WorkbooksRevisionsListCustomPager{},
 		Path:       fmt.Sprintf("%s/revisions", id.ID()),
 	}
 

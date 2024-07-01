@@ -23,6 +23,18 @@ type GetUpdateProtectedItemRequestsObjectsCompleteResult struct {
 	Items              []DppBaseResource
 }
 
+type GetUpdateProtectedItemRequestsObjectsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *GetUpdateProtectedItemRequestsObjectsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // GetUpdateProtectedItemRequestsObjects ...
 func (c ResourceGuardsClient) GetUpdateProtectedItemRequestsObjects(ctx context.Context, id ResourceGuardId) (result GetUpdateProtectedItemRequestsObjectsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c ResourceGuardsClient) GetUpdateProtectedItemRequestsObjects(ctx context.
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &GetUpdateProtectedItemRequestsObjectsCustomPager{},
 		Path:       fmt.Sprintf("%s/updateProtectedItemRequests", id.ID()),
 	}
 

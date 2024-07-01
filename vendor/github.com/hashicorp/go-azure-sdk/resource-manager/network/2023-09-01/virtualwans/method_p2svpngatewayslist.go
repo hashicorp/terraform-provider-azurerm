@@ -24,6 +24,18 @@ type P2sVpnGatewaysListCompleteResult struct {
 	Items              []P2SVpnGateway
 }
 
+type P2sVpnGatewaysListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *P2sVpnGatewaysListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // P2sVpnGatewaysList ...
 func (c VirtualWANsClient) P2sVpnGatewaysList(ctx context.Context, id commonids.SubscriptionId) (result P2sVpnGatewaysListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c VirtualWANsClient) P2sVpnGatewaysList(ctx context.Context, id commonids.
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &P2sVpnGatewaysListCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.Network/p2sVpnGateways", id.ID()),
 	}
 

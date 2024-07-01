@@ -54,8 +54,8 @@ func (c WebAppsClient) DeleteSourceControl(ctx context.Context, id commonids.App
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodDelete,
-		Path:          fmt.Sprintf("%s/sourceControls/web", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/sourceControls/web", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

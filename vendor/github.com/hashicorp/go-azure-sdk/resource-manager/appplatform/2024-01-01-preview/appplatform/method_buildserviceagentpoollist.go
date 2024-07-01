@@ -23,6 +23,18 @@ type BuildServiceAgentPoolListCompleteResult struct {
 	Items              []BuildServiceAgentPoolResource
 }
 
+type BuildServiceAgentPoolListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *BuildServiceAgentPoolListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // BuildServiceAgentPoolList ...
 func (c AppPlatformClient) BuildServiceAgentPoolList(ctx context.Context, id BuildServiceId) (result BuildServiceAgentPoolListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c AppPlatformClient) BuildServiceAgentPoolList(ctx context.Context, id Bui
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &BuildServiceAgentPoolListCustomPager{},
 		Path:       fmt.Sprintf("%s/agentPools", id.ID()),
 	}
 

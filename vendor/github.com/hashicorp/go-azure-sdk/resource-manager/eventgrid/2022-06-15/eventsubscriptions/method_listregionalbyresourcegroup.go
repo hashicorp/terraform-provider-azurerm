@@ -54,6 +54,18 @@ func (o ListRegionalByResourceGroupOperationOptions) ToQuery() *client.QueryPara
 	return &out
 }
 
+type ListRegionalByResourceGroupCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListRegionalByResourceGroupCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListRegionalByResourceGroup ...
 func (c EventSubscriptionsClient) ListRegionalByResourceGroup(ctx context.Context, id ProviderLocationId, options ListRegionalByResourceGroupOperationOptions) (result ListRegionalByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -62,8 +74,9 @@ func (c EventSubscriptionsClient) ListRegionalByResourceGroup(ctx context.Contex
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/eventSubscriptions", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListRegionalByResourceGroupCustomPager{},
+		Path:          fmt.Sprintf("%s/eventSubscriptions", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

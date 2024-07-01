@@ -23,6 +23,18 @@ type GetPrivateEndpointConnectionListSlotCompleteResult struct {
 	Items              []RemotePrivateEndpointConnectionARMResource
 }
 
+type GetPrivateEndpointConnectionListSlotCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *GetPrivateEndpointConnectionListSlotCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // GetPrivateEndpointConnectionListSlot ...
 func (c WebAppsClient) GetPrivateEndpointConnectionListSlot(ctx context.Context, id SlotId) (result GetPrivateEndpointConnectionListSlotOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c WebAppsClient) GetPrivateEndpointConnectionListSlot(ctx context.Context,
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &GetPrivateEndpointConnectionListSlotCustomPager{},
 		Path:       fmt.Sprintf("%s/privateEndpointConnections", id.ID()),
 	}
 

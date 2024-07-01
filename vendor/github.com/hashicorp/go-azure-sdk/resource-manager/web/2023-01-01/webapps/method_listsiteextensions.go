@@ -24,6 +24,18 @@ type ListSiteExtensionsCompleteResult struct {
 	Items              []SiteExtensionInfo
 }
 
+type ListSiteExtensionsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListSiteExtensionsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListSiteExtensions ...
 func (c WebAppsClient) ListSiteExtensions(ctx context.Context, id commonids.AppServiceId) (result ListSiteExtensionsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c WebAppsClient) ListSiteExtensions(ctx context.Context, id commonids.AppS
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListSiteExtensionsCustomPager{},
 		Path:       fmt.Sprintf("%s/siteExtensions", id.ID()),
 	}
 

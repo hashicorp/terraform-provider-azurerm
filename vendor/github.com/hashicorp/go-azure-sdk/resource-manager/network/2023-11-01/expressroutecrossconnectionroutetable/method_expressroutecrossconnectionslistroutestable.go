@@ -26,6 +26,18 @@ type ExpressRouteCrossConnectionsListRoutesTableCompleteResult struct {
 	Items              []ExpressRouteCircuitRoutesTable
 }
 
+type ExpressRouteCrossConnectionsListRoutesTableCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ExpressRouteCrossConnectionsListRoutesTableCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ExpressRouteCrossConnectionsListRoutesTable ...
 func (c ExpressRouteCrossConnectionRouteTableClient) ExpressRouteCrossConnectionsListRoutesTable(ctx context.Context, id ExpressRouteCrossConnectionPeeringRouteTableId) (result ExpressRouteCrossConnectionsListRoutesTableOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -35,6 +47,7 @@ func (c ExpressRouteCrossConnectionRouteTableClient) ExpressRouteCrossConnection
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodPost,
+		Pager:      &ExpressRouteCrossConnectionsListRoutesTableCustomPager{},
 		Path:       id.ID(),
 	}
 

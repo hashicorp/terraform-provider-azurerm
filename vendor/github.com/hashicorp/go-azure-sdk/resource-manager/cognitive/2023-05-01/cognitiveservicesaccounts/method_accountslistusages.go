@@ -50,6 +50,18 @@ func (o AccountsListUsagesOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type AccountsListUsagesCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *AccountsListUsagesCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // AccountsListUsages ...
 func (c CognitiveServicesAccountsClient) AccountsListUsages(ctx context.Context, id AccountId, options AccountsListUsagesOperationOptions) (result AccountsListUsagesOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -58,8 +70,9 @@ func (c CognitiveServicesAccountsClient) AccountsListUsages(ctx context.Context,
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/usages", id.ID()),
 		OptionsObject: options,
+		Pager:         &AccountsListUsagesCustomPager{},
+		Path:          fmt.Sprintf("%s/usages", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

@@ -24,6 +24,18 @@ type ListCompleteResult struct {
 	Items              []ExpressRouteCircuitConnection
 }
 
+type ListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // List ...
 func (c ExpressRouteCircuitConnectionsClient) List(ctx context.Context, id commonids.ExpressRouteCircuitPeeringId) (result ListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c ExpressRouteCircuitConnectionsClient) List(ctx context.Context, id commo
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListCustomPager{},
 		Path:       fmt.Sprintf("%s/connections", id.ID()),
 	}
 

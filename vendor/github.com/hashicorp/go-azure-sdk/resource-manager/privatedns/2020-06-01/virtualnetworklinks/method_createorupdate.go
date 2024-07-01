@@ -62,8 +62,8 @@ func (c VirtualNetworkLinksClient) CreateOrUpdate(ctx context.Context, id Virtua
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPut,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

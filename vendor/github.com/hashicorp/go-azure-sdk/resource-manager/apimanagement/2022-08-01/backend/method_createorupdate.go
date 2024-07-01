@@ -54,8 +54,8 @@ func (c BackendClient) CreateOrUpdate(ctx context.Context, id BackendId, input B
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPut,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

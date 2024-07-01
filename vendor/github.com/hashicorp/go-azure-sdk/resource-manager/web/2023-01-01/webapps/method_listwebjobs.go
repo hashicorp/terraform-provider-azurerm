@@ -24,6 +24,18 @@ type ListWebJobsCompleteResult struct {
 	Items              []WebJob
 }
 
+type ListWebJobsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListWebJobsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListWebJobs ...
 func (c WebAppsClient) ListWebJobs(ctx context.Context, id commonids.AppServiceId) (result ListWebJobsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c WebAppsClient) ListWebJobs(ctx context.Context, id commonids.AppServiceI
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListWebJobsCustomPager{},
 		Path:       fmt.Sprintf("%s/webJobs", id.ID()),
 	}
 
