@@ -152,6 +152,10 @@ func (r LocalRuleStackRule) Arguments() map[string]*pluginsdk.Schema {
 			Default:       protocolApplicationDefault,
 			ValidateFunc:  validate.ProtocolWithPort,
 			ConflictsWith: []string{"protocol_ports"},
+			// if `protocol_ports` is set, the default value should not be used
+			DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
+				return len(d.Get("protocol_ports").([]interface{})) > 0 && old == "" && new == protocolApplicationDefault
+			},
 		},
 
 		"protocol_ports": {
@@ -341,11 +345,7 @@ func (r LocalRuleStackRule) Read() sdk.ResourceFunc {
 				}
 				state.NegateDestination = boolEnumAsBoolRule(props.NegateDestination)
 				state.NegateSource = boolEnumAsBoolRule(props.NegateSource)
-				if v := pointer.From(props.Protocol); v != "" && !strings.EqualFold(v, protocolApplicationDefault) {
-					state.Protocol = v
-				} else {
-					state.Protocol = protocolApplicationDefault
-				}
+				state.Protocol = pointer.From(props.Protocol)
 				state.ProtocolPorts = pointer.From(props.ProtocolPortList)
 				state.RuleEnabled = stateEnumAsBool(props.RuleState)
 				state.Source = schema.FlattenSource(props.Source, *id)
