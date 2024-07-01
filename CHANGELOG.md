@@ -9,6 +9,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_virtual_network_gateway` - split create and update function to fix lifecycle - ignore [GH-26451]
+* `azurerm_virtual_network_gateway_connection` - split create and update function to fix lifecycle - ignore [GH-26431]
 
 ## 3.110.0 (June 27, 2024)
 
