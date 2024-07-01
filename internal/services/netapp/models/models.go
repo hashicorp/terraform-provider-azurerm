@@ -116,3 +116,10 @@ type NetAppVolumeQuotaRuleDataSourceModel struct {
 	QuotaSizeInKiB int64  `tfschema:"quota_size_in_kib"`
 	QuotaType      string `tfschema:"quota_type"`
 }
+
+type NetAppBackupVaultModel struct {
+	Id          string            `tfschema:"id"`
+	Name        string            `tfschema:"name"`
+	AccountName string            `tfschema:"account_name"`
+	Tags        map[string]string `tfschema:"tags"`
+}
