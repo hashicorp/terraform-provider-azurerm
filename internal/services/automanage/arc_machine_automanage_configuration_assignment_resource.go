@@ -3,12 +3,12 @@ package automanage
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automanage/2022-05-04/configurationprofileassignments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automanage/2022-05-04/configurationprofilehcrpassignments"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automanage/2022-05-04/configurationprofilehcrpassignments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automanage/2022-05-04/configurationprofileassignments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automanage/2022-05-04/configurationprofiles"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -26,7 +26,7 @@ func (v ArcMachineConfigurationAssignment) Arguments() map[string]*schema.Schema
 			Type:         schema.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: configurationprofilehcrpassignments.Vali,
+			ValidateFunc: configurationprofileassignments.ValidateMachineID,
 		},
 		"configuration_id": {
 			Type:         schema.TypeString,
@@ -72,7 +72,7 @@ func (v ArcMachineConfigurationAssignment) Create() sdk.ResourceFunc {
 			}
 
 			// Currently, the configuration profile assignment name has to be hardcoded to "default" by API requirement.
-			id := configurationprofileassignments.NewVirtualMachineProviders2ConfigurationProfileAssignmentID(subscriptionId, arcMachineId.ResourceGroupName, arcMachineId.MachineName, "default")
+			id := configurationprofilehcrpassignments.NewProviders2ConfigurationProfileAssignmentID(subscriptionId, arcMachineId.ResourceGroupName, arcMachineId.MachineName, "default")
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
@@ -82,9 +82,9 @@ func (v ArcMachineConfigurationAssignment) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(v.ResourceType(), id)
 			}
 
-			properties := configurationprofileassignments.ConfigurationProfileAssignment{
+			properties := configurationprofilehcrpassignments.ConfigurationProfileAssignment{
 				Name: pointer.To(id.ConfigurationProfileAssignmentName),
-				Properties: &configurationprofileassignments.ConfigurationProfileAssignmentProperties{
+				Properties: &configurationprofilehcrpassignments.ConfigurationProfileAssignmentProperties{
 					ConfigurationProfile: pointer.To(configurationId.ID()),
 					TargetId:             pointer.To(arcMachineId.ID()),
 				},
@@ -104,8 +104,8 @@ func (v ArcMachineConfigurationAssignment) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Automanage.ConfigurationProfileVMAssignmentsClient
-			id, err := configurationprofileassignments.ParseVirtualMachineProviders2ConfigurationProfileAssignmentID(metadata.ResourceData.Id())
+			client := metadata.Client.Automanage.ConfigurationProfileArcMachineAssignmentsClient
+			id, err := configurationprofilehcrpassignments.ParseProviders2ConfigurationProfileAssignmentID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -144,9 +144,9 @@ func (v ArcMachineConfigurationAssignment) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Automanage.ConfigurationProfileVMAssignmentsClient
+			client := metadata.Client.Automanage.ConfigurationProfileArcMachineAssignmentsClient
 
-			id, err := configurationprofileassignments.ParseVirtualMachineProviders2ConfigurationProfileAssignmentID(metadata.ResourceData.Id())
+			id, err := configurationprofilehcrpassignments.ParseProviders2ConfigurationProfileAssignmentID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -161,7 +161,7 @@ func (v ArcMachineConfigurationAssignment) Delete() sdk.ResourceFunc {
 }
 
 func (v ArcMachineConfigurationAssignment) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return configurationprofileassignments.ValidateVirtualMachineProviders2ConfigurationProfileAssignmentID
+	return configurationprofilehcrpassignments.ValidateProviders2ConfigurationProfileAssignmentID
 }
 
 var _ sdk.Resource = &ArcMachineConfigurationAssignment{}

@@ -3,13 +3,13 @@ package automanage_test
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/go-uuid"
 	"os"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automanage/2022-05-04/configurationprofileassignments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automanage/2022-05-04/configurationprofilehcrpassignments"
+	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -48,9 +48,9 @@ func TestAccArcMachineConfigurationAssignment_requireImport(t *testing.T) {
 }
 
 func (r ArcMachineConfigurationAssignmentResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	client := clients.Automanage.ConfigurationProfileVMAssignmentsClient
+	client := clients.Automanage.ConfigurationProfileArcMachineAssignmentsClient
 
-	id, err := configurationprofileassignments.ParseVirtualMachineProviders2ConfigurationProfileAssignmentID(state.ID)
+	id, err := configurationprofilehcrpassignments.ParseProviders2ConfigurationProfileAssignmentID(state.ID)
 	if err != nil {
 		return nil, err
 	}
