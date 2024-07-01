@@ -91,7 +91,6 @@ func resourceLocalNetworkGateway() *pluginsdk.Resource {
 						"peer_weight": {
 							Type:     pluginsdk.TypeInt,
 							Optional: true,
-							Computed: true,
 						},
 					},
 				},

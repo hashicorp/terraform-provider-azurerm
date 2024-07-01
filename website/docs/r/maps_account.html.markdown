@@ -42,9 +42,41 @@ The following arguments are supported:
 
 ~> **Note:** Gen1 SKUs (`S0` and `S1`) are deprecated and can no longer be used for new deployments, which should instead use a Gen2 SKU (`G2`) - more information can be found [in the Azure documentation](https://learn.microsoft.com/azure/azure-maps/how-to-manage-pricing-tier).
 
+* `cors` - (Optional) - A `cors` block as defined below
+
+* `data_store` - (Optional) One or more `data_store` blocks as defined below.
+
+* `identity` - (Optional) An `identity` block as defined below.
+
 * `local_authentication_enabled` - (Optional) Is local authentication enabled for this Azure Maps Account? When `false`, all authentication to the Azure Maps data-plane REST API is disabled, except Azure AD authentication. Defaults to `true`.
 
+* `location` - (Optional) The Location in which the Azure Maps Account should be provisioned. Changing this forces a new resource to be created. Defaults to `global`.
+
 * `tags` - (Optional) A mapping of tags to assign to the Azure Maps Account.
+
+---
+
+A `cors` block supports the following:
+
+* `allowed_origins` - (Required) A list of origins that should be allowed to make cross-origin calls.
+
+---
+
+A `data_store` block supports the following:
+
+* `storage_account_id` - (Required) The ID of the Storage Account that should be linked to this Azure Maps Account.
+
+* `unique_name` - (Required) The name given to the linked Storage Account.
+
+---
+
+An `identity` block supports the following:
+
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Azure Maps Account. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
+
+* `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this Azure Maps Account.
+
+~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ## Attributes Reference
 
@@ -52,11 +84,21 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Azure Maps Account.
 
+* `identity` - An `identity` block as defined below.
+
 * `primary_access_key` - The primary key used to authenticate and authorize access to the Maps REST APIs.
 
 * `secondary_access_key` - The secondary key used to authenticate and authorize access to the Maps REST APIs.
 
 * `x_ms_client_id` - A unique identifier for the Maps Account.
+
+---
+
+An `identity` block exports the following:
+
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
+
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
 ## Timeouts
 

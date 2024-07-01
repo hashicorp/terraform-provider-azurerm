@@ -38,6 +38,8 @@ output "endpoint_id" {
 
 * `description` - Specifies a description for the Data Collection Endpoint.
 
+* `immutable_id` - The immutable ID of the Data Collection Endpoint.
+
 * `kind` - The kind of the Data Collection Endpoint. Possible values are `Linux` and `Windows`.
 
 * `location` - The Azure Region where the Data Collection Endpoint should exist.

@@ -97,7 +97,7 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Boolean to enable or disable this Security Center Automation. Defaults to `true`.
 
-* `tags` - (Optional) A mapping of tags assigned to the resource. Changing this forces a new resource to be created.
+* `tags` - (Optional) A mapping of tags assigned to the resource.
 
 ---
 

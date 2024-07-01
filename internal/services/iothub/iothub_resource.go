@@ -163,15 +163,27 @@ func resourceIotHub() *pluginsdk.Resource {
 			},
 
 			"event_hub_partition_count": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				Computed:     true,
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				Computed: !features.FourPointOhBeta(),
+				Default: func() interface{} {
+					if !features.FourPointOhBeta() {
+						return nil
+					}
+					return 4
+				}(),
 				ValidateFunc: validation.IntBetween(2, 128),
 			},
 			"event_hub_retention_in_days": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				Computed:     true,
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				Computed: !features.FourPointOhBeta(),
+				Default: func() interface{} {
+					if !features.FourPointOhBeta() {
+						return nil
+					}
+					return 1
+				}(),
 				ValidateFunc: validation.IntBetween(1, 7),
 			},
 
@@ -485,7 +497,13 @@ func resourceIotHub() *pluginsdk.Resource {
 						"enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
-							Computed: true,
+							Computed: !features.FourPointOhBeta(),
+							Default: func() interface{} {
+								if !features.FourPointOhBeta() {
+									return nil
+								}
+								return true
+							}(),
 						},
 					},
 				},

@@ -62,7 +62,7 @@ func resourceSubscription() *pluginsdk.Resource {
 			"alias": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // O+C - This value is supplied by the provider if omitted so must remain `Computed`
 				ForceNew:     true,
 				Description:  "The Alias Name of the subscription. If omitted a new UUID will be generated for this property.",
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -103,7 +103,7 @@ func resourceSubscription() *pluginsdk.Resource {
 				Description: "The GUID of the Subscription.",
 				ForceNew:    true,
 				Optional:    true,
-				Computed:    true,
+				Computed:    true, // O+C This must remain computed due to the unique nature of this resource - See resource documentation for notes.
 				ExactlyOneOf: []string{
 					"subscription_id",
 					"billing_scope_id",

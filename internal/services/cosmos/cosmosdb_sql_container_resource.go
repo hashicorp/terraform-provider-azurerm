@@ -9,11 +9,13 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2023-04-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
@@ -25,7 +27,7 @@ import (
 )
 
 func resourceCosmosDbSQLContainer() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceCosmosDbSQLContainerCreate,
 		Read:   resourceCosmosDbSQLContainerRead,
 		Update: resourceCosmosDbSQLContainerUpdate,
@@ -72,11 +74,34 @@ func resourceCosmosDbSQLContainer() *pluginsdk.Resource {
 				ValidateFunc: validate.CosmosEntityName,
 			},
 
-			"partition_key_path": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+			// lintignore:S013
+			"partition_key_paths": {
+				Type:     pluginsdk.TypeList,
+				Required: features.FourPointOhBeta(),
+				Optional: !features.FourPointOhBeta(),
+				Computed: !features.FourPointOhBeta(),
+				ForceNew: true,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+				ExactlyOneOf: func() []string {
+					if !features.FourPointOhBeta() {
+						return []string{"partition_key_path", "partition_key_paths"}
+					}
+					return []string{}
+				}(),
+			},
+
+			"partition_key_kind": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  string(cosmosdb.PartitionKindHash),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(cosmosdb.PartitionKindHash),
+					string(cosmosdb.PartitionKindMultiHash),
+				}, false),
 			},
 
 			"partition_key_version": {
@@ -137,6 +162,20 @@ func resourceCosmosDbSQLContainer() *pluginsdk.Resource {
 			}),
 		),
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["partition_key_path"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+			Deprecated:   "`partition_key_path` will be removed in favour of the property `partition_key_paths` in version 4.0 of the AzureRM Provider.",
+			ExactlyOneOf: []string{"partition_key_path", "partition_key_paths"},
+		}
+	}
+
+	return resource
 }
 
 func resourceCosmosDbSQLContainerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -146,7 +185,6 @@ func resourceCosmosDbSQLContainerCreate(d *pluginsdk.ResourceData, meta interfac
 	defer cancel()
 
 	id := cosmosdb.NewContainerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("database_name").(string), d.Get("name").(string))
-	partitionkeypaths := d.Get("partition_key_path").(string)
 
 	existing, err := client.SqlResourcesGetSqlContainer(ctx, id)
 	if err != nil {
@@ -175,16 +213,22 @@ func resourceCosmosDbSQLContainerCreate(d *pluginsdk.ResourceData, meta interfac
 		},
 	}
 
-	if partitionkeypaths != "" {
-		partitionKindHash := cosmosdb.PartitionKindHash
-		db.Properties.Resource.PartitionKey = &cosmosdb.ContainerPartitionKey{
-			Paths: &[]string{partitionkeypaths},
-			Kind:  &partitionKindHash,
-		}
+	db.Properties.Resource.PartitionKey = &cosmosdb.ContainerPartitionKey{
+		Kind: pointer.To(cosmosdb.PartitionKind(d.Get("partition_key_kind").(string))),
+	}
 
-		if partitionKeyVersion, ok := d.GetOk("partition_key_version"); ok {
-			db.Properties.Resource.PartitionKey.Version = utils.Int64(int64(partitionKeyVersion.(int)))
+	if !features.FourPointOhBeta() {
+		if v, ok := d.GetOk("partition_key_path"); ok {
+			db.Properties.Resource.PartitionKey.Paths = &[]string{v.(string)}
 		}
+	}
+
+	if v, ok := d.GetOk("partition_key_paths"); ok {
+		db.Properties.Resource.PartitionKey.Paths = utils.ExpandStringSlice(v.([]interface{}))
+	}
+
+	if partitionKeyVersion, ok := d.GetOk("partition_key_version"); ok {
+		db.Properties.Resource.PartitionKey.Version = utils.Int64(int64(partitionKeyVersion.(int)))
 	}
 
 	if keys := expandCosmosSQLContainerUniqueKeys(d.Get("unique_key").(*pluginsdk.Set)); keys != nil {
@@ -236,8 +280,6 @@ func resourceCosmosDbSQLContainerUpdate(d *pluginsdk.ResourceData, meta interfac
 		return fmt.Errorf("updating Cosmos SQL Container %q (Account: %q, Database: %q): %+v", id.ContainerName, id.DatabaseAccountName, id.SqlDatabaseName, err)
 	}
 
-	partitionkeypaths := d.Get("partition_key_path").(string)
-
 	indexingPolicy := common.ExpandAzureRmCosmosDbIndexingPolicy(d)
 	err = common.ValidateAzureRmCosmosDbIndexingPolicy(indexingPolicy)
 	if err != nil {
@@ -254,16 +296,22 @@ func resourceCosmosDbSQLContainerUpdate(d *pluginsdk.ResourceData, meta interfac
 		},
 	}
 
-	if partitionkeypaths != "" {
-		partitionKindHash := cosmosdb.PartitionKindHash
-		db.Properties.Resource.PartitionKey = &cosmosdb.ContainerPartitionKey{
-			Paths: &[]string{partitionkeypaths},
-			Kind:  &partitionKindHash,
-		}
+	db.Properties.Resource.PartitionKey = &cosmosdb.ContainerPartitionKey{
+		Kind: pointer.To(cosmosdb.PartitionKind(d.Get("partition_key_kind").(string))),
+	}
 
-		if partitionKeyVersion, ok := d.GetOk("partition_key_version"); ok {
-			db.Properties.Resource.PartitionKey.Version = utils.Int64(int64(partitionKeyVersion.(int)))
+	if !features.FourPointOhBeta() {
+		if v, ok := d.GetOk("partition_key_path"); ok {
+			db.Properties.Resource.PartitionKey.Paths = &[]string{v.(string)}
 		}
+	}
+
+	if v, ok := d.GetOk("partition_key_paths"); ok {
+		db.Properties.Resource.PartitionKey.Paths = utils.ExpandStringSlice(v.([]interface{}))
+	}
+
+	if partitionKeyVersion, ok := d.GetOk("partition_key_version"); ok {
+		db.Properties.Resource.PartitionKey.Version = utils.Int64(int64(partitionKeyVersion.(int)))
 	}
 
 	if keys := expandCosmosSQLContainerUniqueKeys(d.Get("unique_key").(*pluginsdk.Set)); keys != nil {
@@ -329,13 +377,18 @@ func resourceCosmosDbSQLContainerRead(d *pluginsdk.ResourceData, meta interface{
 		if props := model.Properties; props != nil {
 			if res := props.Resource; res != nil {
 				if pk := res.PartitionKey; pk != nil {
+					d.Set("partition_key_kind", string(pointer.From(pk.Kind)))
+
 					if paths := pk.Paths; paths != nil {
-						if len(*paths) > 1 {
-							return fmt.Errorf("reading PartitionKey Paths, more then 1 returned")
-						} else if len(*paths) == 1 {
-							d.Set("partition_key_path", (*paths)[0])
+						if !features.FourPointOhBeta() {
+							if len(pointer.From(paths)) == 1 {
+								d.Set("partition_key_path", (pointer.From(paths))[0])
+							}
 						}
+
+						d.Set("partition_key_paths", utils.FlattenStringSlice(paths))
 					}
+
 					if version := pk.Version; version != nil {
 						d.Set("partition_key_version", version)
 					}
