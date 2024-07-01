@@ -628,7 +628,7 @@ func resourceVirtualNetworkGatewayConnectionUpdate(d *pluginsdk.ResourceData, me
 
 	if d.HasChange("local_network_gateway_id") {
 		localNetworkGatewayId := d.Get("local_network_gateway_id").(string)
-		_, name, err := resourceGroupAndLocalNetworkGatewayFromId(localNetworkGatewayId)
+		name, err := localNetworkGatewayFromId(localNetworkGatewayId)
 		if err != nil {
 			return fmt.Errorf("Getting LocalNetworkGateway Name and Group:: %+v", err)
 		}
@@ -816,7 +816,7 @@ func getVirtualNetworkGatewayConnectionProperties(d *pluginsdk.ResourceData, vir
 
 	if v, ok := d.GetOk("local_network_gateway_id"); ok {
 		localNetworkGatewayId := v.(string)
-		_, name, err := resourceGroupAndLocalNetworkGatewayFromId(localNetworkGatewayId)
+		name, err := localNetworkGatewayFromId(localNetworkGatewayId)
 		if err != nil {
 			return nil, fmt.Errorf("Getting LocalNetworkGateway Name and Group:: %+v", err)
 		}
