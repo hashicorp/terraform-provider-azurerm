@@ -131,7 +131,7 @@ resource "azurerm_stack_hci_storage_path" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   custom_location_id  = %q
-  path      = "C:\\ClusterStorage\\UserStorage_2\\sp-${var.random_string}"
+  path                = "C:\\ClusterStorage\\UserStorage_2\\sp-${var.random_string}"
 }
 `, template, os.Getenv(customLocationIdEnv))
 }
@@ -147,7 +147,7 @@ resource "azurerm_stack_hci_storage_path" "import" {
   resource_group_name = azurerm_stack_hci_storage_path.test.resource_group_name
   location            = azurerm_stack_hci_storage_path.test.location
   custom_location_id  = azurerm_stack_hci_storage_path.test.custom_location_id
-  path      = azurerm_stack_hci_storage_path.test.path
+  path                = azurerm_stack_hci_storage_path.test.path
 }
 `, config)
 }
@@ -164,7 +164,7 @@ resource "azurerm_stack_hci_storage_path" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   custom_location_id  = %q
-  path      = "C:\\ClusterStorage\\UserStorage_2\\sp-${var.random_string}"
+  path                = "C:\\ClusterStorage\\UserStorage_2\\sp-${var.random_string}"
   tags = {
     foo = "bar"
   }
