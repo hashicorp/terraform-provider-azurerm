@@ -269,6 +269,9 @@ func (r NewRelicMonitorResource) Create() sdk.ResourceFunc {
 			}
 
 			identityValue, err := identity.ExpandSystemAssigned(metadata.ResourceData.Get("identity").([]interface{}))
+			if err != nil {
+				return fmt.Errorf("expanding `identity`: %+v", err)
+			}
 			// Currently the API does not accept `None` type: https://github.com/Azure/azure-rest-api-specs/issues/29257
 			if identityValue.Type != identity.TypeNone {
 				properties.Identity = identityValue
