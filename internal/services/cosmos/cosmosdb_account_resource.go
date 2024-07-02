@@ -1531,7 +1531,7 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 		d.Set("free_tier_enabled", props.EnableFreeTier)
 		d.Set("analytical_storage_enabled", props.EnableAnalyticalStorage)
 		d.Set("public_network_access_enabled", pointer.From(props.PublicNetworkAccess) == cosmosdb.PublicNetworkAccessEnabled)
-		if (props.DefaultIdentity == nil) || (*props.DefaultIdentity != "") {
+		if props.DefaultIdentity == nil || *props.DefaultIdentity != "" {
 			d.Set("default_identity_type", props.DefaultIdentity)
 		} else {
 			d.Set("default_identity_type", "FirstPartyIdentity")
