@@ -3,8 +3,9 @@
 ENHANCEMENTS:
 
 * dependencies: updating to `v0.20240701.1082110` of `github.com/hashicorp/go-azure-sdk` [GH-26502]
-* `azurerm_firewall_policy` - remove Computed from the `sku` property and add a default of `Standard` in 4.0 [GH-26499]
 * `azurerm_disk_encryption_set` - support for the `managed_hsm_key_id` property [GH-26201]
+* `azurerm_firewall_policy` - remove Computed from the `sku` property and add a default of `Standard` in 4.0 [GH-26499]
+* `azurerm_service_plan` - support for new the Flex Consumption plan [GH-26351]
 
 BUG FIXES:
 
