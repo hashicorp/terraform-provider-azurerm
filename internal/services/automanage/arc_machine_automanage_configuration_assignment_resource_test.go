@@ -158,7 +158,7 @@ resource "azurerm_public_ip" "test" {
   allocation_method   = "Static"
 }
 
-resource "azurerm_linux_arc_machine" "test" {
+resource "azurerm_linux_virtual_machine" "test" {
   name                            = "acctestVM-%d"
   resource_group_name             = azurerm_resource_group.test.name
   location                        = azurerm_resource_group.test.location
@@ -215,10 +215,10 @@ resource "azurerm_linux_arc_machine" "test" {
 }
 
 data "azurerm_arc_machine" "test" {
-  name                = azurerm_linux_arc_machine.test.name
+  name                = azurerm_linux_virtual_machine.test.name
   resource_group_name = azurerm_resource_group.test.name
   depends_on = [
-    azurerm_linux_arc_machine.test
+    azurerm_linux_virtual_machine.test
   ]
 }
 
