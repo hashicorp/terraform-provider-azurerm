@@ -10,15 +10,15 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backupvaults"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/volumequotarules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-11-01/backupvaults"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
 	netAppValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type NetAppBackupVaultResource struct{}
@@ -67,53 +67,44 @@ func (r NetAppBackupVaultResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 90 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			// client := metadata.Client.NetApp.AccountClient
-			// subscriptionId := metadata.Client.Account.SubscriptionId
+			client := metadata.Client.NetApp.BackupVaultsClient
+			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			// var model netAppModels.NetAppBackupVaultModel
-			// if err := metadata.Decode(&model); err != nil {
-			// 	return fmt.Errorf("decoding: %+v", err)
-			// }
+			var model netAppModels.NetAppBackupVaultModel
+			if err := metadata.Decode(&model); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
 
-			// backupVaultID, err := backupvaults.ParseBackupVaultID(model.Id)
-			// if err != nil {
-			// 	return fmt.Errorf("error parsing backup vault id %s: %+v", model.Id, err)
-			// }
+			backupVaultID, err := backupvaults.ParseBackupVaultID(model.Id)
+			if err != nil {
+				return fmt.Errorf("error parsing backup vault id %s: %+v", model.Id, err)
+			}
 
-			// id := backupvaults.NewBackupVaultID(subscriptionId, backupVaultID.ResourceGroupName, model.Name)
+			id := backupvaults.NewBackupVaultID(subscriptionId, backupVaultID.ResourceGroupName, backupVaultID.NetAppAccountName, model.Name)
 
-			// metadata.Logger.Infof("Import check for %s", id)
-			// existing, err := client.(ctx, id)
-			// if err != nil {
-			// 	if !response.WasNotFound(existing.HttpResponse) {
-			// 		return fmt.Errorf("checking for presence of existing %s: %s", id, err)
-			// 	}
-			// }
+			metadata.Logger.Infof("Import check for %s", id)
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+				}
+			}
 
-			// if !response.WasNotFound(existing.HttpResponse) {
-			// 	return tf.ImportAsExistsError(r.ResourceType(), id.ID())
-			// }
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+			}
 
-			// // Performing some validations that are not possible in the schema
-			// if errorList := netAppValidate.ValidateNetAppVolumeQuotaRule(ctx, pointer.From(volumeID), metadata.Client, pointer.To(model)); len(errorList) > 0 {
-			// 	return fmt.Errorf("one or more issues found while performing deeper validations for %s:\n%+v", id, errorList)
-			// }
+			parameters := backupvaults.BackupVault{
+				Location: location.Normalize(model.Location),
+				Tags:     pointer.To(model.Tags),
+			}
 
-			// parameters := volumequotarules.VolumeQuotaRule{
-			// 	Location: location.Normalize(model.Location),
-			// 	Properties: &volumequotarules.VolumeQuotaRulesProperties{
-			// 		QuotaSizeInKiBs: pointer.To(model.QuotaSizeInKiB),
-			// 		QuotaType:       pointer.To(volumequotarules.Type(model.QuotaType)),
-			// 		QuotaTarget:     utils.String(model.QuotaTarget),
-			// 	},
-			// }
+			err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
+			if err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
+			}
 
-			// err = client.CreateThenPoll(ctx, id, parameters)
-			// if err != nil {
-			// 	return fmt.Errorf("creating %s: %+v", id, err)
-			// }
-
-			// metadata.SetID(id)
+			metadata.SetID(id)
 
 			return nil
 		},
@@ -124,9 +115,9 @@ func (r NetAppBackupVaultResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 120 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.NetApp.VolumeQuotaRules
+			client := metadata.Client.NetApp.BackupVaultsClient
 
-			id, err := volumequotarules.ParseVolumeQuotaRuleID(metadata.ResourceData.Id())
+			id, err := backupvaults.ParseBackupVaultID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -139,16 +130,18 @@ func (r NetAppBackupVaultResource) Update() sdk.ResourceFunc {
 
 			metadata.Logger.Infof("Updating %s", id)
 
-			update := volumequotarules.VolumeQuotaRulePatch{
-				Properties: &volumequotarules.VolumeQuotaRulesProperties{},
-			}
+			if metadata.ResourceData.HasChange("Tags") {
 
-			update.Properties.QuotaSizeInKiBs = utils.Int64(state.QuotaSizeInKiB)
-			if err := client.UpdateThenPoll(ctx, pointer.From(id), update); err != nil {
-				return fmt.Errorf("updating %s: %+v", id, err)
-			}
+				update := backupvaults.BackupVaultPatch{
+					Tags: pointer.To(state.Tags),
+				}
 
-			metadata.SetID(id)
+				if err := client.UpdateThenPoll(ctx, pointer.From(id), update); err != nil {
+					return fmt.Errorf("updating %s: %+v", id, err)
+				}
+
+				metadata.SetID(id)
+			}
 
 			return nil
 		},
@@ -160,9 +153,9 @@ func (r NetAppBackupVaultResource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 
-			client := metadata.Client.NetApp.VolumeQuotaRules
+			client := metadata.Client.NetApp.BackupVaultsClient
 
-			id, err := volumequotarules.ParseVolumeQuotaRuleID(metadata.ResourceData.Id())
+			id, err := backupvaults.ParseBackupVaultID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -181,15 +174,10 @@ func (r NetAppBackupVaultResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %v", id, err)
 			}
 
-			volumeID := volumequotarules.NewVolumeID(id.SubscriptionId, id.ResourceGroupName, id.NetAppAccountName, id.CapacityPoolName, id.VolumeName)
-
 			model := netAppModels.NetAppBackupVaultModel{
-				Name:           id.VolumeQuotaRuleName,
-				VolumeID:       volumeID.ID(),
-				Location:       location.NormalizeNilable(pointer.To(existing.Model.Location)),
-				QuotaTarget:    pointer.From(existing.Model.Properties.QuotaTarget),
-				QuotaSizeInKiB: pointer.From(existing.Model.Properties.QuotaSizeInKiBs),
-				QuotaType:      string(pointer.From(existing.Model.Properties.QuotaType)),
+				Name:     id.BackupVaultName,
+				Location: location.NormalizeNilable(pointer.To(existing.Model.Location)),
+				Tags:     pointer.From(existing.Model.Tags),
 			}
 
 			metadata.SetID(id)
@@ -204,9 +192,9 @@ func (r NetAppBackupVaultResource) Delete() sdk.ResourceFunc {
 		Timeout: 120 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 
-			client := metadata.Client.NetApp.VolumeQuotaRules
+			client := metadata.Client.NetApp.BackupVaultsClient
 
-			id, err := volumequotarules.ParseVolumeQuotaRuleID(metadata.ResourceData.Id())
+			id, err := backupvaults.ParseBackupVaultID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}

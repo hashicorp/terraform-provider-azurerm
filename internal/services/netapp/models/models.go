@@ -120,6 +120,7 @@ type NetAppVolumeQuotaRuleDataSourceModel struct {
 type NetAppBackupVaultModel struct {
 	Id          string            `tfschema:"id"`
 	Name        string            `tfschema:"name"`
+	Location    string            `tfschema:"location"`
 	AccountName string            `tfschema:"account_name"`
 	Tags        map[string]string `tfschema:"tags"`
 }
