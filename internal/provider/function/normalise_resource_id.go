@@ -1,4 +1,4 @@
-package providerfunction
+package function
 
 import (
 	"context"
@@ -15,15 +15,15 @@ func NewNormaliseResourceID() function.Function {
 	return &NormaliseResourceIDFunction{}
 }
 
-func (a NormaliseResourceIDFunction) Metadata(ctx context.Context, request function.MetadataRequest, response *function.MetadataResponse) {
+func (a NormaliseResourceIDFunction) Metadata(_ context.Context, _ function.MetadataRequest, response *function.MetadataResponse) {
 	response.Name = "normalise_resource_id"
 }
 
-func (a NormaliseResourceIDFunction) Definition(ctx context.Context, request function.DefinitionRequest, response *function.DefinitionResponse) {
+func (a NormaliseResourceIDFunction) Definition(_ context.Context, _ function.DefinitionRequest, response *function.DefinitionResponse) {
 	response.Definition = function.Definition{
 		Summary:             "normalise_resource_id",
-		Description:         "Parses and normalises the casing on an Azure Resource Manager ID into the correct casing for Terraform",
-		MarkdownDescription: "Parses and normalises the casing on an Azure Resource Manager ID into the correct casing for Terraform",
+		Description:         "Parses and attempts to normalise the casing on an Azure Resource Manager ID into the correct casing for Terraform",
+		MarkdownDescription: "Parses and attempts to normalise the casing on an Azure Resource Manager ID into the correct casing for Terraform",
 		Parameters: []function.Parameter{
 			function.StringParameter{
 				Name:                "id",
@@ -44,5 +44,11 @@ func (a NormaliseResourceIDFunction) Run(ctx context.Context, request function.R
 		return
 	}
 
-	response.Error = function.ConcatFuncErrors(response.Result.Set(ctx, recaser.ReCase(id)))
+	result, err := recaser.RecaseKnownId(id)
+	if err != nil {
+		response.Error = function.NewFuncError(err.Error())
+		return
+	}
+
+	response.Error = function.ConcatFuncErrors(response.Result.Set(ctx, result))
 }

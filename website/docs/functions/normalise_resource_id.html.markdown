@@ -10,7 +10,7 @@ description: |-
 
 ~> Provider-defined functions are supported in Terraform 1.8 and later.
 
-Takes an Azure Resource ID and attempts to normalises the case-sensitive system segments as required by the AzureRM provider. 
+Takes an Azure Resource ID and attempts to normalise the case-sensitive system segments as required by the AzureRM provider. 
 
 ~> **NOTE:** User specified segments are not affected or corrected. (e.g. resource names). Please ensure that these match your configuration correctly to avoid errors. If a resource is not supported by the provider, this function may not provide a correct result. 
 

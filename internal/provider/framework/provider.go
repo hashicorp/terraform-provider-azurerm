@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/providerfunction"
+	providerfunction "github.com/hashicorp/terraform-provider-azurerm/internal/provider/function"
 )
 
 type azureRmFrameworkProvider struct {
@@ -26,6 +26,7 @@ var _ provider.ProviderWithFunctions = &azureRmFrameworkProvider{}
 func (p *azureRmFrameworkProvider) Functions(_ context.Context) []func() function.Function {
 	return []func() function.Function{
 		providerfunction.NewNormaliseResourceID,
+		providerfunction.NewParseResourceIDFunction,
 	}
 }
 
