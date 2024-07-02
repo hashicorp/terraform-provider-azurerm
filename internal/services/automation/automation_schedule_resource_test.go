@@ -267,11 +267,6 @@ resource "azurerm_automation_schedule" "test" {
   resource_group_name     = azurerm_resource_group.test.name
   automation_account_name = azurerm_automation_account.test.name
   frequency               = "OneTime"
-
-  lifecycle {
-    ignore_changes = [start_time, expiry_time]
-  }
-
 }
 `, AutomationScheduleResource{}.template(data), data.RandomInteger)
 }
@@ -290,10 +285,6 @@ resource "azurerm_automation_schedule" "test" {
   start_time              = "2026-04-15T18:01:15+02:00"
   description             = "%s"
   week_days               = ["Monday"]
-
-  lifecycle {
-    ignore_changes = [expiry_time]
-  }
 }
 `, a.template(data), data.RandomInteger, desc)
 }
@@ -323,10 +314,6 @@ resource "azurerm_automation_schedule" "test" {
   start_time              = "%s"
   timezone                = "Australia/Perth"
   description             = "This is an automation schedule"
-
-  lifecycle {
-    ignore_changes = [interval, expiry_time]
-  }
 }
 `, AutomationScheduleResource{}.template(data), data.RandomInteger, startTime)
 }
@@ -342,10 +329,6 @@ resource "azurerm_automation_schedule" "test" {
   automation_account_name = azurerm_automation_account.test.name
   frequency               = "%s"
   interval                = "%d"
-
-  lifecycle {
-    ignore_changes = [start_time, expiry_time]
-  }
 }
 `, AutomationScheduleResource{}.template(data), data.RandomInteger, frequency, interval)
 }
@@ -361,10 +344,6 @@ resource "azurerm_automation_schedule" "test" {
   frequency               = "Week"
   interval                = "1"
   week_days               = ["%s"]
-
-  lifecycle {
-    ignore_changes = [start_time, expiry_time]
-  }
 }
 `, AutomationScheduleResource{}.template(data), data.RandomInteger, weekDay)
 }
@@ -380,10 +359,6 @@ resource "azurerm_automation_schedule" "test" {
   frequency               = "Month"
   interval                = "1"
   month_days              = [%d]
-
-  lifecycle {
-    ignore_changes = [start_time, expiry_time]
-  }
 }
 `, AutomationScheduleResource{}.template(data), data.RandomInteger, monthDay)
 }
@@ -402,10 +377,6 @@ resource "azurerm_automation_schedule" "test" {
   monthly_occurrence {
     day        = "%s"
     occurrence = "%d"
-  }
-
-  lifecycle {
-    ignore_changes = [start_time, expiry_time]
   }
 }
 `, AutomationScheduleResource{}.template(data), data.RandomInteger, weekDay, weekDayOccurrence)

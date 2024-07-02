@@ -512,9 +512,10 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 					},
 
 					"start_time": {
-						Type:             pluginsdk.TypeString,
-						Optional:         true,
-						Computed:         !features.FourPointOhBeta(),
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						// NOTE: O+C API returns a default if omitted which can be updated without issue so this can remain
+						Computed:         true,
 						DiffSuppressFunc: suppress.RFC3339MinuteTime,
 						ValidateFunc:     validation.IsRFC3339Time,
 					},
@@ -526,9 +527,10 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 					},
 
 					"expiry_time": {
-						Type:             pluginsdk.TypeString,
-						Optional:         true,
-						Computed:         !features.FourPointOhBeta(),
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						// NOTE: O+C API returns a default if omitted which can be updated without issue so this can remain
+						Computed:         true,
 						DiffSuppressFunc: suppress.RFC3339MinuteTime,
 						ValidateFunc:     validation.IsRFC3339Time,
 					},
@@ -546,9 +548,10 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 					},
 
 					"next_run": {
-						Type:             pluginsdk.TypeString,
-						Optional:         true,
-						Computed:         !features.FourPointOhBeta(),
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						// NOTE: O+C API returns a default if omitted which  can be updated without issue so this can remain
+						Computed:         true,
 						DiffSuppressFunc: suppress.RFC3339MinuteTime,
 						ValidateFunc:     validation.IsRFC3339Time,
 					},
