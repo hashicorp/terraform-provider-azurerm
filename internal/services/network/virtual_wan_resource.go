@@ -127,7 +127,7 @@ func resourceVirtualWanCreate(d *pluginsdk.ResourceData, meta interface{}) error
 
 func resourceVirtualWanUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := virtualwans.ParseVirtualWANID(d.Id())
