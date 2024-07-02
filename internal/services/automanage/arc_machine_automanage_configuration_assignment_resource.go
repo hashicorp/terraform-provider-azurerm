@@ -83,10 +83,8 @@ func (v ArcMachineConfigurationAssignment) Create() sdk.ResourceFunc {
 			}
 
 			properties := configurationprofilehcrpassignments.ConfigurationProfileAssignment{
-				Name: pointer.To(id.ConfigurationProfileAssignmentName),
 				Properties: &configurationprofilehcrpassignments.ConfigurationProfileAssignmentProperties{
-					ConfigurationProfile: pointer.To(configurationId.ID()),
-					TargetId:             pointer.To(arcMachineId.ID()),
+					ConfigurationProfile: pointer.FromString(configurationId.ID()),
 				},
 			}
 
