@@ -159,6 +159,9 @@ func resourceNetworkProfileUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	defer cancel()
 
 	id, err := networkprofiles.ParseNetworkProfileID(d.Id())
+	if err != nil {
+		return err
+	}
 
 	existing, err := client.Get(ctx, *id, networkprofiles.DefaultGetOperationOptions())
 	if err != nil {
