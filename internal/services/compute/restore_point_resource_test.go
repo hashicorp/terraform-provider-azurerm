@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/restorepoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -36,7 +37,11 @@ func TestAccRestorePoint_excludedDisks(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.excludedDisks(data),
+			Config: r.addedDisks(data),
+		},
+		{
+			PreConfig: func() { time.Sleep(5 * time.Minute) },
+			Config:    r.excludedDisks(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -101,6 +106,32 @@ resource "azurerm_virtual_machine_data_disk_attachment" "test" {
 resource "azurerm_restore_point" "test" {
   name                        = "acctestRP-%[2]s"
   restore_point_collection_id = azurerm_restore_point_collection.test.id
+}
+`, r.template(data), data.RandomString)
+}
+
+func (r RestorePointResource) addedDisks(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_managed_disk" "test" {
+  name                 = "acctest%[2]s"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  storage_account_type = "Standard_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = 10
+}
+
+resource "azurerm_virtual_machine_data_disk_attachment" "test" {
+  managed_disk_id    = azurerm_managed_disk.test.id
+  virtual_machine_id = azurerm_linux_virtual_machine.test.id
+  lun                = "11"
+  caching            = "ReadWrite"
 }
 `, r.template(data), data.RandomString)
 }
