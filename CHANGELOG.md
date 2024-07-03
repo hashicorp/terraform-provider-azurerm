@@ -1,5 +1,9 @@
 ## 3.111.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_restore_point_collection` [GH-26518]
+
 ENHANCEMENTS:
 
 * dependencies: updating to `v0.20240701.1082110` of `github.com/hashicorp/go-azure-sdk` [GH-26502]
