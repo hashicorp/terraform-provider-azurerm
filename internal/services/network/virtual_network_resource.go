@@ -1047,15 +1047,17 @@ func expandResourcesForLocking(d *pluginsdk.ResourceData) ([]string, []string, e
 				}
 			}
 
-			routeTableId := subnet["route_table_id"].(string)
-			if routeTableId != "" {
-				parsedRouteTableID, err := routetables.ParseRouteTableID(routeTableId)
-				if err != nil {
-					return nil, nil, err
-				}
-				routeTableName := parsedRouteTableID.RouteTableName
-				if !utils.SliceContainsValue(routeTableNames, routeTableName) {
-					routeTableNames = append(routeTableNames, routeTableName)
+			if features.FourPointOhBeta() {
+				routeTableId := subnet["route_table_id"].(string)
+				if routeTableId != "" {
+					parsedRouteTableID, err := routetables.ParseRouteTableID(routeTableId)
+					if err != nil {
+						return nil, nil, err
+					}
+					routeTableName := parsedRouteTableID.RouteTableName
+					if !utils.SliceContainsValue(routeTableNames, routeTableName) {
+						routeTableNames = append(routeTableNames, routeTableName)
+					}
 				}
 			}
 		}
