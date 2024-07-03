@@ -134,7 +134,7 @@ resource "azurerm_notification_hub_namespace" "test" {
   location            = azurerm_resource_group.test.location
   namespace_type      = "NotificationHub"
 
-  sku_name            = "Basic"
+  sku_name = "Basic"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
