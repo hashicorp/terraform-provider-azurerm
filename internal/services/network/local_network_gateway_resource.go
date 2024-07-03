@@ -24,9 +24,9 @@ import (
 
 func resourceLocalNetworkGateway() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceLocalNetworkGatewayCreateUpdate,
+		Create: resourceLocalNetworkGatewayCreate,
 		Read:   resourceLocalNetworkGatewayRead,
-		Update: resourceLocalNetworkGatewayCreateUpdate,
+		Update: resourceLocalNetworkGatewayUpdate,
 		Delete: resourceLocalNetworkGatewayDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := localnetworkgateways.ParseLocalNetworkGatewayID(id)
@@ -101,25 +101,23 @@ func resourceLocalNetworkGateway() *pluginsdk.Resource {
 	}
 }
 
-func resourceLocalNetworkGatewayCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLocalNetworkGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.Client.LocalNetworkGateways
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := localnetworkgateways.NewLocalNetworkGatewayID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_local_network_gateway", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
+	}
+
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_local_network_gateway", id.ID())
 	}
 
 	gateway := localnetworkgateways.LocalNetworkGateway{
@@ -144,29 +142,86 @@ func resourceLocalNetworkGatewayCreateUpdate(d *pluginsdk.ResourceData, meta int
 	pollerType := custompollers.NewLocalNetworkGatewayPoller(client, id)
 	poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
 
+	gateway.Properties.LocalNetworkAddressSpace = expandLocalNetworkGatewayAddressSpaces(d)
+
+	if _, err := client.CreateOrUpdate(ctx, id, gateway); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	if err := poller.PollUntilDone(ctx); err != nil {
+		return err
+	}
+
+	d.SetId(id.ID())
+
+	return resourceLocalNetworkGatewayRead(d, meta)
+}
+
+func resourceLocalNetworkGatewayUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.Client.LocalNetworkGateways
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := localnetworkgateways.ParseLocalNetworkGatewayID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+
+	payload := existing.Model
+
+	if d.HasChange("gateway_address") {
+		payload.Properties.GatewayIPAddress = pointer.To(d.Get("gateway_address").(string))
+	}
+
+	if d.HasChange("gateway_fqdn") {
+		payload.Properties.Fqdn = pointer.To(d.Get("gateway_fqdn").(string))
+	}
+
+	if d.HasChange("bgp_settings") {
+		payload.Properties.BgpSettings = expandLocalNetworkGatewayBGPSettings(d)
+	}
+
+	if d.HasChange("tags") {
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	// This custompoller can be removed once https://github.com/hashicorp/go-azure-sdk/issues/989 has been fixed
+	pollerType := custompollers.NewLocalNetworkGatewayPoller(client, *id)
+	poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+
 	// There is a bug in the provider where the address space ordering doesn't change as expected.
 	// In the UI we have to remove the current list of addresses in the address space and re-add them in the new order and we'll copy that here.
-	if !d.IsNewResource() && d.HasChange("address_space") {
+	if d.HasChange("address_space") {
 		// since the local network gateway cannot have both empty address prefix and empty BGP setting(confirmed with service team, it is by design),
 		// replace the empty address prefix with the first address prefix in the "address_space" list to avoid error.
 		if v := d.Get("address_space").([]interface{}); len(v) > 0 {
-			gateway.Properties.LocalNetworkAddressSpace = &localnetworkgateways.AddressSpace{
+			payload.Properties.LocalNetworkAddressSpace = &localnetworkgateways.AddressSpace{
 				AddressPrefixes: &[]string{v[0].(string)},
 			}
 		}
 
 		// This can be switched back over to CreateOrUpdateThenPoll once https://github.com/hashicorp/go-azure-sdk/issues/989 has been fixed
-		if _, err := client.CreateOrUpdate(ctx, id, gateway); err != nil {
+		if _, err := client.CreateOrUpdate(ctx, *id, *payload); err != nil {
 			return fmt.Errorf("removing %s: %+v", id, err)
 		}
 		if err := poller.PollUntilDone(ctx); err != nil {
 			return err
 		}
 	}
-	gateway.Properties.LocalNetworkAddressSpace = expandLocalNetworkGatewayAddressSpaces(d)
 
-	if _, err := client.CreateOrUpdate(ctx, id, gateway); err != nil {
-		return fmt.Errorf("creating %s: %+v", id, err)
+	payload.Properties.LocalNetworkAddressSpace = expandLocalNetworkGatewayAddressSpaces(d)
+
+	if _, err := client.CreateOrUpdate(ctx, *id, *payload); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	if err := poller.PollUntilDone(ctx); err != nil {

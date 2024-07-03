@@ -76,7 +76,7 @@ resource "azurerm_linux_virtual_machine" "example" {
   }
 }
 
-resource "azurerm_restore_point_collection" "test" {
+resource "azurerm_restore_point_collection" "example" {
   name                      = "example-collection"
   resource_group_name       = azurerm_resource_group.example.name
   location                  = azurerm_linux_virtual_machine.example.location
@@ -108,9 +108,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 45 minutes) Used when creating the Restore Point Collection.
-* `update` - (Defaults to 45 minutes) Used when updating the Restore Point Collection.
-* `delete` - (Defaults to 45 minutes) Used when deleting the Restore Point Collection.
+
+* `create` - (Defaults to 30 minutes) Used when creating the Restore Point Collection.
+* `update` - (Defaults to 30 minutes) Used when updating the Restore Point Collection.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Restore Point Collection.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Restore Point Collection.
 
 ## Import

@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/restorepointcollections"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -91,7 +92,7 @@ func (r RestorePointCollectionResource) Create() sdk.ResourceFunc {
 			}
 
 			parameters := restorepointcollections.RestorePointCollection{
-				Location: config.Location,
+				Location: location.Normalize(config.Location),
 				Properties: &restorepointcollections.RestorePointCollectionProperties{
 					Source: &restorepointcollections.RestorePointCollectionSourceProperties{
 						Id: pointer.To(config.SourceVirtualMachineId),
@@ -138,7 +139,7 @@ func (r RestorePointCollectionResource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					if source := props.Source; source != nil {
 						schema.SourceVirtualMachineId = pointer.From(source.Id)
-						schema.Location = pointer.From(source.Location)
+						schema.Location = location.Normalize(pointer.From(source.Location))
 					}
 				}
 
@@ -163,7 +164,7 @@ func (r RestorePointCollectionResource) Update() sdk.ResourceFunc {
 
 			existing, err := client.Get(ctx, *id, restorepointcollections.DefaultGetOperationOptions())
 			if err != nil {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
 			if existing.Model == nil {
