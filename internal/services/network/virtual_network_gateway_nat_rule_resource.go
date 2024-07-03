@@ -218,7 +218,7 @@ func resourceVirtualNetworkGatewayNatRuleRead(d *pluginsdk.ResourceData, meta in
 
 func resourceVirtualNetworkGatewayNatRuleUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VirtualNetworkGateways
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := virtualnetworkgateways.ParseVirtualNetworkGatewayNatRuleID(d.Id())
