@@ -309,6 +309,7 @@ resource "azurerm_stack_hci_logical_network" "test" {
 
   tags = {
     foo = "bar"
+    env = "test"
   }
 }
 `, template, os.Getenv(customLocationIdEnv))
