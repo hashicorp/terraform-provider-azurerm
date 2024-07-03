@@ -20,6 +20,8 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
+data "azurerm_client_config" "current" {}
+
 resource "azurerm_arc_kubernetes_cluster" "example" {
   name                         = "example-akcc"
   resource_group_name          = azurerm_resource_group.example.name
@@ -32,6 +34,32 @@ resource "azurerm_arc_kubernetes_cluster" "example" {
 
   tags = {
     ENV = "Test"
+  }
+}
+
+resource "local_file" "example" {
+  depends_on = [
+    azurerm_kubernetes_cluster.example,
+  ]
+  content  = azurerm_kubernetes_cluster.example.kube_config_raw
+  filename = "${path.module}/kubeconfig-example"
+}
+
+resource "null_resource" "example1" {
+  depends_on = [
+    azurerm_kubernetes_cluster.example,
+  ]
+  provisioner "local-exec" {
+    command = "set KUBECONFIG=${path.module}/kubeconfig-example"
+  }
+}
+
+resource "null_resource" "example2" {
+  depends_on = [
+    null_resource.example1,
+  ]
+  provisioner "local-exec" {
+    command = "az connectedk8s connect --name example-akcc --resource-group ${azurerm_resource_group.example.name} --subscription ${data.azurerm_client_config.current.subscription_id} --location ${azurerm_resource_group.example.location} --kube-config=${path.module}/kubeconfig-example --kube-context example"
   }
 }
 
@@ -51,6 +79,9 @@ resource "azurerm_extended_location_custom_location" "example" {
   display_name     = "example-custom-location"
   namespace        = "example-namespace"
   host_resource_id = azurerm_arc_kubernetes_cluster.example.id
+  authentication {
+    value = base64encode(azurerm_kubernetes_cluster.example.kube_config_raw)
+  }
 }
 ```
 
@@ -80,7 +111,7 @@ The following arguments are supported:
 
 An `authentication` block supports the following:
 
-* `type` - (Required) Specifies the type of authentication.
+* `type` - (Optional) Specifies the type of authentication.
 
 * `value` - (Required) Specifies the value of authentication.
 

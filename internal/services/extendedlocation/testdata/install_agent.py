@@ -1,3 +1,5 @@
+# This python script is used to install a Helm client on the cluster.
+
 import argparse
 import json
 import logging as logger
