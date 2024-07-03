@@ -58,7 +58,7 @@ func Build() (*clients.Client, error) {
 
 			EnableAuthenticatingUsingClientCertificate: true,
 			EnableAuthenticatingUsingClientSecret:      true,
-			EnableAuthenticatingUsingAzureCLI:          false,
+			EnableAuthenticatingUsingAzureCLI:          true,
 			EnableAuthenticatingUsingManagedIdentity:   false,
 			EnableAuthenticationUsingOIDC:              false,
 			EnableAuthenticationUsingGitHubOIDC:        false,

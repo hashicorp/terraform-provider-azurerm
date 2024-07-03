@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -46,6 +47,8 @@ func (r NetAppBackupVaultResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: netAppValidate.VolumeQuotaRuleName,
 		},
 
+		"resource_group_name": commonschema.ResourceGroupName(),
+
 		"location": commonschema.Location(),
 
 		"account_name": {
@@ -75,12 +78,7 @@ func (r NetAppBackupVaultResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			backupVaultID, err := backupvaults.ParseBackupVaultID(model.Id)
-			if err != nil {
-				return fmt.Errorf("error parsing backup vault id %s: %+v", model.Id, err)
-			}
-
-			id := backupvaults.NewBackupVaultID(subscriptionId, backupVaultID.ResourceGroupName, backupVaultID.NetAppAccountName, model.Name)
+			id := backupvaults.NewBackupVaultID(subscriptionId, model.ResourceGroupName, model.AccountName, model.Name)
 
 			metadata.Logger.Infof("Import check for %s", id)
 			existing, err := client.Get(ctx, id)
@@ -128,9 +126,8 @@ func (r NetAppBackupVaultResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("Updating %s", id)
-
-			if metadata.ResourceData.HasChange("Tags") {
+			if metadata.ResourceData.HasChange("tags") {
+				metadata.Logger.Infof("Updating %s", id)
 
 				update := backupvaults.BackupVaultPatch{
 					Tags: pointer.To(state.Tags),
@@ -174,15 +171,17 @@ func (r NetAppBackupVaultResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %v", id, err)
 			}
 
-			model := netAppModels.NetAppBackupVaultModel{
-				Name:     id.BackupVaultName,
-				Location: location.NormalizeNilable(pointer.To(existing.Model.Location)),
-				Tags:     pointer.From(existing.Model.Tags),
+			if model := existing.Model; model != nil {
+				state.Location = location.NormalizeNilable(pointer.To(model.Location))
+				state.Tags = pointer.From(model.Tags)
+				state.AccountName = id.NetAppAccountName
+				state.Name = id.BackupVaultName
+				state.ResourceGroupName = id.ResourceGroupName
 			}
 
 			metadata.SetID(id)
 
-			return metadata.Encode(&model)
+			return metadata.Encode(&state)
 		},
 	}
 }
@@ -211,7 +210,50 @@ func (r NetAppBackupVaultResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("deleting %s: %+v", pointer.From(id), err)
 			}
 
+			if err = waitForBackupVaultDeletion(ctx, client, *id); err != nil {
+				return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
+			}
+
 			return nil
 		},
+	}
+}
+
+func waitForBackupVaultDeletion(ctx context.Context, client *backupvaults.BackupVaultsClient, id backupvaults.BackupVaultId) error {
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("internal-error: context had no deadline")
+	}
+	stateConf := &pluginsdk.StateChangeConf{
+		ContinuousTargetOccurence: 5,
+		Delay:                     5 * time.Second,
+		MinTimeout:                5 * time.Second,
+		Pending:                   []string{"200", "202"},
+		Target:                    []string{"204", "404"},
+		Refresh:                   netappbBackupVaultStateRefreshFunc(ctx, client, id),
+		Timeout:                   time.Until(deadline),
+	}
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to be deleted: %+v", id, err)
+	}
+
+	return nil
+}
+
+func netappbBackupVaultStateRefreshFunc(ctx context.Context, client *backupvaults.BackupVaultsClient, id backupvaults.BackupVaultId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(res.HttpResponse) {
+				return nil, "", fmt.Errorf("retrieving %s: %s", id, err)
+			}
+		}
+
+		statusCode := "dropped connection"
+		if res.HttpResponse != nil {
+			statusCode = strconv.Itoa(res.HttpResponse.StatusCode)
+		}
+		return res, statusCode, nil
 	}
 }

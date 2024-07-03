@@ -55,7 +55,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 		NetAppVolumeGroupSapHanaDataSource{},
 		NetAppVolumeQuotaRuleDataSource{},
 		NetAppAccountEncryptionDataSource{},
-		//NetAppBackupVaultDataSource{},
+		NetAppBackupVaultDataSource{},
 	}
 }
 
