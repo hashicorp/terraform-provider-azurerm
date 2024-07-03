@@ -23,19 +23,15 @@ resource "azurerm_stack_hci_logical_network" "example" {
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
   custom_location_id  = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.ExtendedLocation/customLocations/cl1"
-  vm_switch_name      = "ConvergedSwitch(managementcompute)"
+  virtual_switch_name = "ConvergedSwitch(managementcompute)"
   dns_servers         = ["10.0.0.7", "10.0.0.8"]
 
   subnet {
     ip_allocation_method = "Static"
     address_prefix       = "10.0.0.0/24"
-    ip_pool {
-      start = "10.0.0.218"
-      end   = "10.0.0.230"
-    }
     route {
       name                = "example-route"
-      address_prefix      = "10.0.0.0/28"
+      address_prefix      = "0.0.0.0/0"
       next_hop_ip_address = "10.0.20.1"
     }
     vlan_id = 123
@@ -59,7 +55,7 @@ The following arguments are supported:
 
 * `custom_location_id` - (Required) The ID of Custom Location where the Azure Stack HCI Logical Network should exist. Changing this forces a new resource to be created.
 
-* `vm_switch_name` - (Required) The name of the network switch used to associate with the Azure Stack HCI Logical Network. Possible switch name can be retrieved following the [Azure documents](https://learn.microsoft.com/azure-stack/hci/manage/create-logical-networks?tabs=azurecli#prerequisites). Changing this forces a new resource to be created.
+* `virtual_switch_name` - (Required) The name of the virtual switch on the cluster used to associate with the Azure Stack HCI Logical Network. Possible switch name can be retrieved following the [Azure documents](https://learn.microsoft.com/azure-stack/hci/manage/create-logical-networks?tabs=azurecli#prerequisites). Changing this forces a new resource to be created.
 
 * `subnet` - (Required) A `subnet` block as defined below. Changing this forces a new resource to be created.
 
@@ -89,7 +85,7 @@ A `route` block supports the following:
 
 A `subnet` block supports the following:
 
-* `ip_allocation_method` - (Required) IP address allocation method for the subnet. Possible value is `Dynamic` or `Static`. Changing this forces a new resource to be created.
+* `ip_allocation_method` - (Required) IP address allocation method for the subnet. Possible values are `Dynamic` and `Static`. Changing this forces a new resource to be created.
 
 * `address_prefix` - (Optional) The address prefix in CIDR notation. Changing this forces a new resource to be created.
 

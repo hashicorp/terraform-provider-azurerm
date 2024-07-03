@@ -23,7 +23,7 @@ const (
 	customLocationIdEnv = "ARM_TEST_STACK_HCI_CUSTOM_LOCATION_ID"
 )
 
-func TestAccStackHCILogicalNetwork_basic(t *testing.T) {
+func TestAccStackHCILogicalNetwork_dynamic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stack_hci_logical_network", "test")
 	r := StackHCILogicalNetworkResource{}
 
@@ -33,7 +33,7 @@ func TestAccStackHCILogicalNetwork_basic(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.dynamic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -52,7 +52,7 @@ func TestAccStackHCILogicalNetwork_update(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.update(data),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -60,6 +60,20 @@ func TestAccStackHCILogicalNetwork_update(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.update(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -117,6 +131,49 @@ func (r StackHCILogicalNetworkResource) Exists(ctx context.Context, client *clie
 	return utils.Bool(resp.Model != nil), nil
 }
 
+func (r StackHCILogicalNetworkResource) dynamic(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_stack_hci_logical_network" "test" {
+  name                = "acctest-ln-${var.random_string}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  custom_location_id  = %q
+  virtual_switch_name = "ConvergedSwitch(managementcompute)"
+
+  subnet {
+    ip_allocation_method = "Dynamic"
+  }
+}
+`, template, os.Getenv(customLocationIdEnv))
+}
+
+func (r StackHCILogicalNetworkResource) requiresImport(data acceptance.TestData) string {
+	config := r.dynamic(data)
+
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_stack_hci_logical_network" "import" {
+  name                = azurerm_stack_hci_logical_network.test.name
+  resource_group_name = azurerm_stack_hci_logical_network.test.resource_group_name
+  location            = azurerm_stack_hci_logical_network.test.location
+  custom_location_id  = azurerm_stack_hci_logical_network.test.custom_location_id
+  virtual_switch_name = azurerm_stack_hci_logical_network.test.virtual_switch_name
+
+  subnet {
+    ip_allocation_method = azurerm_stack_hci_logical_network.test.subnet.0.ip_allocation_method
+  }
+}
+`, config)
+}
+
 func (r StackHCILogicalNetworkResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
@@ -131,50 +188,7 @@ resource "azurerm_stack_hci_logical_network" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   custom_location_id  = %q
-  vm_switch_name      = "ConvergedSwitch(managementcompute)"
-
-  subnet {
-    ip_allocation_method = "Dynamic"
-  }
-}
-`, template, os.Getenv(customLocationIdEnv))
-}
-
-func (r StackHCILogicalNetworkResource) requiresImport(data acceptance.TestData) string {
-	config := r.basic(data)
-
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_stack_hci_logical_network" "import" {
-  name                = azurerm_stack_hci_logical_network.test.name
-  resource_group_name = azurerm_stack_hci_logical_network.test.resource_group_name
-  location            = azurerm_stack_hci_logical_network.test.location
-  custom_location_id  = azurerm_stack_hci_logical_network.test.custom_location_id
-  vm_switch_name      = azurerm_stack_hci_logical_network.test.vm_switch_name
-
-  subnet {
-    ip_allocation_method = azurerm_stack_hci_logical_network.test.subnet.0.ip_allocation_method
-  }
-}
-`, config)
-}
-
-func (r StackHCILogicalNetworkResource) update(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-%s
-
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_stack_hci_logical_network" "test" {
-  name                = "acctest-ln-${var.random_string}"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  custom_location_id  = %q
-  vm_switch_name      = "ConvergedSwitch(managementcompute)"
+  virtual_switch_name = "ConvergedSwitch(managementcompute)"
   dns_servers         = ["10.0.0.7", "10.0.0.8"]
 
   subnet {
@@ -204,6 +218,54 @@ resource "azurerm_stack_hci_logical_network" "test" {
 `, template, os.Getenv(customLocationIdEnv))
 }
 
+func (r StackHCILogicalNetworkResource) update(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_stack_hci_logical_network" "test" {
+  name                = "acctest-ln-${var.random_string}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  custom_location_id  = %q
+  virtual_switch_name = "ConvergedSwitch(managementcompute)"
+  dns_servers         = ["10.0.0.7", "10.0.0.8"]
+
+  subnet {
+    ip_allocation_method = "Static"
+    address_prefix       = "10.0.0.0/24"
+    vlan_id              = 123
+    ip_pool {
+      start = "10.0.0.218"
+      end   = "10.0.0.230"
+    }
+    ip_pool {
+      start = "10.0.0.234"
+      end   = "10.0.0.239"
+    }
+    route {
+      name                = "test-route"
+      address_prefix      = "10.0.0.0/28"
+      next_hop_ip_address = "10.0.20.1"
+    }
+    route {
+      name                = "test-route2"
+      address_prefix      = "10.0.0.128/28"
+      next_hop_ip_address = "10.0.20.2"
+    }
+  }
+
+  tags = {
+    foo = "bar"
+  }
+}
+`, template, os.Getenv(customLocationIdEnv))
+}
+
 func (r StackHCILogicalNetworkResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
@@ -218,7 +280,7 @@ resource "azurerm_stack_hci_logical_network" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   custom_location_id  = %q
-  vm_switch_name      = "ConvergedSwitch(managementcompute)"
+  virtual_switch_name = "ConvergedSwitch(managementcompute)"
   dns_servers         = ["10.0.0.7", "10.0.0.8"]
 
   subnet {

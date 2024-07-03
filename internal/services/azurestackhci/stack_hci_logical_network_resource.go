@@ -3,6 +3,7 @@ package azurestackhci
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -43,7 +44,7 @@ type StackHCILogicalNetworkResourceModel struct {
 	CustomLocationId  string                 `tfschema:"custom_location_id"`
 	DNSServers        []string               `tfschema:"dns_servers"`
 	Subnet            []StackHCISubnetModel  `tfschema:"subnet"`
-	VmSwitchName      string                 `tfschema:"vm_switch_name"`
+	VirtualSwitchName string                 `tfschema:"virtual_switch_name"`
 	Tags              map[string]interface{} `tfschema:"tags"`
 }
 
@@ -69,10 +70,13 @@ type StackHCIRouteModel struct {
 func (StackHCILogicalNetworkResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringMatch(
+				regexp.MustCompile(`^[a-zA-Z0-9][\-\.\_a-zA-Z0-9]{0,62}[a-zA-Z0-9]$`),
+				"name must be between 2 and 64 characters and can only contain alphanumberic characters, hyphen, dot and underline",
+			),
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
@@ -86,7 +90,7 @@ func (StackHCILogicalNetworkResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: customlocations.ValidateCustomLocationID,
 		},
 
-		"vm_switch_name": {
+		"virtual_switch_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -153,22 +157,25 @@ func (StackHCILogicalNetworkResource) Arguments() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"name": {
-									Type:         pluginsdk.TypeString,
-									Optional:     true,
-									ForceNew:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ForceNew: true,
+									ValidateFunc: validation.StringMatch(
+										regexp.MustCompile(`^[a-zA-Z0-9][\-\.\_a-zA-Z0-9]{0,78}[a-zA-Z0-9]$`),
+										"name must be between 2 and 80 characters and can only contain alphanumberic characters, hyphen, dot and underline",
+									),
 								},
 
 								"address_prefix": {
 									Type:         pluginsdk.TypeString,
-									Optional:     true,
+									Required:     true,
 									ForceNew:     true,
 									ValidateFunc: validation.IsCIDR,
 								},
 
 								"next_hop_ip_address": {
 									Type:         pluginsdk.TypeString,
-									Optional:     true,
+									Required:     true,
 									ForceNew:     true,
 									ValidateFunc: validation.IsIPv4Address,
 								},
@@ -225,7 +232,7 @@ func (r StackHCILogicalNetworkResource) Create() sdk.ResourceFunc {
 					Type: pointer.To(logicalnetworks.ExtendedLocationTypesCustomLocation),
 				},
 				Properties: &logicalnetworks.LogicalNetworkProperties{
-					VMSwitchName: pointer.To(config.VmSwitchName),
+					VMSwitchName: pointer.To(config.VirtualSwitchName),
 					Subnets:      expandStackHCILogicalNetworkSubnet(config.Subnet),
 					DhcpOptions: &logicalnetworks.LogicalNetworkPropertiesDhcpOptions{
 						DnsServers: pointer.To(config.DNSServers),
@@ -289,7 +296,7 @@ func (r StackHCILogicalNetworkResource) Read() sdk.ResourceFunc {
 
 				if props := model.Properties; props != nil {
 					schema.Subnet = flattenStackHCILogicalNetworkSubnet(props.Subnets)
-					schema.VmSwitchName = pointer.From(props.VMSwitchName)
+					schema.VirtualSwitchName = pointer.From(props.VMSwitchName)
 
 					if props.DhcpOptions != nil {
 						schema.DNSServers = pointer.From(props.DhcpOptions.DnsServers)
