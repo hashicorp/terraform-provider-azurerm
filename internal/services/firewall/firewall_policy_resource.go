@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -637,7 +638,7 @@ func flattenFirewallPolicyLogAnalyticsResources(input *firewallpolicies.Firewall
 }
 
 func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	resource := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -650,7 +651,7 @@ func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
 		"sku": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
+			Default:  string(firewallpolicies.FirewallPolicySkuTierStandard),
 			ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(firewallpolicies.FirewallPolicySkuTierPremium),
@@ -987,4 +988,20 @@ func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
+
+	if !features.FourPointOhBeta() {
+		resource["sku"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(firewallpolicies.FirewallPolicySkuTierPremium),
+				string(firewallpolicies.FirewallPolicySkuTierStandard),
+				string(firewallpolicies.FirewallPolicySkuTierBasic),
+			}, false),
+		}
+	}
+
+	return resource
 }

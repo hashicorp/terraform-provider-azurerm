@@ -53,8 +53,8 @@ func (c CheckDnsAvailabilitiesClient) CheckDnsNameAvailability(ctx context.Conte
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/checkDnsNameAvailability", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/checkDnsNameAvailability", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

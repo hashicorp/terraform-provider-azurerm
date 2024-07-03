@@ -51,6 +51,18 @@ func (o ListByVirtualNetworkOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListByVirtualNetworkCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByVirtualNetworkCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByVirtualNetwork ...
 func (c DnsResolversClient) ListByVirtualNetwork(ctx context.Context, id commonids.VirtualNetworkId, options ListByVirtualNetworkOperationOptions) (result ListByVirtualNetworkOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -59,8 +71,9 @@ func (c DnsResolversClient) ListByVirtualNetwork(ctx context.Context, id commoni
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPost,
-		Path:          fmt.Sprintf("%s/listDnsResolvers", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListByVirtualNetworkCustomPager{},
+		Path:          fmt.Sprintf("%s/listDnsResolvers", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

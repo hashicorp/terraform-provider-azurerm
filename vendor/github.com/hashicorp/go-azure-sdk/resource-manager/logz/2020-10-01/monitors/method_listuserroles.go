@@ -23,6 +23,18 @@ type ListUserRolesCompleteResult struct {
 	Items              []UserRoleResponse
 }
 
+type ListUserRolesCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListUserRolesCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListUserRoles ...
 func (c MonitorsClient) ListUserRoles(ctx context.Context, id MonitorId, input UserRoleRequest) (result ListUserRolesOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c MonitorsClient) ListUserRoles(ctx context.Context, id MonitorId, input U
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodPost,
+		Pager:      &ListUserRolesCustomPager{},
 		Path:       fmt.Sprintf("%s/listUserRoles", id.ID()),
 	}
 

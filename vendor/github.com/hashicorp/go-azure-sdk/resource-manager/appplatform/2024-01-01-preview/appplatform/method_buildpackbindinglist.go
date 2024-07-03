@@ -23,6 +23,18 @@ type BuildpackBindingListCompleteResult struct {
 	Items              []BuildpackBindingResource
 }
 
+type BuildpackBindingListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *BuildpackBindingListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // BuildpackBindingList ...
 func (c AppPlatformClient) BuildpackBindingList(ctx context.Context, id BuilderId) (result BuildpackBindingListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c AppPlatformClient) BuildpackBindingList(ctx context.Context, id BuilderI
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &BuildpackBindingListCustomPager{},
 		Path:       fmt.Sprintf("%s/buildPackBindings", id.ID()),
 	}
 

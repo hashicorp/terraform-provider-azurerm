@@ -23,6 +23,18 @@ type ListCompleteResult struct {
 	Items              []MonitoringTagRules
 }
 
+type ListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // List ...
 func (c TagRulesClient) List(ctx context.Context, id MonitorId) (result ListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c TagRulesClient) List(ctx context.Context, id MonitorId) (result ListOper
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListCustomPager{},
 		Path:       fmt.Sprintf("%s/tagRules", id.ID()),
 	}
 

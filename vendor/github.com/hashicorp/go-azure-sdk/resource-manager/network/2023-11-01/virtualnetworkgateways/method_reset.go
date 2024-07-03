@@ -57,8 +57,8 @@ func (c VirtualNetworkGatewaysClient) Reset(ctx context.Context, id VirtualNetwo
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPost,
-		Path:          fmt.Sprintf("%s/reset", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/reset", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

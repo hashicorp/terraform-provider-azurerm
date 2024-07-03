@@ -24,6 +24,18 @@ type ContainerGroupsListCompleteResult struct {
 	Items              []ContainerGroup
 }
 
+type ContainerGroupsListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ContainerGroupsListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ContainerGroupsList ...
 func (c ContainerInstanceClient) ContainerGroupsList(ctx context.Context, id commonids.SubscriptionId) (result ContainerGroupsListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c ContainerInstanceClient) ContainerGroupsList(ctx context.Context, id com
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ContainerGroupsListCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.ContainerInstance/containerGroups", id.ID()),
 	}
 

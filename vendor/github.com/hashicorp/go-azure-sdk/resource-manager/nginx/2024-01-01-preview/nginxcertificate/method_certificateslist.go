@@ -23,6 +23,18 @@ type CertificatesListCompleteResult struct {
 	Items              []NginxCertificate
 }
 
+type CertificatesListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *CertificatesListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // CertificatesList ...
 func (c NginxCertificateClient) CertificatesList(ctx context.Context, id NginxDeploymentId) (result CertificatesListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c NginxCertificateClient) CertificatesList(ctx context.Context, id NginxDe
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &CertificatesListCustomPager{},
 		Path:       fmt.Sprintf("%s/certificates", id.ID()),
 	}
 

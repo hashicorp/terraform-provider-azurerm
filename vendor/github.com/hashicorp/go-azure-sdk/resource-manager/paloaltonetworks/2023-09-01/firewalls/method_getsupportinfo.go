@@ -53,8 +53,8 @@ func (c FirewallsClient) GetSupportInfo(ctx context.Context, id FirewallId, opti
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPost,
-		Path:          fmt.Sprintf("%s/getSupportInfo", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/getSupportInfo", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

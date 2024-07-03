@@ -23,6 +23,18 @@ type ProviderShareSubscriptionsListByShareCompleteResult struct {
 	Items              []ProviderShareSubscription
 }
 
+type ProviderShareSubscriptionsListByShareCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ProviderShareSubscriptionsListByShareCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ProviderShareSubscriptionsListByShare ...
 func (c ShareClient) ProviderShareSubscriptionsListByShare(ctx context.Context, id ShareId) (result ProviderShareSubscriptionsListByShareOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c ShareClient) ProviderShareSubscriptionsListByShare(ctx context.Context, 
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ProviderShareSubscriptionsListByShareCustomPager{},
 		Path:       fmt.Sprintf("%s/providerShareSubscriptions", id.ID()),
 	}
 

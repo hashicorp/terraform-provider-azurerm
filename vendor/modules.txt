@@ -100,7 +100,7 @@ github.com/dave/jennifer/jen
 # github.com/davecgh/go-spew v1.1.1
 ## explicit
 github.com/davecgh/go-spew/spew
-# github.com/fatih/color v1.15.0
+# github.com/fatih/color v1.16.0
 ## explicit; go 1.17
 github.com/fatih/color
 # github.com/gofrs/uuid v4.4.0+incompatible
@@ -152,7 +152,7 @@ github.com/hashicorp/go-azure-helpers/resourcemanager/tags
 github.com/hashicorp/go-azure-helpers/resourcemanager/zones
 github.com/hashicorp/go-azure-helpers/sender
 github.com/hashicorp/go-azure-helpers/storage
-# github.com/hashicorp/go-azure-sdk/resource-manager v0.20240610.1112704
+# github.com/hashicorp/go-azure-sdk/resource-manager v0.20240701.1082110
 ## explicit; go 1.21
 github.com/hashicorp/go-azure-sdk/resource-manager/aad/2021-05-01/domainservices
 github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview
@@ -1119,7 +1119,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/saplands
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/saprecommendations
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/sapsupportedsku
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/sapvirtualinstances
-# github.com/hashicorp/go-azure-sdk/sdk v0.20240610.1112704
+# github.com/hashicorp/go-azure-sdk/sdk v0.20240701.1082110
 ## explicit; go 1.21
 github.com/hashicorp/go-azure-sdk/sdk/auth
 github.com/hashicorp/go-azure-sdk/sdk/auth/autorest
@@ -1150,7 +1150,7 @@ github.com/hashicorp/go-cty/cty/gocty
 github.com/hashicorp/go-cty/cty/json
 github.com/hashicorp/go-cty/cty/msgpack
 github.com/hashicorp/go-cty/cty/set
-# github.com/hashicorp/go-hclog v1.5.0
+# github.com/hashicorp/go-hclog v1.6.3
 ## explicit; go 1.13
 github.com/hashicorp/go-hclog
 # github.com/hashicorp/go-multierror v1.1.1
@@ -1162,8 +1162,8 @@ github.com/hashicorp/go-plugin
 github.com/hashicorp/go-plugin/internal/cmdrunner
 github.com/hashicorp/go-plugin/internal/plugin
 github.com/hashicorp/go-plugin/runner
-# github.com/hashicorp/go-retryablehttp v0.7.5
-## explicit; go 1.13
+# github.com/hashicorp/go-retryablehttp v0.7.7
+## explicit; go 1.19
 github.com/hashicorp/go-retryablehttp
 # github.com/hashicorp/go-uuid v1.0.3
 ## explicit
@@ -1286,7 +1286,7 @@ github.com/magodo/terraform-provider-azurerm-example-gen/examplegen
 # github.com/mattn/go-colorable v0.1.13
 ## explicit; go 1.15
 github.com/mattn/go-colorable
-# github.com/mattn/go-isatty v0.0.19
+# github.com/mattn/go-isatty v0.0.20
 ## explicit; go 1.15
 github.com/mattn/go-isatty
 # github.com/mitchellh/copystructure v1.2.0
@@ -1412,7 +1412,7 @@ golang.org/x/net/trace
 ## explicit; go 1.18
 golang.org/x/oauth2
 golang.org/x/oauth2/internal
-# golang.org/x/sys v0.18.0
+# golang.org/x/sys v0.20.0
 ## explicit; go 1.18
 golang.org/x/sys/cpu
 golang.org/x/sys/unix

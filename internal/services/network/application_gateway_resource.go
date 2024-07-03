@@ -1548,10 +1548,8 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ApplicationGatewaysClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for Application Gateway creation.")
 
 	id := applicationgateways.NewApplicationGatewayID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 

@@ -53,8 +53,8 @@ func (c CosmosDBClient) CollectionPartitionRegionListMetrics(ctx context.Context
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/partitions/metrics", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/partitions/metrics", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

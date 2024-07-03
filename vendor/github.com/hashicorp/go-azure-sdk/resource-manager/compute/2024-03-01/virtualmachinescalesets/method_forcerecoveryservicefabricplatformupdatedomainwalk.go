@@ -61,8 +61,8 @@ func (c VirtualMachineScaleSetsClient) ForceRecoveryServiceFabricPlatformUpdateD
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPost,
-		Path:          fmt.Sprintf("%s/forceRecoveryServiceFabricPlatformUpdateDomainWalk", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/forceRecoveryServiceFabricPlatformUpdateDomainWalk", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

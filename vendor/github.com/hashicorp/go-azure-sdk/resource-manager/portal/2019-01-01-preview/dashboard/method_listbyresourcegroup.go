@@ -24,6 +24,18 @@ type ListByResourceGroupCompleteResult struct {
 	Items              []Dashboard
 }
 
+type ListByResourceGroupCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByResourceGroupCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByResourceGroup ...
 func (c DashboardClient) ListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (result ListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c DashboardClient) ListByResourceGroup(ctx context.Context, id commonids.R
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByResourceGroupCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.Portal/dashboards", id.ID()),
 	}
 

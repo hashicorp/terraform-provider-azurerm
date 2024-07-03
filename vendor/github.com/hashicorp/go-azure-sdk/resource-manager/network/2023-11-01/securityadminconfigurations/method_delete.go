@@ -57,8 +57,8 @@ func (c SecurityAdminConfigurationsClient) Delete(ctx context.Context, id Securi
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodDelete,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

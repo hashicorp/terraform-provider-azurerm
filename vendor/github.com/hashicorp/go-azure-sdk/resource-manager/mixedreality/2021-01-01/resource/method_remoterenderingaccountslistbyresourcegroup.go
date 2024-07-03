@@ -24,6 +24,18 @@ type RemoteRenderingAccountsListByResourceGroupCompleteResult struct {
 	Items              []RemoteRenderingAccount
 }
 
+type RemoteRenderingAccountsListByResourceGroupCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *RemoteRenderingAccountsListByResourceGroupCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // RemoteRenderingAccountsListByResourceGroup ...
 func (c ResourceClient) RemoteRenderingAccountsListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (result RemoteRenderingAccountsListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c ResourceClient) RemoteRenderingAccountsListByResourceGroup(ctx context.C
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &RemoteRenderingAccountsListByResourceGroupCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.MixedReality/remoteRenderingAccounts", id.ID()),
 	}
 

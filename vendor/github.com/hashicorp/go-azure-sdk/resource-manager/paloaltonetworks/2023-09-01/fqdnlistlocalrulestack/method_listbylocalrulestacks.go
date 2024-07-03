@@ -23,6 +23,18 @@ type ListByLocalRulestacksCompleteResult struct {
 	Items              []FqdnListLocalRulestackResource
 }
 
+type ListByLocalRulestacksCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByLocalRulestacksCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByLocalRulestacks ...
 func (c FqdnListLocalRulestackClient) ListByLocalRulestacks(ctx context.Context, id LocalRulestackId) (result ListByLocalRulestacksOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c FqdnListLocalRulestackClient) ListByLocalRulestacks(ctx context.Context,
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByLocalRulestacksCustomPager{},
 		Path:       fmt.Sprintf("%s/fqdnLists", id.ID()),
 	}
 

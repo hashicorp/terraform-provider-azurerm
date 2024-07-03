@@ -24,6 +24,18 @@ type DscpConfigurationListAllCompleteResult struct {
 	Items              []DscpConfiguration
 }
 
+type DscpConfigurationListAllCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *DscpConfigurationListAllCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // DscpConfigurationListAll ...
 func (c DscpConfigurationsClient) DscpConfigurationListAll(ctx context.Context, id commonids.SubscriptionId) (result DscpConfigurationListAllOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c DscpConfigurationsClient) DscpConfigurationListAll(ctx context.Context, 
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &DscpConfigurationListAllCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.Network/dscpConfigurations", id.ID()),
 	}
 

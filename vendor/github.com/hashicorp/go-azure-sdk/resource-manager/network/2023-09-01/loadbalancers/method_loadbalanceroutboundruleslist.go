@@ -23,6 +23,18 @@ type LoadBalancerOutboundRulesListCompleteResult struct {
 	Items              []OutboundRule
 }
 
+type LoadBalancerOutboundRulesListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *LoadBalancerOutboundRulesListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // LoadBalancerOutboundRulesList ...
 func (c LoadBalancersClient) LoadBalancerOutboundRulesList(ctx context.Context, id ProviderLoadBalancerId) (result LoadBalancerOutboundRulesListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c LoadBalancersClient) LoadBalancerOutboundRulesList(ctx context.Context, 
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &LoadBalancerOutboundRulesListCustomPager{},
 		Path:       fmt.Sprintf("%s/outboundRules", id.ID()),
 	}
 

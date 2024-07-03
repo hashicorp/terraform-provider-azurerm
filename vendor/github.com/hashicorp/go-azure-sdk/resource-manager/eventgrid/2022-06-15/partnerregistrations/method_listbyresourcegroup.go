@@ -55,6 +55,18 @@ func (o ListByResourceGroupOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListByResourceGroupCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByResourceGroupCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByResourceGroup ...
 func (c PartnerRegistrationsClient) ListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId, options ListByResourceGroupOperationOptions) (result ListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -63,8 +75,9 @@ func (c PartnerRegistrationsClient) ListByResourceGroup(ctx context.Context, id 
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/providers/Microsoft.EventGrid/partnerRegistrations", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListByResourceGroupCustomPager{},
+		Path:          fmt.Sprintf("%s/providers/Microsoft.EventGrid/partnerRegistrations", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

@@ -24,6 +24,18 @@ type GetInSubscriptionCompleteResult struct {
 	Items              []BackupVaultResource
 }
 
+type GetInSubscriptionCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *GetInSubscriptionCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // GetInSubscription ...
 func (c BackupVaultsClient) GetInSubscription(ctx context.Context, id commonids.SubscriptionId) (result GetInSubscriptionOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c BackupVaultsClient) GetInSubscription(ctx context.Context, id commonids.
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &GetInSubscriptionCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.DataProtection/backupVaults", id.ID()),
 	}
 

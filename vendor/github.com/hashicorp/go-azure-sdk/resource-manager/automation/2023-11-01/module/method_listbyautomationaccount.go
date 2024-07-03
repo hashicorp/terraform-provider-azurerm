@@ -23,6 +23,18 @@ type ListByAutomationAccountCompleteResult struct {
 	Items              []Module
 }
 
+type ListByAutomationAccountCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByAutomationAccountCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByAutomationAccount ...
 func (c ModuleClient) ListByAutomationAccount(ctx context.Context, id AutomationAccountId) (result ListByAutomationAccountOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c ModuleClient) ListByAutomationAccount(ctx context.Context, id Automation
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByAutomationAccountCustomPager{},
 		Path:       fmt.Sprintf("%s/modules", id.ID()),
 	}
 

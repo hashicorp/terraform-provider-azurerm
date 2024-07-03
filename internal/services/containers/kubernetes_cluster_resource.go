@@ -2645,7 +2645,6 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			"default_node_pool.0.only_critical_addons_enabled",
 			"default_node_pool.0.os_disk_size_gb",
 			"default_node_pool.0.os_disk_type",
-			"default_node_pool.0.os_sku",
 			"default_node_pool.0.pod_subnet_id",
 			"default_node_pool.0.snapshot_id",
 			"default_node_pool.0.ultra_ssd_enabled",
@@ -2655,7 +2654,20 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 
 		// if the default node pool name has changed, it means the initial attempt at resizing failed
-		if d.HasChanges(cycleNodePoolProperties...) {
+		cycleNodePool := d.HasChanges(cycleNodePoolProperties...)
+		// os_sku could only be updated if the current and new os_sku are either Ubuntu or AzureLinux
+		if d.HasChange("default_node_pool.0.os_sku") {
+			oldOsSkuRaw, newOsSkuRaw := d.GetChange("default_node_pool.0.os_sku")
+			oldOsSku := oldOsSkuRaw.(string)
+			newOsSku := newOsSkuRaw.(string)
+			if oldOsSku != string(managedclusters.OSSKUUbuntu) && oldOsSku != string(managedclusters.OSSKUAzureLinux) {
+				cycleNodePool = true
+			}
+			if newOsSku != string(managedclusters.OSSKUUbuntu) && newOsSku != string(managedclusters.OSSKUAzureLinux) {
+				cycleNodePool = true
+			}
+		}
+		if cycleNodePool {
 			log.Printf("[DEBUG] Cycling Default Node Pool..")
 			// to provide a seamless updating experience for the vm size of the default node pool we need to cycle the default
 			// node pool by provisioning a temporary system node pool, tearing down the former default node pool and then
@@ -3392,6 +3404,14 @@ func expandKubernetesClusterWorkloadAutoscalerProfile(input []interface{}, d *pl
 func expandGmsaProfile(input []interface{}) *managedclusters.WindowsGmsaProfile {
 	if len(input) == 0 {
 		return nil
+	}
+
+	if input[0] == nil {
+		return &managedclusters.WindowsGmsaProfile{
+			Enabled:        utils.Bool(true),
+			DnsServer:      utils.String(""),
+			RootDomainName: utils.String(""),
+		}
 	}
 
 	config := input[0].(map[string]interface{})

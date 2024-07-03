@@ -24,6 +24,18 @@ type ListAseRegionsCompleteResult struct {
 	Items              []AseRegion
 }
 
+type ListAseRegionsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListAseRegionsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListAseRegions ...
 func (c ResourceProvidersClient) ListAseRegions(ctx context.Context, id commonids.SubscriptionId) (result ListAseRegionsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c ResourceProvidersClient) ListAseRegions(ctx context.Context, id commonid
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListAseRegionsCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.Web/aseRegions", id.ID()),
 	}
 

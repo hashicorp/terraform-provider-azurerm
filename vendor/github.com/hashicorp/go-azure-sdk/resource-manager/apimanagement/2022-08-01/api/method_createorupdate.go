@@ -58,8 +58,8 @@ func (c ApiClient) CreateOrUpdate(ctx context.Context, id ApiId, input ApiCreate
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPut,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

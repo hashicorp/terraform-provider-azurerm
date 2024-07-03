@@ -53,8 +53,8 @@ func (c CosmosDBClient) PercentileListMetrics(ctx context.Context, id DatabaseAc
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/percentile/metrics", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/percentile/metrics", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

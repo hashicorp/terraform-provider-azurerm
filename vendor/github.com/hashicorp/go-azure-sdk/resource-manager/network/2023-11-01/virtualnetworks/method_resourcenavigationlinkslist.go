@@ -24,6 +24,18 @@ type ResourceNavigationLinksListCompleteResult struct {
 	Items              []ResourceNavigationLink
 }
 
+type ResourceNavigationLinksListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ResourceNavigationLinksListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ResourceNavigationLinksList ...
 func (c VirtualNetworksClient) ResourceNavigationLinksList(ctx context.Context, id commonids.SubnetId) (result ResourceNavigationLinksListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c VirtualNetworksClient) ResourceNavigationLinksList(ctx context.Context, 
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ResourceNavigationLinksListCustomPager{},
 		Path:       fmt.Sprintf("%s/resourceNavigationLinks", id.ID()),
 	}
 
