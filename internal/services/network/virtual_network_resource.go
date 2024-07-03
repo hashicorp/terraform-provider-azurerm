@@ -7,7 +7,10 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/serviceendpointpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/subnets"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -149,8 +152,128 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 		"subnet": {
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
-			Computed: true,
-			// TODO 5.0 Remove Computed and ConfigModeAttr and recommend adding this block to ignore_changes
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"address_prefix": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"delegation": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"name": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+								},
+								"service_delegation": {
+									Type:     pluginsdk.TypeList,
+									Required: true,
+									MaxItems: 1,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"name": {
+												Type:         pluginsdk.TypeString,
+												Required:     true,
+												ValidateFunc: validation.StringInSlice(subnetDelegationServiceNames, false),
+											},
+
+											"actions": {
+												Type:     pluginsdk.TypeSet,
+												Optional: true,
+												Elem: &pluginsdk.Schema{
+													Type: pluginsdk.TypeString,
+													ValidateFunc: validation.StringInSlice([]string{
+														"Microsoft.Network/networkinterfaces/*",
+														"Microsoft.Network/publicIPAddresses/join/action",
+														"Microsoft.Network/publicIPAddresses/read",
+														"Microsoft.Network/virtualNetworks/read",
+														"Microsoft.Network/virtualNetworks/subnets/action",
+														"Microsoft.Network/virtualNetworks/subnets/join/action",
+														"Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
+														"Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action",
+													}, false),
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+
+					"private_endpoint_network_policies": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Default:      string(subnets.VirtualNetworkPrivateEndpointNetworkPoliciesDisabled),
+						ValidateFunc: validation.StringInSlice(subnets.PossibleValuesForVirtualNetworkPrivateEndpointNetworkPolicies(), false),
+					},
+
+					"private_link_service_network_policies_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  true,
+					},
+
+					"security_group": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+					},
+
+					"service_endpoints": {
+						Type:     pluginsdk.TypeSet,
+						Optional: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+						Set: pluginsdk.HashString,
+					},
+
+					"service_endpoint_policy_ids": {
+						Type:     pluginsdk.TypeSet,
+						Optional: true,
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: serviceendpointpolicies.ValidateServiceEndpointPolicyID,
+						},
+					},
+
+					"id": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+				},
+			},
+			Set: resourceAzureSubnetHash,
+		},
+
+		"tags": commonschema.Tags(),
+	}
+
+	if !features.FourPointOhBeta() {
+		s["address_space"] = &pluginsdk.Schema{
+			Type:             pluginsdk.TypeList,
+			Required:         true,
+			MinItems:         1,
+			DiffSuppressFunc: suppress.ListOrder,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+		}
+		s["subnet"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeSet,
+			Optional:   true,
+			Computed:   true,
 			ConfigMode: pluginsdk.SchemaConfigModeAttr,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -178,21 +301,6 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 				},
 			},
 			Set: resourceAzureSubnetHash,
-		},
-
-		"tags": commonschema.Tags(),
-	}
-
-	if !features.FourPointOhBeta() {
-		s["address_space"] = &pluginsdk.Schema{
-			Type:             pluginsdk.TypeList,
-			Required:         true,
-			MinItems:         1,
-			DiffSuppressFunc: suppress.ListOrder,
-			Elem: &pluginsdk.Schema{
-				Type:         pluginsdk.TypeString,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
 		}
 	}
 
@@ -361,7 +469,6 @@ func resourceVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	if existing.Model == nil {
 		return fmt.Errorf("retrieving %s: `model` was nil", id)
 	}
-
 	if existing.Model.Properties == nil {
 		return fmt.Errorf("retrieving %s: `properties` was nil", id)
 	}
@@ -475,7 +582,7 @@ func resourceVirtualNetworkDelete(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
-	nsgNames, err := expandAzureRmVirtualNetworkVirtualNetworkSecurityGroupNames(d)
+	nsgNames, err := expandVirtualNetworkVirtualNetworkSecurityGroupNames(d)
 	if err != nil {
 		return fmt.Errorf("parsing Network Security Group ID's: %+v", err)
 	}
@@ -550,13 +657,25 @@ func expandVirtualNetworkSubnets(ctx context.Context, client virtualnetworks.Vir
 		prefix := subnet["address_prefix"].(string)
 		secGroup := subnet["security_group"].(string)
 
+		privateEndpointNetworkPolicies := virtualnetworks.VirtualNetworkPrivateEndpointNetworkPolicies(subnet["private_endpoint_network_policies"].(string))
+
+		privateLinkServiceNetworkPolicies := virtualnetworks.VirtualNetworkPrivateLinkServiceNetworkPoliciesDisabled
+		if subnet["private_link_service_network_policies_enabled"].(bool) {
+			privateLinkServiceNetworkPolicies = virtualnetworks.VirtualNetworkPrivateLinkServiceNetworkPoliciesEnabled
+		}
+
 		// set the props from config and leave the rest intact
-		subnetObj.Name = &name
+		subnetObj.Name = pointer.To(name)
 		if subnetObj.Properties == nil {
 			subnetObj.Properties = &virtualnetworks.SubnetPropertiesFormat{}
 		}
 
-		subnetObj.Properties.AddressPrefix = &prefix
+		subnetObj.Properties.AddressPrefix = pointer.To(prefix)
+		subnetObj.Properties.Delegations = expandVirtualNetworkSubnetDelegation(subnet["delegation"].([]interface{}))
+		subnetObj.Properties.PrivateEndpointNetworkPolicies = pointer.To(privateEndpointNetworkPolicies)
+		subnetObj.Properties.PrivateLinkServiceNetworkPolicies = pointer.To(privateLinkServiceNetworkPolicies)
+		subnetObj.Properties.ServiceEndpointPolicies = expandVirtualNetworkSubnetServiceEndpointPolicies(subnet["service_endpoint_policy_ids"].(*pluginsdk.Set).List())
+		subnetObj.Properties.ServiceEndpoints = expandVirtualNetworkSubnetServiceEndpoints(subnet["service_endpoints"].(*pluginsdk.Set).List())
 
 		if secGroup != "" {
 			subnetObj.Properties.NetworkSecurityGroup = &virtualnetworks.NetworkSecurityGroup{
@@ -591,13 +710,25 @@ func expandVirtualNetworkProperties(ctx context.Context, client virtualnetworks.
 			prefix := subnet["address_prefix"].(string)
 			secGroup := subnet["security_group"].(string)
 
+			privateEndpointNetworkPolicies := virtualnetworks.VirtualNetworkPrivateEndpointNetworkPolicies(subnet["private_endpoint_network_policies"].(string))
+
+			privateLinkServiceNetworkPolicies := virtualnetworks.VirtualNetworkPrivateLinkServiceNetworkPoliciesDisabled
+			if subnet["private_link_service_network_policies_enabled"].(bool) {
+				privateLinkServiceNetworkPolicies = virtualnetworks.VirtualNetworkPrivateLinkServiceNetworkPoliciesEnabled
+			}
+
 			// set the props from config and leave the rest intact
-			subnetObj.Name = &name
+			subnetObj.Name = pointer.To(name)
 			if subnetObj.Properties == nil {
 				subnetObj.Properties = &virtualnetworks.SubnetPropertiesFormat{}
 			}
 
-			subnetObj.Properties.AddressPrefix = &prefix
+			subnetObj.Properties.AddressPrefix = pointer.To(prefix)
+			subnetObj.Properties.Delegations = expandVirtualNetworkSubnetDelegation(subnet["delegation"].([]interface{}))
+			subnetObj.Properties.PrivateEndpointNetworkPolicies = pointer.To(privateEndpointNetworkPolicies)
+			subnetObj.Properties.PrivateLinkServiceNetworkPolicies = pointer.To(privateLinkServiceNetworkPolicies)
+			subnetObj.Properties.ServiceEndpointPolicies = expandVirtualNetworkSubnetServiceEndpointPolicies(subnet["service_endpoint_policy_ids"].(*pluginsdk.Set).List())
+			subnetObj.Properties.ServiceEndpoints = expandVirtualNetworkSubnetServiceEndpoints(subnet["service_endpoints"].(*pluginsdk.Set).List())
 
 			if secGroup != "" {
 				subnetObj.Properties.NetworkSecurityGroup = &virtualnetworks.NetworkSecurityGroup{
@@ -719,6 +850,13 @@ func flattenVirtualNetworkSubnets(input *[]virtualnetworks.Subnet) *pluginsdk.Se
 						output["security_group"] = *nsg.Id
 					}
 				}
+
+				output["private_endpoint_network_policies"] = string(pointer.From(props.PrivateEndpointNetworkPolicies))
+
+				output["private_link_service_network_policies_enabled"] = strings.EqualFold(string(pointer.From(props.PrivateLinkServiceNetworkPolicies)), string(virtualnetworks.VirtualNetworkPrivateEndpointNetworkPoliciesEnabled))
+				output["service_endpoints"] = flattenVirtualNetworkSubnetServiceEndpoints(props.ServiceEndpoints)
+				output["service_endpoint_policy_ids"] = flattenVirtualNetworkSubnetServiceEndpointPolicies(props.ServiceEndpointPolicies)
+				output["delegation"] = flattenVirtualNetworkSubnetDelegation(props.Delegations)
 			}
 
 			results.Add(output)
@@ -751,6 +889,39 @@ func resourceAzureSubnetHash(v interface{}) int {
 		if v, ok := m["security_group"]; ok {
 			buf.WriteString(v.(string))
 		}
+
+		if features.FourPointOhBeta() {
+			if delegations, ok := m["delegation"].([]interface{}); ok {
+				for _, delegation := range delegations {
+					d := delegation.(map[string]interface{})
+					if name, ok := d["name"]; ok {
+						buf.WriteString(name.(string))
+					}
+					if serviceDelegations, ok := d["service_delegation"].([]interface{}); ok {
+						if sd, ok := serviceDelegations[0].(map[string]interface{}); ok {
+							if name, ok := sd["name"]; ok {
+								buf.WriteString(name.(string))
+							}
+							if actions, ok := sd["actions"]; ok {
+								buf.WriteString(fmt.Sprintf("%s", actions))
+							}
+						}
+					}
+				}
+			}
+			if v, ok := m["private_endpoint_network_policies"]; ok {
+				buf.WriteString(v.(string))
+			}
+			if v, ok := m["private_link_service_network_policies_enabled"]; ok {
+				buf.WriteString(fmt.Sprintf("%t", v.(bool)))
+			}
+			if v, ok := m["service_endpoints"]; ok {
+				buf.WriteString(v.(string))
+			}
+			if v, ok := m["service_endpoint_policy_ids"]; ok {
+				buf.WriteString(fmt.Sprintf("%s", v.(*pluginsdk.Set).List()))
+			}
+		}
 	}
 
 	return pluginsdk.HashString(buf.String())
@@ -782,7 +953,7 @@ func getExistingSubnet(ctx context.Context, client virtualnetworks.VirtualNetwor
 	return pointer.To(virtualnetworks.Subnet{}), nil
 }
 
-func expandAzureRmVirtualNetworkVirtualNetworkSecurityGroupNames(d *pluginsdk.ResourceData) ([]string, error) {
+func expandVirtualNetworkVirtualNetworkSecurityGroupNames(d *pluginsdk.ResourceData) ([]string, error) {
 	nsgNames := make([]string, 0)
 
 	if v, ok := d.GetOk("subnet"); ok {
@@ -809,6 +980,139 @@ func expandAzureRmVirtualNetworkVirtualNetworkSecurityGroupNames(d *pluginsdk.Re
 	}
 
 	return nsgNames, nil
+}
+
+func expandVirtualNetworkSubnetServiceEndpointPolicies(input []interface{}) *[]virtualnetworks.ServiceEndpointPolicy {
+	output := make([]virtualnetworks.ServiceEndpointPolicy, 0)
+	for _, policy := range input {
+		policy := policy.(string)
+		output = append(output, virtualnetworks.ServiceEndpointPolicy{Id: &policy})
+	}
+	return &output
+}
+
+func expandVirtualNetworkSubnetServiceEndpoints(input []interface{}) *[]virtualnetworks.ServiceEndpointPropertiesFormat {
+	endpoints := make([]virtualnetworks.ServiceEndpointPropertiesFormat, 0)
+
+	for _, svcEndpointRaw := range input {
+		if svc, ok := svcEndpointRaw.(string); ok {
+			endpoint := virtualnetworks.ServiceEndpointPropertiesFormat{
+				Service: &svc,
+			}
+			endpoints = append(endpoints, endpoint)
+		}
+	}
+
+	return &endpoints
+}
+
+func expandVirtualNetworkSubnetDelegation(input []interface{}) *[]virtualnetworks.Delegation {
+	retDelegations := make([]virtualnetworks.Delegation, 0)
+
+	for _, deleValue := range input {
+		deleData := deleValue.(map[string]interface{})
+		deleName := deleData["name"].(string)
+		srvDelegations := deleData["service_delegation"].([]interface{})
+		srvDelegation := srvDelegations[0].(map[string]interface{})
+		srvName := srvDelegation["name"].(string)
+
+		var srvActions []interface{}
+		srvActions = srvDelegation["actions"].(*pluginsdk.Set).List()
+
+		retSrvActions := make([]string, 0)
+		for _, srvAction := range srvActions {
+			srvActionData := srvAction.(string)
+			retSrvActions = append(retSrvActions, srvActionData)
+		}
+
+		retDelegation := virtualnetworks.Delegation{
+			Name: &deleName,
+			Properties: &virtualnetworks.ServiceDelegationPropertiesFormat{
+				ServiceName: &srvName,
+				Actions:     &retSrvActions,
+			},
+		}
+
+		retDelegations = append(retDelegations, retDelegation)
+	}
+
+	return &retDelegations
+}
+
+func flattenVirtualNetworkSubnetServiceEndpointPolicies(input *[]virtualnetworks.ServiceEndpointPolicy) []interface{} {
+	output := make([]interface{}, 0)
+	if input == nil {
+		return output
+	}
+
+	for _, policy := range *input {
+		id := ""
+		if policy.Id != nil {
+			id = *policy.Id
+		}
+		output = append(output, id)
+	}
+	return output
+}
+
+func flattenVirtualNetworkSubnetServiceEndpoints(serviceEndpoints *[]virtualnetworks.ServiceEndpointPropertiesFormat) []interface{} {
+	endpoints := make([]interface{}, 0)
+
+	if serviceEndpoints == nil {
+		return endpoints
+	}
+
+	for _, endpoint := range *serviceEndpoints {
+		if endpoint.Service != nil {
+			endpoints = append(endpoints, *endpoint.Service)
+		}
+	}
+
+	return endpoints
+}
+
+func flattenVirtualNetworkSubnetDelegation(delegations *[]virtualnetworks.Delegation) []interface{} {
+	if delegations == nil {
+		return []interface{}{}
+	}
+
+	retDeles := make([]interface{}, 0)
+
+	normalizeServiceName := map[string]string{}
+	for _, normName := range subnetDelegationServiceNames {
+		normalizeServiceName[strings.ToLower(normName)] = normName
+	}
+
+	for _, dele := range *delegations {
+		retDele := make(map[string]interface{})
+		if v := dele.Name; v != nil {
+			retDele["name"] = *v
+		}
+
+		svcDeles := make([]interface{}, 0)
+		svcDele := make(map[string]interface{})
+		if props := dele.Properties; props != nil {
+			if v := props.ServiceName; v != nil {
+				name := *v
+				if nv, ok := normalizeServiceName[strings.ToLower(name)]; ok {
+					name = nv
+				}
+				svcDele["name"] = name
+			}
+
+			if v := props.Actions; v != nil {
+				svcDele["actions"] = *v
+			}
+		}
+
+		svcDeles = append(svcDeles, svcDele)
+
+		retDele["service_delegation"] = svcDeles
+
+		retDeles = append(retDeles, retDele)
+	}
+
+	return retDeles
 }
 
 func VirtualNetworkProvisioningStateRefreshFunc(ctx context.Context, client *virtualnetworks.VirtualNetworksClient, id commonids.VirtualNetworkId) pluginsdk.StateRefreshFunc {
