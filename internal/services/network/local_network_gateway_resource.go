@@ -218,6 +218,8 @@ func resourceLocalNetworkGatewayUpdate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
+	payload.Properties.LocalNetworkAddressSpace = expandLocalNetworkGatewayAddressSpaces(d)
+
 	if _, err := client.CreateOrUpdate(ctx, *id, *payload); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
