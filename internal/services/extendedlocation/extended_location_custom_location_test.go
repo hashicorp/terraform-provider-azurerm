@@ -157,7 +157,6 @@ resource "azurerm_extended_custom_location" "test" {
 }
 
 func (r CustomLocationResource) template(data acceptance.TestData, credential string, publicKey string, privateKey string) string {
-	data.Locations.Primary = "eastus"
 	provisionTemplate := r.provisionTemplate(data, credential, privateKey)
 	return fmt.Sprintf(`
 provider "azurerm" {
