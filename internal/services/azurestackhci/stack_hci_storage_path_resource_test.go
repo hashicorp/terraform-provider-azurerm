@@ -65,6 +65,20 @@ func TestAccStackHCIStoragePath_update(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.update(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -152,13 +166,15 @@ resource "azurerm_stack_hci_storage_path" "import" {
 `, config)
 }
 
-func (r StackHCIStoragePathResource) complete(data acceptance.TestData) string {
+func (r StackHCIStoragePathResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
+
 provider "azurerm" {
   features {}
 }
+
 resource "azurerm_stack_hci_storage_path" "test" {
   name                = "acctest-sp-${var.random_string}"
   resource_group_name = azurerm_resource_group.test.name
@@ -167,6 +183,29 @@ resource "azurerm_stack_hci_storage_path" "test" {
   path                = "C:\\ClusterStorage\\UserStorage_2\\sp-${var.random_string}"
   tags = {
     foo = "bar"
+  }
+}
+`, template, os.Getenv(customLocationIdEnv))
+}
+
+func (r StackHCIStoragePathResource) complete(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_stack_hci_storage_path" "test" {
+  name                = "acctest-sp-${var.random_string}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  custom_location_id  = %q
+  path                = "C:\\ClusterStorage\\UserStorage_2\\sp-${var.random_string}"
+  tags = {
+    foo = "bar"
+    env = "test"
   }
 }
 `, template, os.Getenv(customLocationIdEnv))

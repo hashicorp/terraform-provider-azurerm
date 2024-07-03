@@ -3,6 +3,7 @@ package azurestackhci
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -48,10 +49,13 @@ type StackHCIStoragePathResourceModel struct {
 func (StackHCIStoragePathResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringMatch(
+				regexp.MustCompile(`^[a-zA-Z0-9][\-\.\_a-zA-Z0-9]{1,78}[a-zA-Z0-9]$`),
+				"name must be between 3 and 80 characters and can only contain alphanumberic characters, hyphen, dot and underline",
+			),
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
