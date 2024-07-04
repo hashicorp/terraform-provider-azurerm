@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/validate"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -28,7 +29,7 @@ import (
 )
 
 func resourceBatchAccount() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceBatchAccountCreate,
 		Read:   resourceBatchAccountRead,
 		Update: resourceBatchAccountUpdate,
@@ -85,6 +86,8 @@ func resourceBatchAccount() *pluginsdk.Resource {
 			"allowed_authentication_modes": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
+				// NOTE: O+C This can remain since we need to send an empty slice to properly remove this, which means this can't be set back to
+				// its default which is to return all three values
 				Computed: true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
@@ -164,10 +167,9 @@ func resourceBatchAccount() *pluginsdk.Resource {
 				Computed: true,
 			},
 			"encryption": {
-				Type:       pluginsdk.TypeList,
-				Optional:   true,
-				MaxItems:   1,
-				ConfigMode: pluginsdk.SchemaConfigModeAttr,
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"key_vault_key_id": {
@@ -182,6 +184,26 @@ func resourceBatchAccount() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["encryption"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeList,
+			Optional:   true,
+			MaxItems:   1,
+			ConfigMode: pluginsdk.SchemaConfigModeAttr,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"key_vault_key_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+					},
+				},
+			},
+		}
+	}
+
+	return resource
 }
 
 func resourceBatchAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {

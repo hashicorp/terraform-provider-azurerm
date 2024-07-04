@@ -57,8 +57,8 @@ func (c RestorableDroppedDatabasesClient) Get(ctx context.Context, id Restorable
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-09-02-preview/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/kubernetes"
@@ -1465,20 +1465,25 @@ func flattenKubernetesClusterDataSourceMicrosoftDefender(input *managedclusters.
 }
 
 func flattenKubernetesClusterDataSourceUpgradeSettings(input *managedclusters.AgentPoolUpgradeSettings) []interface{} {
-	maxSurge := ""
-	if input != nil && input.MaxSurge != nil {
-		maxSurge = *input.MaxSurge
-	}
-
-	if maxSurge == "" {
+	if input == nil {
 		return []interface{}{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
-			"max_surge": maxSurge,
-		},
+	values := make(map[string]interface{})
+
+	if input.MaxSurge != nil {
+		values["max_surge"] = *input.MaxSurge
 	}
+
+	if input.DrainTimeoutInMinutes != nil {
+		values["drain_timeout_in_minutes"] = *input.DrainTimeoutInMinutes
+	}
+
+	if input.NodeSoakDurationInMinutes != nil {
+		values["node_soak_duration_in_minutes"] = *input.NodeSoakDurationInMinutes
+	}
+
+	return []interface{}{values}
 }
 
 func flattenCustomCaTrustCerts(input *managedclusters.ManagedClusterSecurityProfile) []interface{} {

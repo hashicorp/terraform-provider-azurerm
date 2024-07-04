@@ -1507,6 +1507,17 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
     is_default                   = true
   }
 
+  private_link_configuration {
+    name     = "testconfig"
+    group_id = "headnode"
+    ip_configuration {
+      name                         = "testipconfig"
+      primary                      = false
+      private_ip_allocation_method = "dynamic"
+      subnet_id                    = azurerm_subnet.test.id
+    }
+  }
+
   roles {
     head_node {
       vm_size  = "Standard_D3_V2"

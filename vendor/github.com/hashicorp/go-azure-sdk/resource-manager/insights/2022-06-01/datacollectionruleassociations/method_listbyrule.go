@@ -23,6 +23,18 @@ type ListByRuleCompleteResult struct {
 	Items              []DataCollectionRuleAssociationProxyOnlyResource
 }
 
+type ListByRuleCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByRuleCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByRule ...
 func (c DataCollectionRuleAssociationsClient) ListByRule(ctx context.Context, id DataCollectionRuleId) (result ListByRuleOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c DataCollectionRuleAssociationsClient) ListByRule(ctx context.Context, id
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByRuleCustomPager{},
 		Path:       fmt.Sprintf("%s/associations", id.ID()),
 	}
 
@@ -72,6 +85,7 @@ func (c DataCollectionRuleAssociationsClient) ListByRuleCompleteMatchingPredicat
 
 	resp, err := c.ListByRule(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

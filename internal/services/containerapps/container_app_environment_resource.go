@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/managedenvironments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2024-03-01/managedenvironments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/helpers"
@@ -38,6 +38,9 @@ type ContainerAppEnvironmentModel struct {
 	Tags                                    map[string]interface{}         `tfschema:"tags"`
 	WorkloadProfiles                        []helpers.WorkloadProfileModel `tfschema:"workload_profile"`
 	InfrastructureResourceGroup             string                         `tfschema:"infrastructure_resource_group_name"`
+	Mtls                                    bool                           `tfschema:"mutual_tls_enabled"`
+
+	CustomDomainVerificationId string `tfschema:"custom_domain_verification_id"`
 
 	DefaultDomain         string `tfschema:"default_domain"`
 	DockerBridgeCidr      string `tfschema:"docker_bridge_cidr"`
@@ -94,13 +97,23 @@ func (r ContainerAppEnvironmentResource) Arguments() map[string]*pluginsdk.Schem
 		},
 
 		"infrastructure_resource_group_name": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ForceNew:     true,
-			RequiredWith: []string{"workload_profile"},
-			ValidateFunc: resourcegroups.ValidateName,
-			Description:  "Name of the platform-managed resource group created for the Managed Environment to host infrastructure resources. **Note:** Only valid if a `workload_profile` is specified. If `infrastructure_subnet_id` is specified, this resource group will be created in the same subscription as `infrastructure_subnet_id`.",
+			Type:                  pluginsdk.TypeString,
+			Optional:              true,
+			ForceNew:              true,
+			RequiredWith:          []string{"workload_profile"},
+			ValidateFunc:          resourcegroups.ValidateName,
+			DiffSuppressOnRefresh: true,
+			DiffSuppressFunc: func(k, oldValue, newValue string, d *pluginsdk.ResourceData) bool { // If this is omitted, and there is a non-consumption profile, then the service generates a value for the required manage resource group.
+				if profiles := d.Get("workload_profile").(*pluginsdk.Set).List(); len(profiles) > 0 && newValue == "" && newValue == oldValue {
+					for _, profile := range profiles {
+						if profile.(map[string]interface{})["workload_profile_type"].(string) != string(helpers.WorkloadProfileSkuConsumption) {
+							return false
+						}
+					}
+				}
+				return true
+			},
+			Description: "Name of the platform-managed resource group created for the Managed Environment to host infrastructure resources. **Note:** Only valid if a `workload_profile` is specified. If `infrastructure_subnet_id` is specified, this resource group will be created in the same subscription as `infrastructure_subnet_id`.",
 		},
 
 		"infrastructure_subnet_id": {
@@ -130,12 +143,25 @@ func (r ContainerAppEnvironmentResource) Arguments() map[string]*pluginsdk.Schem
 			RequiredWith: []string{"infrastructure_subnet_id"},
 		},
 
+		"mutual_tls_enabled": {
+			Description: "Should mutual transport layer security (mTLS) be enabled? Defaults to `false`. **Note:** This feature is in public preview. Enabling mTLS for your applications may increase response latency and reduce maximum throughput in high-load scenarios.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
+		},
+
 		"tags": commonschema.Tags(),
 	}
 }
 
 func (r ContainerAppEnvironmentResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
+		"custom_domain_verification_id": {
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Description: "The ID of the Custom Domain Verification for this Container App Environment.",
+		},
+
 		"default_domain": {
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
@@ -201,6 +227,16 @@ func (r ContainerAppEnvironmentResource) Create() sdk.ResourceFunc {
 				Properties: &managedenvironments.ManagedEnvironmentProperties{
 					VnetConfiguration: &managedenvironments.VnetConfiguration{},
 					ZoneRedundant:     pointer.To(containerAppEnvironment.ZoneRedundant),
+					PeerAuthentication: &managedenvironments.ManagedEnvironmentPropertiesPeerAuthentication{
+						Mtls: &managedenvironments.Mtls{
+							Enabled: pointer.To(containerAppEnvironment.Mtls),
+						},
+					},
+					PeerTrafficConfiguration: &managedenvironments.ManagedEnvironmentPropertiesPeerTrafficConfiguration{
+						Encryption: &managedenvironments.ManagedEnvironmentPropertiesPeerTrafficConfigurationEncryption{
+							Enabled: pointer.To(containerAppEnvironment.Mtls),
+						},
+					},
 				},
 				Tags: tags.Expand(containerAppEnvironment.Tags),
 			}
@@ -302,11 +338,13 @@ func (r ContainerAppEnvironmentResource) Read() sdk.ResourceFunc {
 						state.PlatformReservedDnsIP = pointer.From(vnet.PlatformReservedDnsIP)
 					}
 
+					state.CustomDomainVerificationId = pointer.From(props.CustomDomainConfiguration.CustomDomainVerificationId)
 					state.ZoneRedundant = pointer.From(props.ZoneRedundant)
 					state.StaticIP = pointer.From(props.StaticIP)
 					state.DefaultDomain = pointer.From(props.DefaultDomain)
 					state.WorkloadProfiles = helpers.FlattenWorkloadProfiles(props.WorkloadProfiles, consumptionDefined)
 					state.InfrastructureResourceGroup = pointer.From(props.InfrastructureResourceGroup)
+					state.Mtls = pointer.From(props.PeerAuthentication.Mtls.Enabled)
 				}
 			}
 
@@ -375,6 +413,11 @@ func (r ContainerAppEnvironmentResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("workload_profile") {
 				existing.Model.Properties.WorkloadProfiles = helpers.ExpandWorkloadProfiles(state.WorkloadProfiles)
+			}
+
+			if metadata.ResourceData.HasChange("mutual_tls_enabled") {
+				existing.Model.Properties.PeerAuthentication.Mtls.Enabled = pointer.To(state.Mtls)
+				existing.Model.Properties.PeerTrafficConfiguration.Encryption.Enabled = pointer.To(state.Mtls)
 			}
 
 			// (@jackofallops) This is not updatable and needs to be removed since the read does not return the sensitive Key field.

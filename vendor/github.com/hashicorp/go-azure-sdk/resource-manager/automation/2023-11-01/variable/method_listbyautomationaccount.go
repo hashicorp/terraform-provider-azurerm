@@ -23,6 +23,18 @@ type ListByAutomationAccountCompleteResult struct {
 	Items              []Variable
 }
 
+type ListByAutomationAccountCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByAutomationAccountCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByAutomationAccount ...
 func (c VariableClient) ListByAutomationAccount(ctx context.Context, id AutomationAccountId) (result ListByAutomationAccountOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c VariableClient) ListByAutomationAccount(ctx context.Context, id Automati
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByAutomationAccountCustomPager{},
 		Path:       fmt.Sprintf("%s/variables", id.ID()),
 	}
 
@@ -72,6 +85,7 @@ func (c VariableClient) ListByAutomationAccountCompleteMatchingPredicate(ctx con
 
 	resp, err := c.ListByAutomationAccount(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

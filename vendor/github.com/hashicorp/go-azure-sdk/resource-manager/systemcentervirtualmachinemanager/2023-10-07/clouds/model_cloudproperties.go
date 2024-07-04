@@ -8,7 +8,7 @@ type CloudProperties struct {
 	CloudName          *string             `json:"cloudName,omitempty"`
 	InventoryItemId    *string             `json:"inventoryItemId,omitempty"`
 	ProvisioningState  *ProvisioningState  `json:"provisioningState,omitempty"`
-	StorageQoSPolicies *[]StorageQoSPolicy `json:"storageQoSPolicies,omitempty"`
+	StorageQoSPolicies *[]StorageQosPolicy `json:"storageQoSPolicies,omitempty"`
 	Uuid               *string             `json:"uuid,omitempty"`
 	VMmServerId        *string             `json:"vmmServerId,omitempty"`
 }

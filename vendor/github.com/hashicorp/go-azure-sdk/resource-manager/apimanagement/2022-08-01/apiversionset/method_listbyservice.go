@@ -58,6 +58,18 @@ func (o ListByServiceOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListByServiceCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByServiceCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByService ...
 func (c ApiVersionSetClient) ListByService(ctx context.Context, id ServiceId, options ListByServiceOperationOptions) (result ListByServiceOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -66,8 +78,9 @@ func (c ApiVersionSetClient) ListByService(ctx context.Context, id ServiceId, op
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/apiVersionSets", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListByServiceCustomPager{},
+		Path:          fmt.Sprintf("%s/apiVersionSets", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -108,6 +121,7 @@ func (c ApiVersionSetClient) ListByServiceCompleteMatchingPredicate(ctx context.
 
 	resp, err := c.ListByService(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

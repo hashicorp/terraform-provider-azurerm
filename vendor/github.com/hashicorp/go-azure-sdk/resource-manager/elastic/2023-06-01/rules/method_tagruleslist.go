@@ -23,6 +23,18 @@ type TagRulesListCompleteResult struct {
 	Items              []MonitoringTagRules
 }
 
+type TagRulesListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *TagRulesListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // TagRulesList ...
 func (c RulesClient) TagRulesList(ctx context.Context, id MonitorId) (result TagRulesListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c RulesClient) TagRulesList(ctx context.Context, id MonitorId) (result Tag
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &TagRulesListCustomPager{},
 		Path:       fmt.Sprintf("%s/tagRules", id.ID()),
 	}
 
@@ -72,6 +85,7 @@ func (c RulesClient) TagRulesListCompleteMatchingPredicate(ctx context.Context, 
 
 	resp, err := c.TagRulesList(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

@@ -21,9 +21,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var _ sdk.Resource = ElasticSANResource{}
-var _ sdk.ResourceWithUpdate = ElasticSANResource{}
-var _ sdk.ResourceWithCustomizeDiff = ElasticSANResource{}
+var (
+	_ sdk.Resource                  = ElasticSANResource{}
+	_ sdk.ResourceWithUpdate        = ElasticSANResource{}
+	_ sdk.ResourceWithCustomizeDiff = ElasticSANResource{}
+)
 
 type ElasticSANResource struct{}
 
@@ -32,18 +34,18 @@ func (r ElasticSANResource) ModelObject() interface{} {
 }
 
 type ElasticSANResourceModel struct {
-	BaseSizeInTiB        int                          `tfschema:"base_size_in_tib"`
-	ExtendedSizeInTiB    int                          `tfschema:"extended_size_in_tib"`
+	BaseSizeInTiB        int64                        `tfschema:"base_size_in_tib"`
+	ExtendedSizeInTiB    int64                        `tfschema:"extended_size_in_tib"`
 	Location             string                       `tfschema:"location"`
 	Name                 string                       `tfschema:"name"`
 	ResourceGroupName    string                       `tfschema:"resource_group_name"`
 	Sku                  []ElasticSANResourceSkuModel `tfschema:"sku"`
 	Tags                 map[string]interface{}       `tfschema:"tags"`
-	TotalIops            int                          `tfschema:"total_iops"`
-	TotalMBps            int                          `tfschema:"total_mbps"`
-	TotalSizeInTiB       int                          `tfschema:"total_size_in_tib"`
-	TotalVolumeSizeInGiB int                          `tfschema:"total_volume_size_in_gib"`
-	VolumeGroupCount     int                          `tfschema:"volume_group_count"`
+	TotalIops            int64                        `tfschema:"total_iops"`
+	TotalMBps            int64                        `tfschema:"total_mbps"`
+	TotalSizeInTiB       int64                        `tfschema:"total_size_in_tib"`
+	TotalVolumeSizeInGiB int64                        `tfschema:"total_volume_size_in_gib"`
+	VolumeGroupCount     int64                        `tfschema:"volume_group_count"`
 	Zones                []string                     `tfschema:"zones"`
 }
 
@@ -205,8 +207,8 @@ func (r ElasticSANResource) Create() sdk.ResourceFunc {
 				Location: location.Normalize(config.Location),
 				Tags:     tags.Expand(config.Tags),
 				Properties: elasticsans.ElasticSanProperties{
-					BaseSizeTiB:             int64(config.BaseSizeInTiB),
-					ExtendedCapacitySizeTiB: int64(config.ExtendedSizeInTiB),
+					BaseSizeTiB:             config.BaseSizeInTiB,
+					ExtendedCapacitySizeTiB: config.ExtendedSizeInTiB,
 					Sku:                     ExpandSku(config.Sku),
 				},
 			}
@@ -230,7 +232,6 @@ func (r ElasticSANResource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.ElasticSan.ElasticSans
-			schema := ElasticSANResourceModel{}
 
 			id, err := elasticsans.ParseElasticSanID(metadata.ResourceData.Id())
 			if err != nil {
@@ -245,26 +246,28 @@ func (r ElasticSANResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			schema.Name = id.ElasticSanName
-			schema.ResourceGroupName = id.ResourceGroupName
-
-			if model := resp.Model; model != nil {
-				schema.Location = location.Normalize(model.Location)
-				schema.Tags = tags.Flatten(model.Tags)
-
-				prop := model.Properties
-				schema.Sku = FlattenSku(prop.Sku)
-				schema.Zones = zones.Flatten(prop.AvailabilityZones)
-				schema.BaseSizeInTiB = int(prop.BaseSizeTiB)
-				schema.ExtendedSizeInTiB = int(prop.ExtendedCapacitySizeTiB)
-				schema.TotalIops = int(pointer.From(prop.TotalIops))
-				schema.TotalMBps = int(pointer.From(prop.TotalMBps))
-				schema.TotalSizeInTiB = int(pointer.From(prop.TotalSizeTiB))
-				schema.TotalVolumeSizeInGiB = int(pointer.From(prop.TotalVolumeSizeGiB))
-				schema.VolumeGroupCount = int(pointer.From(prop.VolumeGroupCount))
+			state := ElasticSANResourceModel{
+				Name:              id.ElasticSanName,
+				ResourceGroupName: id.ResourceGroupName,
 			}
 
-			return metadata.Encode(&schema)
+			if model := resp.Model; model != nil {
+				state.Location = location.Normalize(model.Location)
+				state.Tags = tags.Flatten(model.Tags)
+
+				prop := model.Properties
+				state.Sku = FlattenSku(prop.Sku)
+				state.Zones = zones.Flatten(prop.AvailabilityZones)
+				state.BaseSizeInTiB = prop.BaseSizeTiB
+				state.ExtendedSizeInTiB = prop.ExtendedCapacitySizeTiB
+				state.TotalIops = pointer.From(prop.TotalIops)
+				state.TotalMBps = pointer.From(prop.TotalMBps)
+				state.TotalSizeInTiB = pointer.From(prop.TotalSizeTiB)
+				state.TotalVolumeSizeInGiB = pointer.From(prop.TotalVolumeSizeGiB)
+				state.VolumeGroupCount = pointer.From(prop.VolumeGroupCount)
+			}
+
+			return metadata.Encode(&state)
 		},
 	}
 }
@@ -311,14 +314,14 @@ func (r ElasticSANResource) Update() sdk.ResourceFunc {
 				if payload.Properties == nil {
 					payload.Properties = &elasticsans.ElasticSanUpdateProperties{}
 				}
-				payload.Properties.BaseSizeTiB = pointer.To(int64(config.BaseSizeInTiB))
+				payload.Properties.BaseSizeTiB = pointer.To(config.BaseSizeInTiB)
 			}
 
 			if metadata.ResourceData.HasChange("extended_size_in_tib") {
 				if payload.Properties == nil {
 					payload.Properties = &elasticsans.ElasticSanUpdateProperties{}
 				}
-				payload.Properties.ExtendedCapacitySizeTiB = pointer.To(int64(config.ExtendedSizeInTiB))
+				payload.Properties.ExtendedCapacitySizeTiB = pointer.To(config.ExtendedSizeInTiB)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {

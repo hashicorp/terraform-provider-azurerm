@@ -71,10 +71,12 @@ func (k KeyResource) Arguments() map[string]*pluginsdk.Schema {
 		"content_type": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
+			// NOTE: O+C We set some values in this field depending on the `type` so this needs to remain Computed
 			Computed: true,
 		},
 		"etag": {
-			Type:     pluginsdk.TypeString,
+			Type: pluginsdk.TypeString,
+			// NOTE: O+C The value of this is updated anytime the resource changes so this should remain Computed
 			Computed: true,
 			Optional: true,
 		},
@@ -227,8 +229,8 @@ func (k KeyResource) Create() sdk.ResourceFunc {
 				Pending:                   []string{"NotFound", "Forbidden"},
 				Target:                    []string{"Exists"},
 				Refresh:                   appConfigurationGetKeyRefreshFunc(ctx, client, model.Key, model.Label),
-				PollInterval:              10 * time.Second,
-				ContinuousTargetOccurence: 2,
+				PollInterval:              5 * time.Second,
+				ContinuousTargetOccurence: 4,
 				Timeout:                   time.Until(deadline),
 			}
 

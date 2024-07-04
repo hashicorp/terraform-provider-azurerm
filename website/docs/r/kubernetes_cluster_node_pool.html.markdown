@@ -126,7 +126,9 @@ The following arguments are supported:
 
 * `pod_subnet_id` - (Optional) The ID of the Subnet where the pods in the Node Pool should exist. Changing this forces a new resource to be created.
 
-* `os_sku` - (Optional) Specifies the OS SKU used by the agent pool. Possible values are `AzureLinux`, `Ubuntu`, `Windows2019` and `Windows2022`. If not specified, the default is `Ubuntu` if OSType=Linux or `Windows2019` if OSType=Windows. And the default Windows OSSKU will be changed to `Windows2022` after Windows2019 is deprecated. Changing this forces a new resource to be created.
+* `os_sku` - (Optional) Specifies the OS SKU used by the agent pool. Possible values are `AzureLinux`, `Ubuntu`, `Windows2019` and `Windows2022`. If not specified, the default is `Ubuntu` if OSType=Linux or `Windows2019` if OSType=Windows. And the default Windows OSSKU will be changed to `Windows2022` after Windows2019 is deprecated. Changing this from `AzureLinux` or `Ubuntu` to `AzureLinux` or `Ubuntu` will not replace the resource, otherwise it forces a new resource to be created.
+
+-> **Note:**  This requires that the Preview Feature `Microsoft.ContainerService/OSSKUMigrationPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://learn.microsoft.com/en-us/azure/azure-linux/tutorial-azure-linux-migration) for more information.
 
 * `os_type` - (Optional) The Operating System which should be used for this Node Pool. Changing this forces a new resource to be created. Possible values are `Linux` and `Windows`. Defaults to `Linux`.
 
@@ -307,6 +309,10 @@ A `sysctl_config` block supports the following:
 ---
 
 A `upgrade_settings` block supports the following:
+
+* `drain_timeout_in_minutes` - (Optional) The amount of time in minutes to wait on eviction of pods and graceful termination per node. This eviction wait time honors waiting on pod disruption budgets. If this time is exceeded, the upgrade fails. Unsetting this after configuring it will force a new resource to be created.
+
+* `node_soak_duration_in_minutes` - (Optional) The amount of time in minutes to wait after draining a node and before reimaging and moving on to next node. Defaults to `0`.
 
 * `max_surge` - (Required) The maximum number or percentage of nodes which will be added to the Node Pool size during an upgrade.
 

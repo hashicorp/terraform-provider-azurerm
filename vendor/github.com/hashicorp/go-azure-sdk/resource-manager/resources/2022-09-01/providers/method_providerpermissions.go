@@ -23,6 +23,18 @@ type ProviderPermissionsCompleteResult struct {
 	Items              []ProviderPermission
 }
 
+type ProviderPermissionsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ProviderPermissionsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ProviderPermissions ...
 func (c ProvidersClient) ProviderPermissions(ctx context.Context, id SubscriptionProviderId) (result ProviderPermissionsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c ProvidersClient) ProviderPermissions(ctx context.Context, id Subscriptio
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ProviderPermissionsCustomPager{},
 		Path:       fmt.Sprintf("%s/providerPermissions", id.ID()),
 	}
 
@@ -72,6 +85,7 @@ func (c ProvidersClient) ProviderPermissionsCompleteMatchingPredicate(ctx contex
 
 	resp, err := c.ProviderPermissions(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

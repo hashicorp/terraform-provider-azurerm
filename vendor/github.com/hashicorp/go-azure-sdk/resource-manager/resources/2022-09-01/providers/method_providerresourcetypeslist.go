@@ -50,6 +50,18 @@ func (o ProviderResourceTypesListOperationOptions) ToQuery() *client.QueryParams
 	return &out
 }
 
+type ProviderResourceTypesListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ProviderResourceTypesListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ProviderResourceTypesList ...
 func (c ProvidersClient) ProviderResourceTypesList(ctx context.Context, id SubscriptionProviderId, options ProviderResourceTypesListOperationOptions) (result ProviderResourceTypesListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -58,8 +70,9 @@ func (c ProvidersClient) ProviderResourceTypesList(ctx context.Context, id Subsc
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/resourceTypes", id.ID()),
 		OptionsObject: options,
+		Pager:         &ProviderResourceTypesListCustomPager{},
+		Path:          fmt.Sprintf("%s/resourceTypes", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -100,6 +113,7 @@ func (c ProvidersClient) ProviderResourceTypesListCompleteMatchingPredicate(ctx 
 
 	resp, err := c.ProviderResourceTypesList(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

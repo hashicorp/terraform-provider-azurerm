@@ -23,6 +23,18 @@ type FirewallRulesListCompleteResult struct {
 	Items              []RedisFirewallRule
 }
 
+type FirewallRulesListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *FirewallRulesListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // FirewallRulesList ...
 func (c RedisClient) FirewallRulesList(ctx context.Context, id RediId) (result FirewallRulesListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c RedisClient) FirewallRulesList(ctx context.Context, id RediId) (result F
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &FirewallRulesListCustomPager{},
 		Path:       fmt.Sprintf("%s/firewallRules", id.ID()),
 	}
 
@@ -72,6 +85,7 @@ func (c RedisClient) FirewallRulesListCompleteMatchingPredicate(ctx context.Cont
 
 	resp, err := c.FirewallRulesList(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

@@ -13,6 +13,10 @@ type decodedStructTags struct {
 	// hclPath defines the path to this field used for this in the Schema for this Resource
 	hclPath string
 
+	// addedInNextMajorVersion specifies whether this field should only be introduced in a next major
+	// version of the Provider
+	addedInNextMajorVersion bool
+
 	// removedInNextMajorVersion specifies whether this field is deprecated and should not
 	// be set into the state in the next major version of the Provider
 	removedInNextMajorVersion bool
@@ -34,6 +38,7 @@ func parseStructTags(input reflect.StructTag) (*decodedStructTags, error) {
 	output := &decodedStructTags{
 		// NOTE: `hclPath` has to be the first item in the struct tag
 		hclPath:                   strings.TrimSpace(components[0]),
+		addedInNextMajorVersion:   false,
 		removedInNextMajorVersion: false,
 	}
 	if output.hclPath == "" {
@@ -46,7 +51,17 @@ func parseStructTags(input reflect.StructTag) (*decodedStructTags, error) {
 		for _, item := range components {
 			item = strings.TrimSpace(item) // allowing for both `foo,bar` and `foo, bar` in struct tags
 			if strings.EqualFold(item, "removedInNextMajorVersion") {
+				if output.addedInNextMajorVersion {
+					return nil, fmt.Errorf("the struct-tags `removedInNextMajorVersion` and `addedInNextMajorVersion` cannot be set together")
+				}
 				output.removedInNextMajorVersion = true
+				continue
+			}
+			if strings.EqualFold(item, "addedInNextMajorVersion") {
+				if output.removedInNextMajorVersion {
+					return nil, fmt.Errorf("the struct-tags `removedInNextMajorVersion` and `addedInNextMajorVersion` cannot be set together")
+				}
+				output.addedInNextMajorVersion = true
 				continue
 			}
 

@@ -23,7 +23,7 @@ type SpringCloudAPIPortalModel struct {
 	SpringCloudServiceId       string              `tfschema:"spring_cloud_service_id"`
 	GatewayIds                 []string            `tfschema:"gateway_ids"`
 	HttpsOnlyEnabled           bool                `tfschema:"https_only_enabled"`
-	InstanceCount              int                 `tfschema:"instance_count"`
+	InstanceCount              int64               `tfschema:"instance_count"`
 	PublicNetworkAccessEnabled bool                `tfschema:"public_network_access_enabled"`
 	ApiTryOutEnabled           bool                `tfschema:"api_try_out_enabled"`
 	Sso                        []ApiPortalSsoModel `tfschema:"sso"`
@@ -206,7 +206,7 @@ func (s SpringCloudAPIPortalResource) Create() sdk.ResourceFunc {
 				Sku: &appplatform.Sku{
 					Name:     service.Model.Sku.Name,
 					Tier:     service.Model.Sku.Tier,
-					Capacity: pointer.To(int64(model.InstanceCount)),
+					Capacity: pointer.To(model.InstanceCount),
 				},
 			}
 			err = client.ApiPortalsCreateOrUpdateThenPoll(ctx, id, apiPortalResource)
@@ -271,7 +271,7 @@ func (s SpringCloudAPIPortalResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("instance_count") {
-				sku.Capacity = pointer.To(int64(model.InstanceCount))
+				sku.Capacity = pointer.To(model.InstanceCount)
 			}
 
 			if metadata.ResourceData.HasChange("api_try_out_enabled") {
@@ -336,7 +336,7 @@ func (s SpringCloudAPIPortalResource) Read() sdk.ResourceFunc {
 				}
 
 				if sku := resp.Model.Sku; sku != nil {
-					state.InstanceCount = int(pointer.From(sku.Capacity))
+					state.InstanceCount = pointer.From(sku.Capacity)
 				}
 			}
 			return metadata.Encode(&state)

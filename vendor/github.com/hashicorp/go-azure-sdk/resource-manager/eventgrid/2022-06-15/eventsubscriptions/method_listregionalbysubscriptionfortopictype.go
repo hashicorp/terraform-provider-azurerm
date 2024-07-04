@@ -54,6 +54,18 @@ func (o ListRegionalBySubscriptionForTopicTypeOperationOptions) ToQuery() *clien
 	return &out
 }
 
+type ListRegionalBySubscriptionForTopicTypeCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListRegionalBySubscriptionForTopicTypeCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListRegionalBySubscriptionForTopicType ...
 func (c EventSubscriptionsClient) ListRegionalBySubscriptionForTopicType(ctx context.Context, id LocationTopicTypeId, options ListRegionalBySubscriptionForTopicTypeOperationOptions) (result ListRegionalBySubscriptionForTopicTypeOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -62,8 +74,9 @@ func (c EventSubscriptionsClient) ListRegionalBySubscriptionForTopicType(ctx con
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/eventSubscriptions", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListRegionalBySubscriptionForTopicTypeCustomPager{},
+		Path:          fmt.Sprintf("%s/eventSubscriptions", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -104,6 +117,7 @@ func (c EventSubscriptionsClient) ListRegionalBySubscriptionForTopicTypeComplete
 
 	resp, err := c.ListRegionalBySubscriptionForTopicType(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

@@ -10,6 +10,6 @@ type VirtualDiskUpdate struct {
 	DiskSizeGB       *int64                   `json:"diskSizeGB,omitempty"`
 	Lun              *int64                   `json:"lun,omitempty"`
 	Name             *string                  `json:"name,omitempty"`
-	StorageQoSPolicy *StorageQoSPolicyDetails `json:"storageQoSPolicy,omitempty"`
+	StorageQoSPolicy *StorageQosPolicyDetails `json:"storageQoSPolicy,omitempty"`
 	VhdType          *string                  `json:"vhdType,omitempty"`
 }

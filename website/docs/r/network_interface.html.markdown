@@ -74,9 +74,9 @@ The following arguments are supported:
 
 * `edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Network Interface should exist. Changing this forces a new Network Interface to be created.
 
-* `enable_ip_forwarding` - (Optional) Should IP Forwarding be enabled? Defaults to `false`.
+* `ip_forwarding_enabled` - (Optional) Should IP Forwarding be enabled? Defaults to `false`.
 
-* `enable_accelerated_networking` - (Optional) Should Accelerated Networking be enabled? Defaults to `false`.
+* `accelerated_networking_enabled` - (Optional) Should Accelerated Networking be enabled? Defaults to `false`.
 
 -> **Note:** Only certain Virtual Machine sizes are supported for Accelerated Networking - [more information can be found in this document](https://docs.microsoft.com/azure/virtual-network/create-vm-accelerated-networking-cli).
 

@@ -11,7 +11,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/containerapps"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/daprcomponents"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/managedenvironments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2024-03-01/managedenvironments"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/validate"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -153,69 +154,75 @@ type Ingress struct {
 	CustomDomains          []CustomDomain          `tfschema:"custom_domain"`
 	IsExternal             bool                    `tfschema:"external_enabled"`
 	FQDN                   string                  `tfschema:"fqdn"`
-	TargetPort             int                     `tfschema:"target_port"`
-	ExposedPort            int                     `tfschema:"exposed_port"`
+	TargetPort             int64                   `tfschema:"target_port"`
+	ExposedPort            int64                   `tfschema:"exposed_port"`
 	TrafficWeights         []TrafficWeight         `tfschema:"traffic_weight"`
 	Transport              string                  `tfschema:"transport"`
 	IpSecurityRestrictions []IpSecurityRestriction `tfschema:"ip_security_restriction"`
 }
 
 func ContainerAppIngressSchema() *pluginsdk.Schema {
+	r := &pluginsdk.Resource{
+		Schema: map[string]*pluginsdk.Schema{
+			"allow_insecure_connections": {
+				Type:        pluginsdk.TypeBool,
+				Optional:    true,
+				Default:     false,
+				Description: "Should this ingress allow insecure connections?",
+			},
+
+			"external_enabled": {
+				Type:        pluginsdk.TypeBool,
+				Optional:    true,
+				Default:     false,
+				Description: "Is this an external Ingress.",
+			},
+
+			"custom_domain": ContainerAppIngressCustomDomainSchemaComputed(),
+
+			"fqdn": {
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Description: "The FQDN of the ingress.",
+			},
+
+			"ip_security_restriction": ContainerAppIngressIpSecurityRestriction(),
+
+			"target_port": {
+				Type:         pluginsdk.TypeInt,
+				Required:     true,
+				ValidateFunc: validation.IntBetween(1, 65535),
+				Description:  "The target port on the container for the Ingress traffic.",
+			},
+
+			"exposed_port": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(1, 65535),
+				Description:  "The exposed port on the container for the Ingress traffic.",
+			},
+
+			"traffic_weight": ContainerAppIngressTrafficWeight(),
+
+			"transport": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(containerapps.IngressTransportMethodAuto),
+				ValidateFunc: validation.StringInSlice(containerapps.PossibleValuesForIngressTransportMethod(), false),
+				Description:  "The transport method for the Ingress. Possible values include `auto`, `http`, and `http2`, `tcp`. Defaults to `auto`",
+			},
+		},
+	}
+
+	if !features.FourPointOhBeta() {
+		r.Schema["custom_domain"] = ContainerAppIngressCustomDomainSchema()
+	}
+
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 1,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"allow_insecure_connections": {
-					Type:        pluginsdk.TypeBool,
-					Optional:    true,
-					Default:     false,
-					Description: "Should this ingress allow insecure connections?",
-				},
-
-				"custom_domain": ContainerAppIngressCustomDomainSchema(),
-
-				"external_enabled": {
-					Type:        pluginsdk.TypeBool,
-					Optional:    true,
-					Default:     false,
-					Description: "Is this an external Ingress.",
-				},
-
-				"fqdn": {
-					Type:        pluginsdk.TypeString,
-					Computed:    true,
-					Description: "The FQDN of the ingress.",
-				},
-
-				"ip_security_restriction": ContainerAppIngressIpSecurityRestriction(),
-
-				"target_port": {
-					Type:         pluginsdk.TypeInt,
-					Required:     true,
-					ValidateFunc: validation.IntBetween(1, 65535),
-					Description:  "The target port on the container for the Ingress traffic.",
-				},
-
-				"exposed_port": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
-					ValidateFunc: validation.IntBetween(1, 65535),
-					Description:  "The exposed port on the container for the Ingress traffic.",
-				},
-
-				"traffic_weight": ContainerAppIngressTrafficWeight(),
-
-				"transport": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					Default:      string(containerapps.IngressTransportMethodAuto),
-					ValidateFunc: validation.StringInSlice(containerapps.PossibleValuesForIngressTransportMethod(), false),
-					Description:  "The transport method for the Ingress. Possible values include `auto`, `http`, and `http2`, `tcp`. Defaults to `auto`",
-				},
-			},
-		},
+		Elem:     r,
 	}
 }
 
@@ -282,8 +289,8 @@ func ExpandContainerAppIngress(input []Ingress, appName string) *containerapps.I
 		CustomDomains:          expandContainerAppIngressCustomDomain(ingress.CustomDomains),
 		External:               pointer.To(ingress.IsExternal),
 		Fqdn:                   pointer.To(ingress.FQDN),
-		TargetPort:             pointer.To(int64(ingress.TargetPort)),
-		ExposedPort:            pointer.To(int64(ingress.ExposedPort)),
+		TargetPort:             pointer.To(ingress.TargetPort),
+		ExposedPort:            pointer.To(ingress.ExposedPort),
 		Traffic:                expandContainerAppIngressTraffic(ingress.TrafficWeights, appName),
 		IPSecurityRestrictions: expandIpSecurityRestrictions(ingress.IpSecurityRestrictions),
 	}
@@ -304,8 +311,8 @@ func FlattenContainerAppIngress(input *containerapps.Ingress, appName string) []
 		CustomDomains:          flattenContainerAppIngressCustomDomain(ingress.CustomDomains),
 		IsExternal:             pointer.From(ingress.External),
 		FQDN:                   pointer.From(ingress.Fqdn),
-		TargetPort:             int(pointer.From(ingress.TargetPort)),
-		ExposedPort:            int(pointer.From(ingress.ExposedPort)),
+		TargetPort:             pointer.From(ingress.TargetPort),
+		ExposedPort:            pointer.From(ingress.ExposedPort),
 		TrafficWeights:         flattenContainerAppIngressTraffic(ingress.Traffic, appName),
 		IpSecurityRestrictions: flattenContainerAppIngressIpSecurityRestrictions(ingress.IPSecurityRestrictions),
 	}
@@ -452,7 +459,7 @@ type TrafficWeight struct {
 	Label          string `tfschema:"label"`
 	LatestRevision bool   `tfschema:"latest_revision"`
 	RevisionSuffix string `tfschema:"revision_suffix"`
-	Weight         int    `tfschema:"percentage"`
+	Weight         int64  `tfschema:"percentage"`
 }
 
 type IpSecurityRestriction struct {
@@ -615,7 +622,7 @@ func expandContainerAppIngressTraffic(input []TrafficWeight, appName string) *[]
 	for _, v := range input {
 		traffic := containerapps.TrafficWeight{
 			LatestRevision: pointer.To(v.LatestRevision),
-			Weight:         pointer.To(int64(v.Weight)),
+			Weight:         pointer.To(v.Weight),
 		}
 
 		if !v.LatestRevision {
@@ -644,7 +651,7 @@ func flattenContainerAppIngressTraffic(input *[]containerapps.TrafficWeight, app
 			Label:          pointer.From(v.Label),
 			LatestRevision: pointer.From(v.LatestRevision),
 			RevisionSuffix: strings.TrimPrefix(pointer.From(v.RevisionName), prefix),
-			Weight:         int(pointer.From(v.Weight)),
+			Weight:         pointer.From(v.Weight),
 		})
 	}
 
@@ -672,7 +679,7 @@ func expandIpSecurityRestrictions(input []IpSecurityRestriction) *[]containerapp
 
 type Dapr struct {
 	AppId       string `tfschema:"app_id"`
-	AppPort     int    `tfschema:"app_port"`
+	AppPort     int64  `tfschema:"app_port"`
 	AppProtocol string `tfschema:"app_protocol"`
 }
 
@@ -754,7 +761,7 @@ func ExpandContainerAppDapr(input []Dapr) *containerapps.Dapr {
 
 	return &containerapps.Dapr{
 		AppId:       pointer.To(dapr.AppId),
-		AppPort:     pointer.To(int64(dapr.AppPort)),
+		AppPort:     pointer.To(dapr.AppPort),
 		AppProtocol: &appProtocol,
 		Enabled:     pointer.To(true),
 	}
@@ -767,7 +774,7 @@ func FlattenContainerAppDapr(input *containerapps.Dapr) []Dapr {
 
 	result := Dapr{
 		AppId:   pointer.From(input.AppId),
-		AppPort: int(pointer.From(input.AppPort)),
+		AppPort: pointer.From(input.AppPort),
 	}
 	if appProtocol := input.AppProtocol; appProtocol != nil {
 		result.AppProtocol = string(*appProtocol)
@@ -816,8 +823,8 @@ type ContainerTemplate struct {
 	Containers           []Container           `tfschema:"container"`
 	InitContainers       []BaseContainer       `tfschema:"init_container"`
 	Suffix               string                `tfschema:"revision_suffix"`
-	MinReplicas          int                   `tfschema:"min_replicas"`
-	MaxReplicas          int                   `tfschema:"max_replicas"`
+	MinReplicas          int64                 `tfschema:"min_replicas"`
+	MaxReplicas          int64                 `tfschema:"max_replicas"`
 	AzureQueueScaleRules []AzureQueueScaleRule `tfschema:"azure_queue_scale_rule"`
 	CustomScaleRules     []CustomScaleRule     `tfschema:"custom_scale_rule"`
 	HTTPScaleRules       []HTTPScaleRule       `tfschema:"http_scale_rule"`
@@ -839,7 +846,7 @@ func ContainerTemplateSchema() *pluginsdk.Schema {
 				"min_replicas": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					Computed:     true,
+					Default:      0,
 					ValidateFunc: validation.IntBetween(0, 300),
 					Description:  "The minimum number of replicas for this container.",
 				},
@@ -865,7 +872,7 @@ func ContainerTemplateSchema() *pluginsdk.Schema {
 				"revision_suffix": {
 					Type:        pluginsdk.TypeString,
 					Optional:    true,
-					Computed:    true,
+					Computed:    true, // Note: O+C This value is always present and non-zero but if not user specified, then the service will generate a value.
 					Description: "The suffix for the revision. This value must be unique for the lifetime of the Resource. If omitted the service will use a hash function to create one.",
 				},
 			},
@@ -930,14 +937,14 @@ func ExpandContainerAppTemplate(input []ContainerTemplate, metadata sdk.Resource
 		if template.Scale == nil {
 			template.Scale = &containerapps.Scale{}
 		}
-		template.Scale.MaxReplicas = pointer.To(int64(config.MaxReplicas))
+		template.Scale.MaxReplicas = pointer.To(config.MaxReplicas)
 	}
 
 	if config.MinReplicas != 0 {
 		if template.Scale == nil {
 			template.Scale = &containerapps.Scale{}
 		}
-		template.Scale.MinReplicas = pointer.To(int64(config.MinReplicas))
+		template.Scale.MinReplicas = pointer.To(config.MinReplicas)
 	}
 
 	if rules := config.expandContainerAppScaleRules(); len(rules) != 0 {
@@ -969,8 +976,8 @@ func FlattenContainerAppTemplate(input *containerapps.Template) []ContainerTempl
 	}
 
 	if scale := input.Scale; scale != nil {
-		result.MaxReplicas = int(pointer.From(scale.MaxReplicas))
-		result.MinReplicas = int(pointer.From(scale.MinReplicas))
+		result.MaxReplicas = pointer.From(scale.MaxReplicas)
+		result.MinReplicas = pointer.From(scale.MinReplicas)
 		result.flattenContainerAppScaleRules(scale.Rules)
 	}
 
@@ -1724,13 +1731,13 @@ func flattenContainerEnvVar(input *[]containerapps.EnvironmentVar) []ContainerEn
 type ContainerAppReadinessProbe struct {
 	Transport        string       `tfschema:"transport"`
 	Host             string       `tfschema:"host"`
-	Port             int          `tfschema:"port"`
+	Port             int64        `tfschema:"port"`
 	Path             string       `tfschema:"path"`
 	Headers          []HttpHeader `tfschema:"header"`
-	Interval         int          `tfschema:"interval_seconds"`
-	Timeout          int          `tfschema:"timeout"`
-	FailureThreshold int          `tfschema:"failure_count_threshold"`
-	SuccessThreshold int          `tfschema:"success_count_threshold"`
+	Interval         int64        `tfschema:"interval_seconds"`
+	Timeout          int64        `tfschema:"timeout"`
+	FailureThreshold int64        `tfschema:"failure_count_threshold"`
+	SuccessThreshold int64        `tfschema:"success_count_threshold"`
 }
 
 func ContainerAppReadinessProbeSchema() *pluginsdk.Schema {
@@ -1767,7 +1774,7 @@ func ContainerAppReadinessProbeSchema() *pluginsdk.Schema {
 				"path": {
 					Type:        pluginsdk.TypeString,
 					Optional:    true,
-					Computed:    true,
+					Computed:    true, // Note: O+C Needs to remain computed as this has a variable default and since it is part of a list we cannot diffsuppress it.
 					Description: "The URI to use for http type probes. Not valid for `TCP` type probes. Defaults to `/`.",
 				},
 
@@ -1910,10 +1917,10 @@ func expandContainerAppReadinessProbe(input ContainerAppReadinessProbe) containe
 	probeType := containerapps.TypeReadiness
 	result := containerapps.ContainerAppProbe{
 		Type:             &probeType,
-		PeriodSeconds:    pointer.To(int64(input.Interval)),
-		TimeoutSeconds:   pointer.To(int64(input.Timeout)),
-		FailureThreshold: pointer.To(int64(input.FailureThreshold)),
-		SuccessThreshold: pointer.To(int64(input.SuccessThreshold)),
+		PeriodSeconds:    pointer.To(input.Interval),
+		TimeoutSeconds:   pointer.To(input.Timeout),
+		FailureThreshold: pointer.To(input.FailureThreshold),
+		SuccessThreshold: pointer.To(input.SuccessThreshold),
 	}
 
 	switch p := strings.ToUpper(input.Transport); p {
@@ -1922,7 +1929,7 @@ func expandContainerAppReadinessProbe(input ContainerAppReadinessProbe) containe
 		result.HTTPGet = &containerapps.ContainerAppProbeHTTPGet{
 			Host:   pointer.To(input.Host),
 			Path:   pointer.To(input.Path),
-			Port:   int64(input.Port),
+			Port:   input.Port,
 			Scheme: &scheme,
 		}
 		if input.Headers != nil {
@@ -1940,7 +1947,7 @@ func expandContainerAppReadinessProbe(input ContainerAppReadinessProbe) containe
 	default:
 		result.TcpSocket = &containerapps.ContainerAppProbeTcpSocket{
 			Host: pointer.To(input.Host),
-			Port: int64(input.Port),
+			Port: input.Port,
 		}
 	}
 
@@ -1950,10 +1957,10 @@ func expandContainerAppReadinessProbe(input ContainerAppReadinessProbe) containe
 func flattenContainerAppReadinessProbe(input containerapps.ContainerAppProbe) []ContainerAppReadinessProbe {
 	result := make([]ContainerAppReadinessProbe, 0)
 	probe := ContainerAppReadinessProbe{
-		Interval:         int(pointer.From(input.PeriodSeconds)),
-		Timeout:          int(pointer.From(input.TimeoutSeconds)),
-		FailureThreshold: int(pointer.From(input.FailureThreshold)),
-		SuccessThreshold: int(pointer.From(input.SuccessThreshold)),
+		Interval:         pointer.From(input.PeriodSeconds),
+		Timeout:          pointer.From(input.TimeoutSeconds),
+		FailureThreshold: pointer.From(input.FailureThreshold),
+		SuccessThreshold: pointer.From(input.SuccessThreshold),
 	}
 
 	if httpGet := input.HTTPGet; httpGet != nil {
@@ -1961,7 +1968,7 @@ func flattenContainerAppReadinessProbe(input containerapps.ContainerAppProbe) []
 			probe.Transport = string(*httpGet.Scheme)
 		}
 		probe.Host = pointer.From(httpGet.Host)
-		probe.Port = int(httpGet.Port)
+		probe.Port = httpGet.Port
 		probe.Path = pointer.From(httpGet.Path)
 
 		if httpGet.HTTPHeaders != nil {
@@ -1979,7 +1986,7 @@ func flattenContainerAppReadinessProbe(input containerapps.ContainerAppProbe) []
 	if tcpSocket := input.TcpSocket; tcpSocket != nil {
 		probe.Transport = "TCP"
 		probe.Host = pointer.From(tcpSocket.Host)
-		probe.Port = int(tcpSocket.Port)
+		probe.Port = tcpSocket.Port
 	}
 
 	result = append(result, probe)
@@ -1990,14 +1997,14 @@ func flattenContainerAppReadinessProbe(input containerapps.ContainerAppProbe) []
 type ContainerAppLivenessProbe struct {
 	Transport              string       `tfschema:"transport"`
 	Host                   string       `tfschema:"host"`
-	Port                   int          `tfschema:"port"`
+	Port                   int64        `tfschema:"port"`
 	Path                   string       `tfschema:"path"`
 	Headers                []HttpHeader `tfschema:"header"`
-	InitialDelay           int          `tfschema:"initial_delay"`
-	Interval               int          `tfschema:"interval_seconds"`
-	Timeout                int          `tfschema:"timeout"`
-	FailureThreshold       int          `tfschema:"failure_count_threshold"`
-	TerminationGracePeriod int          `tfschema:"termination_grace_period_seconds"`
+	InitialDelay           int64        `tfschema:"initial_delay"`
+	Interval               int64        `tfschema:"interval_seconds"`
+	Timeout                int64        `tfschema:"timeout"`
+	FailureThreshold       int64        `tfschema:"failure_count_threshold"`
+	TerminationGracePeriod int64        `tfschema:"termination_grace_period_seconds"`
 }
 
 func ContainerAppLivenessProbeSchema() *pluginsdk.Schema {
@@ -2034,7 +2041,7 @@ func ContainerAppLivenessProbeSchema() *pluginsdk.Schema {
 				"path": {
 					Type:        pluginsdk.TypeString,
 					Optional:    true,
-					Computed:    true,
+					Computed:    true, // Note: O+C Needs to remain computed as this has a variable default and since it is part of a list we cannot diffsuppress it.
 					Description: "The URI to use with the `host` for http type probes. Not valid for `TCP` type probes. Defaults to `/`.",
 				},
 
@@ -2189,10 +2196,10 @@ func expandContainerAppLivenessProbe(input ContainerAppLivenessProbe) containera
 	probeType := containerapps.TypeLiveness
 	result := containerapps.ContainerAppProbe{
 		Type:                &probeType,
-		InitialDelaySeconds: pointer.To(int64(input.InitialDelay)),
-		PeriodSeconds:       pointer.To(int64(input.Interval)),
-		TimeoutSeconds:      pointer.To(int64(input.Timeout)),
-		FailureThreshold:    pointer.To(int64(input.FailureThreshold)),
+		InitialDelaySeconds: pointer.To(input.InitialDelay),
+		PeriodSeconds:       pointer.To(input.Interval),
+		TimeoutSeconds:      pointer.To(input.Timeout),
+		FailureThreshold:    pointer.To(input.FailureThreshold),
 	}
 
 	switch p := strings.ToUpper(input.Transport); p {
@@ -2201,7 +2208,7 @@ func expandContainerAppLivenessProbe(input ContainerAppLivenessProbe) containera
 		result.HTTPGet = &containerapps.ContainerAppProbeHTTPGet{
 			Host:   pointer.To(input.Host),
 			Path:   pointer.To(input.Path),
-			Port:   int64(input.Port),
+			Port:   input.Port,
 			Scheme: &scheme,
 		}
 		if input.Headers != nil {
@@ -2219,7 +2226,7 @@ func expandContainerAppLivenessProbe(input ContainerAppLivenessProbe) containera
 	default:
 		result.TcpSocket = &containerapps.ContainerAppProbeTcpSocket{
 			Host: pointer.To(input.Host),
-			Port: int64(input.Port),
+			Port: input.Port,
 		}
 	}
 
@@ -2229,18 +2236,18 @@ func expandContainerAppLivenessProbe(input ContainerAppLivenessProbe) containera
 func flattenContainerAppLivenessProbe(input containerapps.ContainerAppProbe) []ContainerAppLivenessProbe {
 	result := make([]ContainerAppLivenessProbe, 0)
 	probe := ContainerAppLivenessProbe{
-		InitialDelay:           int(pointer.From(input.InitialDelaySeconds)),
-		Interval:               int(pointer.From(input.PeriodSeconds)),
-		Timeout:                int(pointer.From(input.TimeoutSeconds)),
-		FailureThreshold:       int(pointer.From(input.FailureThreshold)),
-		TerminationGracePeriod: int(pointer.From(input.TerminationGracePeriodSeconds)),
+		InitialDelay:           pointer.From(input.InitialDelaySeconds),
+		Interval:               pointer.From(input.PeriodSeconds),
+		Timeout:                pointer.From(input.TimeoutSeconds),
+		FailureThreshold:       pointer.From(input.FailureThreshold),
+		TerminationGracePeriod: pointer.From(input.TerminationGracePeriodSeconds),
 	}
 	if httpGet := input.HTTPGet; httpGet != nil {
 		if httpGet.Scheme != nil {
 			probe.Transport = string(*httpGet.Scheme)
 		}
 		probe.Host = pointer.From(httpGet.Host)
-		probe.Port = int(httpGet.Port)
+		probe.Port = httpGet.Port
 		probe.Path = pointer.From(httpGet.Path)
 
 		if httpGet.HTTPHeaders != nil {
@@ -2258,7 +2265,7 @@ func flattenContainerAppLivenessProbe(input containerapps.ContainerAppProbe) []C
 	if tcpSocket := input.TcpSocket; tcpSocket != nil {
 		probe.Transport = "TCP"
 		probe.Host = pointer.From(tcpSocket.Host)
-		probe.Port = int(tcpSocket.Port)
+		probe.Port = tcpSocket.Port
 	}
 
 	result = append(result, probe)
@@ -2269,13 +2276,13 @@ func flattenContainerAppLivenessProbe(input containerapps.ContainerAppProbe) []C
 type ContainerAppStartupProbe struct {
 	Transport              string       `tfschema:"transport"`
 	Host                   string       `tfschema:"host"`
-	Port                   int          `tfschema:"port"`
+	Port                   int64        `tfschema:"port"`
 	Path                   string       `tfschema:"path"`
 	Headers                []HttpHeader `tfschema:"header"`
-	Interval               int          `tfschema:"interval_seconds"`
-	Timeout                int          `tfschema:"timeout"`
-	FailureThreshold       int          `tfschema:"failure_count_threshold"`
-	TerminationGracePeriod int          `tfschema:"termination_grace_period_seconds"`
+	Interval               int64        `tfschema:"interval_seconds"`
+	Timeout                int64        `tfschema:"timeout"`
+	FailureThreshold       int64        `tfschema:"failure_count_threshold"`
+	TerminationGracePeriod int64        `tfschema:"termination_grace_period_seconds"`
 }
 
 func ContainerAppStartupProbeSchema() *pluginsdk.Schema {
@@ -2312,7 +2319,7 @@ func ContainerAppStartupProbeSchema() *pluginsdk.Schema {
 				"path": {
 					Type:        pluginsdk.TypeString,
 					Optional:    true,
-					Computed:    true,
+					Computed:    true, // Note: O+C Needs to remain computed as this has a variable default and since it is part of a list we cannot diffsuppress it.
 					Description: "The URI to use with the `host` for http type probes. Not valid for `TCP` type probes. Defaults to `/`.",
 				},
 
@@ -2449,9 +2456,9 @@ func expandContainerAppStartupProbe(input ContainerAppStartupProbe) containerapp
 	probeType := containerapps.TypeStartup
 	result := containerapps.ContainerAppProbe{
 		Type:             &probeType,
-		PeriodSeconds:    pointer.To(int64(input.Interval)),
-		TimeoutSeconds:   pointer.To(int64(input.Timeout)),
-		FailureThreshold: pointer.To(int64(input.FailureThreshold)),
+		PeriodSeconds:    pointer.To(input.Interval),
+		TimeoutSeconds:   pointer.To(input.Timeout),
+		FailureThreshold: pointer.To(input.FailureThreshold),
 	}
 
 	switch p := strings.ToUpper(input.Transport); p {
@@ -2460,7 +2467,7 @@ func expandContainerAppStartupProbe(input ContainerAppStartupProbe) containerapp
 		result.HTTPGet = &containerapps.ContainerAppProbeHTTPGet{
 			Host:   pointer.To(input.Host),
 			Path:   pointer.To(input.Path),
-			Port:   int64(input.Port),
+			Port:   input.Port,
 			Scheme: &scheme,
 		}
 		if input.Headers != nil {
@@ -2478,7 +2485,7 @@ func expandContainerAppStartupProbe(input ContainerAppStartupProbe) containerapp
 	default:
 		result.TcpSocket = &containerapps.ContainerAppProbeTcpSocket{
 			Host: pointer.To(input.Host),
-			Port: int64(input.Port),
+			Port: input.Port,
 		}
 	}
 
@@ -2488,10 +2495,10 @@ func expandContainerAppStartupProbe(input ContainerAppStartupProbe) containerapp
 func flattenContainerAppStartupProbe(input containerapps.ContainerAppProbe) []ContainerAppStartupProbe {
 	result := make([]ContainerAppStartupProbe, 0)
 	probe := ContainerAppStartupProbe{
-		Interval:               int(pointer.From(input.PeriodSeconds)),
-		Timeout:                int(pointer.From(input.TimeoutSeconds)),
-		FailureThreshold:       int(pointer.From(input.FailureThreshold)),
-		TerminationGracePeriod: int(pointer.From(input.TerminationGracePeriodSeconds)),
+		Interval:               pointer.From(input.PeriodSeconds),
+		Timeout:                pointer.From(input.TimeoutSeconds),
+		FailureThreshold:       pointer.From(input.FailureThreshold),
+		TerminationGracePeriod: pointer.From(input.TerminationGracePeriodSeconds),
 	}
 
 	if httpGet := input.HTTPGet; httpGet != nil {
@@ -2499,7 +2506,7 @@ func flattenContainerAppStartupProbe(input containerapps.ContainerAppProbe) []Co
 			probe.Transport = string(*httpGet.Scheme)
 		}
 		probe.Host = pointer.From(httpGet.Host)
-		probe.Port = int(httpGet.Port)
+		probe.Port = httpGet.Port
 		probe.Path = pointer.From(httpGet.Path)
 
 		if httpGet.HTTPHeaders != nil {
@@ -2517,7 +2524,7 @@ func flattenContainerAppStartupProbe(input containerapps.ContainerAppProbe) []Co
 	if tcpSocket := input.TcpSocket; tcpSocket != nil {
 		probe.Transport = "TCP"
 		probe.Host = pointer.From(tcpSocket.Host)
-		probe.Port = int(tcpSocket.Port)
+		probe.Port = tcpSocket.Port
 	}
 
 	result = append(result, probe)
@@ -2836,7 +2843,7 @@ func ContainerAppProbesRemoved(metadata sdk.ResourceMetaData) bool {
 
 type AzureQueueScaleRule struct {
 	Name            string                    `tfschema:"name"`
-	QueueLength     int                       `tfschema:"queue_length"`
+	QueueLength     int64                     `tfschema:"queue_length"`
 	QueueName       string                    `tfschema:"queue_name"`
 	Authentications []ScaleRuleAuthentication `tfschema:"authentication"`
 }
@@ -2948,7 +2955,7 @@ func CustomScaleRuleSchema() *pluginsdk.Schema {
 				"name": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
+					ValidateFunc: validate.LowerCaseAlphaNumericWithHyphensAndPeriods,
 				},
 
 				"metadata": {
@@ -3237,7 +3244,7 @@ func (c *ContainerTemplate) expandContainerAppScaleRules() []containerapps.Scale
 		r := containerapps.ScaleRule{
 			Name: pointer.To(v.Name),
 			AzureQueue: &containerapps.QueueScaleRule{
-				QueueLength: pointer.To(int64(v.QueueLength)),
+				QueueLength: pointer.To(v.QueueLength),
 				QueueName:   pointer.To(v.QueueName),
 			},
 		}
@@ -3341,7 +3348,7 @@ func (c *ContainerTemplate) flattenContainerAppScaleRules(input *[]containerapps
 			if q := v.AzureQueue; q != nil {
 				rule := AzureQueueScaleRule{
 					Name:        pointer.From(v.Name),
-					QueueLength: int(pointer.From(q.QueueLength)),
+					QueueLength: pointer.From(q.QueueLength),
 					QueueName:   pointer.From(q.QueueName),
 				}
 

@@ -51,6 +51,18 @@ func (o ListPerfMonCountersOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListPerfMonCountersCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListPerfMonCountersCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListPerfMonCounters ...
 func (c WebAppsClient) ListPerfMonCounters(ctx context.Context, id commonids.AppServiceId, options ListPerfMonCountersOperationOptions) (result ListPerfMonCountersOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -59,8 +71,9 @@ func (c WebAppsClient) ListPerfMonCounters(ctx context.Context, id commonids.App
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/perfcounters", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListPerfMonCountersCustomPager{},
+		Path:          fmt.Sprintf("%s/perfcounters", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -101,6 +114,7 @@ func (c WebAppsClient) ListPerfMonCountersCompleteMatchingPredicate(ctx context.
 
 	resp, err := c.ListPerfMonCounters(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

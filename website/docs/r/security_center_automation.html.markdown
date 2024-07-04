@@ -52,7 +52,7 @@ resource "azurerm_security_center_automation" "example" {
   resource_group_name = azurerm_resource_group.example.name
 
   action {
-    type              = "EventHub"
+    type              = "eventhub"
     resource_id       = azurerm_eventhub.example.id
     connection_string = azurerm_eventhub_authorization_rule.example.primary_connection_string
   }
@@ -81,6 +81,8 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Security Center Automation. Changing this forces a new Security Center Automation to be created.
 
+~> **NOTE:** For the automation to appear in Azure Portal correctly under Microsoft Defender for Cloud -> Environment Settings -> Account -> Continuous Export, either `ExportToWorkspace` or `ExportToEventHub` must be used.
+
 * `resource_group_name` - (Required) The name of the Resource Group where the Security Center Automation should exist. Changing this forces a new Security Center Automation to be created.
 
 * `scopes` - (Required) A list of scopes on which the automation logic is applied, at least one is required. Supported scopes are a subscription (in this format `/subscriptions/00000000-0000-0000-0000-000000000000`) or a resource group under that subscription (in the format `/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example`). The automation will only apply on defined scopes.
@@ -95,19 +97,19 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Boolean to enable or disable this Security Center Automation. Defaults to `true`.
 
-* `tags` - (Optional) A mapping of tags assigned to the resource. Changing this forces a new resource to be created.
+* `tags` - (Optional) A mapping of tags assigned to the resource.
 
 ---
 
 A `action` block defines where the data will be exported and sent to, it supports the following:
 
-* `type` - (Required) Type of Azure resource to send data to. Must be set to one of: `LogicApp`, `EventHub` or `LogAnalytics`.
+* `type` - (Required) Type of Azure resource to send data to. Must be set to one of: `logicapp`, `eventhub` or `loganalytics`.
 
 * `resource_id` - (Required) The resource id of the target Logic App, Event Hub namespace or Log Analytics workspace.
 
-* `connection_string` - (Optional) (Optional, but required when `type` is `EventHub`) A connection string to send data to the target Event Hub namespace, this should include a key with send permissions.
+* `connection_string` - (Optional) (Optional, but required when `type` is `eventhub`) A connection string to send data to the target Event Hub namespace, this should include a key with send permissions.
 
-* `trigger_url` - (Optional) (Optional, but required when `type` is `LogicApp`) The callback URL to trigger the Logic App that will receive and process data sent by this automation. This can be found in the Azure Portal under "See trigger history"
+* `trigger_url` - (Optional) (Optional, but required when `type` is `logicapp`) The callback URL to trigger the Logic App that will receive and process data sent by this automation. This can be found in the Azure Portal under "See trigger history"
 
 ---
 

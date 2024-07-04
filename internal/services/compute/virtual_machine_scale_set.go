@@ -14,10 +14,11 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplicationversions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/applicationsecuritygroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/networksecuritygroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipprefixes"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -110,7 +111,7 @@ func VirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schema {
 				"network_security_group_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: networkValidate.NetworkSecurityGroupID,
+					ValidateFunc: networksecuritygroups.ValidateNetworkSecurityGroupID,
 				},
 				"primary": {
 					Type:     pluginsdk.TypeBool,
@@ -743,7 +744,7 @@ func virtualMachineScaleSetPublicIPAddressSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ForceNew:     true,
-					ValidateFunc: networkValidate.PublicIpPrefixID,
+					ValidateFunc: publicipprefixes.ValidatePublicIPPrefixID,
 				},
 			},
 		},
@@ -1738,12 +1739,16 @@ func VirtualMachineScaleSetRollingUpgradePolicySchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 				},
+				"maximum_surge_instances_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+				},
 			},
 		},
 	}
 }
 
-func ExpandVirtualMachineScaleSetRollingUpgradePolicy(input []interface{}, isZonal bool) (*virtualmachinescalesets.RollingUpgradePolicy, error) {
+func ExpandVirtualMachineScaleSetRollingUpgradePolicy(input []interface{}, isZonal, overProvision bool) (*virtualmachinescalesets.RollingUpgradePolicy, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
@@ -1756,6 +1761,7 @@ func ExpandVirtualMachineScaleSetRollingUpgradePolicy(input []interface{}, isZon
 		MaxUnhealthyUpgradedInstancePercent: pointer.To(int64(raw["max_unhealthy_upgraded_instance_percent"].(int))),
 		PauseTimeBetweenBatches:             pointer.To(raw["pause_time_between_batches"].(string)),
 		PrioritizeUnhealthyInstances:        pointer.To(raw["prioritize_unhealthy_instances_enabled"].(bool)),
+		MaxSurge:                            pointer.To(raw["maximum_surge_instances_enabled"].(bool)),
 	}
 
 	enableCrossZoneUpgrade := raw["cross_zone_upgrades_enabled"].(bool)
@@ -1764,6 +1770,12 @@ func ExpandVirtualMachineScaleSetRollingUpgradePolicy(input []interface{}, isZon
 		rollingUpgradePolicy.EnableCrossZoneUpgrade = pointer.To(enableCrossZoneUpgrade)
 	} else if enableCrossZoneUpgrade {
 		return nil, fmt.Errorf("`rolling_upgrade_policy.0.cross_zone_upgrades_enabled` can only be set to `true` when `zones` is specified")
+	}
+
+	maxSurge := raw["maximum_surge_instances_enabled"].(bool)
+	if overProvision && maxSurge {
+		// MaxSurge can only be set when overprovision is set to false
+		return nil, fmt.Errorf("`rolling_upgrade_policy.0.maximum_surge_instances_enabled` can only be set to `true` when `overprovision` is disabled (set to `false`)")
 	}
 
 	return rollingUpgradePolicy, nil
@@ -1804,6 +1816,11 @@ func FlattenVirtualMachineScaleSetRollingUpgradePolicy(input *virtualmachinescal
 		prioritizeUnhealthyInstances = *input.PrioritizeUnhealthyInstances
 	}
 
+	maxSurge := false
+	if input.MaxSurge != nil {
+		maxSurge = *input.MaxSurge
+	}
+
 	return []interface{}{
 		map[string]interface{}{
 			"cross_zone_upgrades_enabled":             enableCrossZoneUpgrade,
@@ -1812,6 +1829,7 @@ func FlattenVirtualMachineScaleSetRollingUpgradePolicy(input *virtualmachinescal
 			"max_unhealthy_upgraded_instance_percent": maxUnhealthyUpgradedInstancePercent,
 			"pause_time_between_batches":              pauseTimeBetweenBatches,
 			"prioritize_unhealthy_instances_enabled":  prioritizeUnhealthyInstances,
+			"maximum_surge_instances_enabled":         maxSurge,
 		},
 	}
 }
@@ -2141,7 +2159,7 @@ func expandVirtualMachineScaleSetExtensions(input []interface{}) (extensionProfi
 			extensionProps.Settings = pointer.To(result)
 		}
 
-		protectedSettingsFromKeyVault := expandProtectedSettingsFromKeyVault(extensionRaw["protected_settings_from_key_vault"].([]interface{}))
+		protectedSettingsFromKeyVault := expandProtectedSettingsFromKeyVaultVMSS(extensionRaw["protected_settings_from_key_vault"].([]interface{}))
 		extensionProps.ProtectedSettingsFromKeyVault = protectedSettingsFromKeyVault
 
 		if val, ok := extensionRaw["protected_settings"]; ok && val.(string) != "" {
@@ -2257,7 +2275,7 @@ func flattenVirtualMachineScaleSetExtensions(input *virtualmachinescalesets.Virt
 			"force_update_tag":                  forceUpdateTag,
 			"provision_after_extensions":        provisionAfterExtension,
 			"protected_settings":                protectedSettings,
-			"protected_settings_from_key_vault": flattenProtectedSettingsFromKeyVault(protectedSettingsFromKeyVault),
+			"protected_settings_from_key_vault": flattenProtectedSettingsFromKeyVaultVMSS(protectedSettingsFromKeyVault),
 			"publisher":                         extPublisher,
 			"settings":                          extSettings,
 			"type":                              extType,

@@ -24,6 +24,18 @@ type ListCompleteResult struct {
 	Items              []StorageAccount
 }
 
+type ListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // List ...
 func (c StorageAccountsClient) List(ctx context.Context, id commonids.SubscriptionId) (result ListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c StorageAccountsClient) List(ctx context.Context, id commonids.Subscripti
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.Storage/storageAccounts", id.ID()),
 	}
 
@@ -73,6 +86,7 @@ func (c StorageAccountsClient) ListCompleteMatchingPredicate(ctx context.Context
 
 	resp, err := c.List(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

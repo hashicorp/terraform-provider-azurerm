@@ -24,6 +24,18 @@ type ListByScopeCompleteResult struct {
 	Items              []View
 }
 
+type ListByScopeCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByScopeCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByScope ...
 func (c ViewsClient) ListByScope(ctx context.Context, id commonids.ScopeId) (result ListByScopeOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c ViewsClient) ListByScope(ctx context.Context, id commonids.ScopeId) (res
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByScopeCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.CostManagement/views", id.ID()),
 	}
 
@@ -73,6 +86,7 @@ func (c ViewsClient) ListByScopeCompleteMatchingPredicate(ctx context.Context, i
 
 	resp, err := c.ListByScope(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

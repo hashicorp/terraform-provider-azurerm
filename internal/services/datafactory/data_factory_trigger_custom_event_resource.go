@@ -125,14 +125,12 @@ func resourceDataFactoryTriggerCustomEvent() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
-				AtLeastOneOf: []string{"subject_begins_with", "subject_ends_with"},
 			},
 
 			"subject_ends_with": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
-				AtLeastOneOf: []string{"subject_begins_with", "subject_ends_with"},
 			},
 		},
 	}

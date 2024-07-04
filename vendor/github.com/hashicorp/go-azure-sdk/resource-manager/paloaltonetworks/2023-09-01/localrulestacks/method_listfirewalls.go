@@ -23,6 +23,18 @@ type ListFirewallsCompleteResult struct {
 	Items              []string
 }
 
+type ListFirewallsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListFirewallsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListFirewalls ...
 func (c LocalRulestacksClient) ListFirewalls(ctx context.Context, id LocalRulestackId) (result ListFirewallsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c LocalRulestacksClient) ListFirewalls(ctx context.Context, id LocalRulest
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodPost,
+		Pager:      &ListFirewallsCustomPager{},
 		Path:       fmt.Sprintf("%s/listFirewalls", id.ID()),
 	}
 
@@ -67,6 +80,7 @@ func (c LocalRulestacksClient) ListFirewallsComplete(ctx context.Context, id Loc
 
 	resp, err := c.ListFirewalls(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

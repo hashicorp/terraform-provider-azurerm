@@ -80,6 +80,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_api_management_named_value":                     resourceApiManagementNamedValue(),
 		"azurerm_api_management_openid_connect_provider":         resourceApiManagementOpenIDConnectProvider(),
 		"azurerm_api_management_policy":                          resourceApiManagementPolicy(),
+		"azurerm_api_management_policy_fragment":                 resourceApiManagementPolicyFragment(),
 		"azurerm_api_management_product":                         resourceApiManagementProduct(),
 		"azurerm_api_management_product_api":                     resourceApiManagementProductApi(),
 		"azurerm_api_management_product_group":                   resourceApiManagementProductGroup(),

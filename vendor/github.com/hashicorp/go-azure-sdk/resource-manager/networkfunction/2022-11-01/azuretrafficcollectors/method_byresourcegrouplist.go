@@ -24,6 +24,18 @@ type ByResourceGroupListCompleteResult struct {
 	Items              []AzureTrafficCollector
 }
 
+type ByResourceGroupListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ByResourceGroupListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ByResourceGroupList ...
 func (c AzureTrafficCollectorsClient) ByResourceGroupList(ctx context.Context, id commonids.ResourceGroupId) (result ByResourceGroupListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c AzureTrafficCollectorsClient) ByResourceGroupList(ctx context.Context, i
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ByResourceGroupListCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.NetworkFunction/azureTrafficCollectors", id.ID()),
 	}
 
@@ -73,6 +86,7 @@ func (c AzureTrafficCollectorsClient) ByResourceGroupListCompleteMatchingPredica
 
 	resp, err := c.ByResourceGroupList(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

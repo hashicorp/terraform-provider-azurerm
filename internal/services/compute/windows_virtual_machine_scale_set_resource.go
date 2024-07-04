@@ -121,6 +121,7 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 	sourceImageId := d.Get("source_image_id").(string)
 	sourceImageReference := expandSourceImageReferenceVMSS(sourceImageReferenceRaw, sourceImageId)
 
+	overProvision := d.Get("overprovision").(bool)
 	provisionVMAgent := d.Get("provision_vm_agent").(bool)
 	zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
 	healthProbeId := d.Get("health_probe_id").(string)
@@ -128,7 +129,7 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 	automaticOSUpgradePolicyRaw := d.Get("automatic_os_upgrade_policy").([]interface{})
 	automaticOSUpgradePolicy := ExpandVirtualMachineScaleSetAutomaticUpgradePolicy(automaticOSUpgradePolicyRaw)
 	rollingUpgradePolicyRaw := d.Get("rolling_upgrade_policy").([]interface{})
-	rollingUpgradePolicy, err := ExpandVirtualMachineScaleSetRollingUpgradePolicy(rollingUpgradePolicyRaw, len(zones) > 0)
+	rollingUpgradePolicy, err := ExpandVirtualMachineScaleSetRollingUpgradePolicy(rollingUpgradePolicyRaw, len(zones) > 0, overProvision)
 	if err != nil {
 		return err
 	}
@@ -540,7 +541,7 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 		if d.HasChange("rolling_upgrade_policy") {
 			rollingRaw := d.Get("rolling_upgrade_policy").([]interface{})
 			zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
-			rollingUpgradePolicy, err := ExpandVirtualMachineScaleSetRollingUpgradePolicy(rollingRaw, len(zones) > 0)
+			rollingUpgradePolicy, err := ExpandVirtualMachineScaleSetRollingUpgradePolicy(rollingRaw, len(zones) > 0, d.Get("overprovision").(bool))
 			if err != nil {
 				return err
 			}

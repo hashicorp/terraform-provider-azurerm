@@ -54,6 +54,18 @@ func (o ListByNamespaceOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListByNamespaceCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByNamespaceCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByNamespace ...
 func (c QueuesClient) ListByNamespace(ctx context.Context, id NamespaceId, options ListByNamespaceOperationOptions) (result ListByNamespaceOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -62,8 +74,9 @@ func (c QueuesClient) ListByNamespace(ctx context.Context, id NamespaceId, optio
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/queues", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListByNamespaceCustomPager{},
+		Path:          fmt.Sprintf("%s/queues", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -104,6 +117,7 @@ func (c QueuesClient) ListByNamespaceCompleteMatchingPredicate(ctx context.Conte
 
 	resp, err := c.ListByNamespace(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

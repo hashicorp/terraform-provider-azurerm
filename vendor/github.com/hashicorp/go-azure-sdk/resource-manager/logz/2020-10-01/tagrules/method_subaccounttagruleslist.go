@@ -23,6 +23,18 @@ type SubAccountTagRulesListCompleteResult struct {
 	Items              []MonitoringTagRules
 }
 
+type SubAccountTagRulesListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *SubAccountTagRulesListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // SubAccountTagRulesList ...
 func (c TagRulesClient) SubAccountTagRulesList(ctx context.Context, id AccountId) (result SubAccountTagRulesListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c TagRulesClient) SubAccountTagRulesList(ctx context.Context, id AccountId
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &SubAccountTagRulesListCustomPager{},
 		Path:       fmt.Sprintf("%s/tagRules", id.ID()),
 	}
 
@@ -72,6 +85,7 @@ func (c TagRulesClient) SubAccountTagRulesListCompleteMatchingPredicate(ctx cont
 
 	resp, err := c.SubAccountTagRulesList(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

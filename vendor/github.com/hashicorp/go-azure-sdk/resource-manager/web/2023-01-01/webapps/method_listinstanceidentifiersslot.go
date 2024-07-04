@@ -23,6 +23,18 @@ type ListInstanceIdentifiersSlotCompleteResult struct {
 	Items              []WebSiteInstanceStatus
 }
 
+type ListInstanceIdentifiersSlotCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListInstanceIdentifiersSlotCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListInstanceIdentifiersSlot ...
 func (c WebAppsClient) ListInstanceIdentifiersSlot(ctx context.Context, id SlotId) (result ListInstanceIdentifiersSlotOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c WebAppsClient) ListInstanceIdentifiersSlot(ctx context.Context, id SlotI
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListInstanceIdentifiersSlotCustomPager{},
 		Path:       fmt.Sprintf("%s/instances", id.ID()),
 	}
 
@@ -72,6 +85,7 @@ func (c WebAppsClient) ListInstanceIdentifiersSlotCompleteMatchingPredicate(ctx 
 
 	resp, err := c.ListInstanceIdentifiersSlot(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

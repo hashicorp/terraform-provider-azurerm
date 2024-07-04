@@ -24,6 +24,18 @@ type ListWorkflowsCompleteResult struct {
 	Items              []WorkflowEnvelope
 }
 
+type ListWorkflowsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListWorkflowsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListWorkflows ...
 func (c WebAppsClient) ListWorkflows(ctx context.Context, id commonids.AppServiceId) (result ListWorkflowsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c WebAppsClient) ListWorkflows(ctx context.Context, id commonids.AppServic
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListWorkflowsCustomPager{},
 		Path:       fmt.Sprintf("%s/workflows", id.ID()),
 	}
 
@@ -73,6 +86,7 @@ func (c WebAppsClient) ListWorkflowsCompleteMatchingPredicate(ctx context.Contex
 
 	resp, err := c.ListWorkflows(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

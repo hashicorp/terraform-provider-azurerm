@@ -23,6 +23,18 @@ type ListByReplicationNetworksCompleteResult struct {
 	Items              []NetworkMapping
 }
 
+type ListByReplicationNetworksCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByReplicationNetworksCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByReplicationNetworks ...
 func (c ReplicationNetworkMappingsClient) ListByReplicationNetworks(ctx context.Context, id ReplicationNetworkId) (result ListByReplicationNetworksOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c ReplicationNetworkMappingsClient) ListByReplicationNetworks(ctx context.
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByReplicationNetworksCustomPager{},
 		Path:       fmt.Sprintf("%s/replicationNetworkMappings", id.ID()),
 	}
 
@@ -72,6 +85,7 @@ func (c ReplicationNetworkMappingsClient) ListByReplicationNetworksCompleteMatch
 
 	resp, err := c.ListByReplicationNetworks(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

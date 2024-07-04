@@ -54,6 +54,18 @@ func (o ListByEventHubOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListByEventHubCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByEventHubCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByEventHub ...
 func (c ConsumerGroupsClient) ListByEventHub(ctx context.Context, id EventhubId, options ListByEventHubOperationOptions) (result ListByEventHubOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -62,8 +74,9 @@ func (c ConsumerGroupsClient) ListByEventHub(ctx context.Context, id EventhubId,
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/consumerGroups", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListByEventHubCustomPager{},
+		Path:          fmt.Sprintf("%s/consumerGroups", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -104,6 +117,7 @@ func (c ConsumerGroupsClient) ListByEventHubCompleteMatchingPredicate(ctx contex
 
 	resp, err := c.ListByEventHub(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
