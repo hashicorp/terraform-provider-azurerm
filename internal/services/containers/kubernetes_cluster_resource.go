@@ -1318,6 +1318,45 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 						},
+						"certificate_authority": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"plugin": {
+										Type:     pluginsdk.TypeList,
+										Required: true,
+										MaxItems: 1,
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
+												"key_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}),
+												"root_cert_object_name": {
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringIsNotEmpty,
+												},
+												"cert_chain_object_name": {
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringIsNotEmpty,
+												},
+												"cert_object_name": {
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringIsNotEmpty,
+												},
+												"key_object_name": {
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringIsNotEmpty,
+												},
+											},
+										},
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -4813,9 +4852,47 @@ func expandKubernetesClusterServiceMeshProfile(input []interface{}, existing *ma
 		}
 
 		profile.Istio.Components.IngressGateways = &istioIngressGatewaysList
+
+		if raw["certificate_authority"] != nil {
+			certificateAuthority := expandKubernetesClusterServiceMeshProfileCertificateAuthority(raw["certificate_authority"].([]interface{}))
+			profile.Istio.CertificateAuthority = certificateAuthority
+		}
 	}
 
 	return &profile
+}
+
+func expandKubernetesClusterServiceMeshProfileCertificateAuthority(input []interface{}) *managedclusters.IstioCertificateAuthority {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	config := input[0].(map[string]interface{})
+
+	plugin := expandCertificateAuthorityPlugin(config["plugin"].([]interface{}))
+	if plugin == nil {
+		return nil
+	}
+
+	return &managedclusters.IstioCertificateAuthority{
+		Plugin: plugin,
+	}
+}
+
+func expandCertificateAuthorityPlugin(input []interface{}) *managedclusters.IstioPluginCertificateAuthority {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	config := input[0].(map[string]interface{})
+
+	return &managedclusters.IstioPluginCertificateAuthority{
+		KeyVaultId:          utils.String(config["key_vault_id"].(string)),
+		RootCertObjectName:  utils.String(config["root_cert_object_name"].(string)),
+		CertChainObjectName: utils.String(config["cert_chain_object_name"].(string)),
+		CertObjectName:      utils.String(config["cert_object_name"].(string)),
+		KeyObjectName:       utils.String(config["key_object_name"].(string)),
+	}
 }
 
 func expandKubernetesClusterIngressProfile(d *pluginsdk.ResourceData, input []interface{}) *managedclusters.ManagedClusterIngressProfile {
@@ -4938,7 +5015,41 @@ func flattenKubernetesClusterAzureServiceMeshProfile(input *managedclusters.Serv
 		}
 	}
 
+	// do this for the certificate authority
+	if input.Istio.CertificateAuthority != nil {
+		returnMap["certificate_authority"] = flattenKubernetesClusterServiceMeshProfileCertificateAuthority(input.Istio.CertificateAuthority)
+	}
+
 	return []interface{}{returnMap}
+}
+
+func flattenKubernetesClusterServiceMeshProfileCertificateAuthority(certificateAuthority *managedclusters.IstioCertificateAuthority) interface{} {
+	if certificateAuthority == nil {
+		return []interface{}{}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"plugin": flattenCertificateAuthorityPlugin(certificateAuthority.Plugin),
+		},
+	}
+
+}
+
+func flattenCertificateAuthorityPlugin(plugin *managedclusters.IstioPluginCertificateAuthority) interface{} {
+	if plugin == nil {
+		return []interface{}{}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"key_vault_id":           utils.NormalizeNilableString(plugin.KeyVaultId),
+			"root_cert_object_name":  utils.NormalizeNilableString(plugin.RootCertObjectName),
+			"cert_chain_object_name": utils.NormalizeNilableString(plugin.CertChainObjectName),
+			"cert_object_name":       utils.NormalizeNilableString(plugin.CertObjectName),
+			"key_object_name":        utils.NormalizeNilableString(plugin.KeyObjectName),
+		},
+	}
 }
 
 func flattenKubernetesClusterAzureMonitorProfile(input *managedclusters.ManagedClusterAzureMonitorProfile) []interface{} {

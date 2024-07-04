@@ -592,6 +592,27 @@ func TestAccDataSourceKubernetesCluster_serviceMesh(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceKubernetesCluster_serviceMeshCertificateAuthority(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.serviceMeshCertificateAuthority(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("service_mesh_profile.0.mode").HasValue("Istio"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.internal_ingress_gateway_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.external_ingress_gateway_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.certificate_authority.0.plugin.0.key_vault_id").Exists(),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.certificate_authority.0.plugin.0.root_cert_object_name").Exists(),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.certificate_authority.0.plugin.0.cert_chain_object_name").Exists(),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.certificate_authority.0.plugin.0.cert_object_name").Exists(),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.certificate_authority.0.plugin.0.key_object_name").Exists(),
+			),
+		},
+	})
+}
+
 func (KubernetesClusterDataSource) basicConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -927,4 +948,14 @@ data "azurerm_kubernetes_cluster" "test" {
   resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
 `, KubernetesClusterResource{}.serviceMeshProfile(data, true, true))
+}
+
+func (s KubernetesClusterDataSource) serviceMeshCertificateAuthority(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+data "azurerm_kubernetes_cluster" "test" {
+  name                = azurerm_kubernetes_cluster.test.name
+  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
+}
+`, KubernetesClusterResource{}.addonProfileServiceMeshProfileCertificateAuthorityConfig(data))
 }

@@ -793,6 +793,30 @@ A `service_mesh_profile` block supports the following:
 
 -> **NOTE:** Currently only one Internal Ingress Gateway and one External Ingress Gateway are allowed per cluster
 
+* `certificate_authority` - (Optional) A `certificate_authority` block as defined below. When this property is specified, `key_vault_secrets_provider` is also required to be set. This configuration allows you to bring your own root certificate and keys for Istio CA in the Istio-based service mesh add-on for Azure Kubernetes Service.
+
+---
+
+A `certificate_authority` block supports the following:
+
+* `plugin` - (Required) A `plugin` block as defined below.
+
+---
+
+A `plugin` block supports the following:
+
+* `key_vault_id` - (Required) The resource ID of the Key Vault.
+
+* `root_cert_object_name` - (Required) Root certificate object name in Azure Key Vault.
+
+* `cert_chain_object_name` - (Required) Certificate chain object name in Azure Key Vault.
+
+* `cert_object_name` - (Required) Intermediate certificate object name in Azure Key Vault.
+
+* `key_object_name` - (Required) Intermediate certificate private key object name in Azure Key Vault.
+
+-> **Note:** For more information on [Istio-based service mesh add-on with plug-in CA certificates and how to generate these certificates](https://learn.microsoft.com/en-us/azure/aks/istio-plugin-ca),
+
 ---
 
 A `service_principal` block supports the following:
