@@ -733,18 +733,12 @@ func (r StackHCIDeploymentSettingResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			// do validation
-			future, err := client.CreateOrUpdate(ctx, id, payload)
-			if err != nil {
-				return fmt.Errorf("validate %s: %+v", id, err)
-			}
-
 			// the resource may exist even validation error
 			metadata.SetID(id)
 
-			// poll validation
-			if err := future.Poller.PollUntilDone(ctx); err != nil {
-				return fmt.Errorf("polling after validate %s: %+v", id, err)
+			// do validation
+			if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+				return fmt.Errorf("validating %s: %+v", id, err)
 			}
 
 			// do deployment
