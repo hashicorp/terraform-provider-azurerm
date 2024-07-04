@@ -57,8 +57,8 @@ func (c CertificateClient) Create(ctx context.Context, id CertificateId, input C
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPut,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

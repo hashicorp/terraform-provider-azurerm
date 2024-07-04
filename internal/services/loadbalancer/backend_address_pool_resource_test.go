@@ -36,6 +36,36 @@ func TestAccBackendAddressPoolBasicSkuBasic(t *testing.T) {
 	})
 }
 
+func TestAccBackendAddressPoolSynchronousModeManual(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool", "test")
+	r := LoadBalancerBackendAddressPool{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.syncModeManual(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccBackendAddressPoolSynchronousModeAutomatic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool", "test")
+	r := LoadBalancerBackendAddressPool{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.syncModeAutomatic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccBackendAddressPoolBasicSkuDisappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool", "test")
 	r := LoadBalancerBackendAddressPool{}
@@ -434,4 +464,188 @@ resource "azurerm_lb" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func (LoadBalancerBackendAddressPool) templateSyncMode(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvn-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.0.0.0/16"]
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsubnet-%[1]d"
+  resource_group_name  = azurerm_virtual_network.test.resource_group_name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
+resource "azurerm_lb" "test" {
+  name                = "acctestlb-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+
+  frontend_ip_configuration {
+    name      = "fe-lb"
+    subnet_id = azurerm_subnet.test.id
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r LoadBalancerBackendAddressPool) syncModeManual(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+%[1]s
+
+resource "azurerm_lb_backend_address_pool" "test" {
+  name               = "pool"
+  loadbalancer_id    = azurerm_lb.test.id
+  synchronous_mode   = "Manual"
+  virtual_network_id = azurerm_virtual_network.test.id
+}
+
+resource "azurerm_lb_backend_address_pool_address" "test" {
+  name                    = "address"
+  backend_address_pool_id = azurerm_lb_backend_address_pool.test.id
+  ip_address              = "10.0.2.6"
+}
+
+resource "azurerm_virtual_machine_scale_set" "test" {
+  name                = "acctvmss-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  upgrade_policy_mode = "Manual"
+  priority            = "Regular"
+
+  sku {
+    name     = "Standard_F2"
+    tier     = "Standard"
+    capacity = 1
+  }
+
+  boot_diagnostics {
+    enabled     = false
+    storage_uri = ""
+  }
+
+  os_profile {
+    computer_name_prefix = "testvm-%[2]d"
+    admin_username       = "adminuser"
+    admin_password       = "P@ssW0RD7890"
+  }
+
+  os_profile_linux_config {
+    disable_password_authentication = false
+  }
+
+  network_profile {
+    name    = "TestNetworkProfile"
+    primary = true
+
+    ip_configuration {
+      name      = "TestIPConfiguration"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  storage_profile_os_disk {
+    name              = ""
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "Standard_LRS"
+  }
+
+  storage_profile_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
+    version   = "latest"
+  }
+
+  depends_on = [azurerm_lb_backend_address_pool_address.test]
+}
+`, r.templateSyncMode(data), data.RandomInteger)
+}
+
+func (r LoadBalancerBackendAddressPool) syncModeAutomatic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+%[1]s
+
+resource "azurerm_lb_backend_address_pool" "test" {
+  name               = "pool"
+  loadbalancer_id    = azurerm_lb.test.id
+  synchronous_mode   = "Automatic"
+  virtual_network_id = azurerm_virtual_network.test.id
+}
+
+resource "azurerm_virtual_machine_scale_set" "test" {
+  name                = "acctvmss-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  upgrade_policy_mode = "Manual"
+  priority            = "Regular"
+
+  sku {
+    name     = "Standard_F2"
+    tier     = "Standard"
+    capacity = 1
+  }
+
+  boot_diagnostics {
+    enabled     = false
+    storage_uri = ""
+  }
+
+  os_profile {
+    computer_name_prefix = "testvm-%[2]d"
+    admin_username       = "adminuser"
+    admin_password       = "P@ssW0RD7890"
+  }
+
+  os_profile_linux_config {
+    disable_password_authentication = false
+  }
+
+  network_profile {
+    name    = "TestNetworkProfile"
+    primary = true
+
+    ip_configuration {
+      name                                   = "TestIPConfiguration"
+      primary                                = true
+      subnet_id                              = azurerm_subnet.test.id
+      load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
+    }
+  }
+
+  storage_profile_os_disk {
+    name              = ""
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "Standard_LRS"
+  }
+
+  storage_profile_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
+    version   = "latest"
+  }
+}
+`, r.templateSyncMode(data), data.RandomInteger)
 }

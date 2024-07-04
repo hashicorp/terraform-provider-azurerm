@@ -23,6 +23,18 @@ type ListByConfigurationStoreCompleteResult struct {
 	Items              []Replica
 }
 
+type ListByConfigurationStoreCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByConfigurationStoreCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByConfigurationStore ...
 func (c ReplicasClient) ListByConfigurationStore(ctx context.Context, id ConfigurationStoreId) (result ListByConfigurationStoreOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c ReplicasClient) ListByConfigurationStore(ctx context.Context, id Configu
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByConfigurationStoreCustomPager{},
 		Path:       fmt.Sprintf("%s/replicas", id.ID()),
 	}
 
@@ -72,6 +85,7 @@ func (c ReplicasClient) ListByConfigurationStoreCompleteMatchingPredicate(ctx co
 
 	resp, err := c.ListByConfigurationStore(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

@@ -411,7 +411,7 @@ func TestAccContainerAppResource_removeDaprAppPort(t *testing.T) {
 	})
 }
 
-func TestAccContainerAppResource_secretFail(t *testing.T) {
+func TestAccContainerAppResource_secretChangeName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app", "test")
 	r := ContainerAppResource{}
 
@@ -424,13 +424,34 @@ func TestAccContainerAppResource_secretFail(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config:      r.secretRemove(data),
-			ExpectError: regexp.MustCompile("cannot remove secrets from Container Apps at this time"),
+			Config: r.secretChangeName(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccContainerAppResource_secretRemove(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app", "test")
+	r := ContainerAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config:      r.secretChangeName(data),
-			ExpectError: regexp.MustCompile("previously configured secret"),
+			Config: r.secretBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.secretRemove(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -1949,7 +1970,7 @@ resource "azurerm_container_app" "test" {
       command = ["sh", "-c", "CONTAINER=two python3 -m flask run --host=0.0.0.0"]
 
       readiness_probe {
-        transport = "HTTP"
+        transport = "TCP"
         port      = 5000
       }
 
@@ -1967,11 +1988,6 @@ resource "azurerm_container_app" "test" {
         interval_seconds        = 20
         timeout                 = 2
         failure_count_threshold = 1
-      }
-
-      startup_probe {
-        transport = "TCP"
-        port      = 5000
       }
 
       volume_mounts {
@@ -2094,7 +2110,6 @@ resource "azurerm_container_app" "test" {
       storage_name = azurerm_container_app_environment_storage.test.name
     }
 
-    min_replicas = 1
     max_replicas = 4
 
     revision_suffix = "%[3]s"
@@ -2666,7 +2681,7 @@ resource "azurerm_container_app_environment_storage" "test" {
   share_name                   = azurerm_storage_share.test.name
   access_mode                  = "ReadWrite"
 }
-`, ContainerAppEnvironmentResource{}.complete(data), data.RandomInteger, data.RandomString)
+`, ContainerAppEnvironmentResource{}.completeWithoutWorkloadProfile(data), data.RandomInteger, data.RandomString)
 }
 
 func (ContainerAppResource) templatePlusExtras(data acceptance.TestData) string {

@@ -93,15 +93,7 @@ func (c ConfigurationModel) ToSDKModel() nginxconfiguration.NginxConfiguration {
 
 type ConfigurationResource struct{}
 
-// This resource has been deprecated and will be removed in the next major release.
-// Default Nginx Configuration cannot be created anymore for service API breaking change created it automatically
-// nginx configuration block is now embedded into nginx deployment resource
-func (m *ConfigurationResource) DeprecatedInFavourOfResource() string {
-	return "azurerm_nginx_deployment"
-}
-
 var _ sdk.Resource = (*ConfigurationResource)(nil)
-var _ sdk.ResourceWithDeprecationReplacedBy = &ConfigurationResource{}
 
 func (m ConfigurationResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{

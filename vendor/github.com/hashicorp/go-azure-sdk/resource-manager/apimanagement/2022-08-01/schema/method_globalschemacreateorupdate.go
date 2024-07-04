@@ -58,8 +58,8 @@ func (c SchemaClient) GlobalSchemaCreateOrUpdate(ctx context.Context, id SchemaI
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPut,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

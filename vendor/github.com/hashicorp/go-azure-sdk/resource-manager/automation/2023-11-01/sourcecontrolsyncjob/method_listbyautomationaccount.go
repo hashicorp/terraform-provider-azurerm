@@ -50,6 +50,18 @@ func (o ListByAutomationAccountOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListByAutomationAccountCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByAutomationAccountCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByAutomationAccount ...
 func (c SourceControlSyncJobClient) ListByAutomationAccount(ctx context.Context, id SourceControlId, options ListByAutomationAccountOperationOptions) (result ListByAutomationAccountOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -58,8 +70,9 @@ func (c SourceControlSyncJobClient) ListByAutomationAccount(ctx context.Context,
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/sourceControlSyncJobs", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListByAutomationAccountCustomPager{},
+		Path:          fmt.Sprintf("%s/sourceControlSyncJobs", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -100,6 +113,7 @@ func (c SourceControlSyncJobClient) ListByAutomationAccountCompleteMatchingPredi
 
 	resp, err := c.ListByAutomationAccount(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

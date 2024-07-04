@@ -35,7 +35,7 @@ type IotHubFileUploadResourceModel struct {
 	IdentityId           string `tfschema:"identity_id"`
 	IotHubId             string `tfschema:"iothub_id"`
 	LockDuration         string `tfschema:"lock_duration"`
-	MaxDeliveryCount     int    `tfschema:"max_delivery_count"`
+	MaxDeliveryCount     int64  `tfschema:"max_delivery_count"`
 	NotificationsEnabled bool   `tfschema:"notifications_enabled"`
 	SasTTL               string `tfschema:"sas_ttl"`
 }
@@ -258,7 +258,7 @@ func (r IotHubFileUploadResource) Read() sdk.ResourceFunc {
 						state.LockDuration = *v
 					}
 					if v := messagingEndpoint.MaxDeliveryCount; v != nil {
-						state.MaxDeliveryCount = int(*v)
+						state.MaxDeliveryCount = int64(*v)
 					}
 				}
 

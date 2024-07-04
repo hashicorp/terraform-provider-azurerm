@@ -23,6 +23,18 @@ type SharedPrivateLinkResourcesListCompleteResult struct {
 	Items              []SharedPrivateLinkResource
 }
 
+type SharedPrivateLinkResourcesListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *SharedPrivateLinkResourcesListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // SharedPrivateLinkResourcesList ...
 func (c WebPubSubClient) SharedPrivateLinkResourcesList(ctx context.Context, id WebPubSubId) (result SharedPrivateLinkResourcesListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c WebPubSubClient) SharedPrivateLinkResourcesList(ctx context.Context, id 
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &SharedPrivateLinkResourcesListCustomPager{},
 		Path:       fmt.Sprintf("%s/sharedPrivateLinkResources", id.ID()),
 	}
 
@@ -72,6 +85,7 @@ func (c WebPubSubClient) SharedPrivateLinkResourcesListCompleteMatchingPredicate
 
 	resp, err := c.SharedPrivateLinkResourcesList(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

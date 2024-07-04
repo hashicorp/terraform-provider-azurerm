@@ -24,6 +24,18 @@ type RoleBindingsListCompleteResult struct {
 	Items              []TrustedAccessRoleBinding
 }
 
+type RoleBindingsListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *RoleBindingsListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // RoleBindingsList ...
 func (c TrustedAccessClient) RoleBindingsList(ctx context.Context, id commonids.KubernetesClusterId) (result RoleBindingsListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c TrustedAccessClient) RoleBindingsList(ctx context.Context, id commonids.
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &RoleBindingsListCustomPager{},
 		Path:       fmt.Sprintf("%s/trustedAccessRoleBindings", id.ID()),
 	}
 
@@ -73,6 +86,7 @@ func (c TrustedAccessClient) RoleBindingsListCompleteMatchingPredicate(ctx conte
 
 	resp, err := c.RoleBindingsList(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

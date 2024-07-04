@@ -274,6 +274,7 @@ resource "azurerm_linux_web_app" "test" {
         "activedirectorytokenaudiences",
       ]
       tenant_auth_endpoint = "https://sts.windows.net/%[5]s/v2.0"
+      allowed_applications = ["WhoopsMissedThisOne"]
     }
 
 

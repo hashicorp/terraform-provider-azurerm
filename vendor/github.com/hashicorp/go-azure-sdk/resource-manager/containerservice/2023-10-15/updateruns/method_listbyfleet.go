@@ -23,6 +23,18 @@ type ListByFleetCompleteResult struct {
 	Items              []UpdateRun
 }
 
+type ListByFleetCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByFleetCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByFleet ...
 func (c UpdateRunsClient) ListByFleet(ctx context.Context, id FleetId) (result ListByFleetOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c UpdateRunsClient) ListByFleet(ctx context.Context, id FleetId) (result L
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByFleetCustomPager{},
 		Path:       fmt.Sprintf("%s/updateRuns", id.ID()),
 	}
 
@@ -72,6 +85,7 @@ func (c UpdateRunsClient) ListByFleetCompleteMatchingPredicate(ctx context.Conte
 
 	resp, err := c.ListByFleet(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

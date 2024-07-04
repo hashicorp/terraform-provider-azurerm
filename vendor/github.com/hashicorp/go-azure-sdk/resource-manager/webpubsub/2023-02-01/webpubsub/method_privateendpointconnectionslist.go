@@ -23,6 +23,18 @@ type PrivateEndpointConnectionsListCompleteResult struct {
 	Items              []PrivateEndpointConnection
 }
 
+type PrivateEndpointConnectionsListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *PrivateEndpointConnectionsListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // PrivateEndpointConnectionsList ...
 func (c WebPubSubClient) PrivateEndpointConnectionsList(ctx context.Context, id WebPubSubId) (result PrivateEndpointConnectionsListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c WebPubSubClient) PrivateEndpointConnectionsList(ctx context.Context, id 
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &PrivateEndpointConnectionsListCustomPager{},
 		Path:       fmt.Sprintf("%s/privateEndpointConnections", id.ID()),
 	}
 
@@ -72,6 +85,7 @@ func (c WebPubSubClient) PrivateEndpointConnectionsListCompleteMatchingPredicate
 
 	resp, err := c.PrivateEndpointConnectionsList(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

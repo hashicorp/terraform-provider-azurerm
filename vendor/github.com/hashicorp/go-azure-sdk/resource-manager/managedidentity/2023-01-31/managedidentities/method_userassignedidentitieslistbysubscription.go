@@ -24,6 +24,18 @@ type UserAssignedIdentitiesListBySubscriptionCompleteResult struct {
 	Items              []Identity
 }
 
+type UserAssignedIdentitiesListBySubscriptionCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *UserAssignedIdentitiesListBySubscriptionCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // UserAssignedIdentitiesListBySubscription ...
 func (c ManagedIdentitiesClient) UserAssignedIdentitiesListBySubscription(ctx context.Context, id commonids.SubscriptionId) (result UserAssignedIdentitiesListBySubscriptionOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c ManagedIdentitiesClient) UserAssignedIdentitiesListBySubscription(ctx co
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &UserAssignedIdentitiesListBySubscriptionCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.ManagedIdentity/userAssignedIdentities", id.ID()),
 	}
 
@@ -73,6 +86,7 @@ func (c ManagedIdentitiesClient) UserAssignedIdentitiesListBySubscriptionComplet
 
 	resp, err := c.UserAssignedIdentitiesListBySubscription(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

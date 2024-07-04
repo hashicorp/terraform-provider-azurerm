@@ -53,8 +53,8 @@ func (c DeploymentScriptsClient) GetLogsDefault(ctx context.Context, id Deployme
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/logs/default", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/logs/default", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

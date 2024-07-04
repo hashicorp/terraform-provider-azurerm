@@ -107,14 +107,12 @@ func resourceBotWebApp() *pluginsdk.Resource {
 			"developer_app_insights_key": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
 				ValidateFunc: validation.IsUUID,
 			},
 
 			"developer_app_insights_api_key": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
@@ -122,7 +120,6 @@ func resourceBotWebApp() *pluginsdk.Resource {
 			"developer_app_insights_application_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 

@@ -22,6 +22,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/purview/2021-07-01/account"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/validate"
@@ -38,7 +39,7 @@ const (
 )
 
 func resourceSynapseWorkspace() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceSynapseWorkspaceCreate,
 		Read:   resourceSynapseWorkspaceRead,
 		Update: resourceSynapseWorkspaceUpdate,
@@ -113,63 +114,6 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				ForceNew: true,
-			},
-
-			"aad_admin": {
-				Type:       pluginsdk.TypeList,
-				Optional:   true,
-				Computed:   true,
-				MaxItems:   1,
-				ConfigMode: pluginsdk.SchemaConfigModeAttr,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"login": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-						},
-
-						"object_id": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.IsUUID,
-						},
-
-						"tenant_id": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.IsUUID,
-						},
-					},
-				},
-			},
-
-			"sql_aad_admin": {
-				Type:          pluginsdk.TypeList,
-				Optional:      true,
-				Computed:      true,
-				MaxItems:      1,
-				ConfigMode:    pluginsdk.SchemaConfigModeAttr,
-				ConflictsWith: []string{"customer_managed_key"},
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"login": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-						},
-
-						"object_id": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.IsUUID,
-						},
-
-						"tenant_id": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.IsUUID,
-						},
-					},
-				},
 			},
 
 			"connectivity_endpoints": {
@@ -290,10 +234,15 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 			},
 
 			"customer_managed_key": {
-				Type:          pluginsdk.TypeList,
-				Optional:      true,
-				MaxItems:      1,
-				ConflictsWith: []string{"sql_aad_admin"},
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				ConflictsWith: func() []string {
+					if !features.FourPointOhBeta() {
+						return []string{"sql_aad_admin"}
+					}
+					return []string{}
+				}(),
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"key_versionless_id": {
@@ -326,6 +275,68 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 			"tags": tags.Schema(),
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["aad_admin"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeList,
+			Optional:   true,
+			Computed:   true,
+			MaxItems:   1,
+			ConfigMode: pluginsdk.SchemaConfigModeAttr,
+			Deprecated: "The `aad_admin` block has been superseded by the `azurerm_synapse_workspace_aad_admin` resource and will be removed in v4.0 of the AzureRM Provider.",
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"login": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+					},
+
+					"object_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.IsUUID,
+					},
+
+					"tenant_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.IsUUID,
+					},
+				},
+			},
+		}
+		resource.Schema["sql_aad_admin"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeList,
+			Optional:      true,
+			Computed:      true,
+			MaxItems:      1,
+			ConfigMode:    pluginsdk.SchemaConfigModeAttr,
+			ConflictsWith: []string{"customer_managed_key"},
+			Deprecated:    "The `sql_aad_admin` block has been superseded by the `azurerm_synapse_workspace_sql_aad_admin` resource and will be removed in v4.0 of the AzureRM Provider.",
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"login": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+					},
+
+					"object_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.IsUUID,
+					},
+
+					"tenant_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.IsUUID,
+					},
+				},
+			},
+		}
+	}
+
+	return resource
 }
 
 func resourceSynapseWorkspaceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -420,27 +431,29 @@ func resourceSynapseWorkspaceCreate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("failed waiting for updating %s: %+v", id, err)
 	}
 
-	aadAdmin := expandArmWorkspaceAadAdminInfo(d.Get("aad_admin").([]interface{}))
-	if aadAdmin != nil {
-		future, err := aadAdminClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *aadAdmin)
-		if err != nil {
-			return fmt.Errorf("configuring AzureAD Admin for %s: %+v", id, err)
+	if !features.FourPointOhBeta() {
+		aadAdmin := expandArmWorkspaceAadAdminInfo(d.Get("aad_admin").([]interface{}))
+		if aadAdmin != nil {
+			future, err := aadAdminClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *aadAdmin)
+			if err != nil {
+				return fmt.Errorf("configuring AzureAD Admin for %s: %+v", id, err)
+			}
+
+			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+				return fmt.Errorf("waiting for configuration of AzureAD Admin for %s: %+v", id, err)
+			}
 		}
 
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("waiting for configuration of AzureAD Admin for %s: %+v", id, err)
-		}
-	}
+		sqlAdmin := expandArmWorkspaceAadAdminInfo(d.Get("sql_aad_admin").([]interface{}))
+		if sqlAdmin != nil {
+			future, err := sqlAdminClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *sqlAdmin)
+			if err != nil {
+				return fmt.Errorf("configuring Sql Admin for %s: %+v", id, err)
+			}
 
-	sqlAdmin := expandArmWorkspaceAadAdminInfo(d.Get("sql_aad_admin").([]interface{}))
-	if sqlAdmin != nil {
-		future, err := sqlAdminClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *sqlAdmin)
-		if err != nil {
-			return fmt.Errorf("configuring Sql Admin for %s: %+v", id, err)
-		}
-
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("waiting for configuration of Sql Admin for %s: %+v", id, err)
+			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+				return fmt.Errorf("waiting for configuration of Sql Admin for %s: %+v", id, err)
+			}
 		}
 	}
 
@@ -484,18 +497,27 @@ func resourceSynapseWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	aadAdmin, err := aadAdminClient.Get(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		// NOTE: AAD Admin isn't supported for a Workspace created from a Dedicated SQL Pool / SQL DataWarehouse and returns a Conflict
-		if !utils.ResponseWasNotFound(aadAdmin.Response) && !utils.ResponseWasConflict(aadAdmin.Response) {
-			return fmt.Errorf("retrieving AzureAD Admin for %s: %+v", *id, err)
+	if !features.FourPointOhBeta() {
+		aadAdmin, err := aadAdminClient.Get(ctx, id.ResourceGroup, id.Name)
+		if err != nil {
+			// NOTE: AAD Admin isn't supported for a Workspace created from a Dedicated SQL Pool / SQL DataWarehouse and returns a Conflict
+			if !utils.ResponseWasNotFound(aadAdmin.Response) && !utils.ResponseWasConflict(aadAdmin.Response) {
+				return fmt.Errorf("retrieving AzureAD Admin for %s: %+v", *id, err)
+			}
 		}
-	}
-	sqlAdmin, err := sqlAdminClient.Get(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		// NOTE: SQL Admin isn't supported for a Workspace created from a Dedicated SQL Pool / SQL DataWarehouse and returns a Conflict
-		if !utils.ResponseWasNotFound(sqlAdmin.Response) && !utils.ResponseWasConflict(sqlAdmin.Response) {
-			return fmt.Errorf("retrieving Sql Admin for %s: %+v", *id, err)
+		sqlAdmin, err := sqlAdminClient.Get(ctx, id.ResourceGroup, id.Name)
+		if err != nil {
+			// NOTE: SQL Admin isn't supported for a Workspace created from a Dedicated SQL Pool / SQL DataWarehouse and returns a Conflict
+			if !utils.ResponseWasNotFound(sqlAdmin.Response) && !utils.ResponseWasConflict(sqlAdmin.Response) {
+				return fmt.Errorf("retrieving Sql Admin for %s: %+v", *id, err)
+			}
+		}
+
+		if err := d.Set("aad_admin", flattenArmWorkspaceAadAdmin(aadAdmin.AadAdminProperties)); err != nil {
+			return fmt.Errorf("setting `aad_admin`: %+v", err)
+		}
+		if err := d.Set("sql_aad_admin", flattenArmWorkspaceAadAdmin(sqlAdmin.AadAdminProperties)); err != nil {
+			return fmt.Errorf("setting `sql_aad_admin`: %+v", err)
 		}
 	}
 
@@ -558,12 +580,7 @@ func resourceSynapseWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) e
 			d.Set("purview_id", props.PurviewConfiguration.PurviewResourceID)
 		}
 	}
-	if err := d.Set("aad_admin", flattenArmWorkspaceAadAdmin(aadAdmin.AadAdminProperties)); err != nil {
-		return fmt.Errorf("setting `aad_admin`: %+v", err)
-	}
-	if err := d.Set("sql_aad_admin", flattenArmWorkspaceAadAdmin(sqlAdmin.AadAdminProperties)); err != nil {
-		return fmt.Errorf("setting `sql_aad_admin`: %+v", err)
-	}
+
 	if err := d.Set("sql_identity_control_enabled", flattenIdentityControlSQLSettings(sqlControlSettings)); err != nil {
 		return fmt.Errorf("setting `sql_identity_control_enabled`: %+v", err)
 	}
@@ -646,60 +663,62 @@ func resourceSynapseWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 
-	if d.HasChange("aad_admin") {
-		aadAdmin := expandArmWorkspaceAadAdminInfo(d.Get("aad_admin").([]interface{}))
-		if aadAdmin != nil {
-			if err := waitSynapseWorkspaceProvisioningState(ctx, client, id); err != nil {
-				return fmt.Errorf("failed waiting for updating %s: %+v", id, err)
-			}
-			workspaceAadAdminsCreateOrUpdateFuture, err := aadAdminClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *aadAdmin)
-			if err != nil {
-				return fmt.Errorf("updating Synapse Workspace %q Sql Admin (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-			}
+	if !features.FourPointOh() {
+		if d.HasChange("aad_admin") {
+			aadAdmin := expandArmWorkspaceAadAdminInfo(d.Get("aad_admin").([]interface{}))
+			if aadAdmin != nil {
+				if err := waitSynapseWorkspaceProvisioningState(ctx, client, id); err != nil {
+					return fmt.Errorf("failed waiting for updating %s: %+v", id, err)
+				}
+				workspaceAadAdminsCreateOrUpdateFuture, err := aadAdminClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *aadAdmin)
+				if err != nil {
+					return fmt.Errorf("updating Synapse Workspace %q Sql Admin (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+				}
 
-			if err = workspaceAadAdminsCreateOrUpdateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting on updating for Synapse Workspace %q Sql Admin (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-			}
-		} else {
-			if err := waitSynapseWorkspaceProvisioningState(ctx, client, id); err != nil {
-				return fmt.Errorf("failed waiting for updating %s: %+v", id, err)
-			}
-			workspaceAadAdminsDeleteFuture, err := aadAdminClient.Delete(ctx, id.ResourceGroup, id.Name)
-			if err != nil {
-				return fmt.Errorf("setting empty Synapse Workspace %q Sql Admin (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-			}
+				if err = workspaceAadAdminsCreateOrUpdateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+					return fmt.Errorf("waiting on updating for Synapse Workspace %q Sql Admin (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+				}
+			} else {
+				if err := waitSynapseWorkspaceProvisioningState(ctx, client, id); err != nil {
+					return fmt.Errorf("failed waiting for updating %s: %+v", id, err)
+				}
+				workspaceAadAdminsDeleteFuture, err := aadAdminClient.Delete(ctx, id.ResourceGroup, id.Name)
+				if err != nil {
+					return fmt.Errorf("setting empty Synapse Workspace %q Sql Admin (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+				}
 
-			if err = workspaceAadAdminsDeleteFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting on setting empty Synapse Workspace %q Sql Admin (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+				if err = workspaceAadAdminsDeleteFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+					return fmt.Errorf("waiting on setting empty Synapse Workspace %q Sql Admin (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+				}
 			}
 		}
-	}
 
-	if d.HasChange("sql_aad_admin") {
-		sqlAdmin := expandArmWorkspaceAadAdminInfo(d.Get("sql_aad_admin").([]interface{}))
-		if sqlAdmin != nil {
-			if err := waitSynapseWorkspaceProvisioningState(ctx, client, id); err != nil {
-				return fmt.Errorf("failed waiting for updating %s: %+v", id, err)
-			}
-			workspaceSqlAdminsCreateOrUpdateFuture, err := sqlAdminClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *sqlAdmin)
-			if err != nil {
-				return fmt.Errorf("updating Synapse Workspace %q Sql Admin (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-			}
+		if d.HasChange("sql_aad_admin") {
+			sqlAdmin := expandArmWorkspaceAadAdminInfo(d.Get("sql_aad_admin").([]interface{}))
+			if sqlAdmin != nil {
+				if err := waitSynapseWorkspaceProvisioningState(ctx, client, id); err != nil {
+					return fmt.Errorf("failed waiting for updating %s: %+v", id, err)
+				}
+				workspaceSqlAdminsCreateOrUpdateFuture, err := sqlAdminClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *sqlAdmin)
+				if err != nil {
+					return fmt.Errorf("updating Synapse Workspace %q Sql Admin (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+				}
 
-			if err = workspaceSqlAdminsCreateOrUpdateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting on updating for Synapse Workspace %q Sql Admin (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-			}
-		} else {
-			if err := waitSynapseWorkspaceProvisioningState(ctx, client, id); err != nil {
-				return fmt.Errorf("failed waiting for updating %s: %+v", id, err)
-			}
-			workspaceSqlAdminsDeleteFuture, err := sqlAdminClient.Delete(ctx, id.ResourceGroup, id.Name)
-			if err != nil {
-				return fmt.Errorf("setting empty Synapse Workspace %q Sql Admin (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-			}
+				if err = workspaceSqlAdminsCreateOrUpdateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+					return fmt.Errorf("waiting on updating for Synapse Workspace %q Sql Admin (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+				}
+			} else {
+				if err := waitSynapseWorkspaceProvisioningState(ctx, client, id); err != nil {
+					return fmt.Errorf("failed waiting for updating %s: %+v", id, err)
+				}
+				workspaceSqlAdminsDeleteFuture, err := sqlAdminClient.Delete(ctx, id.ResourceGroup, id.Name)
+				if err != nil {
+					return fmt.Errorf("setting empty Synapse Workspace %q Sql Admin (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+				}
 
-			if err = workspaceSqlAdminsDeleteFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting on setting empty Synapse Workspace %q Sql Admin (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+				if err = workspaceSqlAdminsDeleteFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+					return fmt.Errorf("waiting on setting empty Synapse Workspace %q Sql Admin (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+				}
 			}
 		}
 	}
@@ -878,7 +897,8 @@ func expandWorkspaceRepositoryConfiguration(d *pluginsdk.ResourceData) *synapse.
 		}
 	}
 
-	return nil
+	// API won't clear an existing repository config with nil
+	return &synapse.WorkspaceRepositoryConfiguration{}
 }
 
 func expandIdentityControlSQLSettings(enabled bool) *synapse.ManagedIdentitySQLControlSettingsModel {

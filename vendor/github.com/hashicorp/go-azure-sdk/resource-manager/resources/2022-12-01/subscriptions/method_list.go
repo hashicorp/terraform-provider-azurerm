@@ -23,6 +23,18 @@ type ListCompleteResult struct {
 	Items              []Subscription
 }
 
+type ListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // List ...
 func (c SubscriptionsClient) List(ctx context.Context) (result ListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c SubscriptionsClient) List(ctx context.Context) (result ListOperationResp
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListCustomPager{},
 		Path:       "/subscriptions",
 	}
 
@@ -72,6 +85,7 @@ func (c SubscriptionsClient) ListCompleteMatchingPredicate(ctx context.Context, 
 
 	resp, err := c.List(ctx)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

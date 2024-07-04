@@ -24,6 +24,18 @@ type ListCompleteResult struct {
 	Items              []SqlVirtualMachine
 }
 
+type ListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // List ...
 func (c SqlVirtualMachinesClient) List(ctx context.Context, id commonids.SubscriptionId) (result ListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c SqlVirtualMachinesClient) List(ctx context.Context, id commonids.Subscri
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.SqlVirtualMachine/sqlVirtualMachines", id.ID()),
 	}
 
@@ -73,6 +86,7 @@ func (c SqlVirtualMachinesClient) ListCompleteMatchingPredicate(ctx context.Cont
 
 	resp, err := c.List(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

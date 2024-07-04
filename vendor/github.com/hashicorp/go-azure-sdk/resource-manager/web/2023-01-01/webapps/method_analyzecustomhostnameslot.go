@@ -53,8 +53,8 @@ func (c WebAppsClient) AnalyzeCustomHostnameSlot(ctx context.Context, id SlotId,
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/analyzeCustomHostname", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/analyzeCustomHostname", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

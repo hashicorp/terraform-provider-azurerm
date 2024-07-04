@@ -58,6 +58,18 @@ func (o StreamingLocatorsListOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type StreamingLocatorsListCustomPager struct {
+	NextLink *odata.Link `json:"@odata.nextLink"`
+}
+
+func (p *StreamingLocatorsListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // StreamingLocatorsList ...
 func (c StreamingPoliciesAndStreamingLocatorsClient) StreamingLocatorsList(ctx context.Context, id MediaServiceId, options StreamingLocatorsListOperationOptions) (result StreamingLocatorsListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -66,8 +78,9 @@ func (c StreamingPoliciesAndStreamingLocatorsClient) StreamingLocatorsList(ctx c
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/streamingLocators", id.ID()),
 		OptionsObject: options,
+		Pager:         &StreamingLocatorsListCustomPager{},
+		Path:          fmt.Sprintf("%s/streamingLocators", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -108,6 +121,7 @@ func (c StreamingPoliciesAndStreamingLocatorsClient) StreamingLocatorsListComple
 
 	resp, err := c.StreamingLocatorsList(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

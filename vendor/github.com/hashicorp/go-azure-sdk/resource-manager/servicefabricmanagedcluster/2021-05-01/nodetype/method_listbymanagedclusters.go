@@ -23,6 +23,18 @@ type ListByManagedClustersCompleteResult struct {
 	Items              []NodeType
 }
 
+type ListByManagedClustersCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByManagedClustersCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByManagedClusters ...
 func (c NodeTypeClient) ListByManagedClusters(ctx context.Context, id ManagedClusterId) (result ListByManagedClustersOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c NodeTypeClient) ListByManagedClusters(ctx context.Context, id ManagedClu
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByManagedClustersCustomPager{},
 		Path:       fmt.Sprintf("%s/nodeTypes", id.ID()),
 	}
 
@@ -72,6 +85,7 @@ func (c NodeTypeClient) ListByManagedClustersCompleteMatchingPredicate(ctx conte
 
 	resp, err := c.ListByManagedClusters(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

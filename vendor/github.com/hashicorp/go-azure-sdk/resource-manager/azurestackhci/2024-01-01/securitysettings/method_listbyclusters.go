@@ -23,6 +23,18 @@ type ListByClustersCompleteResult struct {
 	Items              []SecuritySetting
 }
 
+type ListByClustersCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByClustersCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByClusters ...
 func (c SecuritySettingsClient) ListByClusters(ctx context.Context, id ClusterId) (result ListByClustersOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c SecuritySettingsClient) ListByClusters(ctx context.Context, id ClusterId
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByClustersCustomPager{},
 		Path:       fmt.Sprintf("%s/securitySettings", id.ID()),
 	}
 
@@ -72,6 +85,7 @@ func (c SecuritySettingsClient) ListByClustersCompleteMatchingPredicate(ctx cont
 
 	resp, err := c.ListByClusters(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

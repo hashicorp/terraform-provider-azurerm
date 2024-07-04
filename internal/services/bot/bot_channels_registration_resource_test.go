@@ -282,6 +282,7 @@ resource "azurerm_bot_channels_registration" "test" {
   endpoint                              = "https://example2.com"
   developer_app_insights_api_key        = azurerm_application_insights_api_key.test2.api_key
   developer_app_insights_application_id = azurerm_application_insights.test2.app_id
+  developer_app_insights_key            = azurerm_application_insights.test2.instrumentation_key
 
   description              = "TestDescription2"
   isolated_network_enabled = false
@@ -409,6 +410,7 @@ resource "azurerm_bot_channels_registration" "test" {
   endpoint                              = "https://example2.com"
   developer_app_insights_api_key        = azurerm_application_insights_api_key.test2.api_key
   developer_app_insights_application_id = azurerm_application_insights.test2.app_id
+  developer_app_insights_key            = azurerm_application_insights.test2.instrumentation_key
 
   description                   = "TestDescription2"
   public_network_access_enabled = false
@@ -513,6 +515,7 @@ resource "azurerm_bot_channels_registration" "test" {
   endpoint                              = "https://example.com"
   developer_app_insights_api_key        = azurerm_application_insights_api_key.test.api_key
   developer_app_insights_application_id = azurerm_application_insights.test.app_id
+  developer_app_insights_key            = azurerm_application_insights.test.instrumentation_key
 
   description              = "TestDescription"
   isolated_network_enabled = true
@@ -614,6 +617,7 @@ resource "azurerm_bot_channels_registration" "test" {
   endpoint                              = "https://example.com"
   developer_app_insights_api_key        = azurerm_application_insights_api_key.test.api_key
   developer_app_insights_application_id = azurerm_application_insights.test.app_id
+  developer_app_insights_key            = azurerm_application_insights.test.instrumentation_key
 
   description                   = "TestDescription"
   public_network_access_enabled = true
@@ -744,6 +748,7 @@ resource "azurerm_bot_channels_registration" "test" {
   endpoint                              = "https://example2.com"
   developer_app_insights_api_key        = azurerm_application_insights_api_key.test2.api_key
   developer_app_insights_application_id = azurerm_application_insights.test2.app_id
+  developer_app_insights_key            = azurerm_application_insights.test2.instrumentation_key
 
   description              = "TestDescription2"
   isolated_network_enabled = false
@@ -870,6 +875,7 @@ resource "azurerm_bot_channels_registration" "test" {
   endpoint                              = "https://example2.com"
   developer_app_insights_api_key        = azurerm_application_insights_api_key.test2.api_key
   developer_app_insights_application_id = azurerm_application_insights.test2.app_id
+  developer_app_insights_key            = azurerm_application_insights.test2.instrumentation_key
 
   description                   = "TestDescription2"
   public_network_access_enabled = false

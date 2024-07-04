@@ -23,6 +23,18 @@ type PrivateLinkResourcesListCompleteResult struct {
 	Items              []PrivateLinkResource
 }
 
+type PrivateLinkResourcesListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *PrivateLinkResourcesListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // PrivateLinkResourcesList ...
 func (c SignalRClient) PrivateLinkResourcesList(ctx context.Context, id SignalRId) (result PrivateLinkResourcesListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c SignalRClient) PrivateLinkResourcesList(ctx context.Context, id SignalRI
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &PrivateLinkResourcesListCustomPager{},
 		Path:       fmt.Sprintf("%s/privateLinkResources", id.ID()),
 	}
 
@@ -72,6 +85,7 @@ func (c SignalRClient) PrivateLinkResourcesListCompleteMatchingPredicate(ctx con
 
 	resp, err := c.PrivateLinkResourcesList(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

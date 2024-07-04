@@ -54,6 +54,18 @@ func (o SystemTopicEventSubscriptionsListBySystemTopicOperationOptions) ToQuery(
 	return &out
 }
 
+type SystemTopicEventSubscriptionsListBySystemTopicCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *SystemTopicEventSubscriptionsListBySystemTopicCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // SystemTopicEventSubscriptionsListBySystemTopic ...
 func (c EventSubscriptionsClient) SystemTopicEventSubscriptionsListBySystemTopic(ctx context.Context, id SystemTopicId, options SystemTopicEventSubscriptionsListBySystemTopicOperationOptions) (result SystemTopicEventSubscriptionsListBySystemTopicOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -62,8 +74,9 @@ func (c EventSubscriptionsClient) SystemTopicEventSubscriptionsListBySystemTopic
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/eventSubscriptions", id.ID()),
 		OptionsObject: options,
+		Pager:         &SystemTopicEventSubscriptionsListBySystemTopicCustomPager{},
+		Path:          fmt.Sprintf("%s/eventSubscriptions", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -104,6 +117,7 @@ func (c EventSubscriptionsClient) SystemTopicEventSubscriptionsListBySystemTopic
 
 	resp, err := c.SystemTopicEventSubscriptionsListBySystemTopic(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

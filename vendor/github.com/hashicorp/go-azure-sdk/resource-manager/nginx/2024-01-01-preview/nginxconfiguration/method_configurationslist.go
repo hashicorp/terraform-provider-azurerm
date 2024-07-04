@@ -23,6 +23,18 @@ type ConfigurationsListCompleteResult struct {
 	Items              []NginxConfiguration
 }
 
+type ConfigurationsListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ConfigurationsListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ConfigurationsList ...
 func (c NginxConfigurationClient) ConfigurationsList(ctx context.Context, id NginxDeploymentId) (result ConfigurationsListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c NginxConfigurationClient) ConfigurationsList(ctx context.Context, id Ngi
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ConfigurationsListCustomPager{},
 		Path:       fmt.Sprintf("%s/configurations", id.ID()),
 	}
 
@@ -72,6 +85,7 @@ func (c NginxConfigurationClient) ConfigurationsListCompleteMatchingPredicate(ct
 
 	resp, err := c.ConfigurationsList(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

@@ -11,10 +11,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkvirtualappliances"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/networkvirtualappliances"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/virtualwans"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -53,7 +53,7 @@ func (r NetworkVirtualApplianceResource) Arguments() map[string]*schema.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.VirtualHubID,
+			ValidateFunc: virtualwans.ValidateVirtualHubID,
 		},
 	}
 }
@@ -74,19 +74,22 @@ func (r NetworkVirtualApplianceResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			hubID, err := parse.VirtualHubID(model.VirtualHubID)
+			hubID, err := virtualwans.ParseVirtualHubID(model.VirtualHubID)
 			if err != nil {
 				return err
 			}
 
-			id := networkvirtualappliances.NewNetworkVirtualApplianceID(hubID.SubscriptionId, hubID.ResourceGroup, model.Name)
+			id := networkvirtualappliances.NewNetworkVirtualApplianceID(hubID.SubscriptionId, hubID.ResourceGroupName, model.Name)
 
-			hub, err := metadata.Client.Network.VirtualHubClient.Get(ctx, hubID.ResourceGroup, hubID.Name)
+			hub, err := metadata.Client.Network.VirtualWANs.VirtualHubsGet(ctx, *hubID)
 			if err != nil {
-				return fmt.Errorf("reading virtual hub %s for %s: %+v", hubID, id, err)
+				return fmt.Errorf("retrieving %s for %s: %+v", hubID, id, err)
+			}
+			if hub.Model == nil {
+				return fmt.Errorf("retrieving %s: `model` was nil", hubID)
 			}
 
-			loc := location.Normalize(pointer.From(hub.Location))
+			loc := location.Normalize(pointer.From(hub.Model.Location))
 
 			existing, err := client.Get(ctx, id, networkvirtualappliances.DefaultGetOperationOptions())
 			if err != nil {

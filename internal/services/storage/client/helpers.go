@@ -84,6 +84,7 @@ func (ad *accountDetails) AccountKey(ctx context.Context, client Client) (*strin
 
 			if *key.Permissions == storageaccounts.KeyPermissionFull {
 				ad.accountKey = key.Value
+				break
 			}
 		}
 	}

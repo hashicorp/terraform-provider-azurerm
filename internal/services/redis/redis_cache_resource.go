@@ -884,7 +884,7 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (*redis.RedisCommonProp
 	}
 
 	if v := raw["notify_keyspace_events"].(string); v != "" {
-		output.NotifyKeyspaceEvents = v
+		output.NotifyKeyspaceEvents = pointer.To(v)
 	}
 
 	// AOF Backup
@@ -1044,7 +1044,7 @@ func flattenRedisConfiguration(input *redis.RedisCommonPropertiesRedisConfigurat
 	if input.RdbStorageConnectionString != nil {
 		outputs["rdb_storage_connection_string"] = *input.RdbStorageConnectionString
 	}
-	outputs["notify_keyspace_events"] = input.NotifyKeyspaceEvents
+	outputs["notify_keyspace_events"] = pointer.From(input.NotifyKeyspaceEvents)
 
 	if v := input.AofBackupEnabled; v != nil {
 		b, err := strconv.ParseBool(*v)

@@ -23,6 +23,18 @@ type ListEventsCompleteResult struct {
 	Items              []Event
 }
 
+type ListEventsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListEventsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListEvents ...
 func (c WebHooksClient) ListEvents(ctx context.Context, id WebHookId) (result ListEventsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c WebHooksClient) ListEvents(ctx context.Context, id WebHookId) (result Li
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodPost,
+		Pager:      &ListEventsCustomPager{},
 		Path:       fmt.Sprintf("%s/listEvents", id.ID()),
 	}
 
@@ -72,6 +85,7 @@ func (c WebHooksClient) ListEventsCompleteMatchingPredicate(ctx context.Context,
 
 	resp, err := c.ListEvents(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

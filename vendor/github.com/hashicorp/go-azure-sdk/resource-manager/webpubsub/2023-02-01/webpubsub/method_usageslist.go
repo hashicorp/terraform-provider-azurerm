@@ -23,6 +23,18 @@ type UsagesListCompleteResult struct {
 	Items              []SignalRServiceUsage
 }
 
+type UsagesListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *UsagesListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // UsagesList ...
 func (c WebPubSubClient) UsagesList(ctx context.Context, id LocationId) (result UsagesListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c WebPubSubClient) UsagesList(ctx context.Context, id LocationId) (result 
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &UsagesListCustomPager{},
 		Path:       fmt.Sprintf("%s/usages", id.ID()),
 	}
 
@@ -72,6 +85,7 @@ func (c WebPubSubClient) UsagesListCompleteMatchingPredicate(ctx context.Context
 
 	resp, err := c.UsagesList(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

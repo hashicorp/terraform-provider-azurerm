@@ -8,10 +8,10 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type VirtualMachineInstance struct {
-	ExtendedLocation ExtendedLocation                 `json:"extendedLocation"`
-	Id               *string                          `json:"id,omitempty"`
-	Name             *string                          `json:"name,omitempty"`
-	Properties       VirtualMachineInstanceProperties `json:"properties"`
-	SystemData       *systemdata.SystemData           `json:"systemData,omitempty"`
-	Type             *string                          `json:"type,omitempty"`
+	ExtendedLocation ExtendedLocation                  `json:"extendedLocation"`
+	Id               *string                           `json:"id,omitempty"`
+	Name             *string                           `json:"name,omitempty"`
+	Properties       *VirtualMachineInstanceProperties `json:"properties,omitempty"`
+	SystemData       *systemdata.SystemData            `json:"systemData,omitempty"`
+	Type             *string                           `json:"type,omitempty"`
 }
