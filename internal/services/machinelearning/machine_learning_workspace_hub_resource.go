@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	components "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2023-05-01/deployments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2021-08-01-preview/registries"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2024-04-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -28,30 +27,28 @@ import (
 var _ sdk.ResourceWithUpdate = MachineLearningWorkspaceHubResource{}
 
 type machineLearningWorkspaceHubModel struct {
-	Name                  string                                     `tfschema:"name"`
-	Location              string                                     `tfschema:"location"`
-	ResourceGroupName     string                                     `tfschema:"resource_group_name"`
-	KeyVaultID            string                                     `tfschema:"key_vault_id"`
-	StorageAccountID      string                                     `tfschema:"storage_account_id"`
-	ContainerRegistryID   string                                     `tfschema:"container_registry_id"`
-	ApplicationInsightsID string                                     `tfschema:"application_insights_id"`
-	PublicNetworkAccess   string                                     `tfschema:"public_network_access"`
-	Identity              []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
-	Encryption            encryptionModel                            `tfschema:"encryption"`
-	Tags                  map[string]string                          `tfschema:"tags"`
+	Name                        string                                     `tfschema:"name"`
+	Location                    string                                     `tfschema:"location"`
+	ResourceGroupName           string                                     `tfschema:"resource_group_name"`
+	KeyVaultID                  string                                     `tfschema:"key_vault_id"`
+	StorageAccountID            string                                     `tfschema:"storage_account_id"`
+	ContainerRegistryID         string                                     `tfschema:"container_registry_id"`
+	ApplicationInsightsID       string                                     `tfschema:"application_insights_id"`
+	PublicNetworkAccess         string                                     `tfschema:"public_network_access"`
+	FriendlyName                string                                     `tfschema:"friendly_name"`
+	PrimaryUserAssignedIdentity string                                     `tfschema:"primary_user_assigned_identity"`
+	Identity                    []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	Encryption                  []encryptionModel                          `tfschema:"encryption"`
+	Tags                        map[string]string                          `tfschema:"tags"`
 }
 
 type encryptionModel struct {
-	KeyVaultID             string `tfschema:"key_vault_key_id"`
+	KeyVaultID             string `tfschema:"key_vault_id"`
 	KeyID                  string `tfschema:"key_id"`
 	UserAssignedIdentityID string `tfschema:"user_assigned_identity_id"`
 }
 
 type MachineLearningWorkspaceHubResource struct{}
-
-func (r MachineLearningWorkspaceHubResource) CustomImporter() sdk.ResourceRunFunc {
-	panic("implement me")
-}
 
 var _ sdk.Resource = MachineLearningWorkspaceHubResource{}
 
@@ -64,7 +61,7 @@ func (r MachineLearningWorkspaceHubResource) ModelObject() interface{} {
 }
 
 func (r MachineLearningWorkspaceHubResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return deployments.ValidateDeploymentID
+	return workspaces.ValidateWorkspaceID
 }
 
 func (r MachineLearningWorkspaceHubResource) Arguments() map[string]*pluginsdk.Schema {
@@ -96,6 +93,12 @@ func (r MachineLearningWorkspaceHubResource) Arguments() map[string]*pluginsdk.S
 			ValidateFunc: commonids.ValidateStorageAccountID,
 			// TODO -- remove when issue https://github.com/Azure/azure-rest-api-specs/issues/8323 is addressed
 			DiffSuppressFunc: suppress.CaseDifference,
+		},
+
+		"primary_user_assigned_identity": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 		},
 
 		"container_registry_id": {
@@ -140,6 +143,11 @@ func (r MachineLearningWorkspaceHubResource) Arguments() map[string]*pluginsdk.S
 					},
 				},
 			},
+		},
+
+		"friendly_name": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
 		},
 
 		"public_network_access": {
@@ -198,19 +206,16 @@ func (r MachineLearningWorkspaceHubResource) Create() sdk.ResourceFunc {
 				Name:     &model.Name,
 				Location: pointer.To(location.Normalize(model.Location)),
 				Tags:     &model.Tags,
-				//Sku: &workspaces.Sku{
-				//	Name: d.Get("sku_name").(string),
-				//	Tier: pointer.To(workspaces.SkuTier(d.Get("sku_name").(string))),
-				//},
 				Kind:     pointer.To("Hub"),
 				Identity: hubIdentity,
 				Properties: &workspaces.WorkspaceProperties{
-					ApplicationInsights: &model.ApplicationInsightsID,
-					Encryption:          expandMachineLearningWorkspaceHubEncryption(model.Encryption),
-					KeyVault:            &model.KeyVaultID,
-					//ManagedNetwork:      expandMachineLearningWorkspaceManagedNetwork(d.Get("managed_network").([]interface{})),
-					PublicNetworkAccess: pointer.To(workspaces.PublicNetworkAccess(model.PublicNetworkAccess)),
-					StorageAccount:      &model.StorageAccountID,
+					FriendlyName:                &model.FriendlyName,
+					ApplicationInsights:         &model.ApplicationInsightsID,
+					Encryption:                  expandMachineLearningWorkspaceHubEncryption(model.Encryption),
+					KeyVault:                    &model.KeyVaultID,
+					PublicNetworkAccess:         pointer.To(workspaces.PublicNetworkAccess(model.PublicNetworkAccess)),
+					StorageAccount:              &model.StorageAccountID,
+					PrimaryUserAssignedIdentity: &model.PrimaryUserAssignedIdentity,
 				},
 			}
 
@@ -265,6 +270,14 @@ func (r MachineLearningWorkspaceHubResource) Update() sdk.ResourceFunc {
 				}
 
 				payload.Identity = expandedIdentity
+			}
+
+			if metadata.ResourceData.HasChange("primary_user_assigned_identity") {
+				payload.Properties.PrimaryUserAssignedIdentity = &model.PrimaryUserAssignedIdentity
+			}
+
+			if metadata.ResourceData.HasChange("friendly_name") {
+				payload.Properties.FriendlyName = &model.FriendlyName
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -334,8 +347,19 @@ func (r MachineLearningWorkspaceHubResource) Read() sdk.ResourceFunc {
 
 				state.KeyVaultID = *model.Properties.KeyVault
 				state.StorageAccountID = *model.Properties.StorageAccount
-				state.ContainerRegistryID = *model.Properties.ContainerRegistry
 				state.PublicNetworkAccess = string(*model.Properties.PublicNetworkAccess)
+
+				if model.Properties.PrimaryUserAssignedIdentity != nil {
+					state.PrimaryUserAssignedIdentity = *model.Properties.PrimaryUserAssignedIdentity
+				}
+
+				if model.Properties.FriendlyName != nil {
+					state.FriendlyName = *model.Properties.FriendlyName
+				}
+
+				if model.Properties.ContainerRegistry != nil {
+					state.ContainerRegistryID = *model.Properties.ContainerRegistry
+				}
 
 				flattenedIdentity, err := identity.FlattenLegacySystemAndUserAssignedMapToModel(model.Identity)
 				if err != nil {
@@ -347,7 +371,9 @@ func (r MachineLearningWorkspaceHubResource) Read() sdk.ResourceFunc {
 				if err != nil {
 					return fmt.Errorf("flattening `encryption`: %+v", err)
 				}
-				state.Encryption = *flattenedEncryption
+				if flattenedEncryption != nil {
+					state.Encryption = flattenedEncryption
+				}
 			}
 
 			return metadata.Encode(&state)
@@ -387,32 +413,33 @@ func (r MachineLearningWorkspaceHubResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandMachineLearningWorkspaceHubEncryption(encryption encryptionModel) *workspaces.EncryptionProperty {
-	if encryption.KeyID == "" || encryption.KeyVaultID == "" {
-		return nil
+func expandMachineLearningWorkspaceHubEncryption(encryption []encryptionModel) *workspaces.EncryptionProperty {
+	if len(encryption) == 0 {
+		return &workspaces.EncryptionProperty{}
 	}
 
+	encrypt := encryption[0]
 	out := workspaces.EncryptionProperty{
 		Identity: &workspaces.IdentityForCmk{
 			UserAssignedIdentity: nil,
 		},
 		KeyVaultProperties: workspaces.EncryptionKeyVaultProperties{
-			KeyVaultArmId: encryption.KeyVaultID,
-			KeyIdentifier: encryption.KeyID,
+			KeyVaultArmId: encrypt.KeyVaultID,
+			KeyIdentifier: encrypt.KeyID,
 		},
 		Status: workspaces.EncryptionStatusEnabled,
 	}
 
-	if encryption.UserAssignedIdentityID != "" {
-		out.Identity.UserAssignedIdentity = &encryption.UserAssignedIdentityID
+	if encrypt.UserAssignedIdentityID != "" {
+		out.Identity.UserAssignedIdentity = &encrypt.UserAssignedIdentityID
 	}
 
 	return &out
 }
 
-func flattenMachineLearningWorkspaceHubEncryption(input *workspaces.EncryptionProperty) (*encryptionModel, error) {
+func flattenMachineLearningWorkspaceHubEncryption(input *workspaces.EncryptionProperty) ([]encryptionModel, error) {
 	if input == nil || input.Status != workspaces.EncryptionStatusEnabled {
-		return nil, nil
+		return []encryptionModel{}, nil
 	}
 
 	keyVaultId := ""
@@ -434,9 +461,11 @@ func flattenMachineLearningWorkspaceHubEncryption(input *workspaces.EncryptionPr
 		userAssignedIdentityId = id.ID()
 	}
 
-	return &encryptionModel{
-		UserAssignedIdentityID: userAssignedIdentityId,
-		KeyVaultID:             keyVaultId,
-		KeyID:                  keyVaultKeyId,
+	return []encryptionModel{
+		{
+			UserAssignedIdentityID: userAssignedIdentityId,
+			KeyVaultID:             keyVaultId,
+			KeyID:                  keyVaultKeyId,
+		},
 	}, nil
 }

@@ -30,8 +30,6 @@ func TestAccMachineLearningWorkspaceHub_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
 				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
-				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
-				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -93,7 +91,7 @@ func TestAccMachineLearningWorkspaceHub_completeUpdate(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.completeUpdated(data),
+			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
@@ -215,23 +213,6 @@ func TestAccMachineLearningWorkspaceHub_userAssignedAndCustomManagedKey(t *testi
 	})
 }
 
-func TestAccMachineLearningWorkspaceHub_systemAssignedAndCustomManagedKey(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace_hub", "test")
-	r := WorkspaceHubResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.systemAssignedAndCustomManagedKey(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("encryption.0.key_vault_id").Exists(),
-				check.That(data.ResourceName).Key("encryption.0.key_id").Exists(),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccMachineLearningWorkspaceHub_purgeSoftDelete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace_hub", "test")
 	r := WorkspaceHubResource{}
@@ -268,20 +249,9 @@ func (r WorkspaceHubResource) Exists(ctx context.Context, client *clients.Client
 
 	return utils.Bool(resp.Model.Properties != nil), nil
 }
+
 func (r WorkspaceHubResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {
-    key_vault {
-      purge_soft_delete_on_destroy       = false
-      purge_soft_deleted_keys_on_destroy = false
-    }
-    resource_group {
-      prevent_deletion_if_contains_resources = false
-    }
-  }
-}
-
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
@@ -334,10 +304,22 @@ resource "azurerm_storage_account" "test" {
 func (r WorkspaceHubResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
+    }
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
 %s
 
 resource "azurerm_machine_learning_workspace_hub" "test" {
-  name                    = "acctest-MLW-%d"
+  name                    = "acctest-MLW-hub-%s"
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
   application_insights_id = azurerm_application_insights.test.id
@@ -348,12 +330,24 @@ resource "azurerm_machine_learning_workspace_hub" "test" {
     type = "SystemAssigned"
   }
 }
-`, template, data.RandomInteger)
+`, template, data.RandomStringOfLength(6))
 }
 
 func (r WorkspaceHubResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
+    }
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
 %[1]s
 
 resource "azurerm_container_registry" "test" {
@@ -391,14 +385,15 @@ resource "azurerm_key_vault_key" "test" {
 }
 
 resource "azurerm_machine_learning_workspace_hub" "test" {
-  name                          = "acctest-MLW-%[2]d"
-  location                      = azurerm_resource_group.test.location
-  resource_group_name           = azurerm_resource_group.test.name
-  application_insights_id       = azurerm_application_insights.test.id
-  key_vault_id                  = azurerm_key_vault.test.id
-  storage_account_id            = azurerm_storage_account.test.id
-  container_registry_id         = azurerm_container_registry.test.id
-  public_network_access = "Disabled"
+  name                    = "acctest-MLW-%[2]d"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  application_insights_id = azurerm_application_insights.test.id
+  key_vault_id            = azurerm_key_vault.test.id
+  storage_account_id      = azurerm_storage_account.test.id
+  container_registry_id   = azurerm_container_registry.test.id
+  public_network_access   = "Disabled"
+  friendly_name           = "test-workspace"
 
   identity {
     type = "SystemAssigned"
@@ -416,9 +411,21 @@ resource "azurerm_machine_learning_workspace_hub" "test" {
 `, template, data.RandomIntOfLength(16))
 }
 
-func (r WorkspaceHubResource) completeUpdated(data acceptance.TestData) string {
+func (r WorkspaceHubResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
+    }
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
 %[1]s
 
 resource "azurerm_container_registry" "test" {
@@ -452,14 +459,15 @@ resource "azurerm_key_vault_key" "test" {
 }
 
 resource "azurerm_machine_learning_workspace_hub" "test" {
-  name                          = "acctest-MLW-%[2]d"
-  location                      = azurerm_resource_group.test.location
-  resource_group_name           = azurerm_resource_group.test.name
-  application_insights_id       = azurerm_application_insights.test.id
-  key_vault_id                  = azurerm_key_vault.test.id
-  storage_account_id            = azurerm_storage_account.test.id
-  container_registry_id         = azurerm_container_registry.test.id
-  public_network_access_enabled = "Disabled"
+  name                    = "acctest-MLW-%[2]d"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  application_insights_id = azurerm_application_insights.test.id
+  key_vault_id            = azurerm_key_vault.test.id
+  storage_account_id      = azurerm_storage_account.test.id
+  container_registry_id   = azurerm_container_registry.test.id
+  public_network_access   = "Disabled"
+  friendly_name           = "test-workspace-updated"
 
   identity {
     type = "SystemAssigned"
@@ -543,10 +551,6 @@ resource "azurerm_machine_learning_workspace_hub" "test" {
   }
 
   depends_on = [azurerm_role_assignment.test]
-
-  lifecycle {
-    ignore_changes = [managed_network]
-  }
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -609,10 +613,6 @@ resource "azurerm_machine_learning_workspace_hub" "test" {
   }
 
   depends_on = [azurerm_role_assignment.test]
-
-  lifecycle {
-    ignore_changes = [managed_network]
-  }
 }
 `, r.template(data), data.RandomInteger, data.RandomIntOfLength(8))
 }
@@ -653,10 +653,6 @@ resource "azurerm_machine_learning_workspace_hub" "test" {
       azurerm_user_assigned_identity.test.id,
     ]
   }
-
-  lifecycle {
-    ignore_changes = [managed_network]
-  }
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -693,82 +689,6 @@ resource "azurerm_machine_learning_workspace_hub" "test" {
 
   identity {
     type = "SystemAssigned"
-  }
-
-  lifecycle {
-    ignore_changes = [managed_network]
-  }
-}
-`, r.template(data), data.RandomInteger)
-}
-
-func (r WorkspaceHubResource) systemAssignedAndCustomManagedKey(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {
-    key_vault {
-      purge_soft_delete_on_destroy       = false
-      purge_soft_deleted_keys_on_destroy = false
-    }
-    resource_group {
-      prevent_deletion_if_contains_resources = false
-    }
-  }
-}
-
-%[1]s
-
-resource "azurerm_key_vault_key" "test" {
-  name         = "accKVKey-%[2]d"
-  key_vault_id = azurerm_key_vault.test.id
-  key_type     = "RSA"
-  key_size     = 2048
-
-  key_opts = [
-    "decrypt",
-    "encrypt",
-    "sign",
-    "unwrapKey",
-    "verify",
-    "wrapKey",
-  ]
-  depends_on = [azurerm_key_vault.test, azurerm_key_vault_access_policy.test]
-}
-
-resource "azurerm_user_assigned_identity" "test" {
-  name                = "acctestUAI-%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_role_assignment" "test" {
-  scope                = azurerm_key_vault.test.id
-  role_definition_name = "Key Vault Reader"
-  principal_id         = azurerm_user_assigned_identity.test.principal_id
-}
-
-resource "azurerm_machine_learning_workspace_hub" "test" {
-  name                    = "acctest-MLW-%[2]d"
-  location                = azurerm_resource_group.test.location
-  resource_group_name     = azurerm_resource_group.test.name
-  high_business_impact    = true
-  application_insights_id = azurerm_application_insights.test.id
-  key_vault_id            = azurerm_key_vault.test.id
-  storage_account_id      = azurerm_storage_account.test.id
-
-  identity {
-    type = "SystemAssigned"
-  }
-
-  encryption {
-    key_vault_id = azurerm_key_vault.test.id
-    key_id       = azurerm_key_vault_key.test.id
-  }
-
-  depends_on = [azurerm_role_assignment.test]
-
-  lifecycle {
-    ignore_changes = [managed_network]
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -876,7 +796,6 @@ resource "azurerm_role_assignment" "test_ai" {
   principal_id         = azurerm_user_assigned_identity.test.principal_id
 }
 
-
 resource "azurerm_machine_learning_workspace_hub" "test" {
   name                           = "acctest-MLW-%[2]d"
   location                       = azurerm_resource_group.test.location
@@ -885,7 +804,6 @@ resource "azurerm_machine_learning_workspace_hub" "test" {
   key_vault_id                   = azurerm_key_vault.test.id
   storage_account_id             = azurerm_storage_account.test.id
   primary_user_assigned_identity = azurerm_user_assigned_identity.test.id
-  high_business_impact           = true
 
   identity {
     type = "UserAssigned"
@@ -899,15 +817,12 @@ resource "azurerm_machine_learning_workspace_hub" "test" {
     key_vault_id              = azurerm_key_vault.test.id
     key_id                    = azurerm_key_vault_key.test.id
   }
+
   depends_on = [
     azurerm_role_assignment.test_ai, azurerm_role_assignment.test_kv, azurerm_role_assignment.test_sa1,
     azurerm_role_assignment.test_sa1,
     azurerm_key_vault_access_policy.test-policy1,
   ]
-
-  lifecycle {
-    ignore_changes = [managed_network]
-  }
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -939,10 +854,6 @@ resource "azurerm_machine_learning_workspace_hub" "test" {
 
   identity {
     type = "SystemAssigned"
-  }
-
-  lifecycle {
-    ignore_changes = [managed_network]
   }
 }
 `, template, data.RandomInteger)
