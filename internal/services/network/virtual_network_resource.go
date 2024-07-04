@@ -685,13 +685,14 @@ func expandVirtualNetworkSubnets(ctx context.Context, client virtualnetworks.Vir
 			subnetObj.Properties = &virtualnetworks.SubnetPropertiesFormat{}
 		}
 
+		subnetObj.Properties.AddressPrefix = pointer.To(subnet["address_prefix"].(string))
+
 		if features.FourPointOhBeta() {
 			privateEndpointNetworkPolicies := virtualnetworks.VirtualNetworkPrivateEndpointNetworkPolicies(subnet["private_endpoint_network_policies"].(string))
 			privateLinkServiceNetworkPolicies := virtualnetworks.VirtualNetworkPrivateLinkServiceNetworkPoliciesDisabled
 			if subnet["private_link_service_network_policies_enabled"].(bool) {
 				privateLinkServiceNetworkPolicies = virtualnetworks.VirtualNetworkPrivateLinkServiceNetworkPoliciesEnabled
 			}
-			subnetObj.Properties.AddressPrefix = pointer.To(subnet["address_prefix"].(string))
 			subnetObj.Properties.DefaultOutboundAccess = pointer.To(subnet["default_outbound_access_enabled"].(bool))
 			subnetObj.Properties.Delegations = expandVirtualNetworkSubnetDelegation(subnet["delegation"].([]interface{}))
 			subnetObj.Properties.PrivateEndpointNetworkPolicies = pointer.To(privateEndpointNetworkPolicies)
