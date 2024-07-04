@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2015-10-31/webhook"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -96,10 +95,11 @@ func resourceAutomationWebhook() *pluginsdk.Resource {
 				},
 			},
 			"uri": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				Computed:     !features.FourPointOhBeta(),
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+				// NOTE: O+C this is generated if omitted and cannot be updated so this should remain
+				Computed:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 			},

@@ -151,10 +151,6 @@ resource "azurerm_automation_webhook" "test" {
   automation_account_name = azurerm_automation_account.test.name
   expiry_time             = "%s"
   runbook_name            = azurerm_automation_runbook.test.name
-
-  lifecycle {
-    ignore_changes = [uri]
-  }
 }
 `, template, time.Now().UTC().Add(time.Hour).Format(time.RFC3339))
 }
@@ -189,10 +185,6 @@ resource "azurerm_automation_webhook" "test" {
   run_on_worker_group     = azurerm_automation_hybrid_runbook_worker_group.test.name
   parameters = {
     input = "parameter"
-  }
-
-  lifecycle {
-    ignore_changes = [uri]
   }
 }
 `, template, data.RandomInteger, time.Now().UTC().Add(time.Hour).Format(time.RFC3339))
