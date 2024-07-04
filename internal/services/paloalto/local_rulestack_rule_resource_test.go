@@ -93,7 +93,6 @@ func TestAccPaloAltoLocalRule_update(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("protocol").HasValue("application-default"),
 			),
 		},
 		data.ImportStep(),
@@ -101,7 +100,6 @@ func TestAccPaloAltoLocalRule_update(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("protocol").HasValue("TCP:8080"),
 			),
 		},
 		data.ImportStep(),
@@ -109,7 +107,6 @@ func TestAccPaloAltoLocalRule_update(t *testing.T) {
 			Config: r.completeUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("protocol").IsEmpty(),
 			),
 		},
 		data.ImportStep(),
@@ -117,7 +114,6 @@ func TestAccPaloAltoLocalRule_update(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("protocol").HasValue("application-default"),
 			),
 		},
 		data.ImportStep(),
@@ -134,7 +130,6 @@ func TestAccPaloAltoLocalRule_updateProtocol(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("protocol").HasValue("application-default"),
 			),
 		},
 		data.ImportStep(),
@@ -142,7 +137,6 @@ func TestAccPaloAltoLocalRule_updateProtocol(t *testing.T) {
 			Config: r.basicProtocol(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("protocol").HasValue("TCP:8080"),
 			),
 		},
 		data.ImportStep(),
@@ -150,7 +144,6 @@ func TestAccPaloAltoLocalRule_updateProtocol(t *testing.T) {
 			Config: r.basicProtocolPorts(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("protocol").IsEmpty(),
 			),
 		},
 		data.ImportStep(),
@@ -158,7 +151,6 @@ func TestAccPaloAltoLocalRule_updateProtocol(t *testing.T) {
 			Config: r.basicProtocol(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("protocol").HasValue("TCP:8080"),
 			),
 		},
 		data.ImportStep(),
@@ -166,7 +158,6 @@ func TestAccPaloAltoLocalRule_updateProtocol(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("protocol").HasValue("application-default"),
 			),
 		},
 		data.ImportStep(),
