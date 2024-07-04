@@ -28,17 +28,6 @@ var idParseResultTypes = map[string]attr.Type{
 	"parent_resources":    types.MapType{}.WithElementType(types.StringType),
 }
 
-var knownScopePrefixes = []string{
-	"/subscriptions/",
-	"/subscriptions//resourcegroups/",
-	"/providers/Microsoft.Marketplace",
-	"/providers/Microsoft.Subscription",
-	"/providers/Microsoft.Management/managementGroups/",
-	"/providers/Microsoft.Billing/billingAccounts//customers/",
-	"/providers/Microsoft.Billing/billingAccounts//billingProfiles//invoiceSections/",
-	"/providers/Microsoft.Billing/billingAccounts//enrollmentAccounts/",
-}
-
 func NewParseResourceIDFunction() function.Function {
 	return &ParseResourceIDFunction{}
 }
@@ -47,7 +36,7 @@ func (p ParseResourceIDFunction) Metadata(_ context.Context, _ function.Metadata
 	response.Name = "parse_resource_id"
 }
 
-func (p ParseResourceIDFunction) Definition(ctx context.Context, request function.DefinitionRequest, response *function.DefinitionResponse) {
+func (p ParseResourceIDFunction) Definition(_ context.Context, _ function.DefinitionRequest, response *function.DefinitionResponse) {
 	response.Definition = function.Definition{
 		Summary:             "parse_resource_id",
 		Description:         "Parses an Azure Resource Manager ID and exposes the contained information",

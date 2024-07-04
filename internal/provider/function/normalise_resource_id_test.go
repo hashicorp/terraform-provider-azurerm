@@ -18,6 +18,7 @@ var cases = map[string][]string{
 	"test-3": {"/SubScripTionS/12345678-1234-9876-4563-123456789012/resourceGROUPS/resGroup1/providers/microsoft.apiManagement/Service/service1/apis/api1", "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ApiManagement/service/service1/apis/api1"},
 	"test-4": {"/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/virtualmachinescalesets/scaleSet1/virtualmachines/machine1/networkinterfaCes/networkInterface1/ipconFigurations/ipConfig1/PublicipAddresses/publicAddress1", "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/virtualMachineScaleSets/scaleSet1/virtualMachines/machine1/networkInterfaces/networkInterface1/ipConfigurations/ipConfig1/publicIPAddresses/publicAddress1"},
 	"test-5": {"/subscriptions/12345678-1234-9876-4563-123456789012/resourcegroups/resGroup1/providers/microsoft.chaos/Targets/target1", "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Chaos/targets/target1"},
+	"test-6": {"SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/resourcegroups/resGroup1/providers/Microsoft.web/siTes/site1", "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1"},
 }
 
 func TestProviderFunctionNormaliseResourceID_multiple(t *testing.T) {
