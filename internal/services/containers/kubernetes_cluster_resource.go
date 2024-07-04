@@ -57,11 +57,11 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				_, err := commonids.ParseKubernetesClusterID(id)
 				return err
 			},
-			// TODO 4.0: we're defaulting this at import time because the property is non-functional.
-			// In the lead up to 4.0 planning if the feature still isn't functional we should look at
-			// removing this entirely.
+
 			func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
-				d.Set("public_network_access_enabled", true)
+				if !features.FourPointOhBeta() {
+					d.Set("public_network_access_enabled", true)
+				}
 				return []*pluginsdk.ResourceData{d}, nil
 			},
 		),
@@ -1277,13 +1277,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				),
 			},
 
-			"public_network_access_enabled": {
-				Type:       pluginsdk.TypeBool,
-				Optional:   true,
-				Default:    true,
-				Deprecated: "`public_network_access_enabled` is currently not functional and is not be passed to the API",
-			},
-
 			"role_based_access_control_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -1732,6 +1725,12 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				),
 			},
 			ConflictsWith: []string{"web_app_routing.0.dns_zone_id"},
+		}
+		resource.Schema["public_network_access_enabled"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Default:    true,
+			Deprecated: "`public_network_access_enabled` is currently not functional and is not be passed to the API, this property will be removed in v4.0 of the AzureRM provider.",
 		}
 	}
 
