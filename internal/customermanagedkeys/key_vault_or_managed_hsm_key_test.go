@@ -35,7 +35,7 @@ func buildHSMData(key, value string) interface{} {
 func TestExpandKeyVaultOrManagedHSMKeyKey(t *testing.T) {
 	type args struct {
 		d                 interface{}
-		hasVersion        customermanagedkeys.VersionRequireness
+		hasVersion        customermanagedkeys.VersionType
 		keyVaultFieldName string
 		hsmFieldName      string
 		hsmEnv            environments.Api
@@ -82,7 +82,7 @@ func TestExpandKeyVaultOrManagedHSMKeyKey(t *testing.T) {
 			args: args{
 				d:                 buildKeyVaultData("key_vault_key_id", "https://test.keyvault.azure.net/keys/test-key-name3"),
 				keyVaultFieldName: "key_vault_key_id",
-				hasVersion:        customermanagedkeys.Versioned,
+				hasVersion:        customermanagedkeys.VersionTypeVersioned,
 			},
 			want:    nil,
 			wantErr: true,
@@ -92,7 +92,7 @@ func TestExpandKeyVaultOrManagedHSMKeyKey(t *testing.T) {
 			args: args{
 				d:            buildHSMData("managed_hsm_key_id", "https://test.managedhsm.azure.net/keys/test-key-name"),
 				hsmFieldName: "managed_hsm_key_id",
-				hasVersion:   customermanagedkeys.Versionless,
+				hasVersion:   customermanagedkeys.VersionTypeVersionless,
 			},
 			want: &cmk.KeyVaultOrManagedHSMKey{
 				ManagedHSMKeyVersionlessId: &hsmParse.ManagedHSMDataPlaneVersionlessKeyId{

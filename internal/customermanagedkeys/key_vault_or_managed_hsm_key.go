@@ -9,12 +9,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type VersionRequireness int
+type VersionType int
 
 const (
-	OptionallyVersioned VersionRequireness = iota
-	Versioned
-	Versionless
+	VersionTypeAny VersionType = iota
+	VersionTypeVersioned
+	VersionTypeVersionless
 )
 
 type KeyVaultOrManagedHSMKey struct {
@@ -82,62 +82,55 @@ func (k *KeyVaultOrManagedHSMKey) BaseUri() string {
 	return ""
 }
 
-func parseKeyvauleID(keyRaw string, requireVersion VersionRequireness) (*parse.NestedItemId, error) {
+func parseKeyvauleID(keyRaw string, requireVersion VersionType) (*parse.NestedItemId, error) {
 	keyID, err := parse.ParseOptionallyVersionedNestedKeyID(keyRaw)
 	if err != nil {
 		return nil, err
 	}
 
-	if requireVersion == Versioned && keyID.Version == "" {
+	if requireVersion == VersionTypeVersioned && keyID.Version == "" {
 		return nil, fmt.Errorf("expected a key vault versioned ID but no version information was found in: %q", keyRaw)
 	}
 
-	if requireVersion == Versionless && keyID.Version != "" {
+	if requireVersion == VersionTypeVersionless && keyID.Version != "" {
 		return nil, fmt.Errorf("expected a key vault versionless ID but version information was found in: %q", keyRaw)
 	}
 
 	return keyID, nil
 }
 
-func parseManagedHSMKey(keyRaw string, requireVersion VersionRequireness, hsmEnv environments.Api) (*hsmParse.ManagedHSMDataPlaneVersionedKeyId, *hsmParse.ManagedHSMDataPlaneVersionlessKeyId, error) {
+func parseManagedHSMKey(keyRaw string, requireVersion VersionType, hsmEnv environments.Api) (
+	versioned *hsmParse.ManagedHSMDataPlaneVersionedKeyId, versionless *hsmParse.ManagedHSMDataPlaneVersionlessKeyId, err error) {
 	// if specified with hasVersion == True, then it has to be parsed as versionedKeyID
 	var domainSuffix *string
 	if hsmEnv != nil {
 		domainSuffix, _ = hsmEnv.DomainSuffix()
 	}
-	// versioned or optional version
-	if requireVersion == OptionallyVersioned || requireVersion == Versioned {
-		versioned, err := hsmParse.ManagedHSMDataPlaneVersionedKeyID(keyRaw, domainSuffix)
-		if err == nil {
-			return versioned, nil, nil
+
+	switch requireVersion {
+	case VersionTypeAny:
+		if versioned, err = hsmParse.ManagedHSMDataPlaneVersionedKeyID(keyRaw, domainSuffix); err != nil {
+			if versionless, err = hsmParse.ManagedHSMDataPlaneVersionlessKeyID(keyRaw, domainSuffix); err != nil {
+				return nil, nil, fmt.Errorf("parse Managed HSM both versionedID and versionlessID err for %s", keyRaw)
+			}
 		}
-		// if required versioned but got error
-		if requireVersion == Versioned {
-			return nil, nil, err
-		}
+	case VersionTypeVersioned:
+		versioned, err = hsmParse.ManagedHSMDataPlaneVersionedKeyID(keyRaw, domainSuffix)
+	case VersionTypeVersionless:
+		versionless, err = hsmParse.ManagedHSMDataPlaneVersionlessKeyID(keyRaw, domainSuffix)
 	}
 
-	// versionless or optional version
-	if versionless, err := hsmParse.ManagedHSMDataPlaneVersionlessKeyID(keyRaw, domainSuffix); err == nil {
-		return nil, versionless, nil
-	} else {
-		return nil, nil, err
-	}
+	return versioned, versionless, err
 }
 
-func ExpandKeyVaultOrManagedHSMKey(d interface{}, requireVersion VersionRequireness, hsmEnv environments.Api) (*KeyVaultOrManagedHSMKey, error) {
+func ExpandKeyVaultOrManagedHSMKey(d interface{}, requireVersion VersionType, hsmEnv environments.Api) (*KeyVaultOrManagedHSMKey, error) {
 	return ExpandKeyVaultOrManagedHSMKeyWithCustomFieldKey(d, requireVersion, "key_vault_key_id", "managed_hsm_key_id", hsmEnv)
 }
 
 // ExpandKeyVaultOrManagedHSMKeyWithCustomFieldKey
 // d: should be one of *pluginsdk.ResourceData or map[string]interface{}
-// hasVersion:
-//   - nil: both versioned or versionless are ok
-//   - true: must have version
-//   - false: must not have vesrion
-//
 // if return nil, nil, it means no key_vault_key_id or managed_hsm_key_id is specified
-func ExpandKeyVaultOrManagedHSMKeyWithCustomFieldKey(d interface{}, requireVersion VersionRequireness, keyVaultFieldName, hsmFieldName string, hsmEnv environments.Api) (*KeyVaultOrManagedHSMKey, error) {
+func ExpandKeyVaultOrManagedHSMKeyWithCustomFieldKey(d interface{}, requireVersion VersionType, keyVaultFieldName, hsmFieldName string, hsmEnv environments.Api) (*KeyVaultOrManagedHSMKey, error) {
 	key := &KeyVaultOrManagedHSMKey{}
 	var err error
 	var vaultKeyStr, hsmKeyStr string
