@@ -57,8 +57,8 @@ func (c ContainerInstanceClient) ContainersListLogs(ctx context.Context, id Cont
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/logs", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/logs", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

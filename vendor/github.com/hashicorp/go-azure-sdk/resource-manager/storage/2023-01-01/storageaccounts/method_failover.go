@@ -57,8 +57,8 @@ func (c StorageAccountsClient) Failover(ctx context.Context, id commonids.Storag
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPost,
-		Path:          fmt.Sprintf("%s/failover", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/failover", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

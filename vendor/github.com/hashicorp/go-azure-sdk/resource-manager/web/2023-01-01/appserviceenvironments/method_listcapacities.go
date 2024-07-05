@@ -24,6 +24,18 @@ type ListCapacitiesCompleteResult struct {
 	Items              []StampCapacity
 }
 
+type ListCapacitiesCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListCapacitiesCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListCapacities ...
 func (c AppServiceEnvironmentsClient) ListCapacities(ctx context.Context, id commonids.AppServiceEnvironmentId) (result ListCapacitiesOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c AppServiceEnvironmentsClient) ListCapacities(ctx context.Context, id com
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListCapacitiesCustomPager{},
 		Path:       fmt.Sprintf("%s/capacities/compute", id.ID()),
 	}
 

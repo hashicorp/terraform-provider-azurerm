@@ -149,6 +149,7 @@ func resourceBackupProtectionPolicyVMCreateUpdate(d *pluginsdk.ResourceData, met
 		TimeZone:         utils.String(d.Get("timezone").(string)),
 		PolicyType:       pointer.To(policyType),
 		SchedulePolicy:   schedulePolicy,
+		TieringPolicy:    expandBackupProtectionPolicyVMTieringPolicy(d.Get("tiering_policy").([]interface{})),
 		InstantRPDetails: expandBackupProtectionPolicyVMResourceGroup(d),
 		RetentionPolicy: &protectionpolicies.LongTermRetentionPolicy{ // SimpleRetentionPolicy only has duration property ¯\_(ツ)_/¯
 			DailySchedule:   expandBackupProtectionPolicyVMRetentionDaily(d, times),
@@ -214,6 +215,7 @@ func resourceBackupProtectionPolicyVMRead(d *pluginsdk.ResourceData, meta interf
 		if properties, ok := model.Properties.(protectionpolicies.AzureIaaSVMProtectionPolicy); ok {
 			d.Set("timezone", properties.TimeZone)
 			d.Set("instant_restore_retention_days", properties.InstantRpRetentionRangeInDays)
+			d.Set("tiering_policy", flattenBackupProtectionPolicyVMTieringPolicy(properties.TieringPolicy))
 
 			if schedule, ok := properties.SchedulePolicy.(protectionpolicies.SimpleSchedulePolicy); ok {
 				if err := d.Set("backup", flattenBackupProtectionPolicyVMSchedule(schedule)); err != nil {
@@ -564,6 +566,47 @@ func expandBackupProtectionPolicyVMRetentionDailyFormat(block map[string]interfa
 	return &daily
 }
 
+func expandBackupProtectionPolicyVMTieringPolicy(input []interface{}) *map[string]protectionpolicies.TieringPolicy {
+	result := make(map[string]protectionpolicies.TieringPolicy)
+	if len(input) == 0 {
+		result["ArchivedRP"] = protectionpolicies.TieringPolicy{
+			TieringMode:  pointer.To(protectionpolicies.TieringModeDoNotTier),
+			DurationType: pointer.To(protectionpolicies.RetentionDurationTypeInvalid),
+			Duration:     pointer.To(int64(0)),
+		}
+
+		return &result
+	}
+
+	tieringPolicy := input[0].(map[string]interface{})
+	archivedRP := tieringPolicy["archived_restore_point"].([]interface{})
+	result["ArchivedRP"] = expandBackupProtectionPolicyVMArchivedRP(archivedRP)
+
+	return &result
+}
+
+func expandBackupProtectionPolicyVMArchivedRP(input []interface{}) protectionpolicies.TieringPolicy {
+	if len(input) == 0 {
+		return protectionpolicies.TieringPolicy{}
+	}
+
+	archivedRP := input[0].(map[string]interface{})
+
+	result := protectionpolicies.TieringPolicy{
+		TieringMode: pointer.To(protectionpolicies.TieringMode(archivedRP["mode"].(string))),
+	}
+
+	if v := archivedRP["duration_type"].(string); v != "" {
+		result.DurationType = pointer.To(protectionpolicies.RetentionDurationType(v))
+	}
+
+	if v := archivedRP["duration"].(int); v != 0 {
+		result.Duration = pointer.To(int64(v))
+	}
+
+	return result
+}
+
 func flattenBackupProtectionPolicyVMResourceGroup(rpDetail protectionpolicies.InstantRPAdditionalDetails) []interface{} {
 	if rpDetail.AzureBackupRGNamePrefix == nil {
 		return nil
@@ -769,6 +812,46 @@ func flattenBackupProtectionPolicyVMRetentionDailyFormat(retention *protectionpo
 	return days, includeLastDay
 }
 
+func flattenBackupProtectionPolicyVMTieringPolicy(input *map[string]protectionpolicies.TieringPolicy) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for k, v := range *input {
+		if k == "ArchivedRP" {
+			if pointer.From(v.TieringMode) == protectionpolicies.TieringModeDoNotTier && pointer.From(v.DurationType) == protectionpolicies.RetentionDurationTypeInvalid && pointer.From(v.Duration) == 0 {
+				return results
+			}
+
+			results = append(results, map[string]interface{}{
+				"archived_restore_point": flattenBackupProtectionPolicyVMArchivedRP(v),
+			})
+		}
+	}
+
+	return results
+}
+
+func flattenBackupProtectionPolicyVMArchivedRP(input protectionpolicies.TieringPolicy) []interface{} {
+	results := make([]interface{}, 0)
+
+	result := map[string]interface{}{
+		"mode":     string(pointer.From(input.TieringMode)),
+		"duration": int(pointer.From(input.Duration)),
+	}
+
+	durationType := ""
+	if v := input.DurationType; v != nil && pointer.From(v) != protectionpolicies.RetentionDurationTypeInvalid {
+		durationType = string(pointer.From(v))
+	}
+	result["duration_type"] = durationType
+
+	results = append(results, result)
+
+	return results
+}
+
 func resourceBackupProtectionPolicyVMWaitForUpdate(ctx context.Context, client *protectionpolicies.ProtectionPoliciesClient, id protectionpolicies.BackupPolicyId, d *pluginsdk.ResourceData) error {
 	state := &pluginsdk.StateChangeConf{
 		MinTimeout: 30 * time.Second,
@@ -851,6 +934,51 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.RecoveryServicesVaultName,
+		},
+
+		// `tiering_policy` is defined as the map type in Swagger and currently the key only supports `ArchivedRP`. Service team confirmed that they would support other keys in the future.
+		"tiering_policy": {
+			Type:     pluginsdk.TypeList,
+			MaxItems: 1,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"archived_restore_point": {
+						Type:     pluginsdk.TypeList,
+						MaxItems: 1,
+						Required: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"mode": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ValidateFunc: validation.StringInSlice([]string{
+										string(protectionpolicies.TieringModeTierAfter),
+										string(protectionpolicies.TieringModeTierRecommended),
+									}, false),
+								},
+
+								"duration": {
+									Type:         pluginsdk.TypeInt,
+									Optional:     true,
+									ValidateFunc: validation.IntAtLeast(3),
+								},
+
+								"duration_type": {
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+									ValidateFunc: validation.StringInSlice([]string{
+										string(protectionpolicies.RetentionDurationTypeDays),
+										string(protectionpolicies.RetentionDurationTypeWeeks),
+										string(protectionpolicies.RetentionDurationTypeMonths),
+										string(protectionpolicies.RetentionDurationTypeYears),
+									}, false),
+								},
+							},
+						},
+					},
+				},
+			},
 		},
 
 		"timezone": {

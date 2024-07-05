@@ -24,6 +24,18 @@ type ListHostNameBindingsCompleteResult struct {
 	Items              []HostNameBinding
 }
 
+type ListHostNameBindingsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListHostNameBindingsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListHostNameBindings ...
 func (c WebAppsClient) ListHostNameBindings(ctx context.Context, id commonids.AppServiceId) (result ListHostNameBindingsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c WebAppsClient) ListHostNameBindings(ctx context.Context, id commonids.Ap
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListHostNameBindingsCustomPager{},
 		Path:       fmt.Sprintf("%s/hostNameBindings", id.ID()),
 	}
 

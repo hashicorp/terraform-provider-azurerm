@@ -23,6 +23,18 @@ type LoadBalancerProbesListCompleteResult struct {
 	Items              []Probe
 }
 
+type LoadBalancerProbesListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *LoadBalancerProbesListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // LoadBalancerProbesList ...
 func (c LoadBalancersClient) LoadBalancerProbesList(ctx context.Context, id ProviderLoadBalancerId) (result LoadBalancerProbesListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c LoadBalancersClient) LoadBalancerProbesList(ctx context.Context, id Prov
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &LoadBalancerProbesListCustomPager{},
 		Path:       fmt.Sprintf("%s/probes", id.ID()),
 	}
 

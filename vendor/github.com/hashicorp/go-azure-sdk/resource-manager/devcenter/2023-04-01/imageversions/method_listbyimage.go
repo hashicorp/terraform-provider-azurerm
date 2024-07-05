@@ -23,6 +23,18 @@ type ListByImageCompleteResult struct {
 	Items              []ImageVersion
 }
 
+type ListByImageCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByImageCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByImage ...
 func (c ImageVersionsClient) ListByImage(ctx context.Context, id ImageId) (result ListByImageOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c ImageVersionsClient) ListByImage(ctx context.Context, id ImageId) (resul
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByImageCustomPager{},
 		Path:       fmt.Sprintf("%s/versions", id.ID()),
 	}
 

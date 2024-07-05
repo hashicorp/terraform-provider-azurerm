@@ -53,8 +53,8 @@ func (c JobClient) Create(ctx context.Context, id JobId, input JobCreateParamete
 			http.StatusCreated,
 		},
 		HttpMethod:    http.MethodPut,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

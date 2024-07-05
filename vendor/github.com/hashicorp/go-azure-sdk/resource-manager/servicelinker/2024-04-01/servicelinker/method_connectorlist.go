@@ -23,6 +23,18 @@ type ConnectorListCompleteResult struct {
 	Items              []LinkerResource
 }
 
+type ConnectorListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ConnectorListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ConnectorList ...
 func (c ServiceLinkerClient) ConnectorList(ctx context.Context, id LocationId) (result ConnectorListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c ServiceLinkerClient) ConnectorList(ctx context.Context, id LocationId) (
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ConnectorListCustomPager{},
 		Path:       fmt.Sprintf("%s/connectors", id.ID()),
 	}
 

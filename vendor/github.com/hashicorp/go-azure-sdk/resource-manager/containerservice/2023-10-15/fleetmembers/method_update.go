@@ -57,8 +57,8 @@ func (c FleetMembersClient) Update(ctx context.Context, id MemberId, input Fleet
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPatch,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

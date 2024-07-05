@@ -23,6 +23,18 @@ type ListBuiltInsCompleteResult struct {
 	Items              []TemplateSpecVersion
 }
 
+type ListBuiltInsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListBuiltInsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListBuiltIns ...
 func (c TemplateSpecVersionsClient) ListBuiltIns(ctx context.Context, id BuiltInTemplateSpecId) (result ListBuiltInsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c TemplateSpecVersionsClient) ListBuiltIns(ctx context.Context, id BuiltIn
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListBuiltInsCustomPager{},
 		Path:       fmt.Sprintf("%s/versions", id.ID()),
 	}
 

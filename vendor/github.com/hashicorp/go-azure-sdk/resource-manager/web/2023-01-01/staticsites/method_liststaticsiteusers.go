@@ -23,6 +23,18 @@ type ListStaticSiteUsersCompleteResult struct {
 	Items              []StaticSiteUserARMResource
 }
 
+type ListStaticSiteUsersCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListStaticSiteUsersCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListStaticSiteUsers ...
 func (c StaticSitesClient) ListStaticSiteUsers(ctx context.Context, id AuthProviderId) (result ListStaticSiteUsersOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c StaticSitesClient) ListStaticSiteUsers(ctx context.Context, id AuthProvi
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodPost,
+		Pager:      &ListStaticSiteUsersCustomPager{},
 		Path:       fmt.Sprintf("%s/listUsers", id.ID()),
 	}
 

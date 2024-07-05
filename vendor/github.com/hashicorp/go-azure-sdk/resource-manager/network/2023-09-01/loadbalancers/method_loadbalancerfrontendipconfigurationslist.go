@@ -23,6 +23,18 @@ type LoadBalancerFrontendIPConfigurationsListCompleteResult struct {
 	Items              []FrontendIPConfiguration
 }
 
+type LoadBalancerFrontendIPConfigurationsListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *LoadBalancerFrontendIPConfigurationsListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // LoadBalancerFrontendIPConfigurationsList ...
 func (c LoadBalancersClient) LoadBalancerFrontendIPConfigurationsList(ctx context.Context, id ProviderLoadBalancerId) (result LoadBalancerFrontendIPConfigurationsListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c LoadBalancersClient) LoadBalancerFrontendIPConfigurationsList(ctx contex
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &LoadBalancerFrontendIPConfigurationsListCustomPager{},
 		Path:       fmt.Sprintf("%s/frontendIPConfigurations", id.ID()),
 	}
 

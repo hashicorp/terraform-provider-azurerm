@@ -50,6 +50,18 @@ func (o ListByAutomationAccountOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListByAutomationAccountCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByAutomationAccountCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByAutomationAccount ...
 func (c JobScheduleClient) ListByAutomationAccount(ctx context.Context, id AutomationAccountId, options ListByAutomationAccountOperationOptions) (result ListByAutomationAccountOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -58,8 +70,9 @@ func (c JobScheduleClient) ListByAutomationAccount(ctx context.Context, id Autom
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/jobSchedules", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListByAutomationAccountCustomPager{},
+		Path:          fmt.Sprintf("%s/jobSchedules", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

@@ -54,8 +54,8 @@ func (c AuthorizationServerClient) CreateOrUpdate(ctx context.Context, id Author
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPut,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

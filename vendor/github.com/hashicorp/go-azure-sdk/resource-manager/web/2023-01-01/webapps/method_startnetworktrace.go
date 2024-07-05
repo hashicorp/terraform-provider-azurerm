@@ -66,8 +66,8 @@ func (c WebAppsClient) StartNetworkTrace(ctx context.Context, id commonids.AppSe
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPost,
-		Path:          fmt.Sprintf("%s/startNetworkTrace", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/startNetworkTrace", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

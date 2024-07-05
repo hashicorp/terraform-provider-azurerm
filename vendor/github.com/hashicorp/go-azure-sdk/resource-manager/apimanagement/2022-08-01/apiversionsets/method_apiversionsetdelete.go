@@ -53,8 +53,8 @@ func (c ApiVersionSetsClient) ApiVersionSetDelete(ctx context.Context, id ApiVer
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodDelete,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

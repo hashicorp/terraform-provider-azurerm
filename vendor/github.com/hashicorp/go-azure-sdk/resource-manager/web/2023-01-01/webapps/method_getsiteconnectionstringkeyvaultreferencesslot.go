@@ -23,6 +23,18 @@ type GetSiteConnectionStringKeyVaultReferencesSlotCompleteResult struct {
 	Items              []ApiKVReference
 }
 
+type GetSiteConnectionStringKeyVaultReferencesSlotCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *GetSiteConnectionStringKeyVaultReferencesSlotCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // GetSiteConnectionStringKeyVaultReferencesSlot ...
 func (c WebAppsClient) GetSiteConnectionStringKeyVaultReferencesSlot(ctx context.Context, id SlotId) (result GetSiteConnectionStringKeyVaultReferencesSlotOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c WebAppsClient) GetSiteConnectionStringKeyVaultReferencesSlot(ctx context
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &GetSiteConnectionStringKeyVaultReferencesSlotCustomPager{},
 		Path:       fmt.Sprintf("%s/config/configReferences/connectionStrings", id.ID()),
 	}
 

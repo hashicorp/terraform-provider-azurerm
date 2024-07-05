@@ -53,8 +53,8 @@ func (c PoolClient) Update(ctx context.Context, id PoolId, input Pool, options U
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPatch,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

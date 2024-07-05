@@ -23,6 +23,18 @@ type StorageInsightConfigsListByWorkspaceCompleteResult struct {
 	Items              []StorageInsight
 }
 
+type StorageInsightConfigsListByWorkspaceCustomPager struct {
+	NextLink *odata.Link `json:"@odata.nextLink"`
+}
+
+func (p *StorageInsightConfigsListByWorkspaceCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // StorageInsightConfigsListByWorkspace ...
 func (c StorageInsightsClient) StorageInsightConfigsListByWorkspace(ctx context.Context, id WorkspaceId) (result StorageInsightConfigsListByWorkspaceOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c StorageInsightsClient) StorageInsightConfigsListByWorkspace(ctx context.
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &StorageInsightConfigsListByWorkspaceCustomPager{},
 		Path:       fmt.Sprintf("%s/storageInsightConfigs", id.ID()),
 	}
 

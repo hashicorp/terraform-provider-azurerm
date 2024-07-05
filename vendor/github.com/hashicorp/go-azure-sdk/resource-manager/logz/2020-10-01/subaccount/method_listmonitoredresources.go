@@ -23,6 +23,18 @@ type ListMonitoredResourcesCompleteResult struct {
 	Items              []MonitoredResource
 }
 
+type ListMonitoredResourcesCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListMonitoredResourcesCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListMonitoredResources ...
 func (c SubAccountClient) ListMonitoredResources(ctx context.Context, id AccountId) (result ListMonitoredResourcesOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c SubAccountClient) ListMonitoredResources(ctx context.Context, id Account
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodPost,
+		Pager:      &ListMonitoredResourcesCustomPager{},
 		Path:       fmt.Sprintf("%s/listMonitoredResources", id.ID()),
 	}
 

@@ -23,6 +23,18 @@ type ListByLabCompleteResult struct {
 	Items              []User
 }
 
+type ListByLabCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByLabCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByLab ...
 func (c UserClient) ListByLab(ctx context.Context, id LabId) (result ListByLabOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c UserClient) ListByLab(ctx context.Context, id LabId) (result ListByLabOp
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByLabCustomPager{},
 		Path:       fmt.Sprintf("%s/users", id.ID()),
 	}
 

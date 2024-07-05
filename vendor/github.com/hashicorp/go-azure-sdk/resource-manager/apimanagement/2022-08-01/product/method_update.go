@@ -53,8 +53,8 @@ func (c ProductClient) Update(ctx context.Context, id ProductId, input ProductUp
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPatch,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

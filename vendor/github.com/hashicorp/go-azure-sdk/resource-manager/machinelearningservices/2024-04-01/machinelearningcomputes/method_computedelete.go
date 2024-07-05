@@ -57,8 +57,8 @@ func (c MachineLearningComputesClient) ComputeDelete(ctx context.Context, id Com
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodDelete,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

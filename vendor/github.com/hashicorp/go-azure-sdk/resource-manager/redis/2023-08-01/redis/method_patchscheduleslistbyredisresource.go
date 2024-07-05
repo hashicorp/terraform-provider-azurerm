@@ -23,6 +23,18 @@ type PatchSchedulesListByRedisResourceCompleteResult struct {
 	Items              []RedisPatchSchedule
 }
 
+type PatchSchedulesListByRedisResourceCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *PatchSchedulesListByRedisResourceCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // PatchSchedulesListByRedisResource ...
 func (c RedisClient) PatchSchedulesListByRedisResource(ctx context.Context, id RediId) (result PatchSchedulesListByRedisResourceOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c RedisClient) PatchSchedulesListByRedisResource(ctx context.Context, id R
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &PatchSchedulesListByRedisResourceCustomPager{},
 		Path:       fmt.Sprintf("%s/patchSchedules", id.ID()),
 	}
 

@@ -50,6 +50,18 @@ func (o ListByHybridRunbookWorkerGroupOperationOptions) ToQuery() *client.QueryP
 	return &out
 }
 
+type ListByHybridRunbookWorkerGroupCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByHybridRunbookWorkerGroupCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByHybridRunbookWorkerGroup ...
 func (c HybridRunbookWorkerClient) ListByHybridRunbookWorkerGroup(ctx context.Context, id HybridRunbookWorkerGroupId, options ListByHybridRunbookWorkerGroupOperationOptions) (result ListByHybridRunbookWorkerGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -58,8 +70,9 @@ func (c HybridRunbookWorkerClient) ListByHybridRunbookWorkerGroup(ctx context.Co
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/hybridRunbookWorkers", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListByHybridRunbookWorkerGroupCustomPager{},
+		Path:          fmt.Sprintf("%s/hybridRunbookWorkers", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

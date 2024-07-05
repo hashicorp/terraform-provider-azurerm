@@ -84,8 +84,8 @@ func (c DpsCertificateClient) GenerateVerificationCode(ctx context.Context, id C
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPost,
-		Path:          fmt.Sprintf("%s/generateVerificationCode", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/generateVerificationCode", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
