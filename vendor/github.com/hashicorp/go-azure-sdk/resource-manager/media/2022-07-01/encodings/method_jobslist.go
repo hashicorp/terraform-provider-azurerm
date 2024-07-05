@@ -54,6 +54,18 @@ func (o JobsListOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type JobsListCustomPager struct {
+	NextLink *odata.Link `json:"@odata.nextLink"`
+}
+
+func (p *JobsListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // JobsList ...
 func (c EncodingsClient) JobsList(ctx context.Context, id TransformId, options JobsListOperationOptions) (result JobsListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -62,8 +74,9 @@ func (c EncodingsClient) JobsList(ctx context.Context, id TransformId, options J
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/jobs", id.ID()),
 		OptionsObject: options,
+		Pager:         &JobsListCustomPager{},
+		Path:          fmt.Sprintf("%s/jobs", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

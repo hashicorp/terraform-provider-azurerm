@@ -26,6 +26,18 @@ type StopMultipleExecutionsCompleteResult struct {
 	Items              []JobExecution
 }
 
+type StopMultipleExecutionsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *StopMultipleExecutionsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // StopMultipleExecutions ...
 func (c JobsClient) StopMultipleExecutions(ctx context.Context, id JobId) (result StopMultipleExecutionsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -35,6 +47,7 @@ func (c JobsClient) StopMultipleExecutions(ctx context.Context, id JobId) (resul
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodPost,
+		Pager:      &StopMultipleExecutionsCustomPager{},
 		Path:       fmt.Sprintf("%s/stop", id.ID()),
 	}
 

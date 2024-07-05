@@ -53,8 +53,8 @@ func (c QueryKeysClient) Create(ctx context.Context, id CreateQueryKeyId, option
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPost,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

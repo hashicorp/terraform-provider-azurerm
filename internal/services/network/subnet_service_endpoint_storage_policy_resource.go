@@ -27,9 +27,9 @@ import (
 
 func resourceSubnetServiceEndpointStoragePolicy() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceSubnetServiceEndpointStoragePolicyCreateUpdate,
+		Create: resourceSubnetServiceEndpointStoragePolicyCreate,
 		Read:   resourceSubnetServiceEndpointStoragePolicyRead,
-		Update: resourceSubnetServiceEndpointStoragePolicyCreateUpdate,
+		Update: resourceSubnetServiceEndpointStoragePolicyUpdate,
 		Delete: resourceSubnetServiceEndpointStoragePolicyDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -113,24 +113,23 @@ func resourceSubnetServiceEndpointStoragePolicy() *pluginsdk.Resource {
 	}
 }
 
-func resourceSubnetServiceEndpointStoragePolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSubnetServiceEndpointStoragePolicyCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ServiceEndpointPolicies
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := serviceendpointpolicies.NewServiceEndpointPolicyID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
-		resp, err := client.Get(ctx, id, serviceendpointpolicies.DefaultGetOperationOptions())
-		if err != nil {
-			if !response.WasNotFound(resp.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
-		}
 
+	resp, err := client.Get(ctx, id, serviceendpointpolicies.DefaultGetOperationOptions())
+	if err != nil {
 		if !response.WasNotFound(resp.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_subnet_service_endpoint_storage_policy", id.ID())
+			return fmt.Errorf("checking for existing %s: %+v", id, err)
 		}
+	}
+
+	if !response.WasNotFound(resp.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_subnet_service_endpoint_storage_policy", id.ID())
 	}
 
 	param := serviceendpointpolicies.ServiceEndpointPolicy{
@@ -143,6 +142,49 @@ func resourceSubnetServiceEndpointStoragePolicyCreateUpdate(d *pluginsdk.Resourc
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+
+	return resourceSubnetServiceEndpointStoragePolicyRead(d, meta)
+}
+
+func resourceSubnetServiceEndpointStoragePolicyUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.ServiceEndpointPolicies
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := serviceendpointpolicies.ParseServiceEndpointPolicyID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.Get(ctx, *id, serviceendpointpolicies.DefaultGetOperationOptions())
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", id)
+	}
+
+	payload := existing.Model
+
+	if d.HasChange("definition") {
+		payload.Properties = &serviceendpointpolicies.ServiceEndpointPolicyPropertiesFormat{
+			ServiceEndpointPolicyDefinitions: expandServiceEndpointPolicyDefinitions(d.Get("definition").([]interface{})),
+		}
+	}
+
+	if d.HasChange("tags") {
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())

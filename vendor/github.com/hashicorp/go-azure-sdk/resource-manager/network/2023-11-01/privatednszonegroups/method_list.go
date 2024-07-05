@@ -23,6 +23,18 @@ type ListCompleteResult struct {
 	Items              []PrivateDnsZoneGroup
 }
 
+type ListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // List ...
 func (c PrivateDnsZoneGroupsClient) List(ctx context.Context, id PrivateEndpointId) (result ListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c PrivateDnsZoneGroupsClient) List(ctx context.Context, id PrivateEndpoint
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListCustomPager{},
 		Path:       fmt.Sprintf("%s/privateDnsZoneGroups", id.ID()),
 	}
 

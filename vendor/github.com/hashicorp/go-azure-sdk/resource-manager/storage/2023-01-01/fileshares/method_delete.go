@@ -56,8 +56,8 @@ func (c FileSharesClient) Delete(ctx context.Context, id ShareId, options Delete
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodDelete,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

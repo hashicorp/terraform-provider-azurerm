@@ -23,6 +23,18 @@ type LocationListCachedImagesCompleteResult struct {
 	Items              []CachedImages
 }
 
+type LocationListCachedImagesCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *LocationListCachedImagesCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // LocationListCachedImages ...
 func (c ContainerInstanceClient) LocationListCachedImages(ctx context.Context, id LocationId) (result LocationListCachedImagesOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c ContainerInstanceClient) LocationListCachedImages(ctx context.Context, i
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &LocationListCachedImagesCustomPager{},
 		Path:       fmt.Sprintf("%s/cachedImages", id.ID()),
 	}
 

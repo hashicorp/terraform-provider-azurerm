@@ -24,6 +24,18 @@ type DeploymentsListCompleteResult struct {
 	Items              []NginxDeployment
 }
 
+type DeploymentsListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *DeploymentsListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // DeploymentsList ...
 func (c NginxDeploymentClient) DeploymentsList(ctx context.Context, id commonids.SubscriptionId) (result DeploymentsListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c NginxDeploymentClient) DeploymentsList(ctx context.Context, id commonids
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &DeploymentsListCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Nginx.NginxPlus/nginxDeployments", id.ID()),
 	}
 

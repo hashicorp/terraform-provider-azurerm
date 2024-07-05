@@ -54,6 +54,18 @@ func (o DomainEventSubscriptionsListOperationOptions) ToQuery() *client.QueryPar
 	return &out
 }
 
+type DomainEventSubscriptionsListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *DomainEventSubscriptionsListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // DomainEventSubscriptionsList ...
 func (c EventSubscriptionsClient) DomainEventSubscriptionsList(ctx context.Context, id DomainId, options DomainEventSubscriptionsListOperationOptions) (result DomainEventSubscriptionsListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -62,8 +74,9 @@ func (c EventSubscriptionsClient) DomainEventSubscriptionsList(ctx context.Conte
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/eventSubscriptions", id.ID()),
 		OptionsObject: options,
+		Pager:         &DomainEventSubscriptionsListCustomPager{},
+		Path:          fmt.Sprintf("%s/eventSubscriptions", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

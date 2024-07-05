@@ -23,6 +23,18 @@ type ListBySqlVMGroupCompleteResult struct {
 	Items              []SqlVirtualMachine
 }
 
+type ListBySqlVMGroupCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListBySqlVMGroupCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListBySqlVMGroup ...
 func (c SqlVirtualMachinesClient) ListBySqlVMGroup(ctx context.Context, id SqlVirtualMachineGroupId) (result ListBySqlVMGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c SqlVirtualMachinesClient) ListBySqlVMGroup(ctx context.Context, id SqlVi
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListBySqlVMGroupCustomPager{},
 		Path:       fmt.Sprintf("%s/sqlVirtualMachines", id.ID()),
 	}
 

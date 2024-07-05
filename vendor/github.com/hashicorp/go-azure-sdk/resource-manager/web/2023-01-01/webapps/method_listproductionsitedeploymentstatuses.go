@@ -24,6 +24,18 @@ type ListProductionSiteDeploymentStatusesCompleteResult struct {
 	Items              []CsmDeploymentStatus
 }
 
+type ListProductionSiteDeploymentStatusesCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListProductionSiteDeploymentStatusesCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListProductionSiteDeploymentStatuses ...
 func (c WebAppsClient) ListProductionSiteDeploymentStatuses(ctx context.Context, id commonids.AppServiceId) (result ListProductionSiteDeploymentStatusesOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c WebAppsClient) ListProductionSiteDeploymentStatuses(ctx context.Context,
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListProductionSiteDeploymentStatusesCustomPager{},
 		Path:       fmt.Sprintf("%s/deploymentStatus", id.ID()),
 	}
 

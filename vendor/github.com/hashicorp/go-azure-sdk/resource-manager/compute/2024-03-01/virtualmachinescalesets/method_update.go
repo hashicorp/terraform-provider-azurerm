@@ -60,8 +60,8 @@ func (c VirtualMachineScaleSetsClient) Update(ctx context.Context, id VirtualMac
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPatch,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

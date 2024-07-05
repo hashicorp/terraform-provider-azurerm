@@ -53,8 +53,8 @@ func (c GatewayClient) Delete(ctx context.Context, id GatewayId, options DeleteO
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodDelete,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

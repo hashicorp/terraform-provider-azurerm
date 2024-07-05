@@ -52,8 +52,8 @@ func (c PostRulesClient) RefreshCounters(ctx context.Context, id PostRuleId, opt
 			http.StatusNoContent,
 		},
 		HttpMethod:    http.MethodPost,
-		Path:          fmt.Sprintf("%s/refreshCounters", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/refreshCounters", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

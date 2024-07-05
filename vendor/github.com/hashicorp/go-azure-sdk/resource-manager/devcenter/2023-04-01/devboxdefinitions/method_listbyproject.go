@@ -23,6 +23,18 @@ type ListByProjectCompleteResult struct {
 	Items              []DevBoxDefinition
 }
 
+type ListByProjectCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByProjectCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByProject ...
 func (c DevBoxDefinitionsClient) ListByProject(ctx context.Context, id ProjectId) (result ListByProjectOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c DevBoxDefinitionsClient) ListByProject(ctx context.Context, id ProjectId
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByProjectCustomPager{},
 		Path:       fmt.Sprintf("%s/devBoxDefinitions", id.ID()),
 	}
 

@@ -53,8 +53,8 @@ func (c AlertsManagementsClient) AlertsMetaData(ctx context.Context, options Ale
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          "/providers/Microsoft.AlertsManagement/alertsMetaData",
 		OptionsObject: options,
+		Path:          "/providers/Microsoft.AlertsManagement/alertsMetaData",
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

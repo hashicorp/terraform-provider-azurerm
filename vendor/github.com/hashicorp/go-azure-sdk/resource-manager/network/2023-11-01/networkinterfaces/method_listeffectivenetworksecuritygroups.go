@@ -27,6 +27,18 @@ type ListEffectiveNetworkSecurityGroupsCompleteResult struct {
 	Items              []EffectiveNetworkSecurityGroup
 }
 
+type ListEffectiveNetworkSecurityGroupsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListEffectiveNetworkSecurityGroupsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListEffectiveNetworkSecurityGroups ...
 func (c NetworkInterfacesClient) ListEffectiveNetworkSecurityGroups(ctx context.Context, id commonids.NetworkInterfaceId) (result ListEffectiveNetworkSecurityGroupsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -36,6 +48,7 @@ func (c NetworkInterfacesClient) ListEffectiveNetworkSecurityGroups(ctx context.
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodPost,
+		Pager:      &ListEffectiveNetworkSecurityGroupsCustomPager{},
 		Path:       fmt.Sprintf("%s/effectiveNetworkSecurityGroups", id.ID()),
 	}
 

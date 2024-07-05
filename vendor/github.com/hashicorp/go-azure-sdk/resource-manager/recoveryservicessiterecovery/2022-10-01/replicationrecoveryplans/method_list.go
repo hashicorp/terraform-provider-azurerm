@@ -23,6 +23,18 @@ type ListCompleteResult struct {
 	Items              []RecoveryPlan
 }
 
+type ListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // List ...
 func (c ReplicationRecoveryPlansClient) List(ctx context.Context, id VaultId) (result ListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c ReplicationRecoveryPlansClient) List(ctx context.Context, id VaultId) (r
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListCustomPager{},
 		Path:       fmt.Sprintf("%s/replicationRecoveryPlans", id.ID()),
 	}
 

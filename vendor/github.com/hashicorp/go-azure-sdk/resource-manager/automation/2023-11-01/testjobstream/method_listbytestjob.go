@@ -50,6 +50,18 @@ func (o ListByTestJobOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListByTestJobCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByTestJobCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByTestJob ...
 func (c TestJobStreamClient) ListByTestJob(ctx context.Context, id RunbookId, options ListByTestJobOperationOptions) (result ListByTestJobOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -58,8 +70,9 @@ func (c TestJobStreamClient) ListByTestJob(ctx context.Context, id RunbookId, op
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/draft/testJob/streams", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListByTestJobCustomPager{},
+		Path:          fmt.Sprintf("%s/draft/testJob/streams", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

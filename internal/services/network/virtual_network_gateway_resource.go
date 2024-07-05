@@ -30,9 +30,9 @@ import (
 
 func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceVirtualNetworkGatewayCreateUpdate,
+		Create: resourceVirtualNetworkGatewayCreate,
 		Read:   resourceVirtualNetworkGatewayRead,
-		Update: resourceVirtualNetworkGatewayCreateUpdate,
+		Update: resourceVirtualNetworkGatewayUpdate,
 		Delete: resourceVirtualNetworkGatewayDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := virtualnetworkgateways.ParseVirtualNetworkGatewayID(id)
@@ -649,9 +649,9 @@ func resourceVirtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 	}
 }
 
-func resourceVirtualNetworkGatewayCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualNetworkGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VirtualNetworkGateways
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	defer cancel()
 
@@ -659,27 +659,18 @@ func resourceVirtualNetworkGatewayCreateUpdate(d *pluginsdk.ResourceData, meta i
 
 	id := virtualnetworkgateways.NewVirtualNetworkGatewayID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	var existingVNetGateway virtualnetworkgateways.VirtualNetworkGateway
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_virtual_network_gateway", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
-	} else {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			return err
-		}
-		existingVNetGateway = *existing.Model
 	}
 
-	properties, err := getVirtualNetworkGatewayProperties(id, d, existingVNetGateway)
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_virtual_network_gateway", id.ID())
+	}
+
+	properties, err := getVirtualNetworkGatewayProperties(id, d)
 	if err != nil {
 		return err
 	}
@@ -693,7 +684,7 @@ func resourceVirtualNetworkGatewayCreateUpdate(d *pluginsdk.ResourceData, meta i
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, gateway); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -786,6 +777,107 @@ func resourceVirtualNetworkGatewayRead(d *pluginsdk.ResourceData, meta interface
 	return nil
 }
 
+func resourceVirtualNetworkGatewayUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.VirtualNetworkGateways
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	log.Printf("[INFO] preparing arguments for AzureRM Virtual Network Gateway update.")
+
+	id, err := virtualnetworkgateways.ParseVirtualNetworkGatewayID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.Get(ctx, *id)
+	if err != nil {
+		return err
+	}
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+
+	payload := existing.Model
+
+	if d.HasChange("enable_bgp") {
+		payload.Properties.EnableBgp = pointer.To(d.Get("enable_bgp").(bool))
+	}
+
+	if d.HasChange("active_active") {
+		payload.Properties.ActiveActive = pointer.To(d.Get("active_active").(bool))
+	}
+
+	if d.HasChange("sku") {
+		payload.Properties.Sku = expandVirtualNetworkGatewaySku(d)
+	}
+
+	if d.HasChange("ip_configuration") {
+		payload.Properties.IPConfigurations = expandVirtualNetworkGatewayIPConfigurations(d)
+	}
+
+	if d.HasChange("policy_group") {
+		payload.Properties.VirtualNetworkGatewayPolicyGroups = expandVirtualNetworkGatewayPolicyGroups(d.Get("policy_group").([]interface{}))
+	}
+
+	if d.HasChange("vpn_client_configuration") {
+		payload.Properties.VpnClientConfiguration = expandVirtualNetworkGatewayVpnClientConfig(d, *id)
+	}
+
+	if d.HasChange("bgp_settings") {
+		bgpSettings, err := expandVirtualNetworkGatewayBgpSettings(*id, d)
+		if err != nil {
+			return err
+		}
+		payload.Properties.BgpSettings = bgpSettings
+	}
+
+	if d.HasChange("custom_route") {
+		payload.Properties.CustomRoutes = expandVirtualNetworkGatewayAddressSpace(d.Get("custom_route").([]interface{}))
+	}
+
+	if d.HasChange("default_local_network_gateway_id") {
+		payload.Properties.GatewayDefaultSite = nil
+		if gatewayDefaultSiteID := d.Get("default_local_network_gateway_id").(string); gatewayDefaultSiteID != "" {
+			payload.Properties.GatewayDefaultSite = &virtualnetworkgateways.SubResource{
+				Id: &gatewayDefaultSiteID,
+			}
+		}
+	}
+
+	if d.HasChange("bgp_route_translation_for_nat_enabled") {
+		payload.Properties.EnableBgpRouteTranslationForNat = pointer.To(d.Get("bgp_route_translation_for_nat_enabled").(bool))
+	}
+
+	if d.HasChange("dns_forwarding_enabled") {
+		payload.Properties.EnableDnsForwarding = pointer.To(d.Get("dns_forwarding_enabled").(bool))
+	}
+
+	if d.HasChange("ip_sec_replay_protection_enabled") {
+		payload.Properties.DisableIPSecReplayProtection = pointer.To(!d.Get("ip_sec_replay_protection_enabled").(bool))
+	}
+
+	if d.HasChange("remote_vnet_traffic_enabled") {
+		payload.Properties.AllowRemoteVnetTraffic = pointer.To(d.Get("remote_vnet_traffic_enabled").(bool))
+	}
+
+	if d.HasChange("virtual_wan_traffic_enabled") {
+		payload.Properties.AllowVirtualWanTraffic = pointer.To(d.Get("virtual_wan_traffic_enabled").(bool))
+	}
+
+	if d.HasChange("tags") {
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+
+	return resourceVirtualNetworkGatewayRead(d, meta)
+}
+
 func resourceVirtualNetworkGatewayDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VirtualNetworkGateways
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -803,7 +895,7 @@ func resourceVirtualNetworkGatewayDelete(d *pluginsdk.ResourceData, meta interfa
 	return nil
 }
 
-func getVirtualNetworkGatewayProperties(id virtualnetworkgateways.VirtualNetworkGatewayId, d *pluginsdk.ResourceData, existingVNetGateway virtualnetworkgateways.VirtualNetworkGateway) (*virtualnetworkgateways.VirtualNetworkGatewayPropertiesFormat, error) {
+func getVirtualNetworkGatewayProperties(id virtualnetworkgateways.VirtualNetworkGatewayId, d *pluginsdk.ResourceData) (*virtualnetworkgateways.VirtualNetworkGatewayPropertiesFormat, error) {
 	props := &virtualnetworkgateways.VirtualNetworkGatewayPropertiesFormat{
 		GatewayType:                     pointer.To(virtualnetworkgateways.VirtualNetworkGatewayType(d.Get("type").(string))),
 		VpnType:                         pointer.To(virtualnetworkgateways.VpnType(d.Get("vpn_type").(string))),
@@ -847,10 +939,6 @@ func getVirtualNetworkGatewayProperties(id virtualnetworkgateways.VirtualNetwork
 			return nil, err
 		}
 		props.BgpSettings = bgpSettings
-	}
-
-	if existingVNetGateway.Properties.NatRules != nil {
-		props.NatRules = existingVNetGateway.Properties.NatRules
 	}
 
 	gatewayType := pointer.From(props.GatewayType)

@@ -53,8 +53,8 @@ func (c CosmosDBClient) PartitionKeyRangeIdListMetrics(ctx context.Context, id P
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/metrics", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/metrics", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

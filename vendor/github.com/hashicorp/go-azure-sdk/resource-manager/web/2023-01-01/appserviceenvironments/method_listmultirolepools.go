@@ -24,6 +24,18 @@ type ListMultiRolePoolsCompleteResult struct {
 	Items              []WorkerPoolResource
 }
 
+type ListMultiRolePoolsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListMultiRolePoolsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListMultiRolePools ...
 func (c AppServiceEnvironmentsClient) ListMultiRolePools(ctx context.Context, id commonids.AppServiceEnvironmentId) (result ListMultiRolePoolsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c AppServiceEnvironmentsClient) ListMultiRolePools(ctx context.Context, id
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListMultiRolePoolsCustomPager{},
 		Path:       fmt.Sprintf("%s/multiRolePools", id.ID()),
 	}
 

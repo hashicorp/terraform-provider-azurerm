@@ -22,6 +22,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/validate"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
@@ -76,9 +77,10 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 			},
 
 			"managed_resource_group_name": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ForceNew:     true,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+				// NOTE: O+C We set a value for this if omitted so this should remain Computed
 				Computed:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
@@ -142,7 +144,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 			"network_security_group_rules_required": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Computed: !features.FourPointOhBeta(),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(workspaces.RequiredNsgRulesAllRules),
 					string(workspaces.RequiredNsgRulesNoAzureDatabricksRules),
@@ -160,6 +162,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 			"custom_parameters": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
+				// NOTE: O+C The API populates these and since many are ForceNew there doesn't appear to be a need to remove this once set to use the defaults
 				Computed: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{

@@ -23,6 +23,18 @@ type NetworkVirtualApplianceConnectionsListCompleteResult struct {
 	Items              []NetworkVirtualApplianceConnection
 }
 
+type NetworkVirtualApplianceConnectionsListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *NetworkVirtualApplianceConnectionsListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // NetworkVirtualApplianceConnectionsList ...
 func (c VirtualWANsClient) NetworkVirtualApplianceConnectionsList(ctx context.Context, id NetworkVirtualApplianceId) (result NetworkVirtualApplianceConnectionsListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c VirtualWANsClient) NetworkVirtualApplianceConnectionsList(ctx context.Co
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &NetworkVirtualApplianceConnectionsListCustomPager{},
 		Path:       fmt.Sprintf("%s/networkVirtualApplianceConnections", id.ID()),
 	}
 

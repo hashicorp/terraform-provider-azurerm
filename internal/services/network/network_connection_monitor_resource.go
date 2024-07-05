@@ -172,7 +172,6 @@ func resourceNetworkConnectionMonitorSchema() map[string]*pluginsdk.Schema {
 					"target_resource_id": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
-						Computed: true,
 						ValidateFunc: validation.Any(
 							commonids.ValidateVirtualMachineID,
 							workspaces.ValidateWorkspaceID,

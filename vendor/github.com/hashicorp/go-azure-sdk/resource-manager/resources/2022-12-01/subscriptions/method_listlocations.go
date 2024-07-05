@@ -54,8 +54,8 @@ func (c SubscriptionsClient) ListLocations(ctx context.Context, id commonids.Sub
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/locations", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/locations", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

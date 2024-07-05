@@ -23,6 +23,18 @@ type ListCompleteResult struct {
 	Items              []SAPCentralServerInstance
 }
 
+type ListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // List ...
 func (c SAPCentralInstancesClient) List(ctx context.Context, id SapVirtualInstanceId) (result ListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c SAPCentralInstancesClient) List(ctx context.Context, id SapVirtualInstan
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListCustomPager{},
 		Path:       fmt.Sprintf("%s/centralInstances", id.ID()),
 	}
 

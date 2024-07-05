@@ -26,6 +26,18 @@ type ExpressRouteCircuitsListArpTableCompleteResult struct {
 	Items              []ExpressRouteCircuitArpTable
 }
 
+type ExpressRouteCircuitsListArpTableCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ExpressRouteCircuitsListArpTableCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ExpressRouteCircuitsListArpTable ...
 func (c ExpressRouteCircuitArpTableClient) ExpressRouteCircuitsListArpTable(ctx context.Context, id ArpTableId) (result ExpressRouteCircuitsListArpTableOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -35,6 +47,7 @@ func (c ExpressRouteCircuitArpTableClient) ExpressRouteCircuitsListArpTable(ctx 
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodPost,
+		Pager:      &ExpressRouteCircuitsListArpTableCustomPager{},
 		Path:       id.ID(),
 	}
 

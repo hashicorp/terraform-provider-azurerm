@@ -24,6 +24,18 @@ type DeploymentsListByResourceGroupCompleteResult struct {
 	Items              []NginxDeployment
 }
 
+type DeploymentsListByResourceGroupCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *DeploymentsListByResourceGroupCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // DeploymentsListByResourceGroup ...
 func (c NginxDeploymentClient) DeploymentsListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (result DeploymentsListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c NginxDeploymentClient) DeploymentsListByResourceGroup(ctx context.Contex
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &DeploymentsListByResourceGroupCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Nginx.NginxPlus/nginxDeployments", id.ID()),
 	}
 

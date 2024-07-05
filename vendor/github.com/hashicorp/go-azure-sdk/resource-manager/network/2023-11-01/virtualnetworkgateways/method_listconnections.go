@@ -23,6 +23,18 @@ type ListConnectionsCompleteResult struct {
 	Items              []VirtualNetworkGatewayConnectionListEntity
 }
 
+type ListConnectionsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListConnectionsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListConnections ...
 func (c VirtualNetworkGatewaysClient) ListConnections(ctx context.Context, id VirtualNetworkGatewayId) (result ListConnectionsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c VirtualNetworkGatewaysClient) ListConnections(ctx context.Context, id Vi
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListConnectionsCustomPager{},
 		Path:       fmt.Sprintf("%s/connections", id.ID()),
 	}
 
