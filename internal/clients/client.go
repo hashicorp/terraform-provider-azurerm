@@ -160,8 +160,9 @@ type Client struct {
 	// StopContext is used for propagating control from Terraform Core (e.g. Ctrl/Cmd+C)
 	StopContext context.Context
 
-	Account                           *ResourceManagerAccount
-	Features                          features.UserFeatures
+	Account  *ResourceManagerAccount
+	Features features.UserFeatures
+
 	AadB2c                            *aadb2c_v2021_04_01_preview.Client
 	Advisor                           *advisor.Client
 	AnalysisServices                  *analysisservices_v2017_08_01.Client
