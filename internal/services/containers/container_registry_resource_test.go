@@ -233,7 +233,7 @@ func TestAccContainerRegistry_networkAccessProfileIp(t *testing.T) {
 	})
 }
 
-func networkAccessProfileUpdate(t *testing.T) {
+func TestAccContainerRegistry_networkAccessProfileUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
 	r := ContainerRegistryResource{}
 
