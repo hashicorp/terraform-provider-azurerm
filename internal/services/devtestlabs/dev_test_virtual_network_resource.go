@@ -336,14 +336,13 @@ func expandDevTestVirtualNetworkSubnets(input []interface{}, subscriptionId, res
 
 	for _, val := range input {
 		v := val.(map[string]interface{})
-		sharedPublicIpAddressConfiguration := expandDevTestVirtualNetworkSubnetIpAddressConfiguration(v["shared_public_ip_address"].([]interface{}))
 
 		subnet := virtualnetworks.SubnetOverride{
 			ResourceId:                         pointer.To(subnetId.ID()),
 			LabSubnetName:                      pointer.To(name),
 			UsePublicIPAddressPermission:       pointer.To(virtualnetworks.UsagePermissionType(v["use_public_ip_address"].(string))),
 			UseInVMCreationPermission:          pointer.To(virtualnetworks.UsagePermissionType(v["use_in_virtual_machine_creation"].(string))),
-			SharedPublicIPAddressConfiguration: sharedPublicIpAddressConfiguration,
+			SharedPublicIPAddressConfiguration: expandDevTestVirtualNetworkSubnetIpAddressConfiguration(v["shared_public_ip_address"].([]interface{})),
 		}
 		results = append(results, subnet)
 	}
@@ -357,11 +356,9 @@ func expandDevTestVirtualNetworkSubnetIpAddressConfiguration(input []interface{}
 	}
 
 	v := input[0].(map[string]interface{})
-	allowedPortsRaw := v["allowed_ports"].([]interface{})
-	allowedPorts := expandDevTestVirtualNetworkSubnetAllowedPorts(allowedPortsRaw)
 
 	return &virtualnetworks.SubnetSharedPublicIPAddressConfiguration{
-		AllowedPorts: allowedPorts,
+		AllowedPorts: expandDevTestVirtualNetworkSubnetAllowedPorts(v["allowed_ports"].([]interface{})),
 	}
 }
 
@@ -370,12 +367,10 @@ func expandDevTestVirtualNetworkSubnetAllowedPorts(input []interface{}) *[]virtu
 
 	for _, val := range input {
 		v := val.(map[string]interface{})
-		backendPort := int64(v["backend_port"].(int))
-		transportProtocol := virtualnetworks.TransportProtocol(v["transport_protocol"].(string))
 
 		allowedPort := virtualnetworks.Port{
-			BackendPort:       pointer.To(backendPort),
-			TransportProtocol: pointer.To(transportProtocol),
+			BackendPort:       pointer.To(int64(v["backend_port"].(int))),
+			TransportProtocol: pointer.To(virtualnetworks.TransportProtocol(v["transport_protocol"].(string))),
 		}
 		results = append(results, allowedPort)
 	}
@@ -427,12 +422,8 @@ func flattenDevTestVirtualNetworkSubnetAllowedPorts(input *[]virtualnetworks.Por
 
 	for _, v := range *input {
 		output := make(map[string]interface{})
-		if v.BackendPort != nil {
-			output["backend_port"] = v.BackendPort
-		}
-		if v.TransportProtocol != nil {
-			output["transport_protocol"] = v.TransportProtocol
-		}
+		output["backend_port"] = pointer.From(v.BackendPort)
+		output["transport_protocol"] = pointer.From(v.TransportProtocol)
 		outputs = append(outputs, output)
 	}
 
