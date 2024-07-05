@@ -1021,7 +1021,7 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("`create_mode` only works when `backup.type` is `Continuous`")
 	}
 
-	if key, err := customermanagedkeys.ExpandKeyVaultOrManagedHSMKey(d, customermanagedkeys.VersionTypeAny, meta.(clients.Client).Account.Environment.ManagedHSM); err != nil {
+	if key, err := customermanagedkeys.ExpandKeyVaultOrManagedHSMKey(d, customermanagedkeys.VersionTypeAny, meta.(*clients.Client).Account.Environment.ManagedHSM); err != nil {
 		return fmt.Errorf("parse key vault key id: %+v", err)
 	} else if key != nil {
 		account.Properties.KeyVaultKeyUri = pointer.To(key.ID())
@@ -1233,7 +1233,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			Tags: t,
 		}
 
-		if key, err := customermanagedkeys.ExpandKeyVaultOrManagedHSMKey(d, customermanagedkeys.VersionTypeAny, meta.(clients.Client).Account.Environment.ManagedHSM); err != nil {
+		if key, err := customermanagedkeys.ExpandKeyVaultOrManagedHSMKey(d, customermanagedkeys.VersionTypeAny, meta.(*clients.Client).Account.Environment.ManagedHSM); err != nil {
 			return err
 		} else if key != nil {
 			account.Properties.KeyVaultKeyUri = pointer.To(key.ID())
