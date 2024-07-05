@@ -910,7 +910,7 @@ resource "azurerm_key_vault_certificate" "cert" {
   }
 }
 resource "azurerm_key_vault_managed_hardware_security_module" "test" {
-  name                     = "kvHsm%[1]d"
+  name                     = "kvHsm%[3]s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   sku_name                 = "Standard_B1"
