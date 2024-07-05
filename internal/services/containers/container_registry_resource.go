@@ -973,7 +973,7 @@ func flattenEncryption(input *registries.EncryptionProperty) []interface{} {
 		return []interface{}{encryption}
 	}
 
-	if input == nil || input.KeyVaultProperties == nil || input.Status != nil || *input.Status == registries.EncryptionStatusDisabled {
+	if input == nil || input.KeyVaultProperties == nil || input.Status == nil || *input.Status == registries.EncryptionStatusDisabled {
 		return []interface{}{}
 	}
 
