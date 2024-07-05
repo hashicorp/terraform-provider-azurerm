@@ -55,6 +55,18 @@ func (o QueueListOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type QueueListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *QueueListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // QueueList ...
 func (c QueueServiceClient) QueueList(ctx context.Context, id commonids.StorageAccountId, options QueueListOperationOptions) (result QueueListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -63,8 +75,9 @@ func (c QueueServiceClient) QueueList(ctx context.Context, id commonids.StorageA
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/queueServices/default/queues", id.ID()),
 		OptionsObject: options,
+		Pager:         &QueueListCustomPager{},
+		Path:          fmt.Sprintf("%s/queueServices/default/queues", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

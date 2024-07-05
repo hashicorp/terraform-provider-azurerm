@@ -23,6 +23,18 @@ type NamespacesListAuthorizationRulesCompleteResult struct {
 	Items              []AuthorizationRule
 }
 
+type NamespacesListAuthorizationRulesCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *NamespacesListAuthorizationRulesCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // NamespacesListAuthorizationRules ...
 func (c AuthorizationRulesNamespacesClient) NamespacesListAuthorizationRules(ctx context.Context, id NamespaceId) (result NamespacesListAuthorizationRulesOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c AuthorizationRulesNamespacesClient) NamespacesListAuthorizationRules(ctx
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &NamespacesListAuthorizationRulesCustomPager{},
 		Path:       fmt.Sprintf("%s/authorizationRules", id.ID()),
 	}
 

@@ -53,8 +53,8 @@ func (c ProductPolicyClient) Delete(ctx context.Context, id ProductId, options D
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodDelete,
-		Path:          fmt.Sprintf("%s/policies/policy", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/policies/policy", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

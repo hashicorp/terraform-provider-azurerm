@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	securityinsight "github.com/tombuildsstuff/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
@@ -42,8 +41,8 @@ func importSentinelDataConnector(expectKind securityinsight.DataConnectorKind) f
 			return err
 		}
 
-		// client := meta.(*clients.Client).Sentinel.DataConnectorsClient // TODO - change this when https://github.com/Azure/azure-rest-api-specs/issues/21487 is resolved
-		client := azuresdkhacks.DataConnectorsClient{BaseClient: meta.(*clients.Client).Sentinel.DataConnectorsClient.BaseClient}
+		client := meta.(*clients.Client).Sentinel.DataConnectorsClient
+
 		resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
 		if err != nil {
 			return fmt.Errorf("retrieving Sentinel Alert Rule %q: %+v", id, err)
@@ -88,11 +87,7 @@ func assertDataConnectorKind(dc securityinsight.BasicDataConnector, expectKind s
 		kind = securityinsight.DataConnectorKindAmazonWebServicesS3
 	case securityinsight.TiTaxiiDataConnector:
 		kind = securityinsight.DataConnectorKindThreatIntelligenceTaxii
-	case azuresdkhacks.TiTaxiiDataConnector:
-		kind = securityinsight.DataConnectorKindThreatIntelligenceTaxii
 	case securityinsight.TIDataConnector:
-		kind = securityinsight.DataConnectorKindThreatIntelligence
-	case azuresdkhacks.TIDataConnector:
 		kind = securityinsight.DataConnectorKindThreatIntelligence
 	}
 	if expectKind != kind {

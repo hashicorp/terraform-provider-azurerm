@@ -106,21 +106,20 @@ func dataSourceExpressRouteCircuitPeering() *pluginsdk.Resource {
 func dataSourceExpressRouteCircuitPeeringRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ExpressRouteCircuitPeerings
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	defer cancel()
 
-	// TODO this should be constructed?
-	id, err := commonids.ParseExpressRouteCircuitPeeringID(d.Id())
-	if err != nil {
-		return err
-	}
+	id := commonids.NewExpressRouteCircuitPeeringID(subscriptionId, d.Get("resource_group_name").(string), d.Get("express_route_circuit_name").(string), d.Get("peering_type").(string))
 
-	resp, err := client.Get(ctx, *id)
+	resp, err := client.Get(ctx, id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
-		return fmt.Errorf("retrieving %s: %+v", *id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
+
+	d.SetId(id.ID())
 
 	d.Set("peering_type", id.PeeringName)
 	d.Set("express_route_circuit_name", id.CircuitName)

@@ -23,6 +23,18 @@ type ListByTrafficControllerCompleteResult struct {
 	Items              []Frontend
 }
 
+type ListByTrafficControllerCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByTrafficControllerCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByTrafficController ...
 func (c FrontendsInterfaceClient) ListByTrafficController(ctx context.Context, id TrafficControllerId) (result ListByTrafficControllerOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c FrontendsInterfaceClient) ListByTrafficController(ctx context.Context, i
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByTrafficControllerCustomPager{},
 		Path:       fmt.Sprintf("%s/frontends", id.ID()),
 	}
 

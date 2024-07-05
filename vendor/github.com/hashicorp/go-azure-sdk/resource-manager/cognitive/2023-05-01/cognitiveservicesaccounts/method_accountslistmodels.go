@@ -23,6 +23,18 @@ type AccountsListModelsCompleteResult struct {
 	Items              []AccountModel
 }
 
+type AccountsListModelsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *AccountsListModelsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // AccountsListModels ...
 func (c CognitiveServicesAccountsClient) AccountsListModels(ctx context.Context, id AccountId) (result AccountsListModelsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c CognitiveServicesAccountsClient) AccountsListModels(ctx context.Context,
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &AccountsListModelsCustomPager{},
 		Path:       fmt.Sprintf("%s/models", id.ID()),
 	}
 

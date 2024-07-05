@@ -118,14 +118,16 @@ func TestAccSynapseWorkspace_azdo(t *testing.T) {
 			Config: r.azureDevOps(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("azure_devops_repo.0.account_name").HasValue("myorg"),
-				check.That(data.ResourceName).Key("azure_devops_repo.0.project_name").HasValue("myproj"),
-				check.That(data.ResourceName).Key("azure_devops_repo.0.repository_name").HasValue("myrepo"),
-				check.That(data.ResourceName).Key("azure_devops_repo.0.branch_name").HasValue("dev"),
-				check.That(data.ResourceName).Key("azure_devops_repo.0.root_folder").HasValue("/"),
-				check.That(data.ResourceName).Key("azure_devops_repo.0.tenant_id").IsEmpty(),
 			),
 		},
+		data.ImportStep("sql_administrator_login_password"),
+		{
+			Config: r.repoConfigRemoved(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("sql_administrator_login_password"),
 	})
 }
 
@@ -138,14 +140,9 @@ func TestAccSynapseWorkspace_azdoTenant(t *testing.T) {
 			Config: r.azureDevOpsTenant(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("azure_devops_repo.0.account_name").HasValue("myorg"),
-				check.That(data.ResourceName).Key("azure_devops_repo.0.project_name").HasValue("myproj"),
-				check.That(data.ResourceName).Key("azure_devops_repo.0.repository_name").HasValue("myrepo"),
-				check.That(data.ResourceName).Key("azure_devops_repo.0.branch_name").HasValue("dev"),
-				check.That(data.ResourceName).Key("azure_devops_repo.0.root_folder").HasValue("/"),
-				check.That(data.ResourceName).Key("azure_devops_repo.0.tenant_id").Exists(),
 			),
 		},
+		data.ImportStep("sql_administrator_login_password"),
 	})
 }
 
@@ -158,13 +155,16 @@ func TestAccSynapseWorkspace_github(t *testing.T) {
 			Config: r.github(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("github_repo.0.account_name").HasValue("myuser"),
-				check.That(data.ResourceName).Key("github_repo.0.git_url").HasValue("https://github.mydomain.com"),
-				check.That(data.ResourceName).Key("github_repo.0.repository_name").HasValue("myrepo"),
-				check.That(data.ResourceName).Key("github_repo.0.branch_name").HasValue("dev"),
-				check.That(data.ResourceName).Key("github_repo.0.root_folder").HasValue("/"),
 			),
 		},
+		data.ImportStep("sql_administrator_login_password"),
+		{
+			Config: r.repoConfigRemoved(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("sql_administrator_login_password"),
 	})
 }
 
@@ -504,6 +504,26 @@ resource "azurerm_synapse_workspace" "test" {
     root_folder     = "/"
     last_commit_id  = "1592393b38543d51feb12714cbd39501d697610c"
   }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r SynapseWorkspaceResource) repoConfigRemoved(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_synapse_workspace" "test" {
+  name                                 = "acctestsw%d"
+  resource_group_name                  = azurerm_resource_group.test.name
+  location                             = azurerm_resource_group.test.location
+  storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.test.id
+  sql_administrator_login              = "sqladminuser"
+  sql_administrator_login_password     = "H@Sh1CoR3!"
 
   identity {
     type = "SystemAssigned"

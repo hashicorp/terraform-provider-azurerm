@@ -24,6 +24,18 @@ type VirtualHubsListCompleteResult struct {
 	Items              []VirtualHub
 }
 
+type VirtualHubsListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *VirtualHubsListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // VirtualHubsList ...
 func (c VirtualWANsClient) VirtualHubsList(ctx context.Context, id commonids.SubscriptionId) (result VirtualHubsListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c VirtualWANsClient) VirtualHubsList(ctx context.Context, id commonids.Sub
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &VirtualHubsListCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.Network/virtualHubs", id.ID()),
 	}
 

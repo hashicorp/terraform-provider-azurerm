@@ -23,9 +23,9 @@ import (
 
 func resourceVirtualWan() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceVirtualWanCreateUpdate,
+		Create: resourceVirtualWanCreate,
 		Read:   resourceVirtualWanRead,
-		Update: resourceVirtualWanCreateUpdate,
+		Update: resourceVirtualWanUpdate,
 		Delete: resourceVirtualWanDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := virtualwans.ParseVirtualWANID(id)
@@ -39,78 +39,70 @@ func resourceVirtualWan() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: resourceVirtualWanSchema(),
+		Schema: map[string]*pluginsdk.Schema{
+			"name": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"resource_group_name": commonschema.ResourceGroupName(),
+
+			"location": commonschema.Location(),
+
+			"disable_vpn_encryption": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
+			"allow_branch_to_branch_traffic": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
+			"office365_local_breakout_category": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(virtualwans.OfficeTrafficCategoryAll),
+					string(virtualwans.OfficeTrafficCategoryNone),
+					string(virtualwans.OfficeTrafficCategoryOptimize),
+					string(virtualwans.OfficeTrafficCategoryOptimizeAndAllow),
+				}, false),
+				Default: string(virtualwans.OfficeTrafficCategoryNone),
+			},
+
+			"type": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  "Standard",
+			},
+
+			"tags": commonschema.Tags(),
+		},
 	}
 }
 
-func resourceVirtualWanSchema() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
-		"name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
-		"resource_group_name": commonschema.ResourceGroupName(),
-
-		"location": commonschema.Location(),
-
-		"disable_vpn_encryption": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
-		},
-
-		"allow_branch_to_branch_traffic": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
-		},
-
-		"office365_local_breakout_category": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(virtualwans.OfficeTrafficCategoryAll),
-				string(virtualwans.OfficeTrafficCategoryNone),
-				string(virtualwans.OfficeTrafficCategoryOptimize),
-				string(virtualwans.OfficeTrafficCategoryOptimizeAndAllow),
-			}, false),
-			Default: string(virtualwans.OfficeTrafficCategoryNone),
-		},
-
-		"type": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  "Standard",
-		},
-
-		"tags": commonschema.Tags(),
-	}
-}
-
-func resourceVirtualWanCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualWanCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for Virtual WAN creation.")
 
 	id := virtualwans.NewVirtualWANID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.VirtualWansGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-		}
-
+	existing, err := client.VirtualWansGet(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_virtual_wan", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
+	}
+
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_virtual_wan", id.ID())
 	}
 
 	wan := virtualwans.VirtualWAN{
@@ -125,7 +117,60 @@ func resourceVirtualWanCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if err := client.VirtualWansCreateOrUpdateThenPoll(ctx, id, wan); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+
+	return resourceVirtualWanRead(d, meta)
+}
+
+func resourceVirtualWanUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.VirtualWANs
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := virtualwans.ParseVirtualWANID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.VirtualWansGet(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", id)
+	}
+
+	payload := existing.Model
+
+	if d.HasChange("disable_vpn_encryption") {
+		payload.Properties.DisableVpnEncryption = pointer.To(d.Get("disable_vpn_encryption").(bool))
+	}
+
+	if d.HasChange("allow_branch_to_branch_traffic") {
+		payload.Properties.AllowBranchToBranchTraffic = pointer.To(d.Get("allow_branch_to_branch_traffic").(bool))
+	}
+
+	if d.HasChange("office365_local_breakout_category") {
+		payload.Properties.Office365LocalBreakoutCategory = pointer.To(virtualwans.OfficeTrafficCategory(d.Get("office365_local_breakout_category").(string)))
+	}
+
+	if d.HasChange("type") {
+		payload.Properties.Type = pointer.To(d.Get("type").(string))
+	}
+
+	if d.HasChange("tags") {
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if err := client.VirtualWansCreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())

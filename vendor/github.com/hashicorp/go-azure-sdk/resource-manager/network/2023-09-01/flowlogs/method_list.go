@@ -23,6 +23,18 @@ type ListCompleteResult struct {
 	Items              []FlowLog
 }
 
+type ListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // List ...
 func (c FlowLogsClient) List(ctx context.Context, id NetworkWatcherId) (result ListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c FlowLogsClient) List(ctx context.Context, id NetworkWatcherId) (result L
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListCustomPager{},
 		Path:       fmt.Sprintf("%s/flowLogs", id.ID()),
 	}
 

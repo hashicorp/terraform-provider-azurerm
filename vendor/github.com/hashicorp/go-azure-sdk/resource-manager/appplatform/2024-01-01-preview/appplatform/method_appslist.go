@@ -24,6 +24,18 @@ type AppsListCompleteResult struct {
 	Items              []AppResource
 }
 
+type AppsListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *AppsListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // AppsList ...
 func (c AppPlatformClient) AppsList(ctx context.Context, id commonids.SpringCloudServiceId) (result AppsListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c AppPlatformClient) AppsList(ctx context.Context, id commonids.SpringClou
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &AppsListCustomPager{},
 		Path:       fmt.Sprintf("%s/apps", id.ID()),
 	}
 

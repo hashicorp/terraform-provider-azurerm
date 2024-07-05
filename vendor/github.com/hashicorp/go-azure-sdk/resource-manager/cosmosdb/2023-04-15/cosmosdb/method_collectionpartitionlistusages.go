@@ -53,8 +53,8 @@ func (c CosmosDBClient) CollectionPartitionListUsages(ctx context.Context, id Co
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/partitions/usages", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/partitions/usages", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

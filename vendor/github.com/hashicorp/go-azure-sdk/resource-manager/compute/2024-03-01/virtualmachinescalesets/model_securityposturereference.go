@@ -4,6 +4,7 @@ package virtualmachinescalesets
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type SecurityPostureReference struct {
-	ExcludeExtensions *[]VirtualMachineExtension `json:"excludeExtensions,omitempty"`
-	Id                *string                    `json:"id,omitempty"`
+	ExcludeExtensions *[]string `json:"excludeExtensions,omitempty"`
+	Id                string    `json:"id"`
+	IsOverridable     *bool     `json:"isOverridable,omitempty"`
 }

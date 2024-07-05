@@ -994,6 +994,16 @@ func expandAadAuthV2Settings(input []AadAuthV2Settings) *webapps.AzureActiveDire
 			}
 			result.Validation.AllowedAudiences = pointer.To(aad.AllowedAudiences)
 		}
+
+		if len(aad.AllowedApplications) > 0 {
+			if result.Validation == nil {
+				result.Validation = &webapps.AzureActiveDirectoryValidation{}
+			}
+			if result.Validation.DefaultAuthorizationPolicy == nil {
+				result.Validation.DefaultAuthorizationPolicy = &webapps.DefaultAuthorizationPolicy{}
+			}
+			result.Validation.DefaultAuthorizationPolicy.AllowedApplications = pointer.To(aad.AllowedApplications)
+		}
 	}
 
 	return result

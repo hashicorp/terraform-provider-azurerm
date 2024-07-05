@@ -224,6 +224,7 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 				string(sql.StorageAccountTypeGRS),
 				string(sql.StorageAccountTypeLRS),
 				string(sql.StorageAccountTypeZRS),
+				"GZRS", // manually adding until resource is ported to go-azure-sdk and we can upgrade to a newer API version
 			}, false),
 		},
 

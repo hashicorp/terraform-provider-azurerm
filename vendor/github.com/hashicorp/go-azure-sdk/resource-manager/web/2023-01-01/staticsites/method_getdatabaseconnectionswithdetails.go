@@ -23,6 +23,18 @@ type GetDatabaseConnectionsWithDetailsCompleteResult struct {
 	Items              []DatabaseConnection
 }
 
+type GetDatabaseConnectionsWithDetailsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *GetDatabaseConnectionsWithDetailsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // GetDatabaseConnectionsWithDetails ...
 func (c StaticSitesClient) GetDatabaseConnectionsWithDetails(ctx context.Context, id StaticSiteId) (result GetDatabaseConnectionsWithDetailsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c StaticSitesClient) GetDatabaseConnectionsWithDetails(ctx context.Context
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodPost,
+		Pager:      &GetDatabaseConnectionsWithDetailsCustomPager{},
 		Path:       fmt.Sprintf("%s/showDatabaseConnections", id.ID()),
 	}
 

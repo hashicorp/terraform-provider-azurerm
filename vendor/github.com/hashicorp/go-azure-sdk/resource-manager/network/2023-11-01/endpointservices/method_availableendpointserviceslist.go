@@ -23,6 +23,18 @@ type AvailableEndpointServicesListCompleteResult struct {
 	Items              []EndpointServiceResult
 }
 
+type AvailableEndpointServicesListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *AvailableEndpointServicesListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // AvailableEndpointServicesList ...
 func (c EndpointServicesClient) AvailableEndpointServicesList(ctx context.Context, id LocationId) (result AvailableEndpointServicesListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c EndpointServicesClient) AvailableEndpointServicesList(ctx context.Contex
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &AvailableEndpointServicesListCustomPager{},
 		Path:       fmt.Sprintf("%s/virtualNetworkAvailableEndpointServices", id.ID()),
 	}
 

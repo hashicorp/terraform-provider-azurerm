@@ -23,6 +23,18 @@ type AvailablePrivateEndpointTypesListByResourceGroupCompleteResult struct {
 	Items              []AvailablePrivateEndpointType
 }
 
+type AvailablePrivateEndpointTypesListByResourceGroupCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *AvailablePrivateEndpointTypesListByResourceGroupCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // AvailablePrivateEndpointTypesListByResourceGroup ...
 func (c PrivateEndpointsClient) AvailablePrivateEndpointTypesListByResourceGroup(ctx context.Context, id ProviderLocationId) (result AvailablePrivateEndpointTypesListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c PrivateEndpointsClient) AvailablePrivateEndpointTypesListByResourceGroup
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &AvailablePrivateEndpointTypesListByResourceGroupCustomPager{},
 		Path:       fmt.Sprintf("%s/availablePrivateEndpointTypes", id.ID()),
 	}
 

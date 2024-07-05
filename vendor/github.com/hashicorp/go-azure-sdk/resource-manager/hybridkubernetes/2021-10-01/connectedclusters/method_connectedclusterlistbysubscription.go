@@ -24,6 +24,18 @@ type ConnectedClusterListBySubscriptionCompleteResult struct {
 	Items              []ConnectedCluster
 }
 
+type ConnectedClusterListBySubscriptionCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ConnectedClusterListBySubscriptionCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ConnectedClusterListBySubscription ...
 func (c ConnectedClustersClient) ConnectedClusterListBySubscription(ctx context.Context, id commonids.SubscriptionId) (result ConnectedClusterListBySubscriptionOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c ConnectedClustersClient) ConnectedClusterListBySubscription(ctx context.
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ConnectedClusterListBySubscriptionCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.Kubernetes/connectedClusters", id.ID()),
 	}
 

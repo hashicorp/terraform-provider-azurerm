@@ -23,6 +23,18 @@ type ListByDiskPoolCompleteResult struct {
 	Items              []IscsiTarget
 }
 
+type ListByDiskPoolCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByDiskPoolCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByDiskPool ...
 func (c IscsiTargetsClient) ListByDiskPool(ctx context.Context, id DiskPoolId) (result ListByDiskPoolOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c IscsiTargetsClient) ListByDiskPool(ctx context.Context, id DiskPoolId) (
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByDiskPoolCustomPager{},
 		Path:       fmt.Sprintf("%s/iscsiTargets", id.ID()),
 	}
 

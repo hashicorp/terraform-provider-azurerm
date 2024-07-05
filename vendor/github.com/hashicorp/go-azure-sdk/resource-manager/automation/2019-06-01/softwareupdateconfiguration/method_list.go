@@ -56,8 +56,8 @@ func (c SoftwareUpdateConfigurationClient) List(ctx context.Context, id Automati
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/softwareUpdateConfigurations", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/softwareUpdateConfigurations", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

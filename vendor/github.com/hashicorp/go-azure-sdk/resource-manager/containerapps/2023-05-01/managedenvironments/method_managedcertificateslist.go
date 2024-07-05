@@ -23,6 +23,18 @@ type ManagedCertificatesListCompleteResult struct {
 	Items              []ManagedCertificate
 }
 
+type ManagedCertificatesListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ManagedCertificatesListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ManagedCertificatesList ...
 func (c ManagedEnvironmentsClient) ManagedCertificatesList(ctx context.Context, id ManagedEnvironmentId) (result ManagedCertificatesListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c ManagedEnvironmentsClient) ManagedCertificatesList(ctx context.Context, 
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ManagedCertificatesListCustomPager{},
 		Path:       fmt.Sprintf("%s/managedCertificates", id.ID()),
 	}
 

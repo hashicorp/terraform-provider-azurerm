@@ -23,6 +23,18 @@ type ListNetworkRuleSetsCompleteResult struct {
 	Items              []NetworkRuleSet
 }
 
+type ListNetworkRuleSetsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListNetworkRuleSetsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListNetworkRuleSets ...
 func (c NamespacesClient) ListNetworkRuleSets(ctx context.Context, id NamespaceId) (result ListNetworkRuleSetsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c NamespacesClient) ListNetworkRuleSets(ctx context.Context, id NamespaceI
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListNetworkRuleSetsCustomPager{},
 		Path:       fmt.Sprintf("%s/networkRuleSets", id.ID()),
 	}
 

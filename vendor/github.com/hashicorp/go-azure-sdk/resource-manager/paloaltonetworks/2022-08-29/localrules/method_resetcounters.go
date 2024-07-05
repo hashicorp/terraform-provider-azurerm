@@ -53,8 +53,8 @@ func (c LocalRulesClient) ResetCounters(ctx context.Context, id LocalRuleId, opt
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPost,
-		Path:          fmt.Sprintf("%s/resetCounters", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/resetCounters", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
