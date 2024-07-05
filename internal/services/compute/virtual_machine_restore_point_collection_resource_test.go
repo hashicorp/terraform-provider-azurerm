@@ -4,9 +4,8 @@ import (
 	"context"
 	"fmt"
 	"testing"
-	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/restorepoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/restorepointcollections"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -14,11 +13,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type RestorePointResource struct{}
+type VirtualMachineRestorePointCollectionResource struct{}
 
-func TestAccRestorePoint_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_restore_point", "test")
-	r := RestorePointResource{}
+func TestAccVirtualMachineRestorePointCollection_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_restore_point_collection", "test")
+	r := VirtualMachineRestorePointCollectionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -31,17 +30,20 @@ func TestAccRestorePoint_basic(t *testing.T) {
 	})
 }
 
-func TestAccRestorePoint_excludedDisks(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_restore_point", "test")
-	r := RestorePointResource{}
+func TestAccVirtualMachineRestorePointCollection_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_restore_point_collection", "test")
+	r := VirtualMachineRestorePointCollectionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.addedDisks(data),
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 		{
-			PreConfig: func() { time.Sleep(5 * time.Minute) },
-			Config:    r.excludedDisks(data),
+			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -50,13 +52,13 @@ func TestAccRestorePoint_excludedDisks(t *testing.T) {
 	})
 }
 
-func (r RestorePointResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := restorepoints.ParseRestorePointID(state.ID)
+func (r VirtualMachineRestorePointCollectionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := restorepointcollections.ParseRestorePointCollectionID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Compute.RestorePointsClient.Get(ctx, *id, restorepoints.DefaultGetOperationOptions())
+	resp, err := clients.Compute.RestorePointCollectionsClient.Get(ctx, *id, restorepointcollections.DefaultGetOperationOptions())
 	if err != nil {
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
@@ -64,84 +66,51 @@ func (r RestorePointResource) Exists(ctx context.Context, clients *clients.Clien
 	return utils.Bool(resp.Model != nil), nil
 }
 
-func (r RestorePointResource) basic(data acceptance.TestData) string {
+func (r VirtualMachineRestorePointCollectionResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
-
 %[1]s
+resource "azurerm_virtual_machine_restore_point_collection" "test" {
+  name                      = "acctestRPC-%[2]s"
+  resource_group_name       = azurerm_resource_group.test.name
+  location                  = azurerm_linux_virtual_machine.test.location
+  source_virtual_machine_id = azurerm_linux_virtual_machine.test.id
 
-resource "azurerm_restore_point" "test" {
-  name                        = "acctestRP-%[2]s"
-  restore_point_collection_id = azurerm_restore_point_collection.test.id
+  tags = {
+    foo = "bar"
+  }
 }
 `, r.template(data), data.RandomString)
 }
 
-func (r RestorePointResource) excludedDisks(data acceptance.TestData) string {
+func (r VirtualMachineRestorePointCollectionResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
-
 %[1]s
+resource "azurerm_virtual_machine_restore_point_collection" "test" {
+  name                      = "acctestRPC-%[2]s"
+  resource_group_name       = azurerm_resource_group.test.name
+  location                  = azurerm_linux_virtual_machine.test.location
+  source_virtual_machine_id = azurerm_linux_virtual_machine.test.id
 
-resource "azurerm_managed_disk" "test" {
-  name                 = "acctest%[2]s"
-  location             = azurerm_resource_group.test.location
-  resource_group_name  = azurerm_resource_group.test.name
-  storage_account_type = "Standard_LRS"
-  create_option        = "Empty"
-  disk_size_gb         = 10
-}
-
-resource "azurerm_virtual_machine_data_disk_attachment" "test" {
-  managed_disk_id    = azurerm_managed_disk.test.id
-  virtual_machine_id = azurerm_linux_virtual_machine.test.id
-  lun                = "11"
-  caching            = "ReadWrite"
-}
-
-resource "azurerm_restore_point" "test" {
-  name                        = "acctestRP-%[2]s"
-  restore_point_collection_id = azurerm_restore_point_collection.test.id
+  tags = {
+    bar = "foo"
+  }
 }
 `, r.template(data), data.RandomString)
 }
 
-func (r RestorePointResource) addedDisks(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%[1]s
-
-resource "azurerm_managed_disk" "test" {
-  name                 = "acctest%[2]s"
-  location             = azurerm_resource_group.test.location
-  resource_group_name  = azurerm_resource_group.test.name
-  storage_account_type = "Standard_LRS"
-  create_option        = "Empty"
-  disk_size_gb         = 10
-}
-
-resource "azurerm_virtual_machine_data_disk_attachment" "test" {
-  managed_disk_id    = azurerm_managed_disk.test.id
-  virtual_machine_id = azurerm_linux_virtual_machine.test.id
-  lun                = "11"
-  caching            = "ReadWrite"
-}
-`, r.template(data), data.RandomString)
-}
-
-func (r RestorePointResource) template(data acceptance.TestData) string {
+func (r VirtualMachineRestorePointCollectionResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-Compute-%[1]d"
   location = "%[2]s"
 }
+
 
 resource "azurerm_virtual_network" "test" {
   name                = "acctestnw-%[1]d"
@@ -178,29 +147,22 @@ resource "azurerm_linux_virtual_machine" "test" {
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
+
   admin_ssh_key {
     username   = "adminuser"
     public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+wWK73dCr+jgQOAxNsHAnNNNMEMWOHYEccp6wJm2gotpr9katuF/ZAdou5AaW1C61slRkHRkpRRX9FA9CYBiitZgvCCz+3nWNN7l/Up54Zps/pHWGZLHNJZRYyAB6j5yVLMVHIHriY49d/GZTZVNB8GoJv9Gakwc/fuEZYYl4YDFiGMBP///TzlI4jhiJzjKnEvqPFki5p2ZRJqcbCiF4pJrxUQR/RXqVFQdbRLZgYfJ8xGB878RENq3yQ39d8dVOkq4edbkzwcUmwwwkYVPIoDGsYLaRHnG+To7FvMeyO7xDVQkMKzopTQV8AuKpyvpqu0a9pWOMaiCyDytO7GGN you@me.com"
   }
+
   os_disk {
     caching              = "ReadWrite"
     storage_account_type = "Standard_LRS"
   }
+
   source_image_reference {
     publisher = "Canonical"
     offer     = "0001-com-ubuntu-server-jammy"
     sku       = "22_04-lts"
     version   = "latest"
-  }
-}
-
-resource "azurerm_restore_point_collection" "test" {
-  name                      = "acctestRPC-%[1]d"
-  resource_group_name       = azurerm_resource_group.test.name
-  location                  = azurerm_linux_virtual_machine.test.location
-  source_virtual_machine_id = azurerm_linux_virtual_machine.test.id
-  tags = {
-    foo = "bar"
   }
 }
 `, data.RandomInteger, data.Locations.Primary)

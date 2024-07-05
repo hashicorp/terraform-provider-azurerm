@@ -1,14 +1,14 @@
 ---
 subcategory: "Compute"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_restore_point_collection"
+page_title: "Azure Resource Manager: azurerm_virtual_machine_restore_point_collection"
 description: |-
-  Manages a Restore Point Collection
+  Manages a Virtual Machine Restore Point Collection
 ---
 
-# azurerm_restore_point_collection
+# azurerm_virtual_machine_restore_point_collection
 
-Manages a Restore Point Collection.
+Manages a Virtual Machine Restore Point Collection.
 
 ## Example Usage
 
@@ -76,7 +76,7 @@ resource "azurerm_linux_virtual_machine" "example" {
   }
 }
 
-resource "azurerm_restore_point_collection" "example" {
+resource "azurerm_virtual_machine_restore_point_collection" "example" {
   name                      = "example-collection"
   resource_group_name       = azurerm_resource_group.example.name
   location                  = azurerm_linux_virtual_machine.example.location
@@ -88,36 +88,36 @@ resource "azurerm_restore_point_collection" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Restore Point Collection. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Virtual Machine Restore Point Collection. Changing this forces a new resource to be created.
 
-* `location` - (Required) The Azure location where the Restore Point Collection should exist. Changing this forces a new resource to be created.
+* `location` - (Required) The Azure location where the Virtual Machine Restore Point Collection should exist. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the Resource Group in which the Restore Point Collection should exist. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the Resource Group in which the Virtual Machine Restore Point Collection should exist. Changing this forces a new resource to be created.
 
-* `source_virtual_machine_id` - (Required) The ID of the virtual machine that will be associated with this Restore Point Collection. Changing this forces a new resource to be created.
+* `source_virtual_machine_id` - (Required) The ID of the virtual machine that will be associated with this Virtual Machine Restore Point Collection. Changing this forces a new resource to be created.
 
-* `tags` - (Optional) A mapping of tags which should be assigned to this Restore Point Collection.
+* `tags` - (Optional) A mapping of tags which should be assigned to this Virtual Machine Restore Point Collection.
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the Restore Point Collection.
+* `id` - The ID of the Virtual Machine Restore Point Collection.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 
-* `create` - (Defaults to 30 minutes) Used when creating the Restore Point Collection.
-* `update` - (Defaults to 30 minutes) Used when updating the Restore Point Collection.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Restore Point Collection.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Restore Point Collection.
+* `create` - (Defaults to 30 minutes) Used when creating the Virtual Machine Restore Point Collection.
+* `update` - (Defaults to 30 minutes) Used when updating the Virtual Machine Restore Point Collection.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Virtual Machine Restore Point Collection.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Machine Restore Point Collection.
 
 ## Import
 
-Restore Point Collections can be imported using the `resource id`, e.g.
+Virtual Machine Restore Point Collections can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_restore_point_collection.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Compute/restorePointCollections/collection1
+terraform import azurerm_virtual_machine_restore_point_collection.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Compute/restorePointCollections/collection1
 ```

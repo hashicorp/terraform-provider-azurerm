@@ -15,30 +15,30 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type RestorePointResource struct{}
+type VirtualMachineRestorePointResource struct{}
 
-var _ sdk.Resource = RestorePointResource{}
+var _ sdk.Resource = VirtualMachineRestorePointResource{}
 
-func (r RestorePointResource) ModelObject() interface{} {
-	return &RestorePointResourceModel{}
+func (r VirtualMachineRestorePointResource) ModelObject() interface{} {
+	return &VirtualMachineRestorePointResourceModel{}
 }
 
-type RestorePointResourceModel struct {
-	Name                        string   `tfschema:"name"`
-	RestorePointCollectionId    string   `tfschema:"restore_point_collection_id"`
-	CrashConsistencyModeEnabled bool     `tfschema:"crash_consistency_mode_enabled"`
-	ExcludedDisks               []string `tfschema:"excluded_disks"`
+type VirtualMachineRestorePointResourceModel struct {
+	Name                                   string   `tfschema:"name"`
+	VirtualMachineRestorePointCollectionId string   `tfschema:"virtual_machine_restore_point_collection_id"`
+	CrashConsistencyModeEnabled            bool     `tfschema:"crash_consistency_mode_enabled"`
+	ExcludedDisks                          []string `tfschema:"excluded_disks"`
 }
 
-func (r RestorePointResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r VirtualMachineRestorePointResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return restorepoints.ValidateRestorePointID
 }
 
-func (r RestorePointResource) ResourceType() string {
-	return "azurerm_restore_point"
+func (r VirtualMachineRestorePointResource) ResourceType() string {
+	return "azurerm_virtual_machine_restore_point"
 }
 
-func (r RestorePointResource) Arguments() map[string]*pluginsdk.Schema {
+func (r VirtualMachineRestorePointResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			ForceNew: true,
@@ -46,7 +46,7 @@ func (r RestorePointResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 		},
 
-		"restore_point_collection_id": {
+		"virtual_machine_restore_point_collection_id": {
 			ForceNew:     true,
 			Required:     true,
 			Type:         pluginsdk.TypeString,
@@ -72,22 +72,22 @@ func (r RestorePointResource) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r RestorePointResource) Attributes() map[string]*pluginsdk.Schema {
+func (r VirtualMachineRestorePointResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r RestorePointResource) Create() sdk.ResourceFunc {
+func (r VirtualMachineRestorePointResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Compute.RestorePointsClient
 
-			var config RestorePointResourceModel
+			var config VirtualMachineRestorePointResourceModel
 			if err := metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			collectionId, err := restorepointcollections.ParseRestorePointCollectionID(config.RestorePointCollectionId)
+			collectionId, err := restorepointcollections.ParseRestorePointCollectionID(config.VirtualMachineRestorePointCollectionId)
 			if err != nil {
 				return err
 			}
@@ -133,13 +133,13 @@ func (r RestorePointResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r RestorePointResource) Read() sdk.ResourceFunc {
+func (r VirtualMachineRestorePointResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Compute.RestorePointsClient
 
-			schema := RestorePointResourceModel{}
+			schema := VirtualMachineRestorePointResourceModel{}
 
 			id, err := restorepoints.ParseRestorePointID(metadata.ResourceData.Id())
 			if err != nil {
@@ -156,7 +156,7 @@ func (r RestorePointResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				schema.Name = id.RestorePointName
-				schema.RestorePointCollectionId = restorepointcollections.NewRestorePointCollectionID(id.SubscriptionId, id.ResourceGroupName, id.RestorePointCollectionName).ID()
+				schema.VirtualMachineRestorePointCollectionId = restorepointcollections.NewRestorePointCollectionID(id.SubscriptionId, id.ResourceGroupName, id.RestorePointCollectionName).ID()
 
 				if props := model.Properties; props != nil {
 					schema.CrashConsistencyModeEnabled = strings.EqualFold(string(pointer.From(props.ConsistencyMode)), string(restorepoints.ConsistencyModeTypesCrashConsistent))
@@ -176,7 +176,7 @@ func (r RestorePointResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r RestorePointResource) Delete() sdk.ResourceFunc {
+func (r VirtualMachineRestorePointResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {

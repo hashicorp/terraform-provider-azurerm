@@ -1,14 +1,14 @@
 ---
 subcategory: "Compute"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_restore_point"
+page_title: "Azure Resource Manager: azurerm_virtual_machine_restore_point"
 description: |-
-  Manages a Restore Point Collection
+  Manages a Virtual Machine Restore Point.
 ---
 
 # azurerm_restore_point
 
-Manages a Restore Point.
+Manages a Virtual Machine Restore Point.
 
 ## Example Usage
 
@@ -76,14 +76,14 @@ resource "azurerm_linux_virtual_machine" "example" {
   }
 }
 
-resource "azurerm_restore_point_collection" "example" {
+resource "azurerm_virtual_machine_restore_point_collection" "example" {
   name                      = "example-collection"
   resource_group_name       = azurerm_resource_group.example.name
   location                  = azurerm_linux_virtual_machine.example.location
   source_virtual_machine_id = azurerm_linux_virtual_machine.example.id
 }
 
-resource "azurerm_restore_point" "example" {
+resource "azurerm_virtual_machine_restore_point" "example" {
   name                        = "example-restore-point"
   restore_point_collection_id = azurerm_restore_point_collection.test.id
 }
@@ -93,32 +93,32 @@ resource "azurerm_restore_point" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Restore Point. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Virtual Machine Restore Point. Changing this forces a new resource to be created.
 
-* `restore_point_collection_id` - (Required) Specifies the name of the Restore Point Collection the Restore Point will be associated with. Changing this forces a new resource to be created.
+* `restore_point_collection_id` - (Required) Specifies the name of the Virtual Machine Restore Point Collection the Virtual Machine Restore Point will be associated with. Changing this forces a new resource to be created.
 
-* `crash_consistency_mode_enabled` - (Optional) Is Crash Consistent the Consistency Mode of the Restore Point. Defaults to `false`. Changing this forces a new resource to be created.
+* `crash_consistency_mode_enabled` - (Optional) Is Crash Consistent the Consistency Mode of the Virtual Machine Restore Point. Defaults to `false`. Changing this forces a new resource to be created.
 
-* `excluded_disks` - (Optional) A list of disks that will be excluded from the Restore Point. Changing this forces a new resource to be created.
+* `excluded_disks` - (Optional) A list of disks that will be excluded from the Virtual Machine Restore Point. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the Restore Point.
+* `id` - The ID of the Virtual Machine Restore Point.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Restore Point.
-* `update` - (Defaults to 30 minutes) Used when updating the Restore Point.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Restore Point.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Restore Point.
+* `create` - (Defaults to 30 minutes) Used when creating the Virtual Machine Restore Point.
+* `update` - (Defaults to 30 minutes) Used when updating the Virtual Machine Restore Point.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Virtual Machine Restore Point.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Machine Restore Point.
 
 ## Import
 
-Restore Point can be imported using the `resource id`, e.g.
+Virtual Machine Restore Point can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_restore_point.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Compute/restorePointCollections/collection1/restorePoints/restorePoint1
