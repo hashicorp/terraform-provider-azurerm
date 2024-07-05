@@ -1171,8 +1171,6 @@ func resourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			MaxItems: 1,
-			// this instance of ConfigModeAttr should remain to make sure we can set this to an empty array for Premium -> Basic
-			ConfigMode: pluginsdk.SchemaConfigModeAttr,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"default_action": {
@@ -1188,8 +1186,6 @@ func resourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 					"ip_rule": {
 						Type:     pluginsdk.TypeSet,
 						Optional: true,
-						// this needs to remain ConfigModeAttr since it's nested in a block that has it set
-						ConfigMode: pluginsdk.SchemaConfigModeAttr,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"action": {

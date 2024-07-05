@@ -223,6 +223,13 @@ func TestAccContainerRegistry_networkAccessProfileIp(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.networkAccessProfileNetworkRuleSetRemoved(data, "Basic"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -472,7 +479,8 @@ func (t ContainerRegistryResource) Exists(ctx context.Context, clients *clients.
 }
 
 func (ContainerRegistryResource) basic(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FourPointOhBeta() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -493,9 +501,46 @@ resource "azurerm_container_registry" "test" {
   network_rule_set = []
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-acr-%d"
+  location = "%s"
+}
+
+resource "azurerm_container_registry" "test" {
+  name                = "testacccr%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Basic"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func (ContainerRegistryResource) basicManaged(data acceptance.TestData, sku string) string {
+	if !features.FourPointOhBeta() {
+		return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-acr-%d"
+  location = "%s"
+}
+
+resource "azurerm_container_registry" "test" {
+  name                = "testacccr%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "%s"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, sku)
+	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -511,6 +556,12 @@ resource "azurerm_container_registry" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "%s"
+
+  lifecycle {
+    ignore_changes = [
+      network_rule_set
+    ]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, sku)
 }
@@ -567,12 +618,6 @@ resource "azurerm_container_registry" "test" {
 
   tags = {
     environment = "production"
-  }
-
-  lifecycle {
-    ignore_changes = [
-      network_rule_set
-    ]
   }
 }
 `, data.Locations.Primary, data.RandomInteger)
@@ -786,8 +831,6 @@ resource "azurerm_container_registry" "test" {
   identity {
     type = "SystemAssigned"
   }
-
-  network_rule_set = []
 }
 `, data.Locations.Primary, data.RandomInteger)
 }
@@ -966,7 +1009,8 @@ resource "azurerm_container_registry" "test" {
 }
 
 func (ContainerRegistryResource) geoReplicationUpdateWithNoLocationBasic(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FourPointOhBeta() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -985,6 +1029,24 @@ resource "azurerm_container_registry" "test" {
   # make sure network_rule_set is empty for basic SKU
   # premium SKU will automatically populate network_rule_set.default_action to allow
   network_rule_set = []
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-acr-%d"
+  location = "%s"
+}
+
+resource "azurerm_container_registry" "test" {
+  name                = "testacccr%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Basic"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -1045,6 +1107,27 @@ resource "azurerm_container_registry" "test" {
   network_rule_set {
     default_action = "Allow"
   }
+}
+`, data.RandomInteger, data.Locations.Primary, sku)
+}
+
+func (ContainerRegistryResource) networkAccessProfileNetworkRuleSetRemoved(data acceptance.TestData, sku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_container_registry" "test" {
+  name                = "testAccCr%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "%[3]s"
+  admin_enabled       = false
 }
 `, data.RandomInteger, data.Locations.Primary, sku)
 }
