@@ -23,6 +23,18 @@ type RouteMapsListCompleteResult struct {
 	Items              []RouteMap
 }
 
+type RouteMapsListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *RouteMapsListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // RouteMapsList ...
 func (c VirtualWANsClient) RouteMapsList(ctx context.Context, id VirtualHubId) (result RouteMapsListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c VirtualWANsClient) RouteMapsList(ctx context.Context, id VirtualHubId) (
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &RouteMapsListCustomPager{},
 		Path:       fmt.Sprintf("%s/routeMaps", id.ID()),
 	}
 

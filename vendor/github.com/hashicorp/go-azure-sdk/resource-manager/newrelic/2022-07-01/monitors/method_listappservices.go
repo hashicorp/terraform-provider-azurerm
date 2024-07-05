@@ -23,6 +23,18 @@ type ListAppServicesCompleteResult struct {
 	Items              []AppServiceInfo
 }
 
+type ListAppServicesCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListAppServicesCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListAppServices ...
 func (c MonitorsClient) ListAppServices(ctx context.Context, id MonitorId, input AppServicesGetRequest) (result ListAppServicesOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c MonitorsClient) ListAppServices(ctx context.Context, id MonitorId, input
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodPost,
+		Pager:      &ListAppServicesCustomPager{},
 		Path:       fmt.Sprintf("%s/listAppServices", id.ID()),
 	}
 

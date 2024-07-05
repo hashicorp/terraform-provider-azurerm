@@ -23,6 +23,18 @@ type ListCloudServiceNetworkInterfacesCompleteResult struct {
 	Items              []NetworkInterface
 }
 
+type ListCloudServiceNetworkInterfacesCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListCloudServiceNetworkInterfacesCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListCloudServiceNetworkInterfaces ...
 func (c NetworkInterfacesClient) ListCloudServiceNetworkInterfaces(ctx context.Context, id ProviderCloudServiceId) (result ListCloudServiceNetworkInterfacesOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c NetworkInterfacesClient) ListCloudServiceNetworkInterfaces(ctx context.C
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListCloudServiceNetworkInterfacesCustomPager{},
 		Path:       fmt.Sprintf("%s/networkInterfaces", id.ID()),
 	}
 

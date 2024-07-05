@@ -23,6 +23,18 @@ type LoadBalancerLoadBalancingRulesListCompleteResult struct {
 	Items              []LoadBalancingRule
 }
 
+type LoadBalancerLoadBalancingRulesListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *LoadBalancerLoadBalancingRulesListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // LoadBalancerLoadBalancingRulesList ...
 func (c LoadBalancersClient) LoadBalancerLoadBalancingRulesList(ctx context.Context, id ProviderLoadBalancerId) (result LoadBalancerLoadBalancingRulesListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c LoadBalancersClient) LoadBalancerLoadBalancingRulesList(ctx context.Cont
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &LoadBalancerLoadBalancingRulesListCustomPager{},
 		Path:       fmt.Sprintf("%s/loadBalancingRules", id.ID()),
 	}
 

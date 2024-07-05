@@ -24,6 +24,18 @@ type GrafanaListCompleteResult struct {
 	Items              []ManagedGrafana
 }
 
+type GrafanaListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *GrafanaListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // GrafanaList ...
 func (c GrafanaResourceClient) GrafanaList(ctx context.Context, id commonids.SubscriptionId) (result GrafanaListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c GrafanaResourceClient) GrafanaList(ctx context.Context, id commonids.Sub
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &GrafanaListCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.Dashboard/grafana", id.ID()),
 	}
 

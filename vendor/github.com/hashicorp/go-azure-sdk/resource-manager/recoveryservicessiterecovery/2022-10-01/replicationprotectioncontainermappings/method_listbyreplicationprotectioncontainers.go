@@ -23,6 +23,18 @@ type ListByReplicationProtectionContainersCompleteResult struct {
 	Items              []ProtectionContainerMapping
 }
 
+type ListByReplicationProtectionContainersCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByReplicationProtectionContainersCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByReplicationProtectionContainers ...
 func (c ReplicationProtectionContainerMappingsClient) ListByReplicationProtectionContainers(ctx context.Context, id ReplicationProtectionContainerId) (result ListByReplicationProtectionContainersOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c ReplicationProtectionContainerMappingsClient) ListByReplicationProtectio
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByReplicationProtectionContainersCustomPager{},
 		Path:       fmt.Sprintf("%s/replicationProtectionContainerMappings", id.ID()),
 	}
 

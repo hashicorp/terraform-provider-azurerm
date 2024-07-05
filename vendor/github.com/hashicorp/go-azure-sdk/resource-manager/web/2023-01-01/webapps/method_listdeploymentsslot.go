@@ -23,6 +23,18 @@ type ListDeploymentsSlotCompleteResult struct {
 	Items              []Deployment
 }
 
+type ListDeploymentsSlotCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListDeploymentsSlotCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListDeploymentsSlot ...
 func (c WebAppsClient) ListDeploymentsSlot(ctx context.Context, id SlotId) (result ListDeploymentsSlotOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c WebAppsClient) ListDeploymentsSlot(ctx context.Context, id SlotId) (resu
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListDeploymentsSlotCustomPager{},
 		Path:       fmt.Sprintf("%s/deployments", id.ID()),
 	}
 

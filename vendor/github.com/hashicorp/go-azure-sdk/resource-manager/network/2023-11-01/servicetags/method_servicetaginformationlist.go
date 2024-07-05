@@ -54,6 +54,18 @@ func (o ServiceTagInformationListOperationOptions) ToQuery() *client.QueryParams
 	return &out
 }
 
+type ServiceTagInformationListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ServiceTagInformationListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ServiceTagInformationList ...
 func (c ServiceTagsClient) ServiceTagInformationList(ctx context.Context, id LocationId, options ServiceTagInformationListOperationOptions) (result ServiceTagInformationListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -62,8 +74,9 @@ func (c ServiceTagsClient) ServiceTagInformationList(ctx context.Context, id Loc
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/serviceTagDetails", id.ID()),
 		OptionsObject: options,
+		Pager:         &ServiceTagInformationListCustomPager{},
+		Path:          fmt.Sprintf("%s/serviceTagDetails", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

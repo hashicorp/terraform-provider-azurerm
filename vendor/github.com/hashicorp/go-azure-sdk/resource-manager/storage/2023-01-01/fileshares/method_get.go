@@ -56,8 +56,8 @@ func (c FileSharesClient) Get(ctx context.Context, id ShareId, options GetOperat
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

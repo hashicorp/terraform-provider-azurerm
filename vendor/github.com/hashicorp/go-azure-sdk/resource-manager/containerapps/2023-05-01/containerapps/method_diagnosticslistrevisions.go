@@ -50,6 +50,18 @@ func (o DiagnosticsListRevisionsOperationOptions) ToQuery() *client.QueryParams 
 	return &out
 }
 
+type DiagnosticsListRevisionsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *DiagnosticsListRevisionsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // DiagnosticsListRevisions ...
 func (c ContainerAppsClient) DiagnosticsListRevisions(ctx context.Context, id ContainerAppId, options DiagnosticsListRevisionsOperationOptions) (result DiagnosticsListRevisionsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -58,8 +70,9 @@ func (c ContainerAppsClient) DiagnosticsListRevisions(ctx context.Context, id Co
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/detectorProperties/revisionsApi/revisions", id.ID()),
 		OptionsObject: options,
+		Pager:         &DiagnosticsListRevisionsCustomPager{},
+		Path:          fmt.Sprintf("%s/detectorProperties/revisionsApi/revisions", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

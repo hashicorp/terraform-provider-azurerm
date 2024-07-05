@@ -23,6 +23,18 @@ type ListByWorkspaceCompleteResult struct {
 	Items              []FhirService
 }
 
+type ListByWorkspaceCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByWorkspaceCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByWorkspace ...
 func (c FhirServicesClient) ListByWorkspace(ctx context.Context, id WorkspaceId) (result ListByWorkspaceOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c FhirServicesClient) ListByWorkspace(ctx context.Context, id WorkspaceId)
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByWorkspaceCustomPager{},
 		Path:       fmt.Sprintf("%s/fhirServices", id.ID()),
 	}
 

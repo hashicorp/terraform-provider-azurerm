@@ -55,6 +55,18 @@ func (o ListOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // List ...
 func (c RegistrationAssignmentsClient) List(ctx context.Context, id commonids.ScopeId, options ListOperationOptions) (result ListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -63,8 +75,9 @@ func (c RegistrationAssignmentsClient) List(ctx context.Context, id commonids.Sc
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/providers/Microsoft.ManagedServices/registrationAssignments", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListCustomPager{},
+		Path:          fmt.Sprintf("%s/providers/Microsoft.ManagedServices/registrationAssignments", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

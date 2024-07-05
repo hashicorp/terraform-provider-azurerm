@@ -543,7 +543,11 @@ func flattenServiceBusNamespaceEncryption(encryption *namespaces.Encryption) ([]
 		}
 		keyId = keyVaultKeyId.ID()
 		if props.Identity != nil && props.Identity.UserAssignedIdentity != nil {
-			identityId = *props.Identity.UserAssignedIdentity
+			sbnUaiId, err := commonids.ParseUserAssignedIdentityIDInsensitively(*props.Identity.UserAssignedIdentity)
+			if err != nil {
+				return nil, err
+			}
+			identityId = sbnUaiId.ID()
 		}
 	}
 

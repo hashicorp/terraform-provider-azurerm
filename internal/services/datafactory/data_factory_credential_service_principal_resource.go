@@ -157,14 +157,11 @@ func (r DataFactoryCredentialServicePrincipalResource) Create() sdk.ResourceFunc
 				return tf.ImportAsExistsError("azurerm_data_factory_credential_service_principal", id.ID())
 			}
 
-			var servicePrincipalId interface{} = data.ServicePrincipalId
-			var tenantId interface{} = data.TenantId
-
 			props := credentials.ServicePrincipalCredential{
 				TypeProperties: credentials.ServicePrincipalCredentialTypeProperties{
-					ServicePrincipalId:  pointer.To(servicePrincipalId),
+					ServicePrincipalId:  pointer.To(data.ServicePrincipalId),
 					ServicePrincipalKey: expandDataFactoryCredentialKeyVaultSecretReference(data.ServicePrincipalKey),
-					Tenant:              pointer.To(tenantId),
+					Tenant:              pointer.To(data.TenantId),
 				},
 			}
 			if len(data.Annotations) > 0 {
@@ -227,25 +224,10 @@ func (DataFactoryCredentialServicePrincipalResource) Read() sdk.ResourceFunc {
 				state.Description = pointer.From(props.Description)
 				state.Annotations = flattenDataFactoryAnnotations(props.Annotations)
 
-				if props.TypeProperties.Tenant != nil {
-					if v, ok := (*props.TypeProperties.Tenant).(string); ok {
-						state.TenantId = v
-					}
-				}
-
-				if props.TypeProperties.ServicePrincipalId != nil {
-					if v, ok := (*props.TypeProperties.ServicePrincipalId).(string); ok {
-						state.ServicePrincipalId = v
-					}
-				}
-
-				if props.TypeProperties.ServicePrincipalKey != nil {
-					state.ServicePrincipalKey = flattenDataFactoryCredentialKeyVaultSecretReference(props.TypeProperties.ServicePrincipalKey)
-				}
-
-				if props.Description != nil {
-					state.Description = *props.Description
-				}
+				state.Description = pointer.From(props.Description)
+				state.TenantId = pointer.From(props.TypeProperties.Tenant)
+				state.ServicePrincipalId = pointer.From(props.TypeProperties.ServicePrincipalId)
+				state.ServicePrincipalKey = flattenDataFactoryCredentialKeyVaultSecretReference(props.TypeProperties.ServicePrincipalKey)
 			}
 
 			return metadata.Encode(&state)
@@ -303,13 +285,11 @@ func (r DataFactoryCredentialServicePrincipalResource) Update() sdk.ResourceFunc
 			}
 
 			if metadata.ResourceData.HasChange("service_principal_id") {
-				var servicePrincipalId interface{} = data.ServicePrincipalId
-				props.TypeProperties.ServicePrincipalId = pointer.To(servicePrincipalId)
+				props.TypeProperties.ServicePrincipalId = pointer.To(data.ServicePrincipalId)
 			}
 
 			if metadata.ResourceData.HasChange("tenant_id") {
-				var tenantId interface{} = data.TenantId
-				props.TypeProperties.Tenant = pointer.To(tenantId)
+				props.TypeProperties.Tenant = pointer.To(data.TenantId)
 			}
 
 			payload := credentials.CredentialResource{
@@ -360,8 +340,7 @@ func expandDataFactoryCredentialKeyVaultSecretReference(input []ServicePrincipal
 	}
 
 	if input[0].SecretVersion != "" {
-		var secretVersion interface{} = input[0].SecretVersion
-		out.SecretVersion = pointer.To(secretVersion)
+		out.SecretVersion = pointer.To(input[0].SecretVersion)
 	}
 
 	return pointer.To(out)
@@ -371,23 +350,12 @@ func flattenDataFactoryCredentialKeyVaultSecretReference(input *credentials.Azur
 	if input == nil {
 		return []ServicePrincipalKey{}
 	}
-	var linkedServiceName, secretName, secretVersion string
-	if input.SecretName != nil {
-		if v, ok := input.SecretName.(string); ok {
-			secretName = v
-		}
-	}
-	if input.SecretVersion != nil {
-		if v, ok := (*input.SecretVersion).(string); ok {
-			secretVersion = v
-		}
-	}
-	linkedServiceName = input.Store.ReferenceName
+
 	return []ServicePrincipalKey{
 		{
-			LinkedServiceName: linkedServiceName,
-			SecretName:        secretName,
-			SecretVersion:     secretVersion,
+			LinkedServiceName: input.Store.ReferenceName,
+			SecretName:        input.SecretName,
+			SecretVersion:     pointer.From(input.SecretVersion),
 		},
 	}
 }

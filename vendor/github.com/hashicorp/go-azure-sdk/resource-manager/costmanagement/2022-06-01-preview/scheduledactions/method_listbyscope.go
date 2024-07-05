@@ -51,6 +51,18 @@ func (o ListByScopeOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListByScopeCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByScopeCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByScope ...
 func (c ScheduledActionsClient) ListByScope(ctx context.Context, id commonids.ScopeId, options ListByScopeOperationOptions) (result ListByScopeOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -59,8 +71,9 @@ func (c ScheduledActionsClient) ListByScope(ctx context.Context, id commonids.Sc
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/providers/Microsoft.CostManagement/scheduledActions", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListByScopeCustomPager{},
+		Path:          fmt.Sprintf("%s/providers/Microsoft.CostManagement/scheduledActions", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

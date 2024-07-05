@@ -26,6 +26,18 @@ type ExpressRouteCircuitsListRoutesTableCompleteResult struct {
 	Items              []ExpressRouteCircuitRoutesTable
 }
 
+type ExpressRouteCircuitsListRoutesTableCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ExpressRouteCircuitsListRoutesTableCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ExpressRouteCircuitsListRoutesTable ...
 func (c ExpressRouteCircuitRoutesTableClient) ExpressRouteCircuitsListRoutesTable(ctx context.Context, id PeeringRouteTableId) (result ExpressRouteCircuitsListRoutesTableOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -35,6 +47,7 @@ func (c ExpressRouteCircuitRoutesTableClient) ExpressRouteCircuitsListRoutesTabl
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodPost,
+		Pager:      &ExpressRouteCircuitsListRoutesTableCustomPager{},
 		Path:       id.ID(),
 	}
 

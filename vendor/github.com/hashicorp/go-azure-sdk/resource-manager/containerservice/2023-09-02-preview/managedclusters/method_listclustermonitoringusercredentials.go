@@ -54,8 +54,8 @@ func (c ManagedClustersClient) ListClusterMonitoringUserCredentials(ctx context.
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPost,
-		Path:          fmt.Sprintf("%s/listClusterMonitoringUserCredential", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/listClusterMonitoringUserCredential", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

@@ -54,6 +54,18 @@ func (o QueriesListOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type QueriesListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *QueriesListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // QueriesList ...
 func (c QueryPackQueriesClient) QueriesList(ctx context.Context, id QueryPackId, options QueriesListOperationOptions) (result QueriesListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -62,8 +74,9 @@ func (c QueryPackQueriesClient) QueriesList(ctx context.Context, id QueryPackId,
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/queries", id.ID()),
 		OptionsObject: options,
+		Pager:         &QueriesListCustomPager{},
+		Path:          fmt.Sprintf("%s/queries", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

@@ -23,6 +23,18 @@ type QueuesListAuthorizationRulesCompleteResult struct {
 	Items              []SBAuthorizationRule
 }
 
+type QueuesListAuthorizationRulesCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *QueuesListAuthorizationRulesCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // QueuesListAuthorizationRules ...
 func (c QueuesAuthorizationRuleClient) QueuesListAuthorizationRules(ctx context.Context, id QueueId) (result QueuesListAuthorizationRulesOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c QueuesAuthorizationRuleClient) QueuesListAuthorizationRules(ctx context.
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &QueuesListAuthorizationRulesCustomPager{},
 		Path:       fmt.Sprintf("%s/authorizationRules", id.ID()),
 	}
 

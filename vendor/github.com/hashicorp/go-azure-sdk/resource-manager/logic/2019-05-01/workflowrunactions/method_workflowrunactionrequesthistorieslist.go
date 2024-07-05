@@ -23,6 +23,18 @@ type WorkflowRunActionRequestHistoriesListCompleteResult struct {
 	Items              []RequestHistory
 }
 
+type WorkflowRunActionRequestHistoriesListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *WorkflowRunActionRequestHistoriesListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // WorkflowRunActionRequestHistoriesList ...
 func (c WorkflowRunActionsClient) WorkflowRunActionRequestHistoriesList(ctx context.Context, id ActionId) (result WorkflowRunActionRequestHistoriesListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c WorkflowRunActionsClient) WorkflowRunActionRequestHistoriesList(ctx cont
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &WorkflowRunActionRequestHistoriesListCustomPager{},
 		Path:       fmt.Sprintf("%s/requestHistories", id.ID()),
 	}
 

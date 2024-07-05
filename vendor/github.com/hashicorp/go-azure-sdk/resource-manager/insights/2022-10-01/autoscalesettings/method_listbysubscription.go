@@ -24,6 +24,18 @@ type ListBySubscriptionCompleteResult struct {
 	Items              []AutoscaleSettingResource
 }
 
+type ListBySubscriptionCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListBySubscriptionCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListBySubscription ...
 func (c AutoScaleSettingsClient) ListBySubscription(ctx context.Context, id commonids.SubscriptionId) (result ListBySubscriptionOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c AutoScaleSettingsClient) ListBySubscription(ctx context.Context, id comm
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListBySubscriptionCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.Insights/autoScaleSettings", id.ID()),
 	}
 

@@ -51,6 +51,18 @@ func (o DedicatedHsmListBySubscriptionOperationOptions) ToQuery() *client.QueryP
 	return &out
 }
 
+type DedicatedHsmListBySubscriptionCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *DedicatedHsmListBySubscriptionCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // DedicatedHsmListBySubscription ...
 func (c DedicatedHsmsClient) DedicatedHsmListBySubscription(ctx context.Context, id commonids.SubscriptionId, options DedicatedHsmListBySubscriptionOperationOptions) (result DedicatedHsmListBySubscriptionOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -59,8 +71,9 @@ func (c DedicatedHsmsClient) DedicatedHsmListBySubscription(ctx context.Context,
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/providers/Microsoft.HardwareSecurityModules/dedicatedHSMs", id.ID()),
 		OptionsObject: options,
+		Pager:         &DedicatedHsmListBySubscriptionCustomPager{},
+		Path:          fmt.Sprintf("%s/providers/Microsoft.HardwareSecurityModules/dedicatedHSMs", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

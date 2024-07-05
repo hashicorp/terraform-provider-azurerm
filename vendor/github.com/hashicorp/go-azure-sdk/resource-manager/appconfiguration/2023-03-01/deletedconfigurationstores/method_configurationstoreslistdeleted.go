@@ -24,6 +24,18 @@ type ConfigurationStoresListDeletedCompleteResult struct {
 	Items              []DeletedConfigurationStore
 }
 
+type ConfigurationStoresListDeletedCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ConfigurationStoresListDeletedCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ConfigurationStoresListDeleted ...
 func (c DeletedConfigurationStoresClient) ConfigurationStoresListDeleted(ctx context.Context, id commonids.SubscriptionId) (result ConfigurationStoresListDeletedOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c DeletedConfigurationStoresClient) ConfigurationStoresListDeleted(ctx con
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ConfigurationStoresListDeletedCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.AppConfiguration/deletedConfigurationStores", id.ID()),
 	}
 

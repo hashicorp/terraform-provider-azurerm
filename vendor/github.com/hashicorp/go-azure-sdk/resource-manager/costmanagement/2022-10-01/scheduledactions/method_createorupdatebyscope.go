@@ -54,8 +54,8 @@ func (c ScheduledActionsClient) CreateOrUpdateByScope(ctx context.Context, id Sc
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPut,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

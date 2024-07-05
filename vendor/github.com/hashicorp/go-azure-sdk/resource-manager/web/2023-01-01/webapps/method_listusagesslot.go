@@ -50,6 +50,18 @@ func (o ListUsagesSlotOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListUsagesSlotCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListUsagesSlotCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListUsagesSlot ...
 func (c WebAppsClient) ListUsagesSlot(ctx context.Context, id SlotId, options ListUsagesSlotOperationOptions) (result ListUsagesSlotOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -58,8 +70,9 @@ func (c WebAppsClient) ListUsagesSlot(ctx context.Context, id SlotId, options Li
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/usages", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListUsagesSlotCustomPager{},
+		Path:          fmt.Sprintf("%s/usages", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

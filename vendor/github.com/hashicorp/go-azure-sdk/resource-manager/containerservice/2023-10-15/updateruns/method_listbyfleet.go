@@ -23,6 +23,18 @@ type ListByFleetCompleteResult struct {
 	Items              []UpdateRun
 }
 
+type ListByFleetCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByFleetCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByFleet ...
 func (c UpdateRunsClient) ListByFleet(ctx context.Context, id FleetId) (result ListByFleetOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c UpdateRunsClient) ListByFleet(ctx context.Context, id FleetId) (result L
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByFleetCustomPager{},
 		Path:       fmt.Sprintf("%s/updateRuns", id.ID()),
 	}
 

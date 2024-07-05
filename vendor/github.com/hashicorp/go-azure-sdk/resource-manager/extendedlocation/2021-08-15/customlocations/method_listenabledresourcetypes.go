@@ -23,6 +23,18 @@ type ListEnabledResourceTypesCompleteResult struct {
 	Items              []EnabledResourceType
 }
 
+type ListEnabledResourceTypesCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListEnabledResourceTypesCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListEnabledResourceTypes ...
 func (c CustomLocationsClient) ListEnabledResourceTypes(ctx context.Context, id CustomLocationId) (result ListEnabledResourceTypesOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c CustomLocationsClient) ListEnabledResourceTypes(ctx context.Context, id 
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListEnabledResourceTypesCustomPager{},
 		Path:       fmt.Sprintf("%s/enabledResourceTypes", id.ID()),
 	}
 

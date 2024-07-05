@@ -58,8 +58,8 @@ func (c ForwardingRulesClient) CreateOrUpdate(ctx context.Context, id Forwarding
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPut,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

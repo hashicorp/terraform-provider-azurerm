@@ -24,6 +24,18 @@ type GetInboundNetworkDependenciesEndpointsCompleteResult struct {
 	Items              []InboundEnvironmentEndpoint
 }
 
+type GetInboundNetworkDependenciesEndpointsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *GetInboundNetworkDependenciesEndpointsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // GetInboundNetworkDependenciesEndpoints ...
 func (c AppServiceEnvironmentsClient) GetInboundNetworkDependenciesEndpoints(ctx context.Context, id commonids.AppServiceEnvironmentId) (result GetInboundNetworkDependenciesEndpointsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c AppServiceEnvironmentsClient) GetInboundNetworkDependenciesEndpoints(ctx
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &GetInboundNetworkDependenciesEndpointsCustomPager{},
 		Path:       fmt.Sprintf("%s/inboundNetworkDependenciesEndpoints", id.ID()),
 	}
 

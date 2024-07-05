@@ -24,6 +24,18 @@ type AccountsListCompleteResult struct {
 	Items              []NetAppAccount
 }
 
+type AccountsListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *AccountsListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // AccountsList ...
 func (c NetAppAccountsClient) AccountsList(ctx context.Context, id commonids.ResourceGroupId) (result AccountsListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c NetAppAccountsClient) AccountsList(ctx context.Context, id commonids.Res
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &AccountsListCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.NetApp/netAppAccounts", id.ID()),
 	}
 

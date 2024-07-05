@@ -74,6 +74,10 @@ The following arguments are supported:
 
 * `backup_policy_id` - (Required) The ID of the Backup Policy.
 
+* `storage_account_container_names` - (Optional) The list of the container names of the source Storage Account.
+
+-> **Note:** The `storage_account_container_names` should be specified in the vaulted backup policy/operational and vaulted hybrid backup policy. Removing the `storage_account_container_names` will force a new resource to be created since it can't be removed once specified.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:

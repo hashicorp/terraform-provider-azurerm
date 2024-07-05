@@ -50,6 +50,18 @@ func (o ListByStreamingJobOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListByStreamingJobCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByStreamingJobCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByStreamingJob ...
 func (c InputsClient) ListByStreamingJob(ctx context.Context, id StreamingJobId, options ListByStreamingJobOperationOptions) (result ListByStreamingJobOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -58,8 +70,9 @@ func (c InputsClient) ListByStreamingJob(ctx context.Context, id StreamingJobId,
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/inputs", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListByStreamingJobCustomPager{},
+		Path:          fmt.Sprintf("%s/inputs", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

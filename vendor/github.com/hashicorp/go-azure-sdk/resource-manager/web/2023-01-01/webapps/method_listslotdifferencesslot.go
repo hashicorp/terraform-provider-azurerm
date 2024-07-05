@@ -23,6 +23,18 @@ type ListSlotDifferencesSlotCompleteResult struct {
 	Items              []SlotDifference
 }
 
+type ListSlotDifferencesSlotCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListSlotDifferencesSlotCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListSlotDifferencesSlot ...
 func (c WebAppsClient) ListSlotDifferencesSlot(ctx context.Context, id SlotId, input CsmSlotEntity) (result ListSlotDifferencesSlotOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c WebAppsClient) ListSlotDifferencesSlot(ctx context.Context, id SlotId, i
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodPost,
+		Pager:      &ListSlotDifferencesSlotCustomPager{},
 		Path:       fmt.Sprintf("%s/slotsdiffs", id.ID()),
 	}
 
