@@ -545,7 +545,7 @@ func flattenServiceBusNamespaceEncryption(encryption *namespaces.Encryption) ([]
 		if props.Identity != nil && props.Identity.UserAssignedIdentity != nil {
 			sbnUaiId, err := commonids.ParseUserAssignedIdentityIDInsensitively(*props.Identity.UserAssignedIdentity)
 			if err != nil {
-				return nil, fmt.Errorf("parsing %q as a User Assigned Identity ID: %+v", *props.Identity.UserAssignedIdentity, err)
+				return nil, err
 			}
 			identityId = sbnUaiId.ID()
 		}
