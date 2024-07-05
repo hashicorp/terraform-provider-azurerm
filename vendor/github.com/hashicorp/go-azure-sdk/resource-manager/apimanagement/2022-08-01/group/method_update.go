@@ -53,8 +53,8 @@ func (c GroupClient) Update(ctx context.Context, id GroupId, input GroupUpdatePa
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPatch,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

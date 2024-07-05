@@ -24,6 +24,18 @@ type ListCompleteResult struct {
 	Items              []AzureFirewall
 }
 
+type ListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // List ...
 func (c AzureFirewallsClient) List(ctx context.Context, id commonids.ResourceGroupId) (result ListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c AzureFirewallsClient) List(ctx context.Context, id commonids.ResourceGro
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.Network/azureFirewalls", id.ID()),
 	}
 

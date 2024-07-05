@@ -24,6 +24,18 @@ type ListByServerCompleteResult struct {
 	Items              []ServerConnectionPolicy
 }
 
+type ListByServerCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByServerCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByServer ...
 func (c ServerConnectionPoliciesClient) ListByServer(ctx context.Context, id commonids.SqlServerId) (result ListByServerOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c ServerConnectionPoliciesClient) ListByServer(ctx context.Context, id com
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByServerCustomPager{},
 		Path:       fmt.Sprintf("%s/connectionPolicies", id.ID()),
 	}
 

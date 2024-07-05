@@ -24,6 +24,18 @@ type ListTriggeredWebJobsCompleteResult struct {
 	Items              []TriggeredWebJob
 }
 
+type ListTriggeredWebJobsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListTriggeredWebJobsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListTriggeredWebJobs ...
 func (c WebAppsClient) ListTriggeredWebJobs(ctx context.Context, id commonids.AppServiceId) (result ListTriggeredWebJobsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c WebAppsClient) ListTriggeredWebJobs(ctx context.Context, id commonids.Ap
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListTriggeredWebJobsCustomPager{},
 		Path:       fmt.Sprintf("%s/triggeredWebJobs", id.ID()),
 	}
 

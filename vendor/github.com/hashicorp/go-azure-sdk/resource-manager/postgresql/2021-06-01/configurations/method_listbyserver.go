@@ -23,6 +23,18 @@ type ListByServerCompleteResult struct {
 	Items              []Configuration
 }
 
+type ListByServerCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByServerCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByServer ...
 func (c ConfigurationsClient) ListByServer(ctx context.Context, id FlexibleServerId) (result ListByServerOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c ConfigurationsClient) ListByServer(ctx context.Context, id FlexibleServe
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByServerCustomPager{},
 		Path:       fmt.Sprintf("%s/configurations", id.ID()),
 	}
 

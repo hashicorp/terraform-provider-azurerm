@@ -54,6 +54,18 @@ func (o ListForManagementGroupOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListForManagementGroupCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListForManagementGroupCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListForManagementGroup ...
 func (c RemediationsClient) ListForManagementGroup(ctx context.Context, id ManagementGroupId, options ListForManagementGroupOperationOptions) (result ListForManagementGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -62,8 +74,9 @@ func (c RemediationsClient) ListForManagementGroup(ctx context.Context, id Manag
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/providers/Microsoft.PolicyInsights/remediations", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListForManagementGroupCustomPager{},
+		Path:          fmt.Sprintf("%s/providers/Microsoft.PolicyInsights/remediations", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

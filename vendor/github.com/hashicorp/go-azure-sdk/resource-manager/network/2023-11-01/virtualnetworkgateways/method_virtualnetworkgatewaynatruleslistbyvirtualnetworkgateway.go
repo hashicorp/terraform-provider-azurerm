@@ -23,6 +23,18 @@ type VirtualNetworkGatewayNatRulesListByVirtualNetworkGatewayCompleteResult stru
 	Items              []VirtualNetworkGatewayNatRule
 }
 
+type VirtualNetworkGatewayNatRulesListByVirtualNetworkGatewayCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *VirtualNetworkGatewayNatRulesListByVirtualNetworkGatewayCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // VirtualNetworkGatewayNatRulesListByVirtualNetworkGateway ...
 func (c VirtualNetworkGatewaysClient) VirtualNetworkGatewayNatRulesListByVirtualNetworkGateway(ctx context.Context, id VirtualNetworkGatewayId) (result VirtualNetworkGatewayNatRulesListByVirtualNetworkGatewayOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c VirtualNetworkGatewaysClient) VirtualNetworkGatewayNatRulesListByVirtual
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &VirtualNetworkGatewayNatRulesListByVirtualNetworkGatewayCustomPager{},
 		Path:       fmt.Sprintf("%s/natRules", id.ID()),
 	}
 

@@ -62,6 +62,18 @@ func (o GetAllMachinesInSiteOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type GetAllMachinesInSiteCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *GetAllMachinesInSiteCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // GetAllMachinesInSite ...
 func (c MachinesClient) GetAllMachinesInSite(ctx context.Context, id VMwareSiteId, options GetAllMachinesInSiteOperationOptions) (result GetAllMachinesInSiteOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -70,8 +82,9 @@ func (c MachinesClient) GetAllMachinesInSite(ctx context.Context, id VMwareSiteI
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/machines", id.ID()),
 		OptionsObject: options,
+		Pager:         &GetAllMachinesInSiteCustomPager{},
+		Path:          fmt.Sprintf("%s/machines", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

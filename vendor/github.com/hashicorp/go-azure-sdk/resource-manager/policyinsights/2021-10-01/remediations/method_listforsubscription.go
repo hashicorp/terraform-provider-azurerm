@@ -55,6 +55,18 @@ func (o ListForSubscriptionOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListForSubscriptionCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListForSubscriptionCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListForSubscription ...
 func (c RemediationsClient) ListForSubscription(ctx context.Context, id commonids.SubscriptionId, options ListForSubscriptionOperationOptions) (result ListForSubscriptionOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -63,8 +75,9 @@ func (c RemediationsClient) ListForSubscription(ctx context.Context, id commonid
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/providers/Microsoft.PolicyInsights/remediations", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListForSubscriptionCustomPager{},
+		Path:          fmt.Sprintf("%s/providers/Microsoft.PolicyInsights/remediations", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

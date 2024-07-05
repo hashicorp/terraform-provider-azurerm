@@ -24,6 +24,18 @@ type NetworkInterfaceIPConfigurationsListCompleteResult struct {
 	Items              []NetworkInterfaceIPConfiguration
 }
 
+type NetworkInterfaceIPConfigurationsListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *NetworkInterfaceIPConfigurationsListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // NetworkInterfaceIPConfigurationsList ...
 func (c NetworkInterfacesClient) NetworkInterfaceIPConfigurationsList(ctx context.Context, id commonids.NetworkInterfaceId) (result NetworkInterfaceIPConfigurationsListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c NetworkInterfacesClient) NetworkInterfaceIPConfigurationsList(ctx contex
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &NetworkInterfaceIPConfigurationsListCustomPager{},
 		Path:       fmt.Sprintf("%s/ipConfigurations", id.ID()),
 	}
 

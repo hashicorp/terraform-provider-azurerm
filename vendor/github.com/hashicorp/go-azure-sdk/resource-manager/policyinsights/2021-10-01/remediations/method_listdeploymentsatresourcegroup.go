@@ -50,6 +50,18 @@ func (o ListDeploymentsAtResourceGroupOperationOptions) ToQuery() *client.QueryP
 	return &out
 }
 
+type ListDeploymentsAtResourceGroupCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListDeploymentsAtResourceGroupCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListDeploymentsAtResourceGroup ...
 func (c RemediationsClient) ListDeploymentsAtResourceGroup(ctx context.Context, id ProviderRemediationId, options ListDeploymentsAtResourceGroupOperationOptions) (result ListDeploymentsAtResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -58,8 +70,9 @@ func (c RemediationsClient) ListDeploymentsAtResourceGroup(ctx context.Context, 
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPost,
-		Path:          fmt.Sprintf("%s/listDeployments", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListDeploymentsAtResourceGroupCustomPager{},
+		Path:          fmt.Sprintf("%s/listDeployments", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

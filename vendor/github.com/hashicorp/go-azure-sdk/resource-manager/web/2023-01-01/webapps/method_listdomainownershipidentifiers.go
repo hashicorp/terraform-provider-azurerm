@@ -24,6 +24,18 @@ type ListDomainOwnershipIdentifiersCompleteResult struct {
 	Items              []Identifier
 }
 
+type ListDomainOwnershipIdentifiersCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListDomainOwnershipIdentifiersCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListDomainOwnershipIdentifiers ...
 func (c WebAppsClient) ListDomainOwnershipIdentifiers(ctx context.Context, id commonids.AppServiceId) (result ListDomainOwnershipIdentifiersOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c WebAppsClient) ListDomainOwnershipIdentifiers(ctx context.Context, id co
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListDomainOwnershipIdentifiersCustomPager{},
 		Path:       fmt.Sprintf("%s/domainOwnershipIdentifiers", id.ID()),
 	}
 

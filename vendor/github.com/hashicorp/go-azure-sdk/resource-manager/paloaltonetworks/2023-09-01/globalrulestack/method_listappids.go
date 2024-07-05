@@ -62,6 +62,18 @@ func (o ListAppIdsOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListAppIdsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListAppIdsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListAppIds ...
 func (c GlobalRulestackClient) ListAppIds(ctx context.Context, id GlobalRulestackId, options ListAppIdsOperationOptions) (result ListAppIdsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -70,8 +82,9 @@ func (c GlobalRulestackClient) ListAppIds(ctx context.Context, id GlobalRulestac
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPost,
-		Path:          fmt.Sprintf("%s/listAppIds", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListAppIdsCustomPager{},
+		Path:          fmt.Sprintf("%s/listAppIds", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

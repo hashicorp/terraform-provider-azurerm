@@ -24,6 +24,18 @@ type ListByDatabaseCompleteResult struct {
 	Items              []DatabaseSecurityAlertPolicy
 }
 
+type ListByDatabaseCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByDatabaseCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByDatabase ...
 func (c DatabaseSecurityAlertPoliciesClient) ListByDatabase(ctx context.Context, id commonids.SqlDatabaseId) (result ListByDatabaseOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c DatabaseSecurityAlertPoliciesClient) ListByDatabase(ctx context.Context,
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByDatabaseCustomPager{},
 		Path:       fmt.Sprintf("%s/securityAlertPolicies", id.ID()),
 	}
 

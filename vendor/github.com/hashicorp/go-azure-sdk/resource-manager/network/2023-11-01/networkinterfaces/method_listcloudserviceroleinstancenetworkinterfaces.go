@@ -23,6 +23,18 @@ type ListCloudServiceRoleInstanceNetworkInterfacesCompleteResult struct {
 	Items              []NetworkInterface
 }
 
+type ListCloudServiceRoleInstanceNetworkInterfacesCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListCloudServiceRoleInstanceNetworkInterfacesCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListCloudServiceRoleInstanceNetworkInterfaces ...
 func (c NetworkInterfacesClient) ListCloudServiceRoleInstanceNetworkInterfaces(ctx context.Context, id RoleInstanceId) (result ListCloudServiceRoleInstanceNetworkInterfacesOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c NetworkInterfacesClient) ListCloudServiceRoleInstanceNetworkInterfaces(c
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListCloudServiceRoleInstanceNetworkInterfacesCustomPager{},
 		Path:       fmt.Sprintf("%s/networkInterfaces", id.ID()),
 	}
 

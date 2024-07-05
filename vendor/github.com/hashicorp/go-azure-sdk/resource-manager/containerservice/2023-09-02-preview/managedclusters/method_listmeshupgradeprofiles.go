@@ -24,6 +24,18 @@ type ListMeshUpgradeProfilesCompleteResult struct {
 	Items              []MeshUpgradeProfile
 }
 
+type ListMeshUpgradeProfilesCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListMeshUpgradeProfilesCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListMeshUpgradeProfiles ...
 func (c ManagedClustersClient) ListMeshUpgradeProfiles(ctx context.Context, id commonids.KubernetesClusterId) (result ListMeshUpgradeProfilesOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c ManagedClustersClient) ListMeshUpgradeProfiles(ctx context.Context, id c
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListMeshUpgradeProfilesCustomPager{},
 		Path:       fmt.Sprintf("%s/meshUpgradeProfiles", id.ID()),
 	}
 

@@ -24,6 +24,18 @@ type ListByShareCompleteResult struct {
 	Items              []SynchronizationSetting
 }
 
+type ListByShareCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByShareCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByShare ...
 func (c SynchronizationSettingClient) ListByShare(ctx context.Context, id ShareId) (result ListByShareOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c SynchronizationSettingClient) ListByShare(ctx context.Context, id ShareI
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByShareCustomPager{},
 		Path:       fmt.Sprintf("%s/synchronizationSettings", id.ID()),
 	}
 

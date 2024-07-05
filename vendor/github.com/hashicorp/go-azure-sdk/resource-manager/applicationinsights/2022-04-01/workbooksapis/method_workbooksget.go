@@ -53,8 +53,8 @@ func (c WorkbooksAPIsClient) WorkbooksGet(ctx context.Context, id WorkbookId, op
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

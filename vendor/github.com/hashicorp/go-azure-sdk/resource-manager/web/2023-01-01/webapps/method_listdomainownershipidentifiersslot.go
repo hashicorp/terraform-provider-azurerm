@@ -23,6 +23,18 @@ type ListDomainOwnershipIdentifiersSlotCompleteResult struct {
 	Items              []Identifier
 }
 
+type ListDomainOwnershipIdentifiersSlotCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListDomainOwnershipIdentifiersSlotCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListDomainOwnershipIdentifiersSlot ...
 func (c WebAppsClient) ListDomainOwnershipIdentifiersSlot(ctx context.Context, id SlotId) (result ListDomainOwnershipIdentifiersSlotOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c WebAppsClient) ListDomainOwnershipIdentifiersSlot(ctx context.Context, i
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListDomainOwnershipIdentifiersSlotCustomPager{},
 		Path:       fmt.Sprintf("%s/domainOwnershipIdentifiers", id.ID()),
 	}
 

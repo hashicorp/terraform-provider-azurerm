@@ -53,8 +53,8 @@ func (c ContainerServicesClient) ListOrchestrators(ctx context.Context, id Locat
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/orchestrators", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/orchestrators", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

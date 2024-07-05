@@ -71,8 +71,9 @@ func (k FeatureResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional: true,
 		},
 		"key": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// NOTE: O+C We generate a value for this if it's omitted so this should be kept
 			Computed:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.AppConfigurationFeatureKey,
@@ -84,7 +85,8 @@ func (k FeatureResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.AppConfigurationFeatureName,
 		},
 		"etag": {
-			Type:     pluginsdk.TypeString,
+			Type: pluginsdk.TypeString,
+			// NOTE: O+C The value of this is updated anytime the resource changes so this should remain Computed
 			Computed: true,
 			Optional: true,
 		},

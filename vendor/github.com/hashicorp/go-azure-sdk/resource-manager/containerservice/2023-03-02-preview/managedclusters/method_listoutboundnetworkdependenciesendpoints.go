@@ -24,6 +24,18 @@ type ListOutboundNetworkDependenciesEndpointsCompleteResult struct {
 	Items              []OutboundEnvironmentEndpoint
 }
 
+type ListOutboundNetworkDependenciesEndpointsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListOutboundNetworkDependenciesEndpointsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListOutboundNetworkDependenciesEndpoints ...
 func (c ManagedClustersClient) ListOutboundNetworkDependenciesEndpoints(ctx context.Context, id commonids.KubernetesClusterId) (result ListOutboundNetworkDependenciesEndpointsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c ManagedClustersClient) ListOutboundNetworkDependenciesEndpoints(ctx cont
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListOutboundNetworkDependenciesEndpointsCustomPager{},
 		Path:       fmt.Sprintf("%s/outboundNetworkDependenciesEndpoints", id.ID()),
 	}
 

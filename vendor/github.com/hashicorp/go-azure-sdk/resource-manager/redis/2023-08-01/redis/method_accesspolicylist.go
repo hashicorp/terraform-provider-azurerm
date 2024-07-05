@@ -23,6 +23,18 @@ type AccessPolicyListCompleteResult struct {
 	Items              []RedisCacheAccessPolicy
 }
 
+type AccessPolicyListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *AccessPolicyListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // AccessPolicyList ...
 func (c RedisClient) AccessPolicyList(ctx context.Context, id RediId) (result AccessPolicyListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c RedisClient) AccessPolicyList(ctx context.Context, id RediId) (result Ac
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &AccessPolicyListCustomPager{},
 		Path:       fmt.Sprintf("%s/accessPolicies", id.ID()),
 	}
 

@@ -23,6 +23,18 @@ type ListByClusterCompleteResult struct {
 	Items              []Database
 }
 
+type ListByClusterCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByClusterCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByCluster ...
 func (c DatabasesClient) ListByCluster(ctx context.Context, id RedisEnterpriseId) (result ListByClusterOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c DatabasesClient) ListByCluster(ctx context.Context, id RedisEnterpriseId
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByClusterCustomPager{},
 		Path:       fmt.Sprintf("%s/databases", id.ID()),
 	}
 

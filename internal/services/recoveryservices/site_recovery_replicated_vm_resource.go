@@ -299,6 +299,106 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 			Optional:   true,
 			Elem:       networkInterfaceResource(),
 		}
+		resource.Schema["unmanaged_disk"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeSet,
+			Optional:   true,
+			ForceNew:   true,
+			ConfigMode: pluginsdk.SchemaConfigModeAttr,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"disk_uri": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"staging_storage_account_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: azure.ValidateResourceID,
+					},
+
+					"target_storage_account_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: commonids.ValidateStorageAccountID,
+					},
+				},
+			},
+		}
+		resource.Schema["managed_disk"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeSet,
+			Optional:   true,
+			ForceNew:   true,
+			ConfigMode: pluginsdk.SchemaConfigModeAttr,
+			Set:        resourceSiteRecoveryReplicatedVMDiskHash,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"disk_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"staging_storage_account_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: commonids.ValidateStorageAccountID,
+					},
+
+					"target_resource_group_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: commonids.ValidateResourceGroupID,
+					},
+
+					"target_disk_type": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ForceNew: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(disks.DiskStorageAccountTypesStandardLRS),
+							string(disks.DiskStorageAccountTypesPremiumLRS),
+							string(disks.DiskStorageAccountTypesStandardSSDLRS),
+							string(disks.DiskStorageAccountTypesUltraSSDLRS),
+						}, false),
+					},
+
+					"target_replica_disk_type": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ForceNew: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(disks.DiskStorageAccountTypesStandardLRS),
+							string(disks.DiskStorageAccountTypesPremiumLRS),
+							string(disks.DiskStorageAccountTypesStandardSSDLRS),
+							string(disks.DiskStorageAccountTypesUltraSSDLRS),
+						}, false),
+					},
+
+					"target_disk_encryption_set_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: commonids.ValidateDiskEncryptionSetID,
+					},
+
+					"target_disk_encryption": {
+						Type:       pluginsdk.TypeList,
+						Optional:   true,
+						MaxItems:   1,
+						ConfigMode: pluginsdk.SchemaConfigModeAttr,
+						Elem:       diskEncryptionResource(),
+					},
+				},
+			},
+		}
 	}
 	return resource
 }
@@ -372,6 +472,49 @@ func networkInterfaceResource() *pluginsdk.Resource {
 }
 
 func diskEncryptionResource() *pluginsdk.Resource {
+	if !features.FourPointOhBeta() {
+		return &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"disk_encryption_key": {
+					Type:       pluginsdk.TypeList,
+					Required:   true,
+					MaxItems:   1,
+					ConfigMode: pluginsdk.SchemaConfigModeAttr,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"secret_url": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ForceNew:     true,
+								ValidateFunc: keyVaultValidate.NestedItemId,
+							},
+
+							"vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.KeyVaultId{}),
+						},
+					},
+				},
+
+				"key_encryption_key": {
+					Type:       pluginsdk.TypeList,
+					Optional:   true,
+					MaxItems:   1,
+					ConfigMode: pluginsdk.SchemaConfigModeAttr,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"key_url": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ForceNew:     true,
+								ValidateFunc: keyVaultValidate.NestedItemId,
+							},
+
+							"vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.KeyVaultId{}),
+						},
+					},
+				},
+			},
+		}
+	}
 	return &pluginsdk.Resource{
 		Schema: map[string]*pluginsdk.Schema{
 			"disk_encryption_key": {

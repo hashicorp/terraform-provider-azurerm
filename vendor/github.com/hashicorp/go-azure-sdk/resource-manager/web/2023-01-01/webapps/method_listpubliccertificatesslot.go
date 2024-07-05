@@ -23,6 +23,18 @@ type ListPublicCertificatesSlotCompleteResult struct {
 	Items              []PublicCertificate
 }
 
+type ListPublicCertificatesSlotCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListPublicCertificatesSlotCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListPublicCertificatesSlot ...
 func (c WebAppsClient) ListPublicCertificatesSlot(ctx context.Context, id SlotId) (result ListPublicCertificatesSlotOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c WebAppsClient) ListPublicCertificatesSlot(ctx context.Context, id SlotId
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListPublicCertificatesSlotCustomPager{},
 		Path:       fmt.Sprintf("%s/publicCertificates", id.ID()),
 	}
 

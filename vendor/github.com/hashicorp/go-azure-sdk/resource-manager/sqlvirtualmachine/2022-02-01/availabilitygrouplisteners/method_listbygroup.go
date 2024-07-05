@@ -23,6 +23,18 @@ type ListByGroupCompleteResult struct {
 	Items              []AvailabilityGroupListener
 }
 
+type ListByGroupCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByGroupCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByGroup ...
 func (c AvailabilityGroupListenersClient) ListByGroup(ctx context.Context, id SqlVirtualMachineGroupId) (result ListByGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c AvailabilityGroupListenersClient) ListByGroup(ctx context.Context, id Sq
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByGroupCustomPager{},
 		Path:       fmt.Sprintf("%s/availabilityGroupListeners", id.ID()),
 	}
 
