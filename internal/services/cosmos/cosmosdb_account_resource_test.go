@@ -128,7 +128,7 @@ func TestAccCosmosDBAccount_ManagedHSMUri(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.managed_hsm_uri(data),
+			Config: r.managedHSMKey(data),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, cosmosdb.DefaultConsistencyLevelStrong, 1),
 			),
@@ -3349,7 +3349,7 @@ resource "azurerm_cosmosdb_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger, string(kind), string(consistency))
 }
 
-func (CosmosDBAccountResource) managed_hsm_uri(data acceptance.TestData) string {
+func (CosmosDBAccountResource) managedHSMKey(data acceptance.TestData) string {
 	hsmTemplate := customermanagedkeys.ManagedHSMKeyTempalte(data.RandomInteger, data.RandomString, []string{"data.azuread_service_principal.cosmosdb.id"})
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3404,6 +3404,8 @@ resource "azurerm_cosmosdb_account" "test" {
       azurerm_user_assigned_identity.test.id
     ]
   }
+
+  depends_on = [azurerm_key_vault_managed_hardware_security_module_role_assignment.ra0]
 }
 `, data.RandomInteger, data.Locations.Primary, hsmTemplate)
 }

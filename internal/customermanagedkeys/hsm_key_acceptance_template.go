@@ -21,6 +21,8 @@ resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "r
   scope              = "/keys"
   role_definition_id = data.azurerm_key_vault_managed_hardware_security_module_role_definition.encrypt-user.resource_manager_id
   principal_id       = %[2]s
+
+  depends_on = [azurerm_key_vault_managed_hardware_security_module_key.test]
 }
 		`, idx, principal, randomUUID))
 	}
