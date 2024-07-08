@@ -192,7 +192,11 @@ func resourceRouteTableCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		return tf.ImportAsExistsError("azurerm_route_table", id.ID())
 	}
 
-	bgpRoutePropagationEnabled := d.Get("bgp_route_propagation_enabled").(bool)
+	bgpRoutePropagationEnabled := true
+
+	if v, ok := d.GetOk("bgp_route_propagation_enabled"); ok {
+		bgpRoutePropagationEnabled = v.(bool)
+	}
 
 	if !features.FourPointOhBeta() {
 		if v, ok := d.GetOk("disable_bgp_route_propagation"); ok {
