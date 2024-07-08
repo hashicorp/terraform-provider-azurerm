@@ -4,6 +4,7 @@ ENHANCEMENTS:
 
 * `azurerm_api_management_identity_provider_aad` - add support for the `client_library` property [GH-26093]
 * `azurerm_api_management_identity_provider_aadb2c` - add support for the `client_library` property [GH-26093]
+* `azurerm_machine_learning_compute_cluster` - `identity` can now be updated [GH-26404]
 
 BUG FIXES:
 
