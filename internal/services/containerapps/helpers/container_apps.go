@@ -1973,7 +1973,7 @@ func expandContainerAppReadinessProbe(input ContainerAppReadinessProbe) containe
 func flattenContainerAppReadinessProbe(input containerapps.ContainerAppProbe) []ContainerAppReadinessProbe {
 	result := make([]ContainerAppReadinessProbe, 0)
 	probe := ContainerAppReadinessProbe{
-		InitialDelay:     pointer.From(input.InitialDelay),
+		InitialDelay:     pointer.From(input.InitialDelaySeconds),
 		Interval:         pointer.From(input.PeriodSeconds),
 		Timeout:          pointer.From(input.TimeoutSeconds),
 		FailureThreshold: pointer.From(input.FailureThreshold),
