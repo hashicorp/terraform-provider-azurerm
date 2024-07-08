@@ -23,16 +23,15 @@ type ClientBuilder struct {
 	AuthConfig *auth.Credentials
 	Features   features.UserFeatures
 
+	CustomCorrelationRequestID  string
 	DisableCorrelationRequestID bool
 	DisableTerraformPartnerID   bool
-	SkipProviderRegistration    bool
+	MetadataHost                string
+	PartnerID                   string
+	RegisteredResourceProviders resourceproviders.ResourceProviders
 	StorageUseAzureAD           bool
-
-	CustomCorrelationRequestID string
-	MetadataHost               string
-	PartnerID                  string
-	SubscriptionID             string
-	TerraformVersion           string
+	SubscriptionID              string
+	TerraformVersion            string
 }
 
 const azureStackEnvironmentError = `
@@ -97,7 +96,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		return authorizer, nil
 	})
 
-	account, err := NewResourceManagerAccount(ctx, *builder.AuthConfig, builder.SubscriptionID, builder.SkipProviderRegistration)
+	account, err := NewResourceManagerAccount(ctx, *builder.AuthConfig, builder.SubscriptionID, builder.RegisteredResourceProviders)
 	if err != nil {
 		return nil, fmt.Errorf("building account: %+v", err)
 	}
@@ -150,7 +149,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		CustomCorrelationRequestID:  builder.CustomCorrelationRequestID,
 		DisableCorrelationRequestID: builder.DisableCorrelationRequestID,
 		DisableTerraformPartnerID:   builder.DisableTerraformPartnerID,
-		SkipProviderReg:             builder.SkipProviderRegistration,
+		SkipProviderReg:             builder.RegisteredResourceProviders == nil,
 		StorageUseAzureAD:           builder.StorageUseAzureAD,
 
 		ResourceManagerEndpoint: *resourceManagerEndpoint,

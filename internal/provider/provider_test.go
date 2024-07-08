@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"reflect"
 	"testing"
 	"time"
 
@@ -18,6 +19,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders"
 )
 
 func TestProvider(t *testing.T) {
@@ -119,6 +122,167 @@ func TestProvider_counts(t *testing.T) {
 	log.Printf("Resources:    %d", len(provider.ResourcesMap))
 	log.Printf("-----------------")
 	log.Printf("Total:        %d", len(provider.ResourcesMap)+len(provider.DataSourcesMap))
+}
+
+func TestAccProvider_resourceProviders_legacy(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+
+	logging.SetOutput(t)
+
+	provider := TestAzureProvider()
+	provider.Configure(ctx, terraform.NewResourceConfigRaw(nil))
+
+	expectedResourceProviders := resourceproviders.Legacy()
+	registeredResourceProviders := provider.Meta().(*clients.Client).Account.RegisteredResourceProviders
+
+	if !reflect.DeepEqual(registeredResourceProviders, expectedResourceProviders) {
+		t.Fatalf("unexpected value for RegisteredResourceProviders: %#v", registeredResourceProviders)
+	}
+}
+
+// TODO: Remove this test in v5.0
+func TestAccProvider_resourceProviders_deprecatedSkip(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+
+	logging.SetOutput(t)
+
+	config := map[string]interface{}{
+		"skip_provider_registration": "true",
+	}
+
+	provider := TestAzureProvider()
+	provider.Configure(ctx, terraform.NewResourceConfigRaw(config))
+
+	expectedResourceProviders := make(resourceproviders.ResourceProviders)
+	registeredResourceProviders := provider.Meta().(*clients.Client).Account.RegisteredResourceProviders
+
+	if !reflect.DeepEqual(registeredResourceProviders, expectedResourceProviders) {
+		t.Fatalf("unexpected value for RegisteredResourceProviders: %#v", registeredResourceProviders)
+	}
+}
+
+func TestAccProvider_resourceProviders_legacyWithAdditional(t *testing.T) {
+	if !features.FourPointOhBeta() {
+		t.Skip("skipping 4.0 specific test")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+
+	logging.SetOutput(t)
+
+	config := map[string]interface{}{
+		"resource_providers_to_register": []interface{}{
+			"Microsoft.ApiManagement",
+			"Microsoft.KeyVault",
+		},
+	}
+
+	provider := TestAzureProvider()
+	provider.Configure(ctx, terraform.NewResourceConfigRaw(config))
+
+	expectedResourceProviders := resourceproviders.Legacy().Merge(resourceproviders.ResourceProviders{
+		"Microsoft.ApiManagement": {},
+		"Microsoft.KeyVault":      {},
+	})
+	registeredResourceProviders := provider.Meta().(*clients.Client).Account.RegisteredResourceProviders
+
+	if !reflect.DeepEqual(registeredResourceProviders, expectedResourceProviders) {
+		t.Fatalf("unexpected value for RegisteredResourceProviders: %#v", registeredResourceProviders)
+	}
+}
+
+func TestAccProvider_resourceProviders_core(t *testing.T) {
+	if !features.FourPointOhBeta() {
+		t.Skip("skipping 4.0 specific test")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+
+	logging.SetOutput(t)
+
+	config := map[string]interface{}{
+		"resource_provider_registrations": "core",
+	}
+
+	provider := TestAzureProvider()
+	provider.Configure(ctx, terraform.NewResourceConfigRaw(config))
+
+	expectedResourceProviders := resourceproviders.Core()
+	registeredResourceProviders := provider.Meta().(*clients.Client).Account.RegisteredResourceProviders
+
+	if !reflect.DeepEqual(registeredResourceProviders, expectedResourceProviders) {
+		t.Fatalf("unexpected value for RegisteredResourceProviders: %#v", registeredResourceProviders)
+	}
+}
+
+func TestAccProvider_resourceProviders_coreWithAdditional(t *testing.T) {
+	if !features.FourPointOhBeta() {
+		t.Skip("skipping 4.0 specific test")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+
+	logging.SetOutput(t)
+
+	config := map[string]interface{}{
+		"resource_provider_registrations": "core",
+		"resource_providers_to_register": []interface{}{
+			"Microsoft.ApiManagement",
+			"Microsoft.KeyVault",
+		},
+	}
+
+	provider := TestAzureProvider()
+	provider.Configure(ctx, terraform.NewResourceConfigRaw(config))
+
+	expectedResourceProviders := resourceproviders.Core().Merge(resourceproviders.ResourceProviders{
+		"Microsoft.ApiManagement": {},
+		"Microsoft.KeyVault":      {},
+	})
+	registeredResourceProviders := provider.Meta().(*clients.Client).Account.RegisteredResourceProviders
+
+	if !reflect.DeepEqual(registeredResourceProviders, expectedResourceProviders) {
+		t.Fatalf("unexpected value for RegisteredResourceProviders: %#v", registeredResourceProviders)
+	}
+}
+
+func TestAccProvider_resourceProviders_explicit(t *testing.T) {
+	if !features.FourPointOhBeta() {
+		t.Skip("skipping 4.0 specific test")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+
+	logging.SetOutput(t)
+
+	config := map[string]interface{}{
+		"resource_provider_registrations": "none",
+		"resource_providers_to_register": []interface{}{
+			"Microsoft.Compute",
+			"Microsoft.Network",
+			"Microsoft.Storage",
+		},
+	}
+
+	provider := TestAzureProvider()
+	provider.Configure(ctx, terraform.NewResourceConfigRaw(config))
+
+	expectedResourceProviders := resourceproviders.ResourceProviders{
+		"Microsoft.Compute": {},
+		"Microsoft.Network": {},
+		"Microsoft.Storage": {},
+	}
+	registeredResourceProviders := provider.Meta().(*clients.Client).Account.RegisteredResourceProviders
+
+	if !reflect.DeepEqual(registeredResourceProviders, expectedResourceProviders) {
+		t.Fatalf("unexpected value for RegisteredResourceProviders: %#v", registeredResourceProviders)
+	}
 }
 
 func TestAccProvider_cliAuth(t *testing.T) {

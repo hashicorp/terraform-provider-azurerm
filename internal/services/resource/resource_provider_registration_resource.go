@@ -24,8 +24,9 @@ import (
 )
 
 var (
-	_ sdk.Resource                   = ResourceProviderRegistrationResource{}
-	_ sdk.ResourceWithCustomImporter = ResourceProviderRegistrationResource{}
+	_ sdk.ResourceWithUpdate                      = ResourceProviderRegistrationResource{}
+	_ sdk.ResourceWithCustomImporter              = ResourceProviderRegistrationResource{}
+	_ sdk.ResourceWithDeprecationAndNoReplacement = ResourceProviderRegistrationResource{}
 )
 
 type ResourceProviderRegistrationResource struct{}
@@ -48,6 +49,11 @@ const (
 	NotRegistered = "NotRegistered"
 	Unregistered  = "Unregistered"
 )
+
+func (r ResourceProviderRegistrationResource) DeprecationMessage() string {
+	// TODO: Remove this resource in v4.0
+	return "The `azurerm_resource_provider_registration` resource has been deprecated and will be removed in v4.0 of the provider. Please instead use the `resource_providers_to_register` provider property to register additional Resource Providers, or use the `azurerm_preview_feature` resource to register Preview Features."
+}
 
 func (r ResourceProviderRegistrationResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
@@ -115,6 +121,7 @@ func (r ResourceProviderRegistrationResource) Create() sdk.ResourceFunc {
 
 				return fmt.Errorf("retrieving %q: %+v", resourceId, err)
 			}
+
 			registrationState := ""
 			if model := provider.Model; model != nil && model.RegistrationState != nil {
 				registrationState = *model.RegistrationState
@@ -369,17 +376,22 @@ func (r ResourceProviderRegistrationResource) CustomImporter() sdk.ResourceRunFu
 }
 
 func (r ResourceProviderRegistrationResource) checkIfManagedByTerraform(name string, account *clients.ResourceManagerAccount) error {
-	if account.SkipResourceProviderRegistration {
-		return nil
-	}
-
-	for resourceProvider := range resourceproviders.Required() {
+	for resourceProvider := range account.RegisteredResourceProviders {
 		if resourceProvider == name {
-			fmtStr := `The Resource Provider %q is automatically registered by Terraform.
+			fmtStr := `The Resource Provider %[1]q is automatically registered by Terraform.
 
-To manage this Resource Provider Registration with Terraform you need to opt-out
-of Automatic Resource Provider Registration (by setting 'skip_provider_registration'
-to 'true' in the Provider block) to avoid conflicting with Terraform.`
+To manage this Resource Provider registration with the "azurerm_resource_provider_registration" resource, you need to
+prevent Terraform from managing this Resource Provider automatically by one of these methods:
+
+1. Disable automatic Resource Provider registration by setting the following in the Provider block:
+
+   resource_provider_registrations = "none"
+
+2. Choose a set of Provider Registrations to automatically register, that do not include %[1]q. Refer to the
+   provider documentation for more information:
+
+   https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#resource_provider_registrations
+`
 			return fmt.Errorf(fmtStr, name)
 		}
 	}

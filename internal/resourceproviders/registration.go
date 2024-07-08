@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders/custompollers"
 )
 
-func EnsureRegistered(ctx context.Context, client *providers.ProvidersClient, subscriptionId commonids.SubscriptionId, requiredRPs map[string]struct{}) error {
+func EnsureRegistered(ctx context.Context, client *providers.ProvidersClient, subscriptionId commonids.SubscriptionId, requiredRPs ResourceProviders) error {
 	if cachedResourceProviders == nil || registeredResourceProviders == nil || unregisteredResourceProviders == nil {
 		if err := populateCache(ctx, client, subscriptionId); err != nil {
 			return fmt.Errorf("populating Resource Provider cache: %+v", err)
@@ -27,7 +27,7 @@ func EnsureRegistered(ctx context.Context, client *providers.ProvidersClient, su
 	log.Printf("[DEBUG] Determining which Resource Providers require Registration")
 	providersToRegister, err := DetermineWhichRequiredResourceProvidersRequireRegistration(requiredRPs)
 	if err != nil {
-		return fmt.Errorf("determining which Required Resource Providers require registration: %+v", err)
+		return fmt.Errorf("determining which Resource Providers require registration: %+v", err)
 	}
 
 	if len(*providersToRegister) > 0 {
@@ -67,7 +67,7 @@ func registerForSubscription(ctx context.Context, client *providers.ProvidersCli
 	wg.Wait()
 
 	if len(failedProviders) > 0 {
-		err = fmt.Errorf("Cannot register providers: %s. Errors were: %s", strings.Join(failedProviders, ", "), err)
+		err = fmt.Errorf("cannot register providers: %s. Errors were: %s", strings.Join(failedProviders, ", "), err)
 	}
 	return err
 }
@@ -76,7 +76,7 @@ func registerWithSubscription(ctx context.Context, client *providers.ProvidersCl
 	providerId := providers.NewSubscriptionProviderID(subscriptionId.SubscriptionId, providerName)
 	log.Printf("[DEBUG] Registering %s..", providerId)
 	if _, err := client.Register(ctx, providerId, providers.ProviderRegistrationRequest{}); err != nil {
-		return fmt.Errorf("Cannot register provider %s with Azure Resource Manager: %s.", providerName, err)
+		return fmt.Errorf("cannot register provider %s with Azure Resource Manager: %s", providerName, err)
 	}
 
 	log.Printf("[DEBUG] Waiting for %s to finish registering..", providerId)

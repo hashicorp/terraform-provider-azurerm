@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/sdk/claims"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/graph"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders"
 )
 
 type ResourceManagerAccount struct {
@@ -25,10 +26,10 @@ type ResourceManagerAccount struct {
 	TenantId       string
 
 	AuthenticatedAsAServicePrincipal bool
-	SkipResourceProviderRegistration bool
+	RegisteredResourceProviders      resourceproviders.ResourceProviders
 }
 
-func NewResourceManagerAccount(ctx context.Context, config auth.Credentials, subscriptionId string, skipResourceProviderRegistration bool) (*ResourceManagerAccount, error) {
+func NewResourceManagerAccount(ctx context.Context, config auth.Credentials, subscriptionId string, registeredResourceProviders resourceproviders.ResourceProviders) (*ResourceManagerAccount, error) {
 	authorizer, err := auth.NewAuthorizerFromCredentials(ctx, config, config.Environment.MicrosoftGraph)
 	if err != nil {
 		return nil, fmt.Errorf("unable to build authorizer for Microsoft Graph API: %+v", err)
@@ -131,7 +132,7 @@ func NewResourceManagerAccount(ctx context.Context, config auth.Credentials, sub
 		TenantId:       tenantId,
 
 		AuthenticatedAsAServicePrincipal: authenticatedAsServicePrincipal,
-		SkipResourceProviderRegistration: skipResourceProviderRegistration,
+		RegisteredResourceProviders:      registeredResourceProviders,
 	}
 
 	return &account, nil
