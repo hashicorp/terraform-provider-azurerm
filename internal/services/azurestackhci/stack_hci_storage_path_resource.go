@@ -119,16 +119,11 @@ func (r StackHCIStoragePathResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			future, err := client.CreateOrUpdate(ctx, id, payload)
-			if err != nil {
-				return fmt.Errorf("performing create %s: %+v", id, err)
+			if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
-
-			if err := future.Poller.PollUntilDone(ctx); err != nil {
-				return fmt.Errorf("polling after create %s: %+v", id, err)
-			}
 
 			return nil
 		},
