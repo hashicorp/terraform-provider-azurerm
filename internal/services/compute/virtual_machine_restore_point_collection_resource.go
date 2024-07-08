@@ -16,21 +16,21 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-// RestorePointCollectionResource remove this in 4.0, the resource is renamed
-type RestorePointCollectionResource struct{}
+// VirtualMachineRestorePointCollectionResource remove this in 4.0, the resource is renamed
+type VirtualMachineRestorePointCollectionResource struct{}
 
-var _ sdk.ResourceWithUpdate = RestorePointCollectionResource{}
-var _ sdk.ResourceWithDeprecationReplacedBy = RestorePointCollectionResource{}
+var _ sdk.ResourceWithUpdate = VirtualMachineRestorePointCollectionResource{}
+var _ sdk.ResourceWithDeprecationReplacedBy = VirtualMachineRestorePointCollectionResource{}
 
-func (r RestorePointCollectionResource) DeprecatedInFavourOfResource() string {
+func (r VirtualMachineRestorePointCollectionResource) DeprecatedInFavourOfResource() string {
 	return "azurerm_virtual_machine_restore_point_collection"
 }
 
-func (r RestorePointCollectionResource) ModelObject() interface{} {
-	return &RestorePointCollectionResourceModel{}
+func (r VirtualMachineRestorePointCollectionResource) ModelObject() interface{} {
+	return &VirtualMachineRestorePointCollectionResourceModel{}
 }
 
-type RestorePointCollectionResourceModel struct {
+type VirtualMachineRestorePointCollectionResourceModel struct {
 	Name                   string                 `tfschema:"name"`
 	ResourceGroup          string                 `tfschema:"resource_group_name"`
 	Location               string                 `tfschema:"location"`
@@ -38,15 +38,15 @@ type RestorePointCollectionResourceModel struct {
 	Tags                   map[string]interface{} `tfschema:"tags"`
 }
 
-func (r RestorePointCollectionResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r VirtualMachineRestorePointCollectionResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return restorepointcollections.ValidateRestorePointCollectionID
 }
 
-func (r RestorePointCollectionResource) ResourceType() string {
-	return "azurerm_restore_point_collection"
+func (r VirtualMachineRestorePointCollectionResource) ResourceType() string {
+	return "azurerm_virtual_machine_restore_point_collection"
 }
 
-func (r RestorePointCollectionResource) Arguments() map[string]*pluginsdk.Schema {
+func (r VirtualMachineRestorePointCollectionResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			ForceNew: true,
@@ -69,18 +69,18 @@ func (r RestorePointCollectionResource) Arguments() map[string]*pluginsdk.Schema
 	}
 }
 
-func (r RestorePointCollectionResource) Attributes() map[string]*pluginsdk.Schema {
+func (r VirtualMachineRestorePointCollectionResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r RestorePointCollectionResource) Create() sdk.ResourceFunc {
+func (r VirtualMachineRestorePointCollectionResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Compute.RestorePointCollectionsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			var config RestorePointCollectionResourceModel
+			var config VirtualMachineRestorePointCollectionResourceModel
 			if err := metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -117,13 +117,13 @@ func (r RestorePointCollectionResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r RestorePointCollectionResource) Read() sdk.ResourceFunc {
+func (r VirtualMachineRestorePointCollectionResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Compute.RestorePointCollectionsClient
 
-			schema := RestorePointCollectionResourceModel{}
+			schema := VirtualMachineRestorePointCollectionResourceModel{}
 
 			id, err := restorepointcollections.ParseRestorePointCollectionID(metadata.ResourceData.Id())
 			if err != nil {
@@ -157,7 +157,7 @@ func (r RestorePointCollectionResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r RestorePointCollectionResource) Update() sdk.ResourceFunc {
+func (r VirtualMachineRestorePointCollectionResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -179,7 +179,7 @@ func (r RestorePointCollectionResource) Update() sdk.ResourceFunc {
 
 			payload := *existing.Model
 
-			var config RestorePointCollectionResourceModel
+			var config VirtualMachineRestorePointCollectionResourceModel
 			if err := metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -197,7 +197,7 @@ func (r RestorePointCollectionResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (r RestorePointCollectionResource) Delete() sdk.ResourceFunc {
+func (r VirtualMachineRestorePointCollectionResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {

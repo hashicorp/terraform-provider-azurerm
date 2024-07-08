@@ -345,6 +345,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/availabili
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/dedicatedhostgroups
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/dedicatedhosts
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/restorepointcollections
+github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/restorepoints
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/sshpublickeys
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachineextensions
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachineimages
