@@ -1,5 +1,10 @@
 ## 3.112.0 (Unreleased)
 
+ENHANCEMENTS:
+
+* `azurerm_api_management_identity_provider_aad` - add support for the `client_library` property [GH-26093]
+* `azurerm_api_management_identity_provider_aadb2c` - add support for the `client_library` property [GH-26093]
+
 BUG FIXES:
 
 * Data Source: `azurerm_communication_service` - `primary_connection_string`, `primary_key`, `secondary_connection_string` and `secondary_key` are marked as Sensitive [GH-26560]
