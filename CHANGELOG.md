@@ -1,3 +1,10 @@
+## 3.112.0 (Unreleased)
+
+BUG FIXES:
+
+* Data Source: `azurerm_communication_service` - `primary_connection_string`, `primary_key`, `secondary_connection_string` and `secondary_key` are marked as Sensitive [GH-26560]
+* `azurerm_communication_service` - `primary_connection_string`, `primary_key`, `secondary_connection_string` and `secondary_key` are marked as Sensitive [GH-26560]
+
 ## 3.111.0 (July 04, 2024)
 
 FEATURES:
