@@ -1931,11 +1931,12 @@ func ContainerAppReadinessProbeSchemaComputed() *pluginsdk.Schema {
 func expandContainerAppReadinessProbe(input ContainerAppReadinessProbe) containerapps.ContainerAppProbe {
 	probeType := containerapps.TypeReadiness
 	result := containerapps.ContainerAppProbe{
-		Type:             &probeType,
-		PeriodSeconds:    pointer.To(input.Interval),
-		TimeoutSeconds:   pointer.To(input.Timeout),
-		FailureThreshold: pointer.To(input.FailureThreshold),
-		SuccessThreshold: pointer.To(input.SuccessThreshold),
+		Type:                &probeType,
+		InitialDelaySeconds: pointer.To(input.InitialDelay),
+		PeriodSeconds:       pointer.To(input.Interval),
+		TimeoutSeconds:      pointer.To(input.Timeout),
+		FailureThreshold:    pointer.To(input.FailureThreshold),
+		SuccessThreshold:    pointer.To(input.SuccessThreshold),
 	}
 
 	switch p := strings.ToUpper(input.Transport); p {
@@ -1972,6 +1973,7 @@ func expandContainerAppReadinessProbe(input ContainerAppReadinessProbe) containe
 func flattenContainerAppReadinessProbe(input containerapps.ContainerAppProbe) []ContainerAppReadinessProbe {
 	result := make([]ContainerAppReadinessProbe, 0)
 	probe := ContainerAppReadinessProbe{
+		InitialDelay:     pointer.From(input.InitialDelay),
 		Interval:         pointer.From(input.PeriodSeconds),
 		Timeout:          pointer.From(input.TimeoutSeconds),
 		FailureThreshold: pointer.From(input.FailureThreshold),
@@ -2230,6 +2232,7 @@ func expandContainerAppLivenessProbe(input ContainerAppLivenessProbe) containera
 		PeriodSeconds:       pointer.To(input.Interval),
 		TimeoutSeconds:      pointer.To(input.Timeout),
 		FailureThreshold:    pointer.To(input.FailureThreshold),
+		SuccessThreshold:    pointer.To(input.SuccessThreshold),
 	}
 
 	switch p := strings.ToUpper(input.Transport); p {
@@ -2270,6 +2273,7 @@ func flattenContainerAppLivenessProbe(input containerapps.ContainerAppProbe) []C
 		Interval:               pointer.From(input.PeriodSeconds),
 		Timeout:                pointer.From(input.TimeoutSeconds),
 		FailureThreshold:       pointer.From(input.FailureThreshold),
+		SuccessThreshold:       pointer.From(input.SuccessThreshold),
 		TerminationGracePeriod: pointer.From(input.TerminationGracePeriodSeconds),
 	}
 	if httpGet := input.HTTPGet; httpGet != nil {
@@ -2515,10 +2519,12 @@ func ContainerAppStartupProbeSchemaComputed() *pluginsdk.Schema {
 func expandContainerAppStartupProbe(input ContainerAppStartupProbe) containerapps.ContainerAppProbe {
 	probeType := containerapps.TypeStartup
 	result := containerapps.ContainerAppProbe{
-		Type:             &probeType,
-		PeriodSeconds:    pointer.To(input.Interval),
-		TimeoutSeconds:   pointer.To(input.Timeout),
-		FailureThreshold: pointer.To(input.FailureThreshold),
+		Type:                &probeType,
+		InitialDelaySeconds: pointer.To(input.InitialDelay),
+		PeriodSeconds:       pointer.To(input.Interval),
+		TimeoutSeconds:      pointer.To(input.Timeout),
+		FailureThreshold:    pointer.To(input.FailureThreshold),
+		SuccessThreshold:    pointer.To(input.SuccessThreshold),
 	}
 
 	switch p := strings.ToUpper(input.Transport); p {
@@ -2555,9 +2561,11 @@ func expandContainerAppStartupProbe(input ContainerAppStartupProbe) containerapp
 func flattenContainerAppStartupProbe(input containerapps.ContainerAppProbe) []ContainerAppStartupProbe {
 	result := make([]ContainerAppStartupProbe, 0)
 	probe := ContainerAppStartupProbe{
+		InitialDelay:           pointer.From(input.InitialDelaySeconds),
 		Interval:               pointer.From(input.PeriodSeconds),
 		Timeout:                pointer.From(input.TimeoutSeconds),
 		FailureThreshold:       pointer.From(input.FailureThreshold),
+		SuccessThreshold:       pointer.From(input.SuccessThreshold),
 		TerminationGracePeriod: pointer.From(input.TerminationGracePeriodSeconds),
 	}
 
