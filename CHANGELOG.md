@@ -2,6 +2,7 @@
 
 ENHANCEMENTS:
 
+* Data Source: `azurerm_network_service_tags` - extend validation for `service` to allow `AzureFrontDoor.Backend`, `AzureFrontDoor.Frontend` and `AzureFrontDoor.FirstParty` [GH-26429]
 * `azurerm_api_management_identity_provider_aad` - add support for the `client_library` property [GH-26093]
 * `azurerm_api_management_identity_provider_aadb2c` - add support for the `client_library` property [GH-26093]
 * `azurerm_machine_learning_compute_cluster` - `identity` can now be updated [GH-26404]
