@@ -1749,6 +1749,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 		resource.Schema["node_os_upgrade_channel"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeString,
 			Optional: true,
+			Default:  string(managedclusters.NodeOSUpgradeChannelNodeImage),
 			ValidateFunc: validation.StringInSlice([]string{
 				string(managedclusters.NodeOSUpgradeChannelNodeImage),
 				string(managedclusters.NodeOSUpgradeChannelNone),
