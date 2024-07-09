@@ -57,8 +57,8 @@ func (c VirtualNetworkGatewaysClient) GetAdvertisedRoutes(ctx context.Context, i
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPost,
-		Path:          fmt.Sprintf("%s/getAdvertisedRoutes", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/getAdvertisedRoutes", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

@@ -23,6 +23,18 @@ type ListBackupsSlotCompleteResult struct {
 	Items              []BackupItem
 }
 
+type ListBackupsSlotCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListBackupsSlotCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListBackupsSlot ...
 func (c WebAppsClient) ListBackupsSlot(ctx context.Context, id SlotId) (result ListBackupsSlotOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c WebAppsClient) ListBackupsSlot(ctx context.Context, id SlotId) (result L
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListBackupsSlotCustomPager{},
 		Path:       fmt.Sprintf("%s/backups", id.ID()),
 	}
 

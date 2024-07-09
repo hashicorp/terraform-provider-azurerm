@@ -142,7 +142,7 @@ if model := read.Model; model != nil {
 ctx := context.TODO()
 id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
-read, err := client.SubscriptionCancel(ctx, id)
+read, err := client.SubscriptionCancel(ctx, id, subscriptions.DefaultSubscriptionCancelOperationOptions())
 if err != nil {
 	// handle the error
 }

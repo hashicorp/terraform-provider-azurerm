@@ -24,6 +24,18 @@ type VpnServerConfigurationsListByResourceGroupCompleteResult struct {
 	Items              []VpnServerConfiguration
 }
 
+type VpnServerConfigurationsListByResourceGroupCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *VpnServerConfigurationsListByResourceGroupCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // VpnServerConfigurationsListByResourceGroup ...
 func (c VirtualWANsClient) VpnServerConfigurationsListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (result VpnServerConfigurationsListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c VirtualWANsClient) VpnServerConfigurationsListByResourceGroup(ctx contex
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &VpnServerConfigurationsListByResourceGroupCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.Network/vpnServerConfigurations", id.ID()),
 	}
 

@@ -33,9 +33,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	apimValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -100,7 +100,7 @@ func resourceApiManagementService() *pluginsdk.Resource {
 }
 
 func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	schema := map[string]*pluginsdk.Schema{
 		"name": schemaz.SchemaApiManagementName(),
 
 		"resource_group_name": commonschema.ResourceGroupName(),
@@ -212,7 +212,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.IntBetween(0, 12),
 					},
 
-					"zones": commonschema.ZonesMultipleOptionalForceNew(),
+					"zones": commonschema.ZonesMultipleOptional(),
 
 					"gateway_regional_url": {
 						Type:     pluginsdk.TypeString,
@@ -230,7 +230,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 					"public_ip_address_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: networkValidate.PublicIpAddressID,
+						ValidateFunc: commonids.ValidatePublicIPAddressID,
 					},
 
 					"private_ip_addresses": {
@@ -463,32 +463,6 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		// lintignore:XS003
-		"policy": {
-			Type:       pluginsdk.TypeList,
-			Optional:   true,
-			Computed:   true,
-			MaxItems:   1,
-			ConfigMode: pluginsdk.SchemaConfigModeAttr,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"xml_content": {
-						Type:             pluginsdk.TypeString,
-						Optional:         true,
-						Computed:         true,
-						ConflictsWith:    []string{"policy.0.xml_link"},
-						DiffSuppressFunc: XmlWithDotNetInterpolationsDiffSuppress,
-					},
-
-					"xml_link": {
-						Type:          pluginsdk.TypeString,
-						Optional:      true,
-						ConflictsWith: []string{"policy.0.xml_content"},
-					},
-				},
-			},
-		},
-
 		"sign_in": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -601,7 +575,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 		"public_ip_address_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: networkValidate.PublicIpAddressID,
+			ValidateFunc: commonids.ValidatePublicIPAddressID,
 		},
 
 		"public_network_access_enabled": {
@@ -664,6 +638,36 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
+
+	if !features.FourPointOhBeta() {
+		schema["policy"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeList,
+			Optional:   true,
+			Computed:   true,
+			MaxItems:   1,
+			ConfigMode: pluginsdk.SchemaConfigModeAttr,
+			Deprecated: "The `policy` block has been superseded by the resource `azurerm_api_management_policy` and will be removed in v4.0 of the AzureRM Provider",
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"xml_content": {
+						Type:             pluginsdk.TypeString,
+						Optional:         true,
+						Computed:         true,
+						ConflictsWith:    []string{"policy.0.xml_link"},
+						DiffSuppressFunc: XmlWithDotNetInterpolationsDiffSuppress,
+					},
+
+					"xml_link": {
+						Type:          pluginsdk.TypeString,
+						Optional:      true,
+						ConflictsWith: []string{"policy.0.xml_content"},
+					},
+				},
+			},
+		}
+	}
+
+	return schema
 }
 
 func resourceApiManagementServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -938,26 +942,28 @@ func resourceApiManagementServiceCreate(d *pluginsdk.ResourceData, meta interfac
 		}
 	}
 
-	policyClient := meta.(*clients.Client).ApiManagement.PolicyClient
-	policiesRaw := d.Get("policy").([]interface{})
-	policyContract, err := expandApiManagementPolicies(policiesRaw)
-	if err != nil {
-		return err
-	}
-
-	if _, ok := d.GetOk("policy"); ok {
-		policyServiceId := policy.NewServiceID(subscriptionId, id.ResourceGroupName, id.ServiceName)
-		// remove the existing policy
-		if delResp, err := policyClient.Delete(ctx, policyServiceId, policy.DeleteOperationOptions{}); err != nil {
-			if !response.WasNotFound(delResp.HttpResponse) {
-				return fmt.Errorf("removing Policies from %s: %+v", id, err)
-			}
+	if !features.FourPointOhBeta() {
+		policyClient := meta.(*clients.Client).ApiManagement.PolicyClient
+		policiesRaw := d.Get("policy").([]interface{})
+		policyContract, err := expandApiManagementPolicies(policiesRaw)
+		if err != nil {
+			return err
 		}
 
-		// then add the new one, if it exists
-		if policyContract != nil {
-			if _, err := policyClient.CreateOrUpdate(ctx, policyServiceId, *policyContract, policy.CreateOrUpdateOperationOptions{}); err != nil {
-				return fmt.Errorf(" setting Policies for %s: %+v", id, err)
+		if _, ok := d.GetOk("policy"); ok {
+			policyServiceId := policy.NewServiceID(subscriptionId, id.ResourceGroupName, id.ServiceName)
+			// remove the existing policy
+			if delResp, err := policyClient.Delete(ctx, policyServiceId, policy.DeleteOperationOptions{}); err != nil {
+				if !response.WasNotFound(delResp.HttpResponse) {
+					return fmt.Errorf("removing Policies from %s: %+v", id, err)
+				}
+			}
+
+			// then add the new one, if it exists
+			if policyContract != nil {
+				if _, err := policyClient.CreateOrUpdate(ctx, policyServiceId, *policyContract, policy.CreateOrUpdateOperationOptions{}); err != nil {
+					return fmt.Errorf(" setting Policies for %s: %+v", id, err)
+				}
 			}
 		}
 	}
@@ -1187,26 +1193,28 @@ func resourceApiManagementServiceUpdate(d *pluginsdk.ResourceData, meta interfac
 		}
 	}
 
-	if d.HasChange("policy") {
-		policyClient := meta.(*clients.Client).ApiManagement.PolicyClient
-		policiesRaw := d.Get("policy").([]interface{})
-		policyContract, err := expandApiManagementPolicies(policiesRaw)
-		if err != nil {
-			return err
-		}
-
-		policyServiceId := policy.NewServiceID(subscriptionId, id.ResourceGroupName, id.ServiceName)
-		// remove the existing policy
-		if delResp, err := policyClient.Delete(ctx, policyServiceId, policy.DeleteOperationOptions{}); err != nil {
-			if !response.WasNotFound(delResp.HttpResponse) {
-				return fmt.Errorf("removing Policies from %s: %+v", id, err)
+	if !features.FourPointOhBeta() {
+		if d.HasChange("policy") {
+			policyClient := meta.(*clients.Client).ApiManagement.PolicyClient
+			policiesRaw := d.Get("policy").([]interface{})
+			policyContract, err := expandApiManagementPolicies(policiesRaw)
+			if err != nil {
+				return err
 			}
-		}
 
-		// then add the new one, if it exists
-		if policyContract != nil {
-			if _, err := policyClient.CreateOrUpdate(ctx, policyServiceId, *policyContract, policy.CreateOrUpdateOperationOptions{}); err != nil {
-				return fmt.Errorf(" setting Policies for %s: %+v", id, err)
+			policyServiceId := policy.NewServiceID(subscriptionId, id.ResourceGroupName, id.ServiceName)
+			// remove the existing policy
+			if delResp, err := policyClient.Delete(ctx, policyServiceId, policy.DeleteOperationOptions{}); err != nil {
+				if !response.WasNotFound(delResp.HttpResponse) {
+					return fmt.Errorf("removing Policies from %s: %+v", id, err)
+				}
+			}
+
+			// then add the new one, if it exists
+			if policyContract != nil {
+				if _, err := policyClient.CreateOrUpdate(ctx, policyServiceId, *policyContract, policy.CreateOrUpdateOperationOptions{}); err != nil {
+					return fmt.Errorf(" setting Policies for %s: %+v", id, err)
+				}
 			}
 		}
 	}
@@ -1335,8 +1343,10 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 			return fmt.Errorf("setting `sku_name`: %+v", err)
 		}
 
-		if err := d.Set("policy", flattenApiManagementPolicies(d, policy.Model)); err != nil {
-			return fmt.Errorf("setting `policy`: %+v", err)
+		if !features.FourPointOhBeta() {
+			if err := d.Set("policy", flattenApiManagementPolicies(d, policy.Model)); err != nil {
+				return fmt.Errorf("setting `policy`: %+v", err)
+			}
 		}
 
 		d.Set("zones", zones.FlattenUntyped(model.Zones))

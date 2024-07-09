@@ -145,7 +145,6 @@ resource "azurerm_public_ip" "test" {
 resource "azurerm_traffic_manager_azure_endpoint" "test" {
   name               = "acctestend-azure%[2]d"
   target_resource_id = azurerm_public_ip.test.id
-  weight             = 3
   profile_id         = azurerm_traffic_manager_profile.test.id
 }
 `, template, data.RandomInteger)

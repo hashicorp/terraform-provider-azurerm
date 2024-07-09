@@ -27,6 +27,18 @@ type GetEffectiveRouteTableCompleteResult struct {
 	Items              []EffectiveRoute
 }
 
+type GetEffectiveRouteTableCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *GetEffectiveRouteTableCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // GetEffectiveRouteTable ...
 func (c NetworkInterfacesClient) GetEffectiveRouteTable(ctx context.Context, id commonids.NetworkInterfaceId) (result GetEffectiveRouteTableOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -36,6 +48,7 @@ func (c NetworkInterfacesClient) GetEffectiveRouteTable(ctx context.Context, id 
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodPost,
+		Pager:      &GetEffectiveRouteTableCustomPager{},
 		Path:       fmt.Sprintf("%s/effectiveRouteTable", id.ID()),
 	}
 

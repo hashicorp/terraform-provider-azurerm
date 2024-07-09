@@ -57,8 +57,8 @@ func (c ApplicationGatewaysClient) BackendHealthOnDemand(ctx context.Context, id
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPost,
-		Path:          fmt.Sprintf("%s/getBackendHealthOnDemand", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/getBackendHealthOnDemand", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

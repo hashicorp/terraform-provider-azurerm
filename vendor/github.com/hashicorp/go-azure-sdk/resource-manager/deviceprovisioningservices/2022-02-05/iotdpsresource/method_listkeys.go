@@ -24,6 +24,18 @@ type ListKeysCompleteResult struct {
 	Items              []SharedAccessSignatureAuthorizationRuleAccessRightsDescription
 }
 
+type ListKeysCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListKeysCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListKeys ...
 func (c IotDpsResourceClient) ListKeys(ctx context.Context, id commonids.ProvisioningServiceId) (result ListKeysOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c IotDpsResourceClient) ListKeys(ctx context.Context, id commonids.Provisi
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodPost,
+		Pager:      &ListKeysCustomPager{},
 		Path:       fmt.Sprintf("%s/listKeys", id.ID()),
 	}
 

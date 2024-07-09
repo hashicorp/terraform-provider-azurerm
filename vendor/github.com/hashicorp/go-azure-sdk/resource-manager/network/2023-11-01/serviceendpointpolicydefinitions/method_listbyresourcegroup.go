@@ -23,6 +23,18 @@ type ListByResourceGroupCompleteResult struct {
 	Items              []ServiceEndpointPolicyDefinition
 }
 
+type ListByResourceGroupCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByResourceGroupCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByResourceGroup ...
 func (c ServiceEndpointPolicyDefinitionsClient) ListByResourceGroup(ctx context.Context, id ServiceEndpointPolicyId) (result ListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c ServiceEndpointPolicyDefinitionsClient) ListByResourceGroup(ctx context.
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByResourceGroupCustomPager{},
 		Path:       fmt.Sprintf("%s/serviceEndpointPolicyDefinitions", id.ID()),
 	}
 

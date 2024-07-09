@@ -23,6 +23,18 @@ type BindingsListCompleteResult struct {
 	Items              []BindingResource
 }
 
+type BindingsListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *BindingsListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // BindingsList ...
 func (c AppPlatformClient) BindingsList(ctx context.Context, id AppId) (result BindingsListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c AppPlatformClient) BindingsList(ctx context.Context, id AppId) (result B
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &BindingsListCustomPager{},
 		Path:       fmt.Sprintf("%s/bindings", id.ID()),
 	}
 

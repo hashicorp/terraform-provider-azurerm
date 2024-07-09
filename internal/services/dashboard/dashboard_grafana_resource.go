@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2023-09-01/grafanaresource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -73,7 +74,7 @@ func (r DashboardGrafanaResource) IDValidationFunc() pluginsdk.SchemaValidateFun
 }
 
 func (r DashboardGrafanaResource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	arguments := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
@@ -187,13 +188,11 @@ func (r DashboardGrafanaResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"grafana_major_version": {
-			Type: pluginsdk.TypeString,
-			// TODO: make this field Required (with no default) in 4.0
-			Optional: true,
+			Type:     pluginsdk.TypeString,
+			Required: true,
 			ForceNew: true,
-			Default:  "9",
 			ValidateFunc: validation.StringInSlice([]string{
-				"9", "10",
+				"10",
 			}, false),
 		},
 
@@ -217,6 +216,20 @@ func (r DashboardGrafanaResource) Arguments() map[string]*pluginsdk.Schema {
 			Default:  false,
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		arguments["grafana_major_version"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+			Default:  "9",
+			ValidateFunc: validation.StringInSlice([]string{
+				"9", "10",
+			}, false),
+		}
+	}
+
+	return arguments
 }
 
 func (r DashboardGrafanaResource) Attributes() map[string]*pluginsdk.Schema {
@@ -376,6 +389,10 @@ func (r DashboardGrafanaResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("tags") {
 				properties.Tags = &model.Tags
+			}
+
+			if metadata.ResourceData.HasChange("smtp") {
+				properties.Properties.GrafanaConfigurations = expandSMTPConfigurationModel(model.SMTP)
 			}
 
 			if err := client.GrafanaCreateThenPoll(ctx, *id, *properties); err != nil {

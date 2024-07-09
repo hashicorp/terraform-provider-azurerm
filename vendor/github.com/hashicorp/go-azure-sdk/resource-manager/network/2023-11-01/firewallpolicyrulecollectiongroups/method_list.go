@@ -23,6 +23,18 @@ type ListCompleteResult struct {
 	Items              []FirewallPolicyRuleCollectionGroup
 }
 
+type ListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // List ...
 func (c FirewallPolicyRuleCollectionGroupsClient) List(ctx context.Context, id FirewallPolicyId) (result ListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c FirewallPolicyRuleCollectionGroupsClient) List(ctx context.Context, id F
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListCustomPager{},
 		Path:       fmt.Sprintf("%s/ruleCollectionGroups", id.ID()),
 	}
 

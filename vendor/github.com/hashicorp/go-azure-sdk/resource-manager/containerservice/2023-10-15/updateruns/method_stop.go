@@ -57,8 +57,8 @@ func (c UpdateRunsClient) Stop(ctx context.Context, id UpdateRunId, options Stop
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPost,
-		Path:          fmt.Sprintf("%s/stop", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/stop", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

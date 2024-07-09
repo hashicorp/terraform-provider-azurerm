@@ -165,7 +165,7 @@ func TestAccCdnEndpoint_fullFields(t *testing.T) {
 				check.That(data.ResourceName).Key("origin_host_header").HasValue("www.contoso.com"),
 				check.That(data.ResourceName).Key("optimization_type").HasValue("GeneralWebDelivery"),
 				check.That(data.ResourceName).Key("querystring_caching_behaviour").HasValue("UseQueryString"),
-				check.That(data.ResourceName).Key("content_types_to_compress.#").HasValue("1"),
+				check.That(data.ResourceName).Key("content_types_to_compress.#").HasValue("3"),
 				check.That(data.ResourceName).Key("is_compression_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("geo_filter.#").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
@@ -723,7 +723,7 @@ resource "azurerm_cdn_endpoint" "test" {
   resource_group_name           = azurerm_resource_group.test.name
   is_http_allowed               = true
   is_https_allowed              = true
-  content_types_to_compress     = ["text/html"]
+  content_types_to_compress     = ["text/html", "image/gif", "text/css"]
   is_compression_enabled        = true
   querystring_caching_behaviour = "UseQueryString"
   origin_host_header            = "www.contoso.com"

@@ -50,6 +50,18 @@ func (o ListByPublisherOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListByPublisherCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByPublisherCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByPublisher ...
 func (c OffersClient) ListByPublisher(ctx context.Context, id PublisherId, options ListByPublisherOperationOptions) (result ListByPublisherOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -58,8 +70,9 @@ func (c OffersClient) ListByPublisher(ctx context.Context, id PublisherId, optio
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/offers", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListByPublisherCustomPager{},
+		Path:          fmt.Sprintf("%s/offers", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

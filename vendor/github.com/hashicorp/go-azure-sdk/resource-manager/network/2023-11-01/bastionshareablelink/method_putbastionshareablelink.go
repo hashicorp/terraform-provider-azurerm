@@ -26,6 +26,18 @@ type PutBastionShareableLinkCompleteResult struct {
 	Items              []BastionShareableLink
 }
 
+type PutBastionShareableLinkCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *PutBastionShareableLinkCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // PutBastionShareableLink ...
 func (c BastionShareableLinkClient) PutBastionShareableLink(ctx context.Context, id BastionHostId, input BastionShareableLinkListRequest) (result PutBastionShareableLinkOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -35,6 +47,7 @@ func (c BastionShareableLinkClient) PutBastionShareableLink(ctx context.Context,
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodPost,
+		Pager:      &PutBastionShareableLinkCustomPager{},
 		Path:       fmt.Sprintf("%s/createShareableLinks", id.ID()),
 	}
 

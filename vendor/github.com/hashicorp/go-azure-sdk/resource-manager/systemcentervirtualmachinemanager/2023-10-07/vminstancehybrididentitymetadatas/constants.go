@@ -9,38 +9,38 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type ResourceProvisioningState string
+type ProvisioningState string
 
 const (
-	ResourceProvisioningStateAccepted     ResourceProvisioningState = "Accepted"
-	ResourceProvisioningStateCanceled     ResourceProvisioningState = "Canceled"
-	ResourceProvisioningStateCreated      ResourceProvisioningState = "Created"
-	ResourceProvisioningStateDeleting     ResourceProvisioningState = "Deleting"
-	ResourceProvisioningStateFailed       ResourceProvisioningState = "Failed"
-	ResourceProvisioningStateProvisioning ResourceProvisioningState = "Provisioning"
-	ResourceProvisioningStateSucceeded    ResourceProvisioningState = "Succeeded"
-	ResourceProvisioningStateUpdating     ResourceProvisioningState = "Updating"
+	ProvisioningStateAccepted     ProvisioningState = "Accepted"
+	ProvisioningStateCanceled     ProvisioningState = "Canceled"
+	ProvisioningStateCreated      ProvisioningState = "Created"
+	ProvisioningStateDeleting     ProvisioningState = "Deleting"
+	ProvisioningStateFailed       ProvisioningState = "Failed"
+	ProvisioningStateProvisioning ProvisioningState = "Provisioning"
+	ProvisioningStateSucceeded    ProvisioningState = "Succeeded"
+	ProvisioningStateUpdating     ProvisioningState = "Updating"
 )
 
-func PossibleValuesForResourceProvisioningState() []string {
+func PossibleValuesForProvisioningState() []string {
 	return []string{
-		string(ResourceProvisioningStateAccepted),
-		string(ResourceProvisioningStateCanceled),
-		string(ResourceProvisioningStateCreated),
-		string(ResourceProvisioningStateDeleting),
-		string(ResourceProvisioningStateFailed),
-		string(ResourceProvisioningStateProvisioning),
-		string(ResourceProvisioningStateSucceeded),
-		string(ResourceProvisioningStateUpdating),
+		string(ProvisioningStateAccepted),
+		string(ProvisioningStateCanceled),
+		string(ProvisioningStateCreated),
+		string(ProvisioningStateDeleting),
+		string(ProvisioningStateFailed),
+		string(ProvisioningStateProvisioning),
+		string(ProvisioningStateSucceeded),
+		string(ProvisioningStateUpdating),
 	}
 }
 
-func (s *ResourceProvisioningState) UnmarshalJSON(bytes []byte) error {
+func (s *ProvisioningState) UnmarshalJSON(bytes []byte) error {
 	var decoded string
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)
 	}
-	out, err := parseResourceProvisioningState(decoded)
+	out, err := parseProvisioningState(decoded)
 	if err != nil {
 		return fmt.Errorf("parsing %q: %+v", decoded, err)
 	}
@@ -48,22 +48,22 @@ func (s *ResourceProvisioningState) UnmarshalJSON(bytes []byte) error {
 	return nil
 }
 
-func parseResourceProvisioningState(input string) (*ResourceProvisioningState, error) {
-	vals := map[string]ResourceProvisioningState{
-		"accepted":     ResourceProvisioningStateAccepted,
-		"canceled":     ResourceProvisioningStateCanceled,
-		"created":      ResourceProvisioningStateCreated,
-		"deleting":     ResourceProvisioningStateDeleting,
-		"failed":       ResourceProvisioningStateFailed,
-		"provisioning": ResourceProvisioningStateProvisioning,
-		"succeeded":    ResourceProvisioningStateSucceeded,
-		"updating":     ResourceProvisioningStateUpdating,
+func parseProvisioningState(input string) (*ProvisioningState, error) {
+	vals := map[string]ProvisioningState{
+		"accepted":     ProvisioningStateAccepted,
+		"canceled":     ProvisioningStateCanceled,
+		"created":      ProvisioningStateCreated,
+		"deleting":     ProvisioningStateDeleting,
+		"failed":       ProvisioningStateFailed,
+		"provisioning": ProvisioningStateProvisioning,
+		"succeeded":    ProvisioningStateSucceeded,
+		"updating":     ProvisioningStateUpdating,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
 	// otherwise presume it's an undefined value and best-effort it
-	out := ResourceProvisioningState(input)
+	out := ProvisioningState(input)
 	return &out, nil
 }

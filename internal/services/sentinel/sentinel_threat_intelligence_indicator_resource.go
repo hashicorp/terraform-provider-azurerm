@@ -142,8 +142,9 @@ func (r ThreatIntelligenceIndicator) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"extension": {
-			Type:             pluginsdk.TypeString,
-			Optional:         true,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// NOTE: O+C API sets this if omitted without issues for overwriting/reverting to default so this can remain
 			Computed:         true,
 			ValidateFunc:     validation.StringIsJSON,
 			DiffSuppressFunc: pluginsdk.SuppressJsonDiff,

@@ -29,9 +29,9 @@ import (
 
 func resourcePrivateLinkService() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourcePrivateLinkServiceCreateUpdate,
+		Create: resourcePrivateLinkServiceCreate,
 		Read:   resourcePrivateLinkServiceRead,
-		Update: resourcePrivateLinkServiceCreateUpdate,
+		Update: resourcePrivateLinkServiceUpdate,
 		Delete: resourcePrivateLinkServiceDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := privatelinkservices.ParsePrivateLinkServiceID(id)
@@ -166,24 +166,22 @@ func resourcePrivateLinkService() *pluginsdk.Resource {
 	}
 }
 
-func resourcePrivateLinkServiceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePrivateLinkServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PrivateLinkServices
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := privatelinkservices.NewPrivateLinkServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id, privatelinkservices.DefaultGetOperationOptions())
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
-			}
-		}
+	existing, err := client.Get(ctx, id, privatelinkservices.DefaultGetOperationOptions())
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_private_link_service", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
+	}
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_private_link_service", id.ID())
 	}
 
 	parameters := privatelinkservices.PrivateLinkService{
@@ -217,11 +215,88 @@ func resourcePrivateLinkServiceCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		MinTimeout: 15 * time.Second,
 	}
 
-	if d.IsNewResource() {
-		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutCreate)
-	} else {
-		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
+	stateConf.Timeout = d.Timeout(pluginsdk.TimeoutCreate)
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to become available: %s", id, err)
 	}
+
+	d.SetId(id.ID())
+
+	return resourcePrivateLinkServiceRead(d, meta)
+}
+
+func resourcePrivateLinkServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.PrivateLinkServices
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := privatelinkservices.ParsePrivateLinkServiceID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.Get(ctx, *id, privatelinkservices.DefaultGetOperationOptions())
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", id)
+	}
+
+	payload := existing.Model
+
+	if d.HasChange("auto_approval_subscription_ids") {
+		payload.Properties.AutoApproval = &privatelinkservices.ResourceSet{
+			Subscriptions: utils.ExpandStringSlice(d.Get("auto_approval_subscription_ids").(*pluginsdk.Set).List()),
+		}
+	}
+
+	if d.HasChange("enable_proxy_protocol") {
+		payload.Properties.EnableProxyProtocol = pointer.To(d.Get("enable_proxy_protocol").(bool))
+	}
+
+	if d.HasChange("visibility_subscription_ids") {
+		payload.Properties.Visibility = &privatelinkservices.ResourceSet{
+			Subscriptions: utils.ExpandStringSlice(d.Get("visibility_subscription_ids").(*pluginsdk.Set).List()),
+		}
+	}
+
+	if d.HasChange("fqdns") {
+		payload.Properties.Fqdns = utils.ExpandStringSlice(d.Get("fqdns").([]interface{}))
+	}
+
+	if d.HasChange("nat_ip_configuration") {
+		payload.Properties.IPConfigurations = expandPrivateLinkServiceIPConfiguration(d.Get("nat_ip_configuration").([]interface{}))
+	}
+
+	if d.HasChange("load_balancer_frontend_ip_configuration_ids") {
+		payload.Properties.LoadBalancerFrontendIPConfigurations = expandPrivateLinkServiceFrontendIPConfiguration(d.Get("load_balancer_frontend_ip_configuration_ids").(*pluginsdk.Set).List())
+	}
+
+	if d.HasChange("tags") {
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
+	// we can't rely on the use of the Future here due to the resource being successfully completed but now the service is applying those values.
+	// currently being tracked with issue #6466: https://github.com/Azure/azure-sdk-for-go/issues/6466
+	log.Printf("[DEBUG] Waiting for %s to finish applying", id)
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending:    []string{"Pending", "Updating", "Creating"},
+		Target:     []string{"Succeeded"},
+		Refresh:    privateLinkServiceWaitForReadyRefreshFunc(ctx, client, *id),
+		MinTimeout: 15 * time.Second,
+	}
+
+	stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to become available: %s", id, err)

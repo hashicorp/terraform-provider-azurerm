@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -24,9 +25,10 @@ import (
 )
 
 func resourceComputeCluster() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceComputeClusterCreate,
 		Read:   resourceComputeClusterRead,
+		Update: resourceComputeClusterUpdate,
 		Delete: resourceComputeClusterDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -37,6 +39,7 @@ func resourceComputeCluster() *pluginsdk.Resource {
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
@@ -69,7 +72,7 @@ func resourceComputeCluster() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{string(machinelearningcomputes.VMPriorityDedicated), string(machinelearningcomputes.VMPriorityLowPriority)}, false),
 			},
 
-			"identity": commonschema.SystemAssignedUserAssignedIdentityOptionalForceNew(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"scale_settings": {
 				Type:     pluginsdk.TypeList,
@@ -149,7 +152,7 @@ func resourceComputeCluster() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				ForceNew: true,
-				Computed: true, // `ssh_public_access_enabled` sets to `true` by default even if unspecified
+				Default:  false,
 			},
 
 			"subnet_resource_id": {
@@ -161,6 +164,16 @@ func resourceComputeCluster() *pluginsdk.Resource {
 			"tags": commonschema.TagsForceNew(),
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["ssh_public_access_enabled"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			ForceNew: true,
+			Computed: true,
+		}
+	}
+	return resource
 }
 
 func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -353,6 +366,36 @@ func resourceComputeClusterRead(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	return tags.FlattenAndSet(d, computeResource.Model.Tags)
+}
+
+func resourceComputeClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).MachineLearning.MachineLearningComputes
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := machinelearningcomputes.ParseComputeID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.ComputeGet(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
+	payload := existing.Model
+	if payload == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", *id)
+	}
+	identity, err := expandIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+	payload.Identity = identity
+	if err := client.ComputeCreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
+	return resourceComputeClusterRead(d, meta)
 }
 
 func resourceComputeClusterDelete(d *pluginsdk.ResourceData, meta interface{}) error {

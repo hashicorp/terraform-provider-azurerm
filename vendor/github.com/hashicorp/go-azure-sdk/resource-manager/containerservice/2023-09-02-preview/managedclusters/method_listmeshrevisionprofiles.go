@@ -23,6 +23,18 @@ type ListMeshRevisionProfilesCompleteResult struct {
 	Items              []MeshRevisionProfile
 }
 
+type ListMeshRevisionProfilesCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListMeshRevisionProfilesCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListMeshRevisionProfiles ...
 func (c ManagedClustersClient) ListMeshRevisionProfiles(ctx context.Context, id LocationId) (result ListMeshRevisionProfilesOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c ManagedClustersClient) ListMeshRevisionProfiles(ctx context.Context, id 
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListMeshRevisionProfilesCustomPager{},
 		Path:       fmt.Sprintf("%s/meshRevisionProfiles", id.ID()),
 	}
 

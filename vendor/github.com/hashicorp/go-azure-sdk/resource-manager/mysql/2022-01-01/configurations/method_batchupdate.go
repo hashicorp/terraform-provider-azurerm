@@ -26,6 +26,18 @@ type BatchUpdateCompleteResult struct {
 	Items              []Configuration
 }
 
+type BatchUpdateCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *BatchUpdateCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // BatchUpdate ...
 func (c ConfigurationsClient) BatchUpdate(ctx context.Context, id FlexibleServerId, input ConfigurationListForBatchUpdate) (result BatchUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -35,6 +47,7 @@ func (c ConfigurationsClient) BatchUpdate(ctx context.Context, id FlexibleServer
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodPost,
+		Pager:      &BatchUpdateCustomPager{},
 		Path:       fmt.Sprintf("%s/updateConfigurations", id.ID()),
 	}
 

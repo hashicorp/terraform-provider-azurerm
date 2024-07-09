@@ -22,6 +22,7 @@ import (
 type DataCollectionEndpoint struct {
 	ConfigurationAccessEndpoint string                 `tfschema:"configuration_access_endpoint"`
 	Description                 string                 `tfschema:"description"`
+	ImmutableId                 string                 `tfschema:"immutable_id"`
 	Kind                        string                 `tfschema:"kind"`
 	Name                        string                 `tfschema:"name"`
 	Location                    string                 `tfschema:"location"`
@@ -71,6 +72,11 @@ func (r DataCollectionEndpointResource) Arguments() map[string]*pluginsdk.Schema
 func (r DataCollectionEndpointResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"configuration_access_endpoint": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"immutable_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -160,7 +166,7 @@ func (r DataCollectionEndpointResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 			var enablePublicNetWorkAccess bool
-			var description, kind, location, configurationAccessEndpoint, logsIngestionEndpoint string
+			var description, kind, location, configurationAccessEndpoint, logsIngestionEndpoint, immutableId string
 			var tag map[string]interface{}
 			if model := resp.Model; model != nil {
 				kind = flattenDataCollectionEndpointKind(model.Kind)
@@ -179,6 +185,10 @@ func (r DataCollectionEndpointResource) Read() sdk.ResourceFunc {
 					if prop.LogsIngestion != nil && prop.LogsIngestion.Endpoint != nil {
 						logsIngestionEndpoint = *prop.LogsIngestion.Endpoint
 					}
+
+					if prop.ImmutableId != nil {
+						immutableId = *prop.ImmutableId
+					}
 				}
 			}
 
@@ -186,6 +196,7 @@ func (r DataCollectionEndpointResource) Read() sdk.ResourceFunc {
 				ConfigurationAccessEndpoint: configurationAccessEndpoint,
 				Description:                 description,
 				Kind:                        kind,
+				ImmutableId:                 immutableId,
 				Location:                    location,
 				LogsIngestionEndpoint:       logsIngestionEndpoint,
 				Name:                        id.DataCollectionEndpointName,

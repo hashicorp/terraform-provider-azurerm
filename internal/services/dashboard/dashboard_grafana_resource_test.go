@@ -61,20 +61,6 @@ func TestAccDashboardGrafana_complete(t *testing.T) {
 	})
 }
 
-func TestAccDashboardGrafana_nonDefaultVersion(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_dashboard_grafana", "test")
-	r := DashboardGrafanaResource{}
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.nonDefaultVersion(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccDashboardGrafana_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dashboard_grafana", "test")
 	r := DashboardGrafanaResource{}
@@ -149,7 +135,7 @@ resource "azurerm_dashboard_grafana" "test" {
   name                  = "a-dg-%d"
   resource_group_name   = azurerm_resource_group.test.name
   location              = azurerm_resource_group.test.location
-  grafana_major_version = "9"
+  grafana_major_version = "10"
 }
 `, template, data.RandomInteger)
 }
@@ -163,24 +149,9 @@ resource "azurerm_dashboard_grafana" "test" {
   name                  = "a-dg-%d"
   resource_group_name   = azurerm_resource_group.test.name
   location              = azurerm_resource_group.test.location
-  grafana_major_version = "9"
-
-  sku = "Essential"
-}
-`, template, data.RandomInteger)
-}
-
-func (r DashboardGrafanaResource) nonDefaultVersion(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-				%s
-
-resource "azurerm_dashboard_grafana" "test" {
-  name                  = "a-dg-%d"
-  resource_group_name   = azurerm_resource_group.test.name
-  location              = azurerm_resource_group.test.location
   grafana_major_version = "10"
 
+  sku = "Essential"
 }
 `, template, data.RandomInteger)
 }
@@ -194,7 +165,7 @@ resource "azurerm_dashboard_grafana" "import" {
   name                  = azurerm_dashboard_grafana.test.name
   resource_group_name   = azurerm_dashboard_grafana.test.resource_group_name
   location              = azurerm_dashboard_grafana.test.location
-  grafana_major_version = "9"
+  grafana_major_version = "10"
 }
 `, config)
 }
@@ -216,7 +187,7 @@ resource "azurerm_dashboard_grafana" "test" {
   api_key_enabled                   = true
   deterministic_outbound_ip_enabled = true
   public_network_access_enabled     = false
-  grafana_major_version             = "9"
+  grafana_major_version             = "10"
   smtp {
     enabled          = true
     host             = "localhost:25"
@@ -252,7 +223,7 @@ resource "azurerm_dashboard_grafana" "test" {
   name                  = "a-dg-%d"
   resource_group_name   = azurerm_resource_group.test.name
   location              = azurerm_resource_group.test.location
-  grafana_major_version = "9"
+  grafana_major_version = "10"
 
   identity {
     type = "SystemAssigned"
@@ -264,6 +235,16 @@ resource "azurerm_dashboard_grafana" "test" {
 
   azure_monitor_workspace_integrations {
     resource_id = "${azurerm_resource_group.test.id}/providers/microsoft.monitor/accounts/a-mwr-%[2]d-2"
+  }
+
+  smtp {
+    enabled          = true
+    host             = "localhost:26"
+    user             = "user"
+    password         = "password"
+    from_address     = "admin@grafana.localhost"
+    from_name        = "Grafana"
+    start_tls_policy = "OpportunisticStartTLS"
   }
 
   tags = {

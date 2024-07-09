@@ -305,6 +305,7 @@ resource "azurerm_linux_function_app" "test" {
       client_secret_setting_name = "%[3]s"
       tenant_auth_endpoint       = "https://sts.windows.net/%[5]s/v2.0"
       allowed_groups             = [azuread_group.test.object_id]
+      allowed_applications       = ["WhoopsMissedThisOne"]
     }
 
     login {

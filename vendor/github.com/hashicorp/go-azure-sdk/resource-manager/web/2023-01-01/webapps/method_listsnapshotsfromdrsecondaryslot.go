@@ -23,6 +23,18 @@ type ListSnapshotsFromDRSecondarySlotCompleteResult struct {
 	Items              []Snapshot
 }
 
+type ListSnapshotsFromDRSecondarySlotCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListSnapshotsFromDRSecondarySlotCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListSnapshotsFromDRSecondarySlot ...
 func (c WebAppsClient) ListSnapshotsFromDRSecondarySlot(ctx context.Context, id SlotId) (result ListSnapshotsFromDRSecondarySlotOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c WebAppsClient) ListSnapshotsFromDRSecondarySlot(ctx context.Context, id 
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListSnapshotsFromDRSecondarySlotCustomPager{},
 		Path:       fmt.Sprintf("%s/snapshotsdr", id.ID()),
 	}
 

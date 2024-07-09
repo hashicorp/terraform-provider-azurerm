@@ -23,6 +23,18 @@ type ListByModuleCompleteResult struct {
 	Items              []Activity
 }
 
+type ListByModuleCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByModuleCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByModule ...
 func (c ActivityClient) ListByModule(ctx context.Context, id ModuleId) (result ListByModuleOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c ActivityClient) ListByModule(ctx context.Context, id ModuleId) (result L
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByModuleCustomPager{},
 		Path:       fmt.Sprintf("%s/activities", id.ID()),
 	}
 
