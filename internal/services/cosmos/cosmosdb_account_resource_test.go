@@ -6,6 +6,7 @@ package cosmos_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"regexp"
 	"strconv"
 	"testing"
@@ -123,6 +124,11 @@ func TestAccCosmosDBAccount_keyVaultUri(t *testing.T) {
 }
 
 func TestAccCosmosDBAccount_ManagedHSMUri(t *testing.T) {
+	if os.Getenv("ARM_RUN_TEST_COSMOSDB_ACCOUNT_HSM") == "" {
+		t.Skip("Skipping as ARM_RUN_TEST_COSMOSDB_ACCOUNT_HSM is not specified")
+		return
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
 
@@ -3350,7 +3356,7 @@ resource "azurerm_cosmosdb_account" "test" {
 }
 
 func (CosmosDBAccountResource) managedHSMKey(data acceptance.TestData) string {
-	hsmTemplate := customermanagedkeys.ManagedHSMKeyTempalte(data.RandomInteger, data.RandomString, []string{"data.azuread_service_principal.cosmosdb.id"})
+	hsmTemplate := customermanagedkeys.ManagedHSMKeyTempalte(data.RandomInteger, data.RandomString, true, []string{"data.azuread_service_principal.cosmosdb.id"})
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

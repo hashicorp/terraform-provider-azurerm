@@ -10,7 +10,7 @@ import (
 // ManagedHSMKeyTempalte: Helper function to generate a template for HSM key acceptance tests
 // Ensure `azurerm_client_config.current` datasource is defined before using this template.
 // Verify there are no resource address conflicts in the caller of this template.
-func ManagedHSMKeyTempalte(randomInteger int, randomString string, principalRefs []string) string {
+func ManagedHSMKeyTempalte(randomInteger int, randomString string, purgeProtectionEnabled bool, principalRefs []string) string {
 	roleAssignes := []string{}
 	for idx, principal := range principalRefs {
 		randomUUID, _ := uuid.GenerateUUID()
@@ -102,7 +102,7 @@ resource "azurerm_key_vault_managed_hardware_security_module" "test" {
   sku_name                   = "Standard_B1"
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   admin_object_ids           = [data.azurerm_client_config.current.object_id]
-  purge_protection_enabled   = true
+  purge_protection_enabled   = %[6]t
   soft_delete_retention_days = 7
 
   security_domain_key_vault_certificate_ids = [for cert in azurerm_key_vault_certificate.cert : cert.id]
@@ -154,5 +154,5 @@ resource "azurerm_key_vault_managed_hardware_security_module_key" "test" {
 }
 
 %[3]s
-`, randomString, randomInteger, strings.Join(roleAssignes, "\n\n"), roleAssigneName1, roleAssigneName2)
+`, randomString, randomInteger, strings.Join(roleAssignes, "\n\n"), roleAssigneName1, roleAssigneName2, purgeProtectionEnabled)
 }
