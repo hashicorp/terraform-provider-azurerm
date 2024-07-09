@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2023-04-01/environmenttypes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type DevCenterEnvironmentTypeTestResource struct{}
@@ -104,10 +104,10 @@ func (r DevCenterEnvironmentTypeTestResource) Exists(ctx context.Context, client
 
 	resp, err := clients.DevCenter.V20230401.EnvironmentTypes.EnvironmentTypesGet(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading %s: %+v", *id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r DevCenterEnvironmentTypeTestResource) basic(data acceptance.TestData) string {

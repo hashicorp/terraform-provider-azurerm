@@ -70,5 +70,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 An existing Dev Center Environment Type can be imported into Terraform using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_dev_center_environment_type.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DevCenter/devcenters/dc1/environmentTypes/et1
+terraform import azurerm_dev_center_environment_type.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DevCenter/devCenters/dc1/environmentTypes/et1
 ```
