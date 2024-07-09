@@ -23,6 +23,12 @@ BUG FIXES:
 * `azurerm_mysql_flexible_server_configuration` - add locks to prevent conflicts when deleting the resource [GH-26289]
 * `azurerm_nginx_deployment` - correctly mark `frontend_public.ip_address`, `frontend_private.ip_address`, `frontend_private.allocation_method` and `frontend_private.subnet_id` as ForceNew [GH-26298]
 
+DEPRECATIONS:
+
+* `azurerm_servicebus_queue_resource.go` - `enable_batched_operations`, `enable_express` and `enable_partitioning` are superseded by `batched_operations_enabled`, `express_enabled` and `partitioning_enabled` [GH-26479]
+* `azurerm_servicebus_subscription` - `enable_batched_operations` has been superseded  by `batched_operations_enabled` [GH-26479]
+* `azurerm_servicebus_topic` - `enable_batched_operations`, `enable_express` and `enable_partitioning` are superseded by `batched_operations_enabled`, `express_enabled` and `partitioning_enabled` [GH-26479]
+
 ## 3.111.0 (July 04, 2024)
 
 FEATURES:
