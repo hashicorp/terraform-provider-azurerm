@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
@@ -27,7 +28,7 @@ import (
 var networkSecurityGroupResourceName = "azurerm_network_security_group"
 
 func resourceNetworkSecurityGroup() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceNetworkSecurityGroupCreate,
 		Read:   resourceNetworkSecurityGroupRead,
 		Update: resourceNetworkSecurityGroupUpdate,
@@ -57,11 +58,8 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"security_rule": {
-				Type: pluginsdk.TypeSet,
-				// TODO 5.0 Remove Computed and ConfigModeAttr and recommend adding this block to ignore_changes
-				ConfigMode: pluginsdk.SchemaConfigModeAttr,
-				Optional:   true,
-				Computed:   true,
+				Type:     pluginsdk.TypeSet,
+				Optional: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
@@ -180,6 +178,129 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["security_rule"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeSet,
+			ConfigMode: pluginsdk.SchemaConfigModeAttr,
+			Optional:   true,
+			Computed:   true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+					},
+
+					"description": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringLenBetween(0, 140),
+					},
+
+					"protocol": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(networksecuritygroups.SecurityRuleProtocolAny),
+							string(networksecuritygroups.SecurityRuleProtocolTcp),
+							string(networksecuritygroups.SecurityRuleProtocolUdp),
+							string(networksecuritygroups.SecurityRuleProtocolIcmp),
+							string(networksecuritygroups.SecurityRuleProtocolAh),
+							string(networksecuritygroups.SecurityRuleProtocolEsp),
+						}, false),
+					},
+
+					"source_port_range": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+					},
+
+					"source_port_ranges": {
+						Type:     pluginsdk.TypeSet,
+						Optional: true,
+						Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+						Set:      pluginsdk.HashString,
+					},
+
+					"destination_port_range": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+					},
+
+					"destination_port_ranges": {
+						Type:     pluginsdk.TypeSet,
+						Optional: true,
+						Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+						Set:      pluginsdk.HashString,
+					},
+
+					"source_address_prefix": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+					},
+
+					"source_address_prefixes": {
+						Type:     pluginsdk.TypeSet,
+						Optional: true,
+						Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+						Set:      pluginsdk.HashString,
+					},
+
+					"destination_address_prefix": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+					},
+
+					"destination_address_prefixes": {
+						Type:     pluginsdk.TypeSet,
+						Optional: true,
+						Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+						Set:      pluginsdk.HashString,
+					},
+
+					"destination_application_security_group_ids": {
+						Type:     pluginsdk.TypeSet,
+						Optional: true,
+						Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+						Set:      pluginsdk.HashString,
+					},
+
+					"source_application_security_group_ids": {
+						Type:     pluginsdk.TypeSet,
+						Optional: true,
+						Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+						Set:      pluginsdk.HashString,
+					},
+
+					"access": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(networksecuritygroups.SecurityRuleAccessAllow),
+							string(networksecuritygroups.SecurityRuleAccessDeny),
+						}, false),
+					},
+
+					"priority": {
+						Type:         pluginsdk.TypeInt,
+						Required:     true,
+						ValidateFunc: validation.IntBetween(100, 4096),
+					},
+
+					"direction": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(networksecuritygroups.SecurityRuleDirectionInbound),
+							string(networksecuritygroups.SecurityRuleDirectionOutbound),
+						}, false),
+					},
+				},
+			},
+		}
+	}
+	return resource
 }
 
 func resourceNetworkSecurityGroupCreate(d *pluginsdk.ResourceData, meta interface{}) error {
