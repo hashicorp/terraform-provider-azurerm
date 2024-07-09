@@ -160,10 +160,13 @@ func (r LocalRuleStackRule) Arguments() map[string]*pluginsdk.Schema {
 
 	if !features.FourPointOhBeta() {
 		schema["protocol"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			Default:       protocolApplicationDefault,
-			ValidateFunc:  validate.ProtocolWithPort,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  protocolApplicationDefault,
+			ValidateFunc: validation.Any(
+				validate.ProtocolWithPort,
+				validation.StringInSlice([]string{protocolApplicationDefault}, false),
+			),
 			ConflictsWith: []string{"protocol_ports"},
 			// if `protocol_ports` is set, the default value should not be used
 			DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
