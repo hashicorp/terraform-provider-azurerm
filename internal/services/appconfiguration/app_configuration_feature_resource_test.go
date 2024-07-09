@@ -224,7 +224,6 @@ func TestAccAppConfigurationFeature_enabledUpdate(t *testing.T) {
 	})
 }
 
-
 func TestAccAppConfigurationFeature_basicAddTargetingFilter(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration_feature", "test")
 	r := AppConfigurationFeatureResource{}
@@ -522,7 +521,6 @@ resource "azurerm_app_configuration_feature" "test" {
 }
 `, t.template(data), data.RandomInteger)
 }
-
 
 func (t AppConfigurationFeatureResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
