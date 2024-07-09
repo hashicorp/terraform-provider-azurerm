@@ -799,12 +799,6 @@ A `service_mesh_profile` block supports the following:
 
 A `certificate_authority` block supports the following:
 
-* `plugin` - (Required) A `plugin` block as defined below.
-
----
-
-A `plugin` block supports the following:
-
 * `key_vault_id` - (Required) The resource ID of the Key Vault.
 
 * `root_cert_object_name` - (Required) Root certificate object name in Azure Key Vault.

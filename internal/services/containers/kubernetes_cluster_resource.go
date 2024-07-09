@@ -1324,35 +1324,26 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"plugin": {
-										Type:     pluginsdk.TypeList,
-										Required: true,
-										MaxItems: 1,
-										Elem: &pluginsdk.Resource{
-											Schema: map[string]*pluginsdk.Schema{
-												"key_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}),
-												"root_cert_object_name": {
-													Type:         pluginsdk.TypeString,
-													Required:     true,
-													ValidateFunc: validation.StringIsNotEmpty,
-												},
-												"cert_chain_object_name": {
-													Type:         pluginsdk.TypeString,
-													Required:     true,
-													ValidateFunc: validation.StringIsNotEmpty,
-												},
-												"cert_object_name": {
-													Type:         pluginsdk.TypeString,
-													Required:     true,
-													ValidateFunc: validation.StringIsNotEmpty,
-												},
-												"key_object_name": {
-													Type:         pluginsdk.TypeString,
-													Required:     true,
-													ValidateFunc: validation.StringIsNotEmpty,
-												},
-											},
-										},
+									"key_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}),
+									"root_cert_object_name": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"cert_chain_object_name": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"cert_object_name": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"key_object_name": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 								},
 							},
@@ -4869,29 +4860,14 @@ func expandKubernetesClusterServiceMeshProfileCertificateAuthority(input []inter
 
 	config := input[0].(map[string]interface{})
 
-	plugin := expandCertificateAuthorityPlugin(config["plugin"].([]interface{}))
-	if plugin == nil {
-		return nil
-	}
-
 	return &managedclusters.IstioCertificateAuthority{
-		Plugin: plugin,
-	}
-}
-
-func expandCertificateAuthorityPlugin(input []interface{}) *managedclusters.IstioPluginCertificateAuthority {
-	if len(input) == 0 || input[0] == nil {
-		return nil
-	}
-
-	config := input[0].(map[string]interface{})
-
-	return &managedclusters.IstioPluginCertificateAuthority{
-		KeyVaultId:          utils.String(config["key_vault_id"].(string)),
-		RootCertObjectName:  utils.String(config["root_cert_object_name"].(string)),
-		CertChainObjectName: utils.String(config["cert_chain_object_name"].(string)),
-		CertObjectName:      utils.String(config["cert_object_name"].(string)),
-		KeyObjectName:       utils.String(config["key_object_name"].(string)),
+		Plugin: &managedclusters.IstioPluginCertificateAuthority{
+			KeyVaultId:          utils.String(config["key_vault_id"].(string)),
+			RootCertObjectName:  utils.String(config["root_cert_object_name"].(string)),
+			CertChainObjectName: utils.String(config["cert_chain_object_name"].(string)),
+			CertObjectName:      utils.String(config["cert_object_name"].(string)),
+			KeyObjectName:       utils.String(config["key_object_name"].(string)),
+		},
 	}
 }
 
@@ -5024,32 +5000,20 @@ func flattenKubernetesClusterAzureServiceMeshProfile(input *managedclusters.Serv
 }
 
 func flattenKubernetesClusterServiceMeshProfileCertificateAuthority(certificateAuthority *managedclusters.IstioCertificateAuthority) interface{} {
-	if certificateAuthority == nil {
+	if certificateAuthority == nil || certificateAuthority.Plugin == nil {
 		return []interface{}{}
 	}
 
 	return []interface{}{
 		map[string]interface{}{
-			"plugin": flattenCertificateAuthorityPlugin(certificateAuthority.Plugin),
+			"key_vault_id":           utils.NormalizeNilableString(certificateAuthority.Plugin.KeyVaultId),
+			"root_cert_object_name":  utils.NormalizeNilableString(certificateAuthority.Plugin.RootCertObjectName),
+			"cert_chain_object_name": utils.NormalizeNilableString(certificateAuthority.Plugin.CertChainObjectName),
+			"cert_object_name":       utils.NormalizeNilableString(certificateAuthority.Plugin.CertObjectName),
+			"key_object_name":        utils.NormalizeNilableString(certificateAuthority.Plugin.KeyObjectName),
 		},
 	}
 
-}
-
-func flattenCertificateAuthorityPlugin(plugin *managedclusters.IstioPluginCertificateAuthority) interface{} {
-	if plugin == nil {
-		return []interface{}{}
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"key_vault_id":           utils.NormalizeNilableString(plugin.KeyVaultId),
-			"root_cert_object_name":  utils.NormalizeNilableString(plugin.RootCertObjectName),
-			"cert_chain_object_name": utils.NormalizeNilableString(plugin.CertChainObjectName),
-			"cert_object_name":       utils.NormalizeNilableString(plugin.CertObjectName),
-			"key_object_name":        utils.NormalizeNilableString(plugin.KeyObjectName),
-		},
-	}
 }
 
 func flattenKubernetesClusterAzureMonitorProfile(input *managedclusters.ManagedClusterAzureMonitorProfile) []interface{} {
