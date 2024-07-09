@@ -97,27 +97,17 @@ func TestAccElasticSANVolumeSnapshotDataSource_basic(t *testing.T) {
 
 func (d ElasticSANVolumeSnapshotDataSource) snapshotSource(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-variable "primary_location" {
-  default = %q
-}
-variable "random_integer" {
-  default = %d
-}
-variable "random_string" {
-  default = %q
-}
-
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-esvg-${var.random_integer}"
-  location = var.primary_location
+  name     = "acctestrg-esvg-%[2]d"
+  location = "%[1]s"
 }
 
 resource "azurerm_elastic_san" "test" {
-  name                = "acctestes-${var.random_string}"
+  name                = "acctestes-%[3]s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   base_size_in_tib    = 1
@@ -127,12 +117,12 @@ resource "azurerm_elastic_san" "test" {
 }
 
 resource "azurerm_elastic_san_volume_group" "test" {
-  name           = "acctestesvg-${var.random_string}"
+  name           = "acctestesvg-%[3]s"
   elastic_san_id = azurerm_elastic_san.test.id
 }
 
 resource "azurerm_elastic_san_volume" "test" {
-  name            = "acctestesv-${var.random_string}"
+  name            = "acctestesv-%[3]s"
   volume_group_id = azurerm_elastic_san_volume_group.test.id
   size_in_gib     = 1
 }
@@ -141,27 +131,17 @@ resource "azurerm_elastic_san_volume" "test" {
 
 func (d ElasticSANVolumeSnapshotDataSource) snapshotRestore(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-variable "primary_location" {
-  default = %q
-}
-variable "random_integer" {
-  default = %d
-}
-variable "random_string" {
-  default = %q
-}
-
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-esvg-${var.random_integer}"
-  location = var.primary_location
+  name     = "acctestrg-esvg-%[2]d"
+  location = "%[1]s"
 }
 
 resource "azurerm_elastic_san" "test" {
-  name                = "acctestes-${var.random_string}"
+  name                = "acctestes-%[3]s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   base_size_in_tib    = 1
@@ -171,18 +151,18 @@ resource "azurerm_elastic_san" "test" {
 }
 
 resource "azurerm_elastic_san_volume_group" "test" {
-  name           = "acctestesvg-${var.random_string}"
+  name           = "acctestesvg-%[3]s"
   elastic_san_id = azurerm_elastic_san.test.id
 }
 
 resource "azurerm_elastic_san_volume" "test" {
-  name            = "acctestesv-${var.random_string}"
+  name            = "acctestesv-%[3]s"
   volume_group_id = azurerm_elastic_san_volume_group.test.id
   size_in_gib     = 1
 }
 
 data "azurerm_elastic_san_volume_snapshot" "test" {
-  name            = var.random_string
+  name            = "%[3]s"
   volume_group_id = azurerm_elastic_san_volume_group.test.id
 }
 `, data.Locations.Primary, data.RandomInteger, data.RandomString)

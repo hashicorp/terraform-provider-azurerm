@@ -45,13 +45,13 @@ The following arguments are supported:
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 
-* `id` - The ID of the Elastic SAN.
+* `id` - The ID of the Elastic SAN Volume Snapshot.
 
-* `source_id` - The Resource ID from which the Snapshot is created.
+* `source_id` - The resource ID from which the Snapshot is created.
 
-* `source_volume_size_gib` - Size of Source Volume.
+* `source_volume_size_in_gib` - The size of source volume.
 
-* `volume_name` - Source Volume Name of the Snapshot.
+* `volume_name` - The source volume name of the Snapshot.
 
 ## Timeouts
 

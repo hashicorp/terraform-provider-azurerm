@@ -107,7 +107,7 @@ func (r ElasticSANVolumeSnapshotDataSource) Read() sdk.ResourceFunc {
 				// only ElasticSAN Volumes are supported for now
 				volumeId, err := volumes.ParseVolumeIDInsensitively(model.Properties.CreationData.SourceId)
 				if err != nil {
-					return fmt.Errorf("parsing source ID as ElasticSAN Volume ID: %+v", err)
+					return err
 				}
 
 				state.SourceId = volumeId.ID()
