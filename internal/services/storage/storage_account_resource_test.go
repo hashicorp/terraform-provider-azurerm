@@ -1412,6 +1412,11 @@ func TestAccStorageAccount_updateToUsingIdentityAndCustomerManagedKey(t *testing
 }
 
 func TestAccStorageAccount_customerManagedKeyForHSM(t *testing.T) {
+	// Skipping this test by default, as the managed HSM is costly.
+	if os.Getenv("ARM_TEST_HSM_KEY") == "" {
+		t.Skip("Skipping as ARM_TEST_HSM_KEY is not specified")
+		return
+	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
 
@@ -5131,13 +5136,14 @@ resource "azurerm_key_vault_certificate" "cert" {
   }
 }
 resource "azurerm_key_vault_managed_hardware_security_module" "test" {
-  name                     = "kvHsm%[3]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  sku_name                 = "Standard_B1"
-  tenant_id                = data.azurerm_client_config.current.tenant_id
-  admin_object_ids         = [data.azurerm_client_config.current.object_id]
-  purge_protection_enabled = false
+  name                       = "kvHsm%[3]d"
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  sku_name                   = "Standard_B1"
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  admin_object_ids           = [data.azurerm_client_config.current.object_id]
+  purge_protection_enabled   = false
+  soft_delete_retention_days = 7
 
   security_domain_key_vault_certificate_ids = [for cert in azurerm_key_vault_certificate.cert : cert.id]
   security_domain_quorum                    = 3
