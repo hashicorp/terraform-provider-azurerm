@@ -78,7 +78,7 @@ func resourceEventHubNamespaceSchemaRegistry() *pluginsdk.Resource {
 func resourceEventHubNamespaceSchemaRegistryCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Eventhub.SchemaRegistryClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	log.Printf("[INFO] preparing arguments for AzureRM EventHub Namespace Schema Registry creation.")
 
