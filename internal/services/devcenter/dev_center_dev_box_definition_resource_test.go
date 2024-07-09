@@ -3,6 +3,7 @@ package devcenter_test
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"testing"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2023-04-01/devboxdefinitions"
@@ -10,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type DevCenterDevBoxDefinitionTestResource struct{}
@@ -90,10 +90,10 @@ func (r DevCenterDevBoxDefinitionTestResource) Exists(ctx context.Context, clien
 
 	resp, err := clients.DevCenter.V20230401.DevBoxDefinitions.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading %s: %+v", *id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r DevCenterDevBoxDefinitionTestResource) basic(data acceptance.TestData) string {

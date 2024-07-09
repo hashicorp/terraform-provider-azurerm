@@ -47,9 +47,9 @@ The following arguments are supported:
 
 * `dev_center_id` - (Required) The ID of the associated Dev Center. Changing this forces a new resource to be created.
 
-* `image_reference_id` - (Required) The ID of the image for Dev Center Dev Box Definition.
+* `image_reference_id` - (Required) The ID of the image for the Dev Center Dev Box Definition.
 
-* `sku_name` - (Required) The name of the SKU for Dev Center Dev Box Definition.
+* `sku_name` - (Required) The name of the SKU for the Dev Center Dev Box Definition.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Dev Center Dev Box Definition.
 
@@ -73,5 +73,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 An existing Dev Center Dev Box Definition can be imported into Terraform using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_dev_center_dev_box_definition.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DevCenter/devcenters/dc1/devboxdefinitions/et1
+terraform import azurerm_dev_center_dev_box_definition.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DevCenter/devCenters/dc1/devBoxDefinitions/et1
 ```
