@@ -514,6 +514,7 @@ resource "azurerm_app_configuration_feature" "test" {
   enabled                = true
 
   targeting_filter {
+    default_rollout_percentage = 39
     users = [
       "random", "user"
     ]
