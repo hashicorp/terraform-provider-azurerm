@@ -35,6 +35,7 @@ type machineLearningWorkspaceHubModel struct {
 	ContainerRegistryID         string                                     `tfschema:"container_registry_id"`
 	ApplicationInsightsID       string                                     `tfschema:"application_insights_id"`
 	PublicNetworkAccess         string                                     `tfschema:"public_network_access"`
+	WorkspaceId                 string                                     `tfschema:"workspace_id"`
 	FriendlyName                string                                     `tfschema:"friendly_name"`
 	PrimaryUserAssignedIdentity string                                     `tfschema:"primary_user_assigned_identity"`
 	Identity                    []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
@@ -95,21 +96,6 @@ func (r MachineLearningWorkspaceHubResource) Arguments() map[string]*pluginsdk.S
 			DiffSuppressFunc: suppress.CaseDifference,
 		},
 
-		"primary_user_assigned_identity": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
-		},
-
-		"container_registry_id": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			ValidateFunc: registries.ValidateRegistryID,
-			// TODO -- remove when issue https://github.com/Azure/azure-rest-api-specs/issues/8323 is addressed
-			DiffSuppressFunc: suppress.CaseDifference,
-		},
-
 		"application_insights_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -120,6 +106,15 @@ func (r MachineLearningWorkspaceHubResource) Arguments() map[string]*pluginsdk.S
 		},
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityRequired(),
+
+		"container_registry_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: registries.ValidateRegistryID,
+			// TODO -- remove when issue https://github.com/Azure/azure-rest-api-specs/issues/8323 is addressed
+			DiffSuppressFunc: suppress.CaseDifference,
+		},
 
 		"encryption": {
 			Type:     pluginsdk.TypeList,
@@ -148,6 +143,12 @@ func (r MachineLearningWorkspaceHubResource) Arguments() map[string]*pluginsdk.S
 		"friendly_name": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
+		},
+
+		"primary_user_assigned_identity": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 		},
 
 		"public_network_access": {
@@ -296,7 +297,6 @@ func (r MachineLearningWorkspaceHubResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
-			metadata.SetID(id)
 			return nil
 		},
 	}
@@ -345,9 +345,21 @@ func (r MachineLearningWorkspaceHubResource) Read() sdk.ResourceFunc {
 				}
 				state.ApplicationInsightsID = appInsightsId
 
-				state.KeyVaultID = *model.Properties.KeyVault
-				state.StorageAccountID = *model.Properties.StorageAccount
-				state.PublicNetworkAccess = string(*model.Properties.PublicNetworkAccess)
+				if model.Properties.KeyVault != nil {
+					state.KeyVaultID = *model.Properties.KeyVault
+				}
+
+				if model.Properties.StorageAccount != nil {
+					state.StorageAccountID = *model.Properties.StorageAccount
+				}
+
+				if model.Properties.PublicNetworkAccess != nil {
+					state.PublicNetworkAccess = string(*model.Properties.PublicNetworkAccess)
+				}
+
+				if model.Properties.WorkspaceId != nil {
+					state.WorkspaceId = *model.Properties.WorkspaceId
+				}
 
 				if model.Properties.PrimaryUserAssignedIdentity != nil {
 					state.PrimaryUserAssignedIdentity = *model.Properties.PrimaryUserAssignedIdentity
@@ -401,11 +413,11 @@ func (r MachineLearningWorkspaceHubResource) Delete() sdk.ResourceFunc {
 
 			future, err := client.Delete(ctx, *id, options)
 			if err != nil {
-				return fmt.Errorf("deleting Machine Learning Hub Workspace %q (Resource Group %q): %+v", id.WorkspaceName, id.ResourceGroupName, err)
+				return fmt.Errorf("deleting Machine Learning Workspace Hub %q (Resource Group %q): %+v", id.WorkspaceName, id.ResourceGroupName, err)
 			}
 
 			if err := future.Poller.PollUntilDone(ctx); err != nil {
-				return fmt.Errorf("waiting for deletion of Machine Learning Hub Workspace %q (Resource Group %q): %+v", id.WorkspaceName, id.ResourceGroupName, err)
+				return fmt.Errorf("waiting for deletion of Machine Learning Workspace Hub %q (Resource Group %q): %+v", id.WorkspaceName, id.ResourceGroupName, err)
 			}
 
 			return nil
@@ -456,7 +468,7 @@ func flattenMachineLearningWorkspaceHubEncryption(input *workspaces.EncryptionPr
 	if input.Identity != nil && input.Identity.UserAssignedIdentity != nil {
 		id, err := commonids.ParseUserAssignedIdentityIDInsensitively(*input.Identity.UserAssignedIdentity)
 		if err != nil {
-			return nil, fmt.Errorf("parsing userAssignedIdentityId %q: %+v", *input.Identity.UserAssignedIdentity, err)
+			return nil, fmt.Errorf("parsing userAssignedIdentity %q: %+v", *input.Identity.UserAssignedIdentity, err)
 		}
 		userAssignedIdentityId = id.ID()
 	}
