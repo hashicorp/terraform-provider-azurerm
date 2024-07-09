@@ -2,12 +2,11 @@
 
 FEATURES:
 
+* New Data Source: `azurerm_elastic_san_volume_snapshot` [GH-26439]
 * New Resource: `azurerm_dev_center_dev_box_definition` [GH-26307]
 * New Resource: `azurerm_dev_center_environment_type` [GH-26291]
 * New Resource: `azurerm_virtual_machine_restore_point` [GH-26526]
 * New Resource: `azurerm_virtual_machine_restore_point_collection` [GH-26526]
-
-
 
 ENHANCEMENTS:
 
