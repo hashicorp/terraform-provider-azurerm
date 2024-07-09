@@ -232,12 +232,18 @@ func resourceServiceBusTopicCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	enableExpress := d.Get("express_enabled").(bool)
 	enablePartitioning := d.Get("partitioning_enabled").(bool)
 	if !features.FourPointOh() {
+
+		// nolint staticcheck
 		if v, ok := d.GetOkExists("enable_batched_operations"); ok {
 			enableBatchedOperations = v.(bool)
 		}
+
+		// nolint staticcheck
 		if v, ok := d.GetOkExists("enable_express"); ok {
 			enableExpress = v.(bool)
 		}
+
+		// nolint staticcheck
 		if v, ok := d.GetOkExists("enable_partitioning"); ok {
 			enablePartitioning = v.(bool)
 		}

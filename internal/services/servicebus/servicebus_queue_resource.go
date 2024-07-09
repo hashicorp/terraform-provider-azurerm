@@ -341,14 +341,17 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	if !features.FourPointOhBeta() {
 
+		// nolint staticcheck
 		if v, ok := d.GetOkExists("enable_express"); ok {
 			enableExpress = v.(bool)
 		}
 
+		// nolint staticcheck
 		if v, ok := d.GetOkExists("enable_partitioning"); ok {
 			enablePartitioning = v.(bool)
 		}
 
+		// nolint staticcheck
 		if v, ok := d.GetOkExists("enable_batched_operations"); ok {
 			enableBatchedOperations = v.(bool)
 		}
