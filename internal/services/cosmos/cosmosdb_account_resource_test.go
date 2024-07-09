@@ -125,7 +125,7 @@ func TestAccCosmosDBAccount_keyVaultUri(t *testing.T) {
 
 func TestAccCosmosDBAccount_ManagedHSMUri(t *testing.T) {
 	if os.Getenv("ARM_TEST_HSM_KEY") == "" {
-		t.Skip("Skipping as ARM_RUN_TEST_COSMOSDB_ACCOUNT_HSM is not specified")
+		t.Skip("Skipping as ARM_TEST_HSM_KEY is not specified")
 		return
 	}
 
