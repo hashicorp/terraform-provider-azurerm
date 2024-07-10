@@ -1412,11 +1412,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     internal_ingress_gateway_enabled = true
     external_ingress_gateway_enabled = true
     certificate_authority {
-	  key_vault_id           = azurerm_key_vault.test.id 
-	  root_cert_object_name  = azurerm_key_vault_certificate.test_cert1.name
-	  cert_chain_object_name = azurerm_key_vault_certificate.test_cert2.name
-	  cert_object_name       = azurerm_key_vault_certificate.test_cert3.name
-	  key_object_name        = azurerm_key_vault_key.test.name
+      key_vault_id           = azurerm_key_vault.test.id
+      root_cert_object_name  = azurerm_key_vault_certificate.test_cert1.name
+      cert_chain_object_name = azurerm_key_vault_certificate.test_cert2.name
+      cert_object_name       = azurerm_key_vault_certificate.test_cert3.name
+      key_object_name        = azurerm_key_vault_key.test.name
     }
   }
 
