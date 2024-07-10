@@ -309,7 +309,10 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						},
 						Deprecated: "This field will be removed in v4.0 of the Azure Provider since the AKS API doesn't allow arbitrary node taints on the default node pool",
 					}
+				}
 
+				if !features.FourPointOh() {
+					// These properties are not undergoing a soft deprecation but are being renamed, so they need to be put behind the FourPointOh flag
 					s["enable_auto_scaling"] = &pluginsdk.Schema{
 						Type:       pluginsdk.TypeBool,
 						Optional:   true,
@@ -327,7 +330,6 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						Optional:   true,
 						Deprecated: features.DeprecatedInFourPointOh("The property `enable_host_encryption` will be renamed to `host_encryption_enabled` in v4.0 of the AzureRM Provider."),
 					}
-
 					delete(s, "auto_scaling_enabled")
 					delete(s, "node_public_ip_enabled")
 					delete(s, "host_encryption_enabled")
@@ -1210,7 +1212,7 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 
 	raw := input[0].(map[string]interface{})
 	var enableAutoScaling bool
-	if !features.FourPointOhBeta() {
+	if !features.FourPointOh() {
 		enableAutoScaling = raw["enable_auto_scaling"].(bool)
 	} else {
 		enableAutoScaling = raw["auto_scaling_enabled"].(bool)
@@ -1236,14 +1238,14 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 	t := raw["tags"].(map[string]interface{})
 
 	var nodePublicIp bool
-	if !features.FourPointOhBeta() {
+	if !features.FourPointOh() {
 		nodePublicIp = raw["enable_node_public_ip"].(bool)
 	} else {
 		nodePublicIp = raw["node_public_ip_enabled"].(bool)
 	}
 
 	var hostEncryption bool
-	if !features.FourPointOhBeta() {
+	if !features.FourPointOh() {
 		hostEncryption = raw["enable_host_encryption"].(bool)
 	} else {
 		nodePublicIp = raw["host_encryption_enabled"].(bool)
@@ -1822,13 +1824,11 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		"capacity_reservation_group_id": capacityReservationGroupId,
 	}
 
-	if features.FourPointOhBeta() {
+	if features.FourPointOh() {
 		out["auto_scaling_enabled"] = enableAutoScaling
 		out["node_public_ip_enabled"] = enableNodePublicIP
 		out["host_encryption_enabled"] = enableHostEncryption
-	}
-
-	if !features.FourPointOhBeta() {
+	} else {
 		out["enable_auto_scaling"] = enableAutoScaling
 		out["enable_node_public_ip"] = enableNodePublicIP
 		out["enable_host_encryption"] = enableHostEncryption

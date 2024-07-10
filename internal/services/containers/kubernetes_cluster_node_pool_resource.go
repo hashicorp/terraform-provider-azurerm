@@ -393,7 +393,25 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 				string(agentpools.WorkloadRuntimeKataMshvVMIsolation),
 			}, false),
 		},
+
 		"zones": commonschema.ZonesMultipleOptionalForceNew(),
+
+		"auto_scaling_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+		},
+
+		"node_public_ip_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			ForceNew: true,
+		},
+
+		"host_encryption_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			ForceNew: true,
+		},
 	}
 
 	if !features.FourPointOhBeta() {
@@ -405,7 +423,9 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			string(agentpools.OSSKUWindowsTwoZeroOneNine),
 			string(agentpools.OSSKUWindowsTwoZeroTwoTwo),
 		}, false)
+	}
 
+	if !features.FourPointOh() {
 		s["enable_auto_scaling"] = &pluginsdk.Schema{
 			Type:       pluginsdk.TypeBool,
 			Optional:   true,
@@ -425,25 +445,10 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			ForceNew:   true,
 			Deprecated: features.DeprecatedInFourPointOh("The property `enable_host_encryption` will be renamed to `host_encryption_enabled` in v4.0 of the AzureRM Provider."),
 		}
-	}
 
-	if features.FourPointOhBeta() {
-		s["auto_scaling_enabled"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-		}
-
-		s["node_public_ip_enabled"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			ForceNew: true,
-		}
-
-		s["host_encryption_enabled"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			ForceNew: true,
-		}
+		delete(s, "auto_scaling_enabled")
+		delete(s, "node_public_ip_enabled")
+		delete(s, "host_encryption_enabled")
 	}
 
 	return s
@@ -520,15 +525,15 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 
 	count := d.Get("node_count").(int)
 	enableAutoScaling := d.Get("enable_auto_scaling").(bool)
-	if features.FourPointOhBeta() {
+	if features.FourPointOh() {
 		enableAutoScaling = d.Get("auto_scaling_enabled").(bool)
 	}
 	hostEncryption := d.Get("enable_host_encryption").(bool)
-	if features.FourPointOhBeta() {
+	if features.FourPointOh() {
 		hostEncryption = d.Get("host_encryption_enabled").(bool)
 	}
 	nodeIp := d.Get("enable_node_public_ip").(bool)
-	if features.FourPointOhBeta() {
+	if features.FourPointOh() {
 		nodeIp = d.Get("node_public_ip_enabled").(bool)
 	}
 	evictionPolicy := d.Get("eviction_policy").(string)
@@ -793,7 +798,7 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 	log.Printf("[DEBUG] Determining delta for existing %s..", *id)
 
 	// delta patching
-	if features.FourPointOhBeta() {
+	if features.FourPointOh() {
 		if d.HasChange("auto_scaling_enabled") {
 			enableAutoScaling = d.Get("auto_scaling_enabled").(bool)
 			props.EnableAutoScaling = utils.Bool(enableAutoScaling)
@@ -809,7 +814,7 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 		props.EnableCustomCATrust = utils.Bool(d.Get("custom_ca_trust_enabled").(bool))
 	}
 
-	if d.HasChange("max_count") || d.Get("enable_auto_scaling").(bool) {
+	if d.HasChange("max_count") || enableAutoScaling {
 		props.MaxCount = utils.Int64(int64(d.Get("max_count").(int)))
 	}
 
@@ -818,7 +823,7 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 		props.Mode = &mode
 	}
 
-	if d.HasChange("min_count") || d.Get("enable_auto_scaling").(bool) {
+	if d.HasChange("min_count") || enableAutoScaling {
 		props.MinCount = utils.Int64(int64(d.Get("min_count").(int)))
 	}
 
@@ -964,7 +969,7 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 	if model := resp.Model; model != nil && model.Properties != nil {
 		props := model.Properties
 		d.Set("zones", zones.FlattenUntyped(props.AvailabilityZones))
-		if features.FourPointOhBeta() {
+		if features.FourPointOh() {
 			d.Set("auto_scaling_enabled", props.EnableAutoScaling)
 			d.Set("node_public_ip_enabled", props.EnableNodePublicIP)
 			d.Set("host_encryption_enabled", props.EnableEncryptionAtHost)
