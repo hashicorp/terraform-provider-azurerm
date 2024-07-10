@@ -118,6 +118,7 @@ func TestProvider_impl(t *testing.T) {
 func TestProvider_counts(t *testing.T) {
 	// @tombuildsstuff: this is less a unit test and more a useful placeholder tbh
 	provider := TestAzureProvider()
+
 	log.Printf("Data Sources: %d", len(provider.DataSourcesMap))
 	log.Printf("Resources:    %d", len(provider.ResourcesMap))
 	log.Printf("-----------------")
@@ -131,7 +132,10 @@ func TestAccProvider_resourceProviders_legacy(t *testing.T) {
 	logging.SetOutput(t)
 
 	provider := TestAzureProvider()
-	provider.Configure(ctx, terraform.NewResourceConfigRaw(nil))
+
+	if diags := provider.Configure(ctx, terraform.NewResourceConfigRaw(nil)); diags != nil && diags.HasError() {
+		t.Fatalf("provider failed to configure: %v", diags)
+	}
 
 	expectedResourceProviders := resourceproviders.Legacy()
 	registeredResourceProviders := provider.Meta().(*clients.Client).Account.RegisteredResourceProviders
@@ -148,12 +152,14 @@ func TestAccProvider_resourceProviders_deprecatedSkip(t *testing.T) {
 
 	logging.SetOutput(t)
 
+	provider := TestAzureProvider()
 	config := map[string]interface{}{
 		"skip_provider_registration": "true",
 	}
 
-	provider := TestAzureProvider()
-	provider.Configure(ctx, terraform.NewResourceConfigRaw(config))
+	if diags := provider.Configure(ctx, terraform.NewResourceConfigRaw(config)); diags != nil && diags.HasError() {
+		t.Fatalf("provider failed to configure: %v", diags)
+	}
 
 	expectedResourceProviders := make(resourceproviders.ResourceProviders)
 	registeredResourceProviders := provider.Meta().(*clients.Client).Account.RegisteredResourceProviders
@@ -173,15 +179,19 @@ func TestAccProvider_resourceProviders_legacyWithAdditional(t *testing.T) {
 
 	logging.SetOutput(t)
 
+	provider := TestAzureProvider()
 	config := map[string]interface{}{
 		"resource_providers_to_register": []interface{}{
 			"Microsoft.ApiManagement",
+			"Microsoft.ContainerService",
 			"Microsoft.KeyVault",
+			"Microsoft.Kubernetes",
 		},
 	}
 
-	provider := TestAzureProvider()
-	provider.Configure(ctx, terraform.NewResourceConfigRaw(config))
+	if diags := provider.Configure(ctx, terraform.NewResourceConfigRaw(config)); diags != nil && diags.HasError() {
+		t.Fatalf("provider failed to configure: %v", diags)
+	}
 
 	expectedResourceProviders := resourceproviders.Legacy().Merge(resourceproviders.ResourceProviders{
 		"Microsoft.ApiManagement": {},
@@ -204,12 +214,14 @@ func TestAccProvider_resourceProviders_core(t *testing.T) {
 
 	logging.SetOutput(t)
 
+	provider := TestAzureProvider()
 	config := map[string]interface{}{
 		"resource_provider_registrations": "core",
 	}
 
-	provider := TestAzureProvider()
-	provider.Configure(ctx, terraform.NewResourceConfigRaw(config))
+	if diags := provider.Configure(ctx, terraform.NewResourceConfigRaw(config)); diags != nil && diags.HasError() {
+		t.Fatalf("provider failed to configure: %v", diags)
+	}
 
 	expectedResourceProviders := resourceproviders.Core()
 	registeredResourceProviders := provider.Meta().(*clients.Client).Account.RegisteredResourceProviders
@@ -229,6 +241,7 @@ func TestAccProvider_resourceProviders_coreWithAdditional(t *testing.T) {
 
 	logging.SetOutput(t)
 
+	provider := TestAzureProvider()
 	config := map[string]interface{}{
 		"resource_provider_registrations": "core",
 		"resource_providers_to_register": []interface{}{
@@ -237,8 +250,9 @@ func TestAccProvider_resourceProviders_coreWithAdditional(t *testing.T) {
 		},
 	}
 
-	provider := TestAzureProvider()
-	provider.Configure(ctx, terraform.NewResourceConfigRaw(config))
+	if diags := provider.Configure(ctx, terraform.NewResourceConfigRaw(config)); diags != nil && diags.HasError() {
+		t.Fatalf("provider failed to configure: %v", diags)
+	}
 
 	expectedResourceProviders := resourceproviders.Core().Merge(resourceproviders.ResourceProviders{
 		"Microsoft.ApiManagement": {},
@@ -261,6 +275,7 @@ func TestAccProvider_resourceProviders_explicit(t *testing.T) {
 
 	logging.SetOutput(t)
 
+	provider := TestAzureProvider()
 	config := map[string]interface{}{
 		"resource_provider_registrations": "none",
 		"resource_providers_to_register": []interface{}{
@@ -270,8 +285,9 @@ func TestAccProvider_resourceProviders_explicit(t *testing.T) {
 		},
 	}
 
-	provider := TestAzureProvider()
-	provider.Configure(ctx, terraform.NewResourceConfigRaw(config))
+	if diags := provider.Configure(ctx, terraform.NewResourceConfigRaw(config)); diags != nil && diags.HasError() {
+		t.Fatalf("provider failed to configure: %v", diags)
+	}
 
 	expectedResourceProviders := resourceproviders.ResourceProviders{
 		"Microsoft.Compute": {},

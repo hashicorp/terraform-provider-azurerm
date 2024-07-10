@@ -555,34 +555,8 @@ func buildClient(ctx context.Context, p *schema.Provider, d *schema.ResourceData
 	defer cancel()
 
 	if err = resourceproviders.EnsureRegistered(ctx2, client.Resource.ResourceProvidersClient, subscriptionId, requiredResourceProviders); err != nil {
-		return nil, diag.Errorf(resourceProviderRegistrationErrorFmt, err)
+		return nil, diag.FromErr(err)
 	}
 
 	return client, nil
 }
-
-const resourceProviderRegistrationErrorFmt = `Encountered an error whilst ensuring Resource Providers are registered.
-
-Terraform automatically attempts to register the Azure Resource Providers it supports, to
-ensure it is able to provision resources.
-
-If you don't have permission to register Resource Providers you may wish to disable this
-functionality by adding the following to the Provider block:
-
-provider "azurerm" {
-  "resource_provider_registrations = "none"
-}
-
-Please note that if you opt out of Resource Provider Registration and Terraform tries
-to provision a resource from a Resource Provider which is unregistered, then the errors
-may appear misleading - for example:
-
-> API version 2019-XX-XX was not found for Microsoft.Foo
-
-Could suggest that the Resource Provider "Microsoft.Foo" requires registration, but
-this could also indicate that this Azure Region doesn't support this API version.
-
-More information on the "resource_provider_registrations" property can be found here:
-https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#resource_provider_registrations
-
-Original Error: %s`
