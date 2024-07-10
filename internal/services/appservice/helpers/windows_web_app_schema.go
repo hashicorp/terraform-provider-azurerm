@@ -51,6 +51,7 @@ type SiteConfigWindows struct {
 	VirtualApplications           []VirtualApplication      `tfschema:"virtual_application"`
 	MinTlsVersion                 string                    `tfschema:"minimum_tls_version"`
 	ScmMinTlsVersion              string                    `tfschema:"scm_minimum_tls_version"`
+	MinTlsCipherSuite             string                    `tfschema:"minimum_tls_cipher_suite"`
 	Cors                          []CorsSetting             `tfschema:"cors"`
 	DetailedErrorLogging          bool                      `tfschema:"detailed_error_logging_enabled"`
 	WindowsFxVersion              string                    `tfschema:"windows_fx_version"`
@@ -275,6 +276,13 @@ func SiteConfigSchemaWindows() *pluginsdk.Schema {
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForSupportedTlsVersions(), false),
 				},
 
+				"minimum_tls_cipher_suite": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForTlsCipherSuites(), false),
+					Description:  "Configures the minimum TLS cipher suite for the incoming requests to the Site.",
+				},
+
 				"cors": CorsSettingsSchema(),
 
 				"handler_mapping": HandlerMappingSchema(),
@@ -454,6 +462,11 @@ func SiteConfigSchemaWindowsComputed() *pluginsdk.Schema {
 					Computed: true,
 				},
 
+				"minimum_tls_cipher_suite": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
 				"cors": CorsSettingsSchemaComputed(),
 
 				"handler_mapping": HandlerMappingSchemaComputed(),
@@ -494,6 +507,7 @@ func (s *SiteConfigWindows) ExpandForCreate(appSettings map[string]string) (*web
 	expanded.RemoteDebuggingEnabled = pointer.To(s.RemoteDebugging)
 	expanded.ScmIPSecurityRestrictionsUseMain = pointer.To(s.ScmUseMainIpRestriction)
 	expanded.ScmMinTlsVersion = pointer.To(webapps.SupportedTlsVersions(s.ScmMinTlsVersion))
+	expanded.MinTlsCipherSuite = pointer.To(webapps.TlsCipherSuites(s.MinTlsCipherSuite))
 	expanded.Use32BitWorkerProcess = pointer.To(s.Use32BitWorker)
 	expanded.WebSocketsEnabled = pointer.To(s.WebSockets)
 	expanded.HandlerMappings = expandHandlerMapping(s.HandlerMapping)
@@ -819,6 +833,10 @@ func (s *SiteConfigWindows) ExpandForUpdate(metadata sdk.ResourceMetaData, exist
 		expanded.ScmMinTlsVersion = pointer.To(webapps.SupportedTlsVersions(s.ScmMinTlsVersion))
 	}
 
+	if metadata.ResourceData.HasChange("site_config.0.minimum_tls_cipher_suite") {
+		expanded.MinTlsCipherSuite = pointer.To(webapps.TlsCipherSuites(s.MinTlsCipherSuite))
+	}
+
 	if metadata.ResourceData.HasChange("site_config.0.cors") {
 		cors := ExpandCorsSettings(s.Cors)
 		if cors == nil {
@@ -860,6 +878,7 @@ func (s *SiteConfigWindows) Flatten(appSiteConfig *webapps.SiteConfig, currentSt
 		s.RemoteDebugging = pointer.From(appSiteConfig.RemoteDebuggingEnabled)
 		s.RemoteDebuggingVersion = strings.ToUpper(pointer.From(appSiteConfig.RemoteDebuggingVersion))
 		s.ScmIpRestriction = FlattenIpRestrictions(appSiteConfig.ScmIPSecurityRestrictions)
+		s.MinTlsCipherSuite = string(pointer.From(appSiteConfig.MinTlsCipherSuite))
 		s.ScmMinTlsVersion = string(pointer.From(appSiteConfig.ScmMinTlsVersion))
 		s.ScmType = string(pointer.From(appSiteConfig.ScmType))
 		s.ScmUseMainIpRestriction = pointer.From(appSiteConfig.ScmIPSecurityRestrictionsUseMain)

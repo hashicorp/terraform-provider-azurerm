@@ -2865,6 +2865,7 @@ resource "azurerm_windows_web_app" "test" {
       docker_image_name   = "%s"
       docker_registry_url = "%s"
     }
+    minimum_tls_cipher_suite = "TLS_AES_128_GCM_SHA256"
   }
 }
 `, r.premiumV3PlanContainerTemplate(data), data.RandomInteger, containerImage, registryUrl)

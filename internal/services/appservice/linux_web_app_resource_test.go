@@ -11,6 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -1727,6 +1728,42 @@ func TestAccLinuxWebApp_publicNetworkAccessUpdate(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+func TestAccLinuxWebApp_tlsSettingUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
+	r := LinuxWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.javaPremiumV3Plan(data, "8", "JBOSSEAP", "7.3"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.tlsCipherSuiteConfigured(data, "8", "JBOSSEAP", "7.3", string(webapps.TlsCipherSuitesTLSAESOneTwoEightGCMSHATwoFiveSix)),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.tlsCipherSuiteConfigured(data, "8", "JBOSSEAP", "7.3", string(webapps.TlsCipherSuitesTLSAESTwoFiveSixGCMSHAThreeEightFour)),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.javaPremiumV3Plan(data, "8", "JBOSSEAP", "7.3"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
@@ -3968,4 +4005,30 @@ resource "azurerm_linux_web_app" "test" {
   site_config {}
 }
 `, r.baseTemplate(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (r LinuxWebAppResource) tlsCipherSuiteConfigured(data acceptance.TestData, javaVersion, javaServer, javaServerVersion string, tlsCipherSuiteValue string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_web_app" "test" {
+  name                = "acctestWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {
+    application_stack {
+      java_version        = "%s"
+      java_server         = "%s"
+      java_server_version = "%s"
+    }
+    minimum_tls_cipher_suite = %s
+  }
+}
+`, r.premiumV3PlanTemplate(data), data.RandomInteger, javaVersion, javaServer, javaServerVersion, tlsCipherSuiteValue)
 }
