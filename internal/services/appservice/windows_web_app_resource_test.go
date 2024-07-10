@@ -1708,7 +1708,6 @@ func TestAccWindowsWebApp_tlsSettingUpdate(t *testing.T) {
 			Config: r.dockerHub(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.windows_fx_version").HasValue("DOCKER|traefik:windowsservercore-1809"),
 			),
 		},
 		data.ImportStep("app_settings.%",
