@@ -1,13 +1,20 @@
 ## 3.112.0 (Unreleased)
 
-ENHANCEMENTS:
+FEATURES:
 
+* New Data Source: `azurerm_elastic_san_volume_snapshot` [GH-26439]
+* New Resource: `azurerm_dev_center_dev_box_definition` [GH-26307]
+* New Resource: `azurerm_dev_center_environment_type` [GH-26291]
 * New Resource: `azurerm_virtual_machine_restore_point` [GH-26526]
 * New Resource: `azurerm_virtual_machine_restore_point_collection` [GH-26526]
+
+ENHANCEMENTS:
+
 * Data Source: `azurerm_network_service_tags` - extend validation for `service` to allow `AzureFrontDoor.Backend`, `AzureFrontDoor.Frontend` and `AzureFrontDoor.FirstParty` [GH-26429]
 * `azurerm_api_management_identity_provider_aad` - add support for the `client_library` property [GH-26093]
 * `azurerm_api_management_identity_provider_aadb2c` - add support for the `client_library` property [GH-26093]
 * `azurerm_machine_learning_compute_cluster` - `identity` can now be updated [GH-26404]
+* `azurerm_web_application_firewall_policy` - add support for the `JSChallenge` value for `managed_rules.managed_rule_set.rule_group_override.rule_action` [GH-26561]
 
 BUG FIXES:
 
@@ -15,6 +22,12 @@ BUG FIXES:
 * `azurerm_communication_service` - `primary_connection_string`, `primary_key`, `secondary_connection_string` and `secondary_key` are marked as Sensitive [GH-26560]
 * `azurerm_mysql_flexible_server_configuration` - add locks to prevent conflicts when deleting the resource [GH-26289]
 * `azurerm_nginx_deployment` - correctly mark `frontend_public.ip_address`, `frontend_private.ip_address`, `frontend_private.allocation_method` and `frontend_private.subnet_id` as ForceNew [GH-26298]
+
+DEPRECATIONS:
+
+* `azurerm_servicebus_queue_resource.go` - `enable_batched_operations`, `enable_express` and `enable_partitioning` are superseded by `batched_operations_enabled`, `express_enabled` and `partitioning_enabled` [GH-26479]
+* `azurerm_servicebus_subscription` - `enable_batched_operations` has been superseded  by `batched_operations_enabled` [GH-26479]
+* `azurerm_servicebus_topic` - `enable_batched_operations`, `enable_express` and `enable_partitioning` are superseded by `batched_operations_enabled`, `express_enabled` and `partitioning_enabled` [GH-26479]
 
 ## 3.111.0 (July 04, 2024)
 

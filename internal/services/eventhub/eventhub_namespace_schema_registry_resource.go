@@ -21,9 +21,8 @@ import (
 
 func resourceEventHubNamespaceSchemaRegistry() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceEventHubNamespaceSchemaRegistryCreateUpdate,
+		Create: resourceEventHubNamespaceSchemaRegistryCreate,
 		Read:   resourceEventHubNamespaceSchemaRegistryRead,
-		// Update: resourceEventHubNamespaceSchemaRegistryCreateUpdate,
 		Delete: resourceEventHubNamespaceSchemaRegistryDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -34,7 +33,6 @@ func resourceEventHubNamespaceSchemaRegistry() *pluginsdk.Resource {
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			// Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
@@ -77,10 +75,10 @@ func resourceEventHubNamespaceSchemaRegistry() *pluginsdk.Resource {
 	}
 }
 
-func resourceEventHubNamespaceSchemaRegistryCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventHubNamespaceSchemaRegistryCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Eventhub.SchemaRegistryClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	log.Printf("[INFO] preparing arguments for AzureRM EventHub Namespace Schema Registry creation.")
 
@@ -90,17 +88,15 @@ func resourceEventHubNamespaceSchemaRegistryCreateUpdate(d *pluginsdk.ResourceDa
 	}
 
 	id := schemaregistry.NewSchemaGroupID(subscriptionId, namespaceId.ResourceGroupName, namespaceId.NamespaceName, d.Get("name").(string))
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
+	existing, err := client.Get(ctx, id)
+	if err != nil {
+		if !response.WasNotFound(existing.HttpResponse) {
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
+	}
 
-		if existing.Model != nil {
-			return tf.ImportAsExistsError("azurerm_eventhub_namespace_schema_group", id.ID())
-		}
+	if existing.Model != nil {
+		return tf.ImportAsExistsError("azurerm_eventhub_namespace_schema_group", id.ID())
 	}
 
 	schemaCompatibilityType := schemaregistry.SchemaCompatibility(d.Get("schema_compatibility").(string))
