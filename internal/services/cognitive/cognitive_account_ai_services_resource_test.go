@@ -6,6 +6,7 @@ package cognitive_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2023-05-01/cognitiveservicesaccounts"
@@ -235,6 +236,10 @@ func TestAccCognitiveAIServicesAccount_customerManagedKey_update(t *testing.T) {
 }
 
 func TestAccCognitiveAIServicesAccount_KVHsmManagedKey(t *testing.T) {
+	if os.Getenv("ARM_TEST_HSM_KEY") == "" {
+		t.Skip("Skipping as ARM_TEST_HSM_KEY is not specified")
+		return
+	}
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_ai_services", "test")
 	r := CognitiveAIServicesAccountResource{}
 
