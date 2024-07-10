@@ -24,105 +24,113 @@ TODO
 
 ## Removed Resources
 
+### `azurerm_cdn_frontdoor_route_disable_link_to_default_domain`
+
+This deprecated resource has been superseded by the `link_to_default_domain` property in the `azurerm_cdn_frontdoor_route` resource and has been removed from the AzureRM provider.
+
 ### `azurerm_cosmosdb_notebook_workspace`
 
-This deprecated resource has been removed from the Azure Provider.
+This deprecated resource has been removed from the AzureRM provider.
 
 ### `azurerm_dashboard`
 
-This deprecated resource has been superseded by `azurerm_portal_dashboard` and has been removed from the Azure provider.
+This deprecated resource has been superseded by `azurerm_portal_dashboard` and has been removed from the AzureRM provider.
 
 ### `azurerm_databox_edge_order`
 
-Creation of DataBox Edge Orders are not supported by the Azure API, as a result this deprecated resource has been removed from the Azure provider.
+Creation of DataBox Edge Orders are not supported by the Azure API, as a result this deprecated resource has been removed from the AzureRM provider.
+
+### `azurerm_databricks_workspace_customer_managed_key`
+
+This deprecated resource has been removed in favour of the `azurerm_databricks_workspace_root_dbfs_customer_managed_key` resource and has been removed from the AzureRM provider.
 
 ### `azurerm_data_factory_integration_runtime_managed`
 
-This deprecated resource has been superseded by `azurerm_data_factory_integration_runtime_azure_ssis` and has been removed from the Azure provider.
+This deprecated resource has been superseded by `azurerm_data_factory_integration_runtime_azure_ssis` and has been removed from the AzureRM provider.
 
 ### `azurerm_disk_pool_iscsi_target_lun`
 
-This deprecated resource has been removed from the Azure provider.
+This deprecated resource has been removed from the AzureRM provider.
 
 ### `azurerm_disk_pool_iscsi_target`
 
-This deprecated resource has been removed from the Azure provider.
+This deprecated resource has been removed from the AzureRM provider.
 
 ### `azurerm_disk_pool_managed_disk_attachment`
 
-This deprecated resource has been removed from the Azure provider.
+This deprecated resource has been removed from the AzureRM provider.
 
 ### `azurerm_disk_pool`
 
-This deprecated resource has been removed from the Azure provider.
+This deprecated resource has been removed from the AzureRM provider.
 
 ### `azurerm_graph_account`
 
-This deprecated resource has been superseded by `azurerm_graph_services_account` and has been removed from the Azure provider.
+This deprecated resource has been superseded by `azurerm_graph_services_account` and has been removed from the AzureRM provider.
 
 ### `azurerm_iot_time_series_insights_access_policy`
 
-This Azure Services will be retired on 2025-03-31, as a result this deprecated resource has been removed from the Azure provider.
+This Azure Services will be retired on 2025-03-31, as a result this deprecated resource has been removed from the AzureRM provider.
 
 ### `azurerm_iot_time_series_insights_event_source_eventhub`
 
-This Azure Services will be retired on 2025-03-31, as a result this deprecated resource has been removed from the Azure provider.
+This Azure Services will be retired on 2025-03-31, as a result this deprecated resource has been removed from the AzureRM provider.
 
 ### `azurerm_iot_time_series_insights_event_source_iothub`
 
-This Azure Services will be retired on 2025-03-31, as a result this deprecated resource has been removed from the Azure provider.
+This Azure Services will be retired on 2025-03-31, as a result this deprecated resource has been removed from the AzureRM provider.
 
 ### `azurerm_iot_time_series_insights_gen2_environment`
 
-This Azure Services will be retired on 2025-03-31, as a result this deprecated resource has been removed from the Azure provider.
+This Azure Services will be retired on 2025-03-31, as a result this deprecated resource has been removed from the AzureRM provider.
 
 ### `azurerm_iot_time_series_insights_reference_data_set`
 
-This Azure Services will be retired on 2025-03-31, as a result this deprecated resource has been removed from the Azure provider.
+This Azure Services will be retired on 2025-03-31, as a result this deprecated resource has been removed from the AzureRM provider.
 
 ### `azurerm_iot_time_series_insights_standard_environment`
 
-This Azure Services will be retired on 2025-03-31, as a result this deprecated resource has been removed from the Azure provider.
+This Azure Services will be retired on 2025-03-31, as a result this deprecated resource has been removed from the AzureRM provider.
 
 ### `azurerm_integrated_service_environment`
 
-This Azure Service is being retired on 2024-08-31 and the provisioning of new instances has been blocked since 2022-11-01, as a result this deprecated resource has been removed from the Azure provider.
+This Azure Service is being retired on 2024-08-31 and the provisioning of new instances has been blocked since 2022-11-01, as a result this deprecated resource has been removed from the AzureRM provider.
 
 ### `azurerm_logz_monitor`
 
-This Azure Service is being retired and the provisioning of new instances has been blocked, as a result this deprecated resource has been removed from the Azure provider.
+This Azure Service is being retired and the provisioning of new instances has been blocked, as a result this deprecated resource has been removed from the AzureRM provider.
 
 ### `azurerm_logz_sub_account`
 
-This Azure Service is being retired and the provisioning of new instances has been blocked, as a result this deprecated resource has been removed from the Azure provider.
+This Azure Service is being retired and the provisioning of new instances has been blocked, as a result this deprecated resource has been removed from the AzureRM provider.
 
 ### `azurerm_logz_sub_account_tag_rule`
 
-This Azure Service is being retired and the provisioning of new instances has been blocked, as a result this deprecated resource has been removed from the Azure provider.
+This Azure Service is being retired and the provisioning of new instances has been blocked, as a result this deprecated resource has been removed from the AzureRM provider.
 
 ### `azurerm_logz_tag_rule`
 
-This Azure Service is being retired and the provisioning of new instances has been blocked, as a result this deprecated resource has been removed from the Azure provider.
+This Azure Service is being retired and the provisioning of new instances has been blocked, as a result this deprecated resource has been removed from the AzureRM provider.
 
 ### `azurerm_mariadb_configuration`
 
-The Azure Database for Maria DB will be retired on 2024-09-19 and will migrate to using the Azure Database for MySQL Flexible Server, as a result this resource has been superseded by `azurerm_mysql_flexible_server_configuration` and has been removed from the Azure provider.
+The Azure Database for Maria DB will be retired on 2024-09-19 and will migrate to using the Azure Database for MySQL Flexible Server, as a result this resource has been superseded by `azurerm_mysql_flexible_server_configuration` and has been removed from the AzureRM provider.
 
 ### `azurerm_mariadb_database`
 
-The Azure Database for Maria DB will be retired on 2024-09-19 and will migrate to using the Azure Database for MySQL Flexible Server, as a result this resource has been superseded by `azurerm_mysql_flexible_database` and has been removed from the Azure provider.
+The Azure Database for Maria DB will be retired on 2024-09-19 and will migrate to using the Azure Database for MySQL Flexible Server, as a result this resource has been superseded by `azurerm_mysql_flexible_database` and has been removed from the AzureRM provider.
 
 ### `azurerm_mariadb_firewall_rule`
 
-The Azure Database for Maria DB will be retired on 2024-09-19 and will migrate to using the Azure Database for MySQL Flexible Server, as a result this resource has been superseded by `azurerm_mysql_flexible_server_firewall_rule` and has been removed from the Azure provider.
+The Azure Database for Maria DB will be retired on 2024-09-19 and will migrate to using the Azure Database for MySQL Flexible Server, as a result this resource has been superseded by `azurerm_mysql_flexible_server_firewall_rule` and has been removed from the AzureRM provider.
 
 ### `azurerm_mariadb_server`
 
-The Azure Database for Maria DB will be retired on 2024-09-19 and will migrate to using the Azure Database for MySQL Flexible Server, as a result this resource has been superseded by `azurerm_mysql_flexible_server` and has been removed from the Azure provider.
+The Azure Database for Maria DB will be retired on 2024-09-19 and will migrate to using the Azure Database for MySQL Flexible Server, as a result this resource has been superseded by `azurerm_mysql_flexible_server` and has been removed from the AzureRM provider.
 
 ### `azurerm_mariadb_virtual_network_rule`
 
-The Azure Database for Maria DB will be retired on 2024-09-19 and will migrate to using the Azure Database for MySQL Flexible Server, as a result this resource has been removed from the Azure provider.
+The Azure Database for Maria DB will be retired on 2024-09-19 and will migrate to using the Azure Database for MySQL Flexible Server, as a result this resource has been removed from the AzureRM provider.
 
 ### `azurerm_media_asset_filter`
 
@@ -174,141 +182,141 @@ The Azure Database for Maria DB will be retired on 2024-09-19 and will migrate t
 
 ### `azurerm_monitor_action_rule_action_group`
 
-This deprecated resource has been superseded by `azurerm_monitor_alert_processing_rule_action_group` and has been removed from the Azure provider.
+This deprecated resource has been superseded by `azurerm_monitor_alert_processing_rule_action_group` and has been removed from the AzureRM provider.
 
 ### `azurerm_monitor_action_rule_suppression`
 
-This deprecated resource has been superseded by `azurerm_monitor_alert_processing_rule_suppression` and has been removed from the Azure provider.
+This deprecated resource has been superseded by `azurerm_monitor_alert_processing_rule_suppression` and has been removed from the AzureRM provider.
 
 ### `azurerm_monitor_log_profile`
 
-Azure Log Profile will be retired on 30th September 2026, as a result this deprecated resource has been removed from the Azure provider.
+Azure Log Profile will be retired on 30th September 2026, as a result this deprecated resource has been removed from the AzureRM provider.
 
 ### `azurerm_mysql_active_directory_administrator`
 
-The Azure Database for MySQL Single Server will be retired on 2024-09-16 and will migrate to using the Azure Database for MySQL Flexible Server, as a result this resource has been superseded by `azurerm_mysql_flexible_server_active_directory_administrator` and has been removed from the Azure provider.
+The Azure Database for MySQL Single Server will be retired on 2024-09-16 and will migrate to using the Azure Database for MySQL Flexible Server, as a result this resource has been superseded by `azurerm_mysql_flexible_server_active_directory_administrator` and has been removed from the AzureRM provider.
 
 ### `azurerm_mysql_configuration`
 
-The Azure Database for MySQL Single Server will be retired on 2024-09-16 and will migrate to using the Azure Database for MySQL Flexible Server, as a result this resource has been superseded by `azurerm_mysql_flexible_server_configuration` and has been removed from the Azure provider.
+The Azure Database for MySQL Single Server will be retired on 2024-09-16 and will migrate to using the Azure Database for MySQL Flexible Server, as a result this resource has been superseded by `azurerm_mysql_flexible_server_configuration` and has been removed from the AzureRM provider.
 
 ### `azurerm_mysql_database`
 
-The Azure Database for MySQL Single Server will be retired on 2024-09-16 and will migrate to using the Azure Database for MySQL Flexible Server, as a result this resource has been superseded by `azurerm_mysql_flexible_database` and has been removed from the Azure provider.
+The Azure Database for MySQL Single Server will be retired on 2024-09-16 and will migrate to using the Azure Database for MySQL Flexible Server, as a result this resource has been superseded by `azurerm_mysql_flexible_database` and has been removed from the AzureRM provider.
 
 ### `azurerm_mysql_firewall_rule`
 
-The Azure Database for MySQL Single Server will be retired on 2024-09-16 and will migrate to using the Azure Database for MySQL Flexible Server, as a result this resource has been superseded by `azurerm_mysql_flexible_server_firewall_rule` and has been removed from the Azure provider.
+The Azure Database for MySQL Single Server will be retired on 2024-09-16 and will migrate to using the Azure Database for MySQL Flexible Server, as a result this resource has been superseded by `azurerm_mysql_flexible_server_firewall_rule` and has been removed from the AzureRM provider.
 
 ### `azurerm_mysql_server_key`
 
-The Azure Database for MySQL Single Server will be retired on 2024-09-16 and will migrate to using the Azure Database for MySQL Flexible Server, as a result this resource has been superseded by the `customer_managed_key` block in the `azurerm_mysql_flexible_server` resource and has been removed from the Azure provider.
+The Azure Database for MySQL Single Server will be retired on 2024-09-16 and will migrate to using the Azure Database for MySQL Flexible Server, as a result this resource has been superseded by the `customer_managed_key` block in the `azurerm_mysql_flexible_server` resource and has been removed from the AzureRM provider.
 
 ### `azurerm_mysql_server`
 
-The Azure Database for MySQL Single Server will be retired on 2024-09-16 and will migrate to using the Azure Database for MySQL Flexible Server, as a result this resource has been superseded by `azurerm_mysql_flexible_server` and has been removed from the Azure provider.
+The Azure Database for MySQL Single Server will be retired on 2024-09-16 and will migrate to using the Azure Database for MySQL Flexible Server, as a result this resource has been superseded by `azurerm_mysql_flexible_server` and has been removed from the AzureRM provider.
 
 ### `azurerm_mysql_virtual_network_rule`
 
-The Azure Database for MySQL Single Server will be retired on 2024-09-16 and will migrate to using the Azure Database for MySQL Flexible Server, as a result this resource has been removed from the Azure provider.
+The Azure Database for MySQL Single Server will be retired on 2024-09-16 and will migrate to using the Azure Database for MySQL Flexible Server, as a result this resource has been removed from the AzureRM provider.
 
 ### `azurerm_network_packet_capture`
 
-This deprecated resource has been superseded by `azurerm_virtual_machine_packet_capture` and `azurerm_virtual_machine_scale_set_packet_capture` and has been removed from the Azure provider.
+This deprecated resource has been superseded by `azurerm_virtual_machine_packet_capture` and `azurerm_virtual_machine_scale_set_packet_capture` and has been removed from the AzureRM provider.
 
 ### `azurerm_template_deployment`
 
-This deprecated resource has been superseded by `azurerm_resource_group_template_deployment` and has been removed from the Azure provider.
+This deprecated resource has been superseded by `azurerm_resource_group_template_deployment` and has been removed from the AzureRM provider.
 
 ### `azurerm_security_center_server_vulnerability_assessment`
 
-This deprecated resource has been superseded by `azurerm_security_center_server_vulnerability_assessment_virtual_machine` and has been removed from the Azure provider.
+This deprecated resource has been superseded by `azurerm_security_center_server_vulnerability_assessment_virtual_machine` and has been removed from the AzureRM provider.
 
 ### `azurerm_servicebus_namespace_network_rule_set`
 
-This deprecated resource has been superseded by the `network_rule_set` block in the `azurerm_servicebus_namespace` resource and has been removed from the Azure provider.
+This deprecated resource has been superseded by the `network_rule_set` block in the `azurerm_servicebus_namespace` resource and has been removed from the AzureRM provider.
 
 ### `azurerm_sql_active_directory_administrator`
 
-This deprecated resource has been superseded by the `azuread_administrator` block in the `azurerm_mssql_server` resource and has been removed from the Azure provider.
+This deprecated resource has been superseded by the `azuread_administrator` block in the `azurerm_mssql_server` resource and has been removed from the AzureRM provider.
 
 ### `azurerm_sql_database`
 
-This deprecated resource has been superseded by `azurerm_mssql_database` and has been removed from the Azure provider.
+This deprecated resource has been superseded by `azurerm_mssql_database` and has been removed from the AzureRM provider.
 
 ### `azurerm_sql_elasticpool_resource`
 
-This deprecated resource has been superseded by `azurerm_mssql_elasticpool` and has been removed from the Azure provider.
+This deprecated resource has been superseded by `azurerm_mssql_elasticpool` and has been removed from the AzureRM provider.
 
 ### `azurerm_sql_failover_group`
 
-This deprecated resource has been superseded by `azurerm_mssql_failover_group` and has been removed from the Azure provider.
+This deprecated resource has been superseded by `azurerm_mssql_failover_group` and has been removed from the AzureRM provider.
 
 ### `azurerm_sql_firewall_rule`
 
-This deprecated resource has been superseded by `azurerm_mssql_firewall_rule` and has been removed from the Azure provider.
+This deprecated resource has been superseded by `azurerm_mssql_firewall_rule` and has been removed from the AzureRM provider.
 
 ### `azurerm_sql_managed_database`
 
-This deprecated resource has been superseded by `azurerm_mssql_managed_database` and has been removed from the Azure provider.
+This deprecated resource has been superseded by `azurerm_mssql_managed_database` and has been removed from the AzureRM provider.
 
 ### `azurerm_sql_managed_instance_active_directory_administrator`
 
-This deprecated resource has been superseded by `azurerm_mssql_managed_instance_active_directory_administrator` and has been removed from the Azure provider.
+This deprecated resource has been superseded by `azurerm_mssql_managed_instance_active_directory_administrator` and has been removed from the AzureRM provider.
 
 ### `azurerm_sql_managed_instance_failover_group`
 
-This deprecated resource has been superseded by `azurerm_mssql_managed_instance_failover_group` and has been removed from the Azure provider.
+This deprecated resource has been superseded by `azurerm_mssql_managed_instance_failover_group` and has been removed from the AzureRM provider.
 
 ### `azurerm_sql_managed_instance`
 
-This deprecated resource has been superseded by `azurerm_mssql_managed_instance` and has been removed from the Azure provider.
+This deprecated resource has been superseded by `azurerm_mssql_managed_instance` and has been removed from the AzureRM provider.
 
 ### `azurerm_sql_server`
 
-This deprecated resource has been superseded by `azurerm_mssql_server` and has been removed from the Azure provider.
+This deprecated resource has been superseded by `azurerm_mssql_server` and has been removed from the AzureRM provider.
 
 ### `azurerm_sql_virtual_network_rule`
 
-This deprecated resource has been superseded by `azurerm_mssql_virtual_network_rule` and has been removed from the Azure provider.
+This deprecated resource has been superseded by `azurerm_mssql_virtual_network_rule` and has been removed from the AzureRM provider.
 
 ### `azurerm_video_analyzer_edge_module`
 
-The Azure Service Video Analyzer will be retired on 2022-11-30, as a result this deprecated resource has been removed from the Azure provider.
+The Azure Service Video Analyzer will be retired on 2022-11-30, as a result this deprecated resource has been removed from the AzureRM provider.
 
 ### `azurerm_video_analyzer`
 
-The Azure Service Video Analyzer will be retired on 2022-11-30, as a result this deprecated resource has been removed from the Azure provider.
+The Azure Service Video Analyzer will be retired on 2022-11-30, as a result this deprecated resource has been removed from the AzureRM provider.
 
 ## Removed Data Sources
 
 ### `azurerm_hybrid_compute_machine`
 
-The deprecated data source has been superseded by `azurerm_arc_machine` and has been removed from the Azure provider.
+The deprecated data source has been superseded by `azurerm_arc_machine` and has been removed from the AzureRM provider.
 
 ### `azurerm_mariadb_server`
 
-The Azure Database for Maria DB will be retired on 2024-09-19 and will migrate to using the Azure Database for MySQL Flexible Server, as a result this data source has been superseded by `azurerm_mysql_flexible_server` and has been removed from the Azure provider.
+The Azure Database for Maria DB will be retired on 2024-09-19 and will migrate to using the Azure Database for MySQL Flexible Server, as a result this data source has been superseded by `azurerm_mysql_flexible_server` and has been removed from the AzureRM provider.
 
 ### `azurerm_monitor_log_profile`
 
-Azure Log Profile will be retired on 30th September 2026, as a result this deprecated data source has been removed from the Azure provider.
+Azure Log Profile will be retired on 30th September 2026, as a result this deprecated data source has been removed from the AzureRM provider.
 
 ### `azurerm_mysql_server`
 
-The Azure Database for MySQL Single Server will be retired on 2024-09-16 and will migrate to using the Azure Database for MySQL Flexible Server, as a result this data source has been superseded by `azurerm_mysql_flexible_server` and has been removed from the Azure provider.
+The Azure Database for MySQL Single Server will be retired on 2024-09-16 and will migrate to using the Azure Database for MySQL Flexible Server, as a result this data source has been superseded by `azurerm_mysql_flexible_server` and has been removed from the AzureRM provider.
 
 ### `azurerm_sql_database`
 
-The deprecated data source has been superseded by `azurerm_mssql_database` and has been removed from the Azure provider.
+The deprecated data source has been superseded by `azurerm_mssql_database` and has been removed from the AzureRM provider.
 
 ### `azurerm_sql_managed_instance`
 
-The deprecated data source has been superseded by `azurerm_mssql_managed_instance` and has been removed from the Azure provider.
+The deprecated data source has been superseded by `azurerm_mssql_managed_instance` and has been removed from the AzureRM provider.
 
 ### `azurerm_sql_server`
 
-The deprecated data source has been superseded by `azurerm_mssql_server` and has been removed from the Azure provider.
+The deprecated data source has been superseded by `azurerm_mssql_server` and has been removed from the AzureRM provider.
 
 ## Behaviour changes and removed properties in Resources
 
@@ -452,7 +460,7 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 ### `azurerm_machine_learning_workspace`
 
 * The deprecated property `public_access_behind_virtual_network_enabled` has been removed in favour of the `public_network_access_enabled` property.
-* The `managed_network` block is no longer `Computed`, users will need to add this block to `ignore_changes`.
+* The `managed_network` block is no longer `Computed`, users will need to add this block to `ignore_changes` if they do not wish to explicitly configure it.
 
 ### `azurerm_managed_applications`
 
@@ -509,20 +517,20 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 
 * The deprecated block `configuration` has been removed in favour of the `azurerm_nginx_configuration` resource.
 
-### `azurerm_remediation_management`
+### `azurerm_management_group_policy_remediation`
 
 * The deprecated property `policy_definition_id` has been removed in favour of the `policy_definition_reference_id` property.
 * The deprecated property `resource_discovery_mode` has been removed.
 
-### `azurerm_remediation`
+### `azurerm_resource_policy_remediation`
 
 * The deprecated property `policy_definition_id` has been removed in favour of the `policy_definition_reference_id` property.
 
-### `azurerm_remediation_resource_group`
+### `azurerm_resource_group_policy_remediation`
 
 * The deprecated property `policy_definition_id` has been removed in favour of the `policy_definition_reference_id` property.
 
-### `azurerm_remediation_subscription`
+### `azurerm_subscription_policy_remediation`
 
 * The deprecated property `policy_definition_id` has been removed in favour of the `policy_definition_reference_id` property.
 
@@ -644,9 +652,4 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 
 * The deprecated property `namespace_name` has been removed in favour of the `namespace_id` property.
 * The deprecated property `resource_group_name` has been removed in favour of the `namespace_id` property.
-
-
-
-* The deprecated property `` has been removed in favour of the `` property.
-
 
