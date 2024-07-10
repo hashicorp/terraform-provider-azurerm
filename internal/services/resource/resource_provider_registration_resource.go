@@ -24,9 +24,8 @@ import (
 )
 
 var (
-	_ sdk.ResourceWithUpdate                      = ResourceProviderRegistrationResource{}
-	_ sdk.ResourceWithCustomImporter              = ResourceProviderRegistrationResource{}
-	_ sdk.ResourceWithDeprecationAndNoReplacement = ResourceProviderRegistrationResource{}
+	_ sdk.ResourceWithUpdate         = ResourceProviderRegistrationResource{}
+	_ sdk.ResourceWithCustomImporter = ResourceProviderRegistrationResource{}
 )
 
 type ResourceProviderRegistrationResource struct{}
@@ -49,11 +48,6 @@ const (
 	NotRegistered = "NotRegistered"
 	Unregistered  = "Unregistered"
 )
-
-func (r ResourceProviderRegistrationResource) DeprecationMessage() string {
-	// TODO: Remove this resource in v4.0
-	return "The `azurerm_resource_provider_registration` resource has been deprecated and will be removed in v4.0 of the provider. Please instead use the `resource_providers_to_register` provider property to register additional Resource Providers, or use the `azurerm_preview_feature` resource to register Preview Features."
-}
 
 func (r ResourceProviderRegistrationResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
