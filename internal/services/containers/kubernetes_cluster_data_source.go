@@ -704,6 +704,34 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeBool,
 							Computed: true,
 						},
+						"certificate_authority": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"key_vault_id": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"root_cert_object_name": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"cert_chain_object_name": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"cert_object_name": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"key_object_name": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+								},
+							},
+						},
 					},
 				},
 			},
