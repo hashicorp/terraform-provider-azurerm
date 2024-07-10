@@ -241,7 +241,7 @@ func resourceExpressRouteConnectionRead(d *pluginsdk.ResourceData, meta interfac
 			d.Set("routing_weight", props.RoutingWeight)
 			d.Set("authorization_key", props.AuthorizationKey)
 			d.Set("enable_internet_security", props.EnableInternetSecurity)
-			d.Set("private_link_fast_path_enabled", pointer.From(props.EnablePrivateLinkFastPath))
+			d.Set("private_link_fast_path_enabled", props.EnablePrivateLinkFastPath)
 
 			if props.ExpressRouteGatewayBypass != nil {
 				d.Set("express_route_gateway_bypass_enabled", props.ExpressRouteGatewayBypass)
