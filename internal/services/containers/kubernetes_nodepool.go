@@ -174,14 +174,6 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						}(),
 					},
 
-					"node_taints": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeString,
-						},
-					},
-
 					"tags": commonschema.Tags(),
 
 					"os_disk_size_gb": {
@@ -280,9 +272,24 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 							string(managedclusters.WorkloadRuntimeKataMshvVMIsolation),
 						}, false),
 					},
-				}
 
-				s["zones"] = commonschema.ZonesMultipleOptional()
+					"zones": commonschema.ZonesMultipleOptional(),
+
+					"auto_scaling_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+					},
+
+					"node_public_ip_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+					},
+
+					"host_encryption_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+					},
+				}
 
 				if !features.FourPointOhBeta() {
 					s["os_sku"].ValidateFunc = validation.StringInSlice([]string{
@@ -304,37 +311,26 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					}
 
 					s["enable_auto_scaling"] = &pluginsdk.Schema{
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
+						Type:       pluginsdk.TypeBool,
+						Optional:   true,
+						Deprecated: features.DeprecatedInFourPointOh("The property `enable_auto_scaling` will be renamed to `auto_scaling_enabled` in v4.0 of the AzureRM Provider."),
 					}
 
 					s["enable_node_public_ip"] = &pluginsdk.Schema{
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
+						Type:       pluginsdk.TypeBool,
+						Optional:   true,
+						Deprecated: features.DeprecatedInFourPointOh("The property `enable_node_public_ip` will be renamed to `node_public_ip_enabled` in v4.0 of the AzureRM Provider."),
 					}
 
 					s["enable_host_encryption"] = &pluginsdk.Schema{
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
+						Type:       pluginsdk.TypeBool,
+						Optional:   true,
+						Deprecated: features.DeprecatedInFourPointOh("The property `enable_host_encryption` will be renamed to `host_encryption_enabled` in v4.0 of the AzureRM Provider."),
 					}
 
-				}
-
-				if features.FourPointOhBeta() {
-					s["auto_scaling_enabled"] = &pluginsdk.Schema{
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-					}
-
-					s["node_public_ip_enabled"] = &pluginsdk.Schema{
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-					}
-
-					s["host_encryption_enabled"] = &pluginsdk.Schema{
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-					}
+					delete(s, "auto_scaling_enabled")
+					delete(s, "node_public_ip_enabled")
+					delete(s, "host_encryption_enabled")
 				}
 
 				return s
