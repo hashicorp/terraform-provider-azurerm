@@ -67,7 +67,6 @@ func resourceRecoveryServicesBackupProtectedVMCreate(d *pluginsdk.ResourceData, 
 	defer cancel()
 
 	resourceGroup := d.Get("resource_group_name").(string)
-
 	vaultName := d.Get("recovery_vault_name").(string)
 
 	// source_vm_id must be specified at creation time but can be removed during update
@@ -78,7 +77,7 @@ func resourceRecoveryServicesBackupProtectedVMCreate(d *pluginsdk.ResourceData, 
 	vmId := d.Get("source_vm_id").(string)
 	policyId := d.Get("backup_policy_id").(string)
 
-	if d.IsNewResource() && policyId == "" {
+	if policyId == "" {
 		return fmt.Errorf("`backup_policy_id` must be specified during creation")
 	}
 
@@ -91,7 +90,7 @@ func resourceRecoveryServicesBackupProtectedVMCreate(d *pluginsdk.ResourceData, 
 	protectedItemName := fmt.Sprintf("VM;iaasvmcontainerv2;%s;%s", parsedVmId.ResourceGroupName, parsedVmId.VirtualMachineName)
 	containerName := fmt.Sprintf("iaasvmcontainer;iaasvmcontainerv2;%s;%s", parsedVmId.ResourceGroupName, parsedVmId.VirtualMachineName)
 
-	log.Printf("[DEBUG] Creating/updating Azure Backup Protected VM %s (resource group %q)", protectedItemName, resourceGroup)
+	log.Printf("[DEBUG] Creating Azure Backup Protected VM %s (resource group %q)", protectedItemName, resourceGroup)
 
 	id := protecteditems.NewProtectedItemID(subscriptionId, resourceGroup, vaultName, "Azure", containerName, protectedItemName)
 
@@ -143,12 +142,12 @@ func resourceRecoveryServicesBackupProtectedVMCreate(d *pluginsdk.ResourceData, 
 
 	resp, err := client.CreateOrUpdate(ctx, id, item)
 	if err != nil {
-		return fmt.Errorf("creating Azure Backup Protected VM %q (Resource Group %q): %+v", protectedItemName, resourceGroup, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	operationId, err := parseBackupOperationId(resp.HttpResponse)
 	if err != nil {
-		return fmt.Errorf("issuing creating request for %s: %+v", id, err)
+		return fmt.Errorf("issuing create request for %s: %+v", id, err)
 	}
 
 	if err = resourceRecoveryServicesBackupProtectedVMWaitForStateCreateUpdate(ctx, opClient, id, operationId); err != nil {
@@ -174,7 +173,7 @@ func resourceRecoveryServicesBackupProtectedVMCreate(d *pluginsdk.ResourceData, 
 
 		operationId, err = parseBackupOperationId(resp.HttpResponse)
 		if err != nil {
-			return fmt.Errorf("issuing creating request for %s: %+v", id, err)
+			return fmt.Errorf("issuing create request for %s: %+v", id, err)
 		}
 
 		if err = resourceRecoveryServicesBackupProtectedVMWaitForStateCreateUpdate(ctx, opClient, id, operationId); err != nil {
@@ -282,7 +281,7 @@ func resourceRecoveryServicesBackupProtectedVMUpdate(d *pluginsdk.ResourceData, 
 	updateProtectedBackup := false
 
 	if d.HasChange("backup_policy_id") {
-		properties.PolicyName = pointer.To(d.Get("backup_policy_id").(string))
+		properties.PolicyId = pointer.To(d.Get("backup_policy_id").(string))
 		updateProtectedBackup = true
 	}
 
