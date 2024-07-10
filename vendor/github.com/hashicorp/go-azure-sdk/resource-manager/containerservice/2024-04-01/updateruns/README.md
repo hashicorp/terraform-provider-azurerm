@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-10-15/updateruns` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-04-01/updateruns` Documentation
 
-The `updateruns` SDK allows for interaction with the Azure Resource Manager Service `containerservice` (API Version `2023-10-15`).
+The `updateruns` SDK allows for interaction with the Azure Resource Manager Service `containerservice` (API Version `2024-04-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-10-15/updateruns"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-04-01/updateruns"
 ```
 
 
@@ -78,6 +78,23 @@ if err != nil {
 }
 for _, item := range items {
 	// do something
+}
+```
+
+
+### Example Usage: `UpdateRunsClient.Skip`
+
+```go
+ctx := context.TODO()
+id := updateruns.NewUpdateRunID("12345678-1234-9876-4563-123456789012", "example-resource-group", "fleetValue", "updateRunValue")
+
+payload := updateruns.SkipProperties{
+	// ...
+}
+
+
+if err := client.SkipThenPoll(ctx, id, payload, updateruns.DefaultSkipOperationOptions()); err != nil {
+	// handle the error
 }
 ```
 
