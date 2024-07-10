@@ -126,6 +126,10 @@ func TestProvider_counts(t *testing.T) {
 }
 
 func TestAccProvider_resourceProviders_legacy(t *testing.T) {
+	if os.Getenv("TF_ACC") == "" {
+		t.Skip("TF_ACC not set")
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()
 
@@ -147,6 +151,10 @@ func TestAccProvider_resourceProviders_legacy(t *testing.T) {
 
 // TODO: Remove this test in v5.0
 func TestAccProvider_resourceProviders_deprecatedSkip(t *testing.T) {
+	if os.Getenv("TF_ACC") == "" {
+		t.Skip("TF_ACC not set")
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()
 
@@ -172,6 +180,10 @@ func TestAccProvider_resourceProviders_deprecatedSkip(t *testing.T) {
 func TestAccProvider_resourceProviders_legacyWithAdditional(t *testing.T) {
 	if !features.FourPointOhBeta() {
 		t.Skip("skipping 4.0 specific test")
+	}
+
+	if os.Getenv("TF_ACC") == "" {
+		t.Skip("TF_ACC not set")
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
@@ -209,6 +221,10 @@ func TestAccProvider_resourceProviders_core(t *testing.T) {
 		t.Skip("skipping 4.0 specific test")
 	}
 
+	if os.Getenv("TF_ACC") == "" {
+		t.Skip("TF_ACC not set")
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()
 
@@ -234,6 +250,10 @@ func TestAccProvider_resourceProviders_core(t *testing.T) {
 func TestAccProvider_resourceProviders_coreWithAdditional(t *testing.T) {
 	if !features.FourPointOhBeta() {
 		t.Skip("skipping 4.0 specific test")
+	}
+
+	if os.Getenv("TF_ACC") == "" {
+		t.Skip("TF_ACC not set")
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
@@ -268,6 +288,10 @@ func TestAccProvider_resourceProviders_coreWithAdditional(t *testing.T) {
 func TestAccProvider_resourceProviders_explicit(t *testing.T) {
 	if !features.FourPointOhBeta() {
 		t.Skip("skipping 4.0 specific test")
+	}
+
+	if os.Getenv("TF_ACC") == "" {
+		t.Skip("TF_ACC not set")
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
