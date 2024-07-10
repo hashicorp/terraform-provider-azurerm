@@ -1708,9 +1708,18 @@ func TestAccWindowsWebApp_tlsSettingUpdate(t *testing.T) {
 			Config: r.dockerHub(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.windows_fx_version").HasValue("DOCKER|traefik:windowsservercore-1809"),
 			),
 		},
-		data.ImportStep("site_credential.0.password"),
+		data.ImportStep("app_settings.%",
+			"site_config.0.application_stack.0.docker_container_name",
+			"site_config.0.application_stack.0.docker_container_tag",
+			"site_config.0.application_stack.0.docker_image_name",
+			"site_config.0.application_stack.0.docker_registry_url",
+			"app_settings.DOCKER_REGISTRY_SERVER_PASSWORD",
+			"app_settings.DOCKER_REGISTRY_SERVER_URL",
+			"app_settings.DOCKER_REGISTRY_SERVER_USERNAME",
+			"site_credential.0.password"),
 		{
 			Config: r.tlsCipherSuiteConfigured(data, "TLS_AES_128_GCM_SHA256"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -1731,8 +1740,15 @@ func TestAccWindowsWebApp_tlsSettingUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("site_credential.0.password"),
-	})
+		data.ImportStep("app_settings.%",
+			"site_config.0.application_stack.0.docker_container_name",
+			"site_config.0.application_stack.0.docker_container_tag",
+			"site_config.0.application_stack.0.docker_image_name",
+			"site_config.0.application_stack.0.docker_registry_url",
+			"app_settings.DOCKER_REGISTRY_SERVER_PASSWORD",
+			"app_settings.DOCKER_REGISTRY_SERVER_URL",
+			"app_settings.DOCKER_REGISTRY_SERVER_USERNAME",
+			"site_credential.0.password")})
 }
 
 func (r WindowsWebAppResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -4137,7 +4153,7 @@ resource "azurerm_windows_web_app" "test" {
   service_plan_id           = azurerm_service_plan.test.id
   virtual_network_subnet_id = azurerm_subnet.test2.id
   site_config {
-    minimum_tls_cipher_suite = %s
+    minimum_tls_cipher_suite = "%s"
   }
 }
 `, r.premiumV3PlanContainerTemplate(data), data.RandomInteger, tlsCipherSuiteValue)

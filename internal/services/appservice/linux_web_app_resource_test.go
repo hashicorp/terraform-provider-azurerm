@@ -4026,7 +4026,7 @@ resource "azurerm_linux_web_app" "test" {
       java_server         = "%s"
       java_server_version = "%s"
     }
-    minimum_tls_cipher_suite = %s
+    minimum_tls_cipher_suite = "%s"
   }
 }
 `, r.premiumV3PlanTemplate(data), data.RandomInteger, javaVersion, javaServer, javaServerVersion, tlsCipherSuiteValue)

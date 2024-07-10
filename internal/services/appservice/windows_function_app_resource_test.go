@@ -4068,7 +4068,7 @@ resource "azurerm_windows_function_app" "test" {
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   site_config {
-    minimum_tls_cipher_suite = %s
+    minimum_tls_cipher_suite = "%s"
   }
 }
 `, r.template(data, planSku), data.RandomInteger, tlsCipherSuiteValue)
