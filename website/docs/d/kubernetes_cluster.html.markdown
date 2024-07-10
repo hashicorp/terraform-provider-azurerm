@@ -385,7 +385,7 @@ A `service_mesh_profile` block exports the following:
 
 * `external_ingress_gateway_enabled` - Is Istio External Ingress Gateway enabled?
 
-* `certificate_authority` - An `certificate_authority` block as documented below.
+* `certificate_authority` - A `certificate_authority` block as documented below.
 
 ---
 
@@ -393,13 +393,13 @@ A `certificate_authority` block exports the following:
 
 * `key_vault_id` - The resource ID of the Key Vault.
 
-* `root_cert_object_name` - Root certificate object name in Azure Key Vault.
+* `root_cert_object_name` - The root certificate object name in Azure Key Vault.
 
-* `cert_chain_object_name` - Certificate chain object name in Azure Key Vault.
+* `cert_chain_object_name` - The certificate chain object name in Azure Key Vault.
 
-* `cert_object_name` - Intermediate certificate object name in Azure Key Vault.
+* `cert_object_name` - The intermediate certificate object name in Azure Key Vault.
 
-* `key_object_name` - Intermediate certificate private key object name in Azure Key Vault.
+* `key_object_name` - The intermediate certificate private key object name in Azure Key Vault.
 
 ---
 

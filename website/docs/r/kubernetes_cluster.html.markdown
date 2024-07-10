@@ -801,13 +801,13 @@ A `certificate_authority` block supports the following:
 
 * `key_vault_id` - (Required) The resource ID of the Key Vault.
 
-* `root_cert_object_name` - (Required) Root certificate object name in Azure Key Vault.
+* `root_cert_object_name` - (Required) The root certificate object name in Azure Key Vault.
 
-* `cert_chain_object_name` - (Required) Certificate chain object name in Azure Key Vault.
+* `cert_chain_object_name` - (Required) The certificate chain object name in Azure Key Vault.
 
-* `cert_object_name` - (Required) Intermediate certificate object name in Azure Key Vault.
+* `cert_object_name` - (Required) The intermediate certificate object name in Azure Key Vault.
 
-* `key_object_name` - (Required) Intermediate certificate private key object name in Azure Key Vault.
+* `key_object_name` - (Required) The intermediate certificate private key object name in Azure Key Vault.
 
 -> **Note:** For more information on [Istio-based service mesh add-on with plug-in CA certificates and how to generate these certificates](https://learn.microsoft.com/en-us/azure/aks/istio-plugin-ca),
 

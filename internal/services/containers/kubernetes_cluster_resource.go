@@ -4862,11 +4862,11 @@ func expandKubernetesClusterServiceMeshProfileCertificateAuthority(input []inter
 
 	return &managedclusters.IstioCertificateAuthority{
 		Plugin: &managedclusters.IstioPluginCertificateAuthority{
-			KeyVaultId:          utils.String(config["key_vault_id"].(string)),
-			RootCertObjectName:  utils.String(config["root_cert_object_name"].(string)),
-			CertChainObjectName: utils.String(config["cert_chain_object_name"].(string)),
-			CertObjectName:      utils.String(config["cert_object_name"].(string)),
-			KeyObjectName:       utils.String(config["key_object_name"].(string)),
+			KeyVaultId:          pointer.To(config["key_vault_id"].(string)),
+			RootCertObjectName:  pointer.To(config["root_cert_object_name"].(string)),
+			CertChainObjectName: pointer.To(config["cert_chain_object_name"].(string)),
+			CertObjectName:      pointer.To(config["cert_object_name"].(string)),
+			KeyObjectName:       pointer.To(config["key_object_name"].(string)),
 		},
 	}
 }
@@ -4991,7 +4991,6 @@ func flattenKubernetesClusterAzureServiceMeshProfile(input *managedclusters.Serv
 		}
 	}
 
-	// do this for the certificate authority
 	if input.Istio.CertificateAuthority != nil {
 		returnMap["certificate_authority"] = flattenKubernetesClusterServiceMeshProfileCertificateAuthority(input.Istio.CertificateAuthority)
 	}
@@ -5006,11 +5005,11 @@ func flattenKubernetesClusterServiceMeshProfileCertificateAuthority(certificateA
 
 	return []interface{}{
 		map[string]interface{}{
-			"key_vault_id":           utils.NormalizeNilableString(certificateAuthority.Plugin.KeyVaultId),
-			"root_cert_object_name":  utils.NormalizeNilableString(certificateAuthority.Plugin.RootCertObjectName),
-			"cert_chain_object_name": utils.NormalizeNilableString(certificateAuthority.Plugin.CertChainObjectName),
-			"cert_object_name":       utils.NormalizeNilableString(certificateAuthority.Plugin.CertObjectName),
-			"key_object_name":        utils.NormalizeNilableString(certificateAuthority.Plugin.KeyObjectName),
+			"key_vault_id":           pointer.From(certificateAuthority.Plugin.KeyVaultId),
+			"root_cert_object_name":  pointer.From(certificateAuthority.Plugin.RootCertObjectName),
+			"cert_chain_object_name": pointer.From(certificateAuthority.Plugin.CertChainObjectName),
+			"cert_object_name":       pointer.From(certificateAuthority.Plugin.CertObjectName),
+			"key_object_name":        pointer.From(certificateAuthority.Plugin.KeyObjectName),
 		},
 	}
 
