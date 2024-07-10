@@ -11,6 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -1699,6 +1700,42 @@ func TestAccWindowsWebApp_publicNetworkAccessUpdate(t *testing.T) {
 	})
 }
 
+func TestAccWindowsWebApp_tlsSettingUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
+	r := WindowsWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dockerHub(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.tlsCipherSuiteConfigured(data, string(webapps.TlsCipherSuitesTLSAESOneTwoEightGCMSHATwoFiveSix)),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.tlsCipherSuiteConfigured(data, string(webapps.TlsCipherSuitesTLSAESTwoFiveSixGCMSHAThreeEightFour)),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.dockerHub(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
 func (r WindowsWebAppResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseWebAppID(state.ID)
 	if err != nil {
@@ -2865,7 +2902,6 @@ resource "azurerm_windows_web_app" "test" {
       docker_image_name   = "%s"
       docker_registry_url = "%s"
     }
-    minimum_tls_cipher_suite = "TLS_AES_128_GCM_SHA256"
   }
 }
 `, r.premiumV3PlanContainerTemplate(data), data.RandomInteger, containerImage, registryUrl)
@@ -4086,4 +4122,24 @@ resource "azurerm_windows_web_app" "test" {
   site_config {}
 }
 `, r.baseTemplate(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (r WindowsWebAppResource) tlsCipherSuiteConfigured(data acceptance.TestData, tlsCipherSuiteValue string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+%s
+
+resource "azurerm_windows_web_app" "test" {
+  name                      = "acctestWA-%d"
+  location                  = azurerm_resource_group.test.location
+  resource_group_name       = azurerm_resource_group.test.name
+  service_plan_id           = azurerm_service_plan.test.id
+  virtual_network_subnet_id = azurerm_subnet.test2.id
+  site_config {
+    minimum_tls_cipher_suite = %s
+  }
+}
+`, r.premiumV3PlanContainerTemplate(data), data.RandomInteger, tlsCipherSuiteValue)
 }
