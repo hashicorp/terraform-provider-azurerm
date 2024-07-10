@@ -481,7 +481,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 // buildClient is used to configure behavioral aspects of the provider. To configure the
 // cloud environment and authentication-related settings, use the providerConfigure function.
 func buildClient(ctx context.Context, p *schema.Provider, d *schema.ResourceData, authConfig *auth.Credentials) (*clients.Client, diag.Diagnostics) {
-	// TODO: Remove this hardcoded default in v4.0
+	// TODO: This hardcoded default is for v3.x, where `resource_provider_registrations` is not defined. Remove this hardcoded default in v4.0
 	providerRegistrations := "legacy"
 	if features.FourPointOhBeta() {
 		providerRegistrations = d.Get("resource_provider_registrations").(string)
@@ -490,7 +490,7 @@ func buildClient(ctx context.Context, p *schema.Provider, d *schema.ResourceData
 	// TODO: Remove in v5.0
 	if d.Get("skip_provider_registration").(bool) {
 		if providerRegistrations != "legacy" {
-			return nil, diag.Errorf("provider property `%[2]s` cannot be set at the same time as `%[1]s`, please remove `%[2]s` from your configuration or unset the `%[3]s` environment variable", "resource_provider_registrations", "skip_provider_registration", "ARM_SKIP_PROVIDER_REGISTRATION")
+			return nil, diag.Errorf("provider property `skip_provider_registration` cannot be set at the same time as `resource_provider_registrations`, please remove `skip_provider_registration` from your configuration or unset the `ARM_SKIP_PROVIDER_REGISTRATION` environment variable")
 		}
 		providerRegistrations = "none"
 	}
@@ -508,7 +508,7 @@ func buildClient(ctx context.Context, p *schema.Provider, d *schema.ResourceData
 	case "legacy":
 		requiredResourceProviders = resourceproviders.Legacy()
 	default:
-		return nil, diag.Errorf("unsupported value %q for provider property `%s`", providerRegistrations, "resource_provider_registrations")
+		return nil, diag.Errorf("unsupported value %q for provider property `resource_provider_registrations`", providerRegistrations)
 	}
 
 	if features.FourPointOhBeta() {
