@@ -19,9 +19,11 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * Data Source: `azurerm_communication_service` - `primary_connection_string`, `primary_key`, `secondary_connection_string` and `secondary_key` are marked as Sensitive [GH-26560]
+* `azurerm_app_configuration_feature` - fix issue when updating the resource without an existing `targeting_filter` [GH-26506]
 * `azurerm_communication_service` - `primary_connection_string`, `primary_key`, `secondary_connection_string` and `secondary_key` are marked as Sensitive [GH-26560]
 * `azurerm_mysql_flexible_server_configuration` - add locks to prevent conflicts when deleting the resource [GH-26289]
 * `azurerm_nginx_deployment` - correctly mark `frontend_public.ip_address`, `frontend_private.ip_address`, `frontend_private.allocation_method` and `frontend_private.subnet_id` as ForceNew [GH-26298]
+* `azurerm_servicebus_namespace` - parse the identity returned by the API insensitively before setting into state [GH-26540]
 
 DEPRECATIONS:
 
