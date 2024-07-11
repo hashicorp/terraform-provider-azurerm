@@ -27,6 +27,7 @@ type StorageDefenderModel struct {
 	MalwareScanningOnUploadEnabled   bool   `tfschema:"malware_scanning_on_upload_enabled"`
 	MalwareScanningOnUploadCapPerMon int64  `tfschema:"malware_scanning_on_upload_cap_gb_per_month"`
 	SensitiveDataDiscoveryEnabled    bool   `tfschema:"sensitive_data_discovery_enabled"`
+	ScanResultsEventGridTopicId      string `tfschema:"scan_results_event_grid_topic_id"`
 }
 
 var _ sdk.ResourceWithUpdate = StorageDefenderResource{}
@@ -79,6 +80,12 @@ func (s StorageDefenderResource) Arguments() map[string]*schema.Schema {
 			Optional: true,
 			Default:  false,
 		},
+
+		"scan_results_event_grid_topic_id": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  false,
+		},
 	}
 }
 
@@ -120,6 +127,7 @@ func (s StorageDefenderResource) Create() sdk.ResourceFunc {
 							IsEnabled:     pointer.To(plan.MalwareScanningOnUploadEnabled),
 							CapGBPerMonth: pointer.To(plan.MalwareScanningOnUploadCapPerMon),
 						},
+						ScanResultsEventGridTopicResourceId: pointer.To(plan.ScanResultsEventGridTopicId),
 					},
 					SensitiveDataDiscovery: &defenderforstorage.SensitiveDataDiscoveryProperties{
 						IsEnabled: pointer.To(plan.SensitiveDataDiscoveryEnabled),
@@ -189,6 +197,10 @@ func (s StorageDefenderResource) Update() sdk.ResourceFunc {
 				prop.MalwareScanning.OnUpload.CapGBPerMonth = pointer.To(plan.MalwareScanningOnUploadCapPerMon)
 			}
 
+			if metadata.ResourceData.HasChange("scan_results_event_grid_topic_id") {
+				prop.MalwareScanning.ScanResultsEventGridTopicResourceId = pointer.To(plan.ScanResultsEventGridTopicId)
+			}
+
 			if prop.SensitiveDataDiscovery == nil {
 				prop.SensitiveDataDiscovery = &defenderforstorage.SensitiveDataDiscoveryProperties{}
 			}
@@ -251,6 +263,7 @@ func (s StorageDefenderResource) Read() sdk.ResourceFunc {
 							state.MalwareScanningOnUploadEnabled = pointer.From(onUpload.IsEnabled)
 							state.MalwareScanningOnUploadCapPerMon = pointer.From(onUpload.CapGBPerMonth)
 						}
+						state.ScanResultsEventGridTopicId = pointer.From(ms.ScanResultsEventGridTopicResourceId)
 					}
 
 					if sdd := prop.SensitiveDataDiscovery; sdd != nil {
