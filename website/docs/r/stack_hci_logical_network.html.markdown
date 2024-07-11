@@ -55,7 +55,7 @@ The following arguments are supported:
 
 * `custom_location_id` - (Required) The ID of Custom Location where the Azure Stack HCI Logical Network should exist. Changing this forces a new resource to be created.
 
-* `virtual_switch_name` - (Required) The name of the virtual switch on the cluster used to associate with the Azure Stack HCI Logical Network. Possible switch name can be retrieved following the [Azure documents](https://learn.microsoft.com/azure-stack/hci/manage/create-logical-networks?tabs=azurecli#prerequisites). Changing this forces a new resource to be created.
+* `virtual_switch_name` - (Required) The name of the virtual switch on the cluster used to associate with the Azure Stack HCI Logical Network. Possible switch names can be retrieved by following this [Azure guide](https://learn.microsoft.com/azure-stack/hci/manage/create-logical-networks?tabs=azurecli#prerequisites). Changing this forces a new resource to be created.
 
 * `subnet` - (Required) A `subnet` block as defined below. Changing this forces a new resource to be created.
 
@@ -93,7 +93,7 @@ A `subnet` block supports the following:
 
 * `route` - (Optional) One or more `route` block as defined above. Changing this forces a new resource to be created.
 
-* `vlan_id` - (Optional) VLAN ID for the Logical Network. Changing this forces a new resource to be created.
+* `vlan_id` - (Optional) The VLAN ID for the Logical Network. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

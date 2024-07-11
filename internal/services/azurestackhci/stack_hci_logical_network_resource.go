@@ -240,16 +240,11 @@ func (r StackHCILogicalNetworkResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			future, err := client.CreateOrUpdate(ctx, id, payload)
-			if err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 				return fmt.Errorf("performing create %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
-
-			if err := future.Poller.PollUntilDone(ctx); err != nil {
-				return fmt.Errorf("polling after create %s: %+v", id, err)
-			}
 
 			return nil
 		},
@@ -332,7 +327,7 @@ func (r StackHCILogicalNetworkResource) Update() sdk.ResourceFunc {
 
 			parameters := resp.Model
 			if parameters == nil {
-				return fmt.Errorf("retrieving %s: model was nil", *id)
+				return fmt.Errorf("retrieving %s: `model` was nil", *id)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
