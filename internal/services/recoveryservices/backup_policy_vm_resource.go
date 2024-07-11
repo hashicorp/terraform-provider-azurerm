@@ -320,6 +320,7 @@ func resourceBackupProtectionPolicyVMUpdate(d *pluginsdk.ResourceData, meta inte
 	model := *existing.Model
 	properties := existing.Model.Properties.(protectionpolicies.AzureIaaSVMProtectionPolicy)
 
+	properties.InstantRpRetentionRangeInDays = nil
 	if d.HasChange("instant_restore_retention_days") {
 		days := d.Get("instant_restore_retention_days").(int)
 		if properties.PolicyType != nil && protectionpolicies.IAASVMPolicyTypeVOne == *properties.PolicyType && days > 5 {
@@ -400,6 +401,15 @@ func resourceBackupProtectionPolicyVMUpdate(d *pluginsdk.ResourceData, meta inte
 		retentionPolicy.YearlySchedule = expandBackupProtectionPolicyVMRetentionYearly(d, times)
 		properties.RetentionPolicy = retentionPolicy
 	}
+	//
+	//// InstantRPDetails is returned from the api as empty if not set but the api doesn't accept the empty model that we are receiving so we'll nil it out here
+	//if properties.InstantRPDetails != nil && (properties.InstantRPDetails.AzureBackupRGNamePrefix == nil || properties.InstantRPDetails.AzureBackupRGNameSuffix == nil) {
+	//	properties.InstantRPDetails = nil
+	//}
+	//
+	//if properties.ProtectedItemsCount != nil && *properties.ProtectedItemsCount == 0 {
+	//	properties.ProtectedItemsCount = nil
+	//}
 
 	model.Properties = properties
 	if _, err = client.CreateOrUpdate(ctx, *id, model); err != nil {
