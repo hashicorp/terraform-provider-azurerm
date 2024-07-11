@@ -407,13 +407,12 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 						AtLeastOneOf: workspaceCustomParametersString(),
 					},
 
-					// NOTE: Adding default 'false' to keep the v3.x behavior consistent
-					// in version 2024-05-01 of the API the default value for the 'no_public_ip'
-					// changed from 'false' to 'true'.
+					// NOTE: Leaving this as O+C as the 2024-05-01 API breaking change was accidentally introduced in PR #25919
+					// and released in v3.104.0 of the provider...
 					"no_public_ip": {
 						Type:         pluginsdk.TypeBool,
 						Optional:     true,
-						Default:      false,
+						Computed:     true,
 						AtLeastOneOf: workspaceCustomParametersString(),
 					},
 
