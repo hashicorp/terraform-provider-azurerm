@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -113,6 +114,14 @@ func resourceDataFactoryIntegrationRuntimeAzure() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 		},
+	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["cleanup_enabled"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Computed: true,
+		}
 	}
 
 	return resource
@@ -276,7 +285,15 @@ func expandDataFactoryIntegrationRuntimeAzureComputeProperties(d *pluginsdk.Reso
 	timeToLiveMin := int32(d.Get("time_to_live_min").(int))
 
 	var cleanup bool
-	cleanup = d.Get("cleanup_enabled").(bool)
+	if features.FourPointOhBeta() {
+		cleanup = d.Get("cleanup_enabled").(bool)
+	} else {
+		cleanup = true
+		// nolint staticcheck
+		if v, ok := d.GetOkExists("cleanup_enabled"); ok {
+			cleanup = v.(bool)
+		}
+	}
 
 	return &datafactory.IntegrationRuntimeComputeProperties{
 		Location: &location,
