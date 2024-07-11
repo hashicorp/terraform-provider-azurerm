@@ -159,6 +159,108 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				ValidateFunc: loadbalancers.ValidateLoadBalancerBackendAddressPoolID,
 			},
 
+			"custom_parameters": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				// NOTE: O+C The API populates these and since many are ForceNew there doesn't appear to be a need to remove this once set to use the defaults
+				Computed: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"machine_learning_workspace_id": {
+							Type:         pluginsdk.TypeString,
+							ForceNew:     true,
+							Optional:     true,
+							ValidateFunc: mlworkspace.ValidateWorkspaceID,
+							AtLeastOneOf: workspaceCustomParametersString(),
+						},
+
+						"nat_gateway_name": {
+							Type:         pluginsdk.TypeString,
+							ForceNew:     true,
+							Optional:     true,
+							Computed:     true,
+							AtLeastOneOf: workspaceCustomParametersString(),
+						},
+
+						"no_public_ip": {
+							Type:         pluginsdk.TypeBool,
+							Optional:     true,
+							Default:      true,
+							AtLeastOneOf: workspaceCustomParametersString(),
+						},
+
+						"public_ip_name": {
+							Type:         pluginsdk.TypeString,
+							ForceNew:     true,
+							Optional:     true,
+							Computed:     true,
+							AtLeastOneOf: workspaceCustomParametersString(),
+						},
+
+						"public_subnet_name": {
+							Type:         pluginsdk.TypeString,
+							ForceNew:     true,
+							Optional:     true,
+							AtLeastOneOf: workspaceCustomParametersString(),
+						},
+
+						"public_subnet_network_security_group_association_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: azure.ValidateResourceID,
+							AtLeastOneOf: workspaceCustomParametersString(),
+						},
+
+						"private_subnet_name": {
+							Type:         pluginsdk.TypeString,
+							ForceNew:     true,
+							Optional:     true,
+							AtLeastOneOf: workspaceCustomParametersString(),
+						},
+
+						"private_subnet_network_security_group_association_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: azure.ValidateResourceID,
+							AtLeastOneOf: workspaceCustomParametersString(),
+						},
+
+						"virtual_network_id": {
+							Type:         pluginsdk.TypeString,
+							ForceNew:     true,
+							Optional:     true,
+							ValidateFunc: commonids.ValidateVirtualNetworkID,
+							AtLeastOneOf: workspaceCustomParametersString(),
+						},
+
+						"storage_account_name": {
+							Type:         pluginsdk.TypeString,
+							ForceNew:     true,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: storageValidate.StorageAccountName,
+							AtLeastOneOf: workspaceCustomParametersString(),
+						},
+
+						"storage_account_sku_name": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Computed:     true,
+							AtLeastOneOf: workspaceCustomParametersString(),
+						},
+
+						"vnet_address_prefix": {
+							Type:         pluginsdk.TypeString,
+							ForceNew:     true,
+							Optional:     true,
+							Computed:     true,
+							AtLeastOneOf: workspaceCustomParametersString(),
+						},
+					},
+				},
+			},
+
 			"managed_resource_group_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -278,215 +380,14 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 		}),
 	}
 
-	if features.FourPointOhBeta() {
-		resource.Schema["custom_parameters"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			// NOTE: O+C The API populates these and since many are ForceNew there doesn't appear to be a need to remove this once set to use the defaults
-			Computed: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"machine_learning_workspace_id": {
-						Type:         pluginsdk.TypeString,
-						ForceNew:     true,
-						Optional:     true,
-						ValidateFunc: mlworkspace.ValidateWorkspaceID,
-						AtLeastOneOf: workspaceCustomParametersString(),
-					},
-
-					"nat_gateway_name": {
-						Type:         pluginsdk.TypeString,
-						ForceNew:     true,
-						Optional:     true,
-						Computed:     true,
-						AtLeastOneOf: workspaceCustomParametersString(),
-					},
-
-					// Per Service Team: 'no_public_ip' should now default to 'true'
-					"no_public_ip": {
-						Type:         pluginsdk.TypeBool,
-						Optional:     true,
-						Default:      true,
-						AtLeastOneOf: workspaceCustomParametersString(),
-					},
-
-					"public_ip_name": {
-						Type:         pluginsdk.TypeString,
-						ForceNew:     true,
-						Optional:     true,
-						Computed:     true,
-						AtLeastOneOf: workspaceCustomParametersString(),
-					},
-
-					"public_subnet_name": {
-						Type:         pluginsdk.TypeString,
-						ForceNew:     true,
-						Optional:     true,
-						AtLeastOneOf: workspaceCustomParametersString(),
-					},
-
-					"public_subnet_network_security_group_association_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: azure.ValidateResourceID,
-						AtLeastOneOf: workspaceCustomParametersString(),
-					},
-
-					"private_subnet_name": {
-						Type:         pluginsdk.TypeString,
-						ForceNew:     true,
-						Optional:     true,
-						AtLeastOneOf: workspaceCustomParametersString(),
-					},
-
-					"private_subnet_network_security_group_association_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: azure.ValidateResourceID,
-						AtLeastOneOf: workspaceCustomParametersString(),
-					},
-
-					"virtual_network_id": {
-						Type:         pluginsdk.TypeString,
-						ForceNew:     true,
-						Optional:     true,
-						ValidateFunc: commonids.ValidateVirtualNetworkID,
-						AtLeastOneOf: workspaceCustomParametersString(),
-					},
-
-					"storage_account_name": {
-						Type:         pluginsdk.TypeString,
-						ForceNew:     true,
-						Optional:     true,
-						Computed:     true,
-						ValidateFunc: storageValidate.StorageAccountName,
-						AtLeastOneOf: workspaceCustomParametersString(),
-					},
-
-					// Per Service Team: This field is actually changeable, removing the ForceNew for v4.0
-					"storage_account_sku_name": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						Computed:     true,
-						AtLeastOneOf: workspaceCustomParametersString(),
-					},
-
-					"vnet_address_prefix": {
-						Type:         pluginsdk.TypeString,
-						ForceNew:     true,
-						Optional:     true,
-						Computed:     true,
-						AtLeastOneOf: workspaceCustomParametersString(),
-					},
-				},
-			},
-		}
-	} else {
-		resource.Schema["custom_parameters"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			// NOTE: O+C The API populates these and since many are ForceNew there doesn't appear to be a need to remove this once set to use the defaults
-			Computed: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"machine_learning_workspace_id": {
-						Type:         pluginsdk.TypeString,
-						ForceNew:     true,
-						Optional:     true,
-						ValidateFunc: mlworkspace.ValidateWorkspaceID,
-						AtLeastOneOf: workspaceCustomParametersString(),
-					},
-
-					"nat_gateway_name": {
-						Type:         pluginsdk.TypeString,
-						ForceNew:     true,
-						Optional:     true,
-						Computed:     true,
-						AtLeastOneOf: workspaceCustomParametersString(),
-					},
-
-					// NOTE: Leaving this as O+C as the 2024-05-01 API breaking change was accidentally introduced in PR #25919
-					// and released in v3.104.0 of the provider...
-					"no_public_ip": {
-						Type:         pluginsdk.TypeBool,
-						Optional:     true,
-						Computed:     true,
-						AtLeastOneOf: workspaceCustomParametersString(),
-					},
-
-					"public_ip_name": {
-						Type:         pluginsdk.TypeString,
-						ForceNew:     true,
-						Optional:     true,
-						Computed:     true,
-						AtLeastOneOf: workspaceCustomParametersString(),
-					},
-
-					"public_subnet_name": {
-						Type:         pluginsdk.TypeString,
-						ForceNew:     true,
-						Optional:     true,
-						AtLeastOneOf: workspaceCustomParametersString(),
-					},
-
-					"public_subnet_network_security_group_association_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: azure.ValidateResourceID,
-						AtLeastOneOf: workspaceCustomParametersString(),
-					},
-
-					"private_subnet_name": {
-						Type:         pluginsdk.TypeString,
-						ForceNew:     true,
-						Optional:     true,
-						AtLeastOneOf: workspaceCustomParametersString(),
-					},
-
-					"private_subnet_network_security_group_association_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: azure.ValidateResourceID,
-						AtLeastOneOf: workspaceCustomParametersString(),
-					},
-
-					"virtual_network_id": {
-						Type:         pluginsdk.TypeString,
-						ForceNew:     true,
-						Optional:     true,
-						ValidateFunc: commonids.ValidateVirtualNetworkID,
-						AtLeastOneOf: workspaceCustomParametersString(),
-					},
-
-					"storage_account_name": {
-						Type:         pluginsdk.TypeString,
-						ForceNew:     true,
-						Optional:     true,
-						Computed:     true,
-						ValidateFunc: storageValidate.StorageAccountName,
-						AtLeastOneOf: workspaceCustomParametersString(),
-					},
-
-					// Per Service Team: This field is actually changeable so the ForceNew is no longer required, however we agreed to not change the current behavior for consistency purposes
-					"storage_account_sku_name": {
-						Type:         pluginsdk.TypeString,
-						ForceNew:     true,
-						Optional:     true,
-						Computed:     true,
-						AtLeastOneOf: workspaceCustomParametersString(),
-					},
-
-					"vnet_address_prefix": {
-						Type:         pluginsdk.TypeString,
-						ForceNew:     true,
-						Optional:     true,
-						Computed:     true,
-						AtLeastOneOf: workspaceCustomParametersString(),
-					},
-				},
-			},
+	if !features.FourPointOhBeta() {
+		// NOTE: Leaving this as O+C as the 2024-05-01 API breaking change was accidentally introduced in PR #25919
+		// and released in v3.104.0 of the provider...
+		resource.Schema["custom_parameters"].Elem.(*pluginsdk.Resource).Schema["no_public_ip"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeBool,
+			Optional:     true,
+			Computed:     true,
+			AtLeastOneOf: workspaceCustomParametersString(),
 		}
 	}
 
