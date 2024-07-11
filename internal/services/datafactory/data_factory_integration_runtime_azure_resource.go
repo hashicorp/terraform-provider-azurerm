@@ -274,11 +274,10 @@ func expandDataFactoryIntegrationRuntimeAzureComputeProperties(d *pluginsdk.Reso
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	coreCount := int32(d.Get("core_count").(int))
 	timeToLiveMin := int32(d.Get("time_to_live_min").(int))
-	cleanup := true
-	// nolint staticcheck
-	if v, ok := d.GetOkExists("cleanup_enabled"); ok {
-		cleanup = v.(bool)
-	}
+
+	var cleanup bool
+	cleanup = d.Get("cleanup_enabled").(bool)
+
 	return &datafactory.IntegrationRuntimeComputeProperties{
 		Location: &location,
 		DataFlowProperties: &datafactory.IntegrationRuntimeDataFlowProperties{
