@@ -16,6 +16,7 @@ ENHANCEMENTS:
 * Data Source: `azurerm_network_service_tags` - extend validation for `service` to allow `AzureFrontDoor.Backend`, `AzureFrontDoor.Frontend` and `AzureFrontDoor.FirstParty` [GH-26429]
 * `azurerm_api_management_identity_provider_aad` - add support for the `client_library` property [GH-26093]
 * `azurerm_api_management_identity_provider_aadb2c` - add support for the `client_library` property [GH-26093]
+* `azurerm_linux_web_app` - support the value `8.3` for the `php_version` property [GH-26194]
 * `azurerm_dev_test_virtual_network` - add support for the `shared_public_ip_address` property [GH-26299]
 * `azurerm_kubernetes_cluster` - add support for the `certificate_authority` block under the `service_mesh_profile` block [GH-26543]
 * `azurerm_machine_learning_compute_cluster` - `identity` can now be updated [GH-26404]
