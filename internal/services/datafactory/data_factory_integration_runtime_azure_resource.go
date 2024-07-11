@@ -22,7 +22,7 @@ import (
 )
 
 func resourceDataFactoryIntegrationRuntimeAzure() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceDataFactoryIntegrationRuntimeAzureCreateUpdate,
 		Read:   resourceDataFactoryIntegrationRuntimeAzureRead,
 		Update: resourceDataFactoryIntegrationRuntimeAzureCreateUpdate,
@@ -78,7 +78,7 @@ func resourceDataFactoryIntegrationRuntimeAzure() *pluginsdk.Resource {
 			"cleanup_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: true, // Defaults to true
+				Default:  true,
 			},
 
 			"compute_type": {
@@ -114,6 +114,8 @@ func resourceDataFactoryIntegrationRuntimeAzure() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	return resource
 }
 
 func resourceDataFactoryIntegrationRuntimeAzureCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
