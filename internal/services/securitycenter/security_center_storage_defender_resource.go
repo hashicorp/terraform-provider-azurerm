@@ -6,6 +6,7 @@ package securitycenter
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -82,9 +83,9 @@ func (s StorageDefenderResource) Arguments() map[string]*schema.Schema {
 		},
 
 		"scan_results_event_grid_topic_id": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  false,
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: azure.ValidateResourceID,
 		},
 	}
 }
