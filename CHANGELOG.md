@@ -31,6 +31,7 @@ BUG FIXES:
 * `azurerm_mysql_flexible_server_configuration` - add locks to prevent conflicts when deleting the resource [GH-26289]
 * `azurerm_nginx_deployment` - correctly mark `frontend_public.ip_address`, `frontend_private.ip_address`, `frontend_private.allocation_method` and `frontend_private.subnet_id` as ForceNew [GH-26298]
 * `azurerm_servicebus_namespace` - parse the identity returned by the API insensitively before setting into state [GH-26540]
+* `azurerm_palo_alto_local_rulestack_rule` - fix `protocol` value on read when `protocol_ports` is configured [GH-26510]
 
 DEPRECATIONS:
 
