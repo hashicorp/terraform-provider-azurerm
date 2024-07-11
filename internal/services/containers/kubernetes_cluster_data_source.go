@@ -704,11 +704,6 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeBool,
 							Computed: true,
 						},
-						"revisions": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
-							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-						},
 					},
 				},
 			},

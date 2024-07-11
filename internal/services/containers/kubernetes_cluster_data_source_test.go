@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 type KubernetesClusterDataSource struct{}
@@ -593,6 +594,10 @@ func TestAccDataSourceKubernetesCluster_serviceMesh(t *testing.T) {
 }
 
 func TestAccDataSourceKubernetesCluster_serviceMeshRevisions(t *testing.T) {
+	if !features.FourPointOh() {
+		t.Skip("Service Mesh Profile Revisions are only available in version 4.0.0 and later")
+	}
+
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
 

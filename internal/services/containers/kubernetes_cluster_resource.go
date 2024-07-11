@@ -1311,16 +1311,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 						},
-						"revisions": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							MinItems: 1,
-							MaxItems: 2,
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
-						},
 					},
 				},
 			},
@@ -1764,6 +1754,16 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				string(managedclusters.NodeOSUpgradeChannelSecurityPatch),
 				string(managedclusters.NodeOSUpgradeChannelUnmanaged),
 			}, false),
+		}
+		resource.Schema["service_mesh_profile"].Elem.(*pluginsdk.Resource).Schema["revisions"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			MinItems: 1,
+			MaxItems: 2,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
 		}
 	}
 
@@ -4823,12 +4823,10 @@ func expandKubernetesClusterServiceMeshProfile(input []interface{}, existing *ma
 
 		profile.Istio.Components.IngressGateways = &istioIngressGatewaysList
 
-		if existing != nil && existing.Istio != nil && existing.Istio.Revisions != nil {
-			profile.Istio.Revisions = existing.Istio.Revisions
-		}
-
-		if raw["revisions"] != nil {
-			profile.Istio.Revisions = utils.ExpandStringSlice(raw["revisions"].([]interface{}))
+		if features.FourPointOhBeta() {
+			if raw["revisions"] != nil {
+				profile.Istio.Revisions = utils.ExpandStringSlice(raw["revisions"].([]interface{}))
+			}
 		}
 	}
 
@@ -4955,8 +4953,10 @@ func flattenKubernetesClusterAzureServiceMeshProfile(input *managedclusters.Serv
 		}
 	}
 
-	if input.Istio.Revisions != nil {
-		returnMap["revisions"] = utils.FlattenStringSlice(input.Istio.Revisions)
+	if features.FourPointOhBeta() {
+		if input.Istio.Revisions != nil {
+			returnMap["revisions"] = utils.FlattenStringSlice(input.Istio.Revisions)
+		}
 	}
 
 	return []interface{}{returnMap}
