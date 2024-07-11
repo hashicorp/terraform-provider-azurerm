@@ -70,27 +70,27 @@ This deprecated resource has been superseded by `azurerm_graph_services_account`
 
 ### `azurerm_iot_time_series_insights_access_policy`
 
-This Azure Services will be retired on 2025-03-31, as a result this deprecated resource has been removed from the AzureRM provider.
+This Azure Service will be retired on 2025-03-31, as a result this deprecated resource has been removed from the AzureRM provider.
 
 ### `azurerm_iot_time_series_insights_event_source_eventhub`
 
-This Azure Services will be retired on 2025-03-31, as a result this deprecated resource has been removed from the AzureRM provider.
+This Azure Service will be retired on 2025-03-31, as a result this deprecated resource has been removed from the AzureRM provider.
 
 ### `azurerm_iot_time_series_insights_event_source_iothub`
 
-This Azure Services will be retired on 2025-03-31, as a result this deprecated resource has been removed from the AzureRM provider.
+This Azure Service will be retired on 2025-03-31, as a result this deprecated resource has been removed from the AzureRM provider.
 
 ### `azurerm_iot_time_series_insights_gen2_environment`
 
-This Azure Services will be retired on 2025-03-31, as a result this deprecated resource has been removed from the AzureRM provider.
+This Azure Service will be retired on 2025-03-31, as a result this deprecated resource has been removed from the AzureRM provider.
 
 ### `azurerm_iot_time_series_insights_reference_data_set`
 
-This Azure Services will be retired on 2025-03-31, as a result this deprecated resource has been removed from the AzureRM provider.
+This Azure Service will be retired on 2025-03-31, as a result this deprecated resource has been removed from the AzureRM provider.
 
 ### `azurerm_iot_time_series_insights_standard_environment`
 
-This Azure Services will be retired on 2025-03-31, as a result this deprecated resource has been removed from the AzureRM provider.
+This Azure Service will be retired on 2025-03-31, as a result this deprecated resource has been removed from the AzureRM provider.
 
 ### `azurerm_integrated_service_environment`
 
@@ -323,7 +323,7 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 ### `azurerm_analysis_services_server`
 
  * The deprecated property `enable_power_bi_service` has been removed in favour of the property `power_bi_service_enabled`.
- * The deprecated property `querypool_connection_mode` has been defaulted to `All`.
+ * The property `querypool_connection_mode` now defaults to `All`.
 
 ### `azurerm_api_management_api`
 
@@ -406,8 +406,6 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 * The deprecated property `network_profile.ebpf_data_plane` has been removed in favour of the property `network_profile.network_data_plane`.
 * The deprecated property `api_server_authorized_ip_ranges` has been removed in favour of the property `api_server_access_profile.authorized_ip_ranges`.
 * The deprecated property `network_profile.docker_bridge_cidr` has been removed.
-* The property `automatic_channel_upgrade` has been renamed to `automatic_upgrade_channel`.
-* The property `node_os_channel_upgrade` has been renamed to `node_os_upgrade_channel`.
 * The deprecated property `azure_active_directory_role_based_access_control.client_app_id` has been removed.
 * The deprecated property `azure_active_directory_role_based_access_control.server_app_id` has been removed.
 * The deprecated property `azure_active_directory_role_based_access_control.server_app_secret` has been removed.
@@ -417,6 +415,12 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 * The deprecated property `web_app_routing.dns_zone_id` has been removed in favour of the `web_app_routing.dns_zone_ids` property.
 * The deprecated property `public_network_access_enabled` has been removed.
 * The deprecated property `default_node_pool.node_taints` has been removed.
+* The property `automatic_channel_upgrade` has been renamed to `automatic_upgrade_channel`.
+* The property `node_os_channel_upgrade` has been renamed to `node_os_upgrade_channel`.
+* The property `default_node_pool.enable_auto_scaling` has been renamed to `default_node_pool.auto_scaling_enabled`.
+* The property `default_node_pool.enable_node_public_ip` has been renamed to `default_node_pool.node_public_ip_enabled`.
+* The property `default_node_pool.enable_host_encryption` has been renamed to `default_node_pool.host_encryption_enabled`.
+* The property `image_cleaner_interval_hours` now defaults to `0` and will only be set if `image_cleaner_enabled` has been set to `true`.
 
 ### `azurerm_kubernetes_fleet_manager`
 
@@ -425,6 +429,9 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 ### `azurerm_kubernetes_cluster_node_pool`
 
 * The deprecated property `node_taints` has been removed.
+* The property `enable_auto_scaling` has been renamed to `auto_scaling_enabled`.
+* The property `enable_node_public_ip` has been renamed to `node_public_ip_enabled`.
+* The property `enable_host_encryption` has been renamed to `host_encryption_enabled`.
 
 ### `azurerm_cosmosdb_account`
 
@@ -449,7 +456,7 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 
 * The deprecated property `roles.kafka_management_node` has been removed.
 
-### TODO `azurerm_kusto_cluster`
+### `azurerm_kusto_cluster`
 
 * The deprecated property `engine` has been removed.
 
@@ -534,7 +541,7 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 
 * The deprecated property `policy_definition_id` has been removed in favour of the `policy_definition_reference_id` property.
 
-### TODO `azurerm_recovery_services_vault_resource_guard_association`
+### `azurerm_recovery_services_vault_resource_guard_association`
 
 * The deprecated property `name` has been removed.
 
@@ -612,6 +619,20 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 * The deprecated property `enable_free_tier` has been removed in favour of the `free_tier_enabled` property.
 * The deprecated property `enable_automatic_failover` has been removed in favour of the `automatic_failover_enabled` property.
 
+### `azurerm_kubernetes_cluster`
+
+* The deprecated property `agent_pool_profile.enable_auto_scaling` has been removed in favour of the `agent_pool_profile.auto_scaling_enabled` property.
+* The deprecated property `agent_pool_profile.enable_node_public_ip` has been removed in favour of the `agent_pool_profile.node_public_ip_enabled` property.
+* The deprecated property `agent_pool_profile.enable_host_encryption` has been removed in favour of the `agent_pool_profile.host_encryption_enabled` property.
+* The deprecated property `azure_active_directory_role_based_access_control.client_app_id` has been removed.
+* The deprecated property `azure_active_directory_role_based_access_control.server_app_id` has been removed.
+* The deprecated property `azure_active_directory_role_based_access_control.managed` has been removed.
+
+### `azurerm_kubernetes_cluster_node_pool`
+
+* The deprecated property `enable_auto_scaling` has been removed in favour of the `auto_scaling_enabled` property.
+* The deprecated property `enable_node_public_ip` has been removed in favour of the `node_public_ip_enabled` property.
+
 ### `azurerm_monitor_action_group`
 
 * The deprecated property `event_hub_receiver.event_hub_id` has been removed in favour of the `event_hub_receiver.event_hub_name` and `event_hub_receiver.event_hub_namespace` properties.
@@ -625,7 +646,11 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 * The deprecated property `enable_accelerated_networking` has been removed in favour of the `accelerated_networking_enabled` property.
 * The deprecated property `enable_ip_forwarding` has been removed in favour of the `ip_forwarding_enabled` property.
 
-###  TODO `azurerm_subnet`
+### `azurerm_subnet`
+
+* The deprecated property `private_endpoint_network_policies_enabled` has been removed in favour of the `private_endpoint_network_policies` property.
+* The deprecated property `enforce_private_link_endpoint_network_policies` has been removed in favour of the `private_endpoint_network_policies` property.
+* The deprecated property `enforce_private_link_service_network_policies` has been removed in favour of the `private_link_service_network_policies_enabled` property.
 
 ### `azurerm_servicebus_namespace_authorization_rule`
 
