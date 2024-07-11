@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 var addOnAppGatewaySubnetCIDR string = "10.225.0.0/16" // AKS will use 10.224.0.0/12 for the aks subnet so use 10.225.0.0/16 for the app gateway subnet
@@ -299,6 +300,53 @@ func TestAccKubernetesCluster_addonProfileServiceMeshProfile_certificateAuthorit
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.addonProfileServiceMeshProfileCertificateAuthorityConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_addonProfileServiceMeshProfile_revisions(t *testing.T) {
+	if !features.FourPointOh() {
+		t.Skip("Service Mesh Profile Revisions are only available in version 4.0.0 and later")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.addonProfileServiceMeshProfileRevisionsConfig(data, `["asm-1-20"]`),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.addonProfileServiceMeshProfileRevisionsConfig(data, `["asm-1-20", "asm-1-21"]`),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.addonProfileServiceMeshProfileRevisionsConfig(data, `["asm-1-20"]`),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.addonProfileServiceMeshProfileRevisionsConfig(data, `["asm-1-20", "asm-1-21"]`),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.addonProfileServiceMeshProfileRevisionsConfig(data, `["asm-1-21"]`),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
