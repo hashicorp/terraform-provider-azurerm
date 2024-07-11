@@ -106,7 +106,7 @@ An `action` block supports the following:
 * `action_group_id` - (Required) The ID of the Action Group can be sourced from [the `azurerm_monitor_action_group` resource](./monitor_action_group.html)
 * `webhook_properties` - (Optional) The map of custom string properties to include with the post operation. These data are appended to the webhook payload.
 
--> **NOTE** In order to add additional action groups. you must use multiple blocks.
+-> **NOTE** In order to add additional action groups, you must use multiple blocks.
 
 ---
 
