@@ -6,8 +6,9 @@ package securitycenter
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"time"
+
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
