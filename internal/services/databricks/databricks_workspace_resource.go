@@ -725,6 +725,9 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 		workspace.Properties.Encryption = encrypt
 	}
 
+	enhancedSecurityCompliance := d.Get("enhanced_security_compliance")
+	workspace.Properties.EnhancedSecurityCompliance = expandWorkspaceEnhancedSecurity(enhancedSecurityCompliance.([]interface{}))
+
 	if err := client.CreateOrUpdateThenPoll(ctx, id, workspace); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
@@ -903,6 +906,11 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 
 				encryptDiskRotationEnabled = *encryptionProps.RotationToLatestKeyVersionEnabled
 			}
+		}
+
+		// only save enhanced security compliance to state if the terraform config contains the block, in order to prevent false drift
+		if _, ok := d.GetOk("enhanced_security_compliance"); ok {
+			d.Set("enhanced_security_compliance", flattenWorkspaceEnhancedSecurity(model.Properties.EnhancedSecurityCompliance))
 		}
 
 		var encryptDiskEncryptionSetId string
@@ -1162,5 +1170,86 @@ func workspaceCustomParametersString() []string {
 		"custom_parameters.0.public_subnet_network_security_group_association_id", "custom_parameters.0.private_subnet_network_security_group_association_id",
 		"custom_parameters.0.nat_gateway_name", "custom_parameters.0.public_ip_name", "custom_parameters.0.storage_account_name", "custom_parameters.0.storage_account_sku_name",
 		"custom_parameters.0.vnet_address_prefix",
+	}
+}
+
+func flattenWorkspaceEnhancedSecurity(input *workspaces.EnhancedSecurityComplianceDefinition) []interface{} {
+	if input == nil {
+		return nil
+	}
+
+	enhancedSecurityCompliance := make(map[string]interface{})
+
+	if v := input.AutomaticClusterUpdate; v != nil {
+		enhancedSecurityCompliance["automatic_cluster_update_enabled"] = *v.Value != workspaces.AutomaticClusterUpdateValueDisabled
+	}
+
+	if v := input.EnhancedSecurityMonitoring; v != nil {
+		enhancedSecurityCompliance["enhanced_security_monitoring_enabled"] = *v.Value != workspaces.EnhancedSecurityMonitoringValueDisabled
+	}
+
+	if v := input.ComplianceSecurityProfile; v != nil {
+		enhancedSecurityCompliance["compliance_security_profile_enabled"] = *v.Value != workspaces.ComplianceSecurityProfileValueDisabled
+
+		standards := pluginsdk.NewSet(pluginsdk.HashString, nil)
+		for _, s := range *v.ComplianceStandards {
+			if s == workspaces.ComplianceStandardNONE {
+				continue
+			}
+			standards.Add(string(s))
+		}
+
+		enhancedSecurityCompliance["compliance_security_profile_standards"] = standards
+	}
+
+	return []interface{}{enhancedSecurityCompliance}
+}
+
+func expandWorkspaceEnhancedSecurity(input []interface{}) *workspaces.EnhancedSecurityComplianceDefinition {
+	var config map[string]interface{}
+
+	if len(input) == 0 || input[0] == nil {
+		config = make(map[string]interface{})
+	} else {
+		config = input[0].(map[string]interface{})
+	}
+
+	automaticClusterUpdateEnabled := workspaces.AutomaticClusterUpdateValueDisabled
+	if enabled, ok := config["automatic_cluster_update_enabled"].(bool); ok && enabled {
+		automaticClusterUpdateEnabled = workspaces.AutomaticClusterUpdateValueEnabled
+	}
+
+	enhancedSecurityMonitoringEnabled := workspaces.EnhancedSecurityMonitoringValueDisabled
+	if enabled, ok := config["enhanced_security_monitoring_enabled"].(bool); ok && enabled {
+		enhancedSecurityMonitoringEnabled = workspaces.EnhancedSecurityMonitoringValueEnabled
+	}
+
+	complianceSecurityProfileEnabled := workspaces.ComplianceSecurityProfileValueDisabled
+	if enabled, ok := config["compliance_security_profile_enabled"].(bool); ok && enabled {
+		complianceSecurityProfileEnabled = workspaces.ComplianceSecurityProfileValueEnabled
+	}
+
+	complianceStandards := []workspaces.ComplianceStandard{}
+	if standardSet, ok := config["compliance_security_profile_standards"].(*pluginsdk.Set); ok {
+		for _, s := range standardSet.List() {
+			complianceStandards = append(complianceStandards, workspaces.ComplianceStandard(s.(string)))
+		}
+	}
+
+	if complianceSecurityProfileEnabled == workspaces.ComplianceSecurityProfileValueEnabled && len(complianceStandards) == 0 {
+		complianceStandards = append(complianceStandards, workspaces.ComplianceStandardNONE)
+	}
+
+	return &workspaces.EnhancedSecurityComplianceDefinition{
+		AutomaticClusterUpdate: &workspaces.AutomaticClusterUpdateDefinition{
+			Value: &automaticClusterUpdateEnabled,
+		},
+		EnhancedSecurityMonitoring: &workspaces.EnhancedSecurityMonitoringDefinition{
+			Value: &enhancedSecurityMonitoringEnabled,
+		},
+		ComplianceSecurityProfile: &workspaces.ComplianceSecurityProfileDefinition{
+			Value:               &complianceSecurityProfileEnabled,
+			ComplianceStandards: &complianceStandards,
+		},
 	}
 }
