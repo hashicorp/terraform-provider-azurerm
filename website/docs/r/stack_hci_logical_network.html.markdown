@@ -85,7 +85,7 @@ A `route` block supports the following:
 
 A `subnet` block supports the following:
 
-* `ip_allocation_method` - (Required) IP address allocation method for the subnet. Possible values are `Dynamic` and `Static`. Changing this forces a new resource to be created.
+* `ip_allocation_method` - (Required) The IP address allocation method for the subnet. Possible values are `Dynamic` and `Static`. Changing this forces a new resource to be created.
 
 * `address_prefix` - (Optional) The address prefix in CIDR notation. Changing this forces a new resource to be created.
 
