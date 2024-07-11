@@ -10,17 +10,200 @@ Azure Resource Manager: 4.0 Upgrade Guide
 
 ## AzureRM Provider Version v4.0
 
-TODO
+The last major release for the AzureRM provider was in March 2022. Since then we've added support for nearly TODO
 
 ### Considerations
 
-TODO
+Version 4.0 of the AzureRM Provider is a major release and includes breaking changes which are outlined in this document.
+
+When upgrading to version 4.0 of the AzureRM Provider, we recommend upgrading to the latest version of Terraform Core ([which can be found here](https://www.terraform.io/downloads)).
 
 ### Pinning your Provider Version
 
-TODO
+We recommend pinning the version of each Provider you use in Terraform - you can do this using the `version` attribute within the `required_providers` block, either to a specific version of the AzureRM Provider, like so:
+
+```hcl
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "=3.114.0"
+    }
+  }
+}
+
+provider "azurerm" {
+  features {}
+}
+```
+
+.. or to any 3.x release:
+
+```hcl
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "~> 3.x"
+    }
+  }
+}
+
+provider "azurerm" {
+  features {}
+}
+```
+
+More information on [how to pin the version of a Terraform Provider being used can be found on the Terraform Website](https://www.terraform.io/language/providers/requirements#requiring-providers).
+
+---
+
 
 ## What's available in Version 4.0 of the AzureRM Provider?
+
+-> **Note:** Version `3.114.0`-`3.115.0` of the AzureRM provider allows you to opt-into the Beta of some of these features - [read the Disclaimers in the Beta guide before doing this](https://registry.terraform.io/providers/hashicorp/azurerm/3.114.0/docs/guides/4.0-beta)
+
+Below is an overview of the changes coming 4.0. Each topic is covered in more detail further down.
+
+* [Improved Resource Provider Registration](#improved-resource-provider-registration)
+* [Provider Functions](#provider-functions)
+* [Additional Properties for Subnets in the Virtual Network Resource](#additional-properties-for-subnets-in-the-virtual-network-resource)
+* [Better consistency in resetting or removal of Lists and Blocks](#better-consistency-in-resetting-or-removal-of-lists-and-blocks)
+* [Removed Resources](#removed-resources)
+* [Removed Data Sources](#removed-data-sources)
+* [Breaking Changes in Resources](#behaviour-changes-and-removed-properties-in-resources)
+* [Breaking Changes in Data Sources](#behaviour-changes-and-removed-properties-in-data-sources)
+
+## Improved Resource Provider Registration
+
+Previously the AzureRM Provider had an all(*) or nothing approach to Azure Resource Provider (RP) registration, where the provider would either attempt to register a set of 68 RPs upon provider initialization, or RP registration could be skipped entirely by setting `skip_provider_registration = true` in the provider block.
+
+The inflexibility of this method has been a pain point and is also at odds with the recommendations from Microsoft, which is to only register RPs as needed.
+
+RP registration in 4.0 has been revamped to provide users with more control over which RPs to automatically register or whether to continue managing RP registration outside of the provider.
+
+We've introduced two new feature flags in the provider block:
+
+* `resource_provider_registrations` - This has 5 possible modes which are detailed below, that determine the set of RPs to automatically register on the subscription.
+    * `core` - A minimal set of RPs that are deemed necessary for a subscription, the list of RPs in this set can be found [here](TODO link to section in code?)
+    * `extended` - An expanded set of RPs as suggested by the community, the list of RPs in this set can be found [here](TODO link to section in code?)
+    * `all` - A complete set of RPs that might be needed to utilize any functionality in the provider, the list of RPs in this set can be found [here](TODO link to section in code?)
+    * `none` - No resource providers should be automatically registered, this is equivalent to setting `skip_provider_registration = true`
+    * `legacy` - A set of automatically registered RPs from earlier versions of the provider, this is only provided for forwards compatibility and will be removed in a future major version release, the list of RPs in this set can be found [here](TODO link to section in code?)
+
+* `resource_providers_to_register` - A custom list of RPs to explicitly register for the subscription, in addition to those specified by the `resource_provider_registrations` property
+
+Below are examples of how the two properties can be used.
+
+Only register a minimal set of `core` RPs on the subscription
+```hcl
+provider "azurerm" {
+    resource_provider_registrations = "core"
+}
+```
+
+Register a set of specific RPs in addition to the `core` RPs on the subscription
+```hcl
+provider "azurerm" {
+    resource_provider_registrations = "core"
+
+    resource_providers_to_register = [
+        "Microsoft.ContainerService",
+        "Microsoft.KeyVault",
+    ]
+}
+```
+
+Only register a custom set of RPs defined under `resource_providers_to_register` on the subscription.
+```hcl
+provider "azurerm" {
+    resource_provider_registrations = "none"
+
+    resource_providers_to_register = [
+        "Microsoft.ApiManagement",
+        "Microsoft.Compute",
+        "Microsoft.KeyVault",
+        "Microsoft.Network",
+        "Microsoft.Storage",
+    ]
+}
+```
+
+(*)all in this case refers to the arbitrary list of Resource Providers that was used for registration
+
+## Provider Functions
+
+TODO
+
+## Additional Properties for Subnets in the Virtual Network Resource
+
+The `subnet` block within the `azurerm_virtual_network_resource` has been updated to include the following new properties:
+
+* `default_outbound_access_enabled`
+* `delegation`
+* `private_endpoint_network_policies`
+* `private_link_service_network_policies_enabled`
+* `route_table_id`
+* `service_endpoints`
+* `service_endpoint_policy_ids`
+
+When upgrading to 4.0, users may receive a warning that the resource needs to be replaced, this should however just be an update in-place.
+
+## Better consistency in resetting or removal of Lists and Blocks
+
+Several older resources that can be specified separately as their own standalone resource, or in-line of a parent resource have historically relied on being both `Optional` and `Computed` in the parent resource to function, whereas newer resources of this nature require a more explicit approach of using `ignore_changes`.
+
+An example of this is the `subnet` block within `azurerm_virtual_network_resource`, which can also be specified by the resource `azurerm_subnet`. Older resources containing this nature of dependency have been updated to conform to with the present pattern of using `ignore_changes` on the appropriate properties.
+
+This has also allowed the removal of several instances of `ConfigModeAttr` which was a temporary means of enabling users to set Lists and Blocks back to an empty value by using attribute notation e.g. `subnet = []`. With the removal of `ConfigModeAttr`, these properties will behave as other blocks throughout the provider do.
+
+The following resources and properties have been affected by this change:
+
+### `azurerm_automation_runbook`
+
+* `job_schedule` has had `Computed` and `ConfigModeAttr` removed, attribute notation can no longer be used. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
+
+### `azurerm_batch_pool`
+
+* `container_configuration` has had `Computed` and `ConfigModeAttr` removed, attribute notation can no longer be used. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
+
+### `azurerm_container_group`
+
+* `exposed_port` has had `Computed` and `ConfigModeAttr` removed, attribute notation can no longer be used. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
+
+### `azurerm_container_registry`
+
+* `encryption` has had `Computed` and `ConfigModeAttr` removed, attribute notation can no longer be used. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
+* `network_rule_set` has had `Computed` and `ConfigModeAttr` removed, attribute notation can no longer be used. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
+* `network_rule_set.ip_rule` has had `Computed` and `ConfigModeAttr` removed, attribute notation can no longer be used. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
+
+### `azurerm_kubernetes_cluster`
+
+TODO move these down to the other section
+* `network_profile.load_balancer_profile.outbound_ip_prefix_ids` has had `Computed` and `ConfigModeAttr` removed, attribute notation can no longer be used. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
+* `network_profile.load_balancer_profile.outbound_ip_address_ids` has had `Computed` 
+
+### `azurerm_eventgrid_domain`
+
+* `inbound_ip_rule` has had `ConfigModeAttr` removed, attribute notation can no longer be used.
+
+### `azurerm_eventgrid_topic`
+
+* `inbound_ip_rule` has had `ConfigModeAttr` removed, attribute notation can no longer be used.
+
+### `azurerm_kusto_cluster`
+
+* `trusted_external_tenants` has had `Computed` and `ConfigModeAttr` removed, attribute notation can no longer be used. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
+
+### `azurerm_logic_standard_app`
+
+* `ip_restriction` has had `Computed` and `ConfigModeAttr` removed, attribute notation can no longer be used. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
+* `ip_restriction.headers` has had `Computed` and `ConfigModeAttr` removed, attribute notation can no longer be used. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
+* `scm_ip_restriction` has had `Computed` and `ConfigModeAttr` removed, attribute notation can no longer be used. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
+* `scm_ip_restriction.headers` has had `Computed` and `ConfigModeAttr` removed, attribute notation can no longer be used. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
+
+
+### ``
 
 ## Removed Resources
 
@@ -497,6 +680,7 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 
 ### `azurerm_network_interface`
 
+* The property `dns_servers` is not longer `Computed`.
 * The deprecated property `enable_accelerated_networking` has been removed in favour of the `accelerated_networking_enabled` property.
 * The deprecated property `enable_ip_forwarding` has been removed in favour of the `ip_forwarding_enabled` property.
 
@@ -506,9 +690,14 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 
 ### `azurerm_subnet`
 
+* The block `actions` has become a Set instead of a List, meaning that the order of these items no longer matters. If you're referencing these items within your Terraform Configuration, then this may require some code changes.
 * The deprecated property `private_endpoint_network_policies_enabled` has been removed in favour of the `private_endpoint_network_policies` property.
 * The deprecated property `enforce_private_link_endpoint_network_policies` has been removed in favour of the `private_endpoint_network_policies` property.
 * The deprecated property `enforce_private_link_service_network_policies` has been removed in favour of the `private_link_service_network_policies_enabled` property.
+
+### `azurerm_virtual_network_gateway_connections`
+
+* The property `shared_key` has become `Required`.
 
 ### `azurerm_vpn_gateway_nat_rule`
 

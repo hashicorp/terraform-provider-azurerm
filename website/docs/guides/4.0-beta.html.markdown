@@ -12,6 +12,7 @@ Version 4.0 of the Azure Provider will introduce several new features ([full det
 
 - Improved control and granularity over Resource Provider registration
 - Provider functions
+- Additional configuration options for Subnets defined in-line in the Virtual Network Resource.
 - Improved consistency in updating and removing lists and blocks
 
 Since both Azure and Terraform's Azure Provider move quickly - in order to continue rapidly shipping new features we've used Feature Toggles to gradually add support for the new functionality coming in version 4.0 of the Azure Provider as we've been developing 3.x versions of the Azure Provider.
@@ -24,7 +25,7 @@ This guide details how to enable these features and how you can submit feedback 
 
 -> The functionality provided in this Beta is subject to change - as such we recommend **not using this Beta in Production**.
 
--> Once opted in, it will not be possible to opt-out of the Beta, this is because the new functionality and deprecations in 4.0 can make non-reversible changes to the Terraform state. We recommend making a backup of your environment before activating the Beta in case a rollback is needed.
+-> Once opted in, it will not be possible to opt-out of the Beta, this is because the new functionality and deprecations in 4.0 can make non-reversible changes to the Terraform state. We recommend making a backup of your environment before activating the Beta in case a rollback of the environment is needed.
 
 -> Whilst certain feature flags may be available in earlier versions of the Azure Provider they existed in an incomplete manner - **the Beta is only supported when using version 3.114 (or later) of the Azure Provider**.
 
