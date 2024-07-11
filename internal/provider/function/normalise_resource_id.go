@@ -44,7 +44,7 @@ func (a NormaliseResourceIDFunction) Run(ctx context.Context, request function.R
 		return
 	}
 
-	result, err := recaser.RecaseKnownId(id)
+	result, err := recaser.ReCaseKnownId(id)
 	if err != nil {
 		response.Error = function.NewFuncError(err.Error())
 		return

@@ -3,8 +3,6 @@ package function
 import (
 	"context"
 	"fmt"
-	"strings"
-
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
@@ -68,29 +66,6 @@ func (p ParseResourceIDFunction) Run(ctx context.Context, request function.RunRe
 		return
 	}
 
-	// Try and fixup being passed a value missing the initial `/` as some APIs in Azure incorrectly omit it, but that's not the user's fault
-	if !strings.HasPrefix(id, "/") {
-		id = fmt.Sprintf("/%s", id)
-	}
-
-	idKey := ""
-
-	segments := strings.Split(id, "/")
-	if len(segments)%2 != 0 {
-		for i := 1; len(segments) > i; i++ {
-			if i%2 != 0 {
-				key := segments[i]
-				idKey = fmt.Sprintf("%s/%s/", idKey, key)
-				if strings.EqualFold(key, "providers") && len(segments) >= i+2 {
-					value := segments[i+1]
-					idKey = fmt.Sprintf("%s%s", idKey, value)
-				}
-			}
-		}
-	}
-
-	idKey = strings.ToLower(idKey)
-
 	// These outputs should always have a value
 	output := map[string]attr.Value{
 		"resource_name":       types.StringValue(""),
@@ -102,28 +77,20 @@ func (p ParseResourceIDFunction) Run(ctx context.Context, request function.RunRe
 		"subscription_id":     types.StringValue(""),
 		"parent_resources":    types.Map{},
 	}
-	idType := recaser.KnownResourceIds()[idKey]
+
+	idType := recaser.ResourceIdTypeFromResourceId(id)
 	if idType == nil {
-		// This might be a scoped ID type, lets try striping the common scope prefixes
-		for _, v := range recaser.PotentialScopeValues() {
-			if idType = recaser.KnownResourceIds()[strings.TrimPrefix(idKey, strings.TrimSuffix(v, "/"))]; idType != nil {
-				break
-			}
-			if idType = recaser.KnownResourceIds()[strings.TrimPrefix(idKey, v)]; idType != nil {
-				break
-			}
-		}
-		if idType == nil {
-			response.Error = function.NewFuncError("Unsupported Resource ID type")
-			return
-		}
+		response.Error = function.NewFuncError(fmt.Sprintf("could not determine resource ID type from %s, ID may be malformed or currently not supported in the provider", id))
+		return
 	}
+
 	parser := resourceids.NewParserFromResourceIdType(idType)
 	parsed, err := parser.Parse(id, true)
 	if err != nil {
 		response.Error = function.NewFuncError(fmt.Sprintf("Parsing Resource ID Error: %s", err))
 		return
 	}
+
 	err = idType.FromParseResult(*parsed)
 	if err != nil {
 		response.Error = function.NewFuncError(fmt.Sprintf("Expanding Parsed Resource ID Error: %s", err))
