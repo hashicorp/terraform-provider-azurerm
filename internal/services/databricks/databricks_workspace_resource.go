@@ -388,6 +388,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				_, backendPool := d.GetChange("load_balancer_backend_address_pool_id")
 				_, managedServicesCMK := d.GetChange("managed_services_cmk_key_vault_key_id")
 				_, managedDiskCMK := d.GetChange("managed_disk_cmk_key_vault_key_id")
+				_, enhancedSecurityCompliance := d.GetChange("enhanced_security_compliance")
 
 				oldSku, newSku := d.GetChange("sku")
 
@@ -413,8 +414,8 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 					}
 				}
 
-				if (customerEncryptionEnabled.(bool) || defaultStorageFirewallEnabled.(bool) || infrastructureEncryptionEnabled.(bool) || managedServicesCMK.(string) != "" || managedDiskCMK.(string) != "") && !strings.EqualFold("premium", newSku.(string)) {
-					return fmt.Errorf("'customer_managed_key_enabled', 'default_storage_firewall_enabled', 'infrastructure_encryption_enabled', 'managed_disk_cmk_key_vault_key_id' and 'managed_services_cmk_key_vault_key_id' are only available with a 'premium' workspace 'sku', got %q", newSku)
+				if (customerEncryptionEnabled.(bool) || defaultStorageFirewallEnabled.(bool) || len(enhancedSecurityCompliance.([]interface{})) > 0 || infrastructureEncryptionEnabled.(bool) || managedServicesCMK.(string) != "" || managedDiskCMK.(string) != "") && !strings.EqualFold("premium", newSku.(string)) {
+					return fmt.Errorf("'customer_managed_key_enabled', 'default_storage_firewall_enabled', 'enhanced_security_compliance', 'infrastructure_encryption_enabled', 'managed_disk_cmk_key_vault_key_id' and 'managed_services_cmk_key_vault_key_id' are only available with a 'premium' workspace 'sku', got %q", newSku)
 				}
 
 				return nil
