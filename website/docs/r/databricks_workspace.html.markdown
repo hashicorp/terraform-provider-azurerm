@@ -102,7 +102,7 @@ A `custom_parameters` block supports the following:
 
 ~> **Note:** Updating `no_public_ip` parameter is only allowed if the value is changing from `false` to `true` and and only for VNet-injected workspaces.
 
-~> **Note:** In v4.0 of the provider the `no_public_ip` parameter will default to `true` instead of `false`.
+~> **Note:** In `v3.104.0` and higher of the provider the `no_public_ip` parameter will now default to `true` instead of `false`.
 
 * `public_subnet_name` - (Optional) The name of the Public Subnet within the Virtual Network. Required if `virtual_network_id` is set. Changing this forces a new resource to be created.
 
