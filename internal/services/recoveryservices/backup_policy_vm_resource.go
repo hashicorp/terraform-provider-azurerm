@@ -300,6 +300,7 @@ func resourceBackupProtectionPolicyVMUpdate(d *pluginsdk.ResourceData, meta inte
 	if d.HasChange("retention_daily.0.count") && (d.Get("retention_daily.0.count").(int) > 1 && d.Get("retention_daily.0.count").(int) < 7) {
 		return fmt.Errorf("the Azure API has recently changed behaviour so that provisioning a `count` for the `retention_daily` field can no longer be less than 7 days for new/updates to existing Backup Policies. Please ensure that `count` is greater than 7, currently %d", d.Get("retention_daily.0.count").(int))
 	}
+	
 	existing, err := client.Get(ctx, *id)
 	if err != nil {
 		return err
@@ -401,15 +402,6 @@ func resourceBackupProtectionPolicyVMUpdate(d *pluginsdk.ResourceData, meta inte
 		retentionPolicy.YearlySchedule = expandBackupProtectionPolicyVMRetentionYearly(d, times)
 		properties.RetentionPolicy = retentionPolicy
 	}
-	//
-	//// InstantRPDetails is returned from the api as empty if not set but the api doesn't accept the empty model that we are receiving so we'll nil it out here
-	//if properties.InstantRPDetails != nil && (properties.InstantRPDetails.AzureBackupRGNamePrefix == nil || properties.InstantRPDetails.AzureBackupRGNameSuffix == nil) {
-	//	properties.InstantRPDetails = nil
-	//}
-	//
-	//if properties.ProtectedItemsCount != nil && *properties.ProtectedItemsCount == 0 {
-	//	properties.ProtectedItemsCount = nil
-	//}
 
 	model.Properties = properties
 	if _, err = client.CreateOrUpdate(ctx, *id, model); err != nil {
