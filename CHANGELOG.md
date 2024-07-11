@@ -26,6 +26,7 @@ BUG FIXES:
 
 * Data Source: `azurerm_communication_service` - `primary_connection_string`, `primary_key`, `secondary_connection_string` and `secondary_key` are marked as Sensitive [GH-26560]
 * `azurerm_app_configuration_feature` - fix issue when updating the resource without an existing `targeting_filter` [GH-26506]
+* `azurerm_backup_policy_vm` - split create and update function to fix lifecycle - ignore [GH-26591]
 * `azurerm_backup_protected_vm` - split create and update function to fix lifecycle - ignore [GH-26583]
 * `azurerm_communication_service` - `primary_connection_string`, `primary_key`, `secondary_connection_string` and `secondary_key` are marked as Sensitive [GH-26560]
 * `azurerm_mysql_flexible_server_configuration` - add locks to prevent conflicts when deleting the resource [GH-26289]
