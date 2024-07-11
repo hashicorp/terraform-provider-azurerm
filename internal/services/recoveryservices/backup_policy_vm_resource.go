@@ -300,7 +300,7 @@ func resourceBackupProtectionPolicyVMUpdate(d *pluginsdk.ResourceData, meta inte
 	if d.HasChange("retention_daily.0.count") && (d.Get("retention_daily.0.count").(int) > 1 && d.Get("retention_daily.0.count").(int) < 7) {
 		return fmt.Errorf("the Azure API has recently changed behaviour so that provisioning a `count` for the `retention_daily` field can no longer be less than 7 days for new/updates to existing Backup Policies. Please ensure that `count` is greater than 7, currently %d", d.Get("retention_daily.0.count").(int))
 	}
-	
+
 	existing, err := client.Get(ctx, *id)
 	if err != nil {
 		return err
