@@ -263,7 +263,6 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
-			Set: resourceAzureSubnetHash,
 		},
 
 		"tags": commonschema.Tags(),
@@ -953,45 +952,6 @@ func resourceAzureSubnetHash(v interface{}) int {
 		}
 		if v, ok := m["security_group"]; ok {
 			buf.WriteString(v.(string))
-		}
-
-		if features.FourPointOhBeta() {
-			if v, ok := m["default_outbound_access_enabled"]; ok {
-				buf.WriteString(fmt.Sprintf("%t", v.(bool)))
-			}
-			if delegations, ok := m["delegation"].([]interface{}); ok {
-				for _, delegation := range delegations {
-					d := delegation.(map[string]interface{})
-					if name, ok := d["name"]; ok {
-						buf.WriteString(name.(string))
-					}
-					if serviceDelegations, ok := d["service_delegation"].([]interface{}); ok {
-						if sd, ok := serviceDelegations[0].(map[string]interface{}); ok {
-							if name, ok := sd["name"]; ok {
-								buf.WriteString(name.(string))
-							}
-							if actions, ok := sd["actions"]; ok {
-								buf.WriteString(fmt.Sprintf("%s", actions))
-							}
-						}
-					}
-				}
-			}
-			if v, ok := m["private_endpoint_network_policies"]; ok {
-				buf.WriteString(v.(string))
-			}
-			if v, ok := m["private_link_service_network_policies_enabled"]; ok {
-				buf.WriteString(fmt.Sprintf("%t", v.(bool)))
-			}
-			if v, ok := m["route_table_id"]; ok {
-				buf.WriteString(v.(string))
-			}
-			if v, ok := m["service_endpoints"]; ok {
-				buf.WriteString(fmt.Sprintf("%s", v))
-			}
-			if v, ok := m["service_endpoint_policy_ids"]; ok {
-				buf.WriteString(fmt.Sprintf("%s", v))
-			}
 		}
 	}
 
