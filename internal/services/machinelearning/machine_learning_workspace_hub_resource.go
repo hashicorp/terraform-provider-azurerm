@@ -130,10 +130,9 @@ func (r MachineLearningWorkspaceHubResource) Arguments() map[string]*pluginsdk.S
 						ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 					},
 					"user_assigned_identity_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: commonids.ValidateUserAssignedIdentityID,
-						// TODO: remove this
+						Type:             pluginsdk.TypeString,
+						Optional:         true,
+						ValidateFunc:     commonids.ValidateUserAssignedIdentityID,
 						DiffSuppressFunc: suppress.CaseDifference,
 					},
 				},
@@ -292,11 +291,6 @@ func (r MachineLearningWorkspaceHubResource) Update() sdk.ResourceFunc {
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
-
-			if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
-				return fmt.Errorf("creating %s: %+v", id, err)
-			}
-
 			return nil
 		},
 	}
@@ -371,6 +365,10 @@ func (r MachineLearningWorkspaceHubResource) Read() sdk.ResourceFunc {
 
 				if model.Properties.ContainerRegistry != nil {
 					state.ContainerRegistryID = *model.Properties.ContainerRegistry
+				}
+
+				if model.Properties.WorkspaceId != nil {
+					state.WorkspaceId = *model.Properties.WorkspaceId
 				}
 
 				flattenedIdentity, err := identity.FlattenLegacySystemAndUserAssignedMapToModel(model.Identity)
