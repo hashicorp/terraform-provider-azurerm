@@ -600,7 +600,7 @@ resource "azurerm_redis_cache" "test" {
   capacity            = 1
   family              = "C"
   sku_name            = "Basic"
-  %s = %t
+  %s                  = %t
   minimum_tls_version = "1.2"
 
   redis_configuration {
@@ -632,7 +632,7 @@ resource "azurerm_redis_cache" "test" {
   capacity            = 1
   family              = "C"
   sku_name            = "Basic"
-  %s = %t
+  %s                  = %t
   minimum_tls_version = "1.2"
 
   redis_configuration {
@@ -658,7 +658,7 @@ resource "azurerm_redis_cache" "import" {
   capacity            = azurerm_redis_cache.test.capacity
   family              = azurerm_redis_cache.test.family
   sku_name            = azurerm_redis_cache.test.sku_name
-  %s = azurerm_redis_cache.test.%s
+  %s                  = azurerm_redis_cache.test.%s
 
   redis_configuration {
   }
@@ -688,7 +688,7 @@ resource "azurerm_redis_cache" "test" {
   capacity            = 1
   family              = "C"
   sku_name            = "Standard"
-  %s = false
+  %s                  = false
   redis_configuration {
   }
 
@@ -722,7 +722,7 @@ resource "azurerm_redis_cache" "test" {
   capacity            = 1
   family              = "P"
   sku_name            = "Premium"
-  %s = false
+  %s                  = false
 
   redis_configuration {
     maxmemory_reserved              = 642
@@ -756,7 +756,7 @@ resource "azurerm_redis_cache" "test" {
   capacity            = 1
   family              = "P"
   sku_name            = "Premium"
-  %s = true
+  %s                  = true
   shard_count         = 3
 
   redis_configuration {
@@ -792,7 +792,7 @@ resource "azurerm_redis_cache" "test" {
   capacity            = 2
   family              = "P"
   sku_name            = "Premium"
-  %s = true
+  %s                  = true
   shard_count         = 3
 
   redis_configuration {
@@ -828,7 +828,7 @@ resource "azurerm_redis_cache" "test" {
   capacity                      = 3
   family                        = "P"
   sku_name                      = "Premium"
-  %s           = false
+  %s                            = false
   public_network_access_enabled = false
 
   redis_configuration {
@@ -896,7 +896,7 @@ resource "azurerm_redis_cache" "test" {
   capacity            = 3
   family              = "P"
   sku_name            = "Premium"
-  %s = false
+  %s                  = false
 
   redis_configuration {
     rdb_backup_enabled              = false
@@ -943,7 +943,7 @@ resource "azurerm_redis_cache" "test" {
   capacity            = 3
   family              = "P"
   sku_name            = "Premium"
-  %s = false
+  %s                  = false
 
   redis_configuration {
     rdb_backup_enabled              = true
@@ -1015,7 +1015,7 @@ resource "azurerm_redis_cache" "test" {
   capacity            = 3
   family              = "P"
   sku_name            = "Premium"
-  %s = false
+  %s                  = false
 
   redis_configuration {
     aof_backup_enabled            = false
@@ -1075,7 +1075,7 @@ resource "azurerm_redis_cache" "test" {
   capacity            = 1
   family              = "P"
   sku_name            = "Premium"
-  %s = false
+  %s                  = false
 
   redis_configuration {
     aof_backup_enabled              = true
@@ -1133,7 +1133,7 @@ resource "azurerm_redis_cache" "test" {
   capacity            = 1
   family              = "C"
   sku_name            = "Basic"
-  %s = false
+  %s                  = false
 
   redis_configuration {
     aof_backup_enabled = false
@@ -1169,7 +1169,7 @@ resource "azurerm_redis_cache" "test" {
   capacity            = 1
   family              = "P"
   sku_name            = "Premium"
-  %s = false
+  %s                  = false
 
   redis_configuration {
     maxmemory_reserved = 642
@@ -1211,7 +1211,7 @@ resource "azurerm_redis_cache" "test" {
   family                        = "C"
   sku_name                      = "Basic"
   minimum_tls_version           = "1.2"
-  %s           = false
+  %s                            = false
   public_network_access_enabled = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enableNonSsl)
@@ -1253,7 +1253,7 @@ resource "azurerm_redis_cache" "test" {
   capacity            = 3
   family              = "P"
   sku_name            = "Premium"
-  %s = false
+  %s                  = false
 
   redis_configuration {
     notify_keyspace_events = "KAE"
@@ -1300,7 +1300,7 @@ resource "azurerm_redis_cache" "test" {
   capacity            = 1
   family              = "P"
   sku_name            = "Premium"
-  %s = false
+  %s                  = false
   subnet_id           = azurerm_subnet.test.id
   redis_configuration {
   }
@@ -1346,7 +1346,7 @@ resource "azurerm_redis_cache" "test" {
   capacity                  = 1
   family                    = "P"
   sku_name                  = "Premium"
-  %s       = false
+  %s                        = false
   subnet_id                 = azurerm_subnet.test.id
   private_static_ip_address = "10.0.1.20"
   redis_configuration {
@@ -1393,7 +1393,7 @@ resource "azurerm_redis_cache" "test" {
   capacity            = 1
   family              = "P"
   sku_name            = "Premium"
-  %s = false
+  %s                  = false
   subnet_id           = azurerm_subnet.test.id
   redis_configuration {
   }
@@ -1440,7 +1440,7 @@ resource "azurerm_redis_cache" "test" {
   capacity            = 1
   family              = "P"
   sku_name            = "Premium"
-  %s = false
+  %s                  = false
   subnet_id           = azurerm_subnet.test.id
   redis_configuration {
     authentication_enabled = false
@@ -1473,7 +1473,7 @@ resource "azurerm_redis_cache" "test" {
   capacity            = 3
   family              = "P"
   sku_name            = "Premium"
-  %s = false
+  %s                  = false
   replicas_per_master = 3
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enableNonSsl)
@@ -1503,7 +1503,7 @@ resource "azurerm_redis_cache" "test" {
   capacity             = 3
   family               = "P"
   sku_name             = "Premium"
-  %s  = false
+  %s                   = false
   replicas_per_primary = 3
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enableNonSsl)
@@ -1533,7 +1533,7 @@ resource "azurerm_redis_cache" "test" {
   capacity            = 3
   family              = "P"
   sku_name            = "Premium"
-  %s = false
+  %s                  = false
   redis_version       = "6"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enableNonSsl)
@@ -1563,7 +1563,7 @@ resource "azurerm_redis_cache" "test" {
   capacity            = 3
   family              = "P"
   sku_name            = "Premium"
-  %s = false
+  %s                  = false
   tenant_settings = {
     config = "config"
   }
@@ -1595,7 +1595,7 @@ resource "azurerm_redis_cache" "test" {
   capacity            = 2
   family              = "P"
   sku_name            = "Premium"
-  %s = false
+  %s                  = false
   minimum_tls_version = "1.2"
 
   redis_configuration {
@@ -1635,7 +1635,7 @@ resource "azurerm_redis_cache" "test" {
   capacity            = 1
   family              = "C"
   sku_name            = "Standard"
-  %s = false
+  %s                  = false
   redis_configuration {
   }
 
@@ -1680,7 +1680,7 @@ resource "azurerm_redis_cache" "test" {
   capacity            = 1
   family              = "C"
   sku_name            = "Standard"
-  %s = false
+  %s                  = false
   redis_configuration {
   }
 
@@ -1720,7 +1720,7 @@ resource "azurerm_redis_cache" "test" {
   capacity            = 1
   family              = "C"
   sku_name            = "Basic"
-  %s = false
+  %s                  = false
   redis_configuration {
   }
 
