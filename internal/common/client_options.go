@@ -47,7 +47,6 @@ type ClientOptions struct {
 	DisableCorrelationRequestID bool
 
 	DisableTerraformPartnerID bool
-	SkipProviderReg           bool
 	StorageUseAzureAD         bool
 
 	ResourceManagerEndpoint string
@@ -58,6 +57,9 @@ type ClientOptions struct {
 	ManagedHSMAuthorizer      autorest.Authorizer
 	ResourceManagerAuthorizer autorest.Authorizer
 	SynapseAuthorizer         autorest.Authorizer
+
+	// TODO: Remove when all go-autorest clients are gone
+	SkipProviderReg bool
 }
 
 // Configure set up a resourcemanager.Client using an auth.Authorizer from hashicorp/go-azure-sdk
