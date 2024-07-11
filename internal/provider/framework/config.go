@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/sdk/auth"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	providerfeatures "github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider"
@@ -24,51 +23,33 @@ type ProviderConfig struct {
 
 // Load handles the heavy lifting of configuring the provider and handling defaults
 func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersion string, diags *diag.Diagnostics) {
-	var (
-		env *environments.Environment
-		err error
-	)
+	env := &environments.Environment{}
+	var err error
 
-	if metadataHost := data.MetaDataHost.ValueString(); metadataHost != "" {
+	if metadataHost := getEnvStringOrDefault(data.MetaDataHost, "ARM_METADATA_HOSTNAME", ""); metadataHost != "" {
 		env, err = environments.FromEndpoint(ctx, metadataHost)
 		if err != nil {
 			diags.Append(diag.NewErrorDiagnostic("Configuring metadata host", err.Error()))
 			return
 		}
 	} else {
-		if !data.Environment.IsNull() && !data.Environment.IsUnknown() {
-			env, err = environments.FromName(data.Environment.ValueString())
+		if v := getEnvStringOrDefault(data.Environment, "ARM_ENVIRONMENT", "public"); v != "" {
+			env, err = environments.FromName(v)
 			if err != nil {
 				diags.Append(diag.NewErrorDiagnostic("Configuring metadata host", err.Error()))
 				return
-			}
-		} else {
-			if envStr := os.Getenv("ARM_ENVIRONMENT"); envStr != "" {
-				env, err = environments.FromName(envStr)
-				if err != nil {
-					diags.Append(diag.NewErrorDiagnostic("creating environment", err.Error()))
-					return
-				}
-			} else {
-				env, err = environments.FromName("public")
-				if err != nil {
-					diags.Append(diag.NewErrorDiagnostic("creating environment", err.Error()))
-					return
-				}
 			}
 		}
 	}
 
 	var clientCertificateData []byte
-	if encodedCert := data.ClientCertificate.ValueString(); encodedCert != "" {
-		var err error
+	if encodedCert := getEnvStringOrDefault(data.ClientCertificate, "ARM_CLIENT_CERTIFICATE", ""); encodedCert != "" {
 		clientCertificateData, err = decodeCertificate(encodedCert)
 		if err != nil {
 			diags.Append(diag.NewErrorDiagnostic("decoding client certificate", err.Error()))
 			if diags.HasError() {
 				return
 			}
-
 		}
 	}
 
@@ -86,184 +67,57 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 		return
 	}
 
+	enableOIDC := getEnvBoolIfValueAbsent(data.UseOIDC, "ARM_USE_OIDC") || getEnvBoolIfValueAbsent(data.UseAKSWorkloadIdentity, "ARM_USE_AKS_WORKLOAD_IDENTITY")
+	auxTenants := getEnvListOfStringsIfAbsent(data.AuxiliaryTenantIds, "ARM_AUXILIARY_TENANT_IDS", ";")
+
+	oidcReqURL := getEnvStringOrDefault(data.OIDCRequestURL, "ARM_OIDC_REQUEST_URL", "")
+	if oidcReqURL == "" {
+		oidcReqURL = getEnvStringOrDefault(data.OIDCRequestURL, "ACTIONS_ID_TOKEN_REQUEST_URL", "")
+	}
+	oidcReqToken := getEnvStringOrDefault(data.OIDCRequestToken, "ARM_OIDC_REQUEST_TOKEN", "")
+	if oidcReqToken == "" {
+		oidcReqToken = getEnvStringOrDefault(data.OIDCRequestToken, "ACTIONS_ID_TOKEN_REQUEST_TOKEN", "")
+	}
+
 	authConfig := &auth.Credentials{
-		Environment: *env,
+		Environment:        *env,
+		ClientID:           getEnvStringIfValueAbsent(data.ClientId, "ARM_CLIENT_ID"),
+		TenantID:           getEnvStringIfValueAbsent(data.TenantId, "ARM_TENANT_ID"),
+		AuxiliaryTenantIDs: auxTenants,
 
-		ClientCertificateData: clientCertificateData,
-		ClientSecret:          *clientSecret,
+		ClientCertificateData:     clientCertificateData,
+		ClientCertificatePath:     getEnvStringOrDefault(data.ClientCertificatePath, "ARM_CLIENT_CERTIFICATE_PATH", ""),
+		ClientCertificatePassword: getEnvStringOrDefault(data.ClientCertificatePassword, "ARM_CLIENT_CERTIFICATE_PASSWORD", ""),
+		ClientSecret:              *clientSecret,
 
-		OIDCAssertionToken: *oidcToken,
+		OIDCAssertionToken:          *oidcToken,
+		GitHubOIDCTokenRequestURL:   oidcReqURL,
+		GitHubOIDCTokenRequestToken: oidcReqToken,
+
+		CustomManagedIdentityEndpoint: getEnvStringOrDefault(data.MSIEndpoint, "ARM_MSI_ENDPOINT", ""),
+
+		AzureCliSubscriptionIDHint: getEnvStringOrDefault(data.SubscriptionId, "ARM_SUBSCRIPTION_ID", ""),
 
 		EnableAuthenticatingUsingClientCertificate: true,
 		EnableAuthenticatingUsingClientSecret:      true,
+		EnableAuthenticationUsingOIDC:              enableOIDC,
+		EnableAuthenticationUsingGitHubOIDC:        enableOIDC,
+		EnableAuthenticatingUsingAzureCLI:          getEnvBoolOrDefault(data.UseCLI, "ARM_USE_CLI", true),
+		EnableAuthenticatingUsingManagedIdentity:   getEnvBoolOrDefault(data.UseMSI, "ARM_USE_MSI", false),
 	}
 
-	if data.SubscriptionId.IsNull() || data.SubscriptionId.IsUnknown() {
-		v := os.Getenv("ARM_SUBSCRIPTION_ID")
-		if v != "" {
-			p.clientBuilder.SubscriptionID = v
-		}
-	} else {
-		p.clientBuilder.SubscriptionID = data.SubscriptionId.ValueString()
-	}
+	p.clientBuilder.SubscriptionID = getEnvStringIfValueAbsent(data.SubscriptionId, "ARM_SUBSCRIPTION_ID")
 
-	if !data.ClientId.IsNull() && !data.ClientId.IsUnknown() {
-		authConfig.ClientID = data.ClientId.ValueString()
-	} else if envClientId := os.Getenv("ARM_CLIENT_ID"); envClientId != "" {
-		authConfig.ClientID = envClientId
+	partnerId := getEnvStringIfValueAbsent(data.PartnerId, "ARM_PARTNER_ID")
+	if _, errs := provider.ValidatePartnerID(partnerId, "ARM_PARTNER_ID"); len(errs) > 0 {
+		diags.Append(diag.NewErrorDiagnostic("validating ARM_PARTNER_ID", errs[0].Error()))
+		return
 	}
-
-	if !data.ClientIdFilePath.IsNull() && !data.ClientIdFilePath.IsUnknown() {
-		clientId, err := getClientId(data)
-		if err != nil {
-			diags.Append(diag.NewErrorDiagnostic("parsing client id file", err.Error()))
-		}
-		authConfig.ClientID = *clientId
-	}
-
-	if data.TenantId.IsNull() || data.TenantId.IsUnknown() {
-		v := os.Getenv("ARM_TENANT_ID")
-		if v != "" {
-			authConfig.TenantID = v
-		}
-	}
-
-	if data.Environment.IsNull() || data.Environment.IsUnknown() {
-		v := os.Getenv("ARM_ENVIRONMENT")
-		if v != "" {
-			data.Environment = types.StringValue(v)
-		}
-	}
-
-	if data.MetaDataHost.IsNull() || data.MetaDataHost.IsUnknown() {
-		v := os.Getenv("ARM_METADATA_HOSTNAME")
-		if v != "" {
-			data.MetaDataHost = types.StringValue(v)
-		}
-	}
-
-	if data.ClientCertificate.IsNull() || data.ClientCertificate.IsUnknown() {
-		v := os.Getenv("ARM_CLIENT_CERTIFICATE")
-		if v != "" {
-			data.ClientCertificate = types.StringValue(v)
-		}
-	}
-
-	if data.ClientCertificatePath.IsNull() || data.ClientCertificatePath.IsUnknown() {
-		v := os.Getenv("ARM_CLIENT_CERTIFICATE_PATH")
-		if v != "" {
-			authConfig.ClientCertificatePath = v
-		}
-	}
-
-	if data.ClientCertificatePassword.IsNull() || data.ClientCertificatePassword.IsUnknown() {
-		v := os.Getenv("ARM_CLIENT_CERTIFICATE_PASSWORD")
-		if v != "" {
-			authConfig.ClientCertificatePassword = v
-		}
-	}
-
-	if data.ClientSecret.IsNull() || data.ClientSecret.IsUnknown() {
-		v := os.Getenv("ARM_CLIENT_SECRET")
-		if v != "" {
-			authConfig.ClientSecret = v
-		}
-	}
-
-	if data.OIDCRequestToken.IsNull() || data.OIDCRequestToken.IsUnknown() {
-		if v := os.Getenv("ARM_OIDC_REQUEST_TOKEN"); v != "" {
-			authConfig.EnableAuthenticationUsingOIDC = true
-			authConfig.EnableAuthenticationUsingGitHubOIDC = true
-		} else if v := os.Getenv("ACTIONS_ID_TOKEN_REQUEST_TOKEN"); v != "" {
-			authConfig.EnableAuthenticationUsingOIDC = true
-			authConfig.EnableAuthenticationUsingGitHubOIDC = true
-		}
-	}
-
-	if data.OIDCRequestURL.IsNull() || data.OIDCRequestURL.IsUnknown() {
-		if v := os.Getenv("ARM_OIDC_REQUEST_URL"); v != "" {
-			authConfig.GitHubOIDCTokenRequestURL = v
-		} else if v := os.Getenv("ACTIONS_ID_TOKEN_REQUEST_URL"); v != "" {
-			authConfig.GitHubOIDCTokenRequestURL = v
-		}
-	}
-
-	if data.UseOIDC.IsNull() || data.UseOIDC.IsUnknown() {
-		v := os.Getenv("ARM_USE_OIDC")
-		if v != "" {
-			authConfig.EnableAuthenticationUsingOIDC = true
-			authConfig.EnableAuthenticationUsingGitHubOIDC = true
-		}
-	}
-
-	if data.UseMSI.IsNull() || data.UseMSI.IsUnknown() {
-		v := os.Getenv("ARM_USE_MSI")
-		if v != "" {
-			authConfig.EnableAuthenticatingUsingManagedIdentity = true
-		}
-	}
-
-	if data.UseCLI.IsNull() || data.UseCLI.IsUnknown() {
-		v := os.Getenv("ARM_USE_CLI")
-		if v == "false" || v == "0" {
-			authConfig.EnableAuthenticatingUsingAzureCLI = true
-		}
-	}
-
-	if data.UseAKSWorkloadIdentity.IsNull() || data.UseAKSWorkloadIdentity.IsUnknown() {
-		v := os.Getenv("ARM_USE_AKS_WORKLOAD_IDENTITY")
-		if v != "" {
-			authConfig.EnableAuthenticationUsingOIDC = true
-		}
-	}
-
-	if data.PartnerId.IsNull() || data.PartnerId.IsUnknown() {
-		v := os.Getenv("ARM_PARTNER_ID")
-		if v != "" {
-			_, errors := provider.ValidatePartnerID(v, "ARM_PARTNER_ID")
-			if len(errors) > 0 {
-				diags.Append(diag.NewErrorDiagnostic("validating ARM_PARTNER_ID", errors[0].Error()))
-				return
-			}
-			p.clientBuilder.PartnerID = v
-		}
-
-	} else {
-		p.clientBuilder.PartnerID = data.PartnerId.ValueString()
-	}
-
-	if data.DisableCorrelationRequestId.IsNull() || data.DisableCorrelationRequestId.IsUnknown() {
-		data.DisableCorrelationRequestId = types.BoolValue(false)
-		v := os.Getenv("ARM_DISABLE_CORRELATION_REQUEST_ID")
-		if v != "" {
-			p.clientBuilder.DisableCorrelationRequestID = true
-		}
-	}
-
-	if data.DisableTerraformPartnerId.IsNull() || data.DisableTerraformPartnerId.IsUnknown() {
-		data.DisableTerraformPartnerId = types.BoolValue(false)
-		v := os.Getenv("ARM_DISABLE_TERRAFORM_PARTNER_ID")
-		if v != "" {
-			p.clientBuilder.DisableTerraformPartnerID = true
-		}
-	}
-
-	if data.SkipProviderRegistration.IsNull() || data.SkipProviderRegistration.IsUnknown() {
-		v := os.Getenv("ARM_SKIP_PROVIDER_REGISTRATION")
-		if v != "" {
-			p.clientBuilder.SkipProviderRegistration = true
-		}
-	} else {
-		p.clientBuilder.SkipProviderRegistration = data.SkipProviderRegistration.ValueBool()
-	}
-
-	if data.StorageUseAzureAD.IsNull() || data.StorageUseAzureAD.IsUnknown() {
-		data.StorageUseAzureAD = types.BoolValue(false)
-		v := os.Getenv("ARM_STORAGE_USE_AZUREAD")
-		if v != "" {
-			p.clientBuilder.StorageUseAzureAD = true
-		}
-	}
+	p.clientBuilder.PartnerID = partnerId
+	p.clientBuilder.DisableCorrelationRequestID = getEnvBoolOrDefault(data.DisableCorrelationRequestId, "ARM_DISABLE_CORRELATION_REQUEST_ID", false)
+	p.clientBuilder.DisableTerraformPartnerID = getEnvBoolOrDefault(data.DisableTerraformPartnerId, "ARM_DISABLE_TERRAFORM_PARTNER_ID", false)
+	p.clientBuilder.SkipProviderRegistration = getEnvBoolOrDefault(data.SkipProviderRegistration, "ARM_SKIP_PROVIDER_REGISTRATION", false)
+	p.clientBuilder.StorageUseAzureAD = getEnvBoolOrDefault(data.StorageUseAzureAD, "ARM_STORAGE_USE_AZUREAD", false)
 
 	f := providerfeatures.UserFeatures{}
 

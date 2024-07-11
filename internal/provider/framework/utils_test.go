@@ -144,6 +144,7 @@ func Test_getClientSecretExpectMismatch(t *testing.T) {
 }
 
 func Test_getClientSecretFromFile(t *testing.T) {
+	os.Setenv("ARM_CLIENT_SECRET", "")
 	expectedString := "testClientSecretFromFile"
 	p := &ProviderModel{
 		ClientSecretFilePath: basetypes.NewStringValue("./testdata/client_secret_test_input.txt"),
@@ -158,6 +159,21 @@ func Test_getClientSecretFromFile(t *testing.T) {
 	}
 	if *result != expectedString {
 		t.Fatalf("getClientSecret did not return expected string `%s`, got `%s`", expectedString, *result)
+	}
+}
+
+func Test_getClientSecretFromFileMismatch(t *testing.T) {
+	os.Setenv("ARM_CLIENT_SECRET", "foo")
+	p := &ProviderModel{
+		ClientSecretFilePath: basetypes.NewStringValue("./testdata/client_secret_test_input.txt"),
+	}
+
+	result, err := getClientSecret(p)
+	if err == nil {
+		t.Fatalf("expected an error but did not get one")
+	}
+	if result != nil {
+		t.Fatalf("getClientSecretFromFile returned a result with an error")
 	}
 }
 

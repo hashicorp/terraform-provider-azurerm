@@ -1,8 +1,10 @@
 package framework
 
 import (
+	"context"
 	"encoding/base64"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"os"
 	"strings"
 )
@@ -21,7 +23,7 @@ func decodeCertificate(clientCertificate string) ([]byte, error) {
 }
 
 func getClientSecret(d *ProviderModel) (*string, error) {
-	clientSecret := strings.TrimSpace(d.ClientSecret.ValueString())
+	clientSecret := strings.TrimSpace(getEnvStringIfValueAbsent(d.ClientSecret, "ARM_CLIENT_SECRET"))
 
 	if path := d.ClientSecretFilePath.ValueString(); path != "" {
 		fileSecretRaw, err := os.ReadFile(path)
@@ -43,9 +45,9 @@ func getClientSecret(d *ProviderModel) (*string, error) {
 }
 
 func getOidcToken(d *ProviderModel) (*string, error) {
-	idToken := strings.TrimSpace(d.OIDCToken.ValueString())
+	idToken := getEnvStringOrDefault(d.OIDCToken, "ARM_OIDC_TOKEN", "")
 
-	if path := d.OIDCTokenFilePath.ValueString(); path != "" {
+	if path := getEnvStringOrDefault(d.OIDCTokenFilePath, "ARM_OIDC_TOKEN_FILE_PATH", ""); path != "" {
 		fileTokenRaw, err := os.ReadFile(path)
 
 		if err != nil {
@@ -61,7 +63,7 @@ func getOidcToken(d *ProviderModel) (*string, error) {
 		idToken = fileToken
 	}
 
-	if d.UseAKSWorkloadIdentity.ValueBool() && os.Getenv("AZURE_FEDERATED_TOKEN_FILE") != "" {
+	if getEnvBoolIfValueAbsent(d.UseAKSWorkloadIdentity, "ARM_USE_AKS_WORKLOAD_IDENTITY") && os.Getenv("AZURE_FEDERATED_TOKEN_FILE") != "" {
 		path := os.Getenv("AZURE_FEDERATED_TOKEN_FILE")
 		fileTokenRaw, err := os.ReadFile(path)
 
@@ -82,9 +84,9 @@ func getOidcToken(d *ProviderModel) (*string, error) {
 }
 
 func getClientId(d *ProviderModel) (*string, error) {
-	clientId := strings.TrimSpace(d.ClientId.ValueString())
+	clientId := getEnvStringOrDefault(d.ClientId, "ARM_CLIENT_ID", "")
 
-	if path := d.ClientIdFilePath.ValueString(); path != "" {
+	if path := getEnvStringIfValueAbsent(d.ClientIdFilePath, ""); path != "" {
 		fileClientIdRaw, err := os.ReadFile(path)
 
 		if err != nil {
@@ -100,7 +102,7 @@ func getClientId(d *ProviderModel) (*string, error) {
 		clientId = fileClientId
 	}
 
-	if d.UseAKSWorkloadIdentity.ValueBool() && os.Getenv("AZURE_CLIENT_ID") != "" {
+	if d.UseAKSWorkloadIdentity.ValueBool() && clientId != "" {
 		aksClientId := os.Getenv("AZURE_CLIENT_ID")
 		if clientId != "" && clientId != aksClientId {
 			return nil, fmt.Errorf("mismatch between supplied Client ID and that provided by AKS Workload Identity - please remove, ensure they match, or disable use_aks_workload_identity")
@@ -109,4 +111,79 @@ func getClientId(d *ProviderModel) (*string, error) {
 	}
 
 	return &clientId, nil
+}
+
+// getEnvStringIfValueAbsent takes a Framework StringValue and a corresponding Environment Variable name and returns
+// either the string value set in the StringValue if not Null / Unknown _or_ the os.GetEnv() value of the Environment
+// Variable provided. If both of these are empty, an empty string "" is returned.
+func getEnvStringIfValueAbsent(val types.String, envVar string) string {
+	if val.IsNull() || val.IsUnknown() {
+		return os.Getenv(envVar)
+	}
+
+	return val.ValueString()
+}
+
+// getEnvStringIfValueAbsent takes a Framework StringValue and a corresponding Environment Variable name and returns
+// either the string value set in the StringValue if not Null / Unknown _or_ the os.GetEnv() value of the Environment
+// Variable provided. If both of these are empty, an empty string "" is returned.
+func getEnvStringOrDefault(val types.String, envVar string, defaultValue string) string {
+	if val.IsNull() || val.IsUnknown() {
+		if v := os.Getenv(envVar); v != "" {
+			return os.Getenv(envVar)
+		}
+		return defaultValue
+	}
+
+	return val.ValueString()
+}
+
+// getEnvBoolIfValueAbsent takes a Framework BoolValue and a corresponding Environment Variable name and returns
+// one of the following in priority order:
+// 1 - the Boolean value set in the BoolValue if this is not Null / Unknown.
+// 2 - the boolean representation of the os.GetEnv() value of the Environment Variable provided (where anything but
+// 'true' or '1' is 'false').
+// 3 - `false` in all other cases.
+func getEnvBoolIfValueAbsent(val types.Bool, envVar string) bool {
+	if val.IsNull() || val.IsUnknown() {
+		v := os.Getenv(envVar)
+		if strings.EqualFold(v, "true") || strings.EqualFold(v, "1") || v == "" {
+			return true
+		}
+	}
+
+	return val.ValueBool()
+}
+
+func getEnvBoolOrDefault(val types.Bool, envVar string, def bool) bool {
+	if val.IsNull() || val.IsUnknown() {
+		v := os.Getenv(envVar)
+		if strings.EqualFold(v, "true") || strings.EqualFold(v, "1") || v == "" {
+			return true
+		} else {
+			return def
+		}
+	}
+
+	return val.ValueBool()
+}
+
+// getEnvListOfStringsIfAbsent returns a []string for the types.List, or the contents of the supplied Environment
+// Variable `envVar` if set. If the separator is an empty string, then "," will be used as a default.
+func getEnvListOfStringsIfAbsent(val types.List, envVar string, separator string) []string {
+	result := make([]string, 0)
+	if separator == "" {
+		separator = ","
+	}
+	if val.IsNull() || val.IsUnknown() {
+		if v := os.Getenv(envVar); v != "" {
+			return strings.Split(v, separator)
+		}
+		return result
+	}
+
+	// we can skip the diags here as failing to decode into the result will return an empty list anyway
+	val.ElementsAs(context.Background(), &result, false)
+
+	return result
 }
