@@ -4858,7 +4858,7 @@ func expandKubernetesClusterServiceMeshProfile(input []interface{}, existing *ma
 			certificateAuthority := expandKubernetesClusterServiceMeshProfileCertificateAuthority(raw["certificate_authority"].([]interface{}))
 			profile.Istio.CertificateAuthority = certificateAuthority
 		}
-			
+
 		if features.FourPointOhBeta() {
 			if raw["revisions"] != nil {
 				profile.Istio.Revisions = utils.ExpandStringSlice(raw["revisions"].([]interface{}))
