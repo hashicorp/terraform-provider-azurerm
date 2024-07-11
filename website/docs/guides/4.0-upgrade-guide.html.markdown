@@ -68,7 +68,7 @@ Below is an overview of the changes coming 4.0. Each topic is covered in more de
 * [Improved Resource Provider Registration](#improved-resource-provider-registration)
 * [Provider Functions](#provider-functions)
 * [Additional Properties for Subnets in the Virtual Network Resource](#additional-properties-for-subnets-in-the-virtual-network-resource)
-* [Better consistency in resetting or removal of Lists and Blocks](#better-consistency-in-resetting-or-removal-of-lists-and-blocks)
+* [Better consistency in emptying or removing Lists and Blocks](#better-consistency-in-emptying-or-removing-lists-and-blocks)
 * [Removed Resources](#removed-resources)
 * [Removed Data Sources](#removed-data-sources)
 * [Breaking Changes in Resources](#behaviour-changes-and-removed-properties-in-resources)
@@ -149,7 +149,7 @@ The `subnet` block within the `azurerm_virtual_network_resource` has been update
 
 When upgrading to 4.0, users may receive a warning that the resource needs to be replaced, this should however just be an update in-place.
 
-## Better consistency in resetting or removal of Lists and Blocks
+## Better consistency in emptying or removing Lists and Blocks
 
 Several older resources that can be specified separately as their own standalone resource, or in-line of a parent resource have historically relied on being both `Optional` and `Computed` in the parent resource to function, whereas newer resources of this nature require a more explicit approach of using `ignore_changes`.
 
@@ -202,9 +202,27 @@ TODO move these down to the other section
 * `scm_ip_restriction` has had `Computed` and `ConfigModeAttr` removed, attribute notation can no longer be used. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
 * `scm_ip_restriction.headers` has had `Computed` and `ConfigModeAttr` removed, attribute notation can no longer be used. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
 
+### `azurerm_network_security_group`
 
-### ``
+* `security_rule` has had `Computed` and `ConfigModeAttr` removed, attribute notation can no longer be used. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
 
+### `azurerm_route_filter`
+
+* `rule` has had `Computed` and `ConfigModeAttr` removed, attribute notation can no longer be used. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
+
+### `azurerm_route_table`
+
+* `route` has had `Computed` and `ConfigModeAttr` removed, attribute notation can no longer be used. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
+
+### `azurerm_site_recovery_replicated_vm`
+
+* `network_interface` has had `Computed` and `ConfigModeAttr` removed, attribute notation can no longer be used. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
+* `unmanaged_disk` has had `ConfigModeAttr` removed, attribute notation can no longer be used.
+* `managed_disk` has had `ConfigModeAttr` removed, attribute notation can no longer be used.
+* `managed_disk.target_disk_encryption` has had `ConfigModeAttr` removed, attribute notation can no longer be used.
+* `managed_disk.target_disk_encryption.disk_encryption_key` has had `ConfigModeAttr` removed, attribute notation can no longer be used.
+* `managed_disk.target_disk_encryptionkey_encryption_key` has had `ConfigModeAttr` removed, attribute notation can no longer be used.
+* 
 ## Removed Resources
 
 ### `azurerm_cdn_frontdoor_route_disable_link_to_default_domain`
@@ -583,6 +601,10 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 * The deprecated block `trust_policy` has been removed in favour of the property `trust_policy_enabled`.
 * The deprecated block `network_rule_set.virtual_network` has been removed.
 
+### `azurerm_dashboard_grafana`
+
+* The property `grafana_major_version` is now Required.
+
 ### `azurerm_kubernetes_cluster`
 
 * The deprecated property `enable_pod_security_policy` has been removed.
@@ -639,9 +661,17 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 
 * The deprecated property `roles.kafka_management_node` has been removed.
 
+### `azurerm_key_vault_managed_hardware_security_module_role_assignment`
+
+* The deprecated property `vault_base_url` has been removed in favour of the `managed_hsm_id` property.
+
 ### `azurerm_kusto_cluster`
 
 * The deprecated property `engine` has been removed.
+
+### `azurerm_lb`
+
+* The property `sku` now defaults to `Standard`.
 
 ### `azurerm_machine_learning_compute_instance`
 
@@ -655,10 +685,6 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 ### `azurerm_managed_applications`
 
 * The deprecated property `parameters` has been removed in favour of the `parameter_values` property.
-
-### `azurerm_key_vault_managed_hardware_security_module_role_assignment`
-
-* The deprecated property `vault_base_url` has been removed in favour of the `managed_hsm_id` property.
 
 ### `azurerm_monitor_aad_diagnostic_setting`
 
@@ -677,6 +703,10 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 * The deprecated `enabled_log.retention_policy` block has been removed in favour of the `azurerm_storage_management_policy` resource.
 * The deprecated `metric.retention_policy` block has been removed in favour of the `azurerm_storage_management_policy` resource.
 * The deprecated `log` block has been removed in favour of the `enabled_log` block.
+
+### `azurerm_network_connection_monitor`
+
+* The property `output_workspace_resource_ids` is no longer `Computed`. 
 
 ### `azurerm_network_interface`
 
@@ -725,6 +755,10 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 ### `azurerm_resource_group_policy_remediation`
 
 * The deprecated property `policy_definition_id` has been removed in favour of the `policy_definition_reference_id` property.
+
+### `azurerm_stream_analytics_job`
+
+* The property `data_locale` now defaults to `en-US`.
 
 ### `azurerm_subscription_policy_remediation`
 
