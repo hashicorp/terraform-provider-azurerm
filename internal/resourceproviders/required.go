@@ -55,7 +55,6 @@ func Extended() ResourceProviders {
 		"Microsoft.ContainerInstance":    {},
 		"Microsoft.ContainerRegistry":    {},
 		"Microsoft.ContainerService":     {},
-		"Microsoft.DBforMariaDB":         {},
 		"Microsoft.DBforMySQL":           {},
 		"Microsoft.DBforPostgreSQL":      {},
 		"Microsoft.DataFactory":          {},
@@ -88,7 +87,6 @@ func Extended() ResourceProviders {
 		"Microsoft.SignalRService":       {},
 		"Microsoft.Sql":                  {},
 		"Microsoft.StreamAnalytics":      {},
-		"Microsoft.TimeSeriesInsights":   {},
 		"Microsoft.Web":                  {},
 	})
 }
@@ -110,7 +108,6 @@ func All() ResourceProviders {
 		"Microsoft.MachineLearningServices": {},
 		"Microsoft.ManagedServices":         {},
 		"Microsoft.Maps":                    {},
-		"Microsoft.Media":                   {},
 		"Microsoft.MixedReality":            {},
 		"Microsoft.PolicyInsights":          {},
 		"Microsoft.RecoveryServices":        {},
