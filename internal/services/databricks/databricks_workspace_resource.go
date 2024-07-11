@@ -337,6 +337,43 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				},
 			},
 
+			"enhanced_security_compliance": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"automatic_cluster_update_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"compliance_security_profile_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"compliance_security_profile_standards": {
+							Type:         pluginsdk.TypeSet,
+							Optional:     true,
+							RequiredWith: []string{"enhanced_security_compliance.0.compliance_security_profile_enabled"},
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+								ValidateFunc: validation.StringInSlice([]string{
+									string(workspaces.ComplianceStandardHIPAA),
+									string(workspaces.ComplianceStandardPCIDSS),
+								}, false),
+							},
+						},
+						"enhanced_security_monitoring_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+					},
+				},
+			},
+
 			"tags": commonschema.Tags(),
 		},
 
@@ -605,7 +642,6 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 		accessConnectorProperties := workspaces.WorkspacePropertiesAccessConnector{}
 		accessConnectorIdRaw := d.Get("access_connector_id").(string)
 		accessConnectorId, err := accessconnector.ParseAccessConnectorID(accessConnectorIdRaw)
-
 		if err != nil {
 			return fmt.Errorf("parsing Access Connector ID %s: %+v", accessConnectorIdRaw, err)
 		}
