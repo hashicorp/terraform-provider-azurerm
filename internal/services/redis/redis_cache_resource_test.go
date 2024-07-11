@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -434,7 +435,7 @@ func TestAccRedisCache_WithoutAuth(t *testing.T) {
 			Config: r.withoutAuth(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("redis_configuration.0.enable_authentication").HasValue("false"),
+				check.That(data.ResourceName).Key("redis_configuration.0.authentication_enabled").HasValue("false"),
 			),
 		},
 	})
@@ -576,6 +577,12 @@ func (t RedisCacheResource) Exists(ctx context.Context, clients *clients.Client,
 }
 
 func (RedisCacheResource) basic(data acceptance.TestData, requireSSL bool) string {
+
+	enableNonSsl := "non_ssl_port_enabled"
+	if !features.FourPointOhBeta() {
+		enableNonSsl = "enable_non_ssl_port"
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -593,16 +600,21 @@ resource "azurerm_redis_cache" "test" {
   capacity            = 1
   family              = "C"
   sku_name            = "Basic"
-  enable_non_ssl_port = %t
+  %s = %t
   minimum_tls_version = "1.2"
 
   redis_configuration {
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, !requireSSL)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enableNonSsl, !requireSSL)
 }
 
 func (RedisCacheResource) managedIdentityAuth(data acceptance.TestData, requireSSL bool) string {
+	enableNonSsl := "non_ssl_port_enabled"
+	if !features.FourPointOhBeta() {
+		enableNonSsl = "enable_non_ssl_port"
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -620,18 +632,22 @@ resource "azurerm_redis_cache" "test" {
   capacity            = 1
   family              = "C"
   sku_name            = "Basic"
-  enable_non_ssl_port = %t
+  %s = %t
   minimum_tls_version = "1.2"
 
   redis_configuration {
     data_persistence_authentication_method = "ManagedIdentity"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, !requireSSL)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enableNonSsl, !requireSSL)
 }
 
 func (RedisCacheResource) requiresImport(data acceptance.TestData) string {
 	template := RedisCacheResource{}.basic(data, true)
+	enableNonSsl := "non_ssl_port_enabled"
+	if !features.FourPointOhBeta() {
+		enableNonSsl = "enable_non_ssl_port"
+	}
 	return fmt.Sprintf(`
 %s
 
@@ -642,15 +658,19 @@ resource "azurerm_redis_cache" "import" {
   capacity            = azurerm_redis_cache.test.capacity
   family              = azurerm_redis_cache.test.family
   sku_name            = azurerm_redis_cache.test.sku_name
-  enable_non_ssl_port = azurerm_redis_cache.test.enable_non_ssl_port
+  %s = azurerm_redis_cache.test.%s
 
   redis_configuration {
   }
 }
-`, template)
+`, template, enableNonSsl, enableNonSsl)
 }
 
 func (RedisCacheResource) standard(data acceptance.TestData) string {
+	enableNonSsl := "non_ssl_port_enabled"
+	if !features.FourPointOhBeta() {
+		enableNonSsl = "enable_non_ssl_port"
+	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -668,7 +688,7 @@ resource "azurerm_redis_cache" "test" {
   capacity            = 1
   family              = "C"
   sku_name            = "Standard"
-  enable_non_ssl_port = false
+  %s = false
   redis_configuration {
   }
 
@@ -676,10 +696,15 @@ resource "azurerm_redis_cache" "test" {
     environment = "production"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enableNonSsl)
 }
 
 func (RedisCacheResource) premium(data acceptance.TestData) string {
+	enableNonSsl := "non_ssl_port_enabled"
+	if !features.FourPointOhBeta() {
+		enableNonSsl = "enable_non_ssl_port"
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -697,7 +722,7 @@ resource "azurerm_redis_cache" "test" {
   capacity            = 1
   family              = "P"
   sku_name            = "Premium"
-  enable_non_ssl_port = false
+  %s = false
 
   redis_configuration {
     maxmemory_reserved              = 642
@@ -706,10 +731,14 @@ resource "azurerm_redis_cache" "test" {
     maxmemory_policy                = "allkeys-lru"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enableNonSsl)
 }
 
 func (RedisCacheResource) premiumSharded(data acceptance.TestData) string {
+	enableNonSsl := "non_ssl_port_enabled"
+	if !features.FourPointOhBeta() {
+		enableNonSsl = "enable_non_ssl_port"
+	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -727,7 +756,7 @@ resource "azurerm_redis_cache" "test" {
   capacity            = 1
   family              = "P"
   sku_name            = "Premium"
-  enable_non_ssl_port = true
+  %s = true
   shard_count         = 3
 
   redis_configuration {
@@ -737,10 +766,15 @@ resource "azurerm_redis_cache" "test" {
     maxmemory_policy                = "allkeys-lru"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enableNonSsl)
 }
 
 func (RedisCacheResource) premiumShardedScaled(data acceptance.TestData) string {
+	enableNonSsl := "non_ssl_port_enabled"
+	if !features.FourPointOhBeta() {
+		enableNonSsl = "enable_non_ssl_port"
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -758,7 +792,7 @@ resource "azurerm_redis_cache" "test" {
   capacity            = 2
   family              = "P"
   sku_name            = "Premium"
-  enable_non_ssl_port = true
+  %s = true
   shard_count         = 3
 
   redis_configuration {
@@ -768,10 +802,15 @@ resource "azurerm_redis_cache" "test" {
     maxmemory_policy                = "allkeys-lru"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enableNonSsl)
 }
 
 func (RedisCacheResource) aadEnabled(data acceptance.TestData) string {
+	enableNonSsl := "non_ssl_port_enabled"
+	if !features.FourPointOhBeta() {
+		enableNonSsl = "enable_non_ssl_port"
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -789,17 +828,21 @@ resource "azurerm_redis_cache" "test" {
   capacity                      = 3
   family                        = "P"
   sku_name                      = "Premium"
-  enable_non_ssl_port           = false
+  %s           = false
   public_network_access_enabled = false
 
   redis_configuration {
     active_directory_authentication_enabled = true
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enableNonSsl)
 }
 
 func (RedisCacheResource) backupDisabled(data acceptance.TestData) string {
+	enableNonSsl := "non_ssl_port_enabled"
+	if !features.FourPointOhBeta() {
+		enableNonSsl = "enable_non_ssl_port"
+	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -853,7 +896,7 @@ resource "azurerm_redis_cache" "test" {
   capacity            = 3
   family              = "P"
   sku_name            = "Premium"
-  enable_non_ssl_port = false
+  %s = false
 
   redis_configuration {
     rdb_backup_enabled              = false
@@ -862,10 +905,15 @@ resource "azurerm_redis_cache" "test" {
     aof_storage_connection_string_1 = azurerm_storage_account.test3.primary_connection_string
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString, data.RandomInteger, enableNonSsl)
 }
 
 func (RedisCacheResource) backupEnabled(data acceptance.TestData) string {
+	enableNonSsl := "non_ssl_port_enabled"
+	if !features.FourPointOhBeta() {
+		enableNonSsl = "enable_non_ssl_port"
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -895,7 +943,7 @@ resource "azurerm_redis_cache" "test" {
   capacity            = 3
   family              = "P"
   sku_name            = "Premium"
-  enable_non_ssl_port = false
+  %s = false
 
   redis_configuration {
     rdb_backup_enabled              = true
@@ -905,10 +953,15 @@ resource "azurerm_redis_cache" "test" {
     storage_account_subscription_id = "%s"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.Client().SubscriptionID)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, enableNonSsl, data.Client().SubscriptionID)
 }
 
 func (RedisCacheResource) aofBackupDisabled(data acceptance.TestData) string {
+	enableNonSsl := "non_ssl_port_enabled"
+	if !features.FourPointOhBeta() {
+		enableNonSsl = "enable_non_ssl_port"
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -962,7 +1015,7 @@ resource "azurerm_redis_cache" "test" {
   capacity            = 3
   family              = "P"
   sku_name            = "Premium"
-  enable_non_ssl_port = false
+  %s = false
 
   redis_configuration {
     aof_backup_enabled            = false
@@ -972,10 +1025,15 @@ resource "azurerm_redis_cache" "test" {
     rdb_storage_connection_string = azurerm_storage_account.test3.primary_connection_string
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString, data.RandomInteger, enableNonSsl)
 }
 
 func (RedisCacheResource) aofBackupEnabled(data acceptance.TestData) string {
+	enableNonSsl := "non_ssl_port_enabled"
+	if !features.FourPointOhBeta() {
+		enableNonSsl = "enable_non_ssl_port"
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1017,7 +1075,7 @@ resource "azurerm_redis_cache" "test" {
   capacity            = 1
   family              = "P"
   sku_name            = "Premium"
-  enable_non_ssl_port = false
+  %s = false
 
   redis_configuration {
     aof_backup_enabled              = true
@@ -1025,10 +1083,15 @@ resource "azurerm_redis_cache" "test" {
     aof_storage_connection_string_1 = azurerm_storage_account.test2.primary_connection_string
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger, enableNonSsl)
 }
 
 func (RedisCacheResource) ignoreAOFBackupEnableWhenSKUNotPremium(data acceptance.TestData, maxMemoryPolicy string) string {
+	enableNonSsl := "non_ssl_port_enabled"
+	if !features.FourPointOhBeta() {
+		enableNonSsl = "enable_non_ssl_port"
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1070,7 +1133,7 @@ resource "azurerm_redis_cache" "test" {
   capacity            = 1
   family              = "C"
   sku_name            = "Basic"
-  enable_non_ssl_port = false
+  %s = false
 
   redis_configuration {
     aof_backup_enabled = false
@@ -1079,10 +1142,16 @@ resource "azurerm_redis_cache" "test" {
     maxmemory_policy   = "%s"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger, maxMemoryPolicy)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger, enableNonSsl, maxMemoryPolicy)
 }
 
 func (RedisCacheResource) patchSchedule(data acceptance.TestData) string {
+
+	enableNonSsl := "non_ssl_port_enabled"
+	if !features.FourPointOhBeta() {
+		enableNonSsl = "enable_non_ssl_port"
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1100,7 +1169,7 @@ resource "azurerm_redis_cache" "test" {
   capacity            = 1
   family              = "P"
   sku_name            = "Premium"
-  enable_non_ssl_port = false
+  %s = false
 
   redis_configuration {
     maxmemory_reserved = 642
@@ -1114,10 +1183,16 @@ resource "azurerm_redis_cache" "test" {
     maintenance_window = "PT7H"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enableNonSsl)
 }
 
 func (RedisCacheResource) publicNetworkAccessDisabled(data acceptance.TestData) string {
+
+	enableNonSsl := "non_ssl_port_enabled"
+	if !features.FourPointOhBeta() {
+		enableNonSsl = "enable_non_ssl_port"
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1136,13 +1211,19 @@ resource "azurerm_redis_cache" "test" {
   family                        = "C"
   sku_name                      = "Basic"
   minimum_tls_version           = "1.2"
-  enable_non_ssl_port           = false
+  %s           = false
   public_network_access_enabled = false
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enableNonSsl)
 }
 
 func (RedisCacheResource) subscribeAllEvents(data acceptance.TestData) string {
+
+	enableNonSsl := "non_ssl_port_enabled"
+	if !features.FourPointOhBeta() {
+		enableNonSsl = "enable_non_ssl_port"
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1172,16 +1253,22 @@ resource "azurerm_redis_cache" "test" {
   capacity            = 3
   family              = "P"
   sku_name            = "Premium"
-  enable_non_ssl_port = false
+  %s = false
 
   redis_configuration {
     notify_keyspace_events = "KAE"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, enableNonSsl)
 }
 
 func (RedisCacheResource) internalSubnet(data acceptance.TestData) string {
+
+	enableNonSsl := "non_ssl_port_enabled"
+	if !features.FourPointOhBeta() {
+		enableNonSsl = "enable_non_ssl_port"
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1213,15 +1300,21 @@ resource "azurerm_redis_cache" "test" {
   capacity            = 1
   family              = "P"
   sku_name            = "Premium"
-  enable_non_ssl_port = false
+  %s = false
   subnet_id           = azurerm_subnet.test.id
   redis_configuration {
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, enableNonSsl)
 }
 
 func (RedisCacheResource) internalSubnetStaticIP(data acceptance.TestData) string {
+
+	enableNonSsl := "non_ssl_port_enabled"
+	if !features.FourPointOhBeta() {
+		enableNonSsl = "enable_non_ssl_port"
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1253,16 +1346,22 @@ resource "azurerm_redis_cache" "test" {
   capacity                  = 1
   family                    = "P"
   sku_name                  = "Premium"
-  enable_non_ssl_port       = false
+  %s       = false
   subnet_id                 = azurerm_subnet.test.id
   private_static_ip_address = "10.0.1.20"
   redis_configuration {
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, enableNonSsl)
 }
 
 func (RedisCacheResource) internalSubnet_withZone(data acceptance.TestData) string {
+
+	enableNonSsl := "non_ssl_port_enabled"
+	if !features.FourPointOhBeta() {
+		enableNonSsl = "enable_non_ssl_port"
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1294,16 +1393,22 @@ resource "azurerm_redis_cache" "test" {
   capacity            = 1
   family              = "P"
   sku_name            = "Premium"
-  enable_non_ssl_port = false
+  %s = false
   subnet_id           = azurerm_subnet.test.id
   redis_configuration {
   }
   zones = ["1"]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, enableNonSsl)
 }
 
 func (RedisCacheResource) withoutAuth(data acceptance.TestData) string {
+
+	enableNonSsl := "non_ssl_port_enabled"
+	if !features.FourPointOhBeta() {
+		enableNonSsl = "enable_non_ssl_port"
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1335,16 +1440,22 @@ resource "azurerm_redis_cache" "test" {
   capacity            = 1
   family              = "P"
   sku_name            = "Premium"
-  enable_non_ssl_port = false
+  %s = false
   subnet_id           = azurerm_subnet.test.id
   redis_configuration {
-    enable_authentication = false
+    authentication_enabled = false
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, enableNonSsl)
 }
 
 func (RedisCacheResource) replicasPerMaster(data acceptance.TestData) string {
+
+	enableNonSsl := "non_ssl_port_enabled"
+	if !features.FourPointOhBeta() {
+		enableNonSsl = "enable_non_ssl_port"
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1362,13 +1473,19 @@ resource "azurerm_redis_cache" "test" {
   capacity            = 3
   family              = "P"
   sku_name            = "Premium"
-  enable_non_ssl_port = false
+  %s = false
   replicas_per_master = 3
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enableNonSsl)
 }
 
 func (RedisCacheResource) replicasPerPrimary(data acceptance.TestData) string {
+
+	enableNonSsl := "non_ssl_port_enabled"
+	if !features.FourPointOhBeta() {
+		enableNonSsl = "enable_non_ssl_port"
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1386,13 +1503,19 @@ resource "azurerm_redis_cache" "test" {
   capacity             = 3
   family               = "P"
   sku_name             = "Premium"
-  enable_non_ssl_port  = false
+  %s  = false
   replicas_per_primary = 3
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enableNonSsl)
 }
 
 func (RedisCacheResource) redisVersion(data acceptance.TestData) string {
+
+	enableNonSsl := "non_ssl_port_enabled"
+	if !features.FourPointOhBeta() {
+		enableNonSsl = "enable_non_ssl_port"
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1410,13 +1533,19 @@ resource "azurerm_redis_cache" "test" {
   capacity            = 3
   family              = "P"
   sku_name            = "Premium"
-  enable_non_ssl_port = false
+  %s = false
   redis_version       = "6"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enableNonSsl)
 }
 
 func (RedisCacheResource) tenantSettings(data acceptance.TestData) string {
+
+	enableNonSsl := "non_ssl_port_enabled"
+	if !features.FourPointOhBeta() {
+		enableNonSsl = "enable_non_ssl_port"
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1434,15 +1563,21 @@ resource "azurerm_redis_cache" "test" {
   capacity            = 3
   family              = "P"
   sku_name            = "Premium"
-  enable_non_ssl_port = false
+  %s = false
   tenant_settings = {
     config = "config"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enableNonSsl)
 }
 
 func (RedisCacheResource) redisConfiguration(data acceptance.TestData, maxMemoryPolicy string) string {
+
+	enableNonSsl := "non_ssl_port_enabled"
+	if !features.FourPointOhBeta() {
+		enableNonSsl = "enable_non_ssl_port"
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1460,7 +1595,7 @@ resource "azurerm_redis_cache" "test" {
   capacity            = 2
   family              = "P"
   sku_name            = "Premium"
-  enable_non_ssl_port = false
+  %s = false
   minimum_tls_version = "1.2"
 
   redis_configuration {
@@ -1473,10 +1608,16 @@ resource "azurerm_redis_cache" "test" {
     maintenance_window = "PT5H"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, maxMemoryPolicy)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, maxMemoryPolicy, enableNonSsl)
 }
 
 func (RedisCacheResource) systemAssignedIdentity(data acceptance.TestData) string {
+
+	enableNonSsl := "non_ssl_port_enabled"
+	if !features.FourPointOhBeta() {
+		enableNonSsl = "enable_non_ssl_port"
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1494,7 +1635,7 @@ resource "azurerm_redis_cache" "test" {
   capacity            = 1
   family              = "C"
   sku_name            = "Standard"
-  enable_non_ssl_port = false
+  %s = false
   redis_configuration {
   }
 
@@ -1506,10 +1647,16 @@ resource "azurerm_redis_cache" "test" {
     environment = "production"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enableNonSsl)
 }
 
 func (RedisCacheResource) userAssignedIdentity(data acceptance.TestData) string {
+
+	enableNonSsl := "non_ssl_port_enabled"
+	if !features.FourPointOhBeta() {
+		enableNonSsl = "enable_non_ssl_port"
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1533,7 +1680,7 @@ resource "azurerm_redis_cache" "test" {
   capacity            = 1
   family              = "C"
   sku_name            = "Standard"
-  enable_non_ssl_port = false
+  %s = false
   redis_configuration {
   }
 
@@ -1546,10 +1693,16 @@ resource "azurerm_redis_cache" "test" {
     environment = "production"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, enableNonSsl)
 }
 
 func (RedisCacheResource) SkuDowngrade(data acceptance.TestData) string {
+
+	enableNonSsl := "non_ssl_port_enabled"
+	if !features.FourPointOhBeta() {
+		enableNonSsl = "enable_non_ssl_port"
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1567,7 +1720,7 @@ resource "azurerm_redis_cache" "test" {
   capacity            = 1
   family              = "C"
   sku_name            = "Basic"
-  enable_non_ssl_port = false
+  %s = false
   redis_configuration {
   }
 
@@ -1575,5 +1728,5 @@ resource "azurerm_redis_cache" "test" {
     environment = "production"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enableNonSsl)
 }
