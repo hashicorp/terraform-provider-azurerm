@@ -115,7 +115,6 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 	p.clientBuilder.PartnerID = partnerId
 	p.clientBuilder.DisableCorrelationRequestID = getEnvBoolOrDefault(data.DisableCorrelationRequestId, "ARM_DISABLE_CORRELATION_REQUEST_ID", false)
 	p.clientBuilder.DisableTerraformPartnerID = getEnvBoolOrDefault(data.DisableTerraformPartnerId, "ARM_DISABLE_TERRAFORM_PARTNER_ID", false)
-	//p.clientBuilder.SkipProviderRegistration = getEnvBoolOrDefault(data.SkipProviderRegistration, "ARM_SKIP_PROVIDER_REGISTRATION", false)
 	p.clientBuilder.StorageUseAzureAD = getEnvBoolOrDefault(data.StorageUseAzureAD, "ARM_STORAGE_USE_AZUREAD", false)
 
 	f := providerfeatures.UserFeatures{}
@@ -481,6 +480,11 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 	resourceProviderRegistrationSet := getEnvStringOrDefault(data.ResourceProviderRegistrations, "ARM_RESOURCE_PROVIDER_REGISTRATIONS", "legacy")
 	requiredResourceProviders, err := resourceproviders.GetResourceProvidersSet(resourceProviderRegistrationSet)
+	if err != nil {
+		diags.Append(diag.NewErrorDiagnostic("building resource providers", err.Error()))
+		return
+	}
+
 	additionalResourceProvidersToRegister := make([]string, 0)
 	if !data.ResourceProvidersToRegister.IsNull() {
 		data.ResourceProvidersToRegister.ElementsAs(ctx, &additionalResourceProvidersToRegister, false)
