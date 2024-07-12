@@ -36,7 +36,8 @@ func SSHKey(i interface{}, k string) (warnings []string, errors []error) {
 			return nil, []error{fmt.Errorf("parsing %q as a public key object", k)}
 		}
 
-		if pubKey.Type() == ssh.KeyAlgoRSA {
+		switch pubKey.Type() {
+		case ssh.KeyAlgoRSA:
 			rsaPubKey, ok := pubKey.(ssh.CryptoPublicKey).CryptoPublicKey().(*rsa.PublicKey)
 			if !ok {
 				return nil, []error{fmt.Errorf("- could not retrieve the RSA public key from the SSH public key")}
@@ -45,12 +46,12 @@ func SSHKey(i interface{}, k string) (warnings []string, errors []error) {
 			if rsaPubKeyBits < 2048 {
 				return nil, []error{fmt.Errorf("- the provided RSA SSH key has %d bits. Only ssh-rsa keys with 2048 bits or higher are supported by Azure", rsaPubKeyBits)}
 			}
-		} else if pubKey.Type() == ssh.KeyAlgoED25519 {
+		case ssh.KeyAlgoED25519:
 			_, ok := pubKey.(ssh.CryptoPublicKey).CryptoPublicKey().(ed25519.PublicKey)
 			if !ok {
 				return nil, []error{fmt.Errorf("- could not retrieve the ED25519 public key from the SSH public key")}
 			}
-		} else {
+		default:
 			return nil, []error{fmt.Errorf("- the provided %s SSH key is not supported. Only RSA and ED25519 SSH keys are supported by Azure", pubKey.Type())}
 		}
 	} else {
