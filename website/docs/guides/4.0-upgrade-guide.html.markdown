@@ -160,7 +160,53 @@ By making it mandatory to specify the subscription ID for all authentication met
 
 ## Provider Functions
 
-TODO
+With the addition of Provider Functions in Terraform 1.8, we've added two Azure specific provider functions to give users the ability to correct the casing of their Resource IDs, or the access the individual components of it.
+
+`normalise_resource_id` - Takes an Azure Resource ID and attempts to normalise the case-sensitive system segments as required by the AzureRM provider. User specified segments are not affected or corrected. 
+
+Below is an example of how the function can be used. The input is a resource ID with segments that are not camel-cased.
+```hcl
+output "test" {
+  value = provider::azurerm::format_resource_id("/Subscriptions/12345678-1234-9876-4563-123456789012/ResourceGroups/resGroup1/PROVIDERS/microsoft.apimanagement/service/service1/gateWays/gateway1/hostnameconfigurations/config1")
+}
+
+# Result: /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ApiManagement/service/service1/gateways/gateway1/hostnameConfigurations/config1
+```
+
+`parse_resource_id` - Takes an Azure Resource ID and splits it into its component parts.
+
+Below is an example of how the function can be used. Any resource ID can be provided as input and will be output as a map.
+## Example Usage
+
+```hcl
+locals {
+  parsed_id = provider::azurerm::parse_resource_id("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ApiManagement/service/service1/gateways/gateway1/hostnameConfigurations/config1")
+}
+output "parsed" {
+  value = local.parsed_id
+}
+output "resource_name" {
+  value = local.parsed_id["resource_name"]
+}
+
+# Result:
+# Outputs:
+# 
+# parsed = {
+# "full_resource_type" = "Microsoft.ApiManagement/service/gateways/hostnameConfigurations"
+# "parent_resources" = tomap({
+# "gateways" = "gateway1"
+# "service" = "service1"
+# })
+# "resource_group_name" = "resGroup1"
+# "resource_name" = "config1"
+# "resource_provider" = "Microsoft.ApiManagement"
+# "resource_scope" = tostring(null)
+# "resource_type" = "hostnameConfigurations"
+# "subscription_id" = "12345678-1234-9876-4563-123456789012"
+# }
+# resource_name = "config1"
+```
 
 ## Additional Properties for Subnets in the Virtual Network Resource
 

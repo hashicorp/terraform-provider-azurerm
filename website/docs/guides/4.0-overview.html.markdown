@@ -55,7 +55,7 @@ Resource Provider Registration within the provider will be defined with better c
 
 ### Provider Functions
 
-With the introduction of provider functions in Terraform 1.8, we'll be introducing two new Azure specific provider functions in 4.0.
+With the introduction of provider functions in Terraform 1.8, we'll be introducing two new Azure specific provider functions for Azure Resource IDs in 4.0.
 
 ### Additional Configuration Options for Subnets defined in the Virtual Network Resource
 
