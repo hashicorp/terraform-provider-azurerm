@@ -44,8 +44,6 @@ output "eventhub_namespace_id" {
 
 * `zone_redundant` - Is this EventHub Namespace deployed across Availability Zones?
 
-~> **Note:** The `zone_redundant` field will be removed in v4.0 of the provider.
-
 * `dedicated_cluster_id` - The ID of the EventHub Dedicated Cluster where this Namespace exists.
 
 * `local_authentication_enabled` - Is this EventHub Namespace SAS authentication enabled?

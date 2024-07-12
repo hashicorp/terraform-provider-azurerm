@@ -65,8 +65,6 @@ The following arguments are supported:
 
 * `zone_redundant` - (Optional) Whether or not this resource is zone redundant. `sku` needs to be `Premium`. Changing this forces a new resource to be created.
 
-~> **Note:** The `zone_redundant` field will be removed in v4.0 of the provider.
-
 * `network_rule_set` - (Optional) An `network_rule_set` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.

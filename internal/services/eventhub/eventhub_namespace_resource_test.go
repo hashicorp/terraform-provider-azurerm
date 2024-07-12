@@ -400,7 +400,7 @@ func TestAccEventHubNamespace_BasicWithSkuUpdate(t *testing.T) {
 			),
 		},
 		{
-			Config: r.premium(data, features.FourPointOhBeta()),
+			Config: r.premium(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku").HasValue("Premium"),
@@ -658,10 +658,27 @@ resource "azurerm_eventhub_namespace" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (EventHubNamespaceResource) premium(data acceptance.TestData, fourPointOh bool) string {
-	zoneRedundant := "zone_redundant      = true"
-	if fourPointOh {
-		zoneRedundant = ""
+func (EventHubNamespaceResource) premium(data acceptance.TestData) string {
+	if !features.FourPointOhBeta() {
+		return fmt.Sprintf(`
+		provider "azurerm" {
+		  features {}
+		}
+		
+		resource "azurerm_resource_group" "test" {
+		  name     = "acctestRG-eh-%d"
+		  location = "%s"
+		}
+		
+		resource "azurerm_eventhub_namespace" "test" {
+		  name                = "acctesteventhubnamespace-%d"
+		  location            = azurerm_resource_group.test.location
+		  resource_group_name = azurerm_resource_group.test.name
+		  sku                 = "Premium"
+		  capacity            = "1"
+		  zone_redundant      = true
+		}
+		`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 	}
 
 	return fmt.Sprintf(`
@@ -680,9 +697,8 @@ resource "azurerm_eventhub_namespace" "test" {
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Premium"
   capacity            = "1"
-  %s
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, zoneRedundant)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func (EventHubNamespaceResource) standardWithIdentity(data acceptance.TestData) string {
