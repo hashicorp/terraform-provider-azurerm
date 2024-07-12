@@ -356,20 +356,20 @@ func resourceServiceBusNamespaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 
 	if capacity := d.Get("capacity"); capacity != nil {
 		if !strings.EqualFold(sku, string(namespaces.SkuNamePremium)) && capacity.(int) > 0 {
-			return fmt.Errorf("Service Bus SKU %q only supports `capacity` of 0", sku)
+			return fmt.Errorf("service bus SKU %q only supports `capacity` of 0", sku)
 		}
 		if strings.EqualFold(sku, string(namespaces.SkuNamePremium)) && capacity.(int) == 0 {
-			return fmt.Errorf("Service Bus SKU %q only supports `capacity` of 1, 2, 4, 8 or 16", sku)
+			return fmt.Errorf("service bus SKU %q only supports `capacity` of 1, 2, 4, 8 or 16", sku)
 		}
 		parameters.Sku.Capacity = utils.Int64(int64(capacity.(int)))
 	}
 
 	if premiumMessagingUnit := d.Get("premium_messaging_partitions"); premiumMessagingUnit != nil {
 		if !strings.EqualFold(sku, string(namespaces.SkuNamePremium)) && premiumMessagingUnit.(int) > 0 {
-			return fmt.Errorf("Premium messaging partition is not supported by service Bus SKU %q and it can only be set to 0", sku)
+			return fmt.Errorf("premium messaging partition is not supported by service Bus SKU %q and it can only be set to 0", sku)
 		}
 		if strings.EqualFold(sku, string(namespaces.SkuNamePremium)) && premiumMessagingUnit.(int) == 0 {
-			return fmt.Errorf("Service Bus SKU %q only supports `premium_messaging_partitions` of 1, 2, 4", sku)
+			return fmt.Errorf("service bus SKU %q only supports `premium_messaging_partitions` of 1, 2, 4", sku)
 		}
 		parameters.Properties.PremiumMessagingPartitions = utils.Int64(int64(premiumMessagingUnit.(int)))
 	}
