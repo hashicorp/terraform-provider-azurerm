@@ -389,7 +389,6 @@ func resourceArmLoadBalancerRuleSchema() map[string]*pluginsdk.Schema {
 		"probe_id": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
 		},
 
 		// TODO 4.0: change this from enable_* to *_enabled
@@ -414,14 +413,14 @@ func resourceArmLoadBalancerRuleSchema() map[string]*pluginsdk.Schema {
 		"idle_timeout_in_minutes": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			Computed:     true,
+			Default:      4,
 			ValidateFunc: validation.IntBetween(4, 100),
 		},
 
 		"load_distribution": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
+			Default:  string(loadbalancers.LoadDistributionDefault),
 		},
 	}
 }
