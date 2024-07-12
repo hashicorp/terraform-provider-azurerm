@@ -3,6 +3,7 @@ package function_test
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"testing"
 
 	"github.com/hashicorp/go-version"
@@ -22,6 +23,9 @@ var cases = map[string][]string{
 }
 
 func TestProviderFunctionNormaliseResourceID_multiple(t *testing.T) {
+	if !features.FourPointOhBeta() {
+		t.Skipf("skipping test due to missing feature flag")
+	}
 	t.Parallel()
 
 	resource.UnitTest(t, resource.TestCase{

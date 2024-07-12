@@ -3,6 +3,7 @@ package function_test
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"testing"
 
 	"github.com/hashicorp/go-version"
@@ -13,6 +14,9 @@ import (
 )
 
 func TestProviderFunctionParseResourceID_basic(t *testing.T) {
+	if !features.FourPointOhBeta() {
+		t.Skipf("skipping test due to missing feature flag")
+	}
 	t.Parallel()
 
 	resource.UnitTest(t, resource.TestCase{
@@ -40,6 +44,9 @@ func TestProviderFunctionParseResourceID_basic(t *testing.T) {
 }
 
 func TestProviderFunctionParseResourceID_scopedAtSubscription(t *testing.T) {
+	if !features.FourPointOhBeta() {
+		t.Skipf("skipping test due to missing feature flag")
+	}
 	t.Parallel()
 
 	resource.UnitTest(t, resource.TestCase{
@@ -63,6 +70,9 @@ func TestProviderFunctionParseResourceID_scopedAtSubscription(t *testing.T) {
 }
 
 func TestProviderFunctionParseResourceID_scopedAtResource(t *testing.T) {
+	if !features.FourPointOhBeta() {
+		t.Skipf("skipping test due to missing feature flag")
+	}
 	t.Parallel()
 
 	resource.UnitTest(t, resource.TestCase{

@@ -2,7 +2,6 @@ package framework
 
 import (
 	"context"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -14,6 +13,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	providerfunction "github.com/hashicorp/terraform-provider-azurerm/internal/provider/function"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk/frameworkhelpers"
 )
 
 type azureRmFrameworkProvider struct {
@@ -70,9 +71,11 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 			},
 
 			"auxiliary_tenant_ids": schema.ListAttribute{
-				Optional: true,
-				//MaxItems:    3, // TODO - Validation?
+				Optional:    true,
 				ElementType: types.StringType,
+				Validators: []validator.List{
+					listvalidator.SizeAtMost(3),
+				},
 			},
 
 			"environment": schema.StringAttribute{
@@ -171,22 +174,20 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 			},
 
 			"disable_terraform_partner_id": schema.BoolAttribute{
-				Optional: true,
-				//DefaultFunc: schema.EnvDefaultFunc("ARM_DISABLE_TERRAFORM_PARTNER_ID", false),
+				Optional:    true,
 				Description: "This will disable the Terraform Partner ID which is used if a custom `partner_id` isn't specified.",
 			},
 
 			// Advanced feature flags
 			"skip_provider_registration": schema.BoolAttribute{
-				Optional: true,
-				//DefaultFunc: schema.EnvDefaultFunc("ARM_SKIP_PROVIDER_REGISTRATION", false),
-				Description: "Should the AzureRM Provider skip registering all of the Resource Providers that it supports, if they're not already registered?",
+				Optional:           true,
+				Description:        "Should the AzureRM Provider skip registering all of the Resource Providers that it supports, if they're not already registered?",
+				DeprecationMessage: "This property is deprecated and will be removed in v5.0 of the AzureRM provider. Please use the `resource_provider_registrations` property instead.",
 			},
 
 			"storage_use_azuread": schema.BoolAttribute{
-				Optional: true,
-				//DefaultFunc: schema.EnvDefaultFunc("ARM_STORAGE_USE_AZUREAD", false),
-				Description: "Should the AzureRM Provider use AzureAD to access the Storage Data Plane API's?",
+				Optional:    true,
+				Description: "Should the AzureRM Provider use Azure AD Authentication when accessing the Storage Data Plane APIs?",
 			},
 
 			"resource_provider_registrations": schema.StringAttribute{
@@ -209,8 +210,12 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 				Optional:            true,
 				Description:         "A list of Resource Providers to explicitly register for the subscription, in addition to those specified by the `resource_provider_registrations` property.",
 				MarkdownDescription: "A list of Resource Providers to explicitly register for the subscription, in addition to those specified by the `resource_provider_registrations` property.",
-				Validators:          []validator.List{
-					// TODO - Need to port over the pluginSDK wrapper for validators to use the legacy one for now.
+				Validators: []validator.List{
+					frameworkhelpers.WrappedListValidator{
+						Func:         resourceproviders.EnhancedValidate,
+						Desc:         "EnhancedValidate returns a validation function which attempts to validate the Resource Provider against the list of Resource Provider supported by this Azure Environment.",
+						MarkdownDesc: "EnhancedValidate returns a validation function which attempts to validate the Resource Provider against the list of Resource Provider supported by this Azure Environment.",
+					},
 				},
 			},
 		},
