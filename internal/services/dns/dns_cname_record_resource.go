@@ -21,7 +21,6 @@ import (
 	frontdoor "github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceDnsCNameRecord() *pluginsdk.Resource {
@@ -136,11 +135,11 @@ func resourceDnsCNameRecordCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if record != "" {
-		parameters.Properties.CNAMERecord.Cname = utils.String(record)
+		parameters.Properties.CNAMERecord.Cname = pointer.To(record)
 	}
 
 	if targetResourceId != "" {
-		parameters.Properties.TargetResource.Id = utils.String(targetResourceId)
+		parameters.Properties.TargetResource.Id = pointer.To(targetResourceId)
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters, recordsets.DefaultCreateOrUpdateOperationOptions()); err != nil {
@@ -239,14 +238,14 @@ func resourceDnsCNameRecordUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	if d.HasChange("record") {
 		payload.Properties.CNAMERecord = &recordsets.CnameRecord{}
 		if record := d.Get("record").(string); record != "" {
-			payload.Properties.CNAMERecord.Cname = utils.String(record)
+			payload.Properties.CNAMERecord.Cname = pointer.To(record)
 		}
 	}
 
 	if d.HasChange("target_resource_id") {
 		payload.Properties.TargetResource = &recordsets.SubResource{}
 		if targetId := d.Get("target_resource_id").(string); targetId != "" {
-			payload.Properties.TargetResource.Id = utils.String(targetId)
+			payload.Properties.TargetResource.Id = pointer.To(targetId)
 		}
 	}
 
