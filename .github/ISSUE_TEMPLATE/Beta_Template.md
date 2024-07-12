@@ -1,7 +1,7 @@
 ---
-name: 4.0 Beta Bug Report / Feedback
+name: 4️⃣ Beta Bug Report / Feedback
 about: Feedback regarding the Beta for features coming in 4.0
-labels: 
+labels: v/4.x
 ---
 
 ### Community Note
@@ -22,6 +22,10 @@ labels:
 
 * Terraform Core version: [fill in]
 * AzureRM Provider version: [fill in]
+
+### Affected Resource(s)/Data Source(s)
+<!-- Please list the affected resources and/or data sources. Format: azurerm_XXXXX -->
+
 
 ### Terraform Configuration Files
 
