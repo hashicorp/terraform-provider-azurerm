@@ -143,7 +143,7 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 		Schema: map[string]*schema.Schema{
 			"subscription_id": {
 				Type:        schema.TypeString,
-				Optional:    true,
+				Required:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_SUBSCRIPTION_ID", nil),
 				Description: "The Subscription ID which should be used.",
 			},
@@ -368,6 +368,9 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 	}
 
 	if !features.FourPointOhBeta() {
+		p.Schema["subscription_id"].Required = false
+		p.Schema["subscription_id"].Optional = true
+
 		delete(p.Schema, "resource_provider_registrations")
 		delete(p.Schema, "resource_providers_to_register")
 	}

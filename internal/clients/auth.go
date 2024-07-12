@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/sdk/claims"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/graph"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders"
 )
 
@@ -84,7 +85,7 @@ func NewResourceManagerAccount(ctx context.Context, config auth.Credentials, sub
 		tenantId = config.TenantID
 	}
 
-	// Finally, defer to Azure CLI to obtain tenant ID, subscription ID and client ID when not specified and missing from claims
+	// Finally, defer to Azure CLI to obtain tenant ID and client ID when not specified and missing from claims
 	realAuthorizer := authorizer
 	if cache, ok := authorizer.(*auth.CachedAuthorizer); ok {
 		realAuthorizer = cache.Source
@@ -99,14 +100,17 @@ func NewResourceManagerAccount(ctx context.Context, config auth.Credentials, sub
 			log.Printf("[DEBUG] Using tenant ID from Azure CLI: %q", tenantId)
 		}
 
-		// Use the subscription ID from Azure CLI when otherwise unknown
-		if subscriptionId == "" {
-			if cli.DefaultSubscriptionID == "" {
-				return nil, fmt.Errorf("azure-cli could not determine subscription ID to use and no subscription was specified")
-			}
+		// TODO: remove this in v4.0
+		if !features.FourPointOhBeta() {
+			// Use the subscription ID from Azure CLI when otherwise unknown
+			if subscriptionId == "" {
+				if cli.DefaultSubscriptionID == "" {
+					return nil, fmt.Errorf("azure-cli could not determine subscription ID to use and no subscription was specified")
+				}
 
-			subscriptionId = cli.DefaultSubscriptionID
-			log.Printf("[DEBUG] Using default subscription ID from Azure CLI: %q", subscriptionId)
+				subscriptionId = cli.DefaultSubscriptionID
+				log.Printf("[DEBUG] Using default subscription ID from Azure CLI: %q", subscriptionId)
+			}
 		}
 
 		// Use the Azure CLI client ID
@@ -116,6 +120,7 @@ func NewResourceManagerAccount(ctx context.Context, config auth.Credentials, sub
 		}
 	}
 
+	// We'll permit the provider to proceed with an unknown client ID since it only affects a small number of use cases when authenticating as a user
 	if tenantId == "" {
 		return nil, fmt.Errorf("unable to configure ResourceManagerAccount: tenant ID could not be determined and was not specified")
 	}
