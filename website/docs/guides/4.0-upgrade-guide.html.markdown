@@ -177,12 +177,6 @@ The following resources and properties have been affected by this change:
 * `network_rule_set` has had `Computed` and `ConfigModeAttr` removed, attribute notation can no longer be used. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
 * `network_rule_set.ip_rule` has had `Computed` and `ConfigModeAttr` removed, attribute notation can no longer be used. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
 
-### `azurerm_kubernetes_cluster`
-
-TODO move these down to the other section
-* `network_profile.load_balancer_profile.outbound_ip_prefix_ids` has had `Computed` and `ConfigModeAttr` removed, attribute notation can no longer be used. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
-* `network_profile.load_balancer_profile.outbound_ip_address_ids` has had `Computed` 
-
 ### `azurerm_eventgrid_domain`
 
 * `inbound_ip_rule` has had `ConfigModeAttr` removed, attribute notation can no longer be used.
@@ -530,6 +524,10 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 
 * The deprecated property `soap_pass_through` has been removed in favour of the property `api_type`.
 
+### `azurerm_api_management_api_tags`
+
+* This resource will need to be recreated upon upgrading so that the tag revision can be included in the resource ID.
+
 ### `azurerm_api_management`
 
 * The deprecated block `policy` has been removed in favour of the `azurerm_api_management_policy` resource.
@@ -605,6 +603,14 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 
 * The property `grafana_major_version` is now Required.
 
+### `azurerm_databricks_workspace`
+
+* The property `custom_parameters.no_public_ip` now defaults to `true`.
+
+### `azurerm_elastic_cloud_elasticsearch`
+
+* The property `logs` is no longer Computed. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
+
 ### `azurerm_kubernetes_cluster`
 
 * The deprecated property `enable_pod_security_policy` has been removed.
@@ -626,6 +632,8 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 * The property `default_node_pool.enable_node_public_ip` has been renamed to `default_node_pool.node_public_ip_enabled`.
 * The property `default_node_pool.enable_host_encryption` has been renamed to `default_node_pool.host_encryption_enabled`.
 * The property `image_cleaner_interval_hours` now defaults to `0` and will only be set if `image_cleaner_enabled` has been set to `true`.
+* The property `network_profile.load_balancer_profile.outbound_ip_prefix_ids` is no longer `Computed`. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
+* The property `network_profile.load_balancer_profile.outbound_ip_address_ids` is no longer `Computed`. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
 
 ### `azurerm_kubernetes_fleet_manager`
 
@@ -673,14 +681,23 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 
 * The property `sku` now defaults to `Standard`.
 
+### `azurerm_machine_learning_compute_cluster`
+
+* The property `ssh_public_access_enabled` now defaults to `false`.
+
 ### `azurerm_machine_learning_compute_instance`
 
 * The deprecated property `location` has been removed.
 
+### `azurerm_machine_learning_datastore_datalake_gen2`
+
+* The property `authority_url` is no longer `Computed`. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
+
 ### `azurerm_machine_learning_workspace`
 
 * The deprecated property `public_access_behind_virtual_network_enabled` has been removed in favour of the `public_network_access_enabled` property.
-* The `managed_network` block is no longer `Computed`, users will need to add this block to `ignore_changes` if they do not wish to explicitly configure it.
+* The property `public_network_access_enabled` now defaults to `true`.
+* The `managed_network` block is no longer `Computed`. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
 
 ### `azurerm_managed_applications`
 
@@ -706,11 +723,11 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 
 ### `azurerm_network_connection_monitor`
 
-* The property `output_workspace_resource_ids` is no longer `Computed`. 
+* The property `output_workspace_resource_ids` is no longer `Computed`. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
 
 ### `azurerm_network_interface`
 
-* The property `dns_servers` is not longer `Computed`.
+* The property `dns_servers` is no longer `Computed`. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
 * The deprecated property `enable_accelerated_networking` has been removed in favour of the `accelerated_networking_enabled` property.
 * The deprecated property `enable_ip_forwarding` has been removed in favour of the `ip_forwarding_enabled` property.
 
@@ -776,7 +793,11 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 
 * The deprecated block `recovery_group` has been removed in favour of the `shutdown_recovery_group`, `failover_recovery_group` and `boot_recovery_group` properties.
 
-### `azurerm_sentinel_alert_rule_schedules`
+### `azurerm_sentinel_alert_rule_ms_security_incident`
+
+* The block `display_name_filter` is no longer Computed. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
+
+### `azurerm_sentinel_alert_rule_scheduled`
 
 * The deprecated block `incident_configuration` has been removed in favour of the `incident` block.
 * The deprecated property `incident_configuration.create_incident` has been removed in favour of the `incident.create_incident_enabled` property.
@@ -792,7 +813,7 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 
 * The deprecated property `bing_safety_phishing_url_lookback_date` has been removed.
 
-### `azurerm_sentinel_log_analytics_workspace_onboard_resource`
+### `azurerm_sentinel_log_analytics_workspace_onboarding`
 
 * The deprecated property `name` has been removed in favour of the `workspace_id` property.
 * The deprecated property `resource_group_name` has been removed in favour of the `workspace_id` property.
@@ -827,11 +848,37 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 * The deprecated property `table_name` has been removed in favour of the `storage_table_id` property.
 * The deprecated property `storage_account_name` has been removed in favour of the `storage_table_id` property.
 
+### `azurerm_synapse_sql_pool_vulnerability_assessment`
+
+* The property `recurring_scans.email_subscription_admins_enabled` now defaults to `true`.
+
+### `azurerm_synapse_workspace_vulnerability_assessment`
+
+* The property `recurring_scans.email_subscription_admins_enabled` now defaults to `true`.
 
 ### `azurerm_synapse_workspace`
 
 * The deprecated block `aad_admin` has been removed in favour of the `azurerm_synapse_workspace_aad_admin` resource.
 * The deprecated block `sqlsql_aad_admin` has been removed in favour of the `azurerm_synapse_workspace_sql_aad_admin` resource.
+
+### `azurerm_traffic_manager_azure_endpoint`
+
+* The property `weight` now defaults to `1`.
+* The property `priority` now defaults to `1`.
+
+### `azurerm_traffic_manager_external_endpoint`
+
+* The property `weight` now defaults to `1`.
+* The property `priority` now defaults to `1`.
+
+### `azurerm_traffic_manager_nested_endpoint`
+
+* The property `weight` now defaults to `1`.
+* The property `priority` now defaults to `1`.
+
+### `azurerm_traffic_manager_nested_endpoint`
+
+* The property `profile_status` now defaults to `Enabled`.
 
 ## Behaviour changes and removed properties in Data Sources
 
