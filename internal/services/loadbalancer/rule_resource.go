@@ -5,6 +5,7 @@ package loadbalancer
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"log"
 	"time"
 
@@ -326,7 +327,7 @@ func expandAzureRmLoadBalancerRule(d *pluginsdk.ResourceData, lb *loadbalancers.
 }
 
 func resourceArmLoadBalancerRuleSchema() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	resource := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -423,4 +424,21 @@ func resourceArmLoadBalancerRuleSchema() map[string]*pluginsdk.Schema {
 			Default:  string(loadbalancers.LoadDistributionDefault),
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		resource["idle_timeout_in_minutes"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validation.IntBetween(4, 100),
+		}
+
+		resource["load_distribution"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+		}
+	}
+
+	return resource
 }
