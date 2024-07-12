@@ -232,7 +232,7 @@ func Test_getClientIDAKSWorkload(t *testing.T) {
 	expectedString := "testClientIDAKSWorkload"
 	err := os.Setenv("ARM_CLIENT_ID", expectedString)
 	if err != nil {
-		t.Fatalf("failed to set environment variable AZURE_CLIENT_ID: %v", err)
+		t.Fatalf("failed to set environment variable ARM_CLIENT_ID: %v", err)
 	}
 
 	p := &ProviderModel{

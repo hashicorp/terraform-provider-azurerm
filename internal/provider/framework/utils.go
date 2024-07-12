@@ -104,7 +104,7 @@ func getClientId(d *ProviderModel) (*string, error) {
 	}
 
 	if d.UseAKSWorkloadIdentity.ValueBool() && clientId != "" {
-		aksClientId := os.Getenv("AZURE_CLIENT_ID")
+		aksClientId := os.Getenv("ARM_CLIENT_ID")
 		if clientId != "" && clientId != aksClientId {
 			return nil, fmt.Errorf("mismatch between supplied Client ID and that provided by AKS Workload Identity - please remove, ensure they match, or disable use_aks_workload_identity")
 		}
