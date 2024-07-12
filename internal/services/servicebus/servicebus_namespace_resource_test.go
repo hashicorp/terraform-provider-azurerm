@@ -153,7 +153,7 @@ func TestAccAzureRMServiceBusNamespace_premiumMessagingPartition(t *testing.T) {
 
 func TestAccAzureRMServiceBusNamespace_zoneRedundant(t *testing.T) {
 	if features.FourPointOhBeta() {
-		t.Skipf("Skippped as 'zone_redundant' property is deprecated in 4.0")
+		t.Skipf("Skipped as 'zone_redundant' property is deprecated in 4.0")
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
