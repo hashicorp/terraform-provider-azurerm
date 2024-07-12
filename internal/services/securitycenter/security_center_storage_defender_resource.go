@@ -8,7 +8,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/topics"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -83,11 +84,7 @@ func (s StorageDefenderResource) Arguments() map[string]*schema.Schema {
 			Default:  false,
 		},
 
-		"scan_results_event_grid_topic_id": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: azure.ValidateResourceID,
-		},
+		"scan_results_event_grid_topic_id": commonschema.ResourceIDReferenceOptional(&topics.TopicId{}),
 	}
 }
 
@@ -265,7 +262,13 @@ func (s StorageDefenderResource) Read() sdk.ResourceFunc {
 							state.MalwareScanningOnUploadEnabled = pointer.From(onUpload.IsEnabled)
 							state.MalwareScanningOnUploadCapPerMon = pointer.From(onUpload.CapGBPerMonth)
 						}
-						state.ScanResultsEventGridTopicId = pointer.From(ms.ScanResultsEventGridTopicResourceId)
+						if ms.ScanResultsEventGridTopicResourceId != nil {
+							topicId, err := topics.ParseTopicID(*ms.ScanResultsEventGridTopicResourceId)
+							if err != nil {
+								return err
+							}
+							state.ScanResultsEventGridTopicId = topicId.ID()
+						}
 					}
 
 					if sdd := prop.SensitiveDataDiscovery; sdd != nil {
