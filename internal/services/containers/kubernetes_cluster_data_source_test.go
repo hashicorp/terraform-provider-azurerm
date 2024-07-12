@@ -102,8 +102,6 @@ func TestAccDataSourceKubernetesCluster_roleBasedAccessControlAAD(t *testing.T) 
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("role_based_access_control_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("azure_active_directory_role_based_access_control.#").HasValue("1"),
-				check.That(data.ResourceName).Key("azure_active_directory_role_based_access_control.0.client_app_id").Exists(),
-				check.That(data.ResourceName).Key("azure_active_directory_role_based_access_control.0.server_app_id").Exists(),
 				check.That(data.ResourceName).Key("azure_active_directory_role_based_access_control.0.tenant_id").Exists(),
 				check.That(data.ResourceName).Key("kube_admin_config.#").HasValue("1"),
 				check.That(data.ResourceName).Key("kube_admin_config_raw").Exists(),
@@ -123,7 +121,6 @@ func TestAccDataSourceKubernetesCluster_localAccountDisabled(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("role_based_access_control_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("azure_active_directory_role_based_access_control.#").HasValue("1"),
-				check.That(data.ResourceName).Key("azure_active_directory_role_based_access_control.0.managed").HasValue("true"),
 				check.That(data.ResourceName).Key("kube_config.#").HasValue("1"),
 				check.That(data.ResourceName).Key("kube_config_raw").Exists(),
 				check.That(data.ResourceName).Key("kube_admin_config.#").HasValue("0"),
@@ -459,7 +456,7 @@ func TestAccDataSourceKubernetesCluster_autoscalingNoAvailabilityZones(t *testin
 				check.That(data.ResourceName).Key("agent_pool_profile.0.min_count").HasValue("1"),
 				check.That(data.ResourceName).Key("agent_pool_profile.0.max_count").HasValue("2"),
 				check.That(data.ResourceName).Key("agent_pool_profile.0.type").HasValue("VirtualMachineScaleSets"),
-				check.That(data.ResourceName).Key("agent_pool_profile.0.enable_auto_scaling").HasValue("true"),
+				check.That(data.ResourceName).Key("agent_pool_profile.0.auto_scaling_enabled").HasValue("true"),
 			),
 		},
 	})
@@ -476,7 +473,7 @@ func TestAccDataSourceKubernetesCluster_autoscalingWithAvailabilityZones(t *test
 				check.That(data.ResourceName).Key("agent_pool_profile.0.min_count").HasValue("1"),
 				check.That(data.ResourceName).Key("agent_pool_profile.0.max_count").HasValue("2"),
 				check.That(data.ResourceName).Key("agent_pool_profile.0.type").HasValue("VirtualMachineScaleSets"),
-				check.That(data.ResourceName).Key("agent_pool_profile.0.enable_auto_scaling").HasValue("true"),
+				check.That(data.ResourceName).Key("agent_pool_profile.0.auto_scaling_enabled").HasValue("true"),
 			),
 		},
 	})
@@ -505,7 +502,7 @@ func TestAccDataSourceKubernetesCluster_nodePublicIP(t *testing.T) {
 		{
 			Config: r.nodePublicIPConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("agent_pool_profile.0.enable_node_public_ip").HasValue("true"),
+				check.That(data.ResourceName).Key("agent_pool_profile.0.node_public_ip_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("agent_pool_profile.0.node_public_ip_prefix_id").Exists(),
 			),
 		},
