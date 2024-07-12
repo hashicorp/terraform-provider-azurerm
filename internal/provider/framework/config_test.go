@@ -29,8 +29,8 @@ func TestProviderConfig_LoadDefault(t *testing.T) {
 	_ = os.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION", "false")
 
 	testData := &ProviderModel{
-		SkipProviderRegistration: types.BoolValue(true), // We don't want this test to modify the configured sub at all
-		Features:                 defaultFeaturesList(),
+		ResourceProviderRegistrations: types.StringValue("none"),
+		Features:                      defaultFeaturesList(),
 	}
 
 	testConfig.Load(context.Background(), testData, "unittest", &diag.Diagnostics{})

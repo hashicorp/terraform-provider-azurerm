@@ -2,8 +2,10 @@ package framework
 
 import (
 	"context"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
@@ -185,6 +187,31 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 				Optional: true,
 				//DefaultFunc: schema.EnvDefaultFunc("ARM_STORAGE_USE_AZUREAD", false),
 				Description: "Should the AzureRM Provider use AzureAD to access the Storage Data Plane API's?",
+			},
+
+			"resource_provider_registrations": schema.StringAttribute{
+				Optional:            true,
+				Description:         "The set of Resource Providers which should be automatically registered for the subscription.",
+				MarkdownDescription: "The set of Resource Providers which should be automatically registered for the subscription.",
+				Validators: []validator.String{
+					stringvalidator.OneOf(
+						resourceproviders.ProviderRegistrationsNone,
+						resourceproviders.ProviderRegistrationsLegacy,
+						resourceproviders.ProviderRegistrationsCore,
+						resourceproviders.ProviderRegistrationsExtended,
+						resourceproviders.ProviderRegistrationsAll,
+					),
+				},
+			},
+
+			"resource_providers_to_register": schema.ListAttribute{
+				ElementType:         types.StringType,
+				Optional:            true,
+				Description:         "A list of Resource Providers to explicitly register for the subscription, in addition to those specified by the `resource_provider_registrations` property.",
+				MarkdownDescription: "A list of Resource Providers to explicitly register for the subscription, in addition to those specified by the `resource_provider_registrations` property.",
+				Validators:          []validator.List{
+					// TODO - Need to port over the pluginSDK wrapper for validators to use the legacy one for now.
+				},
 			},
 		},
 

@@ -2,7 +2,6 @@ package framework
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"time"
 
@@ -116,7 +115,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 	p.clientBuilder.PartnerID = partnerId
 	p.clientBuilder.DisableCorrelationRequestID = getEnvBoolOrDefault(data.DisableCorrelationRequestId, "ARM_DISABLE_CORRELATION_REQUEST_ID", false)
 	p.clientBuilder.DisableTerraformPartnerID = getEnvBoolOrDefault(data.DisableTerraformPartnerId, "ARM_DISABLE_TERRAFORM_PARTNER_ID", false)
-	p.clientBuilder.SkipProviderRegistration = getEnvBoolOrDefault(data.SkipProviderRegistration, "ARM_SKIP_PROVIDER_REGISTRATION", false)
+	//p.clientBuilder.SkipProviderRegistration = getEnvBoolOrDefault(data.SkipProviderRegistration, "ARM_SKIP_PROVIDER_REGISTRATION", false)
 	p.clientBuilder.StorageUseAzureAD = getEnvBoolOrDefault(data.StorageUseAzureAD, "ARM_STORAGE_USE_AZUREAD", false)
 
 	f := providerfeatures.UserFeatures{}
@@ -480,16 +479,26 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 	client.StopContext = ctx
 
-	if !p.clientBuilder.SkipProviderRegistration {
-		subscriptionId := commonids.NewSubscriptionID(client.Account.SubscriptionId)
-		requiredResourceProviders := resourceproviders.Required()
-		ctx2, cancel := context.WithTimeout(ctx, 30*time.Minute)
-		defer cancel()
-
-		if err := resourceproviders.EnsureRegistered(ctx2, client.Resource.ResourceProvidersClient, subscriptionId, requiredResourceProviders); err != nil {
-			diags.Append(diag.NewErrorDiagnostic("resource provider registration failed", fmt.Sprintf(provider.ResourceProviderRegistrationErrorFmt, err)))
-			return
+	resourceProviderRegistrationSet := getEnvStringOrDefault(data.ResourceProviderRegistrations, "ARM_RESOURCE_PROVIDER_REGISTRATIONS", "legacy")
+	requiredResourceProviders, err := resourceproviders.GetResourceProvidersSet(resourceProviderRegistrationSet)
+	additionalResourceProvidersToRegister := make([]string, 0)
+	if !data.ResourceProvidersToRegister.IsNull() {
+		data.ResourceProvidersToRegister.ElementsAs(ctx, &additionalResourceProvidersToRegister, false)
+		if len(additionalResourceProvidersToRegister) > 0 {
+			additionalProviders := make(resourceproviders.ResourceProviders)
+			for _, rp := range additionalResourceProvidersToRegister {
+				additionalProviders.Add(rp)
+			}
 		}
+	}
+
+	subscriptionId := commonids.NewSubscriptionID(client.Account.SubscriptionId)
+	ctx2, cancel := context.WithTimeout(ctx, 30*time.Minute)
+	defer cancel()
+
+	if err = resourceproviders.EnsureRegistered(ctx2, client.Resource.ResourceProvidersClient, subscriptionId, requiredResourceProviders); err != nil {
+		diags.AddError("registering resource providers", err.Error())
+		return
 	}
 
 	p.Client = client
