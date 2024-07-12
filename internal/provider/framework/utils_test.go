@@ -252,9 +252,9 @@ func Test_getClientIDAKSWorkload(t *testing.T) {
 
 func Test_getClientIDAKSWorkloadExpectMismatch(t *testing.T) {
 	configuredString := "testClientIDAKSWorkload"
-	err := os.Setenv("AZURE_CLIENT_ID", "testClientID")
+	err := os.Setenv("ARM_CLIENT_ID", "testClientID")
 	if err != nil {
-		t.Fatalf("failed to set environment variable AZURE_CLIENT_ID: %v", err)
+		t.Fatalf("failed to set environment variable ARM_CLIENT_ID: %v", err)
 	}
 	p := &ProviderModel{
 		ClientId:               basetypes.NewStringValue(configuredString),
