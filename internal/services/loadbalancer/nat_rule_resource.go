@@ -131,7 +131,7 @@ func resourceArmLoadBalancerNatRule() *pluginsdk.Resource {
 			"idle_timeout_in_minutes": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Computed:     true,
+				Default:      4,
 				ValidateFunc: validation.IntBetween(4, 30),
 			},
 
