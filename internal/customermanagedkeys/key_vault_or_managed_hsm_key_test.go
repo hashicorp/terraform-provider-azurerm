@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/customermanagedkeys"
-	cmk "github.com/hashicorp/terraform-provider-azurerm/internal/customermanagedkeys"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	hsmParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/parse"
 )
@@ -43,7 +42,7 @@ func TestExpandKeyVaultOrManagedHSMKeyKey(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *cmk.KeyVaultOrManagedHSMKey
+		want    *customermanagedkeys.KeyVaultOrManagedHSMKey
 		wantErr bool
 	}{
 		{
@@ -52,7 +51,7 @@ func TestExpandKeyVaultOrManagedHSMKeyKey(t *testing.T) {
 				d:                 buildKeyVaultData("key_vault_key_id", "https://test.keyvault.azure.net/keys/test-key-name"),
 				keyVaultFieldName: "key_vault_key_id",
 			},
-			want: &cmk.KeyVaultOrManagedHSMKey{
+			want: &customermanagedkeys.KeyVaultOrManagedHSMKey{
 				KeyVaultKeyId: &parse.NestedItemId{
 					KeyVaultBaseUrl: "https://test.keyvault.azure.net/",
 					NestedItemType:  "keys",
@@ -94,7 +93,7 @@ func TestExpandKeyVaultOrManagedHSMKeyKey(t *testing.T) {
 				hsmFieldName: "managed_hsm_key_id",
 				hasVersion:   customermanagedkeys.VersionTypeVersionless,
 			},
-			want: &cmk.KeyVaultOrManagedHSMKey{
+			want: &customermanagedkeys.KeyVaultOrManagedHSMKey{
 				ManagedHSMKeyVersionlessId: &hsmParse.ManagedHSMDataPlaneVersionlessKeyId{
 					ManagedHSMName: "test",
 					DomainSuffix:   "managedhsm.azure.net",
@@ -105,7 +104,7 @@ func TestExpandKeyVaultOrManagedHSMKeyKey(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t2 *testing.T) {
-			got, err := cmk.ExpandKeyVaultOrManagedHSMKeyWithCustomFieldKey(tt.args.d, tt.args.hasVersion, tt.args.keyVaultFieldName, tt.args.hsmFieldName, tt.args.hsmEnv)
+			got, err := customermanagedkeys.ExpandKeyVaultOrManagedHSMKeyWithCustomFieldKey(tt.args.d, tt.args.hasVersion, tt.args.keyVaultFieldName, tt.args.hsmFieldName, nil, tt.args.hsmEnv)
 			if (err != nil) != tt.wantErr {
 				t2.Errorf("ExpandKeyVaultOrManagedHSMKeyWithCustomFieldKey() error = %v, wantErr %v", err, tt.wantErr)
 				return

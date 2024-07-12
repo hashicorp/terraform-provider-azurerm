@@ -864,7 +864,8 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 	databaseClient := meta.(*clients.Client).Cosmos.DatabaseClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	accountClient := meta.(*clients.Client).Account
+	subscriptionId := accountClient.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	log.Printf("[INFO] Preparing arguments for AzureRM Cosmos DB Account creation")
@@ -1021,7 +1022,7 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("`create_mode` only works when `backup.type` is `Continuous`")
 	}
 
-	if key, err := customermanagedkeys.ExpandKeyVaultOrManagedHSMKey(d, customermanagedkeys.VersionTypeAny, meta.(*clients.Client).Account.Environment.ManagedHSM); err != nil {
+	if key, err := customermanagedkeys.ExpandKeyVaultOrManagedHSMKey(d, customermanagedkeys.VersionTypeAny, accountClient.Environment.KeyVault, accountClient.Environment.ManagedHSM); err != nil {
 		return fmt.Errorf("parse key vault key id: %+v", err)
 	} else if key != nil {
 		account.Properties.KeyVaultKeyUri = pointer.To(key.ID())
@@ -1059,6 +1060,7 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 
 func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	apiEnvs := meta.(*clients.Client).Account.Environment
 	// subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -1233,7 +1235,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			Tags: t,
 		}
 
-		if key, err := customermanagedkeys.ExpandKeyVaultOrManagedHSMKey(d, customermanagedkeys.VersionTypeAny, meta.(*clients.Client).Account.Environment.ManagedHSM); err != nil {
+		if key, err := customermanagedkeys.ExpandKeyVaultOrManagedHSMKey(d, customermanagedkeys.VersionTypeAny, apiEnvs.KeyVault, apiEnvs.ManagedHSM); err != nil {
 			return err
 		} else if key != nil {
 			account.Properties.KeyVaultKeyUri = pointer.To(key.ID())
@@ -1481,7 +1483,6 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 
 func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
-	hsmEnv := meta.(*clients.Client).Account.Environment.ManagedHSM
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -1552,7 +1553,8 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 		}
 
 		if v := props.KeyVaultKeyUri; v != nil {
-			if key, err := customermanagedkeys.FlattenKeyVaultOrManagedHSMID(*v, hsmEnv); err != nil {
+			envs := meta.(*clients.Client).Account.Environment
+			if key, err := customermanagedkeys.FlattenKeyVaultOrManagedHSMID(*v, envs.KeyVault, envs.ManagedHSM); err != nil {
 				return fmt.Errorf("flatten key vault uri: %+v", err)
 			} else if key.IsSet() {
 				if key.KeyVaultKeyId != nil {
