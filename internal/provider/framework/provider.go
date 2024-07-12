@@ -191,9 +191,8 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 			},
 
 			"resource_provider_registrations": schema.StringAttribute{
-				Optional:            true,
-				Description:         "The set of Resource Providers which should be automatically registered for the subscription.",
-				MarkdownDescription: "The set of Resource Providers which should be automatically registered for the subscription.",
+				Optional:    true,
+				Description: "The set of Resource Providers which should be automatically registered for the subscription.",
 				Validators: []validator.String{
 					stringvalidator.OneOf(
 						resourceproviders.ProviderRegistrationsNone,
@@ -206,10 +205,9 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 			},
 
 			"resource_providers_to_register": schema.ListAttribute{
-				ElementType:         types.StringType,
-				Optional:            true,
-				Description:         "A list of Resource Providers to explicitly register for the subscription, in addition to those specified by the `resource_provider_registrations` property.",
-				MarkdownDescription: "A list of Resource Providers to explicitly register for the subscription, in addition to those specified by the `resource_provider_registrations` property.",
+				ElementType: types.StringType,
+				Optional:    true,
+				Description: "A list of Resource Providers to explicitly register for the subscription, in addition to those specified by the `resource_provider_registrations` property.",
 				Validators: []validator.List{
 					frameworkhelpers.WrappedListValidator{
 						Func:         resourceproviders.EnhancedValidate,
