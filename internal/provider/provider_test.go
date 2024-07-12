@@ -326,6 +326,11 @@ func TestAccProvider_resourceProviders_explicit(t *testing.T) {
 }
 
 func TestAccProvider_cliAuth(t *testing.T) {
+	// TODO: remove this test in v4.0
+	if features.FourPointOhBeta() {
+		t.Skip("skipping 3.x specific test")
+	}
+
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("TF_ACC not set")
 	}
@@ -364,10 +369,13 @@ func TestAccProvider_cliAuth(t *testing.T) {
 	}
 }
 
+// TODO: remove TestAccProvider_cliAuth and rename this test to TestAccProvider_cliAuth in v4.0
 func TestAccProvider_cliAuthWithSubscriptionIdHint(t *testing.T) {
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("TF_ACC not set")
 	}
+
+	// TODO: remove this condition in v4.0
 	if os.Getenv("ARM_SUBSCRIPTION_ID") == "" {
 		t.Skip("ARM_SUBSCRIPTION_ID not set")
 	}
