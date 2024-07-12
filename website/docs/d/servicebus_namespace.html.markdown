@@ -41,6 +41,8 @@ output "location" {
 
 * `zone_redundant` - Whether or not this ServiceBus Namespace is zone redundant.
 
+~> **Note:** The `zone_redundant` field will be removed in v4.0 of the provider.
+
 * `endpoint` - The URL to access the ServiceBus Namespace.
 
 * `tags` - A mapping of tags assigned to the resource.

@@ -179,12 +179,6 @@ func resourceServiceBusNamespace() *pluginsdk.Resource {
 				Sensitive: true,
 			},
 
-			"zone_redundant": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				ForceNew: true,
-			},
-
 			"network_rule_set": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -276,6 +270,14 @@ func resourceServiceBusNamespace() *pluginsdk.Resource {
 	}
 
 	if !features.FourPointOhBeta() {
+		resource.Schema["zone_redundant"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Computed:   true,
+			Deprecated: "The `zone_redundant` property has been deprecated and will be removed in v4.0 of the provider.",
+			ForceNew:   true,
+		}
+
 		resource.Schema["minimum_tls_version"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeString,
 			Optional: true,
@@ -287,6 +289,7 @@ func resourceServiceBusNamespace() *pluginsdk.Resource {
 			}, false),
 		}
 	}
+
 	return resource
 }
 
@@ -335,12 +338,15 @@ func resourceServiceBusNamespaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 			Tier: &s,
 		},
 		Properties: &namespaces.SBNamespaceProperties{
-			ZoneRedundant:       utils.Bool(d.Get("zone_redundant").(bool)),
 			Encryption:          expandServiceBusNamespaceEncryption(d.Get("customer_managed_key").([]interface{})),
 			DisableLocalAuth:    utils.Bool(!d.Get("local_auth_enabled").(bool)),
 			PublicNetworkAccess: &publicNetworkEnabled,
 		},
 		Tags: expandTags(t),
+	}
+
+	if !features.FourPointOhBeta() {
+		parameters.Properties.ZoneRedundant = utils.Bool(d.Get("zone_redundant").(bool))
 	}
 
 	if tlsValue := d.Get("minimum_tls_version").(string); tlsValue != "" {
@@ -444,7 +450,11 @@ func resourceServiceBusNamespaceRead(d *pluginsdk.ResourceData, meta interface{}
 
 			if props := model.Properties; props != nil {
 				d.Set("premium_messaging_partitions", props.PremiumMessagingPartitions)
-				d.Set("zone_redundant", props.ZoneRedundant)
+
+				if !features.FourPointOhBeta() {
+					d.Set("zone_redundant", props.ZoneRedundant)
+				}
+
 				if customerManagedKey, err := flattenServiceBusNamespaceEncryption(props.Encryption); err == nil {
 					d.Set("customer_managed_key", customerManagedKey)
 				}
