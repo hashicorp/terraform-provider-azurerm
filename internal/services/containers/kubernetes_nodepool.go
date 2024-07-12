@@ -167,7 +167,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						ForceNew:     true,
 						ValidateFunc: publicipprefixes.ValidatePublicIPPrefixID,
 						RequiredWith: func() []string {
-							if !features.FourPointOhBeta() {
+							if !features.FourPointOh() {
 								return []string{"default_node_pool.0.enable_node_public_ip"}
 							}
 							return []string{"default_node_pool.0.node_public_ip_enabled"}
