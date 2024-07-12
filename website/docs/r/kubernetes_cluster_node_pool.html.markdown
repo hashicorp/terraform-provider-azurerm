@@ -90,6 +90,8 @@ The following arguments are supported:
 
 * `host_group_id` - (Optional) The fully qualified resource ID of the Dedicated Host Group to provision virtual machines from. Changing this forces a new resource to be created.
 
+* `ignore_pod_disruption_budget` - (Optional) Should the Node Pool ignore Pod Disruption Budgets before a Nodepool deletion. Defaults to `false`.
+
 * `kubelet_config` - (Optional) A `kubelet_config` block as defined below. Changing this forces a new resource to be created.
 
 * `linux_os_config` - (Optional) A `linux_os_config` block as defined below. Changing this forces a new resource to be created.
