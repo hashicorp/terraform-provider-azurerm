@@ -284,11 +284,10 @@ func expandDataFactoryIntegrationRuntimeAzureComputeProperties(d *pluginsdk.Reso
 	coreCount := int32(d.Get("core_count").(int))
 	timeToLiveMin := int32(d.Get("time_to_live_min").(int))
 
-	var cleanup bool
+	cleanup := true
 	if features.FourPointOhBeta() {
 		cleanup = d.Get("cleanup_enabled").(bool)
 	} else {
-		cleanup = true
 		// nolint staticcheck
 		if v, ok := d.GetOkExists("cleanup_enabled"); ok {
 			cleanup = v.(bool)
