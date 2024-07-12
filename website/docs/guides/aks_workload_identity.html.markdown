@@ -96,7 +96,7 @@ In addition to a properly-configured managed identity, Terraform needs to know t
 export ARM_USE_AKS_WORKLOAD_IDENTITY=true
 export ARM_USE_CLI=false
 export ARM_SUBSCRIPTION_ID=159f2485-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-export ARM_CLIENT_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx # only necessary if the service account is not annotated with the relevant client ID
+export ARM_CLIENT_ID=00000000-xxxx-xxxx-xxxx-xxxxxxxxxxxx # only necessary if the service account is not annotated with the relevant client ID
 ```
 
 A provider block is _technically_ optional when using environment variables. Even so, we recommend defining provider blocks so that you can pin or constrain the version of the provider being used, and configure other optional settings:
@@ -141,6 +141,9 @@ provider "azurerm" {
 
   use_aks_workload_identity = true
   use_cli                   = false
+
+  client_id       = "00000000-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+  subscription_id = "159f2485-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
   #...
 }
 ```

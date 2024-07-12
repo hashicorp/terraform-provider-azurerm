@@ -102,45 +102,17 @@ The output (similar to below) will display one or more Subscriptions - with the 
 ]
 ```
 
-Should you have more than one Subscription, you can specify the Subscription to use via the following command:
-
-```bash
-az account set --subscription="SUBSCRIPTION_ID"
-```
-
 ---
 
 ## Configuring Azure CLI authentication in Terraform
 
 Now that we're logged into the Azure CLI - we can configure Terraform to use these credentials.
 
-To configure Terraform to use the Default Subscription defined in the Azure CLI - we can use the following Provider block:
+It is necessary to configure the provider with the subscription you wish to use. You can set the `ARM_SUBSCRIPTION_ID` environment variable, _or_ specify it directly in the provider block.
 
-```hcl
-# We strongly recommend using the required_providers block to set the
-# Azure Provider source and version being used
-terraform {
-  required_providers {
-    azurerm = {
-      source  = "hashicorp/azurerm"
-      version = "=3.0.0"
-    }
-  }
-}
-
-# Configure the Microsoft Azure Provider
-provider "azurerm" {
-  features {}
-}
+```shell
+export ARM_SUBSCRIPTION_ID=159f2485-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 ```
-
-More information on [the fields supported in the Provider block can be found here](../index.html#argument-reference).
-
-At this point running either `terraform plan` or `terraform apply` should allow Terraform to run using the Azure CLI to authenticate.
-
----
-
-It's also possible to configure Terraform to use a specific Subscription - for example:
 
 ```hcl
 # We strongly recommend using the required_providers block to set the
@@ -158,7 +130,7 @@ terraform {
 provider "azurerm" {
   features {}
 
-  subscription_id = "00000000-0000-0000-0000-000000000000"
+  subscription_id = "159f2485-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 }
 ```
 
@@ -168,7 +140,7 @@ At this point running either `terraform plan` or `terraform apply` should allow 
 
 ---
 
-If you're looking to use Terraform across Tenants - it's possible to do this by configuring the Tenant ID field in the Provider block, as shown below:
+If you're looking to use Terraform across multiple Tenants - it's possible to do this by configuring the Tenant ID field in the Provider block, as shown below:
 
 ```hcl
 # We strongly recommend using the required_providers block to set the
