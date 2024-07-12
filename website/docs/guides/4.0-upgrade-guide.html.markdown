@@ -153,7 +153,7 @@ When upgrading to 4.0, users may receive a warning that the resource needs to be
 
 Several older resources that can be specified separately as their own standalone resource, or in-line of a parent resource have historically relied on being both `Optional` and `Computed` in the parent resource to function, whereas newer resources of this nature require a more explicit approach of using `ignore_changes`.
 
-An example of this is the `subnet` block within `azurerm_virtual_network_resource`, which can also be specified by the resource `azurerm_subnet`. Older resources containing this nature of dependency have been updated to conform to with the present pattern of using `ignore_changes` on the appropriate properties.
+An example of this is the `subnet` block within `azurerm_virtual_network_resource`, which can also be specified by the resource `azurerm_subnet`. Older resources containing this nature of dependency have been updated to conform to the present pattern of using `ignore_changes` on the appropriate properties.
 
 This has also allowed the removal of several instances of `ConfigModeAttr` which was a temporary means of enabling users to set Lists and Blocks back to an empty value by using attribute notation e.g. `subnet = []`. With the removal of `ConfigModeAttr`, these properties will behave as other blocks throughout the provider do.
 
@@ -222,7 +222,7 @@ TODO move these down to the other section
 * `managed_disk.target_disk_encryption` has had `ConfigModeAttr` removed, attribute notation can no longer be used.
 * `managed_disk.target_disk_encryption.disk_encryption_key` has had `ConfigModeAttr` removed, attribute notation can no longer be used.
 * `managed_disk.target_disk_encryptionkey_encryption_key` has had `ConfigModeAttr` removed, attribute notation can no longer be used.
-* 
+
 ## Removed Resources
 
 ### `azurerm_cdn_frontdoor_route_disable_link_to_default_domain`
