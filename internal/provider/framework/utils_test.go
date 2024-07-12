@@ -230,7 +230,7 @@ func Test_getClientIDFromFile(t *testing.T) {
 
 func Test_getClientIDAKSWorkload(t *testing.T) {
 	expectedString := "testClientIDAKSWorkload"
-	err := os.Setenv("AZURE_CLIENT_ID", expectedString)
+	err := os.Setenv("ARM_CLIENT_ID", expectedString)
 	if err != nil {
 		t.Fatalf("failed to set environment variable AZURE_CLIENT_ID: %v", err)
 	}

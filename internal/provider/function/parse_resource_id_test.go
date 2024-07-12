@@ -3,13 +3,13 @@ package function_test
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"testing"
 
 	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 )
 
@@ -98,11 +98,11 @@ func TestProviderFunctionParseResourceID_scopedAtResource(t *testing.T) {
 func testParseResourceIdOutput(id string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
- features {}
+  features {}
 }
 
 locals {
-  parsed_id = provider::azurerm::parse_resource_id("%s")
+  parsed_id             = provider::azurerm::parse_resource_id("%s")
   parent_resource_name1 = local.parsed_id["parent_resources"]["service"]
   parent_resource_name2 = local.parsed_id["parent_resources"]["gateways"]
 }
@@ -127,11 +127,11 @@ output "resource_type" {
 }
 
 output "service_name" {
- value = local.parent_resource_name1
+  value = local.parent_resource_name1
 }
 
 output "gateway_name" {
- value = local.parent_resource_name2
+  value = local.parent_resource_name2
 }
 
 output "subscription_id" {
@@ -142,13 +142,14 @@ output "full_resource_type" {
   value = local.parsed_id["full_resource_type"]
 }
 
+
 `, id)
 }
 
 func testParseScopedResourceIdOutput(id string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
- features {}
+  features {}
 }
 
 locals {
@@ -182,6 +183,7 @@ output "subscription_id" {
 output "full_resource_type" {
   value = local.parsed_id["full_resource_type"]
 }
+
 
 `, id)
 }

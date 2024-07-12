@@ -4,9 +4,10 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"os"
 	"strings"
+
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 func decodeCertificate(clientCertificate string) ([]byte, error) {
