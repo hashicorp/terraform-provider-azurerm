@@ -22,6 +22,10 @@ import (
 // register them if it appears they are not. Note that this may fail if a resource provider is not available in the
 // current cloud environment (a warning message will be logged to indicate when a resource provider is not listed).
 func EnsureRegistered(ctx context.Context, client *providers.ProvidersClient, subscriptionId commonids.SubscriptionId, requiredRPs ResourceProviders) error {
+	if len(requiredRPs) == 0 {
+		log.Printf("[DEBUG] No Resource Provider to register")
+		return nil
+	}
 	if cachedResourceProviders == nil || registeredResourceProviders == nil || unregisteredResourceProviders == nil {
 		if err := populateCache(ctx, client, subscriptionId); err != nil {
 			return fmt.Errorf("populating Resource Provider cache: %+v", err)
