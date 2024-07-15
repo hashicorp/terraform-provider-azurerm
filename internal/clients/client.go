@@ -542,6 +542,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 		return fmt.Errorf("building clients for MSSQL: %+v", err)
 	}
 	if client.MSSQLManagedInstance, err = mssqlmanagedinstance.NewClient(o); err != nil {
+	if err != nil {
 		return fmt.Errorf("building clients for MSSQLManagedInstance: %+v", err)
 	}
 	if client.MySQL, err = mysql.NewClient(o); err != nil {
