@@ -717,13 +717,14 @@ func expandWebApplicationFirewallPolicyPolicySettings(input []interface{}) *weba
 	fileUploadLimitInMb := v["file_upload_limit_in_mb"].(int)
 
 	result := webapplicationfirewallpolicies.PolicySettings{
-		State:                       pointer.To(enabled),
-		Mode:                        pointer.To(webapplicationfirewallpolicies.WebApplicationFirewallMode(mode)),
-		RequestBodyCheck:            pointer.To(requestBodyCheck),
-		MaxRequestBodySizeInKb:      pointer.To(int64(maxRequestBodySizeInKb)),
-		FileUploadLimitInMb:         pointer.To(int64(fileUploadLimitInMb)),
-		LogScrubbing:                expandWebApplicationFirewallPolicyLogScrubbing(v["log_scrubbing"].([]interface{})),
-		RequestBodyInspectLimitInKB: pointer.To(int64(v["request_body_inspect_limit_in_kb"].(int))),
+		State:                       	   pointer.To(enabled),
+		Mode:                        	   pointer.To(webapplicationfirewallpolicies.WebApplicationFirewallMode(mode)),
+		RequestBodyCheck:            	   pointer.To(requestBodyCheck),
+		MaxRequestBodySizeInKb:      	   pointer.To(int64(maxRequestBodySizeInKb)),
+		FileUploadLimitInMb:         	   pointer.To(int64(fileUploadLimitInMb)),
+		LogScrubbing:                	   expandWebApplicationFirewallPolicyLogScrubbing(v["log_scrubbing"].([]interface{})),
+		RequestBodyInspectLimitInKB: 	   pointer.To(int64(v["request_body_inspect_limit_in_kb"].(int))),
+		JsChallengeCookieExpirationInMins: pointer.To(int64(v["js_challenge_cookie_expiration_in_minutes"].(int))),
 	}
 
 	return &result

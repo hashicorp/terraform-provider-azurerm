@@ -192,6 +192,8 @@ The `policy_settings` block supports the following:
 
 * `request_body_inspect_limit_in_kb` - (Optional) Specifies the maximum request body inspection limit in KB for the Web Application Firewall. Defaults to `128`.
 
+* `js_challenge_cookie_expiration_in_mins` - (Optional) Specifies the JSChallenge cookie expiration in minutes. Accepted values are in the range `5` to `1440`. Defaults to `30`.
+
 ---
 
 The `managed_rules` block supports the following:
