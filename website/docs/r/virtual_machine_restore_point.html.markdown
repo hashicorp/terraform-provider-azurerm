@@ -121,5 +121,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Virtual Machine Restore Point can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_restore_point.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Compute/restorePointCollections/collection1/restorePoints/restorePoint1
+terraform import azurerm_virtual_machine_restore_point.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Compute/restorePointCollections/collection1/restorePoints/restorePoint1
 ```
