@@ -797,6 +797,28 @@ func TestAccContainerGroup_priority(t *testing.T) {
 	})
 }
 
+func TestAccContainerGroup_updateTagsWithStorageAccount(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	r := ContainerGroupResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.storageAccount(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("container.0.volume.0.storage_account_key"),
+		{
+			Config: r.updateWithStorageAccount(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("container.0.volume.0.storage_account_key"),
+	})
+}
+
 func (ContainerGroupResource) SystemAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -2755,4 +2777,126 @@ resource "azurerm_container_group" "test" {
   priority = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, priority)
+}
+
+func (ContainerGroupResource) storageAccount(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cg-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "accsa%d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_share" "test" {
+  name = "acctestss-%d"
+  storage_account_name = azurerm_storage_account.test.name
+  quota = 1
+}
+
+resource "azurerm_container_group" "test" {
+  name                = "acctestcontainergroup-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  ip_address_type     = "Public"
+  os_type             = "Linux"
+
+  container {
+    name   = "hw"
+    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
+    cpu    = "1"
+    memory = "1"
+
+    ports {
+      port     = 443
+      protocol = "TCP"
+    }
+
+    volume {
+        name       = "testvolume"
+        mount_path = "/test"
+        share_name = azurerm_storage_share.test.name  
+        storage_account_name = azurerm_storage_account.test.name
+        storage_account_key  = azurerm_storage_account.test.primary_access_key
+      }
+  }
+
+  tags = {
+    environment = "Test1"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (ContainerGroupResource) updateWithStorageAccount(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cg-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "accsa%d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_share" "test" {
+  name = "acctestss-%d"
+  storage_account_name = azurerm_storage_account.test.name
+  quota = 1
+}
+
+resource "azurerm_container_group" "test" {
+  name                = "acctestcontainergroup-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  ip_address_type     = "Public"
+  os_type             = "Linux"
+
+  container {
+    name   = "hw"
+    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
+    cpu    = "1"
+    memory = "1"
+
+    ports {
+      port     = 443
+      protocol = "TCP"
+    }
+
+    volume {
+        name       = "testvolume"
+        mount_path = "/test"
+        share_name = azurerm_storage_share.test.name  
+        storage_account_name = azurerm_storage_account.test.name
+        storage_account_key  = azurerm_storage_account.test.primary_access_key
+      }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  tags = {
+    environment = "Test2"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

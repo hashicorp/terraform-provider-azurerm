@@ -885,12 +885,39 @@ func resourceContainerGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		model.Identity = expandedIdentity
 	}
 
-	if d.HasChange("tags") {
-		model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	// As API doesn't return the value of StorageAccountKey, so it has to get it from tf config and set it to request payload. Otherwise, API call would fail
+	addedEmptyDirs := map[string]bool{}
+	_, initContainerVolumes, err := expandContainerGroupInitContainers(d, addedEmptyDirs)
+	if err != nil {
+		return err
 	}
+	_, _, containerVolumes, err := expandContainerGroupContainers(d, addedEmptyDirs)
+	if err != nil {
+		return err
+	}
+	var containerGroupVolumes []containerinstance.Volume
+	if initContainerVolumes != nil {
+		containerGroupVolumes = initContainerVolumes
+	}
+	if containerGroupVolumes != nil {
+		containerGroupVolumes = append(containerGroupVolumes, containerVolumes...)
+	}
+	model.Properties.Volumes = pointer.To(containerGroupVolumes)
 
+	// As Update API doesn't support to update identity, so it has to use CreateOrUpdate API to update identity
 	if err := client.ContainerGroupsCreateOrUpdateThenPoll(ctx, *id, model); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
+	}
+
+	if d.HasChange("tags") {
+		updateParameters := containerinstance.Resource{
+			Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		}
+
+		// As CreateOrUpdate API doesn't support to update tags, so it has to use Update API to update tags
+		if _, err := client.ContainerGroupsUpdate(ctx, *id, updateParameters); err != nil {
+			return fmt.Errorf("updating tags %s: %+v", *id, err)
+		}
 	}
 
 	return resourceContainerGroupRead(d, meta)
