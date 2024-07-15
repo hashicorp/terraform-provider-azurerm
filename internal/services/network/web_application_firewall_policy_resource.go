@@ -724,7 +724,7 @@ func expandWebApplicationFirewallPolicyPolicySettings(input []interface{}) *weba
 		FileUploadLimitInMb:         	   pointer.To(int64(fileUploadLimitInMb)),
 		LogScrubbing:                	   expandWebApplicationFirewallPolicyLogScrubbing(v["log_scrubbing"].([]interface{})),
 		RequestBodyInspectLimitInKB: 	   pointer.To(int64(v["request_body_inspect_limit_in_kb"].(int))),
-		JsChallengeCookieExpirationInMins: pointer.To(int64(v["js_challenge_cookie_expiration_in_minutes"].(int))),
+		JsChallengeCookieExpirationInMins: pointer.To(int64(v["js_challenge_cookie_expiration_in_mins"].(int))),
 	}
 
 	return &result
