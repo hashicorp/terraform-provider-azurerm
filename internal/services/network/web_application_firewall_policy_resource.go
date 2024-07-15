@@ -1076,6 +1076,7 @@ func flattenWebApplicationFirewallPolicyPolicySettings(input *webapplicationfire
 	result["file_upload_limit_in_mb"] = int(pointer.From(input.FileUploadLimitInMb))
 	result["log_scrubbing"] = flattenWebApplicationFirewallPolicyLogScrubbing(input.LogScrubbing)
 	result["request_body_inspect_limit_in_kb"] = pointer.From(input.RequestBodyInspectLimitInKB)
+	result["js_challenge_cookie_expiration_in_mins"] = pointer.From(input.JsChallengeCookieExpirationInMins)
 
 	return []interface{}{result}
 }
