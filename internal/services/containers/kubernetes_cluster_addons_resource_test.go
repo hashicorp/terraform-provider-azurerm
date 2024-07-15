@@ -309,7 +309,7 @@ func TestAccKubernetesCluster_addonProfileServiceMeshProfile_certificateAuthorit
 }
 
 func TestAccKubernetesCluster_addonProfileServiceMeshProfile_revisions(t *testing.T) {
-	if !features.FourPointOh() {
+	if !features.FourPointOhBeta() {
 		t.Skip("Service Mesh Profile Revisions are only available in version 4.0.0 and later")
 	}
 
