@@ -797,7 +797,7 @@ func TestAccContainerGroup_priority(t *testing.T) {
 	})
 }
 
-func TestAccContainerGroup_updateTagsWithStorageAccount(t *testing.T) {
+func TestAccContainerGroup_updateWithStorageAccount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
 	r := ContainerGroupResource{}
 
@@ -2799,9 +2799,9 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_share" "test" {
-  name = "acctestss-%d"
+  name                 = "acctestss-%d"
   storage_account_name = azurerm_storage_account.test.name
-  quota = 1
+  quota                = 1
 }
 
 resource "azurerm_container_group" "test" {
@@ -2823,12 +2823,12 @@ resource "azurerm_container_group" "test" {
     }
 
     volume {
-        name       = "testvolume"
-        mount_path = "/test"
-        share_name = azurerm_storage_share.test.name  
-        storage_account_name = azurerm_storage_account.test.name
-        storage_account_key  = azurerm_storage_account.test.primary_access_key
-      }
+      name                 = "testvolume"
+      mount_path           = "/test"
+      share_name           = azurerm_storage_share.test.name
+      storage_account_name = azurerm_storage_account.test.name
+      storage_account_key  = azurerm_storage_account.test.primary_access_key
+    }
   }
 
   tags = {
@@ -2858,9 +2858,9 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_share" "test" {
-  name = "acctestss-%d"
+  name                 = "acctestss-%d"
   storage_account_name = azurerm_storage_account.test.name
-  quota = 1
+  quota                = 1
 }
 
 resource "azurerm_container_group" "test" {
@@ -2882,12 +2882,12 @@ resource "azurerm_container_group" "test" {
     }
 
     volume {
-        name       = "testvolume"
-        mount_path = "/test"
-        share_name = azurerm_storage_share.test.name  
-        storage_account_name = azurerm_storage_account.test.name
-        storage_account_key  = azurerm_storage_account.test.primary_access_key
-      }
+      name                 = "testvolume"
+      mount_path           = "/test"
+      share_name           = azurerm_storage_share.test.name
+      storage_account_name = azurerm_storage_account.test.name
+      storage_account_key  = azurerm_storage_account.test.primary_access_key
+    }
   }
 
   identity {

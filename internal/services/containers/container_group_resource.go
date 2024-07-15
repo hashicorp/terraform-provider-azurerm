@@ -885,7 +885,7 @@ func resourceContainerGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		model.Identity = expandedIdentity
 	}
 
-	// As API doesn't return the value of StorageAccountKey, so it has to get it from tf config and set it to request payload. Otherwise, API call would fail
+	// As API doesn't return the value of StorageAccountKey, so it has to get the value from tf config and set it to request payload. Otherwise, the Update API call would fail
 	addedEmptyDirs := map[string]bool{}
 	_, initContainerVolumes, err := expandContainerGroupInitContainers(d, addedEmptyDirs)
 	if err != nil {
