@@ -283,7 +283,7 @@ func (AIServicesAccountResource) ResourceType() string {
 
 func (AIServicesAccountResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 60 * time.Minute,
+		Timeout: 180 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			var model AIServicesAccountResourceResourceModel
 			if err := metadata.Decode(&model); err != nil {
@@ -339,12 +339,6 @@ func (AIServicesAccountResource) Create() sdk.ResourceFunc {
 				Tags: pointer.To(model.Tags),
 			}
 
-			customMangedKey, err := expandAIServicesAccountCustomerManagedKey(model.CustomerManagedKey)
-			if err != nil {
-				return fmt.Errorf("expanding `customer_managed_key`: %+v", err)
-			}
-			props.Properties.Encryption = customMangedKey
-
 			expandIdentity, err := identity.ExpandSystemAndUserAssignedMapFromModel(model.Identity)
 			if err != nil {
 				return fmt.Errorf("expanding `identity`: %+v", err)
@@ -358,6 +352,23 @@ func (AIServicesAccountResource) Create() sdk.ResourceFunc {
 
 			if err := future.Poller.PollUntilDone(ctx); err != nil {
 				return fmt.Errorf("waiting for creating of %s: %+v", id, err)
+			}
+
+			customMangedKey, err := expandAIServicesAccountCustomerManagedKey(model.CustomerManagedKey)
+			if err != nil {
+				return fmt.Errorf("expanding `customer_managed_key`: %+v", err)
+			}
+
+			if customMangedKey != nil {
+				props.Properties.Encryption = customMangedKey
+				futureUpdate, err := client.AccountsUpdate(ctx, id, props)
+				if err != nil {
+					return fmt.Errorf("updating %s: %+v", id, err)
+				}
+
+				if err := futureUpdate.Poller.PollUntilDone(ctx); err != nil {
+					return fmt.Errorf("waiting for updating of %s: %+v", id, err)
+				}
 			}
 
 			metadata.SetID(id)
@@ -451,7 +462,7 @@ func (AIServicesAccountResource) Read() sdk.ResourceFunc {
 
 func (AIServicesAccountResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 60 * time.Minute,
+		Timeout: 180 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Cognitive.AccountsClient
 
@@ -533,7 +544,7 @@ func (AIServicesAccountResource) Update() sdk.ResourceFunc {
 
 func (AIServicesAccountResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 180 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Cognitive.AccountsClient
 
