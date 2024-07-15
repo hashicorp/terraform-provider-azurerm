@@ -1,7 +1,7 @@
 ---
 name: 4️⃣ Beta Bug Report / Feedback
 about: Feedback regarding the Beta for features coming in 4.0
-labels: v/4.x
+labels: v4.0-beta
 ---
 
 ### Community Note
