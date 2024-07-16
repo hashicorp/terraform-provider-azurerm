@@ -1856,6 +1856,7 @@ resource "azurerm_linux_function_app" "test" {
 `, r.template(data, planSku), data.RandomInteger)
 }
 
+// nolint: unparam
 func (r LinuxFunctionAppResource) websiteContentOverVnet(data acceptance.TestData, planSku string, websiteContentAppSetting string, websiteContentSiteConfig bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1875,6 +1876,7 @@ resource "azurerm_linux_function_app" "test" {
 
   app_settings = {
     WEBSITE_CONTENTOVERVNET = "%s"
+    WEBSITE_CONTENTSHARE    = "testacc-content-app"
   }
 
   site_config {}

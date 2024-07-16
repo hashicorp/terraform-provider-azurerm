@@ -3977,6 +3977,8 @@ resource "azurerm_windows_function_app" "test" {
 }
 `, r.templateWithStorageAccountExtras(data, planSKU), data.RandomInteger)
 }
+
+// nolint: unparam
 func (r WindowsFunctionAppResource) websiteContentOverVnet(data acceptance.TestData, planSKU string, websiteContentAppSetting string, websiteContentSiteConfig bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3995,6 +3997,7 @@ resource "azurerm_windows_function_app" "test" {
 
   app_settings = {
     WEBSITE_CONTENTOVERVNET = "%s"
+    WEBSITE_CONTENTSHARE    = "testacc-content-app"
   }
 
   site_config {}
