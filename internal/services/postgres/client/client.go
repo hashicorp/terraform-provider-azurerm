@@ -135,6 +135,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(flexibleServerAdministratorsClient.Client, o.Authorizers.ResourceManager)
 
+	virtualEndpointClient, err := flexibleservervirtualendpoints.NewVirtualEndpointsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building FlexibleServerVirtualEndpoint client: %+v", err)
+	}
+	o.Configure(virtualEndpointClient.Client, o.Authorizers.ResourceManager)
+
 	return &Client{
 		ConfigurationsClient:                configurationsClient,
 		DatabasesClient:                     databasesClient,
@@ -151,5 +157,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		VirtualNetworkRulesClient:           virtualNetworkRulesClient,
 		ServerAdministratorsClient:          serverAdministratorsClient,
 		ReplicasClient:                      replicasClient,
+		VirtualEndpointClient:               virtualEndpointClient,
 	}, nil
 }
