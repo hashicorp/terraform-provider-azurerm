@@ -57,11 +57,11 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				_, err := commonids.ParseKubernetesClusterID(id)
 				return err
 			},
-			// TODO 4.0: we're defaulting this at import time because the property is non-functional.
-			// In the lead up to 4.0 planning if the feature still isn't functional we should look at
-			// removing this entirely.
+
 			func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
-				d.Set("public_network_access_enabled", true)
+				if !features.FourPointOhBeta() {
+					d.Set("public_network_access_enabled", true)
+				}
 				return []*pluginsdk.ResourceData{d}, nil
 			},
 		),
@@ -99,7 +99,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				}
 				return true
 			}),
-			pluginsdk.ForceNewIfChange("network_profile.0.ebpf_data_plane", func(ctx context.Context, old, new, meta interface{}) bool {
+			pluginsdk.ForceNewIfChange("network_profile.0.network_data_plane", func(ctx context.Context, old, new, meta interface{}) bool {
 				return old != ""
 			}),
 			func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
@@ -380,12 +380,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			},
 
 			"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
-
-			"enable_pod_security_policy": {
-				Type:       pluginsdk.TypeBool,
-				Deprecated: "The AKS API has removed support for this field on 2020-10-15 and is no longer possible to configure this the Pod Security Policy.",
-				Optional:   true,
-			},
 
 			"fqdn": {
 				Type:     pluginsdk.TypeString,
@@ -1018,12 +1012,25 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							ValidateFunc: validate.IPv4Address,
 						},
 
-						"ebpf_data_plane": {
+						"network_data_plane": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(managedclusters.NetworkDataplaneCilium),
-							}, false),
+							Computed: !features.FourPointOhBeta(),
+							Default: func() interface{} {
+								if !features.FourPointOh() {
+									return nil
+								}
+								return string(managedclusters.NetworkDataplaneAzure)
+							}(),
+							ValidateFunc: validation.StringInSlice(
+								managedclusters.PossibleValuesForNetworkDataplane(),
+								false),
+							ConflictsWith: func() []string {
+								if !features.FourPointOhBeta() {
+									return []string{"network_profile.0.ebpf_data_plane"}
+								}
+								return []string{}
+							}(),
 						},
 
 						"network_plugin_mode": {
@@ -1270,13 +1277,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				),
 			},
 
-			"public_network_access_enabled": {
-				Type:       pluginsdk.TypeBool,
-				Optional:   true,
-				Default:    true,
-				Deprecated: "`public_network_access_enabled` is currently not functional and is not be passed to the API",
-			},
-
 			"role_based_access_control_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -1310,6 +1310,36 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						"external_ingress_gateway_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
+						},
+						"certificate_authority": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"key_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}),
+									"root_cert_object_name": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"cert_chain_object_name": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"cert_object_name": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"key_object_name": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+								},
+							},
 						},
 					},
 				},
@@ -1481,6 +1511,21 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 	}
 
 	if !features.FourPointOhBeta() {
+		resource.Schema["enable_pod_security_policy"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Deprecated: "The AKS API has removed support for this field on 2020-10-15 and it is no longer possible to configure Pod Security Policy. This property will be removed in v4.0 of the AzureRM provider.",
+			Optional:   true,
+		}
+		resource.Schema["network_profile"].Elem.(*pluginsdk.Resource).Schema["ebpf_data_plane"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(managedclusters.NetworkDataplaneCilium),
+			}, false),
+			Deprecated:    "This property has been superseded by the property `network_data_plane` and will be removed in v4.0 of the AzureRM provider.",
+			ConflictsWith: []string{"network_profile.0.network_data_plane"},
+		}
 		resource.Schema["api_server_authorized_ip_ranges"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
@@ -1711,6 +1756,12 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			},
 			ConflictsWith: []string{"web_app_routing.0.dns_zone_id"},
 		}
+		resource.Schema["public_network_access_enabled"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Default:    true,
+			Deprecated: "`public_network_access_enabled` is currently not functional and is not be passed to the API, this property will be removed in v4.0 of the AzureRM provider.",
+		}
 	}
 
 	if features.FourPointOhBeta() {
@@ -1727,6 +1778,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 		resource.Schema["node_os_upgrade_channel"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeString,
 			Optional: true,
+			Default:  string(managedclusters.NodeOSUpgradeChannelNodeImage),
 			ValidateFunc: validation.StringInSlice([]string{
 				string(managedclusters.NodeOSUpgradeChannelNodeImage),
 				string(managedclusters.NodeOSUpgradeChannelNone),
@@ -1833,8 +1885,10 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	nodeResourceGroup := d.Get("node_resource_group").(string)
 
-	if d.Get("enable_pod_security_policy").(bool) {
-		return fmt.Errorf("the AKS API has removed support for this field on 2020-10-15 and is no longer possible to configure this the Pod Security Policy - as such you'll need to set `enable_pod_security_policy` to `false`")
+	if !features.FourPointOhBeta() {
+		if d.Get("enable_pod_security_policy").(bool) {
+			return fmt.Errorf("the AKS API has removed support for this field on 2020-10-15 and it is no longer possible to configure Pod Security Policy - as such you'll need to set `enable_pod_security_policy` to `false`")
+		}
 	}
 
 	autoScalerProfileRaw := d.Get("auto_scaler_profile").([]interface{})
@@ -2201,8 +2255,10 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		existing.Model.Properties.AzureMonitorProfile = azureMonitorProfile
 	}
 
-	if d.HasChange("enable_pod_security_policy") && d.Get("enable_pod_security_policy").(bool) {
-		return fmt.Errorf("The AKS API has removed support for this field on 2020-10-15 and is no longer possible to configure this the Pod Security Policy - as such you'll need to set `enable_pod_security_policy` to `false`")
+	if !features.FourPointOhBeta() {
+		if d.HasChange("enable_pod_security_policy") && d.Get("enable_pod_security_policy").(bool) {
+			return fmt.Errorf("The AKS API has removed support for this field on 2020-10-15 and it is no longer possible to configure Pod Security Policy - as such you'll need to set `enable_pod_security_policy` to `false`")
+		}
 	}
 
 	if d.HasChange("linux_profile") {
@@ -2347,9 +2403,15 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			existing.Model.Properties.NetworkProfile.NatGatewayProfile = &natGatewayProfile
 		}
 
-		if key := "network_profile.0.ebpf_data_plane"; d.HasChange(key) {
-			ebpfDataPlane := d.Get(key).(string)
-			existing.Model.Properties.NetworkProfile.NetworkDataplane = pointer.To(managedclusters.NetworkDataplane(ebpfDataPlane))
+		if !features.FourPointOhBeta() {
+			if key := "network_profile.0.ebpf_data_plane"; d.HasChange(key) {
+				ebpfDataPlane := d.Get(key).(string)
+				existing.Model.Properties.NetworkProfile.NetworkDataplane = pointer.To(managedclusters.NetworkDataplane(ebpfDataPlane))
+			}
+		}
+
+		if d.HasChange("network_profile.0.network_data_plane") {
+			existing.Model.Properties.NetworkProfile.NetworkDataplane = pointer.To(managedclusters.NetworkDataplane(d.Get("network_profile.0.network_data_plane").(string)))
 		}
 
 		if key := "network_profile.0.outbound_type"; d.HasChange(key) {
@@ -2602,10 +2664,17 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			}
 		}
 
+		hostEncryptionEnabled := "default_node_pool.0.host_encryption_enabled"
+		nodePublicIpEnabled := "default_node_pool.0.node_public_ip_enabled"
+		if !features.FourPointOhBeta() {
+			hostEncryptionEnabled = "default_node_pool.0.enable_host_encryption"
+			nodePublicIpEnabled = "default_node_pool.0.enable_node_public_ip"
+		}
+
 		cycleNodePoolProperties := []string{
 			"default_node_pool.0.name",
-			"default_node_pool.0.enable_host_encryption",
-			"default_node_pool.0.enable_node_public_ip",
+			hostEncryptionEnabled,
+			nodePublicIpEnabled,
 			"default_node_pool.0.fips_enabled",
 			"default_node_pool.0.kubelet_config",
 			"default_node_pool.0.linux_os_config",
@@ -2613,7 +2682,6 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			"default_node_pool.0.only_critical_addons_enabled",
 			"default_node_pool.0.os_disk_size_gb",
 			"default_node_pool.0.os_disk_type",
-			"default_node_pool.0.os_sku",
 			"default_node_pool.0.pod_subnet_id",
 			"default_node_pool.0.snapshot_id",
 			"default_node_pool.0.ultra_ssd_enabled",
@@ -2623,7 +2691,20 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 
 		// if the default node pool name has changed, it means the initial attempt at resizing failed
-		if d.HasChanges(cycleNodePoolProperties...) {
+		cycleNodePool := d.HasChanges(cycleNodePoolProperties...)
+		// os_sku could only be updated if the current and new os_sku are either Ubuntu or AzureLinux
+		if d.HasChange("default_node_pool.0.os_sku") {
+			oldOsSkuRaw, newOsSkuRaw := d.GetChange("default_node_pool.0.os_sku")
+			oldOsSku := oldOsSkuRaw.(string)
+			newOsSku := newOsSkuRaw.(string)
+			if oldOsSku != string(managedclusters.OSSKUUbuntu) && oldOsSku != string(managedclusters.OSSKUAzureLinux) {
+				cycleNodePool = true
+			}
+			if newOsSku != string(managedclusters.OSSKUUbuntu) && newOsSku != string(managedclusters.OSSKUAzureLinux) {
+				cycleNodePool = true
+			}
+		}
+		if cycleNodePool {
 			log.Printf("[DEBUG] Cycling Default Node Pool..")
 			// to provide a seamless updating experience for the vm size of the default node pool we need to cycle the default
 			// node pool by provisioning a temporary system node pool, tearing down the former default node pool and then
@@ -2655,10 +2736,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 				}
 			}
 
-			ignorePodDisruptionBudget := true
-			deleteOpts := agentpools.DeleteOperationOptions{
-				IgnorePodDisruptionBudget: &ignorePodDisruptionBudget,
-			}
+			deleteOpts := agentpools.DeleteOperationOptions{}
 			// delete the old default node pool if it exists
 			if defaultExisting.Model != nil {
 				if err := nodePoolsClient.DeleteThenPoll(ctx, defaultNodePoolId, deleteOpts); err != nil {
@@ -2816,7 +2894,9 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("disk_encryption_set_id", props.DiskEncryptionSetID)
 			d.Set("kubernetes_version", props.KubernetesVersion)
 			d.Set("current_kubernetes_version", props.CurrentKubernetesVersion)
-			d.Set("enable_pod_security_policy", props.EnablePodSecurityPolicy)
+			if !features.FourPointOhBeta() {
+				d.Set("enable_pod_security_policy", props.EnablePodSecurityPolicy)
+			}
 			d.Set("local_account_disabled", props.DisableLocalAccounts)
 
 			nodeResourceGroup := ""
@@ -3363,6 +3443,14 @@ func expandGmsaProfile(input []interface{}) *managedclusters.WindowsGmsaProfile 
 		return nil
 	}
 
+	if input[0] == nil {
+		return &managedclusters.WindowsGmsaProfile{
+			Enabled:        utils.Bool(true),
+			DnsServer:      utils.String(""),
+			RootDomainName: utils.String(""),
+		}
+	}
+
 	config := input[0].(map[string]interface{})
 	return &managedclusters.WindowsGmsaProfile{
 		Enabled:        utils.Bool(true),
@@ -3479,9 +3567,16 @@ func expandKubernetesClusterNetworkProfile(input []interface{}) (*managedcluster
 		IPFamilies:      ipVersions,
 	}
 
-	if ebpfDataPlane := config["ebpf_data_plane"].(string); ebpfDataPlane != "" {
-		networkProfile.NetworkDataplane = pointer.To(managedclusters.NetworkDataplane(ebpfDataPlane))
+	if networkDataPlane := config["network_data_plane"].(string); networkDataPlane != "" {
+		networkProfile.NetworkDataplane = pointer.To(managedclusters.NetworkDataplane(networkDataPlane))
 	}
+
+	if !features.FourPointOhBeta() {
+		if ebpfDataPlane := config["ebpf_data_plane"].(string); ebpfDataPlane != "" {
+			networkProfile.NetworkDataplane = pointer.To(managedclusters.NetworkDataplane(ebpfDataPlane))
+		}
+	}
+
 	if networkPluginMode := config["network_plugin_mode"].(string); networkPluginMode != "" {
 		networkProfile.NetworkPluginMode = pointer.To(managedclusters.NetworkPluginMode(networkPluginMode))
 	}
@@ -3786,16 +3881,15 @@ func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerSe
 			networkPluginMode = string(managedclusters.NetworkPluginModeOverlay)
 		}
 	}
-	ebpfDataPlane := ""
-	// 2023-02-02-preview returns the default value `azure` for this new property
-	// @stephybun: we should look into replacing `ebpf_data_plane` with a new property called `network_data_plane`
-	if v := profile.NetworkDataplane; v != nil && *v != managedclusters.NetworkDataplaneAzure {
-		ebpfDataPlane = string(*v)
+
+	networkDataPlane := string(managedclusters.NetworkDataplaneAzure)
+	if v := profile.NetworkDataplane; v != nil {
+		networkDataPlane = string(pointer.From(v))
 	}
 
 	result := map[string]interface{}{
 		"dns_service_ip":        dnsServiceIP,
-		"ebpf_data_plane":       ebpfDataPlane,
+		"network_data_plane":    networkDataPlane,
 		"load_balancer_sku":     string(*sku),
 		"load_balancer_profile": lbProfiles,
 		"nat_gateway_profile":   ngwProfiles,
@@ -3813,6 +3907,14 @@ func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerSe
 
 	if !features.FourPointOhBeta() {
 		result["docker_bridge_cidr"] = dockerBridgeCidr
+
+		ebpfDataPlane := ""
+		// 2023-02-02-preview returns the default value `azure` for this new property
+		// @stephybun: we should look into replacing `ebpf_data_plane` with a new property called `network_data_plane`
+		if v := profile.NetworkDataplane; v != nil && *v != managedclusters.NetworkDataplaneAzure {
+			ebpfDataPlane = string(*v)
+		}
+		result["ebpf_data_plane"] = ebpfDataPlane
 	}
 
 	return []interface{}{result}
@@ -4748,9 +4850,32 @@ func expandKubernetesClusterServiceMeshProfile(input []interface{}, existing *ma
 		}
 
 		profile.Istio.Components.IngressGateways = &istioIngressGatewaysList
+
+		if raw["certificate_authority"] != nil {
+			certificateAuthority := expandKubernetesClusterServiceMeshProfileCertificateAuthority(raw["certificate_authority"].([]interface{}))
+			profile.Istio.CertificateAuthority = certificateAuthority
+		}
 	}
 
 	return &profile
+}
+
+func expandKubernetesClusterServiceMeshProfileCertificateAuthority(input []interface{}) *managedclusters.IstioCertificateAuthority {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	config := input[0].(map[string]interface{})
+
+	return &managedclusters.IstioCertificateAuthority{
+		Plugin: &managedclusters.IstioPluginCertificateAuthority{
+			KeyVaultId:          pointer.To(config["key_vault_id"].(string)),
+			RootCertObjectName:  pointer.To(config["root_cert_object_name"].(string)),
+			CertChainObjectName: pointer.To(config["cert_chain_object_name"].(string)),
+			CertObjectName:      pointer.To(config["cert_object_name"].(string)),
+			KeyObjectName:       pointer.To(config["key_object_name"].(string)),
+		},
+	}
 }
 
 func expandKubernetesClusterIngressProfile(d *pluginsdk.ResourceData, input []interface{}) *managedclusters.ManagedClusterIngressProfile {
@@ -4873,7 +4998,28 @@ func flattenKubernetesClusterAzureServiceMeshProfile(input *managedclusters.Serv
 		}
 	}
 
+	if input.Istio.CertificateAuthority != nil {
+		returnMap["certificate_authority"] = flattenKubernetesClusterServiceMeshProfileCertificateAuthority(input.Istio.CertificateAuthority)
+	}
+
 	return []interface{}{returnMap}
+}
+
+func flattenKubernetesClusterServiceMeshProfileCertificateAuthority(certificateAuthority *managedclusters.IstioCertificateAuthority) interface{} {
+	if certificateAuthority == nil || certificateAuthority.Plugin == nil {
+		return []interface{}{}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"key_vault_id":           pointer.From(certificateAuthority.Plugin.KeyVaultId),
+			"root_cert_object_name":  pointer.From(certificateAuthority.Plugin.RootCertObjectName),
+			"cert_chain_object_name": pointer.From(certificateAuthority.Plugin.CertChainObjectName),
+			"cert_object_name":       pointer.From(certificateAuthority.Plugin.CertObjectName),
+			"key_object_name":        pointer.From(certificateAuthority.Plugin.KeyObjectName),
+		},
+	}
+
 }
 
 func flattenKubernetesClusterAzureMonitorProfile(input *managedclusters.ManagedClusterAzureMonitorProfile) []interface{} {

@@ -49,17 +49,19 @@ type ServicePrincipal struct {
 }
 
 type ClusterProfile struct {
-	PullSecret      string `tfschema:"pull_secret"`
-	Domain          string `tfschema:"domain"`
-	ResourceGroupId string `tfschema:"resource_group_id"`
-	Version         string `tfschema:"version"`
-	FipsEnabled     bool   `tfschema:"fips_enabled"`
+	PullSecret               string `tfschema:"pull_secret"`
+	Domain                   string `tfschema:"domain"`
+	ManagedResourceGroupName string `tfschema:"managed_resource_group_name"`
+	ResourceGroupId          string `tfschema:"resource_group_id"`
+	Version                  string `tfschema:"version"`
+	FipsEnabled              bool   `tfschema:"fips_enabled"`
 }
 
 type NetworkProfile struct {
-	OutboundType string `tfschema:"outbound_type"`
-	PodCidr      string `tfschema:"pod_cidr"`
-	ServiceCidr  string `tfschema:"service_cidr"`
+	OutboundType                             string `tfschema:"outbound_type"`
+	PodCidr                                  string `tfschema:"pod_cidr"`
+	ServiceCidr                              string `tfschema:"service_cidr"`
+	PreconfiguredNetworkSecurityGroupEnabled bool   `tfschema:"preconfigured_network_security_group_enabled"`
 }
 
 type MainProfile struct {
@@ -135,6 +137,19 @@ func (r RedHatOpenShiftCluster) Arguments() map[string]*pluginsdk.Schema {
 						Sensitive:    true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
+					"managed_resource_group_name": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: validate.ClusterResourceGroupName,
+						DiffSuppressFunc: func(_, old, new string, d *pluginsdk.ResourceData) bool {
+							defaultResourceGroupName := fmt.Sprintf("aro-%s", d.Get("cluster_profile.0.domain").(string))
+							if old == defaultResourceGroupName && new == "" {
+								return true
+							}
+							return false
+						},
+					},
 					"resource_group_id": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
@@ -192,6 +207,12 @@ func (r RedHatOpenShiftCluster) Arguments() map[string]*pluginsdk.Schema {
 							openshiftclusters.PossibleValuesForOutboundType(),
 							false,
 						),
+					},
+					"preconfigured_network_security_group_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						ForceNew: true,
+						Default:  false,
 					},
 				},
 			},
@@ -479,7 +500,12 @@ func (r RedHatOpenShiftCluster) Read() sdk.ResourceFunc {
 				state.Tags = pointer.From(model.Tags)
 
 				if props := model.Properties; props != nil {
-					state.ClusterProfile = flattenOpenShiftClusterProfile(props.ClusterProfile, config)
+					clusterProfile, err := flattenOpenShiftClusterProfile(props.ClusterProfile, config)
+					if err != nil {
+						return fmt.Errorf("flatten cluster profile: %+v", err)
+					}
+					state.ClusterProfile = *clusterProfile
+
 					state.ServicePrincipal = flattenOpenShiftServicePrincipalProfile(props.ServicePrincipalProfile, config)
 					state.NetworkProfile = flattenOpenShiftNetworkProfile(props.NetworkProfile)
 					state.MainProfile = flattenOpenShiftMainProfile(props.MasterProfile)
@@ -533,10 +559,15 @@ func expandOpenshiftClusterProfile(input []ClusterProfile, subscriptionId string
 		fipsValidatedModules = openshiftclusters.FipsValidatedModulesEnabled
 	}
 
+	// the api needs a ResourceGroupId value and the portal doesn't allow you to set it but the portal returns the
+	// resource id being `aro-{domain}` so we'll follow that here.
+	resourceGroupId := commonids.NewResourceGroupID(subscriptionId, fmt.Sprintf("aro-%s", input[0].Domain)).ID()
+	if rg := input[0].ManagedResourceGroupName; rg != "" {
+		resourceGroupId = commonids.NewResourceGroupID(subscriptionId, rg).ID()
+	}
+
 	return &openshiftclusters.ClusterProfile{
-		// the api needs a ResourceGroupId value and the portal doesn't allow you to set it but the portal returns the
-		// resource id being `aro-{domain}` so we'll follow that here.
-		ResourceGroupId:      pointer.To(commonids.NewResourceGroupID(subscriptionId, fmt.Sprintf("aro-%s", input[0].Domain)).ID()),
+		ResourceGroupId:      pointer.To(resourceGroupId),
 		Domain:               pointer.To(input[0].Domain),
 		PullSecret:           pointer.To(input[0].PullSecret),
 		FipsValidatedModules: pointer.To(fipsValidatedModules),
@@ -544,9 +575,9 @@ func expandOpenshiftClusterProfile(input []ClusterProfile, subscriptionId string
 	}
 }
 
-func flattenOpenShiftClusterProfile(profile *openshiftclusters.ClusterProfile, config RedHatOpenShiftClusterModel) []ClusterProfile {
+func flattenOpenShiftClusterProfile(profile *openshiftclusters.ClusterProfile, config RedHatOpenShiftClusterModel) (*[]ClusterProfile, error) {
 	if profile == nil {
-		return []ClusterProfile{}
+		return &[]ClusterProfile{}, nil
 	}
 
 	// pull secret isn't returned by the API so pass the existing value along
@@ -560,15 +591,28 @@ func flattenOpenShiftClusterProfile(profile *openshiftclusters.ClusterProfile, c
 		fipsEnabled = *profile.FipsValidatedModules == openshiftclusters.FipsValidatedModulesEnabled
 	}
 
-	return []ClusterProfile{
-		{
-			PullSecret:      pullSecret,
-			Domain:          pointer.From(profile.Domain),
-			FipsEnabled:     fipsEnabled,
-			ResourceGroupId: pointer.From(profile.ResourceGroupId),
-			Version:         pointer.From(profile.Version),
-		},
+	resourceGroupId, err := commonids.ParseResourceGroupIDInsensitively(*profile.ResourceGroupId)
+	if err != nil {
+		return nil, err
 	}
+
+	resourceGroupIdString := ""
+	resourceGroupName := ""
+	if resourceGroupId != nil {
+		resourceGroupIdString = resourceGroupId.ID()
+		resourceGroupName = resourceGroupId.ResourceGroupName
+	}
+
+	return &[]ClusterProfile{
+		{
+			PullSecret:               pullSecret,
+			Domain:                   pointer.From(profile.Domain),
+			FipsEnabled:              fipsEnabled,
+			ResourceGroupId:          resourceGroupIdString,
+			ManagedResourceGroupName: resourceGroupName,
+			Version:                  pointer.From(profile.Version),
+		},
+	}, nil
 }
 
 func expandOpenshiftServicePrincipalProfile(input []ServicePrincipal) *openshiftclusters.ServicePrincipalProfile {
@@ -606,10 +650,16 @@ func expandOpenshiftNetworkProfile(input []NetworkProfile) *openshiftclusters.Ne
 		return nil
 	}
 
+	preconfiguredNSG := openshiftclusters.PreconfiguredNSGDisabled
+	if input[0].PreconfiguredNetworkSecurityGroupEnabled {
+		preconfiguredNSG = openshiftclusters.PreconfiguredNSGEnabled
+	}
+
 	return &openshiftclusters.NetworkProfile{
-		OutboundType: pointer.To(openshiftclusters.OutboundType(input[0].OutboundType)),
-		PodCidr:      pointer.To(input[0].PodCidr),
-		ServiceCidr:  pointer.To(input[0].ServiceCidr),
+		OutboundType:     pointer.To(openshiftclusters.OutboundType(input[0].OutboundType)),
+		PodCidr:          pointer.To(input[0].PodCidr),
+		ServiceCidr:      pointer.To(input[0].ServiceCidr),
+		PreconfiguredNSG: pointer.To(preconfiguredNSG),
 	}
 }
 
@@ -618,11 +668,17 @@ func flattenOpenShiftNetworkProfile(profile *openshiftclusters.NetworkProfile) [
 		return []NetworkProfile{}
 	}
 
+	preconfiguredNetworkSecurityGroupEnabled := false
+	if profile.PreconfiguredNSG != nil {
+		preconfiguredNetworkSecurityGroupEnabled = *profile.PreconfiguredNSG == openshiftclusters.PreconfiguredNSGEnabled
+	}
+
 	return []NetworkProfile{
 		{
-			OutboundType: string(pointer.From(profile.OutboundType)),
-			PodCidr:      pointer.From(profile.PodCidr),
-			ServiceCidr:  pointer.From(profile.ServiceCidr),
+			OutboundType:                             string(pointer.From(profile.OutboundType)),
+			PodCidr:                                  pointer.From(profile.PodCidr),
+			ServiceCidr:                              pointer.From(profile.ServiceCidr),
+			PreconfiguredNetworkSecurityGroupEnabled: preconfiguredNetworkSecurityGroupEnabled,
 		},
 	}
 }

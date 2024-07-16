@@ -54,8 +54,8 @@ func (c VirtualNetworksClient) VirtualNetworksCheckIPAddressAvailability(ctx con
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/checkIPAddressAvailability", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/checkIPAddressAvailability", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

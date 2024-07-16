@@ -50,6 +50,18 @@ func (o ProjectEnvironmentTypesListOperationOptions) ToQuery() *client.QueryPara
 	return &out
 }
 
+type ProjectEnvironmentTypesListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ProjectEnvironmentTypesListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ProjectEnvironmentTypesList ...
 func (c EnvironmentTypesClient) ProjectEnvironmentTypesList(ctx context.Context, id ProjectId, options ProjectEnvironmentTypesListOperationOptions) (result ProjectEnvironmentTypesListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -58,8 +70,9 @@ func (c EnvironmentTypesClient) ProjectEnvironmentTypesList(ctx context.Context,
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/environmentTypes", id.ID()),
 		OptionsObject: options,
+		Pager:         &ProjectEnvironmentTypesListCustomPager{},
+		Path:          fmt.Sprintf("%s/environmentTypes", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

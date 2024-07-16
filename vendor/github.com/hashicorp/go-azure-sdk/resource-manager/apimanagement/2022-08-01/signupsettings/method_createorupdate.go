@@ -53,8 +53,8 @@ func (c SignUpSettingsClient) CreateOrUpdate(ctx context.Context, id ServiceId, 
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPut,
-		Path:          fmt.Sprintf("%s/portalsettings/signup", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/portalsettings/signup", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

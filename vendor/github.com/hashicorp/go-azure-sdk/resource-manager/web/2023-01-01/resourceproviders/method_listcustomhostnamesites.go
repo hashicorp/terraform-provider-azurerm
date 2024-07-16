@@ -51,6 +51,18 @@ func (o ListCustomHostNameSitesOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListCustomHostNameSitesCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListCustomHostNameSitesCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListCustomHostNameSites ...
 func (c ResourceProvidersClient) ListCustomHostNameSites(ctx context.Context, id commonids.SubscriptionId, options ListCustomHostNameSitesOperationOptions) (result ListCustomHostNameSitesOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -59,8 +71,9 @@ func (c ResourceProvidersClient) ListCustomHostNameSites(ctx context.Context, id
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/providers/Microsoft.Web/customhostnameSites", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListCustomHostNameSitesCustomPager{},
+		Path:          fmt.Sprintf("%s/providers/Microsoft.Web/customhostnameSites", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

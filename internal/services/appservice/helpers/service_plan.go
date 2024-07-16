@@ -15,10 +15,11 @@ import (
 )
 
 const (
-	ServicePlanTypeConsumption = "consumption"
-	ServicePlanTypeElastic     = "elastic"
-	ServicePlanTypeIsolated    = "isolated"
-	ServicePlanTypeAppPlan     = "app"
+	ServicePlanTypeConsumption     = "consumption"
+	ServicePlanTypeFlexConsumption = "flexconsumption"
+	ServicePlanTypeElastic         = "elastic"
+	ServicePlanTypeIsolated        = "isolated"
+	ServicePlanTypeAppPlan         = "app"
 )
 
 var appServicePlanSkus = []string{
@@ -42,6 +43,10 @@ var consumptionSkus = []string{
 	"Y1",
 }
 
+var flexConsumptionSkus = []string{
+	"FC1",
+}
+
 var elasticSkus = []string{
 	"EP1", "EP2", "EP3",
 }
@@ -61,6 +66,7 @@ func AllKnownServicePlanSkus() []string {
 	allSkus = append(allSkus, appServicePlanSkus...)
 	allSkus = append(allSkus, consumptionSkus...)
 	allSkus = append(allSkus, elasticSkus...)
+	allSkus = append(allSkus, flexConsumptionSkus...)
 	allSkus = append(allSkus, freeSkus...)
 	allSkus = append(allSkus, isolatedSkus...)
 	allSkus = append(allSkus, sharedSkus...)
@@ -74,6 +80,19 @@ func PlanIsConsumption(input *string) bool {
 		return false
 	}
 	for _, v := range consumptionSkus {
+		if strings.EqualFold(*input, v) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func PlanIsFlexConsumption(input *string) bool {
+	if input == nil {
+		return false
+	}
+	for _, v := range flexConsumptionSkus {
 		if strings.EqualFold(*input, v) {
 			return true
 		}

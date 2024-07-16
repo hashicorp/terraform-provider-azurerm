@@ -50,6 +50,18 @@ func (o ComputeListOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ComputeListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ComputeListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ComputeList ...
 func (c MachineLearningComputesClient) ComputeList(ctx context.Context, id WorkspaceId, options ComputeListOperationOptions) (result ComputeListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -58,8 +70,9 @@ func (c MachineLearningComputesClient) ComputeList(ctx context.Context, id Works
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/computes", id.ID()),
 		OptionsObject: options,
+		Pager:         &ComputeListCustomPager{},
+		Path:          fmt.Sprintf("%s/computes", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

@@ -54,8 +54,8 @@ func (c BlobContainersClient) ExtendImmutabilityPolicy(ctx context.Context, id c
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPost,
-		Path:          fmt.Sprintf("%s/immutabilityPolicies/default/extend", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/immutabilityPolicies/default/extend", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

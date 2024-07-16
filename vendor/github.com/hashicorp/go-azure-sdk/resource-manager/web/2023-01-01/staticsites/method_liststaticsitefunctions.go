@@ -23,6 +23,18 @@ type ListStaticSiteFunctionsCompleteResult struct {
 	Items              []StaticSiteFunctionOverviewARMResource
 }
 
+type ListStaticSiteFunctionsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListStaticSiteFunctionsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListStaticSiteFunctions ...
 func (c StaticSitesClient) ListStaticSiteFunctions(ctx context.Context, id StaticSiteId) (result ListStaticSiteFunctionsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c StaticSitesClient) ListStaticSiteFunctions(ctx context.Context, id Stati
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListStaticSiteFunctionsCustomPager{},
 		Path:       fmt.Sprintf("%s/functions", id.ID()),
 	}
 

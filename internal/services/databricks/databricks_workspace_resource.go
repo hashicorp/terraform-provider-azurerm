@@ -22,6 +22,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/validate"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
@@ -35,7 +36,7 @@ import (
 )
 
 func resourceDatabricksWorkspace() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceDatabricksWorkspaceCreateUpdate,
 		Read:   resourceDatabricksWorkspaceRead,
 		Update: resourceDatabricksWorkspaceCreateUpdate,
@@ -76,9 +77,10 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 			},
 
 			"managed_resource_group_name": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ForceNew:     true,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+				// NOTE: O+C We set a value for this if omitted so this should remain Computed
 				Computed:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
@@ -142,7 +144,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 			"network_security_group_rules_required": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Computed: !features.FourPointOhBeta(),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(workspaces.RequiredNsgRulesAllRules),
 					string(workspaces.RequiredNsgRulesNoAzureDatabricksRules),
@@ -160,6 +162,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 			"custom_parameters": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
+				// NOTE: O+C The API populates these and since many are ForceNew there doesn't appear to be a need to remove this once set to use the defaults
 				Computed: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
@@ -183,7 +186,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 						"no_public_ip": {
 							Type:         pluginsdk.TypeBool,
 							Optional:     true,
-							Computed:     true,
+							Default:      true,
 							AtLeastOneOf: workspaceCustomParametersString(),
 						},
 
@@ -240,10 +243,8 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 							AtLeastOneOf: workspaceCustomParametersString(),
 						},
 
-						// Per Service Team: This field is actually changeable so the ForceNew is no longer required, however we agreed to not change the current behavior for consistency purposes
 						"storage_account_sku_name": {
 							Type:         pluginsdk.TypeString,
-							ForceNew:     true,
 							Optional:     true,
 							Computed:     true,
 							AtLeastOneOf: workspaceCustomParametersString(),
@@ -378,6 +379,19 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 			return nil
 		}),
 	}
+
+	if !features.FourPointOhBeta() {
+		// NOTE: Leaving this as O+C as the 2024-05-01 API breaking change was accidentally introduced in PR #25919
+		// and released in v3.104.0 of the provider...
+		resource.Schema["custom_parameters"].Elem.(*pluginsdk.Resource).Schema["no_public_ip"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeBool,
+			Optional:     true,
+			Computed:     true,
+			AtLeastOneOf: workspaceCustomParametersString(),
+		}
+	}
+
+	return resource
 }
 
 func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -633,6 +647,10 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 		workspace.Properties.DefaultStorageFirewall = &defaultStorageFirewallEnabled
 	}
 
+	if !d.IsNewResource() && d.HasChange("default_storage_firewall_enabled") {
+		workspace.Properties.DefaultStorageFirewall = &defaultStorageFirewallEnabled
+	}
+
 	if requireNsgRules != "" {
 		requiredNsgRulesConst := workspaces.RequiredNsgRules(requireNsgRules)
 		workspace.Properties.RequiredNsgRules = &requiredNsgRulesConst
@@ -734,7 +752,9 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 
 		if defaultStorageFirewall := model.Properties.DefaultStorageFirewall; defaultStorageFirewall != nil {
 			d.Set("default_storage_firewall_enabled", *defaultStorageFirewall != workspaces.DefaultStorageFirewallDisabled)
-			d.Set("access_connector_id", model.Properties.AccessConnector.Id)
+			if model.Properties.AccessConnector != nil {
+				d.Set("access_connector_id", model.Properties.AccessConnector.Id)
+			}
 		}
 
 		publicNetworkAccess := model.Properties.PublicNetworkAccess

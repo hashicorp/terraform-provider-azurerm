@@ -25,7 +25,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/validate"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -156,23 +155,16 @@ func resourceKustoCluster() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ForceNew:     true,
-							ValidateFunc: networkValidate.PublicIpAddressID,
+							ValidateFunc: commonids.ValidatePublicIPAddressID,
 						},
 						"data_management_public_ip_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ForceNew:     true,
-							ValidateFunc: networkValidate.PublicIpAddressID,
+							ValidateFunc: commonids.ValidatePublicIPAddressID,
 						},
 					},
 				},
-			},
-
-			"engine": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Deprecated:   "This property has been deprecated as it will no longer be supported by the API. It will be removed in a future version of the provider.",
-				ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForEngineType(), false),
 			},
 
 			"uri": {
@@ -277,6 +269,12 @@ func resourceKustoCluster() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringInSlice([]string{"R", "PYTHON", "PYTHON_3.10.8"}, false),
 			},
+		}
+		resource.Schema["engine"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Deprecated:   "This property has been deprecated as it will no longer be supported by the API. It will be removed in v4.0 of the AzureRM Provider.",
+			ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForEngineType(), false),
 		}
 	}
 

@@ -51,6 +51,18 @@ func (o DedicatedHsmListByResourceGroupOperationOptions) ToQuery() *client.Query
 	return &out
 }
 
+type DedicatedHsmListByResourceGroupCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *DedicatedHsmListByResourceGroupCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // DedicatedHsmListByResourceGroup ...
 func (c DedicatedHsmsClient) DedicatedHsmListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId, options DedicatedHsmListByResourceGroupOperationOptions) (result DedicatedHsmListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -59,8 +71,9 @@ func (c DedicatedHsmsClient) DedicatedHsmListByResourceGroup(ctx context.Context
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/providers/Microsoft.HardwareSecurityModules/dedicatedHSMs", id.ID()),
 		OptionsObject: options,
+		Pager:         &DedicatedHsmListByResourceGroupCustomPager{},
+		Path:          fmt.Sprintf("%s/providers/Microsoft.HardwareSecurityModules/dedicatedHSMs", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

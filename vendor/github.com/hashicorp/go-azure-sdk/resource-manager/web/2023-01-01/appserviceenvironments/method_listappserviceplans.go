@@ -24,6 +24,18 @@ type ListAppServicePlansCompleteResult struct {
 	Items              []AppServicePlan
 }
 
+type ListAppServicePlansCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListAppServicePlansCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListAppServicePlans ...
 func (c AppServiceEnvironmentsClient) ListAppServicePlans(ctx context.Context, id commonids.AppServiceEnvironmentId) (result ListAppServicePlansOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c AppServiceEnvironmentsClient) ListAppServicePlans(ctx context.Context, i
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListAppServicePlansCustomPager{},
 		Path:       fmt.Sprintf("%s/serverFarms", id.ID()),
 	}
 

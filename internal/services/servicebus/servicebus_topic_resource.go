@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -45,7 +46,7 @@ func resourceServiceBusTopic() *pluginsdk.Resource {
 }
 
 func resourceServiceBusTopicSchema() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	schema := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -74,39 +75,39 @@ func resourceServiceBusTopicSchema() map[string]*pluginsdk.Schema {
 		"auto_delete_on_idle": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Default:      "P10675199DT2H48M5.4775807S", // Never
 			ValidateFunc: validate.ISO8601Duration,
 		},
 
 		"default_message_ttl": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Default:      "P10675199DT2H48M5.4775807S", // Unbounded
 			ValidateFunc: validate.ISO8601Duration,
 		},
 
 		"duplicate_detection_history_time_window": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Default:      "PT10M", // 10 minutes
 			ValidateFunc: validate.ISO8601Duration,
 		},
 
-		// TODO 4.0: change this from enable_* to *_enabled
-		"enable_batched_operations": {
+		"batched_operations_enabled": {
 			Type:     pluginsdk.TypeBool,
+			Computed: !features.FourPointOhBeta(),
 			Optional: true,
 		},
 
-		// TODO 4.0: change this from enable_* to *_enabled
-		"enable_express": {
+		"express_enabled": {
 			Type:     pluginsdk.TypeBool,
+			Computed: !features.FourPointOhBeta(),
 			Optional: true,
 		},
 
-		// TODO 4.0: change this from enable_* to *_enabled
-		"enable_partitioning": {
+		"partitioning_enabled": {
 			Type:     pluginsdk.TypeBool,
+			Computed: !features.FourPointOhBeta(),
 			Optional: true,
 			ForceNew: true,
 		},
@@ -114,14 +115,14 @@ func resourceServiceBusTopicSchema() map[string]*pluginsdk.Schema {
 		"max_message_size_in_kilobytes": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			Computed:     true,
+			Default:      "256",
 			ValidateFunc: azValidate.ServiceBusMaxMessageSizeInKilobytes(),
 		},
 
 		"max_size_in_megabytes": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			Computed:     true,
+			Default:      "5120",
 			ValidateFunc: azValidate.ServiceBusMaxSizeInMegabytes(),
 		},
 
@@ -136,6 +137,67 @@ func resourceServiceBusTopicSchema() map[string]*pluginsdk.Schema {
 			Optional: true,
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		schema["auto_delete_on_idle"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validate.ISO8601Duration,
+		}
+
+		schema["default_message_ttl"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validate.ISO8601Duration,
+		}
+
+		schema["duplicate_detection_history_time_window"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validate.ISO8601Duration,
+		}
+
+		schema["enable_batched_operations"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			ConflictsWith: []string{"batched_operations_enabled"},
+			Deprecated:    "The property `enable_batched_operations` has been superseded by `batched_operations_enabled` and will be removed in v4.0 of the AzureRM Provider.",
+		}
+
+		schema["enable_express"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			ConflictsWith: []string{"express_enabled"},
+			Deprecated:    "The property `enable_express` has been superseded by `express_enabled` and will be removed in v4.0 of the AzureRM Provider.",
+		}
+
+		schema["enable_partitioning"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			ForceNew:      true,
+			ConflictsWith: []string{"partitioning_enabled"},
+			Deprecated:    "The property `enable_partitioning` has been superseded by `partitioning_enabled` and will be removed in v4.0 of the AzureRM Provider.",
+		}
+
+		schema["max_message_size_in_kilobytes"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: azValidate.ServiceBusMaxMessageSizeInKilobytes(),
+		}
+
+		schema["max_size_in_megabytes"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: azValidate.ServiceBusMaxSizeInMegabytes(),
+		}
+	}
+
+	return schema
 }
 
 func resourceServiceBusTopicCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -166,14 +228,35 @@ func resourceServiceBusTopicCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
+	enableBatchedOperations := d.Get("batched_operations_enabled").(bool)
+	enableExpress := d.Get("express_enabled").(bool)
+	enablePartitioning := d.Get("partitioning_enabled").(bool)
+	if !features.FourPointOh() {
+
+		// nolint staticcheck
+		if v, ok := d.GetOkExists("enable_batched_operations"); ok {
+			enableBatchedOperations = v.(bool)
+		}
+
+		// nolint staticcheck
+		if v, ok := d.GetOkExists("enable_express"); ok {
+			enableExpress = v.(bool)
+		}
+
+		// nolint staticcheck
+		if v, ok := d.GetOkExists("enable_partitioning"); ok {
+			enablePartitioning = v.(bool)
+		}
+	}
+
 	status := topics.EntityStatus(d.Get("status").(string))
 	parameters := topics.SBTopic{
 		Name: utils.String(id.TopicName),
 		Properties: &topics.SBTopicProperties{
 			Status:                     &status,
-			EnableBatchedOperations:    utils.Bool(d.Get("enable_batched_operations").(bool)),
-			EnableExpress:              utils.Bool(d.Get("enable_express").(bool)),
-			EnablePartitioning:         utils.Bool(d.Get("enable_partitioning").(bool)),
+			EnableBatchedOperations:    utils.Bool(enableBatchedOperations),
+			EnableExpress:              utils.Bool(enableExpress),
+			EnablePartitioning:         utils.Bool(enablePartitioning),
 			MaxSizeInMegabytes:         utils.Int64(int64(d.Get("max_size_in_megabytes").(int))),
 			RequiresDuplicateDetection: utils.Bool(d.Get("requires_duplicate_detection").(bool)),
 			SupportOrdering:            utils.Bool(d.Get("support_ordering").(bool)),
@@ -254,9 +337,16 @@ func resourceServiceBusTopicRead(d *pluginsdk.ResourceData, meta interface{}) er
 				d.Set("duplicate_detection_history_time_window", window)
 			}
 
-			d.Set("enable_batched_operations", props.EnableBatchedOperations)
-			d.Set("enable_express", props.EnableExpress)
-			d.Set("enable_partitioning", props.EnablePartitioning)
+			if !features.FourPointOhBeta() {
+				d.Set("enable_batched_operations", props.EnableBatchedOperations)
+				d.Set("enable_express", props.EnableExpress)
+				d.Set("enable_partitioning", props.EnablePartitioning)
+			}
+
+			d.Set("batched_operations_enabled", props.EnableBatchedOperations)
+			d.Set("express_enabled", props.EnableExpress)
+			d.Set("partitioning_enabled", props.EnablePartitioning)
+
 			d.Set("max_message_size_in_kilobytes", props.MaxMessageSizeInKilobytes)
 			d.Set("requires_duplicate_detection", props.RequiresDuplicateDetection)
 			d.Set("support_ordering", props.SupportOrdering)

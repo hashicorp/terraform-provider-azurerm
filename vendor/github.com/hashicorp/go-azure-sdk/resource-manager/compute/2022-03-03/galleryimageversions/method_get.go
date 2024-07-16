@@ -53,8 +53,8 @@ func (c GalleryImageVersionsClient) Get(ctx context.Context, id ImageVersionId, 
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

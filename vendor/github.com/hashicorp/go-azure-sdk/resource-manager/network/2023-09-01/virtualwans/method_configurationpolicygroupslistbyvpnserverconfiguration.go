@@ -23,6 +23,18 @@ type ConfigurationPolicyGroupsListByVpnServerConfigurationCompleteResult struct 
 	Items              []VpnServerConfigurationPolicyGroup
 }
 
+type ConfigurationPolicyGroupsListByVpnServerConfigurationCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ConfigurationPolicyGroupsListByVpnServerConfigurationCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ConfigurationPolicyGroupsListByVpnServerConfiguration ...
 func (c VirtualWANsClient) ConfigurationPolicyGroupsListByVpnServerConfiguration(ctx context.Context, id VpnServerConfigurationId) (result ConfigurationPolicyGroupsListByVpnServerConfigurationOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c VirtualWANsClient) ConfigurationPolicyGroupsListByVpnServerConfiguration
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ConfigurationPolicyGroupsListByVpnServerConfigurationCustomPager{},
 		Path:       fmt.Sprintf("%s/configurationPolicyGroups", id.ID()),
 	}
 

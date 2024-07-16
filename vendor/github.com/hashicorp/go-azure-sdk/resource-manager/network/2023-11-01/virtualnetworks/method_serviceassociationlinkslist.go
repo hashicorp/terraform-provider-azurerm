@@ -24,6 +24,18 @@ type ServiceAssociationLinksListCompleteResult struct {
 	Items              []ServiceAssociationLink
 }
 
+type ServiceAssociationLinksListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ServiceAssociationLinksListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ServiceAssociationLinksList ...
 func (c VirtualNetworksClient) ServiceAssociationLinksList(ctx context.Context, id commonids.SubnetId) (result ServiceAssociationLinksListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c VirtualNetworksClient) ServiceAssociationLinksList(ctx context.Context, 
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ServiceAssociationLinksListCustomPager{},
 		Path:       fmt.Sprintf("%s/serviceAssociationLinks", id.ID()),
 	}
 

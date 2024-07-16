@@ -53,8 +53,8 @@ func (c ManagedClustersClient) GetOSOptions(ctx context.Context, id LocationId, 
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/osOptions/default", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/osOptions/default", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

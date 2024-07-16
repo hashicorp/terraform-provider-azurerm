@@ -24,6 +24,18 @@ type GetInResourceGroupCompleteResult struct {
 	Items              []BackupVaultResource
 }
 
+type GetInResourceGroupCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *GetInResourceGroupCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // GetInResourceGroup ...
 func (c BackupVaultsClient) GetInResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (result GetInResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c BackupVaultsClient) GetInResourceGroup(ctx context.Context, id commonids
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &GetInResourceGroupCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.DataProtection/backupVaults", id.ID()),
 	}
 

@@ -23,6 +23,18 @@ type ListSkusCompleteResult struct {
 	Items              []VirtualMachineScaleSetSku
 }
 
+type ListSkusCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListSkusCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListSkus ...
 func (c VirtualMachineScaleSetsClient) ListSkus(ctx context.Context, id VirtualMachineScaleSetId) (result ListSkusOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c VirtualMachineScaleSetsClient) ListSkus(ctx context.Context, id VirtualM
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListSkusCustomPager{},
 		Path:       fmt.Sprintf("%s/skus", id.ID()),
 	}
 

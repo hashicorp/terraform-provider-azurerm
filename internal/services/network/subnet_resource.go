@@ -14,12 +14,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/serviceendpointpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/subnets"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -150,7 +150,7 @@ func resourceSubnet() *pluginsdk.Resource {
 				Optional: true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
-					ValidateFunc: validate.SubnetServiceEndpointStoragePolicyID,
+					ValidateFunc: serviceendpointpolicies.ValidateServiceEndpointPolicyID,
 				},
 			},
 
@@ -176,9 +176,8 @@ func resourceSubnet() *pluginsdk.Resource {
 									},
 
 									"actions": {
-										Type:       pluginsdk.TypeList,
-										Optional:   true,
-										ConfigMode: pluginsdk.SchemaConfigModeAttr,
+										Type:     pluginsdk.TypeSet,
+										Optional: true,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
 											ValidateFunc: validation.StringInSlice([]string{
@@ -274,6 +273,24 @@ func resourceSubnet() *pluginsdk.Resource {
 			Deprecated:    "`enforce_private_link_service_network_policies` will be removed in favour of the property `private_link_service_network_policies_enabled` in version 4.0 of the AzureRM Provider",
 			ConflictsWith: []string{"private_link_service_network_policies_enabled"},
 		}
+		resource.Schema["delegation"].Elem.(*pluginsdk.Resource).Schema["service_delegation"].Elem.(*pluginsdk.Resource).Schema["actions"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeList,
+			Optional:   true,
+			ConfigMode: pluginsdk.SchemaConfigModeAttr,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+				ValidateFunc: validation.StringInSlice([]string{
+					"Microsoft.Network/networkinterfaces/*",
+					"Microsoft.Network/publicIPAddresses/join/action",
+					"Microsoft.Network/publicIPAddresses/read",
+					"Microsoft.Network/virtualNetworks/read",
+					"Microsoft.Network/virtualNetworks/subnets/action",
+					"Microsoft.Network/virtualNetworks/subnets/join/action",
+					"Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
+					"Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action",
+				}, false),
+			},
+		}
 	}
 
 	return resource
@@ -284,7 +301,7 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.Client.Subnets
 	vnetClient := meta.(*clients.Client).Network.VirtualNetworks
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Subnet creation.")
@@ -732,7 +749,13 @@ func expandSubnetDelegation(input []interface{}) *[]subnets.Delegation {
 		srvDelegations := deleData["service_delegation"].([]interface{})
 		srvDelegation := srvDelegations[0].(map[string]interface{})
 		srvName := srvDelegation["name"].(string)
-		srvActions := srvDelegation["actions"].([]interface{})
+
+		var srvActions []interface{}
+		if !features.FourPointOhBeta() {
+			srvActions = srvDelegation["actions"].([]interface{})
+		} else {
+			srvActions = srvDelegation["actions"].(*pluginsdk.Set).List()
+		}
 
 		retSrvActions := make([]string, 0)
 		for _, srvAction := range srvActions {

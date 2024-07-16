@@ -171,7 +171,6 @@ func resourceRecoveryServicesVault() *pluginsdk.Resource {
 			"classic_vmware_replication_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: true, // the service always return even if not set.
 				ForceNew: true,
 			},
 		},

@@ -85,7 +85,6 @@ func resourceCosmosDbGremlinGraph() *pluginsdk.Resource {
 			"default_ttl": {
 				Type:     pluginsdk.TypeInt,
 				Optional: true,
-				Computed: true,
 			},
 
 			"throughput": {

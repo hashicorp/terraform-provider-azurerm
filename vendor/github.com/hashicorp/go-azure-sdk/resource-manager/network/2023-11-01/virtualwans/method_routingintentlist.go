@@ -23,6 +23,18 @@ type RoutingIntentListCompleteResult struct {
 	Items              []RoutingIntent
 }
 
+type RoutingIntentListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *RoutingIntentListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // RoutingIntentList ...
 func (c VirtualWANsClient) RoutingIntentList(ctx context.Context, id VirtualHubId) (result RoutingIntentListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c VirtualWANsClient) RoutingIntentList(ctx context.Context, id VirtualHubI
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &RoutingIntentListCustomPager{},
 		Path:       fmt.Sprintf("%s/routingIntent", id.ID()),
 	}
 

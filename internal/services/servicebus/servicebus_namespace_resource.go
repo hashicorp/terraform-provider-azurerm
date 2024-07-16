@@ -43,7 +43,7 @@ var (
 )
 
 func resourceServiceBusNamespace() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceServiceBusNamespaceCreateUpdate,
 		Read:   resourceServiceBusNamespaceRead,
 		Update: resourceServiceBusNamespaceCreateUpdate,
@@ -147,7 +147,7 @@ func resourceServiceBusNamespace() *pluginsdk.Resource {
 			"minimum_tls_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Default:  string(namespaces.TlsVersionOnePointTwo),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(namespaces.TlsVersionOnePointZero),
 					string(namespaces.TlsVersionOnePointOne),
@@ -274,6 +274,20 @@ func resourceServiceBusNamespace() *pluginsdk.Resource {
 			pluginsdk.CustomizeDiffShim(servicebusTLSVersionDiff),
 		),
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["minimum_tls_version"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(namespaces.TlsVersionOnePointZero),
+				string(namespaces.TlsVersionOnePointOne),
+				string(namespaces.TlsVersionOnePointTwo),
+			}, false),
+		}
+	}
+	return resource
 }
 
 func resourceServiceBusNamespaceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -543,7 +557,11 @@ func flattenServiceBusNamespaceEncryption(encryption *namespaces.Encryption) ([]
 		}
 		keyId = keyVaultKeyId.ID()
 		if props.Identity != nil && props.Identity.UserAssignedIdentity != nil {
-			identityId = *props.Identity.UserAssignedIdentity
+			sbnUaiId, err := commonids.ParseUserAssignedIdentityIDInsensitively(*props.Identity.UserAssignedIdentity)
+			if err != nil {
+				return nil, err
+			}
+			identityId = sbnUaiId.ID()
 		}
 	}
 

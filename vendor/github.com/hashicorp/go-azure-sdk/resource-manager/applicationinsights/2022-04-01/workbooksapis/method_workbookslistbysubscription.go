@@ -59,6 +59,18 @@ func (o WorkbooksListBySubscriptionOperationOptions) ToQuery() *client.QueryPara
 	return &out
 }
 
+type WorkbooksListBySubscriptionCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *WorkbooksListBySubscriptionCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // WorkbooksListBySubscription ...
 func (c WorkbooksAPIsClient) WorkbooksListBySubscription(ctx context.Context, id commonids.SubscriptionId, options WorkbooksListBySubscriptionOperationOptions) (result WorkbooksListBySubscriptionOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -67,8 +79,9 @@ func (c WorkbooksAPIsClient) WorkbooksListBySubscription(ctx context.Context, id
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/providers/Microsoft.Insights/workbooks", id.ID()),
 		OptionsObject: options,
+		Pager:         &WorkbooksListBySubscriptionCustomPager{},
+		Path:          fmt.Sprintf("%s/providers/Microsoft.Insights/workbooks", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

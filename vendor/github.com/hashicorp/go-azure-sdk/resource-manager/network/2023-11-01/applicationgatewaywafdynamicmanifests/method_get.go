@@ -23,6 +23,18 @@ type GetCompleteResult struct {
 	Items              []ApplicationGatewayWafDynamicManifestResult
 }
 
+type GetCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *GetCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // Get ...
 func (c ApplicationGatewayWafDynamicManifestsClient) Get(ctx context.Context, id LocationId) (result GetOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c ApplicationGatewayWafDynamicManifestsClient) Get(ctx context.Context, id
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &GetCustomPager{},
 		Path:       fmt.Sprintf("%s/applicationGatewayWafDynamicManifests", id.ID()),
 	}
 

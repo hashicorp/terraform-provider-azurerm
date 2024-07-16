@@ -15,6 +15,8 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/roleeligibilityscheduleinstances"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/roleeligibilityschedulerequests"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/roleeligibilityschedules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/rolemanagementpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/rolemanagementpolicyassignments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-04-01/roleassignments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-05-01-preview/roledefinitions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
@@ -28,6 +30,8 @@ type Client struct {
 	RoleEligibilityScheduleRequestClient   *roleeligibilityschedulerequests.RoleEligibilityScheduleRequestsClient
 	RoleEligibilityScheduleInstancesClient *roleeligibilityscheduleinstances.RoleEligibilityScheduleInstancesClient
 	RoleEligibilitySchedulesClient         *roleeligibilityschedules.RoleEligibilitySchedulesClient
+	RoleManagementPoliciesClient           *rolemanagementpolicies.RoleManagementPoliciesClient
+	RoleManagementPolicyAssignmentsClient  *rolemanagementpolicyassignments.RoleManagementPolicyAssignmentsClient
 	ScopedRoleAssignmentsClient            *roleassignments.RoleAssignmentsClient
 	ScopedRoleDefinitionsClient            *roledefinitions.RoleDefinitionsClient
 }
@@ -73,6 +77,18 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(roleEligibilitySchedulesClient.Client, o.Authorizers.ResourceManager)
 
+	roleManagementPoliciesClient, err := rolemanagementpolicies.NewRoleManagementPoliciesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("creating roleManagementPoliciesClient: %+v", err)
+	}
+	o.Configure(roleManagementPoliciesClient.Client, o.Authorizers.ResourceManager)
+
+	roleManagementPolicyAssignmentClient, err := rolemanagementpolicyassignments.NewRoleManagementPolicyAssignmentsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("creating roleManagementPolicyAssignmentClient: %+v", err)
+	}
+	o.Configure(roleManagementPolicyAssignmentClient.Client, o.Authorizers.ResourceManager)
+
 	scopedRoleAssignmentsClient, err := roleassignments.NewRoleAssignmentsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Role Assignment Client:  %+v", err)
@@ -93,6 +109,8 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		RoleEligibilityScheduleRequestClient:   roleEligibilityScheduleRequestClient,
 		RoleEligibilityScheduleInstancesClient: roleEligibilityScheduleInstancesClient,
 		RoleEligibilitySchedulesClient:         roleEligibilitySchedulesClient,
+		RoleManagementPoliciesClient:           roleManagementPoliciesClient,
+		RoleManagementPolicyAssignmentsClient:  roleManagementPolicyAssignmentClient,
 		ScopedRoleAssignmentsClient:            scopedRoleAssignmentsClient,
 		ScopedRoleDefinitionsClient:            scopedRoleDefinitionsClient,
 	}, nil
