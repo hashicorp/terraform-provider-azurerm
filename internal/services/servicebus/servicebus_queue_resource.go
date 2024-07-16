@@ -341,21 +341,19 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	if !features.FourPointOhBeta() {
 
-		// nolint staticcheck
-		if v, ok := d.GetOkExists("enable_express"); ok {
-			enableExpress = v.(bool)
+		if v := d.GetRawConfig().AsValueMap()["enable_express"]; !v.IsNull() {
+			enableExpress = d.Get("enable_express").(bool)
 		}
 
-		// nolint staticcheck
-		if v, ok := d.GetOkExists("enable_partitioning"); ok {
-			enablePartitioning = v.(bool)
+		if v := d.GetRawConfig().AsValueMap()["enable_partitioning"]; !v.IsNull() {
+			enablePartitioning = d.Get("enable_partitioning").(bool)
 		}
 
-		// nolint staticcheck
-		if v, ok := d.GetOkExists("enable_batched_operations"); ok {
-			enableBatchedOperations = v.(bool)
+		if v := d.GetRawConfig().AsValueMap()["enable_batched_operations"]; !v.IsNull() {
+			enableBatchedOperations = d.Get("enable_batched_operations").(bool)
 		}
 	}
+
 	userConfig["enableExpress"] = enableExpress
 	userConfig["enablePartitioning"] = enablePartitioning
 	userConfig["enableBatchOps"] = enableBatchedOperations
