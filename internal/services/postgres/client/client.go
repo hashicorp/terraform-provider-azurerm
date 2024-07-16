@@ -21,6 +21,7 @@ import (
 	flexibleserverdatabases "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2022-12-01/databases"
 	flexibleserverfirewallrules "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2022-12-01/firewallrules"
 	flexibleservers "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2023-06-01-preview/servers"
+	flexibleservervirtualendpoints "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2023-06-01-preview/virtualendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -40,6 +41,7 @@ type Client struct {
 	VirtualNetworkRulesClient           *virtualnetworkrules.VirtualNetworkRulesClient
 	ServerAdministratorsClient          *serveradministrators.ServerAdministratorsClient
 	ReplicasClient                      *replicas.ReplicasClient
+	VirtualEndpointClient               *flexibleservervirtualendpoints.VirtualEndpointsClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
