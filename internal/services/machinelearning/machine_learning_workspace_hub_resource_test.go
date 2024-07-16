@@ -319,11 +319,11 @@ provider "azurerm" {
 %s
 
 resource "azurerm_machine_learning_workspace_hub" "test" {
-  name                    = "acctest-MLW-hub-%s"
-  location                = azurerm_resource_group.test.location
-  resource_group_name     = azurerm_resource_group.test.name
-  key_vault_id            = azurerm_key_vault.test.id
-  storage_account_id      = azurerm_storage_account.test.id
+  name                = "acctest-MLW-hub-%s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  key_vault_id        = azurerm_key_vault.test.id
+  storage_account_id  = azurerm_storage_account.test.id
 
   identity {
     type = "SystemAssigned"
@@ -491,11 +491,11 @@ func (r WorkspaceHubResource) requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_machine_learning_workspace_hub" "import" {
-  name                    = azurerm_machine_learning_workspace_hub.test.name
-  location                = azurerm_machine_learning_workspace_hub.test.location
-  resource_group_name     = azurerm_machine_learning_workspace_hub.test.resource_group_name
-  key_vault_id            = azurerm_machine_learning_workspace_hub.test.key_vault_id
-  storage_account_id      = azurerm_machine_learning_workspace_hub.test.storage_account_id
+  name                = azurerm_machine_learning_workspace_hub.test.name
+  location            = azurerm_machine_learning_workspace_hub.test.location
+  resource_group_name = azurerm_machine_learning_workspace_hub.test.resource_group_name
+  key_vault_id        = azurerm_machine_learning_workspace_hub.test.key_vault_id
+  storage_account_id  = azurerm_machine_learning_workspace_hub.test.storage_account_id
 
   identity {
     type = "SystemAssigned"
