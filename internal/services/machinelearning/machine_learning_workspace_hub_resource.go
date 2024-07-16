@@ -98,7 +98,7 @@ func (r MachineLearningWorkspaceHubResource) Arguments() map[string]*pluginsdk.S
 
 		"application_insights_id": {
 			Type:         pluginsdk.TypeString,
-			Required:     true,
+			Optional:     true,
 			ForceNew:     true,
 			ValidateFunc: components.ValidateComponentID,
 			// TODO -- remove when issue https://github.com/Azure/azure-rest-api-specs/issues/8323 is addressed
@@ -210,13 +210,16 @@ func (r MachineLearningWorkspaceHubResource) Create() sdk.ResourceFunc {
 				Identity: hubIdentity,
 				Properties: &workspaces.WorkspaceProperties{
 					FriendlyName:                &model.FriendlyName,
-					ApplicationInsights:         &model.ApplicationInsightsID,
 					Encryption:                  expandMachineLearningWorkspaceHubEncryption(model.Encryption),
 					KeyVault:                    &model.KeyVaultID,
 					PublicNetworkAccess:         pointer.To(workspaces.PublicNetworkAccess(model.PublicNetworkAccess)),
 					StorageAccount:              &model.StorageAccountID,
 					PrimaryUserAssignedIdentity: &model.PrimaryUserAssignedIdentity,
 				},
+			}
+
+			if model.ApplicationInsightsID != "" {
+				hub.Properties.ApplicationInsights = &model.ApplicationInsightsID
 			}
 
 			if model.ContainerRegistryID != "" {

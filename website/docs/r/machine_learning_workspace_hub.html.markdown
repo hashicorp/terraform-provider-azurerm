@@ -347,8 +347,6 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the Machine Learning Workspace Hub should exist. Changing this forces a new resource to be created.
 
-* `application_insights_id` - (Required) The ID of the Application Insights associated with this Machine Learning Workspace Hub. Changing this forces a new resource to be created.
-
 * `key_vault_id` - (Required) The ID of key vault associated with this Machine Learning Workspace Hub. Changing this forces a new resource to be created.
 
 * `storage_account_id` - (Required) The ID of the Storage Account associated with this Machine Learning Workspace Hub. Changing this forces a new resource to be created.
@@ -356,6 +354,8 @@ The following arguments are supported:
 -> **NOTE:** The `account_tier` cannot be `Premium` in order to associate the Storage Account to this Machine Learning Workspace Hub.
 
 * `identity` - (Required) An `identity` block as defined below.
+
+* `application_insights_id` - (Optional) The ID of the Application Insights associated with this Machine Learning Workspace Hub. Changing this forces a new resource to be created.
 
 * `container_registry_id` - (Optional) The ID of the container registry associated with this Machine Learning Workspace Hub. Changing this forces a new resource to be created.
 
