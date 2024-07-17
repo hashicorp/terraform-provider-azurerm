@@ -630,6 +630,10 @@ resource "azurerm_key_vault" "test" {
   sku_name                   = "standard"
   soft_delete_retention_days = 7
   purge_protection_enabled   = true
+
+  lifecycle {
+    ignore_changes = [access_policy]
+  }
 }
 
 resource "azurerm_key_vault_access_policy" "server" {
@@ -668,6 +672,10 @@ resource "azurerm_key_vault_key" "test" {
     azurerm_key_vault_access_policy.client,
     azurerm_key_vault_access_policy.server,
   ]
+
+  lifecycle {
+    ignore_changes = [access_policy]
+  }
 }
 
 resource "azurerm_app_configuration" "test" {
@@ -812,6 +820,10 @@ resource "azurerm_key_vault" "test" {
   sku_name                   = "standard"
   soft_delete_retention_days = 7
   purge_protection_enabled   = true
+
+  lifecycle {
+    ignore_changes = [access_policy]
+  }
 }
 
 resource "azurerm_key_vault_access_policy" "server" {
@@ -920,6 +932,10 @@ resource "azurerm_key_vault" "test" {
   sku_name                   = "standard"
   soft_delete_retention_days = 7
   purge_protection_enabled   = true
+
+  lifecycle {
+    ignore_changes = [access_policy]
+  }
 }
 
 resource "azurerm_key_vault_access_policy" "server" {
