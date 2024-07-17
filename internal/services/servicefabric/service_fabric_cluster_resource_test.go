@@ -28,7 +28,7 @@ func TestAccAzureRMServiceFabricCluster_basic(t *testing.T) {
 			Config: r.basic(data, 3),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("management_endpoint").HasValue("http://example:80"),
+				check.That(data.ResourceName).Key("management_endpoint").HasValue("https://example:80"),
 				check.That(data.ResourceName).Key("add_on_features.#").HasValue("0"),
 				check.That(data.ResourceName).Key("certificate.#").HasValue("0"),
 				check.That(data.ResourceName).Key("reverse_proxy_certificate.#").HasValue("0"),
@@ -53,7 +53,7 @@ func TestAccAzureRMServiceFabricCluster_basicNodeTypeUpdate(t *testing.T) {
 			Config: r.basic(data, 3),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("management_endpoint").HasValue("http://example:80"),
+				check.That(data.ResourceName).Key("management_endpoint").HasValue("https://example:80"),
 				check.That(data.ResourceName).Key("add_on_features.#").HasValue("0"),
 				check.That(data.ResourceName).Key("certificate.#").HasValue("0"),
 				check.That(data.ResourceName).Key("reverse_proxy_certificate.#").HasValue("0"),
@@ -95,7 +95,7 @@ func TestAccAzureRMServiceFabricCluster_requiresImport(t *testing.T) {
 			Config: r.basic(data, 3),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("management_endpoint").HasValue("http://example:80"),
+				check.That(data.ResourceName).Key("management_endpoint").HasValue("https://example:80"),
 				check.That(data.ResourceName).Key("add_on_features.#").HasValue("0"),
 				check.That(data.ResourceName).Key("certificate.#").HasValue("0"),
 				check.That(data.ResourceName).Key("reverse_proxy_certificate.#").HasValue("0"),
@@ -225,7 +225,7 @@ func TestAccAzureRMServiceFabricCluster_reverseProxyNotSet(t *testing.T) {
 			Config: r.basic(data, 3),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("management_endpoint").HasValue("http://example:80"),
+				check.That(data.ResourceName).Key("management_endpoint").HasValue("https://example:80"),
 				check.That(data.ResourceName).Key("add_on_features.#").HasValue("0"),
 				check.That(data.ResourceName).Key("certificate.#").HasValue("0"),
 				check.That(data.ResourceName).Key("reverse_proxy_certificate.#").HasValue("0"),
@@ -752,7 +752,7 @@ func TestAccAzureRMServiceFabricCluster_zonalUpgradeMode(t *testing.T) {
 			Config: r.zonalUpgradeMode(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("management_endpoint").HasValue("http://example:80"),
+				check.That(data.ResourceName).Key("management_endpoint").HasValue("https://example:80"),
 				check.That(data.ResourceName).Key("add_on_features.#").HasValue("0"),
 				check.That(data.ResourceName).Key("certificate.#").HasValue("0"),
 				check.That(data.ResourceName).Key("reverse_proxy_certificate.#").HasValue("0"),
@@ -804,7 +804,12 @@ resource "azurerm_service_fabric_cluster" "test" {
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
-  management_endpoint = "http://example:80"
+  management_endpoint = "https://example:80"
+
+  certificate {
+    thumbprint      = "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"
+    x509_store_name = "My"
+  }
 
   node_type {
     name                 = "first"
@@ -835,7 +840,12 @@ resource "azurerm_service_fabric_cluster" "test" {
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
-  management_endpoint = "http://example:80"
+  management_endpoint = "https://example:80"
+
+  certificate {
+    thumbprint      = "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"
+    x509_store_name = "My"
+  }
 
   node_type {
     name                 = "first"
@@ -899,7 +909,12 @@ resource "azurerm_service_fabric_cluster" "test" {
   upgrade_mode         = "Manual"
   cluster_code_version = "%[3]s"
   vm_image             = "Windows"
-  management_endpoint  = "http://example:80"
+  management_endpoint  = "https://example:80"
+
+  certificate {
+    thumbprint      = "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"
+    x509_store_name = "My"
+  }
 
   node_type {
     name                 = "first"
@@ -930,8 +945,13 @@ resource "azurerm_service_fabric_cluster" "test" {
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
-  management_endpoint = "http://example:80"
+  management_endpoint = "https://example:80"
   add_on_features     = ["DnsService", "RepairManager"]
+
+  certificate {
+    thumbprint      = "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"
+    x509_store_name = "My"
+  }
 
   node_type {
     name                 = "first"
@@ -1555,7 +1575,12 @@ resource "azurerm_service_fabric_cluster" "test" {
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
-  management_endpoint = "http://example:80"
+  management_endpoint = "https://example:80"
+
+  certificate {
+    thumbprint      = "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"
+    x509_store_name = "My"
+  }
 
   diagnostics_config {
     storage_account_name       = azurerm_storage_account.test.name
@@ -1602,7 +1627,12 @@ resource "azurerm_service_fabric_cluster" "test" {
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
-  management_endpoint = "http://example:80"
+  management_endpoint = "https://example:80"
+
+  certificate {
+    thumbprint      = "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"
+    x509_store_name = "My"
+  }
 
   node_type {
     name                 = "first"
@@ -1633,7 +1663,12 @@ resource "azurerm_service_fabric_cluster" "test" {
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
-  management_endpoint = "http://example:80"
+  management_endpoint = "https://example:80"
+
+  certificate {
+    thumbprint      = "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"
+    x509_store_name = "My"
+  }
 
   fabric_settings {
     name = "Security"
@@ -1672,7 +1707,12 @@ resource "azurerm_service_fabric_cluster" "test" {
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
-  management_endpoint = "http://example:80"
+  management_endpoint = "https://example:80"
+
+  certificate {
+    thumbprint      = "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"
+    x509_store_name = "My"
+  }
 
   node_type {
     name                 = "first"
@@ -1713,7 +1753,12 @@ resource "azurerm_service_fabric_cluster" "test" {
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
-  management_endpoint = "http://example:80"
+  management_endpoint = "https://example:80"
+
+  certificate {
+    thumbprint      = "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"
+    x509_store_name = "My"
+  }
 
   node_type {
     name                 = "first"
@@ -1752,7 +1797,12 @@ resource "azurerm_service_fabric_cluster" "test" {
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
-  management_endpoint = "http://example:80"
+  management_endpoint = "https://example:80"
+
+  certificate {
+    thumbprint      = "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"
+    x509_store_name = "My"
+  }
 
   node_type {
     name = "first"
@@ -1797,7 +1847,12 @@ resource "azurerm_service_fabric_cluster" "test" {
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
-  management_endpoint = "http://example:80"
+  management_endpoint = "https://example:80"
+
+  certificate {
+    thumbprint      = "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"
+    x509_store_name = "My"
+  }
 
   node_type {
     name                 = "first"
@@ -1837,7 +1892,11 @@ resource "azurerm_service_fabric_cluster" "test" {
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
-  management_endpoint = "http://example:80"
+  management_endpoint = "https://example:80"
+  certificate {
+    thumbprint      = "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"
+    x509_store_name = "My"
+  }
   diagnostics_config {
     storage_account_name       = azurerm_storage_account.test.name
     protected_account_key_name = "StorageAccountKey1"
@@ -1897,7 +1956,11 @@ resource "azurerm_service_fabric_cluster" "test" {
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
-  management_endpoint = "http://example:80"
+  management_endpoint = "https://example:80"
+  certificate {
+    thumbprint      = "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"
+    x509_store_name = "My"
+  }
   diagnostics_config {
     storage_account_name       = azurerm_storage_account.test.name
     protected_account_key_name = "StorageAccountKey1"
@@ -1943,7 +2006,12 @@ resource "azurerm_service_fabric_cluster" "test" {
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
-  management_endpoint = "http://example:80"
+  management_endpoint = "https://example:80"
+
+  certificate {
+    thumbprint      = "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"
+    x509_store_name = "My"
+  }
 
   node_type {
     name                 = "first"
@@ -1983,9 +2051,14 @@ resource "azurerm_service_fabric_cluster" "test" {
   reliability_level                 = "Bronze"
   upgrade_mode                      = "Automatic"
   vm_image                          = "Windows"
-  management_endpoint               = "http://example:80"
+  management_endpoint               = "https://example:80"
   service_fabric_zonal_upgrade_mode = "Hierarchical"
   vmss_zonal_upgrade_mode           = "Parallel"
+
+  certificate {
+    thumbprint      = "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"
+    x509_store_name = "My"
+  }
 
   node_type {
     name                        = "first"
