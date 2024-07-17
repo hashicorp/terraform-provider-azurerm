@@ -546,6 +546,10 @@ resource "azurerm_eventhub_namespace" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Basic"
+
+  lifecycle {
+    ignore_changes = [network_rulesets]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -569,6 +573,10 @@ resource "azurerm_eventhub_namespace" "test" {
 
   identity {
     type = "SystemAssigned"
+  }
+
+  lifecycle {
+    ignore_changes = [network_rulesets]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -596,6 +604,10 @@ resource "azurerm_eventhub_namespace" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   sku = "Standard"
+
+  lifecycle {
+    ignore_changes = [network_rulesets]
+  }
 }
 
 resource "azurerm_eventhub_namespace" "test2" {
@@ -604,6 +616,10 @@ resource "azurerm_eventhub_namespace" "test2" {
   resource_group_name = azurerm_resource_group.test2.name
 
   sku = "Standard"
+
+  lifecycle {
+    ignore_changes = [network_rulesets]
+  }
 }
 
 resource "azurerm_eventhub_namespace_disaster_recovery_config" "test" {
@@ -675,6 +691,11 @@ resource "azurerm_eventhub_namespace" "test" {
   sku                 = "Premium"
   capacity            = "1"
   zone_redundant      = true
+
+  lifecycle {
+    ignore_changes = [network_rulesets]
+  }
+
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -699,6 +720,10 @@ resource "azurerm_eventhub_namespace" "test" {
 
   identity {
     type = "SystemAssigned"
+  }
+
+  lifecycle {
+    ignore_changes = [network_rulesets]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -809,6 +834,10 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -853,6 +882,10 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -868,6 +901,10 @@ resource "azurerm_virtual_network" "test2" {
   address_space       = ["10.1.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test2" {
@@ -927,6 +964,10 @@ resource "azurerm_eventhub_namespace" "test" {
   capacity                 = "2"
   auto_inflate_enabled     = true
   maximum_throughput_units = 25
+
+  lifecycle {
+    ignore_changes = [network_rulesets]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -948,6 +989,10 @@ resource "azurerm_eventhub_namespace" "test" {
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
   capacity            = "2"
+
+  lifecycle {
+    ignore_changes = [network_rulesets]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -977,6 +1022,10 @@ resource "azurerm_eventhub_namespace" "test" {
   sku                  = "Standard"
   capacity             = "2"
   dedicated_cluster_id = azurerm_eventhub_cluster.test.id
+
+  lifecycle {
+    ignore_changes = [network_rulesets]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -1003,6 +1052,10 @@ resource "azurerm_eventhub_namespace" "test" {
     sauce       = "Hot"
     terraform   = "true"
   }
+
+  lifecycle {
+    ignore_changes = [network_rulesets]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -1024,6 +1077,10 @@ resource "azurerm_eventhub_namespace" "test" {
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Basic"
   capacity            = %d
+
+  lifecycle {
+    ignore_changes = [network_rulesets]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, capacity)
 }
@@ -1045,6 +1102,10 @@ resource "azurerm_eventhub_namespace" "test" {
   resource_group_name          = azurerm_resource_group.test.name
   sku                          = "Basic"
   local_authentication_enabled = false
+
+  lifecycle {
+    ignore_changes = [network_rulesets]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -1066,6 +1127,10 @@ resource "azurerm_eventhub_namespace" "test" {
   resource_group_name           = azurerm_resource_group.test.name
   sku                           = "Basic"
   public_network_access_enabled = false
+
+  lifecycle {
+    ignore_changes = [network_rulesets]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -1087,6 +1152,10 @@ resource "azurerm_eventhub_namespace" "test" {
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Basic"
   minimum_tls_version = "1.1"
+
+  lifecycle {
+    ignore_changes = [network_rulesets]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -1110,6 +1179,10 @@ resource "azurerm_eventhub_namespace" "test" {
   capacity                 = 1
   auto_inflate_enabled     = true
   maximum_throughput_units = 1
+
+  lifecycle {
+    ignore_changes = [network_rulesets]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -1133,6 +1206,10 @@ resource "azurerm_eventhub_namespace" "test" {
   capacity                 = 1
   auto_inflate_enabled     = false
   maximum_throughput_units = 0
+
+  lifecycle {
+    ignore_changes = [network_rulesets]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

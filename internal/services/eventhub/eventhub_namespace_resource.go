@@ -119,11 +119,9 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 			},
 
 			"network_rulesets": {
-				Type:       pluginsdk.TypeList,
-				Optional:   true,
-				MaxItems:   1,
-				Computed:   true,
-				ConfigMode: pluginsdk.SchemaConfigModeAttr,
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"default_action": {
@@ -150,11 +148,10 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 						// Returned value of the `virtual_network_rule` array does not honor the input order,
 						// possibly a service design, thus changed to TypeSet
 						"virtual_network_rule": {
-							Type:       pluginsdk.TypeSet,
-							Optional:   true,
-							MaxItems:   128,
-							ConfigMode: pluginsdk.SchemaConfigModeAttr,
-							Set:        resourceVnetRuleHash,
+							Type:     pluginsdk.TypeSet,
+							Optional: true,
+							MaxItems: 128,
+							Set:      resourceVnetRuleHash,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									// the API returns the subnet ID's resource group name in lowercase
@@ -176,10 +173,9 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 
 						// 128 limit per https://docs.microsoft.com/azure/event-hubs/event-hubs-quotas
 						"ip_rule": {
-							Type:       pluginsdk.TypeList,
-							Optional:   true,
-							MaxItems:   128,
-							ConfigMode: pluginsdk.SchemaConfigModeAttr,
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 128,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"ip_mask": {
@@ -296,7 +292,92 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 				string(namespaces.TlsVersionOnePointTwo),
 			}, false),
 		}
+
+		resource.Schema["network_rulesets"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeList,
+			Optional:   true,
+			Computed:   true,
+			MaxItems:   1,
+			ConfigMode: pluginsdk.SchemaConfigModeAttr,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"default_action": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(networkrulesets.DefaultActionAllow),
+							string(networkrulesets.DefaultActionDeny),
+						}, false),
+					},
+
+					"public_network_access_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  true,
+					},
+
+					"trusted_service_access_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+					},
+
+					// 128 limit per https://docs.microsoft.com/azure/event-hubs/event-hubs-quotas
+					// Returned value of the `virtual_network_rule` array does not honor the input order,
+					// possibly a service design, thus changed to TypeSet
+					"virtual_network_rule": {
+						Type:       pluginsdk.TypeSet,
+						Optional:   true,
+						MaxItems:   128,
+						ConfigMode: pluginsdk.SchemaConfigModeAttr,
+						Set:        resourceVnetRuleHash,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								// the API returns the subnet ID's resource group name in lowercase
+								// https://github.com/Azure/azure-sdk-for-go/issues/5855
+								"subnet_id": {
+									Type:             pluginsdk.TypeString,
+									Required:         true,
+									ValidateFunc:     commonids.ValidateSubnetID,
+									DiffSuppressFunc: suppress.CaseDifference,
+								},
+
+								"ignore_missing_virtual_network_service_endpoint": {
+									Type:     pluginsdk.TypeBool,
+									Optional: true,
+								},
+							},
+						},
+					},
+
+					// 128 limit per https://docs.microsoft.com/azure/event-hubs/event-hubs-quotas
+					"ip_rule": {
+						Type:       pluginsdk.TypeList,
+						Optional:   true,
+						MaxItems:   128,
+						ConfigMode: pluginsdk.SchemaConfigModeAttr,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"ip_mask": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+								},
+
+								"action": {
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+									Default:  string(networkrulesets.NetworkRuleIPActionAllow),
+									ValidateFunc: validation.StringInSlice([]string{
+										string(networkrulesets.NetworkRuleIPActionAllow),
+									}, false),
+								},
+							},
+						},
+					},
+				},
+			},
+		}
 	}
+
 	return resource
 }
 
@@ -515,6 +596,21 @@ func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta interface{}
 		ruleSets := d.Get("network_rulesets")
 		rulesets := networkrulesets.NetworkRuleSet{
 			Properties: expandEventHubNamespaceNetworkRuleset(ruleSets.([]interface{})),
+		}
+
+		if features.FourPointOhBeta() {
+			oldNetworkRuleSet, newNetworkRuleSet := d.GetChange("network_rulesets")
+			// rulesets cannot be deleted, so if it is removed from config we reset to the defaults instead
+			if len(oldNetworkRuleSet.([]interface{})) == 1 && len(newNetworkRuleSet.([]interface{})) == 0 {
+				log.Printf("[DEBUG] Resetting Network Rule Set associated with %s..", id)
+				rulesets = networkrulesets.NetworkRuleSet{
+					Properties: &networkrulesets.NetworkRuleSetProperties{
+						DefaultAction:               pointer.To(networkrulesets.DefaultActionAllow),
+						PublicNetworkAccess:         pointer.To(networkrulesets.PublicNetworkAccessFlagEnabled),
+						TrustedServiceAccessEnabled: pointer.To(false),
+					},
+				}
+			}
 		}
 
 		if !strings.EqualFold(string(*rulesets.Properties.PublicNetworkAccess), string(*parameters.Properties.PublicNetworkAccess)) {
