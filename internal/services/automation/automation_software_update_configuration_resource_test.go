@@ -271,10 +271,10 @@ resource "azurerm_automation_software_update_configuration" "test" {
   name                  = "acctest-suc-%[2]d"
 
   linux {
-    classification_included = "Security"
-    excluded_packages       = ["apt"]
-    included_packages       = ["vim"]
-    reboot                  = "IfRequired"
+    classifications_included = ["Security"]
+    excluded_packages        = ["apt"]
+    included_packages        = ["vim"]
+    reboot                   = "IfRequired"
   }
 
   duration            = "PT1H1M1S"
@@ -422,10 +422,10 @@ resource "azurerm_automation_software_update_configuration" "test" {
   name                  = "acctest-suc-%[2]d"
 
   linux {
-    classification_included = "Security"
-    excluded_packages       = ["apt"]
-    included_packages       = ["vim"]
-    reboot                  = "IfRequired"
+    classifications_included = ["Security"]
+    excluded_packages        = ["apt"]
+    included_packages        = ["vim"]
+    reboot                   = "IfRequired"
   }
 
   duration            = "PT1H1M1S"
@@ -480,6 +480,7 @@ resource "azurerm_automation_software_update_configuration" "test" {
 func (a SoftwareUpdateConfigurationResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
+
 %s
 
 data "azurerm_client_config" "current" {}
@@ -489,10 +490,10 @@ resource "azurerm_automation_software_update_configuration" "test" {
   name                  = "acctest-suc-%[2]d"
 
   linux {
-    classification_included = "Security"
-    excluded_packages       = ["apt"]
-    included_packages       = ["vim"]
-    reboot                  = "Always"
+    classifications_included = ["Security"]
+    excluded_packages        = ["apt"]
+    included_packages        = ["vim"]
+    reboot                   = "Always"
   }
 
   duration            = "PT2H2M2S"
