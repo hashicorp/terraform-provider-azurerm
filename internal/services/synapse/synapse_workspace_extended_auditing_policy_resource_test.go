@@ -400,9 +400,9 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 
-  // log, metric will return all disabled categories
+  // enabled_log, metric will return all disabled categories
   lifecycle {
-    ignore_changes = [log, metric]
+    ignore_changes = [enabled_log, metric]
   }
 }
 
@@ -438,9 +438,9 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 
-  // log, metric will return all disabled categories
+  // enabled_log, metric will return all disabled categories
   lifecycle {
-    ignore_changes = [log, metric]
+    ignore_changes = [enabled_log, metric]
   }
 }
 
@@ -480,9 +480,9 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 
-  // log, metric will return all disabled categories
+  // enabled_log, metric will return all disabled categories
   lifecycle {
-    ignore_changes = [log, metric]
+    ignore_changes = [enabled_log, metric]
   }
 
 }
@@ -521,9 +521,9 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 
-  // log, metric will return all disabled categories
+  // enabled_log, metric will return all disabled categories
   lifecycle {
-    ignore_changes = [log, metric]
+    ignore_changes = [enabled_log, metric]
   }
 
 }
