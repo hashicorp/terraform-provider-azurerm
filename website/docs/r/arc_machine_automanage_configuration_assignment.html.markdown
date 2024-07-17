@@ -38,8 +38,8 @@ resource "azurerm_automanage_configuration" "example" {
 }
 
 resource "azurerm_arc_machine_automanage_configuration_assignment" "example" {
-  arc_machine_id     = data.azurerm_arc_machine.example.id
-  configuration_id   = azurerm_automanage_configuration.example.id
+  arc_machine_id   = data.azurerm_arc_machine.example.id
+  configuration_id = azurerm_automanage_configuration.example.id
 }
 
 ```

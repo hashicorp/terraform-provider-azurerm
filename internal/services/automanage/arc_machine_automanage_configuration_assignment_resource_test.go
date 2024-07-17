@@ -71,8 +71,8 @@ func (r ArcMachineConfigurationAssignmentResource) requiresImport(data acceptanc
 			%s
 
 resource "azurerm_arc_machine_automanage_configuration_assignment" "import" {
-  arc_machine_id     = azurerm_arc_machine_automanage_configuration_assignment.test.arc_machine_id
-  configuration_id   = azurerm_arc_machine_automanage_configuration_assignment.test.configuration_id
+  arc_machine_id   = azurerm_arc_machine_automanage_configuration_assignment.test.arc_machine_id
+  configuration_id = azurerm_arc_machine_automanage_configuration_assignment.test.configuration_id
 }
 `, config)
 }
@@ -229,12 +229,12 @@ resource "azurerm_automanage_configuration" "test" {
 }
 
 resource "azurerm_arc_machine_automanage_configuration_assignment" "test" {
-  arc_machine_id     = data.azurerm_arc_machine.test.id
-  configuration_id   = azurerm_automanage_configuration.test.id
+  arc_machine_id   = data.azurerm_arc_machine.test.id
+  configuration_id = azurerm_automanage_configuration.test.id
 
   depends_on = [
-	azurerm_automanage_configuration.test,
-	azurerm_linux_virtual_machine.test
+    azurerm_automanage_configuration.test,
+    azurerm_linux_virtual_machine.test
   ]
 }
 `, randomUUID, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, secret, data.RandomInteger)
