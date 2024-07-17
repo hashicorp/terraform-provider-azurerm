@@ -166,10 +166,10 @@ resource "azurerm_stream_analytics_output_mssql" "test" {
   stream_analytics_job_name = azurerm_stream_analytics_job.test.name
   resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
 
-  server   = azurerm_sql_server.test.fully_qualified_domain_name
-  user     = azurerm_sql_server.test.administrator_login
-  password = azurerm_sql_server.test.administrator_login_password
-  database = azurerm_sql_database.test.name
+  server   = azurerm_mssql_server.test.fully_qualified_domain_name
+  user     = azurerm_mssql_server.test.administrator_login
+  password = azurerm_mssql_server.test.administrator_login_password
+  database = azurerm_mssql_database.test.name
   table    = "AccTestTable"
 }
 `, template, data.RandomInteger)
@@ -185,10 +185,10 @@ resource "azurerm_stream_analytics_output_mssql" "import" {
   stream_analytics_job_name = azurerm_stream_analytics_output_mssql.test.stream_analytics_job_name
   resource_group_name       = azurerm_stream_analytics_output_mssql.test.resource_group_name
 
-  server   = azurerm_sql_server.test.fully_qualified_domain_name
-  user     = azurerm_sql_server.test.administrator_login
-  password = azurerm_sql_server.test.administrator_login_password
-  database = azurerm_sql_database.test.name
+  server   = azurerm_mssql_server.test.fully_qualified_domain_name
+  user     = azurerm_mssql_server.test.administrator_login
+  password = azurerm_mssql_server.test.administrator_login_password
+  database = azurerm_mssql_database.test.name
   table    = "AccTestTable"
 }
 `, template)
@@ -204,10 +204,10 @@ resource "azurerm_stream_analytics_output_mssql" "test" {
   stream_analytics_job_name = azurerm_stream_analytics_job.test.name
   resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
 
-  server   = azurerm_sql_server.test.fully_qualified_domain_name
-  user     = azurerm_sql_server.test.administrator_login
-  password = azurerm_sql_server.test.administrator_login_password
-  database = azurerm_sql_database.test.name
+  server   = azurerm_mssql_server.test.fully_qualified_domain_name
+  user     = azurerm_mssql_server.test.administrator_login
+  password = azurerm_mssql_server.test.administrator_login_password
+  database = azurerm_mssql_database.test.name
   table    = "AccTestTable"
 
   max_batch_count  = %f
@@ -227,8 +227,8 @@ resource "azurerm_stream_analytics_output_mssql" "test" {
   resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
   authentication_mode       = "Msi"
 
-  server   = azurerm_sql_server.test.fully_qualified_domain_name
-  database = azurerm_sql_database.test.name
+  server   = azurerm_mssql_server.test.fully_qualified_domain_name
+  database = azurerm_mssql_database.test.name
   table    = "AccTestTable"
 }
 `, template, data.RandomInteger)
