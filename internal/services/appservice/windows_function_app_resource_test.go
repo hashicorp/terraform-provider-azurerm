@@ -1599,28 +1599,28 @@ func TestAccWindowsFunctionApp_websiteContentOverVnetUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("site_credential.0.password"),
+		data.ImportStep("app_settings.WEBSITE_CONTENTSHARE", "app_settings.%", "site_credential.0.password"),
 		{
 			Config: r.websiteContentOverVnet(data, SkuElasticPremiumPlan, "1", true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("site_credential.0.password"),
+		data.ImportStep("app_settings.WEBSITE_CONTENTSHARE", "app_settings.%", "site_credential.0.password"),
 		{
 			Config: r.websiteContentOverVnet(data, SkuElasticPremiumPlan, "0", true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("site_credential.0.password"),
+		data.ImportStep("app_settings.WEBSITE_CONTENTSHARE", "app_settings.%", "site_credential.0.password"),
 		{
 			Config: r.websiteContentOverVnet(data, SkuElasticPremiumPlan, "0", false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("site_credential.0.password"),
+		data.ImportStep("app_settings.WEBSITE_CONTENTSHARE", "app_settings.%", "site_credential.0.password"),
 	})
 }
 
@@ -3987,6 +3987,12 @@ provider "azurerm" {
 
 %s
 
+resource "azurerm_storage_share" "test" {
+  name                 = "shareforfa"
+  storage_account_name = azurerm_storage_account.test.name
+  quota                = 5
+}
+
 resource "azurerm_windows_function_app" "test" {
   name                       = "acctestWA-%d"
   location                   = azurerm_resource_group.test.location
@@ -3997,11 +4003,15 @@ resource "azurerm_windows_function_app" "test" {
 
   app_settings = {
     WEBSITE_CONTENTOVERVNET = "%s"
-    WEBSITE_CONTENTSHARE    = "testacc-content-app"
+    WEBSITE_CONTENTSHARE    = "shareforfa"
   }
 
   site_config {}
   website_content_over_vnet = %t
+
+  lifecycle {
+    ignore_changes = [webdeploy_publish_basic_authentication_enabled, ftp_publish_basic_authentication_enabled]
+  }
 }
 `, r.template(data, planSKU), data.RandomInteger, websiteContentAppSetting, websiteContentSiteConfig)
 }

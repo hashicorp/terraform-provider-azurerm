@@ -1055,6 +1055,10 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 				model.Properties.SiteConfig.PublicNetworkAccess = model.Properties.PublicNetworkAccess
 			}
 
+			if metadata.ResourceData.HasChange("website_content_over_vnet") {
+				model.Properties.VnetContentShareEnabled = pointer.To(state.VnetContentShareEnabled)
+			}
+
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, model); err != nil {
 				return fmt.Errorf("updating Linux %s: %+v", id, err)
 			}
