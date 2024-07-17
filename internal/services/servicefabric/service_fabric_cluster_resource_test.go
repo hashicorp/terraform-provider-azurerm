@@ -285,7 +285,7 @@ func TestAccAzureRMServiceFabricCluster_reverseProxyUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("management_endpoint").HasValue("https://example:80"),
 				check.That(data.ResourceName).Key("add_on_features.#").HasValue("0"),
-				check.That(data.ResourceName).Key("certificate.#").HasValue("0"),
+				check.That(data.ResourceName).Key("certificate.#").HasValue("1"),
 				check.That(data.ResourceName).Key("reverse_proxy_certificate.#").HasValue("0"),
 				check.That(data.ResourceName).Key("client_certificate_thumbprint.#").HasValue("0"),
 				check.That(data.ResourceName).Key("azure_active_directory.#").HasValue("0"),
