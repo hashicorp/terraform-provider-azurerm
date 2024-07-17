@@ -286,7 +286,7 @@ resource "azurerm_key_vault" "test" {
 
   sku_name = "standard"
 
-  life_cycle {
+  lifecycle {
     ignore_changes = [access_policy]
   }
 }
