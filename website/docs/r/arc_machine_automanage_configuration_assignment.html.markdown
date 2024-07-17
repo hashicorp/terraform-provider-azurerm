@@ -57,7 +57,7 @@ The following arguments are supported:
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the Virtual Machine Automanage Configuration Profile Assignment.
+* `id` - The ID of the Arc Machine Automanage Configuration Profile Assignment.
 
 ## Timeouts
 
@@ -72,5 +72,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Virtual Machine Automanage Configuration Profile Assignment can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_arc_machine_automanage_configuration_assignment.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Compute/virtualMachines/vm1/providers/Microsoft.AutoManage/configurationProfileAssignments/default
+terraform import azurerm_arc_machine_automanage_configuration_assignment.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.HybridCompute/Microsoft.HybridCompute/machines/machine1/providers/Microsoft.AutoManage/configurationProfileAssignments/default
 ```
