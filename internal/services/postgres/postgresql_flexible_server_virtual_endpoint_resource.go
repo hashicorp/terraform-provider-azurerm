@@ -50,9 +50,9 @@ func resourcePostgresqlFlexibleServerVirtualEndpoint() *pluginsdk.Resource {
 				ValidateFunc: servers.ValidateFlexibleServerID,
 			},
 			"replica_server_id": {
-				Type:         pluginsdk.TypeString,
-				Description:  "The Resource ID of the *Source* Postgres Flexible Server this should be associated with",
-				ForceNew:     true,
+				Type:        pluginsdk.TypeString,
+				Description: "The Resource ID of the *Source* Postgres Flexible Server this should be associated with",
+				// ForceNew:     true,
 				Required:     true,
 				ValidateFunc: servers.ValidateFlexibleServerID,
 			},
@@ -154,6 +154,35 @@ func resourcePostgresqlFlexibleServerVirtualEndpointRead(d *pluginsdk.ResourceDa
 }
 
 func resourcePostgresqlFlexibleServerVirtualEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Postgres.VirtualEndpointClient
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := virtualendpoints.ParseVirtualEndpointID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	replicaServer := d.Get("replica_server_id").(string)
+	virtualEndpointType := d.Get("type").(string)
+
+	replicaServerId, err := servers.ParseFlexibleServerID(replicaServer)
+	if err != nil {
+		return err
+	}
+
+	locks.ByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
+	defer locks.UnlockByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
+
+	if err := client.UpdateThenPoll(ctx, *id, virtualendpoints.VirtualEndpointResourceForPatch{
+		Properties: &virtualendpoints.VirtualEndpointResourceProperties{
+			EndpointType: (*virtualendpoints.VirtualEndpointType)(&virtualEndpointType),
+			Members:      &[]string{replicaServerId.FlexibleServerName}, // TODO: Can we pass multiple at once?
+		},
+	}); err != nil {
+		return fmt.Errorf("updating %q: %+v", id, err)
+	}
+
 	return nil
 }
 
