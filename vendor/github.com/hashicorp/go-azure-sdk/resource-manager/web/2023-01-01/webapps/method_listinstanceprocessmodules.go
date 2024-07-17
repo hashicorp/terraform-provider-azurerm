@@ -23,6 +23,18 @@ type ListInstanceProcessModulesCompleteResult struct {
 	Items              []ProcessModuleInfo
 }
 
+type ListInstanceProcessModulesCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListInstanceProcessModulesCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListInstanceProcessModules ...
 func (c WebAppsClient) ListInstanceProcessModules(ctx context.Context, id InstanceProcessId) (result ListInstanceProcessModulesOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c WebAppsClient) ListInstanceProcessModules(ctx context.Context, id Instan
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListInstanceProcessModulesCustomPager{},
 		Path:       fmt.Sprintf("%s/modules", id.ID()),
 	}
 

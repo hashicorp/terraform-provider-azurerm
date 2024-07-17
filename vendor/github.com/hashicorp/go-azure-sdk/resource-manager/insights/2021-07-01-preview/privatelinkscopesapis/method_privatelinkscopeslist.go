@@ -24,6 +24,18 @@ type PrivateLinkScopesListCompleteResult struct {
 	Items              []AzureMonitorPrivateLinkScope
 }
 
+type PrivateLinkScopesListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *PrivateLinkScopesListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // PrivateLinkScopesList ...
 func (c PrivateLinkScopesAPIsClient) PrivateLinkScopesList(ctx context.Context, id commonids.SubscriptionId) (result PrivateLinkScopesListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c PrivateLinkScopesAPIsClient) PrivateLinkScopesList(ctx context.Context, 
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &PrivateLinkScopesListCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.Insights/privateLinkScopes", id.ID()),
 	}
 

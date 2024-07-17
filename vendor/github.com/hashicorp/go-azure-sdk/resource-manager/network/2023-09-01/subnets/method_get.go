@@ -54,8 +54,8 @@ func (c SubnetsClient) Get(ctx context.Context, id commonids.SubnetId, options G
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

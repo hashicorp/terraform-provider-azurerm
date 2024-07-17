@@ -23,6 +23,18 @@ type DisconnectActiveSessionsCompleteResult struct {
 	Items              []BastionSessionState
 }
 
+type DisconnectActiveSessionsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *DisconnectActiveSessionsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // DisconnectActiveSessions ...
 func (c BastionHostsClient) DisconnectActiveSessions(ctx context.Context, id BastionHostId, input SessionIds) (result DisconnectActiveSessionsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c BastionHostsClient) DisconnectActiveSessions(ctx context.Context, id Bas
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodPost,
+		Pager:      &DisconnectActiveSessionsCustomPager{},
 		Path:       fmt.Sprintf("%s/disconnectActiveSessions", id.ID()),
 	}
 

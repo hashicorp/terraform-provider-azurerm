@@ -23,6 +23,18 @@ type ConnectedEnvironmentsDaprComponentsListCompleteResult struct {
 	Items              []DaprComponent
 }
 
+type ConnectedEnvironmentsDaprComponentsListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ConnectedEnvironmentsDaprComponentsListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ConnectedEnvironmentsDaprComponentsList ...
 func (c DaprComponentsClient) ConnectedEnvironmentsDaprComponentsList(ctx context.Context, id ConnectedEnvironmentId) (result ConnectedEnvironmentsDaprComponentsListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c DaprComponentsClient) ConnectedEnvironmentsDaprComponentsList(ctx contex
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ConnectedEnvironmentsDaprComponentsListCustomPager{},
 		Path:       fmt.Sprintf("%s/daprComponents", id.ID()),
 	}
 

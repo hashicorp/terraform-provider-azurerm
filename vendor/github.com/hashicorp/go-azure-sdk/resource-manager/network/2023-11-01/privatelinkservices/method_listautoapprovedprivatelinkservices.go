@@ -23,6 +23,18 @@ type ListAutoApprovedPrivateLinkServicesCompleteResult struct {
 	Items              []AutoApprovedPrivateLinkService
 }
 
+type ListAutoApprovedPrivateLinkServicesCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListAutoApprovedPrivateLinkServicesCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListAutoApprovedPrivateLinkServices ...
 func (c PrivateLinkServicesClient) ListAutoApprovedPrivateLinkServices(ctx context.Context, id LocationId) (result ListAutoApprovedPrivateLinkServicesOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c PrivateLinkServicesClient) ListAutoApprovedPrivateLinkServices(ctx conte
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListAutoApprovedPrivateLinkServicesCustomPager{},
 		Path:       fmt.Sprintf("%s/autoApprovedPrivateLinkServices", id.ID()),
 	}
 

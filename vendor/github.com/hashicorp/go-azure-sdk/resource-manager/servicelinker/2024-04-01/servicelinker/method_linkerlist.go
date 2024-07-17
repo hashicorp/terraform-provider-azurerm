@@ -24,6 +24,18 @@ type LinkerListCompleteResult struct {
 	Items              []LinkerResource
 }
 
+type LinkerListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *LinkerListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // LinkerList ...
 func (c ServiceLinkerClient) LinkerList(ctx context.Context, id commonids.ScopeId) (result LinkerListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c ServiceLinkerClient) LinkerList(ctx context.Context, id commonids.ScopeI
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &LinkerListCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.ServiceLinker/linkers", id.ID()),
 	}
 

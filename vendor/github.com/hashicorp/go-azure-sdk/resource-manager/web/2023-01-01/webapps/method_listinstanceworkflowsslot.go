@@ -23,6 +23,18 @@ type ListInstanceWorkflowsSlotCompleteResult struct {
 	Items              []WorkflowEnvelope
 }
 
+type ListInstanceWorkflowsSlotCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListInstanceWorkflowsSlotCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListInstanceWorkflowsSlot ...
 func (c WebAppsClient) ListInstanceWorkflowsSlot(ctx context.Context, id SlotId) (result ListInstanceWorkflowsSlotOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c WebAppsClient) ListInstanceWorkflowsSlot(ctx context.Context, id SlotId)
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListInstanceWorkflowsSlotCustomPager{},
 		Path:       fmt.Sprintf("%s/workflows", id.ID()),
 	}
 

@@ -23,6 +23,18 @@ type ListByProjectCompleteResult struct {
 	Items              []Pool
 }
 
+type ListByProjectCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByProjectCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByProject ...
 func (c PoolsClient) ListByProject(ctx context.Context, id ProjectId) (result ListByProjectOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c PoolsClient) ListByProject(ctx context.Context, id ProjectId) (result Li
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByProjectCustomPager{},
 		Path:       fmt.Sprintf("%s/pools", id.ID()),
 	}
 

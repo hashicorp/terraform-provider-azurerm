@@ -53,8 +53,8 @@ func (c VirtualMachinesClient) Get(ctx context.Context, id VirtualMachineId, opt
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

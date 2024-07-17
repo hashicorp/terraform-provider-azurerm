@@ -23,6 +23,18 @@ type AccessPolicyAssignmentListCompleteResult struct {
 	Items              []RedisCacheAccessPolicyAssignment
 }
 
+type AccessPolicyAssignmentListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *AccessPolicyAssignmentListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // AccessPolicyAssignmentList ...
 func (c AADClient) AccessPolicyAssignmentList(ctx context.Context, id RediId) (result AccessPolicyAssignmentListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c AADClient) AccessPolicyAssignmentList(ctx context.Context, id RediId) (r
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &AccessPolicyAssignmentListCustomPager{},
 		Path:       fmt.Sprintf("%s/accessPolicyAssignments", id.ID()),
 	}
 

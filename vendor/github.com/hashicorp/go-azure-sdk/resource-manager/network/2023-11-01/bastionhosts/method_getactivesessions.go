@@ -26,6 +26,18 @@ type GetActiveSessionsCompleteResult struct {
 	Items              []BastionActiveSession
 }
 
+type GetActiveSessionsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *GetActiveSessionsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // GetActiveSessions ...
 func (c BastionHostsClient) GetActiveSessions(ctx context.Context, id BastionHostId) (result GetActiveSessionsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -35,6 +47,7 @@ func (c BastionHostsClient) GetActiveSessions(ctx context.Context, id BastionHos
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodPost,
+		Pager:      &GetActiveSessionsCustomPager{},
 		Path:       fmt.Sprintf("%s/getActiveSessions", id.ID()),
 	}
 

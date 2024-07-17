@@ -223,6 +223,13 @@ func TestAccContainerRegistry_networkAccessProfileIp(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.networkAccessProfileNetworkRuleSetRemoved(data, "Basic"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -472,7 +479,8 @@ func (t ContainerRegistryResource) Exists(ctx context.Context, clients *clients.
 }
 
 func (ContainerRegistryResource) basic(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FourPointOhBeta() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -493,9 +501,46 @@ resource "azurerm_container_registry" "test" {
   network_rule_set = []
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-acr-%d"
+  location = "%s"
+}
+
+resource "azurerm_container_registry" "test" {
+  name                = "testacccr%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Basic"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func (ContainerRegistryResource) basicManaged(data acceptance.TestData, sku string) string {
+	if !features.FourPointOhBeta() {
+		return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-acr-%d"
+  location = "%s"
+}
+
+resource "azurerm_container_registry" "test" {
+  name                = "testacccr%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "%s"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, sku)
+	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -511,6 +556,12 @@ resource "azurerm_container_registry" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "%s"
+
+  lifecycle {
+    ignore_changes = [
+      network_rule_set
+    ]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, sku)
 }
@@ -567,12 +618,6 @@ resource "azurerm_container_registry" "test" {
 
   tags = {
     environment = "production"
-  }
-
-  lifecycle {
-    ignore_changes = [
-      network_rule_set
-    ]
   }
 }
 `, data.Locations.Primary, data.RandomInteger)
@@ -786,8 +831,6 @@ resource "azurerm_container_registry" "test" {
   identity {
     type = "SystemAssigned"
   }
-
-  network_rule_set = []
 }
 `, data.Locations.Primary, data.RandomInteger)
 }
@@ -966,7 +1009,8 @@ resource "azurerm_container_registry" "test" {
 }
 
 func (ContainerRegistryResource) geoReplicationUpdateWithNoLocationBasic(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FourPointOhBeta() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -985,6 +1029,24 @@ resource "azurerm_container_registry" "test" {
   # make sure network_rule_set is empty for basic SKU
   # premium SKU will automatically populate network_rule_set.default_action to allow
   network_rule_set = []
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-acr-%d"
+  location = "%s"
+}
+
+resource "azurerm_container_registry" "test" {
+  name                = "testacccr%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Basic"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -1045,6 +1107,27 @@ resource "azurerm_container_registry" "test" {
   network_rule_set {
     default_action = "Allow"
   }
+}
+`, data.RandomInteger, data.Locations.Primary, sku)
+}
+
+func (ContainerRegistryResource) networkAccessProfileNetworkRuleSetRemoved(data acceptance.TestData, sku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_container_registry" "test" {
+  name                = "testAccCr%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "%[3]s"
+  admin_enabled       = false
 }
 `, data.RandomInteger, data.Locations.Primary, sku)
 }
@@ -1311,7 +1394,8 @@ resource "azurerm_container_registry" "test" {
 }
 
 func (ContainerRegistryResource) zoneRedundancy(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FourPointOhBeta() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -1327,10 +1411,34 @@ resource "azurerm_container_registry" "test" {
   zone_redundancy_enabled = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-acr-%d"
+  location = "%s"
+}
+resource "azurerm_container_registry" "test" {
+  name                    = "testacccr%d"
+  resource_group_name     = azurerm_resource_group.test.name
+  location                = azurerm_resource_group.test.location
+  sku                     = "Premium"
+  zone_redundancy_enabled = true
+
+  lifecycle {
+    ignore_changes = [
+      network_rule_set
+    ]
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func (ContainerRegistryResource) geoReplicationZoneRedundancy(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FourPointOhBeta() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -1349,9 +1457,56 @@ resource "azurerm_container_registry" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Secondary)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-acr-%d"
+  location = "%s"
+}
+resource "azurerm_container_registry" "test" {
+  name                = "testacccr%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Premium"
+  georeplications {
+    location                = "%s"
+    zone_redundancy_enabled = true
+  }
+
+  lifecycle {
+    ignore_changes = [
+      network_rule_set
+    ]
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Secondary)
 }
 
 func (ContainerRegistryResource) regionEndpoint(data acceptance.TestData) string {
+	if !features.FourPointOhBeta() {
+		return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-acr-%d"
+  location = "%s"
+}
+resource "azurerm_container_registry" "test" {
+  name                = "testacccr%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Premium"
+  georeplications {
+    location                  = "%s"
+    regional_endpoint_enabled = true
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Secondary)
+	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1368,6 +1523,12 @@ resource "azurerm_container_registry" "test" {
   georeplications {
     location                  = "%s"
     regional_endpoint_enabled = true
+  }
+
+  lifecycle {
+    ignore_changes = [
+      network_rule_set
+    ]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Secondary)
@@ -1395,7 +1556,8 @@ resource "azurerm_container_registry" "test" {
 }
 
 func (ContainerRegistryResource) dataEndpointPremium(data acceptance.TestData, enabled bool) string {
-	return fmt.Sprintf(`
+	if !features.FourPointOhBeta() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -1413,9 +1575,54 @@ resource "azurerm_container_registry" "test" {
   data_endpoint_enabled = "%t"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enabled)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-acr-%d"
+  location = "%s"
+}
+
+resource "azurerm_container_registry" "test" {
+  name                  = "testacccr%d"
+  resource_group_name   = azurerm_resource_group.test.name
+  location              = azurerm_resource_group.test.location
+  sku                   = "Premium"
+  data_endpoint_enabled = "%t"
+
+  lifecycle {
+    ignore_changes = [
+      network_rule_set
+    ]
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enabled)
 }
 
 func (ContainerRegistryResource) networkRuleBypassOptionsPremium(data acceptance.TestData, opt string) string {
+	if !features.FourPointOhBeta() {
+		return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-acr-%d"
+  location = "%s"
+}
+
+resource "azurerm_container_registry" "test" {
+  name                       = "testacccr%d"
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  sku                        = "Premium"
+  network_rule_bypass_option = "%s"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, opt)
+	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1432,6 +1639,12 @@ resource "azurerm_container_registry" "test" {
   location                   = azurerm_resource_group.test.location
   sku                        = "Premium"
   network_rule_bypass_option = "%s"
+
+  lifecycle {
+    ignore_changes = [
+      network_rule_set
+    ]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, opt)
 }

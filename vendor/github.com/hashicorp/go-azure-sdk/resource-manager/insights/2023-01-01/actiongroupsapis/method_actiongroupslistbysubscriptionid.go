@@ -24,6 +24,18 @@ type ActionGroupsListBySubscriptionIdCompleteResult struct {
 	Items              []ActionGroupResource
 }
 
+type ActionGroupsListBySubscriptionIdCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ActionGroupsListBySubscriptionIdCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ActionGroupsListBySubscriptionId ...
 func (c ActionGroupsAPIsClient) ActionGroupsListBySubscriptionId(ctx context.Context, id commonids.SubscriptionId) (result ActionGroupsListBySubscriptionIdOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c ActionGroupsAPIsClient) ActionGroupsListBySubscriptionId(ctx context.Con
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ActionGroupsListBySubscriptionIdCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.Insights/actionGroups", id.ID()),
 	}
 

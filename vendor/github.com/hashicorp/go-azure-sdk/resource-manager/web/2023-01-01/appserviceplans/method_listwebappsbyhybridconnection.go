@@ -23,6 +23,18 @@ type ListWebAppsByHybridConnectionCompleteResult struct {
 	Items              []string
 }
 
+type ListWebAppsByHybridConnectionCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListWebAppsByHybridConnectionCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListWebAppsByHybridConnection ...
 func (c AppServicePlansClient) ListWebAppsByHybridConnection(ctx context.Context, id HybridConnectionNamespaceRelayId) (result ListWebAppsByHybridConnectionOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c AppServicePlansClient) ListWebAppsByHybridConnection(ctx context.Context
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListWebAppsByHybridConnectionCustomPager{},
 		Path:       fmt.Sprintf("%s/sites", id.ID()),
 	}
 

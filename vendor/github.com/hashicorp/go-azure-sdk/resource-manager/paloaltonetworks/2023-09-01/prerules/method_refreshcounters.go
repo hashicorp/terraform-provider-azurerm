@@ -52,8 +52,8 @@ func (c PreRulesClient) RefreshCounters(ctx context.Context, id PreRuleId, optio
 			http.StatusNoContent,
 		},
 		HttpMethod:    http.MethodPost,
-		Path:          fmt.Sprintf("%s/refreshCounters", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/refreshCounters", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

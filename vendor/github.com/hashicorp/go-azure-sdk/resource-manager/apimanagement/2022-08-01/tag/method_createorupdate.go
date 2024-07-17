@@ -54,8 +54,8 @@ func (c TagClient) CreateOrUpdate(ctx context.Context, id TagId, input TagCreate
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPut,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

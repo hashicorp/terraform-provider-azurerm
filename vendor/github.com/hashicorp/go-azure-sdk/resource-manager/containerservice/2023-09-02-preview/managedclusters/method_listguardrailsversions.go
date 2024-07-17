@@ -23,6 +23,18 @@ type ListGuardrailsVersionsCompleteResult struct {
 	Items              []GuardrailsAvailableVersion
 }
 
+type ListGuardrailsVersionsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListGuardrailsVersionsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListGuardrailsVersions ...
 func (c ManagedClustersClient) ListGuardrailsVersions(ctx context.Context, id LocationId) (result ListGuardrailsVersionsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c ManagedClustersClient) ListGuardrailsVersions(ctx context.Context, id Lo
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListGuardrailsVersionsCustomPager{},
 		Path:       fmt.Sprintf("%s/guardrailsVersions", id.ID()),
 	}
 

@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
@@ -27,10 +28,10 @@ import (
 var networkSecurityGroupResourceName = "azurerm_network_security_group"
 
 func resourceNetworkSecurityGroup() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
-		Create: resourceNetworkSecurityGroupCreateUpdate,
+	resource := &pluginsdk.Resource{
+		Create: resourceNetworkSecurityGroupCreate,
 		Read:   resourceNetworkSecurityGroupRead,
-		Update: resourceNetworkSecurityGroupCreateUpdate,
+		Update: resourceNetworkSecurityGroupUpdate,
 		Delete: resourceNetworkSecurityGroupDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -57,11 +58,8 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"security_rule": {
-				Type: pluginsdk.TypeSet,
-				// TODO 5.0 Remove Computed and ConfigModeAttr and recommend adding this block to ignore_changes
-				ConfigMode: pluginsdk.SchemaConfigModeAttr,
-				Optional:   true,
-				Computed:   true,
+				Type:     pluginsdk.TypeSet,
+				Optional: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
@@ -180,27 +178,148 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["security_rule"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeSet,
+			ConfigMode: pluginsdk.SchemaConfigModeAttr,
+			Optional:   true,
+			Computed:   true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+					},
+
+					"description": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringLenBetween(0, 140),
+					},
+
+					"protocol": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(networksecuritygroups.SecurityRuleProtocolAny),
+							string(networksecuritygroups.SecurityRuleProtocolTcp),
+							string(networksecuritygroups.SecurityRuleProtocolUdp),
+							string(networksecuritygroups.SecurityRuleProtocolIcmp),
+							string(networksecuritygroups.SecurityRuleProtocolAh),
+							string(networksecuritygroups.SecurityRuleProtocolEsp),
+						}, false),
+					},
+
+					"source_port_range": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+					},
+
+					"source_port_ranges": {
+						Type:     pluginsdk.TypeSet,
+						Optional: true,
+						Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+						Set:      pluginsdk.HashString,
+					},
+
+					"destination_port_range": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+					},
+
+					"destination_port_ranges": {
+						Type:     pluginsdk.TypeSet,
+						Optional: true,
+						Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+						Set:      pluginsdk.HashString,
+					},
+
+					"source_address_prefix": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+					},
+
+					"source_address_prefixes": {
+						Type:     pluginsdk.TypeSet,
+						Optional: true,
+						Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+						Set:      pluginsdk.HashString,
+					},
+
+					"destination_address_prefix": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+					},
+
+					"destination_address_prefixes": {
+						Type:     pluginsdk.TypeSet,
+						Optional: true,
+						Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+						Set:      pluginsdk.HashString,
+					},
+
+					"destination_application_security_group_ids": {
+						Type:     pluginsdk.TypeSet,
+						Optional: true,
+						Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+						Set:      pluginsdk.HashString,
+					},
+
+					"source_application_security_group_ids": {
+						Type:     pluginsdk.TypeSet,
+						Optional: true,
+						Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+						Set:      pluginsdk.HashString,
+					},
+
+					"access": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(networksecuritygroups.SecurityRuleAccessAllow),
+							string(networksecuritygroups.SecurityRuleAccessDeny),
+						}, false),
+					},
+
+					"priority": {
+						Type:         pluginsdk.TypeInt,
+						Required:     true,
+						ValidateFunc: validation.IntBetween(100, 4096),
+					},
+
+					"direction": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(networksecuritygroups.SecurityRuleDirectionInbound),
+							string(networksecuritygroups.SecurityRuleDirectionOutbound),
+						}, false),
+					},
+				},
+			},
+		}
+	}
+	return resource
 }
 
-func resourceNetworkSecurityGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkSecurityGroupCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.Client.NetworkSecurityGroups
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := networksecuritygroups.NewNetworkSecurityGroupID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id, networksecuritygroups.DefaultGetOperationOptions())
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id, networksecuritygroups.DefaultGetOperationOptions())
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_network_security_group", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
+	}
+
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_network_security_group", id.ID())
 	}
 
 	sgRules, sgErr := expandSecurityRules(d)
@@ -221,7 +340,56 @@ func resourceNetworkSecurityGroupCreateUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, sg); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+
+	return resourceNetworkSecurityGroupRead(d, meta)
+}
+
+func resourceNetworkSecurityGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.Client.NetworkSecurityGroups
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := networksecuritygroups.ParseNetworkSecurityGroupID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.Get(ctx, *id, networksecuritygroups.DefaultGetOperationOptions())
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", id)
+	}
+
+	payload := existing.Model
+
+	if d.HasChange("security_rule") {
+		sgRules, sgErr := expandSecurityRules(d)
+		if sgErr != nil {
+			return fmt.Errorf("building list of Network Security Group Rules: %+v", sgErr)
+		}
+
+		payload.Properties.SecurityRules = pointer.To(sgRules)
+	}
+
+	if d.HasChange("tags") {
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	locks.ByName(id.NetworkSecurityGroupName, networkSecurityGroupResourceName)
+	defer locks.UnlockByName(id.NetworkSecurityGroupName, networkSecurityGroupResourceName)
+
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())

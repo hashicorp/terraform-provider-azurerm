@@ -53,8 +53,8 @@ func (c AppServicePlansClient) RestartWebApps(ctx context.Context, id commonids.
 			http.StatusNoContent,
 		},
 		HttpMethod:    http.MethodPost,
-		Path:          fmt.Sprintf("%s/restartSites", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/restartSites", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

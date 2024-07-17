@@ -57,8 +57,8 @@ func (c OutboundEndpointsClient) Update(ctx context.Context, id OutboundEndpoint
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPatch,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

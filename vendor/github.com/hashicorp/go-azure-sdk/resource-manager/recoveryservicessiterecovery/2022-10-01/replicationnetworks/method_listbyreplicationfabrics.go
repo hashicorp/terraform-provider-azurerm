@@ -23,6 +23,18 @@ type ListByReplicationFabricsCompleteResult struct {
 	Items              []Network
 }
 
+type ListByReplicationFabricsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByReplicationFabricsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByReplicationFabrics ...
 func (c ReplicationNetworksClient) ListByReplicationFabrics(ctx context.Context, id ReplicationFabricId) (result ListByReplicationFabricsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c ReplicationNetworksClient) ListByReplicationFabrics(ctx context.Context,
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByReplicationFabricsCustomPager{},
 		Path:       fmt.Sprintf("%s/replicationNetworks", id.ID()),
 	}
 
