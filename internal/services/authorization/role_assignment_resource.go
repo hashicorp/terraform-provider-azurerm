@@ -67,6 +67,9 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 					// It seems only user account is allowed to be elevated access.
 					validation.StringMatch(regexp.MustCompile("/providers/Microsoft.Subscription.*"), "Subscription scope is invalid"),
 
+					// This scope is used for the Reservations roles (Reservation Purchaser, Reservation Reader, etc.)
+					validation.StringMatch(regexp.MustCompile("/providers/Micrososoft.Capacity"), "Capacity scope is invalid"),
+
 					billingValidate.EnrollmentID,
 					commonids.ValidateManagementGroupID,
 					commonids.ValidateSubscriptionID,
