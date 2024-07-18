@@ -19,6 +19,7 @@ type accountKeyDetails struct {
 	keyVersion       string
 }
 
+// nolint unparam // keyVaultApi may be used in future
 func flattenCustomerManagedKey(input *storageaccounts.KeyVaultProperties, keyVaultApi, managedHsmApi environments.Api) accountKeyDetails {
 	output := accountKeyDetails{
 		keyVaultBaseUrl:  "",
