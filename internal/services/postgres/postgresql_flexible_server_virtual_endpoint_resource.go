@@ -26,7 +26,7 @@ func resourcePostgresqlFlexibleServerVirtualEndpoint() *pluginsdk.Resource {
 			Create: pluginsdk.DefaultTimeout(20 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(20 * time.Minute),
 			Update: pluginsdk.DefaultTimeout(20 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(20 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(1 * time.Hour),
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -49,9 +49,8 @@ func resourcePostgresqlFlexibleServerVirtualEndpoint() *pluginsdk.Resource {
 				ValidateFunc: servers.ValidateFlexibleServerID,
 			},
 			"replica_server_id": {
-				Type:        pluginsdk.TypeString,
-				Description: "The Resource ID of the *Source* Postgres Flexible Server this should be associated with",
-				// ForceNew:     true,
+				Type:         pluginsdk.TypeString,
+				Description:  "The Resource ID of the *Source* Postgres Flexible Server this should be associated with",
 				Required:     true,
 				ValidateFunc: servers.ValidateFlexibleServerID,
 			},
@@ -95,7 +94,7 @@ func resourcePostgresqlFlexibleServerVirtualEndpointCreate(d *pluginsdk.Resource
 		Name: &name,
 		Properties: &virtualendpoints.VirtualEndpointResourceProperties{
 			EndpointType: (*virtualendpoints.VirtualEndpointType)(&virtualEndpointType),
-			Members:      &[]string{replicaServerId.FlexibleServerName}, // TODO: Can we pass multiple at once?
+			Members:      &[]string{replicaServerId.FlexibleServerName},
 		},
 	}); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
@@ -136,11 +135,11 @@ func resourcePostgresqlFlexibleServerVirtualEndpointRead(d *pluginsdk.ResourceDa
 	}
 
 	if model := resp.Model; model != nil {
-		if len(*resp.Model.Properties.Members) > 0 {
+		if model.Properties != nil && model.Properties.Members != nil && len(*resp.Model.Properties.Members) > 0 {
 			replicateServerId := servers.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, (*resp.Model.Properties.Members)[0])
 			if err := d.Set("replica_server_id", replicateServerId.ID()); err != nil {
 				return fmt.Errorf("setting `replica_server_id`: %+v", err)
-			} //TODO: This should be more resiliant
+			}
 		}
 	}
 
