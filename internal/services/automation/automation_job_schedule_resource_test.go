@@ -184,6 +184,9 @@ resource "azurerm_automation_runbook" "test" {
   "Hello, " + $Output + "!"
 EOF
 
+  lifecycle {
+    ignore_changes = [job_schedule] # not computed from 4.0
+  }
 }
 
 resource "azurerm_automation_schedule" "test" {

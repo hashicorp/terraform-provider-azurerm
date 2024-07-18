@@ -12,12 +12,14 @@ import (
 type ManagedClusterUpgradeType string
 
 const (
-	ManagedClusterUpgradeTypeFull          ManagedClusterUpgradeType = "Full"
-	ManagedClusterUpgradeTypeNodeImageOnly ManagedClusterUpgradeType = "NodeImageOnly"
+	ManagedClusterUpgradeTypeControlPlaneOnly ManagedClusterUpgradeType = "ControlPlaneOnly"
+	ManagedClusterUpgradeTypeFull             ManagedClusterUpgradeType = "Full"
+	ManagedClusterUpgradeTypeNodeImageOnly    ManagedClusterUpgradeType = "NodeImageOnly"
 )
 
 func PossibleValuesForManagedClusterUpgradeType() []string {
 	return []string{
+		string(ManagedClusterUpgradeTypeControlPlaneOnly),
 		string(ManagedClusterUpgradeTypeFull),
 		string(ManagedClusterUpgradeTypeNodeImageOnly),
 	}
@@ -38,8 +40,9 @@ func (s *ManagedClusterUpgradeType) UnmarshalJSON(bytes []byte) error {
 
 func parseManagedClusterUpgradeType(input string) (*ManagedClusterUpgradeType, error) {
 	vals := map[string]ManagedClusterUpgradeType{
-		"full":          ManagedClusterUpgradeTypeFull,
-		"nodeimageonly": ManagedClusterUpgradeTypeNodeImageOnly,
+		"controlplaneonly": ManagedClusterUpgradeTypeControlPlaneOnly,
+		"full":             ManagedClusterUpgradeTypeFull,
+		"nodeimageonly":    ManagedClusterUpgradeTypeNodeImageOnly,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
@@ -88,6 +91,53 @@ func parseNodeImageSelectionType(input string) (*NodeImageSelectionType, error) 
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := NodeImageSelectionType(input)
+	return &out, nil
+}
+
+type TargetType string
+
+const (
+	TargetTypeAfterStageWait TargetType = "AfterStageWait"
+	TargetTypeGroup          TargetType = "Group"
+	TargetTypeMember         TargetType = "Member"
+	TargetTypeStage          TargetType = "Stage"
+)
+
+func PossibleValuesForTargetType() []string {
+	return []string{
+		string(TargetTypeAfterStageWait),
+		string(TargetTypeGroup),
+		string(TargetTypeMember),
+		string(TargetTypeStage),
+	}
+}
+
+func (s *TargetType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseTargetType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseTargetType(input string) (*TargetType, error) {
+	vals := map[string]TargetType{
+		"afterstagewait": TargetTypeAfterStageWait,
+		"group":          TargetTypeGroup,
+		"member":         TargetTypeMember,
+		"stage":          TargetTypeStage,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := TargetType(input)
 	return &out, nil
 }
 

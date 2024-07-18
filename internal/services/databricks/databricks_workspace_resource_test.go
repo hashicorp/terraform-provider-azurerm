@@ -1196,6 +1196,7 @@ resource "azurerm_databricks_workspace" "test" {
   sku                 = "%[3]s"
 
   custom_parameters {
+    no_public_ip                  = false
     machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
   }
 }
