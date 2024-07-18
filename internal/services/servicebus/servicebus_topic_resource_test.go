@@ -564,7 +564,7 @@ resource "azurerm_servicebus_topic" "test" {
   name         = "acctestservicebustopic-%d"
   namespace_id = azurerm_servicebus_namespace.test.id
 
-  enable_partitioning = %t
+  partitioning_enabled = %t
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, enabled)
 }
@@ -593,7 +593,7 @@ resource "azurerm_servicebus_topic" "test" {
   name         = "acctestservicebustopic-%d"
   namespace_id = azurerm_servicebus_namespace.test.id
 
-  enable_partitioning = true
+  partitioning_enabled = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
