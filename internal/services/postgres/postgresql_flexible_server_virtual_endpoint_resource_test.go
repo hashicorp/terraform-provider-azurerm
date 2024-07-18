@@ -19,7 +19,7 @@ import (
 type PostgresqlFlexibleServerVirtualEndpointResource struct{}
 
 func TestAccPostgresqlFlexibleServerVirtualEndpoint_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server_active_directory_administrator", "test")
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server_virtual_endpoint", "test")
 	r := PostgresqlFlexibleServerVirtualEndpointResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -33,35 +33,32 @@ func TestAccPostgresqlFlexibleServerVirtualEndpoint_basic(t *testing.T) {
 	})
 }
 
-// func TestAccPostgresqlFlexibleServerVirtualEndpoint_requiresImport(t *testing.T) {
-// 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server_active_directory_administrator", "test")
-// 	r := PostgresqlFlexibleServerVirtualEndpointResource{}
+func TestAccPostgresqlFlexibleServerVirtualEndpoint_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server_virtual_endpoint", "test")
+	r := PostgresqlFlexibleServerVirtualEndpointResource{}
 
-// 	data.ResourceTest(t, r, []acceptance.TestStep{
-// 		{
-// 			Config: r.basic(data),
-// 			Check: acceptance.ComposeTestCheckFunc(
-// 				check.That(data.ResourceName).ExistsInAzure(r),
-// 			),
-// 		},
-// 		{
-// 			Config:      r.requiresImport(data),
-// 			ExpectError: acceptance.RequiresImportError("azurerm_postgresql_flexible_server_active_directory_administrator"),
-// 		},
-// 	})
-// }
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
 
-// func TestAccPostgresqlFlexibleServerVirtualEndpoint_disappears(t *testing.T) {
-// 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server_active_directory_administrator", "test")
-// 	r := PostgresqlFlexibleServerVirtualEndpointResource{}
+func TestAccPostgresqlFlexibleServerVirtualEndpoint_disappears(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server_virtual_endpoint", "test")
+	r := PostgresqlFlexibleServerVirtualEndpointResource{}
 
-// 	data.ResourceTest(t, r, []acceptance.TestStep{
-// 		data.DisappearsStep(acceptance.DisappearsStepData{
-// 			Config:       r.basic,
-// 			TestResource: r,
-// 		}),
-// 	})
-// }
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		data.DisappearsStep(acceptance.DisappearsStepData{
+			Config:       r.basic,
+			TestResource: r,
+		}),
+	})
+}
 
 func (r PostgresqlFlexibleServerVirtualEndpointResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := virtualendpoints.ParseVirtualEndpointID(state.ID)
@@ -77,18 +74,18 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Exists(ctx context.Cont
 	return utils.Bool(resp.Model != nil), nil
 }
 
-// func (r PostgresqlFlexibleServerVirtualEndpointResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-// 	id, err := administrators.ParseAdministratorID(state.ID)
-// 	if err != nil {
-// 		return nil, err
-// 	}
+func (r PostgresqlFlexibleServerVirtualEndpointResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := virtualendpoints.ParseVirtualEndpointID(state.ID)
+	if err != nil {
+		return nil, err
+	}
 
-// 	if _, err := client.Postgres.FlexibleServerAdministratorsClient.Delete(ctx, *id); err != nil {
-// 		return nil, fmt.Errorf("deleting Postgresql AAD Administrator (%s): %+v", id.String(), err)
-// 	}
+	if _, err := client.Postgres.VirtualEndpointClient.Delete(ctx, *id); err != nil {
+		return nil, fmt.Errorf("deleting Postgresql Virtual Endpoint (%s): %+v", id.String(), err)
+	}
 
-// 	return utils.Bool(true), nil
-// }
+	return utils.Bool(true), nil
+}
 
 func (PostgresqlFlexibleServerVirtualEndpointResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
