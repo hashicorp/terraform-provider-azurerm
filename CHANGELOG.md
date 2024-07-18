@@ -6,7 +6,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
-* `azurerm_storage_account` - fix a validation but when replacing a StorageV2 account itth a StorageV1 account [GH-26639]
+* `azurerm_storage_account` - fix a validation bug when replacing a StorageV2 account itth a StorageV1 account [GH-26639]
 
 ## 3.112.0 (July 12, 2024)
 
