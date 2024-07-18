@@ -65,10 +65,10 @@ var (
 
 func resourceStorageAccount() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAccountCreate,
-		Read:   resourceAccountRead,
-		Update: resourceAccountUpdate,
-		Delete: resourceAccountDelete,
+		Create: resourceStorageAccountCreate,
+		Read:   resourceStorageAccountRead,
+		Update: resourceStorageAccountUpdate,
+		Delete: resourceStorageAccountDelete,
 
 		SchemaVersion: 4,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
@@ -1261,7 +1261,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 	}
 }
 
-func resourceAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	tenantId := meta.(*clients.Client).Account.TenantId
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Storage.ResourceManager.StorageAccounts
@@ -1582,10 +1582,10 @@ func resourceAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 	}
 
-	return resourceAccountRead(d, meta)
+	return resourceStorageAccountRead(d, meta)
 }
 
-func resourceAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	tenantId := meta.(*clients.Client).Account.TenantId
 	storageClient := meta.(*clients.Client).Storage
 	client := storageClient.ResourceManager.StorageAccounts
@@ -1939,10 +1939,10 @@ func resourceAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 	}
 
-	return resourceAccountRead(d, meta)
+	return resourceStorageAccountRead(d, meta)
 }
 
-func resourceAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
 	client := storageClient.ResourceManager.StorageAccounts
 	env := meta.(*clients.Client).Account.Environment
@@ -2228,7 +2228,7 @@ func resourceAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceAccountDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageAccountDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
 	client := storageClient.ResourceManager.StorageAccounts
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)

@@ -26,10 +26,10 @@ import (
 
 func resourceStorageAccountCustomerManagedKey() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAccountCustomerManagedKeyCreateUpdate,
-		Read:   resourceAccountCustomerManagedKeyRead,
-		Update: resourceAccountCustomerManagedKeyCreateUpdate,
-		Delete: resourceAccountCustomerManagedKeyDelete,
+		Create: resourceStorageAccountCustomerManagedKeyCreateUpdate,
+		Read:   resourceStorageAccountCustomerManagedKeyRead,
+		Update: resourceStorageAccountCustomerManagedKeyCreateUpdate,
+		Delete: resourceStorageAccountCustomerManagedKeyDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := commonids.ParseStorageAccountID(id)
@@ -105,7 +105,7 @@ func resourceStorageAccountCustomerManagedKey() *pluginsdk.Resource {
 	}
 }
 
-func resourceAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage.ResourceManager.StorageAccounts
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	vaultsClient := keyVaultsClient.VaultsClient
@@ -229,10 +229,10 @@ func resourceAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData, me
 	}
 
 	d.SetId(id.ID())
-	return resourceAccountCustomerManagedKeyRead(d, meta)
+	return resourceStorageAccountCustomerManagedKeyRead(d, meta)
 }
 
-func resourceAccountCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageAccountCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage.ResourceManager.StorageAccounts
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	env := meta.(*clients.Client).Account.Environment
@@ -302,7 +302,7 @@ func resourceAccountCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta inter
 	return nil
 }
 
-func resourceAccountCustomerManagedKeyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageAccountCustomerManagedKeyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage.ResourceManager.StorageAccounts
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

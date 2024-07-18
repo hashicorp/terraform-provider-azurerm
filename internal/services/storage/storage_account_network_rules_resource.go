@@ -24,10 +24,10 @@ import (
 
 func resourceStorageAccountNetworkRules() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAccountNetworkRulesCreateUpdate,
-		Read:   resourceAccountNetworkRulesRead,
-		Update: resourceAccountNetworkRulesCreateUpdate,
-		Delete: resourceAccountNetworkRulesDelete,
+		Create: resourceStorageAccountNetworkRulesCreateUpdate,
+		Read:   resourceStorageAccountNetworkRulesRead,
+		Update: resourceStorageAccountNetworkRulesCreateUpdate,
+		Delete: resourceStorageAccountNetworkRulesDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := commonids.ParseStorageAccountID(id)
@@ -124,7 +124,7 @@ func resourceStorageAccountNetworkRules() *pluginsdk.Resource {
 	}
 }
 
-func resourceAccountNetworkRulesCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageAccountNetworkRulesCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	tenantId := meta.(*clients.Client).Account.TenantId
 	client := meta.(*clients.Client).Storage.ResourceManager.StorageAccounts
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -192,10 +192,10 @@ func resourceAccountNetworkRulesCreateUpdate(d *pluginsdk.ResourceData, meta int
 		d.SetId(id.ID())
 	}
 
-	return resourceAccountNetworkRulesRead(d, meta)
+	return resourceStorageAccountNetworkRulesRead(d, meta)
 }
 
-func resourceAccountNetworkRulesRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageAccountNetworkRulesRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.ResourceManager.StorageAccounts
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -240,7 +240,7 @@ func resourceAccountNetworkRulesRead(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceAccountNetworkRulesDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageAccountNetworkRulesDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.ResourceManager.StorageAccounts
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
