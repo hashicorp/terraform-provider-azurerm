@@ -3,10 +3,15 @@
 ENHANCEMENTS:
 
 * dependencies: updating to `v0.20240715.1100358` of `hashicorp/go-azure-sdk` [GH-26638]
+* `storage`: update to use `hashicorp/go-azure-sdk` [GH-26218]
 
 BUG FIXES:
 
 * `azurerm_storage_account` - fix a validation bug when replacing a StorageV2 account with a StorageV1 account [GH-26639]
+* `azurerm_storage_account` - resolve an issue refreshing blob or queue properties after recreation [GH-26218]
+* `azurerm_storage_account` - resolve an issue setting tags for an existing storage account where a policy mandates them [GH-26218]
+* `azurerm_storage_account` - fix a persistent diff with the `customer_managed_key` block [GH-26218]
+* `azurerm_storage_account` - resolve several consistency related issues when crreating a new storage account [GH-26218]
 
 ## 3.112.0 (July 12, 2024)
 
