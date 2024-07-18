@@ -4,6 +4,10 @@ ENHANCEMENTS:
 
 * dependencies: updating to `v0.20240715.1100358` of `hashicorp/go-azure-sdk` [GH-26638]
 
+BUG FIXES:
+
+* `azurerm_storage_account` - fix a validation but when replacing a StorageV2 account itth a StorageV1 account [GH-26639]
+
 ## 3.112.0 (July 12, 2024)
 
 FEATURES:
