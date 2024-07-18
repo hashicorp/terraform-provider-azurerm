@@ -2149,7 +2149,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	endpoints := flattenAccountEndpoints(primaryEndpoints, secondaryEndpoints, routingPreference)
-	if err := endpoints.flatten(d); err != nil {
+	if err := endpoints.set(d); err != nil {
 		return err
 	}
 
@@ -2158,7 +2158,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		storageAccountKeys = *keys.Model.Keys
 	}
 	keysAndConnectionStrings := flattenAccountAccessKeysAndConnectionStrings(id.StorageAccountName, *storageDomainSuffix, storageAccountKeys, endpoints)
-	if err := keysAndConnectionStrings.flatten(d); err != nil {
+	if err := keysAndConnectionStrings.set(d); err != nil {
 		return err
 	}
 

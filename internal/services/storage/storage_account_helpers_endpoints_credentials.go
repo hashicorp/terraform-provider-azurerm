@@ -81,7 +81,7 @@ type accountEndpoints struct {
 	secondaryWebMicrosoftHostName string
 }
 
-func (a accountEndpoints) flatten(d *pluginsdk.ResourceData) error {
+func (a accountEndpoints) set(d *pluginsdk.ResourceData) error {
 	d.Set("primary_blob_endpoint", a.primaryBlobEndpoint)
 	d.Set("primary_blob_host", a.primaryBlobHostName)
 	d.Set("primary_blob_internet_endpoint", a.primaryBlobInternetEndpoint)
@@ -218,15 +218,12 @@ func flattenAccountEndpoints(primaryEndpoints, secondaryEndpoints *storageaccoun
 func flattenAccountEndpointAndHost(input *string) (string, string) {
 	endpoint := ""
 	host := ""
-
 	if input != nil {
 		endpoint = *input
-
 		if u, _ := url.Parse(*input); u != nil {
 			host = u.Host
 		}
 	}
-
 	return endpoint, host
 }
 
@@ -239,7 +236,7 @@ type accountAccessKeysAndConnectionStrings struct {
 	secondaryAccessKey            string
 }
 
-func (a accountAccessKeysAndConnectionStrings) flatten(d *pluginsdk.ResourceData) error {
+func (a accountAccessKeysAndConnectionStrings) set(d *pluginsdk.ResourceData) error {
 	d.Set("primary_connection_string", a.primaryConnectionString)
 	d.Set("secondary_connection_string", a.secondaryConnectionString)
 	d.Set("primary_blob_connection_string", a.primaryBlobConnectionString)

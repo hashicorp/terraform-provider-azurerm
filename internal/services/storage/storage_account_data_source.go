@@ -580,7 +580,7 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 		// NOTE: we should expose EdgeZone in the future
 
 		if sku := model.Sku; sku != nil {
-			d.Set("account_tier", sku.Tier)
+			d.Set("account_tier", pointer.From(sku.Tier))
 			d.Set("account_replication_type", strings.Split(string(sku.Name), "_")[1])
 		}
 
@@ -597,14 +597,14 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 
 		if props := model.Properties; props != nil {
-			d.Set("access_tier", props.AccessTier)
-			d.Set("allow_nested_items_to_be_public", props.AllowBlobPublicAccess)
+			d.Set("access_tier", pointer.From(props.AccessTier))
+			d.Set("allow_nested_items_to_be_public", pointer.From(props.AllowBlobPublicAccess))
 			if err := d.Set("custom_domain", flattenAccountCustomDomain(props.CustomDomain)); err != nil {
 				return fmt.Errorf("setting `custom_domain`: %+v", err)
 			}
-			d.Set("enable_https_traffic_only", props.SupportsHTTPSTrafficOnly)
-			d.Set("is_hns_enabled", props.IsHnsEnabled)
-			d.Set("nfsv3_enabled", props.IsNfsV3Enabled)
+			d.Set("enable_https_traffic_only", pointer.From(props.SupportsHTTPSTrafficOnly))
+			d.Set("is_hns_enabled", pointer.From(props.IsHnsEnabled))
+			d.Set("nfsv3_enabled", pointer.From(props.IsNfsV3Enabled))
 			d.Set("primary_location", location.NormalizeNilable(props.PrimaryLocation))
 			d.Set("secondary_location", location.NormalizeNilable(props.SecondaryLocation))
 
@@ -658,7 +658,7 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 		secondaryEndpoints = model.Properties.SecondaryEndpoints
 	}
 	endpoints := flattenAccountEndpoints(primaryEndpoints, secondaryEndpoints, routingPreference)
-	if err := endpoints.flatten(d); err != nil {
+	if err := endpoints.set(d); err != nil {
 		return err
 	}
 
@@ -667,7 +667,7 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 		storageAccountKeys = *keys.Model.Keys
 	}
 	keysAndConnectionStrings := flattenAccountAccessKeysAndConnectionStrings(id.StorageAccountName, *storageDomainSuffix, storageAccountKeys, endpoints)
-	if err := keysAndConnectionStrings.flatten(d); err != nil {
+	if err := keysAndConnectionStrings.set(d); err != nil {
 		return err
 	}
 
