@@ -24,7 +24,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func resourceAccountCustomerManagedKey() *pluginsdk.Resource {
+func resourceStorageAccountCustomerManagedKey() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceAccountCustomerManagedKeyCreateUpdate,
 		Read:   resourceAccountCustomerManagedKeyRead,

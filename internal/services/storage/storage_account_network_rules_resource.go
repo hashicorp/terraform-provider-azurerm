@@ -22,7 +22,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-func resourceAccountNetworkRules() *pluginsdk.Resource {
+func resourceStorageAccountNetworkRules() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceAccountNetworkRulesCreateUpdate,
 		Read:   resourceAccountNetworkRulesRead,

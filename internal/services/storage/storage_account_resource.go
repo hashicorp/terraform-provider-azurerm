@@ -63,7 +63,7 @@ var (
 	}
 )
 
-func resourceAccount() *pluginsdk.Resource {
+func resourceStorageAccount() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceAccountCreate,
 		Read:   resourceAccountRead,
