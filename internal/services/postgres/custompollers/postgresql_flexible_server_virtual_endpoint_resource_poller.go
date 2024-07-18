@@ -22,11 +22,11 @@ type postgresFlexibleServerVirtualEndpointPoller struct {
 
 // Workaround due to Azure performing a psuedo-soft delete on virtual endpoints.
 //
-// - The `DELETE` endpoint does not fully delete the endpont, it sets `properties` to an empty object
+// - The `DELETE` endpoint does not fully delete the resource, it sets `properties.members` to nil
 //
 // - Subsequent `GET` operations for the endpoint will always return 200 with empty metadata, so Terraform will hang on `DELETE`
 //
-// - The only way to currently check for deletion is to check the `properties` property
+// - The only way to currently check for deletion is to check the `properties.members` property
 func NewPostgresFlexibleServerVirtualEndpointDeletePoller(client *virtualendpoints.VirtualEndpointsClient, id virtualendpoints.VirtualEndpointId) *postgresFlexibleServerVirtualEndpointPoller {
 	return &postgresFlexibleServerVirtualEndpointPoller{
 		client: client,
@@ -40,7 +40,19 @@ func (p postgresFlexibleServerVirtualEndpointPoller) Poll(ctx context.Context) (
 		return nil, fmt.Errorf("retrieving %s: %+v", p.id, err)
 	}
 
-	if model := resp.Model; model != nil && model.Properties == nil {
+	model := resp.Model
+
+	if model != nil && model.Properties != nil {
+		if model.Properties.Members != nil {
+			return &pollers.PollResult{
+				HttpResponse: &client.Response{
+					Response: resp.HttpResponse,
+				},
+				PollInterval: 5 * time.Second,
+				Status:       pollers.PollingStatusInProgress,
+			}, nil
+		}
+
 		return &pollers.PollResult{
 			HttpResponse: &client.Response{
 				Response: resp.HttpResponse,
@@ -54,6 +66,6 @@ func (p postgresFlexibleServerVirtualEndpointPoller) Poll(ctx context.Context) (
 		HttpResponse: &client.Response{
 			Response: resp.HttpResponse,
 		},
-		Message: fmt.Sprintf("failed to delete flexible server virtual endpoint"),
+		Message: fmt.Sprintln("failed to delete flexible server virtual endpoint"),
 	}
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2023-06-01-preview/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2023-06-01-preview/virtualendpoints"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/custompollers"
@@ -92,12 +93,12 @@ func resourcePostgresqlFlexibleServerVirtualEndpointCreate(d *pluginsdk.Resource
 	defer locks.UnlockByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
 
 	// Azure doesn't completely delete Virtual Endpoints, so recreating one with the same name will fail
-	// This just updates the existing one if it has a conflict AND the existing entity is set to nil
+	// This just updates the existing one if it has a conflict AND the existing members are set to nil
 	// GH Issue: https://github.com/Azure/azure-rest-api-specs/issues/29898
 	// A custom Delete poller is also used to work around this issue.
 	if resp, err := client.Get(ctx, id); err != nil {
 		if response.WasConflict(resp.HttpResponse) {
-			if resp.Model != nil && resp.Model.Properties == nil {
+			if resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.Members == nil {
 				if err := client.UpdateThenPoll(ctx, id, virtualendpoints.VirtualEndpointResourceForPatch{
 					Properties: &virtualendpoints.VirtualEndpointResourceProperties{
 						EndpointType: (*virtualendpoints.VirtualEndpointType)(&virtualEndpointType),
@@ -217,7 +218,15 @@ func resourcePostgresqlFlexibleServerVirtualEndpointDelete(d *pluginsdk.Resource
 	defer locks.UnlockByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
 
 	deletePoller := custompollers.NewPostgresFlexibleServerVirtualEndpointDeletePoller(client, *id)
-	deletePoller.Poll(ctx)
+	poller := pollers.NewPoller(deletePoller, 20*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+
+	if _, err := client.Delete(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
+	}
+
+	if err := poller.PollUntilDone(ctx); err != nil {
+		return err
+	}
 
 	return nil
 }
