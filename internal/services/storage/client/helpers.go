@@ -18,8 +18,8 @@ import (
 var (
 	storageAccountsCache = map[string]AccountDetails{}
 
-	accountsLock    = sync.RWMutex{}
-	credentialsLock = sync.RWMutex{}
+	cacheAccountsLock    = sync.RWMutex{}
+	cacheCredentialsLock = sync.RWMutex{}
 )
 
 type EndpointType string
@@ -61,8 +61,8 @@ type AccountDetails struct {
 }
 
 func (ad *AccountDetails) AccountKey(ctx context.Context, client Client) (*string, error) {
-	credentialsLock.Lock()
-	defer credentialsLock.Unlock()
+	cacheCredentialsLock.Lock()
+	defer cacheCredentialsLock.Unlock()
 
 	if ad.accountKey != nil {
 		return ad.accountKey, nil
@@ -128,8 +128,8 @@ func (ad *AccountDetails) DataPlaneEndpoint(endpointType EndpointType) (*string,
 }
 
 func (c Client) AddToCache(accountId commonids.StorageAccountId, account storageaccounts.StorageAccount) error {
-	accountsLock.Lock()
-	defer accountsLock.Unlock()
+	cacheAccountsLock.Lock()
+	defer cacheAccountsLock.Unlock()
 
 	accountDetails, err := populateAccountDetails(accountId, account)
 	if err != nil {
@@ -141,14 +141,14 @@ func (c Client) AddToCache(accountId commonids.StorageAccountId, account storage
 }
 
 func (c Client) RemoveAccountFromCache(accountId commonids.StorageAccountId) {
-	accountsLock.Lock()
+	cacheAccountsLock.Lock()
 	delete(storageAccountsCache, accountId.StorageAccountName)
-	accountsLock.Unlock()
+	cacheAccountsLock.Unlock()
 }
 
 func (c Client) FindAccount(ctx context.Context, subscriptionIdRaw, accountName string) (*AccountDetails, error) {
-	accountsLock.Lock()
-	defer accountsLock.Unlock()
+	cacheAccountsLock.Lock()
+	defer cacheAccountsLock.Unlock()
 
 	if existing, ok := storageAccountsCache[accountName]; ok {
 		return &existing, nil

@@ -1717,8 +1717,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 	if d.HasChange("large_file_share_enabled") {
 		// largeFileSharesState can only be set to `Enabled` and not `Disabled`, even if it is currently `Disabled`
-		oldValue, newValue := d.GetChange("large_file_share_enabled")
-		if oldValue.(bool) && !newValue.(bool) {
+		if oldValue, newValue := d.GetChange("large_file_share_enabled"); oldValue.(bool) && !newValue.(bool) {
 			return fmt.Errorf("`large_file_share_enabled` cannot be disabled once it's been enabled")
 		}
 
@@ -1748,7 +1747,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		props.RoutingPreference = expandAccountRoutingPreference(d.Get("routing").([]interface{}))
 	}
 	if d.HasChange("sas_policy") {
-		// TODO: Currently, due to Track1 SDK has no way to represent a `null` value in the payload - instead it will be omitted, `sas_policy` can not be disabled once enabled.
+		// TODO: Currently, there is no way to represent a `null` value in the payload - instead it will be omitted, `sas_policy` can not be disabled once enabled.
 		props.SasPolicy = expandAccountSASPolicy(d.Get("sas_policy").([]interface{}))
 	}
 	if d.HasChange("sftp_enabled") {
@@ -2028,21 +2027,21 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 			routingPreference = props.RoutingPreference
 			secondaryEndpoints = props.SecondaryEndpoints
 
-			d.Set("access_tier", props.AccessTier)
-			d.Set("allowed_copy_scope", props.AllowedCopyScope)
+			d.Set("access_tier", pointer.From(props.AccessTier))
+			d.Set("allowed_copy_scope", pointer.From(props.AllowedCopyScope))
 			if err := d.Set("azure_files_authentication", flattenAccountAzureFilesAuthentication(props.AzureFilesIdentityBasedAuthentication)); err != nil {
 				return fmt.Errorf("setting `azure_files_authentication`: %+v", err)
 			}
 			d.Set("cross_tenant_replication_enabled", pointer.From(props.AllowCrossTenantReplication))
-			d.Set("enable_https_traffic_only", props.SupportsHTTPSTrafficOnly)
-			d.Set("is_hns_enabled", props.IsHnsEnabled)
-			d.Set("nfsv3_enabled", props.IsNfsV3Enabled)
-			d.Set("primary_location", props.PrimaryLocation)
+			d.Set("enable_https_traffic_only", pointer.From(props.SupportsHTTPSTrafficOnly))
+			d.Set("is_hns_enabled", pointer.From(props.IsHnsEnabled))
+			d.Set("nfsv3_enabled", pointer.From(props.IsNfsV3Enabled))
+			d.Set("primary_location", pointer.From(props.PrimaryLocation))
 			if err := d.Set("routing", flattenAccountRoutingPreference(props.RoutingPreference)); err != nil {
 				return fmt.Errorf("setting `routing`: %+v", err)
 			}
-			d.Set("secondary_location", props.SecondaryLocation)
-			d.Set("sftp_enabled", props.IsSftpEnabled)
+			d.Set("secondary_location", pointer.From(props.SecondaryLocation))
+			d.Set("sftp_enabled", pointer.From(props.IsSftpEnabled))
 
 			// NOTE: The Storage API returns `null` rather than the default value in the API response for existing
 			// resources when a new field gets added - meaning we need to default the values below.
@@ -2054,7 +2053,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 			defaultToOAuthAuthentication := false
 			if props.DefaultToOAuthAuthentication != nil {
-				defaultToOAuthAuthentication = pointer.From(props.DefaultToOAuthAuthentication)
+				defaultToOAuthAuthentication = *props.DefaultToOAuthAuthentication
 			}
 			d.Set("default_to_oauth_authentication", defaultToOAuthAuthentication)
 
@@ -2104,8 +2103,8 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 				return fmt.Errorf("setting `network_rules`: %+v", err)
 			}
 
-			// Setting the encryption key type to "Service" in PUT. The following GET will not return the queue/table in the service list of its response.
-			// So defaults to setting the encryption key type to "Service" if it is absent in the GET response. Also, define the default value as "Service" in the schema.
+			// When the encryption key type is "Service", the queue/table is not returned in the service list, so we default
+			// the encryption key type to "Service" if it is absent (must also be the default value for "Service" in the schema)
 			infrastructureEncryption := false
 			queueEncryptionKeyType := string(storageaccounts.KeyTypeService)
 			tableEncryptionKeyType := string(storageaccounts.KeyTypeService)
@@ -2395,7 +2394,7 @@ func expandAccountCustomerManagedKey(ctx context.Context, keyVaultClient *keyVau
 			keyVersion = utils.String("")
 			keyVaultURI = utils.String(keyId.BaseUri())
 		} else {
-			return nil, fmt.Errorf("Failed to parse '%s' as HSM key ID", managedHSMKeyId.(string))
+			return nil, fmt.Errorf("parsing %q as HSM key ID", managedHSMKeyId.(string))
 		}
 	}
 
@@ -2460,8 +2459,8 @@ func expandAccountImmutabilityPolicy(input []interface{}) *storageaccounts.Immut
 		Enabled: utils.Bool(true),
 		ImmutabilityPolicy: &storageaccounts.AccountImmutabilityPolicyProperties{
 			AllowProtectedAppendWrites:            pointer.To(v["allow_protected_append_writes"].(bool)),
-			State:                                 pointer.To(storageaccounts.AccountImmutabilityPolicyState(v["state"].(string))),
 			ImmutabilityPeriodSinceCreationInDays: pointer.To(int64(v["period_since_creation_in_days"].(int))),
+			State:                                 pointer.To(storageaccounts.AccountImmutabilityPolicyState(v["state"].(string))),
 		},
 	}
 }
@@ -2473,9 +2472,9 @@ func flattenAccountImmutabilityPolicy(input *storageaccounts.ImmutableStorageAcc
 
 	return []interface{}{
 		map[string]interface{}{
+			"allow_protected_append_writes": input.ImmutabilityPolicy.AllowProtectedAppendWrites,
 			"period_since_creation_in_days": input.ImmutabilityPolicy.ImmutabilityPeriodSinceCreationInDays,
 			"state":                         input.ImmutabilityPolicy.State,
-			"allow_protected_append_writes": input.ImmutabilityPolicy.AllowProtectedAppendWrites,
 		},
 	}
 }
@@ -2509,12 +2508,12 @@ func flattenAccountActiveDirectoryProperties(input *storageaccounts.ActiveDirect
 	output := make([]interface{}, 0)
 	if input != nil {
 		output = append(output, map[string]interface{}{
-			"storage_sid":         pointer.From(input.AzureStorageSid),
 			"domain_guid":         input.DomainGuid,
 			"domain_name":         input.DomainName,
 			"domain_sid":          pointer.From(input.DomainSid),
 			"forest_name":         pointer.From(input.ForestName),
 			"netbios_domain_name": pointer.From(input.NetBiosDomainName),
+			"storage_sid":         pointer.From(input.AzureStorageSid),
 		})
 	}
 	return output
@@ -2562,8 +2561,8 @@ func flattenAccountAzureFilesAuthentication(input *storageaccounts.AzureFilesIde
 
 	return []interface{}{
 		map[string]interface{}{
-			"directory_type":   input.DirectoryServiceOptions,
 			"active_directory": flattenAccountActiveDirectoryProperties(input.ActiveDirectoryProperties),
+			"directory_type":   input.DirectoryServiceOptions,
 		},
 	}
 }
@@ -2574,9 +2573,9 @@ func expandAccountRoutingPreference(input []interface{}) *storageaccounts.Routin
 	}
 	v := input[0].(map[string]interface{})
 	return &storageaccounts.RoutingPreference{
-		RoutingChoice:             pointer.To(storageaccounts.RoutingChoice(v["choice"].(string))),
 		PublishMicrosoftEndpoints: pointer.To(v["publish_microsoft_endpoints"].(bool)),
 		PublishInternetEndpoints:  pointer.To(v["publish_internet_endpoints"].(bool)),
+		RoutingChoice:             pointer.To(storageaccounts.RoutingChoice(v["choice"].(string))),
 	}
 }
 
@@ -2750,15 +2749,15 @@ func flattenAccountBlobServiceProperties(input *blobservice.BlobServicePropertie
 
 	return []interface{}{
 		map[string]interface{}{
-			"cors_rule":                         flattenedCorsRules,
-			"delete_retention_policy":           flattenedDeletePolicy,
-			"restore_policy":                    flattenedRestorePolicy,
-			"versioning_enabled":                versioning,
 			"change_feed_enabled":               changeFeedEnabled,
 			"change_feed_retention_in_days":     changeFeedRetentionInDays,
-			"default_service_version":           defaultServiceVersion,
-			"last_access_time_enabled":          LastAccessTimeTrackingPolicy,
 			"container_delete_retention_policy": flattenedContainerDeletePolicy,
+			"cors_rule":                         flattenedCorsRules,
+			"default_service_version":           defaultServiceVersion,
+			"delete_retention_policy":           flattenedDeletePolicy,
+			"last_access_time_enabled":          LastAccessTimeTrackingPolicy,
+			"restore_policy":                    flattenedRestorePolicy,
+			"versioning_enabled":                versioning,
 		},
 	}
 }
@@ -2775,8 +2774,8 @@ func expandAccountBlobDeleteRetentionPolicy(input []interface{}) *blobservice.De
 
 	return &blobservice.DeleteRetentionPolicy{
 		Enabled:              pointer.To(true),
-		Days:                 pointer.To(int64(policy["days"].(int))),
 		AllowPermanentDelete: pointer.To(policy["permanent_delete_enabled"].(bool)),
+		Days:                 pointer.To(int64(policy["days"].(int))),
 	}
 }
 
@@ -2916,8 +2915,8 @@ func flattenAccountBlobPropertiesCorsRule(input *blobservice.CorsRules) []interf
 	for _, corsRule := range *input.CorsRules {
 		corsRules = append(corsRules, map[string]interface{}{
 			"allowed_headers":    corsRule.AllowedHeaders,
-			"allowed_origins":    corsRule.AllowedOrigins,
 			"allowed_methods":    corsRule.AllowedMethods,
+			"allowed_origins":    corsRule.AllowedOrigins,
 			"exposed_headers":    corsRule.ExposedHeaders,
 			"max_age_in_seconds": int(corsRule.MaxAgeInSeconds),
 		})
@@ -2983,8 +2982,8 @@ func expandAccountSharePropertiesCorsRule(input []interface{}) *fileservice.Cors
 			}
 			corsRules = append(corsRules, fileservice.CorsRule{
 				AllowedHeaders:  *utils.ExpandStringSlice(item["allowed_headers"].([]interface{})),
-				AllowedOrigins:  *utils.ExpandStringSlice(item["allowed_origins"].([]interface{})),
 				AllowedMethods:  allowedMethods,
+				AllowedOrigins:  *utils.ExpandStringSlice(item["allowed_origins"].([]interface{})),
 				ExposedHeaders:  *utils.ExpandStringSlice(item["exposed_headers"].([]interface{})),
 				MaxAgeInSeconds: int64(item["max_age_in_seconds"].(int)),
 			})
@@ -3004,8 +3003,8 @@ func flattenAccountSharePropertiesCorsRule(input *fileservice.CorsRules) []inter
 	for _, corsRule := range *input.CorsRules {
 		corsRules = append(corsRules, map[string]interface{}{
 			"allowed_headers":    corsRule.AllowedHeaders,
-			"allowed_origins":    corsRule.AllowedOrigins,
 			"allowed_methods":    corsRule.AllowedMethods,
+			"allowed_origins":    corsRule.AllowedOrigins,
 			"exposed_headers":    corsRule.ExposedHeaders,
 			"max_age_in_seconds": int(corsRule.MaxAgeInSeconds),
 		})
@@ -3052,10 +3051,10 @@ func flattenAccountShareDeleteRetentionPolicy(input *fileservice.DeleteRetention
 func expandAccountSharePropertiesSMB(input []interface{}) *fileservice.SmbSetting {
 	if len(input) == 0 || input[0] == nil {
 		return &fileservice.SmbSetting{
-			Versions:                 pointer.To(""),
 			AuthenticationMethods:    pointer.To(""),
-			KerberosTicketEncryption: pointer.To(""),
 			ChannelEncryption:        pointer.To(""),
+			KerberosTicketEncryption: pointer.To(""),
+			Versions:                 pointer.To(""),
 			Multichannel:             nil,
 		}
 	}
@@ -3063,10 +3062,10 @@ func expandAccountSharePropertiesSMB(input []interface{}) *fileservice.SmbSettin
 	v := input[0].(map[string]interface{})
 
 	return &fileservice.SmbSetting{
-		Versions:                 utils.ExpandStringSliceWithDelimiter(v["versions"].(*pluginsdk.Set).List(), ";"),
 		AuthenticationMethods:    utils.ExpandStringSliceWithDelimiter(v["authentication_types"].(*pluginsdk.Set).List(), ";"),
-		KerberosTicketEncryption: utils.ExpandStringSliceWithDelimiter(v["kerberos_ticket_encryption_type"].(*pluginsdk.Set).List(), ";"),
 		ChannelEncryption:        utils.ExpandStringSliceWithDelimiter(v["channel_encryption_type"].(*pluginsdk.Set).List(), ";"),
+		KerberosTicketEncryption: utils.ExpandStringSliceWithDelimiter(v["kerberos_ticket_encryption_type"].(*pluginsdk.Set).List(), ";"),
+		Versions:                 utils.ExpandStringSliceWithDelimiter(v["versions"].(*pluginsdk.Set).List(), ";"),
 		Multichannel: &fileservice.Multichannel{
 			Enabled: pointer.To(v["multichannel_enabled"].(bool)),
 		},
@@ -3109,11 +3108,11 @@ func flattenAccountSharePropertiesSMB(input *fileservice.ProtocolSettings) []int
 
 	return []interface{}{
 		map[string]interface{}{
-			"versions":                        versions,
 			"authentication_types":            authenticationMethods,
-			"kerberos_ticket_encryption_type": kerberosTicketEncryption,
 			"channel_encryption_type":         channelEncryption,
+			"kerberos_ticket_encryption_type": kerberosTicketEncryption,
 			"multichannel_enabled":            multichannelEnabled,
+			"versions":                        versions,
 		},
 	}
 }
@@ -3205,9 +3204,9 @@ func expandAccountQueuePropertiesLogging(input []interface{}) *queues.LoggingCon
 
 	loggingAttr := input[0].(map[string]interface{})
 	logging := &queues.LoggingConfig{
-		Version: loggingAttr["version"].(string),
 		Delete:  loggingAttr["delete"].(bool),
 		Read:    loggingAttr["read"].(bool),
+		Version: loggingAttr["version"].(string),
 		Write:   loggingAttr["write"].(bool),
 	}
 
@@ -3258,8 +3257,8 @@ func expandAccountQueuePropertiesMetrics(input []interface{}) (*queues.MetricsCo
 	metricsAttr := input[0].(map[string]interface{})
 
 	metrics := &queues.MetricsConfig{
-		Version: metricsAttr["version"].(string),
 		Enabled: metricsAttr["enabled"].(bool),
+		Version: metricsAttr["version"].(string),
 	}
 
 	if v, ok := metricsAttr["retention_policy_days"]; ok {
@@ -3338,8 +3337,8 @@ func flattenAccountQueuePropertiesCors(input *queues.Cors) []interface{} {
 	for _, item := range input.CorsRule {
 		output = append(output, map[string]interface{}{
 			"allowed_headers":    flattenAccountQueuePropertiesCorsRule(item.AllowedHeaders),
-			"allowed_origins":    flattenAccountQueuePropertiesCorsRule(item.AllowedOrigins),
 			"allowed_methods":    flattenAccountQueuePropertiesCorsRule(item.AllowedMethods),
+			"allowed_origins":    flattenAccountQueuePropertiesCorsRule(item.AllowedOrigins),
 			"exposed_headers":    flattenAccountQueuePropertiesCorsRule(item.ExposedHeaders),
 			"max_age_in_seconds": item.MaxAgeInSeconds,
 		})
@@ -3398,8 +3397,8 @@ func flattenAccountStaticWebsiteProperties(input accounts.GetServicePropertiesRe
 
 		return []interface{}{
 			map[string]interface{}{
-				"index_document":     staticWebsite.IndexDocument,
 				"error_404_document": staticWebsite.ErrorDocument404Path,
+				"index_document":     staticWebsite.IndexDocument,
 			},
 		}
 	}
