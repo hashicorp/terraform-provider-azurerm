@@ -2889,14 +2889,14 @@ func expandAccountBlobPropertiesCors(input []interface{}) *blobservice.CorsRules
 			item := raw.(map[string]interface{})
 
 			allowedMethods := make([]blobservice.AllowedMethods, 0)
-			for _, val := range expandStringSlice(item["allowed_methods"].([]interface{})) {
+			for _, val := range *utils.ExpandStringSlice(item["allowed_methods"].([]interface{})) {
 				allowedMethods = append(allowedMethods, blobservice.AllowedMethods(val))
 			}
 			corsRules = append(corsRules, blobservice.CorsRule{
-				AllowedHeaders:  expandStringSlice(item["allowed_headers"].([]interface{})),
-				AllowedOrigins:  expandStringSlice(item["allowed_origins"].([]interface{})),
+				AllowedHeaders:  *utils.ExpandStringSlice(item["allowed_headers"].([]interface{})),
+				AllowedOrigins:  *utils.ExpandStringSlice(item["allowed_origins"].([]interface{})),
 				AllowedMethods:  allowedMethods,
-				ExposedHeaders:  expandStringSlice(item["exposed_headers"].([]interface{})),
+				ExposedHeaders:  *utils.ExpandStringSlice(item["exposed_headers"].([]interface{})),
 				MaxAgeInSeconds: int64(item["max_age_in_seconds"].(int)),
 			})
 		}
@@ -2977,14 +2977,14 @@ func expandAccountSharePropertiesCorsRule(input []interface{}) *fileservice.Cors
 			item := raw.(map[string]interface{})
 
 			allowedMethods := make([]fileservice.AllowedMethods, 0)
-			for _, val := range expandStringSlice(item["allowed_methods"].([]interface{})) {
+			for _, val := range *utils.ExpandStringSlice(item["allowed_methods"].([]interface{})) {
 				allowedMethods = append(allowedMethods, fileservice.AllowedMethods(val))
 			}
 			corsRules = append(corsRules, fileservice.CorsRule{
-				AllowedHeaders:  expandStringSlice(item["allowed_headers"].([]interface{})),
-				AllowedOrigins:  expandStringSlice(item["allowed_origins"].([]interface{})),
+				AllowedHeaders:  *utils.ExpandStringSlice(item["allowed_headers"].([]interface{})),
+				AllowedOrigins:  *utils.ExpandStringSlice(item["allowed_origins"].([]interface{})),
 				AllowedMethods:  allowedMethods,
-				ExposedHeaders:  expandStringSlice(item["exposed_headers"].([]interface{})),
+				ExposedHeaders:  *utils.ExpandStringSlice(item["exposed_headers"].([]interface{})),
 				MaxAgeInSeconds: int64(item["max_age_in_seconds"].(int)),
 			})
 		}
