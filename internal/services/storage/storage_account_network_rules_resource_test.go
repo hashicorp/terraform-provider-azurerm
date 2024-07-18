@@ -116,7 +116,7 @@ func TestAccStorageAccountNetworkRules_privateLinkAccess(t *testing.T) {
 	})
 }
 
-func TestAccStorageAccountNetworkRules_SynapseAccess(t *testing.T) {
+func TestAccStorageAccountNetworkRules_synapseAccess(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_network_rules", "test")
 	r := StorageAccountNetworkRulesResource{}
 
