@@ -2530,22 +2530,27 @@ func expandAccountAzureFilesAuthentication(input []interface{}) (*storageaccount
 	output := storageaccounts.AzureFilesIdentityBasedAuthentication{
 		DirectoryServiceOptions: storageaccounts.DirectoryServiceOptions(v["directory_type"].(string)),
 	}
-	if output.DirectoryServiceOptions == storageaccounts.DirectoryServiceOptionsAD {
+	if output.DirectoryServiceOptions == storageaccounts.DirectoryServiceOptionsAD ||
+		output.DirectoryServiceOptions == storageaccounts.DirectoryServiceOptionsAADDS ||
+		output.DirectoryServiceOptions == storageaccounts.DirectoryServiceOptionsAADKERB {
 		ad := expandAccountActiveDirectoryProperties(v["active_directory"].([]interface{}))
-		if ad == nil {
-			return nil, fmt.Errorf("`active_directory` is required when `directory_type` is `AD`")
-		}
-		if ad.AzureStorageSid == nil {
-			return nil, fmt.Errorf("`active_directory.0.storage_sid` is required when `directory_type` is `AD`")
-		}
-		if ad.DomainSid == nil {
-			return nil, fmt.Errorf("`active_directory.0.domain_sid` is required when `directory_type` is `AD`")
-		}
-		if ad.ForestName == nil {
-			return nil, fmt.Errorf("`active_directory.0.forest_name` is required when `directory_type` is `AD`")
-		}
-		if ad.NetBiosDomainName == nil {
-			return nil, fmt.Errorf("`active_directory.0.netbios_domain_name` is required when `directory_type` is `AD`")
+
+		if output.DirectoryServiceOptions == storageaccounts.DirectoryServiceOptionsAD {
+			if ad == nil {
+				return nil, fmt.Errorf("`active_directory` is required when `directory_type` is `AD`")
+			}
+			if ad.AzureStorageSid == nil {
+				return nil, fmt.Errorf("`active_directory.0.storage_sid` is required when `directory_type` is `AD`")
+			}
+			if ad.DomainSid == nil {
+				return nil, fmt.Errorf("`active_directory.0.domain_sid` is required when `directory_type` is `AD`")
+			}
+			if ad.ForestName == nil {
+				return nil, fmt.Errorf("`active_directory.0.forest_name` is required when `directory_type` is `AD`")
+			}
+			if ad.NetBiosDomainName == nil {
+				return nil, fmt.Errorf("`active_directory.0.netbios_domain_name` is required when `directory_type` is `AD`")
+			}
 		}
 
 		output.ActiveDirectoryProperties = ad
