@@ -1288,6 +1288,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 					if accountKind != string(storage.KindStorage) && changedKind != string(storage.KindStorageV2) {
 						log.Printf("[DEBUG] recreate storage account, could't be migrated from %s to %s", accountKind, changedKind)
 						d.ForceNew("account_kind")
+						return nil
 					} else {
 						log.Printf("[DEBUG] storage account can be upgraded from %s to %s", accountKind, changedKind)
 					}
