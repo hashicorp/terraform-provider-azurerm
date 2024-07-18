@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2023-06-01-preview/virtualendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -26,7 +27,7 @@ func resourcePostgresqlFlexibleServerVirtualEndpoint() *pluginsdk.Resource {
 			Create: pluginsdk.DefaultTimeout(20 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(20 * time.Minute),
 			Update: pluginsdk.DefaultTimeout(20 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(1 * time.Hour),
+			Delete: pluginsdk.DefaultTimeout(20 * time.Minute),
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -90,6 +91,28 @@ func resourcePostgresqlFlexibleServerVirtualEndpointCreate(d *pluginsdk.Resource
 	locks.ByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
 	defer locks.UnlockByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
 
+	// Azure doesn't completely delete Virtual Endpoints, so recreating one with the same name will fail
+	// This just updates the existing one if it has a conflict AND the existing entity is set to nil
+	// GH Issue: https://github.com/Azure/azure-rest-api-specs/issues/29898
+	// A custom Delete poller is also used to work around this issue.
+	if resp, err := client.Get(ctx, id); err != nil {
+		if response.WasConflict(resp.HttpResponse) {
+			if resp.Model != nil && resp.Model.Properties == nil {
+				if err := client.UpdateThenPoll(ctx, id, virtualendpoints.VirtualEndpointResourceForPatch{
+					Properties: &virtualendpoints.VirtualEndpointResourceProperties{
+						EndpointType: (*virtualendpoints.VirtualEndpointType)(&virtualEndpointType),
+						Members:      &[]string{replicaServerId.FlexibleServerName},
+					},
+				}); err != nil {
+					return fmt.Errorf("updating previously deleted virtual endpoint %q: %+v", id, err)
+				}
+
+				d.SetId(id.ID())
+				return nil
+			}
+		}
+	}
+
 	if err = client.CreateThenPoll(ctx, id, virtualendpoints.VirtualEndpointResource{
 		Name: &name,
 		Properties: &virtualendpoints.VirtualEndpointResourceProperties{
@@ -135,8 +158,9 @@ func resourcePostgresqlFlexibleServerVirtualEndpointRead(d *pluginsdk.ResourceDa
 	}
 
 	if model := resp.Model; model != nil {
-		if model.Properties != nil && model.Properties.Members != nil && len(*resp.Model.Properties.Members) > 0 {
-			replicateServerId := servers.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, (*resp.Model.Properties.Members)[0])
+		// Model.Properties.Members is a tuple => [source_server, replication_server]
+		if model.Properties != nil && model.Properties.Members != nil && len(*resp.Model.Properties.Members) == 2 {
+			replicateServerId := servers.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, (*resp.Model.Properties.Members)[1])
 			if err := d.Set("replica_server_id", replicateServerId.ID()); err != nil {
 				return fmt.Errorf("setting `replica_server_id`: %+v", err)
 			}
@@ -170,7 +194,7 @@ func resourcePostgresqlFlexibleServerVirtualEndpointUpdate(d *pluginsdk.Resource
 	if err := client.UpdateThenPoll(ctx, *id, virtualendpoints.VirtualEndpointResourceForPatch{
 		Properties: &virtualendpoints.VirtualEndpointResourceProperties{
 			EndpointType: (*virtualendpoints.VirtualEndpointType)(&virtualEndpointType),
-			Members:      &[]string{replicaServerId.FlexibleServerName}, // TODO: Can we pass multiple at once?
+			Members:      &[]string{replicaServerId.FlexibleServerName},
 		},
 	}); err != nil {
 		return fmt.Errorf("updating %q: %+v", id, err)
@@ -192,9 +216,8 @@ func resourcePostgresqlFlexibleServerVirtualEndpointDelete(d *pluginsdk.Resource
 	locks.ByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
 	defer locks.UnlockByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
 
-	if err := client.DeleteThenPoll(ctx, *id); err != nil {
-		return fmt.Errorf("deleting %q: %+v", id, err)
-	}
+	deletePoller := custompollers.NewPostgresFlexibleServerVirtualEndpointDeletePoller(client, *id)
+	deletePoller.Poll(ctx)
 
 	return nil
 }
