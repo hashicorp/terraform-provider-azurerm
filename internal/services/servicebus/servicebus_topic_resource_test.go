@@ -246,7 +246,6 @@ func TestAccServiceBusTopic_nonPartitionedPremiumNamespaceError(t *testing.T) {
 			Config:      r.nonPartitionedPremiumNamespaceError(data),
 			ExpectError: regexp.MustCompile("the parent premium namespace is not partitioned and the partitioning for premium namespace is only available at the namepsace creation"),
 		},
-		data.ImportStep(),
 	})
 }
 
