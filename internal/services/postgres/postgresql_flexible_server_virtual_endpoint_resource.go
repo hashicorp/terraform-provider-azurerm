@@ -23,10 +23,10 @@ func resourcePostgresqlFlexibleServerVirtualEndpoint() *pluginsdk.Resource {
 		Delete: resourcePostgresqlFlexibleServerVirtualEndpointDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(1 * time.Hour),
-			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(1 * time.Hour),
-			Delete: pluginsdk.DefaultTimeout(1 * time.Hour),
+			Create: pluginsdk.DefaultTimeout(20 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(20 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(20 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(20 * time.Minute),
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -36,11 +36,10 @@ func resourcePostgresqlFlexibleServerVirtualEndpoint() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         pluginsdk.TypeString,
-				Description:  "The name of the Virtual Endpoint",
-				ForceNew:     true,
-				Required:     true,
-				ValidateFunc: virtualendpoints.ValidateVirtualEndpointID,
+				Type:        pluginsdk.TypeString,
+				Description: "The name of the Virtual Endpoint",
+				ForceNew:    true,
+				Required:    true,
 			},
 			"source_server_id": {
 				Type:         pluginsdk.TypeString,
@@ -73,11 +72,11 @@ func resourcePostgresqlFlexibleServerVirtualEndpointCreate(d *pluginsdk.Resource
 	defer cancel()
 
 	name := d.Get("name").(string)
-	flexibleServer := d.Get("source_server_id").(string)
+	sourceServer := d.Get("source_server_id").(string)
 	replicaServer := d.Get("replica_server_id").(string)
 	virtualEndpointType := d.Get("type").(string)
 
-	sourceServerId, err := servers.ParseFlexibleServerID(flexibleServer)
+	sourceServerId, err := servers.ParseFlexibleServerID(sourceServer)
 	if err != nil {
 		return err
 	}
@@ -117,6 +116,15 @@ func resourcePostgresqlFlexibleServerVirtualEndpointRead(d *pluginsdk.ResourceDa
 		return err
 	}
 
+	if err := d.Set("name", id.VirtualEndpointName); err != nil {
+		return fmt.Errorf("setting `name`: %+v", err)
+	}
+
+	flexibleServerId := servers.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName)
+	if err := d.Set("source_server_id", flexibleServerId.ID()); err != nil {
+		return fmt.Errorf("setting `source_server_id`: %+v", err)
+	}
+
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
@@ -127,26 +135,12 @@ func resourcePostgresqlFlexibleServerVirtualEndpointRead(d *pluginsdk.ResourceDa
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if err := d.Set("name", id.FlexibleServerName); err != nil {
-		return fmt.Errorf("setting `name`: %+v", err)
-	}
-
-	flexibleServerId, err := servers.ParseFlexibleServerID(d.Id())
-	if err != nil {
-		return err
-	}
-
-	if err := d.Set("source_server_id", flexibleServerId.ID()); err != nil {
-		return fmt.Errorf("setting `source_server_id`: %+v", err)
-	}
-
 	if model := resp.Model; model != nil {
-		if err := d.Set("replica_server_id", (*resp.Model.Properties.Members)[0]); err != nil {
-			return fmt.Errorf("setting `replica_server_id`: %+v", err)
-		} //TODO: This should be more resiliant
-
-		if err := d.Set("type", resp.Model.Type); err != nil {
-			return fmt.Errorf("setting `type`: %+v", err)
+		if len(*resp.Model.Properties.Members) > 0 {
+			replicateServerId := servers.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, (*resp.Model.Properties.Members)[0])
+			if err := d.Set("replica_server_id", replicateServerId.ID()); err != nil {
+				return fmt.Errorf("setting `replica_server_id`: %+v", err)
+			} //TODO: This should be more resiliant
 		}
 	}
 
