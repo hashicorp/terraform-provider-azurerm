@@ -672,10 +672,6 @@ resource "azurerm_key_vault_key" "test" {
     azurerm_key_vault_access_policy.client,
     azurerm_key_vault_access_policy.server,
   ]
-
-  lifecycle {
-    ignore_changes = [access_policy]
-  }
 }
 
 resource "azurerm_app_configuration" "test" {
