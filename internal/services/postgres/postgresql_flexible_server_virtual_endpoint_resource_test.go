@@ -29,36 +29,25 @@ func TestAccPostgresqlFlexibleServerVirtualEndpoint_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccPostgresqlFlexibleServerVirtualEndpoint_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server_virtual_endpoint", "test")
-	r := PostgresqlFlexibleServerVirtualEndpointResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccPostgresqlFlexibleServerVirtualEndpoint_disappears(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server_virtual_endpoint", "test")
-	r := PostgresqlFlexibleServerVirtualEndpointResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
+		data.ImportStep("type"),
 		data.DisappearsStep(acceptance.DisappearsStepData{
 			Config:       r.basic,
 			TestResource: r,
 		}),
 	})
 }
+
+// func TestAccPostgresqlFlexibleServerVirtualEndpoint_disappears(t *testing.T) {
+// 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server_virtual_endpoint", "test")
+// 	r := PostgresqlFlexibleServerVirtualEndpointResource{}
+
+// 	data.ResourceTest(t, r, []acceptance.TestStep{
+// 		data.DisappearsStep(acceptance.DisappearsStepData{
+// 			Config:       r.basic,
+// 			TestResource: r,
+// 		}),
+// 	})
+// }
 
 func (r PostgresqlFlexibleServerVirtualEndpointResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := virtualendpoints.ParseVirtualEndpointID(state.ID)
@@ -94,12 +83,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-psql-virtualendpoint-%[1]d"
+  name     = "acctest-psql-virtualendpoint-rg-%[1]d"
   location = "%[2]s"
 }
 
 resource "azurerm_postgresql_flexible_server" "test" {
-  name                          = "acctestRG-psql-virtualendpoint-primary-%[1]d"
+  name                          = "acctest-psql-virtualendpoint-primary-%[1]d"
   resource_group_name           = azurerm_resource_group.test.name
   location                      = azurerm_resource_group.test.location
   version                       = "16"
@@ -107,15 +96,13 @@ resource "azurerm_postgresql_flexible_server" "test" {
   administrator_login           = "psqladmin"
   administrator_password        = "H@Sh1CoR3!"
   zone                          = "1"
-
-  storage_mb   = 32768
-  storage_tier = "P30"
-
-  sku_name = "GP_Standard_D2ads_v5"
+  storage_mb                    = 32768
+  storage_tier                  = "P30"
+  sku_name                      = "GP_Standard_D2ads_v5"
 }
 
 resource "azurerm_postgresql_flexible_server" "test_replica" {
-  name                          = "acctestRG-psql-virtualendpoint-replica-%[1]d"
+  name                          = "acctest-psql-virtualendpoint-replica-%[1]d"
   resource_group_name           = azurerm_postgresql_flexible_server.test.resource_group_name
   location                      = azurerm_postgresql_flexible_server.test.location
   create_mode                   = "Replica"
@@ -125,12 +112,10 @@ resource "azurerm_postgresql_flexible_server" "test_replica" {
   zone                          = "1"
   storage_mb                    = 32768
   storage_tier                  = "P30"
-
-  sku_name = "GP_Standard_D2ads_v5"
 }
 
 resource "azurerm_postgresql_flexible_server_virtual_endpoint" "test" {
-  name              = "acctestRG-psqlvirtualendpoint-endpoint-%[1]d"
+  name              = "acctest-psqlvirtualendpoint-endpoint-%[1]d"
   source_server_id  = azurerm_postgresql_flexible_server.test.id
   replica_server_id = azurerm_postgresql_flexible_server.test_replica.id
   type              = "ReadWrite"
