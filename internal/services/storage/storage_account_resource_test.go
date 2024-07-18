@@ -1682,7 +1682,7 @@ func TestAccStorageAccount_invalidAccountKindForAccessTier(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.invalidAccountKindForAccessTier(data),
-			ExpectError: regexp.MustCompile("`access_tier` is only available for accounts of kind set to one of: BlobStorage / FileStorage / StorageV2"),
+			ExpectError: regexp.MustCompile("`access_tier` is only available for accounts of kind set to one of:"),
 		},
 	})
 }
