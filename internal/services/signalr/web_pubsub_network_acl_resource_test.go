@@ -179,11 +179,11 @@ resource "azurerm_virtual_network" "test" {
   }
 }
 resource "azurerm_subnet" "test" {
-  name                                           = "acctest-subnet-%d"
-  resource_group_name                            = azurerm_resource_group.test.name
-  virtual_network_name                           = azurerm_virtual_network.test.name
-  address_prefixes                               = ["10.5.2.0/24"]
-  private_link_service_network_policies_enabled  = true
+  name                                          = "acctest-subnet-%d"
+  resource_group_name                           = azurerm_resource_group.test.name
+  virtual_network_name                          = azurerm_virtual_network.test.name
+  address_prefixes                              = ["10.5.2.0/24"]
+  private_link_service_network_policies_enabled = true
 }
 resource "azurerm_private_endpoint" "test" {
   name                = "acctest-pe-%d"
@@ -262,11 +262,11 @@ resource "azurerm_virtual_network" "test" {
   }
 }
 resource "azurerm_subnet" "test" {
-  name                                           = "acctest-subnet-%d"
-  resource_group_name                            = azurerm_resource_group.test.name
-  virtual_network_name                           = azurerm_virtual_network.test.name
-  address_prefixes                               = ["10.5.2.0/24"]
-  private_link_service_network_policies_enabled  = true
+  name                                          = "acctest-subnet-%d"
+  resource_group_name                           = azurerm_resource_group.test.name
+  virtual_network_name                          = azurerm_virtual_network.test.name
+  address_prefixes                              = ["10.5.2.0/24"]
+  private_link_service_network_policies_enabled = true
 }
 
 resource "azurerm_private_endpoint" "test" {
