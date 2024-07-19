@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -138,13 +139,18 @@ func resourcePostgresqlFlexibleServerVirtualEndpointRead(d *pluginsdk.ResourceDa
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if model := resp.Model; model != nil {
-		// Model.Properties.Members is a tuple => [source_server, replication_server]
-		if model.Properties != nil && model.Properties.Members != nil && len(*resp.Model.Properties.Members) == 2 {
+	if model := resp.Model; model != nil && model.Properties != nil {
+		// Model.Properties.Members should be a tuple => [source_server, replication_server]
+		if resp.Model.Properties.Members != nil {
 			replicateServerId := servers.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, (*resp.Model.Properties.Members)[1])
 			if err := d.Set("replica_server_id", replicateServerId.ID()); err != nil {
 				return fmt.Errorf("setting `replica_server_id`: %+v", err)
 			}
+		} else {
+			// if members list is nil, this is an endpoint that was previously deleted
+			log.Printf("[INFO] Postgresql Flexible Server Endpoint %q was previously deleted - removing from state", d.Id())
+			d.SetId("")
+			return nil
 		}
 	}
 
@@ -197,6 +203,15 @@ func resourcePostgresqlFlexibleServerVirtualEndpointDelete(d *pluginsdk.Resource
 	locks.ByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
 	defer locks.UnlockByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
 
+	if err := DeletePostgresFlexibileServerVirtualEndpoint(ctx, client, id); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// exposed so we can access from tests
+func DeletePostgresFlexibileServerVirtualEndpoint(ctx context.Context, client *virtualendpoints.VirtualEndpointsClient, id *virtualendpoints.VirtualEndpointId) error {
 	deletePoller := custompollers.NewPostgresFlexibleServerVirtualEndpointDeletePoller(client, *id)
 	poller := pollers.NewPoller(deletePoller, 5*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
 
@@ -207,6 +222,5 @@ func resourcePostgresqlFlexibleServerVirtualEndpointDelete(d *pluginsdk.Resource
 	if err := poller.PollUntilDone(ctx); err != nil {
 		return err
 	}
-
 	return nil
 }

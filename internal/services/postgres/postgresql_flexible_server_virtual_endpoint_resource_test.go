@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -34,20 +35,12 @@ func TestAccPostgresqlFlexibleServerVirtualEndpoint_basic(t *testing.T) {
 			),
 		},
 		data.ImportStep("type"),
+		data.DisappearsStep(acceptance.DisappearsStepData{
+			Config:       r.basic,
+			TestResource: r,
+		}),
 	})
 }
-
-// func TestAccPostgresqlFlexibleServerVirtualEndpoint_disappears(t *testing.T) {
-// 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server_virtual_endpoint", "test")
-// 	r := PostgresqlFlexibleServerVirtualEndpointResource{}
-
-// 	data.ResourceTest(t, r, []acceptance.TestStep{
-// 		data.DisappearsStep(acceptance.DisappearsStepData{
-// 			Config:       r.basic,
-// 			TestResource: r,
-// 		}),
-// 	})
-// }
 
 func (r PostgresqlFlexibleServerVirtualEndpointResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := virtualendpoints.ParseVirtualEndpointID(state.ID)
@@ -60,7 +53,7 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Exists(ctx context.Cont
 		return nil, fmt.Errorf("reading Postgresql Virtual Endpoint (%s): %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return utils.Bool(resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.Members != nil), nil
 }
 
 func (r PostgresqlFlexibleServerVirtualEndpointResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -69,7 +62,7 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Destroy(ctx context.Con
 		return nil, err
 	}
 
-	if _, err := client.Postgres.VirtualEndpointClient.Delete(ctx, *id); err != nil {
+	if err := postgres.DeletePostgresFlexibileServerVirtualEndpoint(ctx, client.Postgres.VirtualEndpointClient, id); err != nil {
 		return nil, fmt.Errorf("deleting Postgresql Virtual Endpoint (%s): %+v", id.String(), err)
 	}
 
@@ -79,7 +72,11 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Destroy(ctx context.Con
 func (PostgresqlFlexibleServerVirtualEndpointResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }  
+  }
 }
 
 resource "azurerm_resource_group" "test" {
