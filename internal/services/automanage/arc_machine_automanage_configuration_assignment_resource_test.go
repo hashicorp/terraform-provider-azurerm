@@ -50,7 +50,7 @@ func (r ArcMachineConfigurationAssignmentResource) Exists(ctx context.Context, c
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r ArcMachineConfigurationAssignmentResource) basic(data acceptance.TestData) string {
+func (r ArcMachineConfigurationAssignmentResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
