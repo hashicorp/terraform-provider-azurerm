@@ -124,7 +124,7 @@ func TestAccAzureRMServiceBusNamespace_basicCapacity(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.basicCapacity(data),
-			ExpectError: regexp.MustCompile("Service Bus SKU \"Basic\" only supports `capacity` of 0"),
+			ExpectError: regexp.MustCompile("service bus SKU \"Basic\" only supports `capacity` of 0"),
 		},
 	})
 }
@@ -135,7 +135,7 @@ func TestAccAzureRMServiceBusNamespace_premiumCapacity(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.premiumCapacity(data),
-			ExpectError: regexp.MustCompile("Service Bus SKU \"Premium\" only supports `capacity` of 1, 2, 4, 8 or 16"),
+			ExpectError: regexp.MustCompile("service bus SKU \"Premium\" only supports `capacity` of 1, 2, 4, 8 or 16"),
 		},
 	})
 }
@@ -146,7 +146,7 @@ func TestAccAzureRMServiceBusNamespace_premiumMessagingPartition(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.premiumMessagingPartition(data),
-			ExpectError: regexp.MustCompile("Service Bus SKU \"Premium\" only supports `premium_messaging_partitions` of 1, 2, 4"),
+			ExpectError: regexp.MustCompile("service bus SKU \"Premium\" only supports `premium_messaging_partitions` of 1, 2, 4"),
 		},
 	})
 }
