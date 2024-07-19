@@ -20,7 +20,7 @@ type postgresFlexibleServerVirtualEndpointPoller struct {
 	id     virtualendpoints.VirtualEndpointId
 }
 
-// Workaround due to Azure performing a psuedo-soft delete on virtual endpoints.
+// Workaround due to Azure performing a pseudo-soft delete on virtual endpoints.
 //
 // - The `DELETE` endpoint does not fully delete the resource, it sets `properties.members` to nil
 //
