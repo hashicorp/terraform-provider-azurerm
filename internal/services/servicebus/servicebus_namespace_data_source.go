@@ -91,8 +91,9 @@ func dataSourceServiceBusNamespace() *pluginsdk.Resource {
 
 	if !features.FourPointOhBeta() {
 		resource.Schema["zone_redundant"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Type:       pluginsdk.TypeBool,
+			Computed:   true,
+			Deprecated: "The `zone_redundant` property has been deprecated and will be removed in v4.0 of the provider.",
 		}
 	}
 
