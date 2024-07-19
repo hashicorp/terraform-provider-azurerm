@@ -5,11 +5,6 @@ ENHANCEMENTS:
 * dependencies: updating to `v0.20240715.1100358` of `hashicorp/go-azure-sdk` [GH-26638]
 * `storage` - updating to use `hashicorp/go-azure-sdk` [GH-26218]
 
-ENHANCEMENTS:
-
-* `azurerm_eventhub_namespace` - deprecate the `zone_redundant` field in v4.0 [GH-26611]
-* `azurerm_servicebus_namespace` - deprecate the `zone_redundant` field in v4.0 [GH-26611]
-
 BUG FIXES:
 
 * `azurerm_storage_account` - fix a validation bug when replacing a StorageV2 account with a StorageV1 account [GH-26639]
@@ -18,6 +13,11 @@ BUG FIXES:
 * `azurerm_storage_account` - fix a persistent diff with the `customer_managed_key` block [GH-26218]
 * `azurerm_storage_account` - resolve several consistency related issues when crreating a new storage account [GH-26218]
 
+DEPRECATIONS:
+
+* `azurerm_eventhub_namespace` - deprecate the `zone_redundant` field in v4.0 [GH-26611]
+* `azurerm_servicebus_namespace` - deprecate the `zone_redundant` field in v4.0 [GH-26611]
+  
 ## 3.112.0 (July 12, 2024)
 
 FEATURES:
