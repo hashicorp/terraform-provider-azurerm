@@ -143,3 +143,14 @@ func getTenantId(d *pluginsdk.ResourceData) (*string, error) {
 
 	return &tenantId, nil
 }
+
+func getSubscriptionId(d *pluginsdk.ResourceData) (*string, error) {
+	if v := d.Get("subscription_id"); v.(string) != "" {
+		ret := v.(string)
+		return &ret, nil
+	}
+	if v := os.Getenv("ARM_SUBSCRIPTION_ID"); v != "" {
+		return &v, nil
+	}
+	return nil, fmt.Errorf("`subscription_id` is a required provider property")
+}

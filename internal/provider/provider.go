@@ -6,6 +6,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"os"
 	"strings"
 	"time"
@@ -143,9 +144,9 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 		Schema: map[string]*schema.Schema{
 			"subscription_id": {
 				Type:        schema.TypeString,
-				Required:    true,
-				DefaultFunc: schema.EnvDefaultFunc("ARM_SUBSCRIPTION_ID", nil),
+				Optional:    true, // TODO: make this Required after migrating to terraform-plugin-framework
 				Description: "The Subscription ID which should be used.",
+				// Note: not using EnvDefaultFunc as it messes with Optional/Required and interferes with Mux
 			},
 
 			"tenant_id": {
@@ -368,9 +369,6 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 	}
 
 	if !features.FourPointOhBeta() {
-		p.Schema["subscription_id"].Required = false
-		p.Schema["subscription_id"].Optional = true
-
 		delete(p.Schema, "resource_provider_registrations")
 		delete(p.Schema, "resource_providers_to_register")
 	}
@@ -425,6 +423,14 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 			return nil, diag.FromErr(err)
 		}
 
+		subscriptionId, err := getSubscriptionId(d)
+		if err != nil {
+			if features.FourPointOhBeta() {
+				return nil, diag.FromErr(err)
+			}
+			subscriptionId = pointer.To("") // TODO: remove this in v4.0
+		}
+
 		var (
 			env *environments.Environment
 
@@ -467,7 +473,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 
 			CustomManagedIdentityEndpoint: d.Get("msi_endpoint").(string),
 
-			AzureCliSubscriptionIDHint: d.Get("subscription_id").(string),
+			AzureCliSubscriptionIDHint: *subscriptionId,
 
 			EnableAuthenticatingUsingClientCertificate: true,
 			EnableAuthenticatingUsingClientSecret:      true,
@@ -522,6 +528,14 @@ func buildClient(ctx context.Context, p *schema.Provider, d *schema.ResourceData
 		requiredResourceProviders.Merge(additionalProvidersToRegister)
 	}
 
+	subscriptionId, err := getSubscriptionId(d)
+	if err != nil {
+		if features.FourPointOhBeta() {
+			return nil, diag.FromErr(err)
+		}
+		subscriptionId = pointer.To("") // TODO: remove this in v4.0
+	}
+
 	clientBuilder := clients.ClientBuilder{
 		AuthConfig:                  authConfig,
 		DisableCorrelationRequestID: d.Get("disable_correlation_request_id").(bool),
@@ -531,7 +545,7 @@ func buildClient(ctx context.Context, p *schema.Provider, d *schema.ResourceData
 		PartnerID:                   d.Get("partner_id").(string),
 		RegisteredResourceProviders: requiredResourceProviders,
 		StorageUseAzureAD:           d.Get("storage_use_azuread").(bool),
-		SubscriptionID:              d.Get("subscription_id").(string),
+		SubscriptionID:              *subscriptionId,
 		TerraformVersion:            p.TerraformVersion,
 
 		// this field is intentionally not exposed in the provider block, since it's only used for
@@ -551,13 +565,10 @@ func buildClient(ctx context.Context, p *schema.Provider, d *schema.ResourceData
 	}
 
 	client.StopContext = stopCtx
-
-	subscriptionId := commonids.NewSubscriptionID(client.Account.SubscriptionId)
-
 	ctx2, cancel := context.WithTimeout(ctx, 30*time.Minute)
 	defer cancel()
 
-	if err = resourceproviders.EnsureRegistered(ctx2, client.Resource.ResourceProvidersClient, subscriptionId, requiredResourceProviders); err != nil {
+	if err = resourceproviders.EnsureRegistered(ctx2, client.Resource.ResourceProvidersClient, commonids.NewSubscriptionID(client.Account.SubscriptionId), requiredResourceProviders); err != nil {
 		return nil, diag.FromErr(err)
 	}
 
