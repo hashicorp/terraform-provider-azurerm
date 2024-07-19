@@ -98,38 +98,65 @@ Below are examples of how the two properties can be used.
 Only register a minimal set of `core` RPs on the subscription
 ```hcl
 provider "azurerm" {
-    resource_provider_registrations = "core"
+  resource_provider_registrations = "core"
 }
 ```
 
 Register a set of specific RPs in addition to the `core` RPs on the subscription
 ```hcl
 provider "azurerm" {
-    resource_provider_registrations = "core"
+  resource_provider_registrations = "core"
 
-    resource_providers_to_register = [
-        "Microsoft.ContainerService",
-        "Microsoft.KeyVault",
-    ]
+  resource_providers_to_register = [
+    "Microsoft.ContainerService",
+    "Microsoft.KeyVault",
+  ]
 }
 ```
 
-Only register a custom set of RPs defined under `resource_providers_to_register` on the subscription.
+Only register a custom set of RPs defined under `resource_providers_to_register` on the subscription
 ```hcl
 provider "azurerm" {
-    resource_provider_registrations = "none"
+  resource_provider_registrations = "none"
 
-    resource_providers_to_register = [
-        "Microsoft.ApiManagement",
-        "Microsoft.Compute",
-        "Microsoft.KeyVault",
-        "Microsoft.Network",
-        "Microsoft.Storage",
-    ]
+  resource_providers_to_register = [
+    "Microsoft.ApiManagement",
+    "Microsoft.Compute",
+    "Microsoft.KeyVault",
+    "Microsoft.Network",
+    "Microsoft.Storage",
+  ]
 }
 ```
 
 (*)all in this case refers to the arbitrary list of Resource Providers that was used for registration
+
+## Specifying Subscription ID is now Mandatory
+
+In version 4.0 of the AzureRM Provider, it's now required to specify the Azure Subscription ID when configuring a provider instance in your configuration. This can be done by specifying the `subscription_id` provider property, or by exporting the `ARM_SUBSCRIPTION_ID` environment variable. For example:
+
+Specify the subscription ID in the provider block
+```hcl
+provider "azurerm" {
+  subscription_id = "00000000-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+}
+```
+
+Specify the subscription ID using an environment variable
+```shell
+# Bash etc.
+export ARM_SUBSCRIPTION_ID=00000000-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+```
+```powershell
+# PowerShell
+[System.Environment]::SetEnvironmentVariable('ARM_SUBSCRIPTION_ID', '00000000-xxxx-xxxx-xxxx-xxxxxxxxxxxx', [System.EnvironmentVariableTarget]::User)
+```
+
+This change will not impact users who use any authentication method other than Azure CLI, for example those authenticating as a service principal using the provider's native support, users authenticating using OIDC, or authenticating using managed identity.
+
+Users authenticating the provider using Azure CLI, however, may previously have elected to omit the subscription ID from their Terraform configuration and rely on the provider selecting the currently active subscription from Azure CLI. Whilst convenient, this behavior has historically led to a number of issues. In particular, when omitting the subscription ID, the provider cannot guarantee that a plan is executed against the correct subscription.
+
+By making it mandatory to specify the subscription ID for all authentication methods, this will also make it possible to implement a number of improvements to our authentication support in the future.
 
 ## Provider Functions
 
