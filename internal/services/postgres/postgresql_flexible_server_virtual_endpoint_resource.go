@@ -53,7 +53,7 @@ func resourcePostgresqlFlexibleServerVirtualEndpoint() *pluginsdk.Resource {
 			},
 			"replica_server_id": {
 				Type:         pluginsdk.TypeString,
-				Description:  "The Resource ID of the *Source* Postgres Flexible Server this should be associated with",
+				Description:  "The Resource ID of the *Replica* Postgres Flexible Server this should be associated with",
 				Required:     true,
 				ValidateFunc: servers.ValidateFlexibleServerID,
 			},
