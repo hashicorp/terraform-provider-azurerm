@@ -23,7 +23,7 @@ func TestAccArcMachineConfigurationAssignment_complete(t *testing.T) {
 	r := ArcMachineConfigurationAssignmentResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
