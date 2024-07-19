@@ -318,7 +318,7 @@ resource "azurerm_cosmosdb_sql_container" "update" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
   database_name       = azurerm_cosmosdb_sql_database.update.name
-  partition_key_path  = "/definitionupdate"
+  partition_key_paths = ["/definitionupdate"]
 }
 
 resource "azurerm_service_plan" "update" {
@@ -387,7 +387,7 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "test1" {
-  name                               = "subnet1"
+  name                              = "subnet1"
   resource_group_name               = azurerm_resource_group.test.name
   virtual_network_name              = azurerm_virtual_network.test.name
   address_prefixes                  = ["10.0.1.0/24"]
@@ -488,7 +488,8 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
   database_name       = azurerm_cosmosdb_sql_database.test.name
-  partition_key_path  = "/definition"
+  partition_key_paths = ["/definition"]
+
 }
 
 resource "azurerm_service_plan" "test" {
@@ -605,7 +606,7 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
   database_name       = azurerm_cosmosdb_sql_database.test.name
-  partition_key_path  = "/definition"
+  partition_key_paths = ["/definition"]
 }
 
 resource "azurerm_service_plan" "test" {
