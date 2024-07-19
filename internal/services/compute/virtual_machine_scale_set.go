@@ -374,9 +374,11 @@ func VirtualMachineScaleSetScaleInPolicySchema() *pluginsdk.Schema {
 		}
 	}
 
+	// NOTE: In 4.0 this needs to be a required field else you will get a diff if
+	// this field is not in the configuration file...
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
-		Optional: true,
+		Required: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{

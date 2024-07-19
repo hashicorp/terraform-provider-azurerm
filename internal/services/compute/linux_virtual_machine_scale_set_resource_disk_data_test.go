@@ -780,6 +780,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
       subnet_id = azurerm_subnet.test.id
     }
   }
+
+  scale_in {}
 }
 `, r.template(data), data.RandomInteger, storageAccountType)
 }
