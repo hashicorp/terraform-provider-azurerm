@@ -117,5 +117,5 @@ resource "azurerm_postgresql_flexible_server_virtual_endpoint" "test" {
   replica_server_id = azurerm_postgresql_flexible_server.test_replica.id
   type              = "ReadWrite"
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, "eastus") // force region due to SKU constraints
 }
