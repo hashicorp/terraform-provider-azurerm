@@ -26,10 +26,10 @@ func resourcePostgresqlFlexibleServerVirtualEndpoint() *pluginsdk.Resource {
 		Delete: resourcePostgresqlFlexibleServerVirtualEndpointDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(20 * time.Minute),
-			Read:   pluginsdk.DefaultTimeout(20 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(20 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(20 * time.Minute),
+			Create: pluginsdk.DefaultTimeout(10 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(10 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(10 * time.Minute),
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
