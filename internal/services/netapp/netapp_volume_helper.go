@@ -145,8 +145,8 @@ func expandNetAppVolumeGroupVolumes(input []netAppModels.NetAppVolumeGroupVolume
 			Tags: &item.Tags,
 		}
 
-		if item.ProximityPlacementGroupId != "" {
-			volumeProperties.Properties.ProximityPlacementGroup = pointer.To(utils.NormalizeNilableString(pointer.To(item.ProximityPlacementGroupId)))
+		if v := item.ProximityPlacementGroupId; v != "" {
+			volumeProperties.Properties.ProximityPlacementGroup = pointer.To(utils.NormalizeNilableString(pointer.To(v)))
 		}
 
 		results = append(results, *volumeProperties)
