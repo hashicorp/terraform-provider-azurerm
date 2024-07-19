@@ -98,10 +98,10 @@ func (r sqlManagedInstanceStartStopScheduleResource) basic(data acceptance.TestD
 resource "azurerm_mssql_managed_instance_start_stop_schedule" "test" {
   managed_instance_id = azurerm_mssql_managed_instance.test.id
   schedule_list {
-	start_day  = "Wednesday"	
-	start_time = "11:00"	
-	stop_day   = "Wednesday"	
-	stop_time  = "23:00"
+    start_day  = "Wednesday"
+    start_time = "11:00"
+    stop_day   = "Wednesday"
+    stop_time  = "23:00"
   }
 
 }
@@ -115,13 +115,13 @@ func (r sqlManagedInstanceStartStopScheduleResource) complete(data acceptance.Te
 
 resource "azurerm_mssql_managed_instance_start_stop_schedule" "test" {
   managed_instance_id = azurerm_mssql_managed_instance.test.id
-  description             = "test description"
-  timezone_id            = "Central European Standard Time"
+  description         = "test description"
+  timezone_id         = "Central European Standard Time"
   schedule_list {
-	start_day  = "Wednesday"	
-	start_time = "11:00"	
-	stop_day   = "Wednesday"	
-	stop_time  = "23:00"
+    start_day  = "Wednesday"
+    start_time = "11:00"
+    stop_day   = "Wednesday"
+    stop_time  = "23:00"
   }
 
 }
@@ -135,20 +135,20 @@ func (r sqlManagedInstanceStartStopScheduleResource) update(data acceptance.Test
 
 resource "azurerm_mssql_managed_instance_start_stop_schedule" "test" {
   managed_instance_id = azurerm_mssql_managed_instance.test.id
-  description             = "updated test description"
-  timezone_id            = "Central European Standard Time"
+  description         = "updated test description"
+  timezone_id         = "Central European Standard Time"
   schedule_list {
-    start_day  = "Wednesday"	
-    start_time = "10:00"	
-    stop_day   = "Wednesday"	
+    start_day  = "Wednesday"
+    start_time = "10:00"
+    stop_day   = "Wednesday"
     stop_time  = "22:00"
   }
 
   schedule_list {
-	start_day  = "Thursday"
-	start_time = "11:00"	
-	stop_day   = "Wednesday"	
-	stop_time  = "23:00"
+    start_day  = "Thursday"
+    start_time = "11:00"
+    stop_day   = "Wednesday"
+    stop_time  = "23:00"
   }
 
 }
