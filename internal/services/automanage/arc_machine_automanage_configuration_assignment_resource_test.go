@@ -17,7 +17,7 @@ import (
 
 type ArcMachineConfigurationAssignmentResource struct{}
 
-func TestAccArcMachineConfigurationAssignment_basic(t *testing.T) {
+func TestAccArcMachineConfigurationAssignment_complete(t *testing.T) {
 	t.Skip("The deprecation check prevents the creation of a hybrid compute machine resource using os.Getenv(\"ARM_CLIENT_SECRET\")")
 	data := acceptance.BuildTestData(t, "azurerm_arc_machine_automanage_configuration_assignment", "test")
 	r := ArcMachineConfigurationAssignmentResource{}
