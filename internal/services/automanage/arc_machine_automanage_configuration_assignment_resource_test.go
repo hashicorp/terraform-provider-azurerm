@@ -77,7 +77,7 @@ resource "azurerm_automanage_configuration" "test" {
 
 resource "azurerm_arc_machine_automanage_configuration_assignment" "test" {
   arc_machine_id   = data.azurerm_arc_machine.test.id
-  configuration_id = azurerm_automanage_configuration.test.id\
+  configuration_id = azurerm_automanage_configuration.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
