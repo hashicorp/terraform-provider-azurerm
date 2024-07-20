@@ -301,12 +301,14 @@ func (r MsSqlManagedInstanceStartStopScheduleResource) Delete() sdk.ResourceFunc
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MSSQLManagedInstance.ManagedInstanceStartStopSchedulesClient
 
-			id, err := commonids.ParseSqlManagedInstanceID(metadata.ResourceData.Get("managed_instance_id").(string))
+			id, err := parse.ManagedInstanceStartStopScheduleID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			if _, err := client.Delete(ctx, *id); err != nil {
+			managedInstanceID := commonids.NewSqlManagedInstanceID(id.SubscriptionId, id.ResourceGroup, id.ManagedInstanceName)
+
+			if _, err := client.Delete(ctx, managedInstanceID); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
