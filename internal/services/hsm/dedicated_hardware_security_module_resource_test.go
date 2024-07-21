@@ -74,6 +74,12 @@ func TestAccDedicatedHardwareSecurityModule_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(), {
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
 		data.ImportStep(),
 	})
 }
@@ -221,7 +227,7 @@ resource "azurerm_dedicated_hardware_security_module" "test" {
   sku_name            = "payShield10K_LMK2_CPS60"
 
   network_profile {
-    network_interface_private_ip_addresses = ["10.2.1.8"]
+    network_interface_private_ip_addresses = ["10.2.1.4"]
     subnet_id                              = azurerm_subnet.test2.id
   }
 
@@ -249,7 +255,7 @@ resource "azurerm_dedicated_hardware_security_module" "test" {
   sku_name            = "payShield10K_LMK2_CPS60"
 
   network_profile {
-    network_interface_private_ip_addresses = ["10.2.1.8"]
+    network_interface_private_ip_addresses = ["10.2.1.4"]
     subnet_id                              = azurerm_subnet.test2.id
   }
 
