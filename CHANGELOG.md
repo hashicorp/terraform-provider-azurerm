@@ -1,3 +1,9 @@
+## 3.114.0 (Unreleased)
+
+BUG FIXES:
+
+* `azurerm_dns_cname_record` - split create and update function to fix lifecycle - ignore [GH-26610]
+
 ## 3.113.0 (July 18, 2024)
 
 ENHANCEMENTS:
