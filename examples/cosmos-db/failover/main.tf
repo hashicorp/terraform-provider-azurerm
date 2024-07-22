@@ -11,12 +11,12 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_cosmosdb_account" "example" {
-  name                      = "${var.prefix}-cosmosdb"
-  location                  = azurerm_resource_group.example.location
-  resource_group_name       = azurerm_resource_group.example.name
-  offer_type                = "Standard"
-  kind                      = "GlobalDocumentDB"
-  enable_automatic_failover = true
+  name                       = "${var.prefix}-cosmosdb"
+  location                   = azurerm_resource_group.example.location
+  resource_group_name        = azurerm_resource_group.example.name
+  offer_type                 = "Standard"
+  kind                       = "GlobalDocumentDB"
+  automatic_failover_enabled = true
 
   // set ip_range_filter to allow azure services (0.0.0.0) and azure portal.
   // https://docs.microsoft.com/en-us/azure/cosmos-db/how-to-configure-firewall#allow-requests-from-the-azure-portal
