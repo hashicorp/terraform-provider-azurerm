@@ -28,7 +28,7 @@ var _ provider.ProviderWithFunctions = &azureRmFrameworkProvider{}
 
 func (p *azureRmFrameworkProvider) Functions(_ context.Context) []func() function.Function {
 	return []func() function.Function{
-		providerfunction.NewNormaliseResourceID,
+		providerfunction.NewNormaliseResourceIDFunction,
 		providerfunction.NewParseResourceIDFunction,
 	}
 }

@@ -11,7 +11,7 @@ type NormaliseResourceIDFunction struct{}
 
 var _ function.Function = NormaliseResourceIDFunction{}
 
-func NewNormaliseResourceID() function.Function {
+func NewNormaliseResourceIDFunction() function.Function {
 	return &NormaliseResourceIDFunction{}
 }
 
