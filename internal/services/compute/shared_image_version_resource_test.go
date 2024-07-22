@@ -589,6 +589,10 @@ resource "azurerm_key_vault" "test" {
   sku_name                    = "standard"
   enabled_for_disk_encryption = true
   purge_protection_enabled    = true
+
+  lifecycle {
+    ignore_changes = [access_policy]
+  }
 }
 
 resource "azurerm_key_vault_access_policy" "service-principal" {
