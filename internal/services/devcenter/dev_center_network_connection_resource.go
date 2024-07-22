@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2023-04-01/networkconnections"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devcenter/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -55,7 +56,7 @@ func (r DevCenterNetworkConnectionResource) Arguments() map[string]*pluginsdk.Sc
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validate.DevCenterNetworkConnectionName,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
@@ -74,7 +75,7 @@ func (r DevCenterNetworkConnectionResource) Arguments() map[string]*pluginsdk.Sc
 		"domain_name": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validation.StringLenBetween(1, 255),
 		},
 
 		"domain_password": {
