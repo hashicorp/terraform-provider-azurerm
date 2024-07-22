@@ -232,6 +232,10 @@ resource "azurerm_container_registry" "test" {
   location            = azurerm_resource_group.test.location
   sku                 = "Premium"
   admin_enabled       = true
+
+  lifecycle {
+    ignore_changes = [network_rule_set]
+  }
 }
 
 # use system wide scope map for tests
