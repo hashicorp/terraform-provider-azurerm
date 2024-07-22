@@ -65,6 +65,8 @@ The following arguments are supported:
 
 * `zone_redundant` - (Optional) Whether or not this resource is zone redundant. `sku` needs to be `Premium`. Changing this forces a new resource to be created.
 
+-> **Note:** In Azure Regions where availability zones are present, the availability zone feature is enabled by default now, which diffs from the previous behavior that need to set the `zone_redundant` to `true` manually. Existing namespaces are being migrated to availability zones as well, and the property `zone_redundant` is being deprecated. The property `zone_redundant` might still show as false, even when availability zones has been enabled.
+
 * `network_rule_set` - (Optional) An `network_rule_set` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
