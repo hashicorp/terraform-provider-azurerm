@@ -238,7 +238,7 @@ A `private_service_connection` block supports the following:
 
 -> **NOTE:** Some resource types (such as Storage Account) only support 1 subresource per private endpoint.
 
--> **NOTE:** Only for Private-link resource called "Private Link service", `subresource_names` can be optional.
+-> **NOTE:** Only for Private-link resource called "Private Link service", `subresource_names` can be omitted.
 
 * `request_message` - (Optional) A message passed to the owner of the remote resource when the private endpoint attempts to establish the connection to the remote resource. The provider allows a maximum request message length of `140` characters, however the request message maximum length is dependent on the service the private endpoint is connected to. Only valid if `is_manual_connection` is set to `true`.
 
