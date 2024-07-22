@@ -51,7 +51,10 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 	response.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"subscription_id": schema.StringAttribute{
-				Optional:    true,
+				// Note: There is no equivalent of `DefaultFunc` in the provider schema package. This property is Required, but can be
+				// set via env var instead of provider config, so needs to be toggled in schema based on the presence of that env var.
+				Required:    getEnvStringOrDefault(types.StringUnknown(), "ARM_SUBSCRIPTION_ID", "") == "",
+				Optional:    getEnvStringOrDefault(types.StringUnknown(), "ARM_SUBSCRIPTION_ID", "") != "",
 				Description: "The Subscription ID which should be used.",
 			},
 
