@@ -597,6 +597,10 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
  * The deprecated property `enable_power_bi_service` has been removed in favour of the property `power_bi_service_enabled`.
  * The property `querypool_connection_mode` now defaults to `All`.
 
+### `azurerm_api_connection`
+
+* The property `display_name` now defaults to `Service Bus`.
+
 ### `azurerm_api_management_api`
 
 * The deprecated property `soap_pass_through` has been removed in favour of the property `api_type`.
@@ -608,6 +612,11 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 ### `azurerm_api_management`
 
 * The deprecated block `policy` has been removed in favour of the `azurerm_api_management_policy` resource.
+
+### `azurerm_application_insights`
+
+* The property `daily_data_cap_in_gb` now defaults to `100`.
+* The property `"daily_data_cap_notifications_disabled` now defaults to `false`.
 
 ### `azurerm_attestation_provider`
 
@@ -631,10 +640,17 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 ### `azurerm_bot_channels_registration`
 
 * The deprecated property `isolated_network_enabled` has been removed in favour of the `public_network_access_enabled` property.
+* The property `icon_url` now defaults to `https://docs.botframework.com/static/devportal/client/images/bot-framework-default.png`.
 
 ### `azurerm_bot_connection`
 
 * The deprecated property `tags` has been removed.
+
+### `azurem_cdn_endpoint`
+
+* The property `origin_path` is no longer Computed. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
+* The property `content_types_to_compress` is no longer Computed. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
+* The property `probe_path` is no longer Computed. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
 
 ### `azurerm_cdn_endpoint_custom_domain`
 
@@ -689,6 +705,10 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 
 * The deprecated property `partition_key_path` has been removed in favour of the `partition_key_paths` property.
 
+### `azurerm_data_factory_integration_runtime_azure`
+
+* The property `cleanup_enabled` now defaults to `true`.
+
 ### `azurerm_data_protection_backup_policy_blob_storage`
 
 * The deprecated property `retention_duration` has been removed in favour of the `operational_default_retention_duration` property.
@@ -696,6 +716,7 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 ### `azurerm_databricks_workspace`
 
 * The property `custom_parameters.no_public_ip` now defaults to `true`.
+* The property `network_security_group_rules_required` is no longer Computed. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
 
 ### `azurerm_dashboard_grafana`
 
@@ -705,6 +726,10 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 
 * The deprecated property `storage_type` has been removed.
 
+### `azurerm_digital_twins_time_series_database_connection`
+
+* The property `kusto_table_name` now defaults to `AdtPropertyEvents`.
+
 ### `azurerm_elastic_cloud_elasticsearch`
 
 * The property `logs` is no longer Computed. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
@@ -712,10 +737,29 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 ### `azurerm_eventhub_namespace`
 
 * The deprecated property `zone_redundant` has been removed.
+* The property `minimum_tls_version` now defaults to `1.2`.
+
+### `azurerm_express_route_port`
+
+* The property `billing_type` now defaults to `MeteredData`.
+
+### `azurerm_firewall_policy`
+
+* The property `sku` now defaults to `Standard`.
 
 ### `azurerm_hdinsight_kafka_cluster`
 
 * The deprecated property `roles.kafka_management_node` has been removed.
+
+### `azurerm_iotcentral_application`
+
+* The property `template` now defaults to `iotc-pnp-preview@1.0.0`.
+
+### `azurerm_iothub`
+
+* The property `event_hub_partition_count` now defaults to `4`.
+* The property `event_hub_retention_in_days` now defaults to `1`.
+* The property `fallback_route.enabled` now defaults to `true`.
 
 ### `azurerm_key_vault_managed_hardware_security_module_role_assignment`
 
@@ -763,6 +807,15 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 ### `azurerm_lb`
 
 * The property `sku` now defaults to `Standard`.
+
+### `azurerm_lb_nat_rule`
+
+* The property `idle_timeout_in_minutes` now defaults to `4`.
+
+### `azurerm_lb_rule`
+
+* The property `idle_timeout_in_minutes` now defaults to `4`.
+* The property `load_distribution` now defaults to `Default`.
 
 ### `azurerm_linux_function_app`
 
@@ -826,6 +879,10 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 
 * The deprecated property `event_hub_receiver.event_hub_id` has been removed in favour of the `event_hub_receiver.event_hub_name` and `event_hub_receiver.event_hub_namespace` properties.
 
+### `azurerm_monitor_data_collection_rule`
+
+* The property `data_sources.data_import.syslog.streams` is now Required.
+
 ### `azurerm_monitor_diagnostic_categories`
 
 * The deprecated property `logs` will be removed in favour of the `log_category_types` property.
@@ -836,6 +893,21 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 * The deprecated `metric.retention_policy` block has been removed in favour of the `azurerm_storage_management_policy` resource.
 * The deprecated `log` block has been removed in favour of the `enabled_log` block.
 
+### `azurerm_netapp_pool`
+
+* The property `qos_type` now defaults to `Auto`.
+
+### `azurerm_netapp_snapshot_policy`
+
+* The property `hourly_schedule` is no longer `Computed`. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
+* The property `daily_schedule` is no longer `Computed`. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
+* The property `weekly_schedule` is no longer `Computed`. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
+* The property `monthly_schedule` is no longer `Computed`. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
+
+### `azurerm_netapp_volume`
+
+* The property `network_features` now defaults to `Basic`.
+
 ### `azurerm_network_connection_monitor`
 
 * The property `output_workspace_resource_ids` is no longer `Computed`. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
@@ -845,6 +917,10 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 * The property `dns_servers` is no longer `Computed`. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
 * The deprecated property `enable_accelerated_networking` has been removed in favour of the `accelerated_networking_enabled` property.
 * The deprecated property `enable_ip_forwarding` has been removed in favour of the `ip_forwarding_enabled` property.
+
+### `azurerm_network_watcher_flow_log`
+
+* The property `version` now defaults to `1`.
 
 ### `azurerm_nginx_deployment`
 
@@ -927,20 +1003,35 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 * The deprecated property `enable_batched_operations` has been removed in favour of the `batched_operations_enabled` property.
 * The deprecated property `enable_express` has been removed in favour of the `express_enabled` property.
 * The deprecated property `enable_partitioning` has been removed in favour of the `partitioning_enabled` property.
+* The property `auto_delete_on_idle` now defaults to `P10675199DT2H48M5.4775807S`.
+* The property `default_message_ttl` now defaults to `P10675199DT2H48M5.4775807S`.
+* The property `duplicate_detection_history_time_window` now defaults to `PT10M`.
+* The property `lock_duration` now defaults to `PT1M`.
+* The property `max_message_size_in_kilobytes` now defaults to `256`.
+* The property `max_size_in_megabytes` now defaults to `5120`.
 
 ### `azurerm_servicebus_subscription`
 
 * The deprecated property `enable_batched_operations` has been removed in favour of the `batched_operations_enabled` property.
+* The property `auto_delete_on_idle` now defaults to `P10675199DT2H48M5.4775807S`.
+* The property `default_message_ttl` now defaults to `P10675199DT2H48M5.4775807S`.
+* The property `lock_duration` now defaults to `PT1M`.
 
 ### `azurerm_servicebus_topic`
 
 * The deprecated property `enable_batched_operations` has been removed in favour of the `batched_operations_enabled` property.
 * The deprecated property `enable_express` has been removed in favour of the `express_enabled` property.
 * The deprecated property `enable_partitioning` has been removed in favour of the `partitioning_enabled` property.
+* The property `auto_delete_on_idle` now defaults to `P10675199DT2H48M5.4775807S`.
+* The property `default_message_ttl` now defaults to `P10675199DT2H48M5.4775807S`.
+* The property `duplicate_detection_history_time_window` now defaults to `P10M`.
+* The property `max_message_size_in_kilobytes` now defaults to `256`.
+* The property `max_size_in_megabytes` now defaults to `5120`.
 
 ### `azurerm_servicebus_namespace`
 
 * The deprecated property `zone_redundant` has been removed.
+* The property `minimum_tls_version` now defaults to `1.2`.
 
 ### `azurerm_signalr_service`
 
@@ -992,6 +1083,10 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 ### `azurerm_virtual_network_gateway_connections`
 
 * The property `shared_key` has become `Required`.
+
+### `azurerm_vpn_gateway`
+
+* The property `routing_preference` now defaults to `Microsoft Network`.
 
 ### `azurerm_vpn_gateway_nat_rule`
 
