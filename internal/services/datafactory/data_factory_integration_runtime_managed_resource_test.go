@@ -6,6 +6,7 @@ package datafactory_test
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -19,6 +20,10 @@ import (
 type IntegrationRuntimeManagedResource struct{}
 
 func TestAccDataFactoryIntegrationRuntimeManaged_basic(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("Resource has been removed in v4.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_managed", "test")
 	r := IntegrationRuntimeManagedResource{}
 
@@ -34,6 +39,10 @@ func TestAccDataFactoryIntegrationRuntimeManaged_basic(t *testing.T) {
 }
 
 func TestAccDataFactoryIntegrationRuntimeManaged_vnetIntegration(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("Resource has been removed in v4.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_managed", "test")
 	r := IntegrationRuntimeManagedResource{}
 
@@ -52,6 +61,10 @@ func TestAccDataFactoryIntegrationRuntimeManaged_vnetIntegration(t *testing.T) {
 }
 
 func TestAccDataFactoryIntegrationRuntimeManaged_catalogInfo(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("Resource has been removed in v4.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_managed", "test")
 	r := IntegrationRuntimeManagedResource{}
 
@@ -72,6 +85,10 @@ func TestAccDataFactoryIntegrationRuntimeManaged_catalogInfo(t *testing.T) {
 }
 
 func TestAccDataFactoryIntegrationRuntimeManaged_customSetupScript(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("Resource has been removed in v4.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_managed", "test")
 	r := IntegrationRuntimeManagedResource{}
 
@@ -90,6 +107,10 @@ func TestAccDataFactoryIntegrationRuntimeManaged_customSetupScript(t *testing.T)
 }
 
 func TestAccDataFactoryIntegrationRuntimeManaged_credential(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("Resource has been removed in v4.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_managed", "test")
 	r := IntegrationRuntimeManagedResource{}
 
@@ -105,6 +126,10 @@ func TestAccDataFactoryIntegrationRuntimeManaged_credential(t *testing.T) {
 }
 
 func TestAccDataFactoryIntegrationRuntimeManaged_aadAuth(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("Resource has been removed in v4.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_managed", "test")
 	r := IntegrationRuntimeManagedResource{}
 
