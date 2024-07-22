@@ -8,7 +8,9 @@ description: |-
 
 # Function: normalise_resource_id
 
-~> Provider-defined functions are supported in Terraform 1.8 and later.
+~> Provider-defined functions are supported in Terraform 1.8 and later, and are available from version 4.0 of the provider.
+
+~> **NOTE:** This function is also available during the opt-in beta for 4.0, available from v3.114.0. See the [beta opt-in guide](website/docs/guides/4.0-beta.html.markdown) for more information.
 
 Takes an Azure Resource ID and attempts to normalise the case-sensitive system segments as required by the AzureRM provider. 
 
@@ -20,7 +22,7 @@ Takes an Azure Resource ID and attempts to normalise the case-sensitive system s
 # result: /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ApiManagement/service/service1/gateways/gateway1/hostnameConfigurations/config1
 
 output "test" {
-  value = provider::azurerm::format_resource_id("/Subscriptions/12345678-1234-9876-4563-123456789012/ResourceGroups/resGroup1/PROVIDERS/microsoft.apimanagement/service/service1/gateWays/gateway1/hostnameconfigurations/config1")
+  value = provider::azurerm::normalise_resource_id("/Subscriptions/12345678-1234-9876-4563-123456789012/ResourceGroups/resGroup1/PROVIDERS/microsoft.apimanagement/service/service1/gateWays/gateway1/hostnameconfigurations/config1")
 }
 
 ```
