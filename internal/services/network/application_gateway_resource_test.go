@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-07-01/applicationgateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/applicationgateways"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -6309,8 +6309,43 @@ resource "azurerm_application_gateway" "test" {
     }
 
     custom_error_configuration {
+      status_code           = "HttpStatus404"
+      custom_error_page_url = "http://azure.com/error404_listener.html"
+    }
+
+    custom_error_configuration {
+      status_code           = "HttpStatus405"
+      custom_error_page_url = "http://azure.com/error405_listener.html"
+    }
+
+    custom_error_configuration {
+      status_code           = "HttpStatus408"
+      custom_error_page_url = "http://azure.com/error408_listener.html"
+    }
+
+    custom_error_configuration {
+      status_code           = "HttpStatus400"
+      custom_error_page_url = "http://azure.com/error400_listener.html"
+    }
+
+    custom_error_configuration {
       status_code           = "HttpStatus502"
       custom_error_page_url = "http://azure.com/error502_listener.html"
+    }
+
+    custom_error_configuration {
+      status_code           = "HttpStatus503"
+      custom_error_page_url = "http://azure.com/error503_listener.html"
+    }
+
+    custom_error_configuration {
+      status_code           = "HttpStatus504"
+      custom_error_page_url = "http://azure.com/error504_listener.html"
+    }
+
+    custom_error_configuration {
+      status_code           = "HttpStatus500"
+      custom_error_page_url = "http://azure.com/error500_listener.html"
     }
   }
 
@@ -6320,7 +6355,42 @@ resource "azurerm_application_gateway" "test" {
   }
 
   custom_error_configuration {
+    status_code           = "HttpStatus404"
+    custom_error_page_url = "http://azure.com/error.html"
+  }
+
+  custom_error_configuration {
+    status_code           = "HttpStatus405"
+    custom_error_page_url = "http://azure.com/error.html"
+  }
+
+  custom_error_configuration {
+    status_code           = "HttpStatus408"
+    custom_error_page_url = "http://azure.com/error.html"
+  }
+
+  custom_error_configuration {
+    status_code           = "HttpStatus400"
+    custom_error_page_url = "http://azure.com/error.html"
+  }
+
+  custom_error_configuration {
     status_code           = "HttpStatus502"
+    custom_error_page_url = "http://azure.com/error.html"
+  }
+
+  custom_error_configuration {
+    status_code           = "HttpStatus503"
+    custom_error_page_url = "http://azure.com/error.html"
+  }
+
+  custom_error_configuration {
+    status_code           = "HttpStatus504"
+    custom_error_page_url = "http://azure.com/error.html"
+  }
+
+  custom_error_configuration {
+    status_code           = "HttpStatus500"
     custom_error_page_url = "http://azure.com/error.html"
   }
 

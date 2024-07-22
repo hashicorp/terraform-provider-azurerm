@@ -13,6 +13,7 @@ type BackendAddressPoolPropertiesFormat struct {
 	OutboundRule                 *SubResource                          `json:"outboundRule,omitempty"`
 	OutboundRules                *[]SubResource                        `json:"outboundRules,omitempty"`
 	ProvisioningState            *ProvisioningState                    `json:"provisioningState,omitempty"`
+	SyncMode                     *SyncMode                             `json:"syncMode,omitempty"`
 	TunnelInterfaces             *[]GatewayLoadBalancerTunnelInterface `json:"tunnelInterfaces,omitempty"`
 	VirtualNetwork               *SubResource                          `json:"virtualNetwork,omitempty"`
 }

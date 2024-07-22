@@ -6,7 +6,7 @@ package client
 import (
 	"fmt"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-07-01/applicationgateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/applicationgateways"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkinterfaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/vmsspublicipaddresses"
 	network_2023_11_01 "github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01"

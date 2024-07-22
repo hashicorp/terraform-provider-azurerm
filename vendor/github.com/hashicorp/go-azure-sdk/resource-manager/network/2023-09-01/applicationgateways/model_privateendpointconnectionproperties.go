@@ -6,6 +6,7 @@ package applicationgateways
 type PrivateEndpointConnectionProperties struct {
 	LinkIdentifier                    *string                            `json:"linkIdentifier,omitempty"`
 	PrivateEndpoint                   *PrivateEndpoint                   `json:"privateEndpoint,omitempty"`
+	PrivateEndpointLocation           *string                            `json:"privateEndpointLocation,omitempty"`
 	PrivateLinkServiceConnectionState *PrivateLinkServiceConnectionState `json:"privateLinkServiceConnectionState,omitempty"`
 	ProvisioningState                 *ProvisioningState                 `json:"provisioningState,omitempty"`
 }

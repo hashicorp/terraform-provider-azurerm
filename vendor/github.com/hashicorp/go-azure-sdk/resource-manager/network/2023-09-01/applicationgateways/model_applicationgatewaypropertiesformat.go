@@ -10,6 +10,7 @@ type ApplicationGatewayPropertiesFormat struct {
 	BackendHTTPSettingsCollection       *[]ApplicationGatewayBackendHTTPSettings               `json:"backendHttpSettingsCollection,omitempty"`
 	BackendSettingsCollection           *[]ApplicationGatewayBackendSettings                   `json:"backendSettingsCollection,omitempty"`
 	CustomErrorConfigurations           *[]ApplicationGatewayCustomError                       `json:"customErrorConfigurations,omitempty"`
+	DefaultPredefinedSslPolicy          *ApplicationGatewaySslPolicyName                       `json:"defaultPredefinedSslPolicy,omitempty"`
 	EnableFips                          *bool                                                  `json:"enableFips,omitempty"`
 	EnableHTTP2                         *bool                                                  `json:"enableHttp2,omitempty"`
 	FirewallPolicy                      *SubResource                                           `json:"firewallPolicy,omitempty"`
