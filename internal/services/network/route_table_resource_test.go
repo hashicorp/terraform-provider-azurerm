@@ -365,7 +365,7 @@ resource "azurerm_route_table" "test" {
     next_hop_type  = "VnetLocal"
   }
 
-  disable_bgp_route_propagation = true
+  bgp_route_propagation_enabled = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 	}
