@@ -350,6 +350,10 @@ resource "azurerm_virtual_network" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   address_space       = ["172.0.0.0/16"]
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "node_subnet" {
@@ -794,6 +798,10 @@ resource "azurerm_key_vault" "test" {
   tenant_id                 = data.azurerm_client_config.current.tenant_id
   enable_rbac_authorization = true
   sku_name                  = "standard"
+
+  lifecycle {
+    ignore_changes = [access_policy]
+  }
 }
 
 resource "azurerm_role_assignment" "test_admin" {

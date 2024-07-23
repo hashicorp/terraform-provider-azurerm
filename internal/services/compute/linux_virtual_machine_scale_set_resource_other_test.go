@@ -1230,6 +1230,10 @@ resource "azurerm_virtual_network" "test" {
   location            = azurerm_resource_group.test.location
   edge_zone           = data.azurerm_extended_locations.test.extended_locations[0]
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test" {
