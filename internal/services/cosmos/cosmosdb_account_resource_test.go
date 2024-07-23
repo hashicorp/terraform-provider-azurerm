@@ -3437,8 +3437,10 @@ resource "azurerm_cosmosdb_account" "test" {
 
   identity {
     type         = "UserAssigned"
-    identity_ids = [%[4]s]
+    identity_ids = ["%[4]s"]
   }
+
+  depends_on = [azurerm_user_assigned_identity.test, azurerm_user_assigned_identity.test2]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, identityResource)
 }
@@ -3487,6 +3489,8 @@ resource "azurerm_cosmosdb_account" "test" {
     location          = azurerm_resource_group.test.location
     failover_priority = 0
   }
+
+  depends_on = [azurerm_user_assigned_identity.test, azurerm_user_assigned_identity.test2]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
