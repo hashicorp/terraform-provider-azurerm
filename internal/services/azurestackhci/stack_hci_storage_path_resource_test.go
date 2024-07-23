@@ -6,13 +6,12 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/storagecontainers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type StackHCIStoragePathResource struct{}
@@ -28,7 +27,7 @@ func TestAccStackHCIStoragePath_basic(t *testing.T) {
 	r := StackHCIStoragePathResource{}
 
 	if os.Getenv(customLocationIdEnv) == "" {
-		t.Skipf("skip the test as one or more of below environment variables are not specified: %q", customLocationIdEnv)
+		t.Skipf("skipping since %q has not been specified", customLocationIdEnv)
 	}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -47,7 +46,7 @@ func TestAccStackHCIStoragePath_update(t *testing.T) {
 	r := StackHCIStoragePathResource{}
 
 	if os.Getenv(customLocationIdEnv) == "" {
-		t.Skipf("skip the test as one or more of below environment variables are not specified: %q", customLocationIdEnv)
+		t.Skipf("skipping since %q has not been specified", customLocationIdEnv)
 	}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -121,14 +120,10 @@ func (r StackHCIStoragePathResource) Exists(ctx context.Context, client *clients
 
 	resp, err := clusterClient.Get(ctx, *id)
 	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
-		}
-
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r StackHCIStoragePathResource) basic(data acceptance.TestData) string {

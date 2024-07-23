@@ -41,7 +41,7 @@ The following arguments are supported:
 
 * `custom_location_id` - (Required) The ID of Custom Location where the Azure Stack HCI Storage Path should exist. Changing this forces a new resource to be created.
 
-* `path` - (Required) Path on the disk to create the Storage Path. Changing this forces a new resource to be created.
+* `path` - (Required) The file path on the disk to create the Storage Path. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Azure Stack HCI Storage Path.
 

@@ -201,7 +201,7 @@ func (r StackHCIStoragePathResource) Update() sdk.ResourceFunc {
 
 			parameters := resp.Model
 			if parameters == nil {
-				return fmt.Errorf("retrieving %s: model was nil", *id)
+				return fmt.Errorf("retrieving %s: `model` was nil", *id)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
