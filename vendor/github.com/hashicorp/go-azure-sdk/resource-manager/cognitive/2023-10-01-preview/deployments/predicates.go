@@ -30,3 +30,16 @@ func (p DeploymentOperationPredicate) Matches(input Deployment) bool {
 
 	return true
 }
+
+type SkuResourceOperationPredicate struct {
+	ResourceType *string
+}
+
+func (p SkuResourceOperationPredicate) Matches(input SkuResource) bool {
+
+	if p.ResourceType != nil && (input.ResourceType == nil || *p.ResourceType != *input.ResourceType) {
+		return false
+	}
+
+	return true
+}
