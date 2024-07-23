@@ -122,7 +122,7 @@ func resourceStorageAccountNetworkRules() *pluginsdk.Resource {
 func resourceStorageAccountNetworkRulesCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	tenantId := meta.(*clients.Client).Account.TenantId
 	client := meta.(*clients.Client).Storage.ResourceManager.StorageAccounts
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := commonids.ParseStorageAccountID(d.Get("storage_account_id").(string))
@@ -178,7 +178,7 @@ func resourceStorageAccountNetworkRulesCreate(d *pluginsdk.ResourceData, meta in
 		},
 	}
 	if _, err = client.Update(ctx, *id, payload); err != nil {
-		return fmt.Errorf("updating Network Rules for %s: %+v", *id, err)
+		return fmt.Errorf("creating Network Rules for %s: %+v", *id, err)
 	}
 
 	d.SetId(id.ID())
@@ -189,7 +189,7 @@ func resourceStorageAccountNetworkRulesCreate(d *pluginsdk.ResourceData, meta in
 func resourceStorageAccountNetworkRulesUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	tenantId := meta.(*clients.Client).Account.TenantId
 	client := meta.(*clients.Client).Storage.ResourceManager.StorageAccounts
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := commonids.ParseStorageAccountID(d.Get("storage_account_id").(string))
