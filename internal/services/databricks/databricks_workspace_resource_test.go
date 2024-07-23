@@ -1209,6 +1209,10 @@ resource "azurerm_key_vault" "test" {
 
   purge_protection_enabled   = true
   soft_delete_retention_days = 7
+
+  lifecycle {
+    ignore_changes = [access_policy]
+  }
 }
 
 resource "azurerm_storage_account" "test" {
