@@ -64,7 +64,7 @@ var (
 )
 
 func resourceStorageAccount() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceStorageAccountCreate,
 		Read:   resourceStorageAccountRead,
 		Update: resourceStorageAccountUpdate,
@@ -512,108 +512,6 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				},
 			},
 
-			"queue_properties": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Computed: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"cors_rule": helpers.SchemaStorageAccountCorsRule(false),
-						"hour_metrics": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							Computed: true,
-							MaxItems: 1,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"version": {
-										Type:         pluginsdk.TypeString,
-										Required:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-									// TODO 4.0: Remove this property and determine whether to enable based on existence of the out side block.
-									"enabled": {
-										Type:     pluginsdk.TypeBool,
-										Required: true,
-									},
-									"include_apis": {
-										Type:     pluginsdk.TypeBool,
-										Optional: true,
-									},
-									"retention_policy_days": {
-										Type:         pluginsdk.TypeInt,
-										Optional:     true,
-										ValidateFunc: validation.IntBetween(1, 365),
-									},
-								},
-							},
-						},
-						"logging": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							Computed: true,
-							MaxItems: 1,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"version": {
-										Type:         pluginsdk.TypeString,
-										Required:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-									"delete": {
-										Type:     pluginsdk.TypeBool,
-										Required: true,
-									},
-									"read": {
-										Type:     pluginsdk.TypeBool,
-										Required: true,
-									},
-									"write": {
-										Type:     pluginsdk.TypeBool,
-										Required: true,
-									},
-									"retention_policy_days": {
-										Type:         pluginsdk.TypeInt,
-										Optional:     true,
-										ValidateFunc: validation.IntBetween(1, 365),
-									},
-								},
-							},
-						},
-						"minute_metrics": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							Computed: true,
-							MaxItems: 1,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"version": {
-										Type:         pluginsdk.TypeString,
-										Required:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-									// TODO 4.0: Remove this property and determine whether to enable based on existence of the out side block.
-									"enabled": {
-										Type:     pluginsdk.TypeBool,
-										Required: true,
-									},
-									"include_apis": {
-										Type:     pluginsdk.TypeBool,
-										Optional: true,
-									},
-									"retention_policy_days": {
-										Type:         pluginsdk.TypeInt,
-										Optional:     true,
-										ValidateFunc: validation.IntBetween(1, 365),
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-
 			"routing": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -732,27 +630,6 @@ func resourceStorageAccount() *pluginsdk.Resource {
 									},
 								},
 							},
-						},
-					},
-				},
-			},
-
-			// lintignore:XS003
-			"static_website": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"error_404_document": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"index_document": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
 				},
@@ -902,46 +779,6 @@ func resourceStorageAccount() *pluginsdk.Resource {
 			},
 
 			"secondary_blob_microsoft_host": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"primary_queue_endpoint": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"primary_queue_host": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"primary_queue_microsoft_endpoint": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"primary_queue_microsoft_host": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"secondary_queue_endpoint": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"secondary_queue_host": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"secondary_queue_microsoft_endpoint": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"secondary_queue_microsoft_host": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -1202,6 +1039,12 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				Sensitive: true,
 			},
 
+			"data_plane_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"tags": {
 				// TODO: introduce/refactor this to use a `commonschema.TagsOptionalWith(a, b, c)` to enable us to handle this in one place
 				Type:         pluginsdk.TypeMap,
@@ -1212,6 +1055,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				},
 			},
 		},
+
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
 			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
 				if d.HasChange("account_kind") {
@@ -1260,6 +1104,183 @@ func resourceStorageAccount() *pluginsdk.Resource {
 			}),
 		),
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["queue_properties"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeList,
+			Optional:   true,
+			Computed:   true,
+			Deprecated: "As the `queue_properties` code block requires reaching out to the dataplane, to better support private endpoints and storage accounts with public network access disabled, new storage accounts will be required to use the `azurerm_storage_account_queue_properties` resource instead of the exposed `queue_properties` field in the storage account resource itself.",
+			MaxItems:   1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"cors_rule": helpers.SchemaStorageAccountCorsRule(false),
+					"hour_metrics": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Computed: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"version": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+								// TODO 4.0: Remove this property and determine whether to enable based on existence of the out side block.
+								"enabled": {
+									Type:     pluginsdk.TypeBool,
+									Required: true,
+								},
+								"include_apis": {
+									Type:     pluginsdk.TypeBool,
+									Optional: true,
+								},
+								"retention_policy_days": {
+									Type:         pluginsdk.TypeInt,
+									Optional:     true,
+									ValidateFunc: validation.IntBetween(1, 365),
+								},
+							},
+						},
+					},
+					"logging": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Computed: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"version": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+								"delete": {
+									Type:     pluginsdk.TypeBool,
+									Required: true,
+								},
+								"read": {
+									Type:     pluginsdk.TypeBool,
+									Required: true,
+								},
+								"write": {
+									Type:     pluginsdk.TypeBool,
+									Required: true,
+								},
+								"retention_policy_days": {
+									Type:         pluginsdk.TypeInt,
+									Optional:     true,
+									ValidateFunc: validation.IntBetween(1, 365),
+								},
+							},
+						},
+					},
+					"minute_metrics": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Computed: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"version": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+								// TODO 4.0: Remove this property and determine whether to enable based on existence of the out side block.
+								"enabled": {
+									Type:     pluginsdk.TypeBool,
+									Required: true,
+								},
+								"include_apis": {
+									Type:     pluginsdk.TypeBool,
+									Optional: true,
+								},
+								"retention_policy_days": {
+									Type:         pluginsdk.TypeInt,
+									Optional:     true,
+									ValidateFunc: validation.IntBetween(1, 365),
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+
+		resource.Schema["primary_queue_endpoint"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeString,
+			Computed:   true,
+			Deprecated: "`primary_queue_endpoint` will be moved to the `azurerm_storage_account_queue_properties` resource in v4.0 of the provider.",
+		}
+
+		resource.Schema["primary_queue_host"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeString,
+			Computed:   true,
+			Deprecated: "`primary_queue_host` will be moved to the `azurerm_storage_account_queue_properties` resource in v4.0 of the provider.",
+		}
+
+		resource.Schema["primary_queue_microsoft_endpoint"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeString,
+			Computed:   true,
+			Deprecated: "`primary_queue_microsoft_endpoint` will be moved to the `azurerm_storage_account_queue_properties` resource in v4.0 of the provider.",
+		}
+
+		resource.Schema["primary_queue_microsoft_host"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeString,
+			Computed:   true,
+			Deprecated: "`primary_queue_microsoft_host` will be moved to the `azurerm_storage_account_queue_properties` resource in v4.0 of the provider.",
+		}
+
+		resource.Schema["secondary_queue_endpoint"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeString,
+			Computed:   true,
+			Deprecated: "`secondary_queue_endpoint` will be moved to the `azurerm_storage_account_queue_properties` resource in v4.0 of the provider.",
+		}
+
+		resource.Schema["secondary_queue_host"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeString,
+			Computed:   true,
+			Deprecated: "`secondary_queue_host` will be moved to the `azurerm_storage_account_queue_properties` resource in v4.0 of the provider.",
+		}
+
+		resource.Schema["secondary_queue_microsoft_endpoint"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeString,
+			Computed:   true,
+			Deprecated: "`secondary_queue_microsoft_endpoint` will be moved to the `azurerm_storage_account_queue_properties` resource in v4.0 of the provider.",
+		}
+
+		resource.Schema["secondary_queue_microsoft_host"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeString,
+			Computed:   true,
+			Deprecated: "`secondary_queue_microsoft_host` will be moved to the `azurerm_storage_account_queue_properties` resource in v4.0 of the provider.",
+		}
+
+		// lintignore:XS003
+		resource.Schema["static_website"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeList,
+			Optional:   true,
+			Deprecated: "As the `static_website` field requires reaching out to the dataplane, to better support private endpoints and storage accounts with public network access disabled, new storage accounts will be required to use the `azurerm_storage_account_static_website` resource instead of the exposed `static_website` field in the storage account resource itself.",
+			MaxItems:   1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"error_404_document": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"index_document": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+				},
+			},
+		}
+	}
+
+	return resource
 }
 
 func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -1285,6 +1306,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		return tf.ImportAsExistsError("azurerm_storage_account", id.ID())
 	}
 
+	dataPlaneEnabled := d.Get("data_plane_enabled").(bool)
 	accountKind := storageaccounts.Kind(d.Get("account_kind").(string))
 	accountTier := storageaccounts.SkuTier(d.Get("account_tier").(string))
 	replicationType := d.Get("account_replication_type").(string)
@@ -1464,8 +1486,14 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	supportLevel := availableFunctionalityForAccount(accountKind, accountTier, replicationType)
-	if err := waitForDataPlaneToBecomeAvailableForAccount(ctx, storageClient, dataPlaneAccount, supportLevel); err != nil {
-		return fmt.Errorf("waiting for the Data Plane for %s to become available: %+v", id, err)
+
+	// Only wait on the data plane if the data plane is enabled...
+	if dataPlaneEnabled {
+		if err := waitForDataPlaneToBecomeAvailableForAccount(ctx, storageClient, dataPlaneAccount, supportLevel); err != nil {
+			return fmt.Errorf("waiting for the Data Plane for %s to become available: %+v", id, err)
+		}
+	} else {
+		log.Print("[DEBUG] [CREATE] Dataplane has been disabled skipped `waitForDataPlaneToBecomeAvailableForAccount`")
 	}
 
 	if val, ok := d.GetOk("blob_properties"); ok {
@@ -1521,23 +1549,30 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	if val, ok := d.GetOk("queue_properties"); ok {
-		if !supportLevel.supportQueue {
-			return fmt.Errorf("`queue_properties` aren't supported for account kind %q in sku tier %q", accountKind, accountTier)
-		}
+	if !features.FourPointOhBeta() {
+		if _, ok := d.GetOk("queue_properties"); ok {
+			// if !supportLevel.supportQueue {
+			// 	return fmt.Errorf("`queue_properties` aren't supported for account kind %q in sku tier %q", accountKind, accountTier)
+			// }
 
-		queueClient, err := storageClient.QueuesDataPlaneClient(ctx, *dataPlaneAccount, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
-		if err != nil {
-			return fmt.Errorf("building Queues Client: %s", err)
-		}
+			// if dataPlaneEnabled {
+			// 	queueClient, err := storageClient.QueuesDataPlaneClient(ctx, *dataPlaneAccount, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
+			// 	if err != nil {
+			// 		return fmt.Errorf("building Queues Client: %s", err)
+			// 	}
 
-		queueProperties, err := expandAccountQueueProperties(val.([]interface{}))
-		if err != nil {
-			return fmt.Errorf("expanding `queue_properties`: %+v", err)
-		}
+			// 	queueProperties, err := expandAccountQueueProperties(val.([]interface{}))
+			// 	if err != nil {
+			// 		return fmt.Errorf("expanding `queue_properties`: %+v", err)
+			// 	}
 
-		if err = queueClient.UpdateServiceProperties(ctx, *queueProperties); err != nil {
-			return fmt.Errorf("updating Queue Properties: %+v", err)
+			// 	if err = queueClient.UpdateServiceProperties(ctx, *queueProperties); err != nil {
+			// 		return fmt.Errorf("updating Queue Properties: %+v", err)
+			// 	}
+			// } else {
+			// 	log.Print("[DEBUG] [CREATE] Dataplane has been disabled skipped setting `queue_properties`")
+			// }
+			return fmt.Errorf("the `queue_properties` code block is no longer supported for new storage accounts, please use the `azurerm_storage_account_queue_properties` resource instead")
 		}
 	}
 
@@ -1566,22 +1601,31 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	if val, ok := d.GetOk("static_website"); ok {
-		if !supportLevel.supportStaticWebsite {
-			return fmt.Errorf("`static_website` aren't supported for account kind %q in sku tier %q", accountKind, accountTier)
-		}
+	if !features.FourPointOhBeta() {
+		if _, ok := d.GetOk("static_website"); ok {
+			// if !supportLevel.supportStaticWebsite {
+			// 	return fmt.Errorf("`static_website` aren't supported for account kind %q in sku tier %q", accountKind, accountTier)
+			// }
 
-		accountsClient, err := storageClient.AccountsDataPlaneClient(ctx, *dataPlaneAccount, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
-		if err != nil {
-			return fmt.Errorf("building Accounts Data Plane Client: %s", err)
-		}
+			// if dataPlaneEnabled {
+			// 	accountsClient, err := storageClient.AccountsDataPlaneClient(ctx, *dataPlaneAccount, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
+			// 	if err != nil {
+			// 		return fmt.Errorf("building Accounts Data Plane Client: %s", err)
+			// 	}
 
-		staticWebsiteProps := expandAccountStaticWebsiteProperties(val.([]interface{}))
+			// 	staticWebsiteProps := expandAccountStaticWebsiteProperties(val.([]interface{}))
 
-		if _, err = accountsClient.SetServiceProperties(ctx, id.StorageAccountName, staticWebsiteProps); err != nil {
-			return fmt.Errorf("updating `static_website`: %+v", err)
+			// 	if _, err = accountsClient.SetServiceProperties(ctx, id.StorageAccountName, staticWebsiteProps); err != nil {
+			// 		return fmt.Errorf("updating `static_website`: %+v", err)
+			// 	}
+			// } else {
+			// 	log.Print("[DEBUG] [CREATE] Dataplane has been disabled skipped setting `static_website`")
+			// }
+			return fmt.Errorf("the `static_website` field is no longer supported for new storage accounts,please use the `azurerm_storage_account_static_website` resource instead")
 		}
 	}
+
+	d.Set("data_plane_enabled", dataPlaneEnabled)
 
 	return resourceStorageAccountRead(d, meta)
 }
@@ -1660,6 +1704,8 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		// We can only set this if it's Enabled, else the API complains during Update that we're sending Disabled, even if it's always been off
 		props.LargeFileSharesState = existing.Model.Properties.LargeFileSharesState
 	}
+
+	dataPlaneEnabled := d.Get("data_plane_enabled").(bool)
 
 	expandedIdentity := existing.Model.Identity
 	if d.HasChange("identity") {
@@ -1863,31 +1909,37 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	if d.HasChange("queue_properties") {
-		if !supportLevel.supportQueue {
-			return fmt.Errorf("`queue_properties` aren't supported for account kind %q in sku tier %q", accountKind, accountTier)
-		}
+	if !features.FourPointOhBeta() {
+		if d.HasChange("queue_properties") {
+			if !supportLevel.supportQueue {
+				return fmt.Errorf("`queue_properties` aren't supported for account kind %q in sku tier %q", accountKind, accountTier)
+			}
 
-		account, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
-		if err != nil {
-			return fmt.Errorf("retrieving %s: %+v", *id, err)
-		}
-		if account == nil {
-			return fmt.Errorf("unable to locate %s", *id)
-		}
+			if dataPlaneEnabled {
+				account, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
+				if err != nil {
+					return fmt.Errorf("retrieving %s: %+v", *id, err)
+				}
+				if account == nil {
+					return fmt.Errorf("unable to locate %s", *id)
+				}
 
-		queueClient, err := storageClient.QueuesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
-		if err != nil {
-			return fmt.Errorf("building Queues Client: %s", err)
-		}
+				queueClient, err := storageClient.QueuesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
+				if err != nil {
+					return fmt.Errorf("building Queues Client: %s", err)
+				}
 
-		queueProperties, err := expandAccountQueueProperties(d.Get("queue_properties").([]interface{}))
-		if err != nil {
-			return fmt.Errorf("expanding `queue_properties` for %s: %+v", *id, err)
-		}
+				queueProperties, err := expandAccountQueueProperties(d.Get("queue_properties").([]interface{}))
+				if err != nil {
+					return fmt.Errorf("expanding `queue_properties` for %s: %+v", *id, err)
+				}
 
-		if err = queueClient.UpdateServiceProperties(ctx, *queueProperties); err != nil {
-			return fmt.Errorf("updating Queue Properties for %s: %+v", *id, err)
+				if err = queueClient.UpdateServiceProperties(ctx, *queueProperties); err != nil {
+					return fmt.Errorf("updating Queue Properties for %s: %+v", *id, err)
+				}
+			} else {
+				log.Print("[DEBUG] [UPDATE] Dataplane has been disabled skipped setting `queue_properties`")
+			}
 		}
 	}
 
@@ -1914,28 +1966,34 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	if d.HasChange("static_website") {
-		if !supportLevel.supportStaticWebsite {
-			return fmt.Errorf("`static_website` aren't supported for account kind %q in sku tier %q", accountKind, accountTier)
-		}
+	if !features.FourPointOhBeta() {
+		if d.HasChange("static_website") {
+			if !supportLevel.supportStaticWebsite {
+				return fmt.Errorf("`static_website` aren't supported for account kind %q in sku tier %q", accountKind, accountTier)
+			}
 
-		account, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
-		if err != nil {
-			return fmt.Errorf("retrieving %s: %+v", *id, err)
-		}
-		if account == nil {
-			return fmt.Errorf("unable to locate %s", *id)
-		}
+			if dataPlaneEnabled {
+				account, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
+				if err != nil {
+					return fmt.Errorf("retrieving %s: %+v", *id, err)
+				}
+				if account == nil {
+					return fmt.Errorf("unable to locate %s", *id)
+				}
 
-		accountsClient, err := storageClient.AccountsDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
-		if err != nil {
-			return fmt.Errorf("building Data Plane client for %s: %+v", *id, err)
-		}
+				accountsClient, err := storageClient.AccountsDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
+				if err != nil {
+					return fmt.Errorf("building Data Plane client for %s: %+v", *id, err)
+				}
 
-		staticWebsiteProps := expandAccountStaticWebsiteProperties(d.Get("static_website").([]interface{}))
+				staticWebsiteProps := expandAccountStaticWebsiteProperties(d.Get("static_website").([]interface{}))
 
-		if _, err = accountsClient.SetServiceProperties(ctx, id.StorageAccountName, staticWebsiteProps); err != nil {
-			return fmt.Errorf("updating `static_website` for %s: %+v", *id, err)
+				if _, err = accountsClient.SetServiceProperties(ctx, id.StorageAccountName, staticWebsiteProps); err != nil {
+					return fmt.Errorf("updating `static_website` for %s: %+v", *id, err)
+				}
+			} else {
+				log.Print("[DEBUG] [UPDATE] Dataplane has been disabled skipped setting `static_website`")
+			}
 		}
 	}
 
@@ -1988,6 +2046,8 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 			return fmt.Errorf("listing Keys for %s: %+v", id, err)
 		}
 	}
+
+	dataPlaneEnabled := d.Get("data_plane_enabled").(bool)
 
 	d.Set("name", id.StorageAccountName)
 	d.Set("resource_group_name", id.ResourceGroupName)
@@ -2153,10 +2213,20 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return err
 	}
 
+	// Only set the Queue Endpoints in v3.x since in v4.0 these properties will be
+	// moved to the 'azurerm_storage_account_queue_properties' resource...
+	if !features.FourPointOhBeta() {
+		queueEndpoints := flattenAccountQueueEndpoints(primaryEndpoints, secondaryEndpoints, routingPreference)
+		if err := queueEndpoints.set(d); err != nil {
+			return err
+		}
+	}
+
 	storageAccountKeys := make([]storageaccounts.StorageAccountKey, 0)
 	if keys.Model != nil && keys.Model.Keys != nil {
 		storageAccountKeys = *keys.Model.Keys
 	}
+
 	keysAndConnectionStrings := flattenAccountAccessKeysAndConnectionStrings(id.StorageAccountName, *storageDomainSuffix, storageAccountKeys, endpoints)
 	if err := keysAndConnectionStrings.set(d); err != nil {
 		return err
@@ -2171,27 +2241,35 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 		blobProperties = flattenAccountBlobServiceProperties(blobProps.Model)
 	}
+
 	if err := d.Set("blob_properties", blobProperties); err != nil {
 		return fmt.Errorf("setting `blob_properties` for %s: %+v", *id, err)
 	}
 
-	queueProperties := make([]interface{}, 0)
-	if supportLevel.supportQueue {
-		queueClient, err := storageClient.QueuesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
-		if err != nil {
-			return fmt.Errorf("building Queues Client: %s", err)
+	if !features.FourPointOhBeta() {
+		// Do not attempt to set these values if the dataplane calls have been disabled...
+		if dataPlaneEnabled {
+			queueProperties := make([]interface{}, 0)
+			if supportLevel.supportQueue {
+				queueClient, err := storageClient.QueuesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
+				if err != nil {
+					return fmt.Errorf("building Queues Client: %s", err)
+				}
+
+				queueProps, err := queueClient.GetServiceProperties(ctx)
+				if err != nil {
+					return fmt.Errorf("retrieving queue properties for %s: %+v", *id, err)
+				}
+
+				queueProperties = flattenAccountQueueProperties(queueProps)
+			}
+
+			if err := d.Set("queue_properties", queueProperties); err != nil {
+				return fmt.Errorf("setting `queue_properties`: %+v", err)
+			}
+		} else {
+			log.Print("[DEBUG] [READ] Dataplane has been disabled skipped setting `queue_properties` to state")
 		}
-
-		queueProps, err := queueClient.GetServiceProperties(ctx)
-		if err != nil {
-			return fmt.Errorf("retrieving queue properties for %s: %+v", *id, err)
-		}
-
-		queueProperties = flattenAccountQueueProperties(queueProps)
-	}
-
-	if err := d.Set("queue_properties", queueProperties); err != nil {
-		return fmt.Errorf("setting `queue_properties`: %+v", err)
 	}
 
 	shareProperties := make([]interface{}, 0)
@@ -2207,22 +2285,29 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("setting `share_properties` for %s: %+v", *id, err)
 	}
 
-	staticWebsiteProperties := make([]interface{}, 0)
-	if supportLevel.supportStaticWebsite {
-		accountsClient, err := storageClient.AccountsDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
-		if err != nil {
-			return fmt.Errorf("building Accounts Data Plane Client: %s", err)
-		}
+	if !features.FourPointOhBeta() {
+		// Do not attempt to set these values if the dataplane calls have been disabled...
+		if dataPlaneEnabled {
+			staticWebsiteProperties := make([]interface{}, 0)
+			if supportLevel.supportStaticWebsite {
+				accountsClient, err := storageClient.AccountsDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
+				if err != nil {
+					return fmt.Errorf("building Accounts Data Plane Client: %s", err)
+				}
 
-		staticWebsiteProps, err := accountsClient.GetServiceProperties(ctx, id.StorageAccountName)
-		if err != nil {
-			return fmt.Errorf("retrieving static website properties for %s: %+v", *id, err)
-		}
+				staticWebsiteProps, err := accountsClient.GetServiceProperties(ctx, id.StorageAccountName)
+				if err != nil {
+					return fmt.Errorf("retrieving static website properties for %s: %+v", *id, err)
+				}
 
-		staticWebsiteProperties = flattenAccountStaticWebsiteProperties(staticWebsiteProps)
-	}
-	if err := d.Set("static_website", staticWebsiteProperties); err != nil {
-		return fmt.Errorf("setting `static_website`: %+v", err)
+				staticWebsiteProperties = flattenAccountStaticWebsiteProperties(staticWebsiteProps)
+			}
+			if err := d.Set("static_website", staticWebsiteProperties); err != nil {
+				return fmt.Errorf("setting `static_website`: %+v", err)
+			}
+		} else {
+			log.Print("[DEBUG] [READ] Dataplane has been disabled skipped setting `static_website` to state")
+		}
 	}
 
 	return nil

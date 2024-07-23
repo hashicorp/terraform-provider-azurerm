@@ -98,6 +98,8 @@ The following arguments are supported:
 
 * `access_tier` - (Optional) Defines the access tier for `BlobStorage`, `FileStorage` and `StorageV2` accounts. Valid options are `Hot` and `Cool`, defaults to `Hot`.
 
+* `data_plane_enabled` - (Optional) Specifies if the dataplane should be called. Possible values include `true` or `false`. Defaults to `true`.
+
 * `edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Storage Account should exist. Changing this forces a new Storage Account to be created.
 
 * `enable_https_traffic_only` - (Optional) Boolean flag which forces HTTPS if enabled, see [here](https://docs.microsoft.com/azure/storage/storage-require-secure-transfer/) for more information. Defaults to `true`.
@@ -136,10 +138,12 @@ The following arguments are supported:
 
 * `blob_properties` - (Optional) A `blob_properties` block as defined below.
 
+<!-- TODO: Remove `queue_properties` in v4.0 -->
 * `queue_properties` - (Optional) A `queue_properties` block as defined below.
 
 ~> **Note:** `queue_properties` can only be configured when `account_tier` is set to `Standard` and `account_kind` is set to either `Storage` or `StorageV2`.
 
+<!-- TODO: Remove `static_website` in v4.0 -->
 * `static_website` - (Optional) A `static_website` block as defined below.
 
 ~> **Note:** `static_website` can only be set when the `account_kind` is set to `StorageV2` or `BlockBlobStorage`.
@@ -495,6 +499,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `secondary_blob_microsoft_host` - The microsoft routing hostname with port if applicable for blob storage in the secondary location.
 
+<!-- TODO: [START] Remove in v4.0 -->
 * `primary_queue_endpoint` - The endpoint URL for queue storage in the primary location.
 
 * `primary_queue_host` - The hostname with port if applicable for queue storage in the primary location.
@@ -510,6 +515,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `secondary_queue_microsoft_endpoint` - The microsoft routing endpoint URL for queue storage in the secondary location.
 
 * `secondary_queue_microsoft_host` - The microsoft routing hostname with port if applicable for queue storage in the secondary location.
+<!-- TODO: [END] Remove in v4.0 -->
 
 * `primary_table_endpoint` - The endpoint URL for table storage in the primary location.
 

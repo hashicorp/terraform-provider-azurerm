@@ -49,15 +49,6 @@ type accountEndpoints struct {
 	secondaryFileMicrosoftEndpoint string
 	secondaryFileMicrosoftHostName string
 
-	primaryQueueEndpoint            string
-	primaryQueueHostName            string
-	primaryQueueMicrosoftEndpoint   string
-	primaryQueueMicrosoftHostName   string
-	secondaryQueueEndpoint          string
-	secondaryQueueHostName          string
-	secondaryQueueMicrosoftEndpoint string
-	secondaryQueueMicrosoftHostName string
-
 	primaryTableEndpoint            string
 	primaryTableHostName            string
 	primaryTableMicrosoftEndpoint   string
@@ -79,6 +70,17 @@ type accountEndpoints struct {
 	secondaryWebHostName          string
 	secondaryWebMicrosoftEndpoint string
 	secondaryWebMicrosoftHostName string
+}
+
+type accountQueueEndpoints struct {
+	primaryQueueEndpoint            string
+	primaryQueueHostName            string
+	primaryQueueMicrosoftEndpoint   string
+	primaryQueueMicrosoftHostName   string
+	secondaryQueueEndpoint          string
+	secondaryQueueHostName          string
+	secondaryQueueMicrosoftEndpoint string
+	secondaryQueueMicrosoftHostName string
 }
 
 func (a accountEndpoints) set(d *pluginsdk.ResourceData) error {
@@ -121,15 +123,6 @@ func (a accountEndpoints) set(d *pluginsdk.ResourceData) error {
 	d.Set("secondary_file_microsoft_endpoint", a.secondaryFileMicrosoftEndpoint)
 	d.Set("secondary_file_microsoft_host", a.secondaryFileMicrosoftHostName)
 
-	d.Set("primary_queue_endpoint", a.primaryQueueEndpoint)
-	d.Set("primary_queue_host", a.primaryQueueHostName)
-	d.Set("primary_queue_microsoft_endpoint", a.primaryQueueMicrosoftEndpoint)
-	d.Set("primary_queue_microsoft_host", a.primaryQueueMicrosoftHostName)
-	d.Set("secondary_queue_endpoint", a.secondaryQueueEndpoint)
-	d.Set("secondary_queue_host", a.secondaryQueueHostName)
-	d.Set("secondary_queue_microsoft_endpoint", a.secondaryQueueMicrosoftEndpoint)
-	d.Set("secondary_queue_microsoft_host", a.secondaryQueueMicrosoftHostName)
-
 	d.Set("primary_table_endpoint", a.primaryTableEndpoint)
 	d.Set("primary_table_host", a.primaryTableHostName)
 	d.Set("primary_table_microsoft_endpoint", a.primaryTableMicrosoftEndpoint)
@@ -155,6 +148,19 @@ func (a accountEndpoints) set(d *pluginsdk.ResourceData) error {
 	return nil
 }
 
+func (a accountQueueEndpoints) set(d *pluginsdk.ResourceData) error {
+	d.Set("primary_queue_endpoint", a.primaryQueueEndpoint)
+	d.Set("primary_queue_host", a.primaryQueueHostName)
+	d.Set("primary_queue_microsoft_endpoint", a.primaryQueueMicrosoftEndpoint)
+	d.Set("primary_queue_microsoft_host", a.primaryQueueMicrosoftHostName)
+	d.Set("secondary_queue_endpoint", a.secondaryQueueEndpoint)
+	d.Set("secondary_queue_host", a.secondaryQueueHostName)
+	d.Set("secondary_queue_microsoft_endpoint", a.secondaryQueueMicrosoftEndpoint)
+	d.Set("secondary_queue_microsoft_host", a.secondaryQueueMicrosoftHostName)
+
+	return nil
+}
+
 func flattenAccountEndpoints(primaryEndpoints, secondaryEndpoints *storageaccounts.Endpoints, routingPreference *storageaccounts.RoutingPreference) accountEndpoints {
 	output := accountEndpoints{}
 
@@ -162,7 +168,6 @@ func flattenAccountEndpoints(primaryEndpoints, secondaryEndpoints *storageaccoun
 		output.primaryBlobEndpoint, output.primaryBlobHostName = flattenAccountEndpointAndHost(primaryEndpoints.Blob)
 		output.primaryDfsEndpoint, output.primaryDfsHostName = flattenAccountEndpointAndHost(primaryEndpoints.Dfs)
 		output.primaryFileEndpoint, output.primaryFileHostName = flattenAccountEndpointAndHost(primaryEndpoints.File)
-		output.primaryQueueEndpoint, output.primaryQueueHostName = flattenAccountEndpointAndHost(primaryEndpoints.Queue)
 		output.primaryTableEndpoint, output.primaryTableHostName = flattenAccountEndpointAndHost(primaryEndpoints.Table)
 		output.primaryWebEndpoint, output.primaryWebHostName = flattenAccountEndpointAndHost(primaryEndpoints.Web)
 
@@ -178,7 +183,6 @@ func flattenAccountEndpoints(primaryEndpoints, secondaryEndpoints *storageaccoun
 				output.primaryBlobMicrosoftEndpoint, output.primaryBlobMicrosoftHostName = flattenAccountEndpointAndHost(primaryEndpoints.MicrosoftEndpoints.Blob)
 				output.primaryDfsMicrosoftEndpoint, output.primaryDfsMicrosoftHostName = flattenAccountEndpointAndHost(primaryEndpoints.MicrosoftEndpoints.Dfs)
 				output.primaryFileMicrosoftEndpoint, output.primaryFileMicrosoftHostName = flattenAccountEndpointAndHost(primaryEndpoints.MicrosoftEndpoints.File)
-				output.primaryQueueMicrosoftEndpoint, output.primaryQueueMicrosoftHostName = flattenAccountEndpointAndHost(primaryEndpoints.MicrosoftEndpoints.Queue)
 				output.primaryTableMicrosoftEndpoint, output.primaryTableMicrosoftHostName = flattenAccountEndpointAndHost(primaryEndpoints.MicrosoftEndpoints.Table)
 				output.primaryWebMicrosoftEndpoint, output.primaryWebMicrosoftHostName = flattenAccountEndpointAndHost(primaryEndpoints.MicrosoftEndpoints.Web)
 			}
@@ -189,7 +193,6 @@ func flattenAccountEndpoints(primaryEndpoints, secondaryEndpoints *storageaccoun
 		output.secondaryBlobEndpoint, output.secondaryBlobHostName = flattenAccountEndpointAndHost(secondaryEndpoints.Blob)
 		output.secondaryDfsEndpoint, output.secondaryDfsHostName = flattenAccountEndpointAndHost(secondaryEndpoints.Dfs)
 		output.secondaryFileEndpoint, output.secondaryFileHostName = flattenAccountEndpointAndHost(secondaryEndpoints.File)
-		output.secondaryQueueEndpoint, output.secondaryQueueHostName = flattenAccountEndpointAndHost(secondaryEndpoints.Queue)
 		output.secondaryTableEndpoint, output.secondaryTableHostName = flattenAccountEndpointAndHost(secondaryEndpoints.Table)
 		output.secondaryWebEndpoint, output.secondaryWebHostName = flattenAccountEndpointAndHost(secondaryEndpoints.Web)
 
@@ -205,9 +208,34 @@ func flattenAccountEndpoints(primaryEndpoints, secondaryEndpoints *storageaccoun
 				output.secondaryBlobMicrosoftEndpoint, output.secondaryBlobMicrosoftHostName = flattenAccountEndpointAndHost(secondaryEndpoints.MicrosoftEndpoints.Blob)
 				output.secondaryDfsMicrosoftEndpoint, output.secondaryDfsMicrosoftHostName = flattenAccountEndpointAndHost(secondaryEndpoints.MicrosoftEndpoints.Dfs)
 				output.secondaryFileMicrosoftEndpoint, output.secondaryFileMicrosoftHostName = flattenAccountEndpointAndHost(secondaryEndpoints.MicrosoftEndpoints.File)
-				output.secondaryQueueMicrosoftEndpoint, output.secondaryQueueMicrosoftHostName = flattenAccountEndpointAndHost(secondaryEndpoints.MicrosoftEndpoints.Queue)
 				output.secondaryTableMicrosoftEndpoint, output.secondaryTableMicrosoftHostName = flattenAccountEndpointAndHost(secondaryEndpoints.MicrosoftEndpoints.Table)
 				output.secondaryWebMicrosoftEndpoint, output.secondaryWebMicrosoftHostName = flattenAccountEndpointAndHost(secondaryEndpoints.MicrosoftEndpoints.Web)
+			}
+		}
+	}
+
+	return output
+}
+
+func flattenAccountQueueEndpoints(primaryEndpoints, secondaryEndpoints *storageaccounts.Endpoints, routingPreference *storageaccounts.RoutingPreference) accountQueueEndpoints {
+	output := accountQueueEndpoints{}
+
+	if primaryEndpoints != nil {
+		output.primaryQueueEndpoint, output.primaryQueueHostName = flattenAccountEndpointAndHost(primaryEndpoints.Queue)
+
+		if routingPreference != nil {
+			if primaryEndpoints.MicrosoftEndpoints != nil && pointer.From(routingPreference.PublishMicrosoftEndpoints) {
+				output.primaryQueueMicrosoftEndpoint, output.primaryQueueMicrosoftHostName = flattenAccountEndpointAndHost(primaryEndpoints.MicrosoftEndpoints.Queue)
+			}
+		}
+	}
+
+	if secondaryEndpoints != nil {
+		output.secondaryQueueEndpoint, output.secondaryQueueHostName = flattenAccountEndpointAndHost(secondaryEndpoints.Queue)
+
+		if routingPreference != nil {
+			if secondaryEndpoints.MicrosoftEndpoints != nil && pointer.From(routingPreference.PublishMicrosoftEndpoints) {
+				output.secondaryQueueMicrosoftEndpoint, output.secondaryQueueMicrosoftHostName = flattenAccountEndpointAndHost(secondaryEndpoints.MicrosoftEndpoints.Queue)
 			}
 		}
 	}
