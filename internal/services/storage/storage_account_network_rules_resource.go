@@ -24,9 +24,9 @@ import (
 
 func resourceStorageAccountNetworkRules() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceStorageAccountNetworkRulesCreateUpdate,
+		Create: resourceStorageAccountNetworkRulesCreate,
 		Read:   resourceStorageAccountNetworkRulesRead,
-		Update: resourceStorageAccountNetworkRulesCreateUpdate,
+		Update: resourceStorageAccountNetworkRulesUpdate,
 		Delete: resourceStorageAccountNetworkRulesDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -51,10 +51,9 @@ func resourceStorageAccountNetworkRules() *pluginsdk.Resource {
 			},
 
 			"bypass": {
-				Type:       pluginsdk.TypeSet,
-				Optional:   true,
-				Computed:   true,
-				ConfigMode: pluginsdk.SchemaConfigModeAttr,
+				Type:     pluginsdk.TypeSet,
+				Optional: true,
+				Computed: true, // Defaults to storageaccounts.BypassAzureServices in the API, but schema does not support defaults for lists/sets.
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
@@ -68,10 +67,8 @@ func resourceStorageAccountNetworkRules() *pluginsdk.Resource {
 			},
 
 			"ip_rules": {
-				Type:       pluginsdk.TypeSet,
-				Optional:   true,
-				Computed:   true,
-				ConfigMode: pluginsdk.SchemaConfigModeAttr,
+				Type:     pluginsdk.TypeSet,
+				Optional: true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validate.StorageAccountIpRule,
@@ -80,10 +77,8 @@ func resourceStorageAccountNetworkRules() *pluginsdk.Resource {
 			},
 
 			"virtual_network_subnet_ids": {
-				Type:       pluginsdk.TypeSet,
-				Optional:   true,
-				Computed:   true,
-				ConfigMode: pluginsdk.SchemaConfigModeAttr,
+				Type:     pluginsdk.TypeSet,
+				Optional: true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: azure.ValidateResourceID,
@@ -124,10 +119,10 @@ func resourceStorageAccountNetworkRules() *pluginsdk.Resource {
 	}
 }
 
-func resourceStorageAccountNetworkRulesCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageAccountNetworkRulesCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	tenantId := meta.(*clients.Client).Account.TenantId
 	client := meta.(*clients.Client).Storage.ResourceManager.StorageAccounts
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := commonids.ParseStorageAccountID(d.Get("storage_account_id").(string))
@@ -152,20 +147,18 @@ func resourceStorageAccountNetworkRulesCreateUpdate(d *pluginsdk.ResourceData, m
 	if resp.Model.Properties == nil {
 		return fmt.Errorf("retrieving %s: `model.Properties` was nil", *id)
 	}
-	if d.IsNewResource() {
-		usesNonDefaultStorageAccountRules := false
-		if acls := resp.Model.Properties.NetworkAcls; acls != nil {
-			// The default action "Allow" is set in the creation of the storage account resource as default value.
-			hasIPRules := acls.IPRules != nil && len(*acls.IPRules) > 0
-			defaultActionConfigured := acls.DefaultAction != storageaccounts.DefaultActionAllow
-			hasVirtualNetworkRules := acls.VirtualNetworkRules != nil && len(*acls.VirtualNetworkRules) > 0
-			if hasIPRules || defaultActionConfigured || hasVirtualNetworkRules {
-				usesNonDefaultStorageAccountRules = true
-			}
+	usesNonDefaultStorageAccountRules := false
+	if acls := resp.Model.Properties.NetworkAcls; acls != nil {
+		// The default action "Allow" is set in the creation of the storage account resource as default value.
+		hasIPRules := acls.IPRules != nil && len(*acls.IPRules) > 0
+		defaultActionConfigured := acls.DefaultAction != storageaccounts.DefaultActionAllow
+		hasVirtualNetworkRules := acls.VirtualNetworkRules != nil && len(*acls.VirtualNetworkRules) > 0
+		if hasIPRules || defaultActionConfigured || hasVirtualNetworkRules {
+			usesNonDefaultStorageAccountRules = true
 		}
-		if usesNonDefaultStorageAccountRules {
-			return tf.ImportAsExistsError("azurerm_storage_account_network_rule", id.ID())
-		}
+	}
+	if usesNonDefaultStorageAccountRules {
+		return tf.ImportAsExistsError("azurerm_storage_account_network_rule", id.ID())
 	}
 
 	acls := resp.Model.Properties.NetworkAcls
@@ -184,12 +177,74 @@ func resourceStorageAccountNetworkRulesCreateUpdate(d *pluginsdk.ResourceData, m
 			NetworkAcls: acls,
 		},
 	}
-	if _, err := client.Update(ctx, *id, payload); err != nil {
-		return fmt.Errorf("updating Network Rules for %s: %+v", *id, err)
+	if _, err = client.Update(ctx, *id, payload); err != nil {
+		return fmt.Errorf("creating Network Rules for %s: %+v", *id, err)
 	}
 
-	if d.IsNewResource() {
-		d.SetId(id.ID())
+	d.SetId(id.ID())
+
+	return resourceStorageAccountNetworkRulesRead(d, meta)
+}
+
+func resourceStorageAccountNetworkRulesUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	tenantId := meta.(*clients.Client).Account.TenantId
+	client := meta.(*clients.Client).Storage.ResourceManager.StorageAccounts
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := commonids.ParseStorageAccountID(d.Get("storage_account_id").(string))
+	if err != nil {
+		return err
+	}
+
+	locks.ByName(id.StorageAccountName, storageAccountResourceName)
+	defer locks.UnlockByName(id.StorageAccountName, storageAccountResourceName)
+
+	resp, err := client.GetProperties(ctx, *id, storageaccounts.DefaultGetPropertiesOperationOptions())
+	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("%s was not found", id)
+		}
+
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
+	if resp.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", *id)
+	}
+	if resp.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `model.Properties` was nil", *id)
+	}
+
+	acls := resp.Model.Properties.NetworkAcls
+	if acls == nil {
+		acls = &storageaccounts.NetworkRuleSet{}
+	}
+
+	if d.HasChange("default_action") {
+		acls.DefaultAction = storageaccounts.DefaultAction(d.Get("default_action").(string))
+	}
+	if d.HasChange("bypass") {
+		acls.Bypass = expandAccountNetworkRuleBypass(d.Get("bypass").(*pluginsdk.Set).List())
+	}
+	if d.HasChange("ip_rules") {
+		acls.IPRules = expandAccountNetworkRuleIPRules(d.Get("ip_rules").(*pluginsdk.Set).List())
+	}
+	if d.HasChange("virtual_network_subnet_ids") {
+		acls.VirtualNetworkRules = expandAccountNetworkRuleVirtualNetworkRules(d.Get("virtual_network_subnet_ids").(*pluginsdk.Set).List())
+	}
+
+	if d.HasChange("private_link_access") {
+		acls.ResourceAccessRules = expandAccountNetworkRulePrivateLinkAccess(d.Get("private_link_access").([]interface{}), tenantId)
+	}
+
+	payload := storageaccounts.StorageAccountUpdateParameters{
+		Properties: &storageaccounts.StorageAccountPropertiesUpdateParameters{
+			NetworkAcls: acls,
+		},
+	}
+
+	if _, err := client.Update(ctx, *id, payload); err != nil {
+		return fmt.Errorf("updating Network Rules for %s: %+v", *id, err)
 	}
 
 	return resourceStorageAccountNetworkRulesRead(d, meta)
