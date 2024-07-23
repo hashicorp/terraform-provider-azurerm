@@ -646,9 +646,9 @@ resource "azurerm_servicebus_namespace" "example" {
   sku                 = "Basic"
 }
 resource "azurerm_servicebus_queue" "test" {
-  name                = "acctestservicebusqueue-%[1]d"
-  namespace_id        = azurerm_servicebus_namespace.example.id
-  enable_partitioning = true
+  name                 = "acctestservicebusqueue-%[1]d"
+  namespace_id         = azurerm_servicebus_namespace.example.id
+  partitioning_enabled = true
 }
 resource "azurerm_eventgrid_event_subscription" "test" {
   name                          = "acctest-eg-%[1]d"
@@ -675,9 +675,9 @@ resource "azurerm_servicebus_namespace" "example" {
   sku                 = "Standard"
 }
 resource "azurerm_servicebus_topic" "test" {
-  name                = "acctestservicebustopic-%[1]d"
-  namespace_id        = azurerm_servicebus_namespace.example.id
-  enable_partitioning = true
+  name                 = "acctestservicebustopic-%[1]d"
+  namespace_id         = azurerm_servicebus_namespace.example.id
+  partitioning_enabled = true
 }
 resource "azurerm_eventgrid_event_subscription" "test" {
   name                          = "acctest-eg-%[1]d"
@@ -1162,9 +1162,9 @@ resource "azurerm_servicebus_namespace" "example" {
   sku                 = "Standard"
 }
 resource "azurerm_servicebus_topic" "test" {
-  name                = "acctestservicebustopic-%[1]d"
-  namespace_id        = azurerm_servicebus_namespace.example.id
-  enable_partitioning = true
+  name                 = "acctestservicebustopic-%[1]d"
+  namespace_id         = azurerm_servicebus_namespace.example.id
+  partitioning_enabled = true
 }
 
 resource "azurerm_eventgrid_event_subscription" "test" {
@@ -1215,9 +1215,9 @@ resource "azurerm_servicebus_namespace" "example" {
   sku                 = "Standard"
 }
 resource "azurerm_servicebus_topic" "test" {
-  name                = "acctestservicebustopic-%[1]d"
-  namespace_id        = azurerm_servicebus_namespace.example.id
-  enable_partitioning = true
+  name                 = "acctestservicebustopic-%[1]d"
+  namespace_id         = azurerm_servicebus_namespace.example.id
+  partitioning_enabled = true
 }
 
 resource "azurerm_eventgrid_event_subscription" "test" {
@@ -1260,9 +1260,9 @@ resource "azurerm_servicebus_namespace" "example" {
   sku                 = "Standard"
 }
 resource "azurerm_servicebus_topic" "test" {
-  name                = "acctestservicebustopic-%[1]d"
-  namespace_id        = azurerm_servicebus_namespace.example.id
-  enable_partitioning = true
+  name                 = "acctestservicebustopic-%[1]d"
+  namespace_id         = azurerm_servicebus_namespace.example.id
+  partitioning_enabled = true
 }
 
 resource "azurerm_eventgrid_event_subscription" "test" {
@@ -1318,9 +1318,9 @@ resource "azurerm_servicebus_namespace" "example" {
   sku                 = "Standard"
 }
 resource "azurerm_servicebus_topic" "test" {
-  name                = "acctestservicebustopic-%[1]d"
-  namespace_id        = azurerm_servicebus_namespace.example.id
-  enable_partitioning = true
+  name                 = "acctestservicebustopic-%[1]d"
+  namespace_id         = azurerm_servicebus_namespace.example.id
+  partitioning_enabled = true
 }
 
 resource "azurerm_eventgrid_event_subscription" "test" {

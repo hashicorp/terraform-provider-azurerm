@@ -848,9 +848,9 @@ resource "azurerm_servicebus_namespace" "example" {
 }
 
 resource "azurerm_servicebus_queue" "test" {
-  name                = "acctestservicebusqueue-%[1]d"
-  namespace_id        = azurerm_servicebus_namespace.example.id
-  enable_partitioning = true
+  name                 = "acctestservicebusqueue-%[1]d"
+  namespace_id         = azurerm_servicebus_namespace.example.id
+  partitioning_enabled = true
 }
 
 resource "azurerm_eventgrid_system_topic" "test" {
@@ -891,9 +891,9 @@ resource "azurerm_servicebus_namespace" "example" {
 }
 
 resource "azurerm_servicebus_topic" "test" {
-  name                = "acctestservicebustopic-%[1]d"
-  namespace_id        = azurerm_servicebus_namespace.example.id
-  enable_partitioning = true
+  name                 = "acctestservicebustopic-%[1]d"
+  namespace_id         = azurerm_servicebus_namespace.example.id
+  partitioning_enabled = true
 }
 
 resource "azurerm_eventgrid_system_topic" "test" {
@@ -1442,9 +1442,9 @@ resource "azurerm_servicebus_namespace" "example" {
 }
 
 resource "azurerm_servicebus_topic" "test" {
-  name                = "acctestservicebustopic-%[1]d"
-  namespace_id        = azurerm_servicebus_namespace.example.id
-  enable_partitioning = true
+  name                 = "acctestservicebustopic-%[1]d"
+  namespace_id         = azurerm_servicebus_namespace.example.id
+  partitioning_enabled = true
 }
 
 resource "azurerm_eventgrid_system_topic" "test" {
@@ -1505,9 +1505,9 @@ resource "azurerm_servicebus_namespace" "example" {
 }
 
 resource "azurerm_servicebus_topic" "test" {
-  name                = "acctestservicebustopic-%[1]d"
-  namespace_id        = azurerm_servicebus_namespace.example.id
-  enable_partitioning = true
+  name                 = "acctestservicebustopic-%[1]d"
+  namespace_id         = azurerm_servicebus_namespace.example.id
+  partitioning_enabled = true
 }
 
 resource "azurerm_eventgrid_system_topic" "test" {
@@ -1560,9 +1560,9 @@ resource "azurerm_servicebus_namespace" "example" {
 }
 
 resource "azurerm_servicebus_topic" "test" {
-  name                = "acctestservicebustopic-%[1]d"
-  namespace_id        = azurerm_servicebus_namespace.example.id
-  enable_partitioning = true
+  name                 = "acctestservicebustopic-%[1]d"
+  namespace_id         = azurerm_servicebus_namespace.example.id
+  partitioning_enabled = true
 }
 
 resource "azurerm_eventgrid_system_topic" "test" {
@@ -1628,9 +1628,9 @@ resource "azurerm_servicebus_namespace" "example" {
 }
 
 resource "azurerm_servicebus_topic" "test" {
-  name                = "acctestservicebustopic-%[1]d"
-  namespace_id        = azurerm_servicebus_namespace.example.id
-  enable_partitioning = true
+  name                 = "acctestservicebustopic-%[1]d"
+  namespace_id         = azurerm_servicebus_namespace.example.id
+  partitioning_enabled = true
 }
 
 resource "azurerm_eventgrid_system_topic" "test" {
