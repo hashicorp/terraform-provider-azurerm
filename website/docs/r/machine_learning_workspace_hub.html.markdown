@@ -1,0 +1,425 @@
+---
+subcategory: "Machine Learning"
+layout: "azurerm"
+page_title: "Azure Resource Manager: azurerm_machine_learning_workspace_hub"
+description: |-
+  Manages a Azure Machine Learning Workspace Hub.
+---
+# azurerm_machine_learning_workspace_hub
+
+Manages an Azure Machine Learning Workspace Hub 
+
+## Example Usage
+
+```hcl
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+resource "azurerm_application_insights" "example" {
+  name                = "workspace-example-ai"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  application_type    = "web"
+}
+
+resource "azurerm_key_vault" "example" {
+  name                = "workspaceexamplekeyvault"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  sku_name            = "premium"
+}
+
+resource "azurerm_storage_account" "example" {
+  name                     = "workspacestorageaccount"
+  location                 = azurerm_resource_group.example.location
+  resource_group_name      = azurerm_resource_group.example.name
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
+}
+
+resource "azurerm_machine_learning_workspace_hub" "example" {
+  name                    = "example-workspace-hub"
+  location                = azurerm_resource_group.example.location
+  resource_group_name     = azurerm_resource_group.example.name
+  application_insights_id = azurerm_application_insights.example.id
+  key_vault_id            = azurerm_key_vault.example.id
+  storage_account_id      = azurerm_storage_account.example.id
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+```
+
+## Example Usage with Data encryption
+
+~> **NOTE:** The Key Vault must enable purge protection.
+
+```hcl
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy = false
+    }
+  }
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+resource "azurerm_application_insights" "example" {
+  name                = "workspace-example-ai"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  application_type    = "web"
+}
+
+resource "azurerm_key_vault" "example" {
+  name                     = "workspaceexamplekeyvault"
+  location                 = azurerm_resource_group.example.location
+  resource_group_name      = azurerm_resource_group.example.name
+  tenant_id                = data.azurerm_client_config.current.tenant_id
+  sku_name                 = "premium"
+  purge_protection_enabled = true
+}
+
+resource "azurerm_key_vault_access_policy" "example" {
+  key_vault_id = azurerm_key_vault.example.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
+
+  key_permissions = [
+    "Create",
+    "Get",
+    "Delete",
+    "Purge",
+    "GetRotationPolicy",
+  ]
+}
+
+resource "azurerm_storage_account" "example" {
+  name                     = "workspacestorageaccount"
+  location                 = azurerm_resource_group.example.location
+  resource_group_name      = azurerm_resource_group.example.name
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
+}
+
+resource "azurerm_key_vault_key" "example" {
+  name         = "workspaceexamplekeyvaultkey"
+  key_vault_id = azurerm_key_vault.example.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+
+  depends_on = [azurerm_key_vault.example, azurerm_key_vault_access_policy.example]
+}
+
+resource "azurerm_machine_learning_workspace_hub" "example" {
+  name                    = "example-workspace-hub"
+  location                = azurerm_resource_group.example.location
+  resource_group_name     = azurerm_resource_group.example.name
+  application_insights_id = azurerm_application_insights.example.id
+  key_vault_id            = azurerm_key_vault.example.id
+  storage_account_id      = azurerm_storage_account.example.id
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  encryption {
+    key_vault_id = azurerm_key_vault.example.id
+    key_id       = azurerm_key_vault_key.example.id
+  }
+}
+```
+
+## Example Usage with User Assigned Identity and Data Encryption
+
+~> **NOTE:** The Key Vault must enable purge protection.
+
+```hcl
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy = false
+    }
+  }
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+resource "azurerm_application_insights" "example" {
+  name                = "example-ai"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  application_type    = "web"
+}
+
+resource "azurerm_storage_account" "example" {
+  name                     = "examplestorageaccount"
+  location                 = azurerm_resource_group.example.location
+  resource_group_name      = azurerm_resource_group.example.name
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
+}
+
+resource "azurerm_key_vault" "example" {
+  name                     = "example-keyvalut"
+  location                 = azurerm_resource_group.example.location
+  resource_group_name      = azurerm_resource_group.example.name
+  tenant_id                = data.azurerm_client_config.current.tenant_id
+  sku_name                 = "premium"
+  purge_protection_enabled = true
+}
+
+resource "azurerm_user_assigned_identity" "example" {
+  name                = "example-identity"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+}
+
+resource "azurerm_key_vault_access_policy" "example-identity" {
+  key_vault_id = azurerm_key_vault.example.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = azurerm_user_assigned_identity.example.principal_id
+
+  // default set by service
+  key_permissions = [
+    "WrapKey",
+    "UnwrapKey",
+    "Get",
+    "Recover",
+  ]
+
+
+  secret_permissions = [
+    "Get",
+    "List",
+    "Set",
+    "Delete",
+    "Recover",
+    "Backup",
+    "Restore"
+  ]
+}
+
+resource "azurerm_key_vault_access_policy" "example-sp" {
+  key_vault_id = azurerm_key_vault.example.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
+
+  key_permissions = [
+    "Get",
+    "Create",
+    "Recover",
+    "Delete",
+    "Purge",
+    "GetRotationPolicy",
+  ]
+}
+
+data "azuread_service_principal" "test" {
+  display_name = "Azure Cosmos DB"
+}
+
+resource "azurerm_key_vault_access_policy" "example-cosmosdb" {
+  key_vault_id = azurerm_key_vault.example.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azuread_service_principal.test.object_id
+
+  key_permissions = [
+    "Get",
+    "Recover",
+    "UnwrapKey",
+    "WrapKey",
+  ]
+  depends_on = [data.azuread_service_principal.test, data.azurerm_client_config.current]
+}
+
+resource "azurerm_key_vault_key" "example" {
+  name         = "example-keyvaultkey"
+  key_vault_id = azurerm_key_vault.example.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+  depends_on = [azurerm_key_vault.example, azurerm_key_vault_access_policy.example-sp]
+}
+
+resource "azurerm_role_assignment" "example-role1" {
+  scope                = azurerm_key_vault.example.id
+  role_definition_name = "Contributor"
+  principal_id         = azurerm_user_assigned_identity.example.principal_id
+}
+
+resource "azurerm_role_assignment" "example-role2" {
+  scope                = azurerm_storage_account.example.id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = azurerm_user_assigned_identity.example.principal_id
+}
+
+resource "azurerm_role_assignment" "example-role3" {
+  scope                = azurerm_storage_account.example.id
+  role_definition_name = "Contributor"
+  principal_id         = azurerm_user_assigned_identity.example.principal_id
+}
+
+resource "azurerm_role_assignment" "example-role4" {
+  scope                = azurerm_application_insights.example.id
+  role_definition_name = "Contributor"
+  principal_id         = azurerm_user_assigned_identity.example.principal_id
+}
+
+
+resource "azurerm_machine_learning_workspace_hub" "example" {
+  name                    = "example-workspace-hub"
+  location                = azurerm_resource_group.example.location
+  resource_group_name     = azurerm_resource_group.example.name
+  application_insights_id = azurerm_application_insights.example.id
+  key_vault_id            = azurerm_key_vault.example.id
+  storage_account_id      = azurerm_storage_account.example.id
+
+  high_business_impact = true
+
+  primary_user_assigned_identity = azurerm_user_assigned_identity.example.id
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.example.id,
+    ]
+  }
+
+  encryption {
+    user_assigned_identity_id = azurerm_user_assigned_identity.example.id
+    key_vault_id              = azurerm_key_vault.example.id
+    key_id                    = azurerm_key_vault_key.example.id
+  }
+
+  depends_on = [
+    azurerm_role_assignment.example-role1, azurerm_role_assignment.example-role2, azurerm_role_assignment.example-role3,
+    azurerm_role_assignment.example-role4,
+    azurerm_key_vault_access_policy.example-cosmosdb,
+  ]
+}
+```
+
+## Argument Reference
+
+The following arguments are supported:
+
+* `name` - (Required) Specifies the name of the Machine Learning Workspace Hub. Changing this forces a new resource to be created.
+
+* `resource_group_name` - (Required) Specifies the name of the Resource Group in which the Machine Learning Workspace Hub should exist. Changing this forces a new resource to be created.
+
+* `location` - (Required) Specifies the supported Azure location where the Machine Learning Workspace Hub should exist. Changing this forces a new resource to be created.
+
+* `key_vault_id` - (Required) The ID of key vault associated with this Machine Learning Workspace Hub. Changing this forces a new resource to be created.
+
+* `storage_account_id` - (Required) The ID of the Storage Account associated with this Machine Learning Workspace Hub. Changing this forces a new resource to be created.
+
+-> **NOTE:** The `account_tier` cannot be `Premium` in order to associate the Storage Account to this Machine Learning Workspace Hub.
+
+* `identity` - (Required) An `identity` block as defined below.
+
+* `application_insights_id` - (Optional) The ID of the Application Insights associated with this Machine Learning Workspace Hub. Changing this forces a new resource to be created.
+
+* `container_registry_id` - (Optional) The ID of the container registry associated with this Machine Learning Workspace Hub. Changing this forces a new resource to be created.
+
+* `public_network_access` - (Optional) Enable public access when this Machine Learning Workspace Hub is behind VNet. Possible values are `Enabled`, `Disabled`. Defaults to `Enabled`.
+
+* `encryption` - (Optional) An `encryption` block as defined below. Changing this forces a new resource to be created.
+
+* `friendly_name` - (Optional) Display name for this Machine Learning Workspace Hub.
+
+* `primary_user_assigned_identity` - (Optional) The user assigned identity id that represents the hub identity.
+
+* `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
+
+An `identity` block supports the following:
+
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Machine Learning Workspace Hub. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
+
+* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Machine Learning Workspace Hub.
+
+~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+
+---
+
+An `encryption` block supports the following:
+
+* `key_vault_id` - (Required) The ID of the keyVault where the customer owned encryption key is present.
+
+* `key_id` - (Required) The Key Vault URI to access the encryption key.
+
+* `user_assigned_identity_id` - (Optional) The Key Vault URI to access the encryption key.
+
+~> **Note:** `user_assigned_identity_id` must set when`identity.type` is `UserAssigned` or service won't be able to find the assigned permissions.
+
+## Attributes Reference
+
+In addition to the Arguments listed above - the following Attributes are exported:
+
+* `id` - The ID of the Machine Learning Workspace Hub.
+
+* `workspace_id` - The immutable id associated with this Hub.
+
+---
+
+An `identity` block exports the following:
+
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
+
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
+
+### Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Machine Learning Workspace Hub.
+* `update` - (Defaults to 30 minutes) Used when updating the Machine Learning Workspace Hub.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Machine Learning Workspace Hub.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Machine Learning Workspace Hub.
+
+## Import
+
+Machine Learning Workspace Hub can be imported using the `resource id`, e.g.
+
+```shell
+terraform import azurerm_machine_learning_workspace_hub.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.MachineLearningServices/workspaces/workspace1
+```
