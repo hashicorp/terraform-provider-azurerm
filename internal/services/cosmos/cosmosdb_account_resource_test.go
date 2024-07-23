@@ -3418,7 +3418,7 @@ resource "azurerm_cosmosdb_account" "test" {
   offer_type          = "Standard"
   kind                = "MongoDB"
 
-  default_identity_type = join("=", ["UserAssignedIdentity", "%[4]s"])
+  default_identity_type = join("=", ["UserAssignedIdentity", %[4]s])
 
   capabilities {
     name = "EnableMongo"
