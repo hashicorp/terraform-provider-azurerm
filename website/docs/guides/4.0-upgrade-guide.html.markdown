@@ -258,6 +258,12 @@ The following resources and properties have been affected by this change:
 
 * `inbound_ip_rule` has had `ConfigModeAttr` removed, attribute notation can no longer be used.
 
+### `azurerm_iothub`
+
+* `endpoint` has had `Computed` and `ConfigModeAttr` removed, attribute notation can no longer be used. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
+* `enrichment` has had `Computed` and `ConfigModeAttr` removed, attribute notation can no longer be used. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
+* `route` has had `Computed` and `ConfigModeAttr` removed, attribute notation can no longer be used. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
+
 ### `azurerm_key_vault`
 
 * `access_policy` has had `Computed` and `ConfigModeAttr` removed, attribute notation can no longer be used. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
