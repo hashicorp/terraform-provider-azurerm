@@ -221,7 +221,6 @@ resource "azurerm_eventhub_namespace" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Premium"
-  zone_redundant      = true
 
   identity {
     type = "SystemAssigned"
@@ -237,6 +236,10 @@ resource "azurerm_key_vault" "test" {
   tenant_id                = data.azurerm_client_config.current.tenant_id
   sku_name                 = "standard"
   purge_protection_enabled = true
+
+  lifecycle {
+    ignore_changes = [access_policy]
+  }
 }
 
 resource "azurerm_key_vault_access_policy" "test" {
@@ -300,7 +303,6 @@ resource "azurerm_eventhub_namespace" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Premium"
-  zone_redundant      = true
 
   identity {
     type         = "UserAssigned"
@@ -317,6 +319,10 @@ resource "azurerm_key_vault" "test" {
   tenant_id                = data.azurerm_client_config.current.tenant_id
   sku_name                 = "standard"
   purge_protection_enabled = true
+
+  lifecycle {
+    ignore_changes = [access_policy]
+  }
 }
 
 resource "azurerm_key_vault_access_policy" "test" {

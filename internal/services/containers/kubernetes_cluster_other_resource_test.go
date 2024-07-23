@@ -1627,7 +1627,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name                         = "default"
     node_count                   = 1
-    type                         = "AvailabilitySet"
+    type                         = "VirtualMachineScaleSets"
     vm_size                      = "Standard_DS2_v2"
     only_critical_addons_enabled = true
     upgrade_settings {
