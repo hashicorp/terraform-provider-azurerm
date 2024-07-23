@@ -106,22 +106,7 @@ func (r MsSqlManagedInstanceStartStopScheduleResource) Arguments() map[string]*p
 }
 
 func (r MsSqlManagedInstanceStartStopScheduleResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
-		"name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"next_execution_time": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"next_run_action": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-	}
+	return map[string]*pluginsdk.Schema{}
 }
 
 func (r MsSqlManagedInstanceStartStopScheduleResource) Create() sdk.ResourceFunc {
@@ -187,24 +172,26 @@ func (r MsSqlManagedInstanceStartStopScheduleResource) Update() sdk.ResourceFunc
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MSSQLManagedInstance.ManagedInstanceStartStopSchedulesClient
 
-			managedInstanceId, err := commonids.ParseSqlManagedInstanceID(metadata.ResourceData.Get("managed_instance_id").(string))
+			id, err := parse.ManagedInstanceStartStopScheduleID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
+
+			managedInstanceID := commonids.NewSqlManagedInstanceID(id.SubscriptionId, id.ResourceGroup, id.ManagedInstanceName)
 
 			var model SqlManagedInstanceStartStopScheduleModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			resp, err := client.Get(ctx, *managedInstanceId)
+			resp, err := client.Get(ctx, managedInstanceID)
 			if err != nil {
-				return fmt.Errorf("retrieving %s: %+v", *managedInstanceId, err)
+				return fmt.Errorf("retrieving %s: %+v", managedInstanceID, err)
 			}
 
 			properties := resp.Model
 			if properties == nil {
-				return fmt.Errorf("retrieving %s: properties was nil", managedInstanceId)
+				return fmt.Errorf("retrieving %s: properties was nil", managedInstanceID)
 			}
 
 			if metadata.ResourceData.HasChange("description") {
@@ -229,8 +216,8 @@ func (r MsSqlManagedInstanceStartStopScheduleResource) Update() sdk.ResourceFunc
 
 			properties.SystemData = nil
 
-			if _, err := client.CreateOrUpdate(ctx, *managedInstanceId, *properties); err != nil {
-				return fmt.Errorf("updating %s: %+v", *managedInstanceId, err)
+			if _, err := client.CreateOrUpdate(ctx, managedInstanceID, *properties); err != nil {
+				return fmt.Errorf("updating %s: %+v", managedInstanceID, err)
 			}
 
 			return nil
@@ -244,49 +231,41 @@ func (r MsSqlManagedInstanceStartStopScheduleResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MSSQLManagedInstance.ManagedInstanceStartStopSchedulesClient
 
-			managedInstanceId, err := commonids.ParseSqlManagedInstanceID(metadata.ResourceData.Get("managed_instance_id").(string))
+			id, err := parse.ManagedInstanceStartStopScheduleID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			resp, err := client.Get(ctx, *managedInstanceId)
+			managedInstanceID := commonids.NewSqlManagedInstanceID(id.SubscriptionId, id.ResourceGroup, id.ManagedInstanceName)
+
+			resp, err := client.Get(ctx, managedInstanceID)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
-					return metadata.MarkAsGone(managedInstanceId)
+					return metadata.MarkAsGone(managedInstanceID)
 				}
 
-				return fmt.Errorf("retrieving %s: %+v", *managedInstanceId, err)
+				return fmt.Errorf("retrieving %s: %+v", managedInstanceID, err)
 			}
 
 			state := SqlManagedInstanceStartStopScheduleModel{
-				SqlManagedInstanceId: managedInstanceId.ID(),
+				SqlManagedInstanceId: managedInstanceID.ID(),
 			}
 
 			if model := resp.Model; model != nil {
-				if name := model.Name; name != nil {
-					state.Name = *name
-				}
+				state.Name = id.StartStopScheduleName
 
 				if properties := model.Properties; properties != nil {
-					if properties.Description != nil {
-						state.Description = *properties.Description
-					}
+					state.Description = pointer.From(properties.Description)
 
-					if properties.NextExecutionTime != nil {
-						state.NextExecutionTime = *properties.NextExecutionTime
-					}
+					state.NextExecutionTime = pointer.From(properties.NextExecutionTime)
 
-					if properties.NextRunAction != nil {
-						state.NextRunAction = *properties.NextRunAction
-					}
+					state.NextRunAction = pointer.From(properties.NextRunAction)
 
 					if properties.ScheduleList != nil {
 						state.ScheduleList = flattenScheduleItemModelArray(&properties.ScheduleList)
 					}
 
-					if properties.TimeZoneId != nil {
-						state.TimeZoneId = *properties.TimeZoneId
-					}
+					state.TimeZoneId = pointer.From(properties.TimeZoneId)
 				}
 			}
 
