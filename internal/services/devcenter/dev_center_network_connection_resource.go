@@ -75,7 +75,7 @@ func (r DevCenterNetworkConnectionResource) Arguments() map[string]*pluginsdk.Sc
 		"domain_name": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validation.StringLenBetween(1, 255),
+			ValidateFunc: validate.DevCenterNetworkConnectionDomainName,
 		},
 
 		"domain_password": {
@@ -88,7 +88,7 @@ func (r DevCenterNetworkConnectionResource) Arguments() map[string]*pluginsdk.Sc
 		"domain_username": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validate.DevCenterNetworkConnectionDomainUsername,
 		},
 
 		"organization_unit": {
