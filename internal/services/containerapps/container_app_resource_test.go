@@ -948,6 +948,10 @@ resource "azurerm_key_vault" "test" {
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "premium"
   soft_delete_retention_days = 7
+
+  lifecycle {
+    ignore_changes = [access_policy]
+  }
 }
 
 resource "azurerm_key_vault_secret" "test" {
@@ -1060,6 +1064,10 @@ resource "azurerm_key_vault" "test" {
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "premium"
   soft_delete_retention_days = 7
+
+  lifecycle {
+    ignore_changes = [access_policy]
+  }
 }
 
 resource "azurerm_key_vault_secret" "test" {
@@ -1186,6 +1194,10 @@ resource "azurerm_key_vault" "test" {
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "premium"
   soft_delete_retention_days = 7
+
+  lifecycle {
+    ignore_changes = [access_policy]
+  }
 }
 
 resource "azurerm_key_vault_secret" "test" {
@@ -2650,8 +2662,6 @@ resource "azurerm_container_registry" "test" {
   location            = azurerm_resource_group.test.location
   sku                 = "Basic"
   admin_enabled       = true
-
-  network_rule_set = []
 }
 
 resource "azurerm_storage_account" "test" {
@@ -2694,8 +2704,6 @@ resource "azurerm_container_registry" "test" {
   location            = azurerm_resource_group.test.location
   sku                 = "Basic"
   admin_enabled       = true
-
-  network_rule_set = []
 }
 
 resource "azurerm_storage_share" "test" {
