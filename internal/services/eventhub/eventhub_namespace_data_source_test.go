@@ -112,6 +112,10 @@ resource "azurerm_eventhub_namespace" "test" {
   capacity                 = "2"
   auto_inflate_enabled     = true
   maximum_throughput_units = 20
+
+  lifecycle {
+    ignore_changes = [network_rulesets]
+  }
 }
 
 data "azurerm_eventhub_namespace" "test" {

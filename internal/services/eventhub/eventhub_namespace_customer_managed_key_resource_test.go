@@ -226,6 +226,10 @@ resource "azurerm_eventhub_namespace" "test" {
   identity {
     type = "SystemAssigned"
   }
+
+  lifecycle {
+    ignore_changes = [network_rulesets]
+  }
 }
 
 data "azurerm_client_config" "current" {}

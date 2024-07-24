@@ -754,6 +754,10 @@ resource "azurerm_eventhub_namespace" "test" {
       action  = "Allow"
     }
   }
+
+  lifecycle {
+    ignore_changes = [network_rulesets]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

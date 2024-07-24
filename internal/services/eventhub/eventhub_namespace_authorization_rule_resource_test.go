@@ -242,6 +242,10 @@ resource "azurerm_eventhub_namespace" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
+
+  lifecycle {
+    ignore_changes = [network_rulesets]
+  }
 }
 
 resource "azurerm_eventhub_namespace" "test2" {
@@ -249,6 +253,10 @@ resource "azurerm_eventhub_namespace" "test2" {
   location            = azurerm_resource_group.test2.location
   resource_group_name = azurerm_resource_group.test2.name
   sku                 = "Standard"
+
+  lifecycle {
+    ignore_changes = [network_rulesets]
+  }
 }
 
 resource "azurerm_eventhub_namespace_disaster_recovery_config" "test" {
