@@ -706,8 +706,6 @@ func expandVirtualNetworkSubnets(ctx context.Context, client virtualnetworks.Vir
 				subnetObj.Properties.AddressPrefix = nil
 			}
 
-			subnetObj.Properties.AddressPrefixes = pointer.To(addressPrefixes)
-
 			privateEndpointNetworkPolicies := virtualnetworks.VirtualNetworkPrivateEndpointNetworkPolicies(subnet["private_endpoint_network_policies"].(string))
 			privateLinkServiceNetworkPolicies := virtualnetworks.VirtualNetworkPrivateLinkServiceNetworkPoliciesDisabled
 			if subnet["private_link_service_network_policies_enabled"].(bool) {
