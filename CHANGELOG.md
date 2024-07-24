@@ -3,6 +3,8 @@
 ENHANCEMENTS:
 
 * dependencies: updating `go-azure-helpers` to `v0.70.1` [GH-26757]
+* `data.azurerm_storage_account` - the `enable_https_traffic_only` property has been superseded by `https_traffic_only_enabled` [GH-26740]
+* `azurerm_storage_account` - the `enable_https_traffic_only` property has been superseded by `https_traffic_only_enabled` [GH-26740]
 
 BUG FIXES:
 
