@@ -43,7 +43,7 @@ func TestAccArcKubernetesCluster_basic(t *testing.T) {
 			Config: r.update(data, credential, privateKey, publicKey),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("distribution").HasValue("kind"),
+				check.That(data.ResourceName).Key("distribution").HasValue("generic"),
 				check.That(data.ResourceName).Key("infrastructure").HasValue("generic"),
 			),
 		},
@@ -85,7 +85,7 @@ func TestAccArcKubernetesCluster_complete(t *testing.T) {
 			Config: r.update(data, credential, privateKey, publicKey),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("distribution").HasValue("kind"),
+				check.That(data.ResourceName).Key("distribution").HasValue("generic"),
 				check.That(data.ResourceName).Key("infrastructure").HasValue("generic"),
 			),
 		},
