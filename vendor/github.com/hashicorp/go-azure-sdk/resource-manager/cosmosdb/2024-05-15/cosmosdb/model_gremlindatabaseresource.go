@@ -4,5 +4,7 @@ package cosmosdb
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type GremlinDatabaseResource struct {
-	Id string `json:"id"`
+	CreateMode        *CreateMode            `json:"createMode,omitempty"`
+	Id                string                 `json:"id"`
+	RestoreParameters *RestoreParametersBase `json:"restoreParameters,omitempty"`
 }

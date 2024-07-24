@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2023-04-15/cosmosdb"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-05-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
