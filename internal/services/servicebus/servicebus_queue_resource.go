@@ -136,16 +136,18 @@ func resourceServicebusQueueSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"max_message_size_in_kilobytes": {
-			Type:         pluginsdk.TypeInt,
-			Optional:     true,
-			Default:      256,
+			Type:     pluginsdk.TypeInt,
+			Optional: true,
+			// NOTE: O+C this gets a variable default based on the sku and can be updated without issues
+			Computed:     true,
 			ValidateFunc: azValidate.ServiceBusMaxMessageSizeInKilobytes(),
 		},
 
 		"max_size_in_megabytes": {
-			Type:         pluginsdk.TypeInt,
-			Optional:     true,
-			Default:      5120,
+			Type:     pluginsdk.TypeInt,
+			Optional: true,
+			// NOTE: O+C this gets a variable default based on the sku and can be updated without issues
+			Computed:     true,
 			ValidateFunc: azValidate.ServiceBusMaxSizeInMegabytes(),
 		},
 
@@ -254,20 +256,6 @@ func resourceServicebusQueueSchema() map[string]*pluginsdk.Schema {
 			Optional: true,
 			Computed: true,
 		}
-
-		schema["max_message_size_in_kilobytes"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeInt,
-			Optional:     true,
-			Computed:     true,
-			ValidateFunc: azValidate.ServiceBusMaxMessageSizeInKilobytes(),
-		}
-
-		schema["max_size_in_megabytes"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeInt,
-			Optional:     true,
-			Computed:     true,
-			ValidateFunc: azValidate.ServiceBusMaxSizeInMegabytes(),
-		}
 	}
 
 	return schema
@@ -335,11 +323,22 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	userConfig["autoDeleteOnIdle"] = autoDeleteOnIdle
 	duplicateDetectionHistoryTimeWindow := d.Get("duplicate_detection_history_time_window").(string)
 
-	enableExpress := d.Get("express_enabled").(bool)
-	enablePartitioning := d.Get("partitioning_enabled").(bool)
-	enableBatchedOperations := d.Get("batched_operations_enabled").(bool)
+	enableExpress := false
+	enablePartitioning := false
+	enableBatchedOperations := true
+	if v := d.GetRawConfig().AsValueMap()["express_enabled"]; !v.IsNull() {
+		enableExpress = d.Get("express_enabled").(bool)
+	}
 
-	if !features.FourPointOhBeta() {
+	if v := d.GetRawConfig().AsValueMap()["partitioning_enabled"]; !v.IsNull() {
+		enablePartitioning = d.Get("partitioning_enabled").(bool)
+	}
+
+	if v := d.GetRawConfig().AsValueMap()["batched_operations_enabled"]; !v.IsNull() {
+		enableBatchedOperations = d.Get("batched_operations_enabled").(bool)
+	}
+
+	if features.FourPointOhBeta() {
 
 		if v := d.GetRawConfig().AsValueMap()["enable_express"]; !v.IsNull() {
 			enableExpress = d.Get("enable_express").(bool)
