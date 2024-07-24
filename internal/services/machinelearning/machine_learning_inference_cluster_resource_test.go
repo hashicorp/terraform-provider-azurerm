@@ -178,7 +178,6 @@ resource "azurerm_machine_learning_inference_cluster" "test" {
   kubernetes_cluster_id         = azurerm_kubernetes_cluster.test.id
   cluster_purpose               = "DevTest"
 
-
   tags = {
     ENV = "Test"
   }
@@ -412,6 +411,10 @@ resource "azurerm_key_vault" "test" {
   sku_name = "standard"
 
   purge_protection_enabled = true
+
+  lifecycle {
+    ignore_changes = [access_policy]
+  }
 }
 
 resource "azurerm_storage_account" "test" {

@@ -1677,7 +1677,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   network_profile {
     network_plugin      = "azure"
-    ebpf_data_plane     = "cilium"
+    network_data_plane  = "cilium"
     network_plugin_mode = "overlay"
   }
 }
@@ -1736,7 +1736,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   network_profile {
     network_plugin      = "azure"
     network_policy      = "cilium"
-    ebpf_data_plane     = "cilium"
+    network_data_plane  = "cilium"
     network_plugin_mode = "overlay"
   }
 }
@@ -4237,7 +4237,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     pod_cidr       = "192.168.0.0/16"
     network_plugin = "azure"
 
-    ebpf_data_plane     = "cilium"
+    network_data_plane  = "cilium"
     network_plugin_mode = "overlay"
   }
 }
