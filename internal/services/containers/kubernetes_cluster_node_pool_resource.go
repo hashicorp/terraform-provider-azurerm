@@ -235,7 +235,7 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			Optional: true,
 			ForceNew: true,
 			RequiredWith: func() []string {
-				if !features.FourPointOhBeta() {
+				if !features.FourPointOh() {
 					return []string{"enable_node_public_ip"}
 				}
 				return []string{"node_public_ip_enabled"}
@@ -393,7 +393,25 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 				string(agentpools.WorkloadRuntimeKataMshvVMIsolation),
 			}, false),
 		},
+
 		"zones": commonschema.ZonesMultipleOptionalForceNew(),
+
+		"auto_scaling_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+		},
+
+		"node_public_ip_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			ForceNew: true,
+		},
+
+		"host_encryption_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			ForceNew: true,
+		},
 	}
 
 	if !features.FourPointOhBeta() {
@@ -405,42 +423,32 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			string(agentpools.OSSKUWindowsTwoZeroOneNine),
 			string(agentpools.OSSKUWindowsTwoZeroTwoTwo),
 		}, false)
+	}
 
+	if !features.FourPointOh() {
 		s["enable_auto_scaling"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Deprecated: features.DeprecatedInFourPointOh("The property `enable_auto_scaling` will be renamed to `auto_scaling_enabled` in v4.0 of the AzureRM Provider."),
 		}
 
 		s["enable_node_public_ip"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			ForceNew: true,
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			ForceNew:   true,
+			Deprecated: features.DeprecatedInFourPointOh("The property `enable_node_public_ip` will be renamed to `node_public_ip_enabled` in v4.0 of the AzureRM Provider."),
 		}
 
 		s["enable_host_encryption"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			ForceNew: true,
-		}
-	}
-
-	if features.FourPointOhBeta() {
-		s["auto_scaling_enabled"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			ForceNew:   true,
+			Deprecated: features.DeprecatedInFourPointOh("The property `enable_host_encryption` will be renamed to `host_encryption_enabled` in v4.0 of the AzureRM Provider."),
 		}
 
-		s["node_public_ip_enabled"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			ForceNew: true,
-		}
-
-		s["host_encryption_enabled"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			ForceNew: true,
-		}
+		delete(s, "auto_scaling_enabled")
+		delete(s, "node_public_ip_enabled")
+		delete(s, "host_encryption_enabled")
 	}
 
 	return s
@@ -517,15 +525,15 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 
 	count := d.Get("node_count").(int)
 	enableAutoScaling := d.Get("enable_auto_scaling").(bool)
-	if features.FourPointOhBeta() {
+	if features.FourPointOh() {
 		enableAutoScaling = d.Get("auto_scaling_enabled").(bool)
 	}
 	hostEncryption := d.Get("enable_host_encryption").(bool)
-	if features.FourPointOhBeta() {
+	if features.FourPointOh() {
 		hostEncryption = d.Get("host_encryption_enabled").(bool)
 	}
 	nodeIp := d.Get("enable_node_public_ip").(bool)
-	if features.FourPointOhBeta() {
+	if features.FourPointOh() {
 		nodeIp = d.Get("node_public_ip_enabled").(bool)
 	}
 	evictionPolicy := d.Get("eviction_policy").(string)
@@ -790,7 +798,7 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 	log.Printf("[DEBUG] Determining delta for existing %s..", *id)
 
 	// delta patching
-	if features.FourPointOhBeta() {
+	if features.FourPointOh() {
 		if d.HasChange("auto_scaling_enabled") {
 			enableAutoScaling = d.Get("auto_scaling_enabled").(bool)
 			props.EnableAutoScaling = utils.Bool(enableAutoScaling)
@@ -806,7 +814,7 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 		props.EnableCustomCATrust = utils.Bool(d.Get("custom_ca_trust_enabled").(bool))
 	}
 
-	if d.HasChange("max_count") || d.Get("enable_auto_scaling").(bool) {
+	if d.HasChange("max_count") || enableAutoScaling {
 		props.MaxCount = utils.Int64(int64(d.Get("max_count").(int)))
 	}
 
@@ -815,7 +823,7 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 		props.Mode = &mode
 	}
 
-	if d.HasChange("min_count") || d.Get("enable_auto_scaling").(bool) {
+	if d.HasChange("min_count") || enableAutoScaling {
 		props.MinCount = utils.Int64(int64(d.Get("min_count").(int)))
 	}
 
@@ -961,7 +969,7 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 	if model := resp.Model; model != nil && model.Properties != nil {
 		props := model.Properties
 		d.Set("zones", zones.FlattenUntyped(props.AvailabilityZones))
-		if features.FourPointOhBeta() {
+		if features.FourPointOh() {
 			d.Set("auto_scaling_enabled", props.EnableAutoScaling)
 			d.Set("node_public_ip_enabled", props.EnableNodePublicIP)
 			d.Set("host_encryption_enabled", props.EnableEncryptionAtHost)
@@ -1146,33 +1154,9 @@ func resourceKubernetesClusterNodePoolDelete(d *pluginsdk.ResourceData, meta int
 }
 
 func upgradeSettingsSchema() *pluginsdk.Schema {
-	if !features.FourPointOhBeta() {
-		return &pluginsdk.Schema{
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"max_surge": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-					},
-					"drain_timeout_in_minutes": {
-						Type:     pluginsdk.TypeInt,
-						Optional: true,
-					},
-					"node_soak_duration_in_minutes": {
-						Type:         pluginsdk.TypeInt,
-						Optional:     true,
-						ValidateFunc: validation.IntBetween(0, 30),
-					},
-				},
-			},
-		}
-	}
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
-		Required: true,
+		Optional: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -1278,7 +1262,8 @@ func expandAgentPoolUpgradeSettings(input []interface{}) *agentpools.AgentPoolUp
 }
 
 func flattenAgentPoolUpgradeSettings(input *agentpools.AgentPoolUpgradeSettings) []interface{} {
-	if input == nil {
+	// The API returns an empty upgrade settings object for spot node pools, so we need to explicitly check whether there's anything in it
+	if input == nil || (input.MaxSurge == nil && input.DrainTimeoutInMinutes == nil && input.NodeSoakDurationInMinutes == nil) {
 		return []interface{}{}
 	}
 

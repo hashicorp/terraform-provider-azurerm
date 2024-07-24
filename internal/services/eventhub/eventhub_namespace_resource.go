@@ -95,14 +95,6 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 				Default:  false,
 			},
 
-			// for premium namespace, zone redundant is computed by service based on the availability of availability zone feature.
-			"zone_redundant": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
-			},
-
 			"dedicated_cluster_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -115,7 +107,6 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 			"maximum_throughput_units": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Computed:     true,
 				ValidateFunc: validation.IntBetween(0, 40),
 			},
 
@@ -212,7 +203,7 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 			"minimum_tls_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Default:  string(namespaces.TlsVersionOnePointTwo),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(namespaces.TlsVersionOnePointZero),
 					string(namespaces.TlsVersionOnePointOne),
@@ -279,14 +270,28 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 			pluginsdk.CustomizeDiffShim(eventhubTLSVersionDiff),
 		),
 	}
+
 	if !features.FourPointOhBeta() {
 		resource.Schema["zone_redundant"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Default:    false,
+			Deprecated: "The `zone_redundant` property has been deprecated and will be removed in v4.0 of the provider.",
+			ForceNew:   true,
+		}
+
+		resource.Schema["minimum_tls_version"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Default:  false,
-			ForceNew: true,
+			Computed: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(namespaces.TlsVersionOnePointZero),
+				string(namespaces.TlsVersionOnePointOne),
+				string(namespaces.TlsVersionOnePointTwo),
+			}, false),
 		}
 	}
+
 	return resource
 }
 
@@ -352,9 +357,11 @@ func resourceEventHubNamespaceCreate(d *pluginsdk.ResourceData, meta interface{}
 		Tags: tags.Expand(t),
 	}
 
-	// for premium namespace, the zone_redundant is computed based on the region, user's input will be overridden
-	if sku != string(namespaces.SkuNamePremium) {
-		parameters.Properties.ZoneRedundant = utils.Bool(d.Get("zone_redundant").(bool))
+	if !features.FourPointOhBeta() {
+		// for premium namespace, the zone_redundant is computed based on the region, user's input will be overridden
+		if sku != string(namespaces.SkuNamePremium) {
+			parameters.Properties.ZoneRedundant = utils.Bool(d.Get("zone_redundant").(bool))
+		}
 	}
 
 	if v := d.Get("dedicated_cluster_id").(string); v != "" {
@@ -565,8 +572,11 @@ func resourceEventHubNamespaceRead(d *pluginsdk.ResourceData, meta interface{}) 
 		if props := model.Properties; props != nil {
 			d.Set("auto_inflate_enabled", props.IsAutoInflateEnabled)
 			d.Set("maximum_throughput_units", int(*props.MaximumThroughputUnits))
-			d.Set("zone_redundant", props.ZoneRedundant)
 			d.Set("dedicated_cluster_id", props.ClusterArmId)
+
+			if !features.FourPointOhBeta() {
+				d.Set("zone_redundant", props.ZoneRedundant)
+			}
 
 			localAuthDisabled := false
 			if props.DisableLocalAuth != nil {

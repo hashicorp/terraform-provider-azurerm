@@ -285,6 +285,10 @@ resource "azurerm_container_registry" "test" {
     zone_redundancy_enabled = true
     tags                    = {}
   }
+
+  lifecycle {
+    ignore_changes = [network_rule_set]
+  }
 }
 
 resource "azurerm_storage_account" "test" {
@@ -311,9 +315,7 @@ resource "azurerm_healthcare_fhir_service" "test" {
     audience  = "https://acctestfhir.fhir.azurehealthcareapis.com"
   }
 
-  access_policy_object_ids = [
-    data.azurerm_client_config.current.object_id
-  ]
+  access_policy_object_ids = []
 
   identity {
     type = "SystemAssigned"
@@ -356,6 +358,10 @@ resource "azurerm_container_registry" "test" {
     zone_redundancy_enabled = true
     tags                    = {}
   }
+
+  lifecycle {
+    ignore_changes = [network_rule_set]
+  }
 }
 
 resource "azurerm_storage_account" "test" {
@@ -382,9 +388,7 @@ resource "azurerm_healthcare_fhir_service" "test" {
     audience  = "https://acctestfhir.fhir.azurehealthcareapis.com"
   }
 
-  access_policy_object_ids = [
-    data.azurerm_client_config.current.object_id
-  ]
+  access_policy_object_ids = []
 
   identity {
     type = "SystemAssigned"
@@ -423,6 +427,10 @@ resource "azurerm_container_registry" "test" {
     zone_redundancy_enabled = true
     tags                    = {}
   }
+
+  lifecycle {
+    ignore_changes = [network_rule_set]
+  }
 }
 
 resource "azurerm_storage_account" "test" {
@@ -449,9 +457,7 @@ resource "azurerm_healthcare_fhir_service" "test" {
     audience  = "https://acctestfhir.fhir.azurehealthcareapis.com"
   }
 
-  access_policy_object_ids = [
-    data.azurerm_client_config.current.object_id
-  ]
+  access_policy_object_ids = []
 
   identity {
     type = "SystemAssigned"

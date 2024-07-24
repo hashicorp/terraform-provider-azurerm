@@ -896,7 +896,7 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
 
-  private_endpoint_network_policies_enabled = %t
+  private_endpoint_network_policies = %t
 }
 `, r.template(data), enabled)
 }
@@ -942,7 +942,7 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
 
-  enforce_private_link_endpoint_network_policies = %t
+  private_endpoint_network_policies = %t
 }
 `, r.template(data), enabled)
 }
@@ -958,7 +958,7 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
 
-  enforce_private_link_service_network_policies = %t
+  private_link_service_network_policies_enabled = %t
 }
 `, r.template(data), enabled)
 }
@@ -987,6 +987,10 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16", "ace:cab:deca::/48"]
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
@@ -1008,6 +1012,10 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16", "ace:cab:deca::/48"]
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
@@ -1195,6 +1203,10 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

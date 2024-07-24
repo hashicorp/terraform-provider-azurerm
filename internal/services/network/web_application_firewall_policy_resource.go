@@ -338,6 +338,7 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 																	string(webapplicationfirewallpolicies.ActionTypeAllow),
 																	string(webapplicationfirewallpolicies.ActionTypeAnomalyScoring),
 																	string(webapplicationfirewallpolicies.ActionTypeBlock),
+																	string(webapplicationfirewallpolicies.ActionTypeJSChallenge),
 																	string(webapplicationfirewallpolicies.ActionTypeLog),
 																}, false),
 															},

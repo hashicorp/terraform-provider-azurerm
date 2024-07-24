@@ -132,17 +132,17 @@ A `identity` block supports the following:
 
 A `frontend_private` block supports the following:
 
-* `allocation_method` - (Required) Specify the method for allocating the private IP. Possible values are `Static` and `Dynamic`.
+* `allocation_method` - (Required) Specify the method for allocating the private IP. Possible values are `Static` and `Dynamic`. Changing this forces a new NGINX Deployment to be created.
 
-* `ip_address` - (Required) Specify the private IP Address.
+* `ip_address` - (Required) Specify the private IP Address. Changing this forces a new NGINX Deployment to be created.
 
-* `subnet_id` - (Required) Specify the Subnet Resource ID for this NGINX Deployment.
+* `subnet_id` - (Required) Specify the Subnet Resource ID for this NGINX Deployment. Changing this forces a new NGINX Deployment to be created.
 
 ---
 
 A `frontend_public` block supports the following:
 
-* `ip_address` - (Optional) Specifies a list of Public IP Resource ID to this NGINX Deployment.
+* `ip_address` - (Optional) Specifies a list of Public IP Resource ID to this NGINX Deployment. Changing this forces a new NGINX Deployment to be created.
 
 ---
 
@@ -156,7 +156,7 @@ A `logging_storage_account` block supports the following:
 
 A `network_interface` block supports the following:
 
-* `subnet_id` - (Required) Specify The Subnet Resource ID for this NGINX Deployment.
+* `subnet_id` - (Required) Specify The Subnet Resource ID for this NGINX Deployment. Changing this forces a new NGINX Deployment to be created.
 
 ---
 

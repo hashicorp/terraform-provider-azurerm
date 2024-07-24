@@ -257,7 +257,7 @@ The `rule` block supports the following:
 
 * `enabled` - (Optional) Describes if the managed rule is in enabled state or disabled state.
 
-* `action` - (Optional) Describes the override action to be applied when rule matches. Possible values are `Allow`, `AnomalyScoring`, `Block` and `Log`.
+* `action` - (Optional) Describes the override action to be applied when rule matches. Possible values are `Allow`, `AnomalyScoring`, `Block`, `JSChallenge` and `Log`. `JSChallenge` is only valid for rulesets of type `Microsoft_BotManagerRuleSet`.
 
 ---
 

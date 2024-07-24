@@ -131,7 +131,7 @@ func TestAccKubernetesCluster_advancedNetworkingKubenetComplete(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.advancedNetworkingCompleteConfig(data, "kubenet", true),
+			Config: r.advancedNetworkingCompleteConfig(data, "kubenet"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("kubenet"),
@@ -179,7 +179,7 @@ func TestAccKubernetesCluster_advancedNetworkingAzureComplete(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.advancedNetworkingCompleteConfig(data, "azure", true),
+			Config: r.advancedNetworkingCompleteConfig(data, "azure"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("azure"),
@@ -195,7 +195,7 @@ func TestAccKubernetesCluster_advancedNetworkingAzureWithoutDockerBridgeCidr(t *
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.advancedNetworkingCompleteConfig(data, "azure", false),
+			Config: r.advancedNetworkingCompleteConfig(data, "azure"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("azure"),
@@ -1083,6 +1083,10 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/8"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -1230,6 +1234,10 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/8"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -1290,6 +1298,10 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.1.0.0/16", "fd00:db8:deca::/48"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -1359,6 +1371,10 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.1.0.0/16", "fd00:db8:deca::/48"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -1427,6 +1443,10 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.1.0.0/16", "fd00:db8:deca::/48"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -1474,12 +1494,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, ipv)
 }
 
-func (KubernetesClusterResource) advancedNetworkingCompleteConfig(data acceptance.TestData, networkPlugin string, dockerCidrEnabled bool) string {
-	dockerCidr := `docker_bridge_cidr = "172.18.0.1/16"`
-	if !dockerCidrEnabled {
-		dockerCidr = ""
-	}
-
+func (KubernetesClusterResource) advancedNetworkingCompleteConfig(data acceptance.TestData, networkPlugin string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1495,6 +1510,10 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.1.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -1535,11 +1554,10 @@ resource "azurerm_kubernetes_cluster" "test" {
   network_profile {
     network_plugin = "%s"
     dns_service_ip = "10.10.0.10"
-    %s
-    service_cidr = "10.10.0.0/16"
+    service_cidr   = "10.10.0.0/16"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, networkPlugin, dockerCidr)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, networkPlugin)
 }
 
 // nolint unparam
@@ -1559,6 +1577,10 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/8"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -1620,6 +1642,10 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.1.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -1651,7 +1677,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   network_profile {
     network_plugin      = "azure"
-    ebpf_data_plane     = "cilium"
+    network_data_plane  = "cilium"
     network_plugin_mode = "overlay"
   }
 }
@@ -1674,6 +1700,10 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.1.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -1706,7 +1736,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   network_profile {
     network_plugin      = "azure"
     network_policy      = "cilium"
-    ebpf_data_plane     = "cilium"
+    network_data_plane  = "cilium"
     network_plugin_mode = "overlay"
   }
 }
@@ -1743,6 +1773,10 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.1.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -1825,6 +1859,10 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.1.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -1928,6 +1966,10 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["172.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -2117,6 +2159,10 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["172.16.0.0/20"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_nat_gateway" "test" {
@@ -2691,6 +2737,10 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.1.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -2766,6 +2816,10 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.1.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -2834,6 +2888,10 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.1.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -2899,6 +2957,10 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.1.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -3039,6 +3101,10 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.1.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -3104,6 +3170,10 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.1.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -3172,6 +3242,10 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.1.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -3247,6 +3321,10 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.1.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -3322,6 +3400,10 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.1.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -3397,6 +3479,10 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.1.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -3480,6 +3566,10 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.1.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -3650,6 +3740,10 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.1.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -3822,6 +3916,10 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.1.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -3988,6 +4086,10 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.1.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -4100,6 +4202,10 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/8"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -4131,7 +4237,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     pod_cidr       = "192.168.0.0/16"
     network_plugin = "azure"
 
-    ebpf_data_plane     = "cilium"
+    network_data_plane  = "cilium"
     network_plugin_mode = "overlay"
   }
 }
@@ -4154,6 +4260,10 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/8"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -4206,6 +4316,10 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/8"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -4255,6 +4369,10 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/8"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test" {

@@ -340,6 +340,10 @@ resource "azurerm_virtual_network" "test2" {
   address_space       = ["10.6.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_network_security_group" "test2" {
@@ -405,6 +409,10 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.5.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_network_security_group" "test" {
@@ -459,6 +467,10 @@ resource "azurerm_virtual_network" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   depends_on = [azurerm_virtual_hub.test]
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -470,8 +482,8 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = [cidrsubnet("10.5.1.0/24", 4, count.index)]
 
-  enforce_private_link_endpoint_network_policies = true
-  enforce_private_link_service_network_policies  = true
+  private_endpoint_network_policies             = "Disabled"
+  enforce_private_link_service_network_policies = true
 
   service_endpoints = [
     "Microsoft.AzureActiveDirectory",

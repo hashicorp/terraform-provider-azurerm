@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -27,7 +28,6 @@ func TestAccRouteTable_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("disable_bgp_route_propagation").HasValue("false"),
 				check.That(data.ResourceName).Key("route.#").HasValue("0"),
 			),
 		},
@@ -44,7 +44,6 @@ func TestAccRouteTable_basicNilNextHopIPAddress(t *testing.T) {
 			Config: r.nilNextHopIPAddess(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("disable_bgp_route_propagation").HasValue("false"),
 				check.That(data.ResourceName).Key("route.#").HasValue("1"),
 			),
 		},
@@ -61,7 +60,6 @@ func TestAccRouteTable_requiresImport(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("disable_bgp_route_propagation").HasValue("false"),
 				check.That(data.ResourceName).Key("route.#").HasValue("0"),
 			),
 		},
@@ -81,8 +79,6 @@ func TestAccRouteTable_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("disable_bgp_route_propagation").HasValue("true"),
-				check.That(data.ResourceName).Key("route.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -98,7 +94,6 @@ func TestAccRouteTable_update(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("disable_bgp_route_propagation").HasValue("false"),
 				check.That(data.ResourceName).Key("route.#").HasValue("0"),
 			),
 		},
@@ -106,7 +101,6 @@ func TestAccRouteTable_update(t *testing.T) {
 			Config: r.basicAppliance(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("disable_bgp_route_propagation").HasValue("false"),
 				check.That(data.ResourceName).Key("route.#").HasValue("1"),
 			),
 		},
@@ -114,7 +108,6 @@ func TestAccRouteTable_update(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("disable_bgp_route_propagation").HasValue("true"),
 				check.That(data.ResourceName).Key("route.#").HasValue("1"),
 			),
 		},
@@ -344,7 +337,8 @@ resource "azurerm_route_table" "test" {
 }
 
 func (RouteTableResource) complete(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FourPointOhBeta() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -366,6 +360,31 @@ resource "azurerm_route_table" "test" {
   }
 
   disable_bgp_route_propagation = true
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_route_table" "test" {
+  name                = "acctestrt%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  route {
+    name           = "acctestRoute"
+    address_prefix = "10.1.0.0/16"
+    next_hop_type  = "VnetLocal"
+  }
+
+  bgp_route_propagation_enabled = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

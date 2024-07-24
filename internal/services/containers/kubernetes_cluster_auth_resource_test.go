@@ -441,6 +441,10 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.1.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -838,7 +842,6 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   azure_active_directory_role_based_access_control {
     tenant_id          = var.tenant_id
-    managed            = true
     azure_rbac_enabled = false
   }
 }
@@ -886,7 +889,6 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   azure_active_directory_role_based_access_control {
     tenant_id          = var.tenant_id
-    managed            = true
     azure_rbac_enabled = false
   }
 }
@@ -934,7 +936,6 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   azure_active_directory_role_based_access_control {
     tenant_id          = var.tenant_id
-    managed            = true
     azure_rbac_enabled = false
   }
 }
@@ -1075,7 +1076,6 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   azure_active_directory_role_based_access_control {
     tenant_id          = var.tenant_id
-    managed            = true
     azure_rbac_enabled = true
   }
 }

@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/routetables"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -25,7 +26,7 @@ import (
 var routeTableResourceName = "azurerm_route_table"
 
 func resourceRouteTable() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceRouteTableCreate,
 		Read:   resourceRouteTableRead,
 		Update: resourceRouteTableUpdate,
@@ -56,11 +57,8 @@ func resourceRouteTable() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"route": {
-				Type: pluginsdk.TypeSet,
-				// TODO 5.0 Remove Computed and ConfigModeAttr and recommend adding this block to ignore_changes
-				ConfigMode: pluginsdk.SchemaConfigModeAttr,
-				Optional:   true,
-				Computed:   true,
+				Type:     pluginsdk.TypeSet,
+				Optional: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
@@ -96,11 +94,10 @@ func resourceRouteTable() *pluginsdk.Resource {
 				},
 			},
 
-			// TODO rename to bgp_route_propagation_enabled in 4.0
-			"disable_bgp_route_propagation": {
+			"bgp_route_propagation_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default:  false,
+				Default:  true,
 			},
 
 			"subnets": {
@@ -113,6 +110,67 @@ func resourceRouteTable() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["bgp_route_propagation_enabled"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Computed: true,
+			ConflictsWith: []string{
+				"disable_bgp_route_propagation",
+			},
+		}
+		resource.Schema["disable_bgp_route_propagation"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Computed: true,
+			ConflictsWith: []string{
+				"bgp_route_propagation_enabled",
+			},
+			Deprecated: "The property `disable_bgp_route_propagation` has been superseded by the property `bgp_route_propagation_enabled` and will be removed in v4.0 of the AzureRM Provider.",
+		}
+		resource.Schema["route"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeSet,
+			ConfigMode: pluginsdk.SchemaConfigModeAttr,
+			Optional:   true,
+			Computed:   true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validate.RouteName,
+					},
+
+					"address_prefix": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"next_hop_type": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(routetables.RouteNextHopTypeVirtualNetworkGateway),
+							string(routetables.RouteNextHopTypeVnetLocal),
+							string(routetables.RouteNextHopTypeInternet),
+							string(routetables.RouteNextHopTypeVirtualAppliance),
+							string(routetables.RouteNextHopTypeNone),
+						}, false),
+					},
+
+					"next_hop_in_ip_address": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+				},
+			},
+		}
+	}
+
+	return resource
 }
 
 func resourceRouteTableCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -134,12 +192,24 @@ func resourceRouteTableCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		return tf.ImportAsExistsError("azurerm_route_table", id.ID())
 	}
 
+	bgpRoutePropagationEnabled := true
+
+	if v, ok := d.GetOk("bgp_route_propagation_enabled"); ok {
+		bgpRoutePropagationEnabled = v.(bool)
+	}
+
+	if !features.FourPointOhBeta() {
+		if v, ok := d.GetOk("disable_bgp_route_propagation"); ok {
+			bgpRoutePropagationEnabled = !v.(bool)
+		}
+	}
+
 	routeSet := routetables.RouteTable{
 		Name:     &id.RouteTableName,
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &routetables.RouteTablePropertiesFormat{
 			Routes:                     expandRouteTableRoutes(d),
-			DisableBgpRoutePropagation: pointer.To(d.Get("disable_bgp_route_propagation").(bool)),
+			DisableBgpRoutePropagation: pointer.To(!bgpRoutePropagationEnabled),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -181,8 +251,14 @@ func resourceRouteTableUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 		payload.Properties.Routes = expandRouteTableRoutes(d)
 	}
 
-	if d.HasChange("disable_bgp_route_propagation") {
-		payload.Properties.DisableBgpRoutePropagation = pointer.To(d.Get("disable_bgp_route_propagation").(bool))
+	if !features.FourPointOhBeta() {
+		if d.HasChange("disable_bgp_route_propagation") {
+			payload.Properties.DisableBgpRoutePropagation = pointer.To(d.Get("disable_bgp_route_propagation").(bool))
+		}
+	}
+
+	if d.HasChange("bgp_route_propagation_enabled") {
+		payload.Properties.DisableBgpRoutePropagation = pointer.To(!d.Get("bgp_route_propagation_enabled").(bool))
 	}
 
 	if d.HasChange("tags") {
@@ -222,7 +298,10 @@ func resourceRouteTableRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		d.Set("location", location.NormalizeNilable(model.Location))
 
 		if props := model.Properties; props != nil {
-			d.Set("disable_bgp_route_propagation", props.DisableBgpRoutePropagation)
+			if !features.FourPointOhBeta() {
+				d.Set("disable_bgp_route_propagation", props.DisableBgpRoutePropagation)
+			}
+			d.Set("bgp_route_propagation_enabled", !pointer.From(props.DisableBgpRoutePropagation))
 			if err := d.Set("route", flattenRouteTableRoutes(props.Routes)); err != nil {
 				return err
 			}

@@ -201,6 +201,10 @@ resource "azurerm_virtual_network" "test" {
     "CreatedOnDate"    = "2023-08-17T08:01:00Z",
     "SkipASMAzSecPack" = "true"
   }
+
+  lifecycle {
+    ignore_changes = ["subnet"]
+  }
 }
 
 resource "azurerm_subnet" "test" {

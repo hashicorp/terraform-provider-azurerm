@@ -3,7 +3,10 @@
 
 package features
 
-// import "os"
+import (
+	"os"
+	"strings"
+)
 
 // nolint gocritic
 // DeprecatedInFourPointOh returns the deprecation message if the provider
@@ -30,13 +33,17 @@ func FourPointOh() bool {
 }
 
 // FourPointOhBeta returns whether this provider is running in 4.0 mode
-// which is an opt-in Beta of the (non-breaking changes) coming in 4.0.
-//
-// Any features behind this flag should be backwards-compatible to allow
-// users to try out 4.0 functionality.
+// which is an opt-in Beta of the changes coming in 4.0.
 //
 // This exists to allow breaking changes to be piped through the provider
 // during the development of 3.x until 4.0 is ready.
+//
+// The environment variable `ARM_FOURPOINTZERO_BETA` has been added
+// to facilitate testing. But it should be noted that
+// `ARM_FOURPOINTZERO_BETA` is ** NOT READY FOR PUBLIC USE ** and
+// ** SHOULD NOT BE SET IN PRODUCTION ENVIRONMENTS **
+// Setting `ARM_FOURPOINTZERO_BETA` will cause irreversible changes
+// to your state.
 func FourPointOhBeta() bool {
-	return FourPointOh() || false
+	return FourPointOh() || strings.EqualFold(os.Getenv("ARM_FOURPOINTZERO_BETA"), "true")
 }

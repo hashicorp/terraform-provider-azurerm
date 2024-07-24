@@ -169,6 +169,10 @@ resource "azurerm_iothub" "test" {
     name     = "S1"
     capacity = "1"
   }
+
+  lifecycle {
+    ignore_changes = [route]
+  }
 }
 
 resource "azurerm_iothub_device_update_account" "test" {
@@ -288,7 +292,6 @@ resource "azurerm_iothub_device_update_instance" "test" {
   name                     = "acc-dui-%[2]s"
   device_update_account_id = azurerm_iothub_device_update_account.test.id
   iothub_id                = azurerm_iothub.test.id
-
 
   diagnostic_storage_account {
     connection_string = azurerm_storage_account.test2.primary_connection_string

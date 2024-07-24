@@ -57,11 +57,11 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				_, err := commonids.ParseKubernetesClusterID(id)
 				return err
 			},
-			// TODO 4.0: we're defaulting this at import time because the property is non-functional.
-			// In the lead up to 4.0 planning if the feature still isn't functional we should look at
-			// removing this entirely.
+
 			func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
-				d.Set("public_network_access_enabled", true)
+				if !features.FourPointOhBeta() {
+					d.Set("public_network_access_enabled", true)
+				}
 				return []*pluginsdk.ResourceData{d}, nil
 			},
 		),
@@ -1017,7 +1017,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Optional: true,
 							Computed: !features.FourPointOhBeta(),
 							Default: func() interface{} {
-								if !features.FourPointOh() {
+								if !features.FourPointOhBeta() {
 									return nil
 								}
 								return string(managedclusters.NetworkDataplaneAzure)
@@ -1277,13 +1277,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				),
 			},
 
-			"public_network_access_enabled": {
-				Type:       pluginsdk.TypeBool,
-				Optional:   true,
-				Default:    true,
-				Deprecated: "`public_network_access_enabled` is currently not functional and is not be passed to the API",
-			},
-
 			"role_based_access_control_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -1317,6 +1310,36 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						"external_ingress_gateway_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
+						},
+						"certificate_authority": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"key_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}),
+									"root_cert_object_name": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"cert_chain_object_name": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"cert_object_name": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"key_object_name": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+								},
+							},
 						},
 					},
 				},
@@ -1733,6 +1756,12 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			},
 			ConflictsWith: []string{"web_app_routing.0.dns_zone_id"},
 		}
+		resource.Schema["public_network_access_enabled"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Default:    true,
+			Deprecated: "`public_network_access_enabled` is currently not functional and is not be passed to the API, this property will be removed in v4.0 of the AzureRM provider.",
+		}
 	}
 
 	if features.FourPointOhBeta() {
@@ -1749,6 +1778,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 		resource.Schema["node_os_upgrade_channel"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeString,
 			Optional: true,
+			Default:  string(managedclusters.NodeOSUpgradeChannelNodeImage),
 			ValidateFunc: validation.StringInSlice([]string{
 				string(managedclusters.NodeOSUpgradeChannelNodeImage),
 				string(managedclusters.NodeOSUpgradeChannelNone),
@@ -2634,10 +2664,17 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			}
 		}
 
+		hostEncryptionEnabled := "default_node_pool.0.host_encryption_enabled"
+		nodePublicIpEnabled := "default_node_pool.0.node_public_ip_enabled"
+		if !features.FourPointOhBeta() {
+			hostEncryptionEnabled = "default_node_pool.0.enable_host_encryption"
+			nodePublicIpEnabled = "default_node_pool.0.enable_node_public_ip"
+		}
+
 		cycleNodePoolProperties := []string{
 			"default_node_pool.0.name",
-			"default_node_pool.0.enable_host_encryption",
-			"default_node_pool.0.enable_node_public_ip",
+			hostEncryptionEnabled,
+			nodePublicIpEnabled,
 			"default_node_pool.0.fips_enabled",
 			"default_node_pool.0.kubelet_config",
 			"default_node_pool.0.linux_os_config",
@@ -2888,16 +2925,14 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 				d.Set("automatic_upgrade_channel", upgradeChannel)
 			}
 
-			// the API returns `node_os_channel_upgrade` when `automatic_channel_upgrade` is set to `node-image`
-			// since it's a preview feature we will only set this if it's explicitly been set in the config for the time being
 			if !features.FourPointOhBeta() {
+				// this was a preview feature and returns `node_os_channel_upgrade` when `automatic_channel_upgrade` is set to `node-image`
+				// which is why we were only setting this explicitly if it had been set in the config, keeping this as is for now
 				if v, ok := d.GetOk("node_os_channel_upgrade"); ok && v.(string) != "" {
 					d.Set("node_os_channel_upgrade", nodeOSUpgradeChannel)
 				}
 			} else {
-				if v, ok := d.GetOk("node_os_upgrade_channel"); ok && v.(string) != "" {
-					d.Set("node_os_upgrade_channel", nodeOSUpgradeChannel)
-				}
+				d.Set("node_os_upgrade_channel", nodeOSUpgradeChannel)
 			}
 
 			customCaTrustCertList := flattenCustomCaTrustCerts(props.SecurityProfile)
@@ -4813,9 +4848,32 @@ func expandKubernetesClusterServiceMeshProfile(input []interface{}, existing *ma
 		}
 
 		profile.Istio.Components.IngressGateways = &istioIngressGatewaysList
+
+		if raw["certificate_authority"] != nil {
+			certificateAuthority := expandKubernetesClusterServiceMeshProfileCertificateAuthority(raw["certificate_authority"].([]interface{}))
+			profile.Istio.CertificateAuthority = certificateAuthority
+		}
 	}
 
 	return &profile
+}
+
+func expandKubernetesClusterServiceMeshProfileCertificateAuthority(input []interface{}) *managedclusters.IstioCertificateAuthority {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	config := input[0].(map[string]interface{})
+
+	return &managedclusters.IstioCertificateAuthority{
+		Plugin: &managedclusters.IstioPluginCertificateAuthority{
+			KeyVaultId:          pointer.To(config["key_vault_id"].(string)),
+			RootCertObjectName:  pointer.To(config["root_cert_object_name"].(string)),
+			CertChainObjectName: pointer.To(config["cert_chain_object_name"].(string)),
+			CertObjectName:      pointer.To(config["cert_object_name"].(string)),
+			KeyObjectName:       pointer.To(config["key_object_name"].(string)),
+		},
+	}
 }
 
 func expandKubernetesClusterIngressProfile(d *pluginsdk.ResourceData, input []interface{}) *managedclusters.ManagedClusterIngressProfile {
@@ -4938,7 +4996,28 @@ func flattenKubernetesClusterAzureServiceMeshProfile(input *managedclusters.Serv
 		}
 	}
 
+	if input.Istio.CertificateAuthority != nil {
+		returnMap["certificate_authority"] = flattenKubernetesClusterServiceMeshProfileCertificateAuthority(input.Istio.CertificateAuthority)
+	}
+
 	return []interface{}{returnMap}
+}
+
+func flattenKubernetesClusterServiceMeshProfileCertificateAuthority(certificateAuthority *managedclusters.IstioCertificateAuthority) interface{} {
+	if certificateAuthority == nil || certificateAuthority.Plugin == nil {
+		return []interface{}{}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"key_vault_id":           pointer.From(certificateAuthority.Plugin.KeyVaultId),
+			"root_cert_object_name":  pointer.From(certificateAuthority.Plugin.RootCertObjectName),
+			"cert_chain_object_name": pointer.From(certificateAuthority.Plugin.CertChainObjectName),
+			"cert_object_name":       pointer.From(certificateAuthority.Plugin.CertObjectName),
+			"key_object_name":        pointer.From(certificateAuthority.Plugin.KeyObjectName),
+		},
+	}
+
 }
 
 func flattenKubernetesClusterAzureMonitorProfile(input *managedclusters.ManagedClusterAzureMonitorProfile) []interface{} {

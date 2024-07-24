@@ -108,8 +108,8 @@ func (r StorageMoverJobDefinitionTestResource) template(data acceptance.TestData
 resource "azurerm_storage_mover_agent" "test" {
   name                     = "acctest-sa-%[2]d"
   storage_mover_id         = azurerm_storage_mover.test.id
-  arc_virtual_machine_id   = data.azurerm_hybrid_compute_machine.test.id
-  arc_virtual_machine_uuid = data.azurerm_hybrid_compute_machine.test.vm_uuid
+  arc_virtual_machine_id   = data.azurerm_arc_machine.test.id
+  arc_virtual_machine_uuid = data.azurerm_arc_machine.test.vm_uuid
   depends_on = [
     azurerm_linux_virtual_machine.test
   ]
@@ -233,8 +233,8 @@ provider "azurerm" {
 resource "azurerm_storage_mover_agent" "test2" {
   name                     = "acctest-sa2-%[2]d"
   storage_mover_id         = azurerm_storage_mover.test.id
-  arc_virtual_machine_id   = data.azurerm_hybrid_compute_machine.test.id
-  arc_virtual_machine_uuid = data.azurerm_hybrid_compute_machine.test.vm_uuid
+  arc_virtual_machine_id   = data.azurerm_arc_machine.test.id
+  arc_virtual_machine_uuid = data.azurerm_arc_machine.test.vm_uuid
 }
 
 resource "azurerm_storage_mover_job_definition" "test" {

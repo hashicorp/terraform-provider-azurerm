@@ -137,46 +137,78 @@ func TestAccKeyVault_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault", "test")
 	r := KeyVaultResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("access_policy.0.key_permissions.0").HasValue("Create"),
-				check.That(data.ResourceName).Key("access_policy.0.secret_permissions.0").HasValue("Set"),
-				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
-			),
-		},
-		{
-			Config: r.update(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("access_policy.0.key_permissions.0").HasValue("Get"),
-				check.That(data.ResourceName).Key("access_policy.0.secret_permissions.0").HasValue("Get"),
-				check.That(data.ResourceName).Key("enabled_for_deployment").HasValue("true"),
-				check.That(data.ResourceName).Key("enabled_for_disk_encryption").HasValue("true"),
-				check.That(data.ResourceName).Key("enabled_for_template_deployment").HasValue("true"),
-				check.That(data.ResourceName).Key("enable_rbac_authorization").HasValue("true"),
-				check.That(data.ResourceName).Key("tags.environment").HasValue("Staging"),
-			),
-		},
-		{
-			Config: r.noAccessPolicyBlocks(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				// There are no access_policy blocks in this configuration
-				// at all, which means to ignore any existing policies and
-				// so the one created in previous steps is still present.
-				check.That(data.ResourceName).Key("access_policy.#").HasValue("1"),
-			),
-		},
-		{
-			Config: r.accessPolicyExplicitZero(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				// This config explicitly sets access_policy = [], which
-				// means to delete any existing policies.
-				check.That(data.ResourceName).Key("access_policy.#").HasValue("0"),
-			),
-		},
-	})
+	if !features.FourPointOhBeta() {
+		data.ResourceTest(t, r, []acceptance.TestStep{
+			{
+				Config: r.basic(data),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+					check.That(data.ResourceName).Key("access_policy.0.key_permissions.0").HasValue("Create"),
+					check.That(data.ResourceName).Key("access_policy.0.secret_permissions.0").HasValue("Set"),
+					check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+				),
+			},
+			{
+				Config: r.update(data),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).Key("access_policy.0.key_permissions.0").HasValue("Get"),
+					check.That(data.ResourceName).Key("access_policy.0.secret_permissions.0").HasValue("Get"),
+					check.That(data.ResourceName).Key("enabled_for_deployment").HasValue("true"),
+					check.That(data.ResourceName).Key("enabled_for_disk_encryption").HasValue("true"),
+					check.That(data.ResourceName).Key("enabled_for_template_deployment").HasValue("true"),
+					check.That(data.ResourceName).Key("enable_rbac_authorization").HasValue("true"),
+					check.That(data.ResourceName).Key("tags.environment").HasValue("Staging"),
+				),
+			},
+			{
+				Config: r.noAccessPolicyBlocks(data),
+				Check: acceptance.ComposeTestCheckFunc(
+					// There are no access_policy blocks in this configuration
+					// at all, which means to ignore any existing policies and
+					// so the one created in previous steps is still present.
+					check.That(data.ResourceName).Key("access_policy.#").HasValue("1"),
+				),
+			},
+			{
+				Config: r.accessPolicyExplicitZero(data),
+				Check: acceptance.ComposeTestCheckFunc(
+					// This config explicitly sets access_policy = [], which
+					// means to delete any existing policies.
+					check.That(data.ResourceName).Key("access_policy.#").HasValue("0"),
+				),
+			},
+		})
+	} else {
+		data.ResourceTest(t, r, []acceptance.TestStep{
+			{
+				Config: r.basic(data),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+					check.That(data.ResourceName).Key("access_policy.0.key_permissions.0").HasValue("Create"),
+					check.That(data.ResourceName).Key("access_policy.0.secret_permissions.0").HasValue("Set"),
+					check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+				),
+			},
+			{
+				Config: r.update(data),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).Key("access_policy.0.key_permissions.0").HasValue("Get"),
+					check.That(data.ResourceName).Key("access_policy.0.secret_permissions.0").HasValue("Get"),
+					check.That(data.ResourceName).Key("enabled_for_deployment").HasValue("true"),
+					check.That(data.ResourceName).Key("enabled_for_disk_encryption").HasValue("true"),
+					check.That(data.ResourceName).Key("enabled_for_template_deployment").HasValue("true"),
+					check.That(data.ResourceName).Key("enable_rbac_authorization").HasValue("true"),
+					check.That(data.ResourceName).Key("tags.environment").HasValue("Staging"),
+				),
+			},
+			{
+				Config: r.noAccessPolicyBlocks(data),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).Key("access_policy.#").HasValue("0"),
+				),
+			},
+		})
+	}
 }
 
 func TestAccKeyVault_upgradeSKU(t *testing.T) {
@@ -430,29 +462,6 @@ func TestAccKeyVault_purgeProtectionAttemptToDisable(t *testing.T) {
 	})
 }
 
-func TestAccKeyVault_deletePolicy(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_key_vault", "test")
-	r := KeyVaultResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.noPolicy(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("access_policy.#").HasValue("0"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func (KeyVaultResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseKeyVaultID(state.ID)
 	if err != nil {
@@ -612,6 +621,10 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test_a" {
@@ -1133,33 +1146,6 @@ resource "azurerm_key_vault" "test" {
   sku_name                   = "standard"
   soft_delete_retention_days = 7
   purge_protection_enabled   = true
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func (KeyVaultResource) noPolicy(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-data "azurerm_client_config" "current" {
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_key_vault" "test" {
-  name                       = "vault%d"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  tenant_id                  = data.azurerm_client_config.current.tenant_id
-  sku_name                   = "standard"
-  soft_delete_retention_days = 7
-
-  access_policy = []
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

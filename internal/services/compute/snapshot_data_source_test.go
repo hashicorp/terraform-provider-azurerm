@@ -177,8 +177,6 @@ resource "azurerm_snapshot" "test" {
   disk_size_gb        = "20"
 
   encryption_settings {
-    enabled = true
-
     disk_encryption_key {
       secret_url      = azurerm_key_vault_secret.test.id
       source_vault_id = azurerm_key_vault.test.id

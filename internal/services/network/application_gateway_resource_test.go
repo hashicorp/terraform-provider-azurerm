@@ -6220,6 +6220,10 @@ resource "azurerm_virtual_network" "test" {
   resource_group_name = azurerm_resource_group.test.name
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -6227,7 +6231,7 @@ resource "azurerm_subnet" "test" {
   resource_group_name                           = azurerm_resource_group.test.name
   virtual_network_name                          = azurerm_virtual_network.test.name
   address_prefixes                              = ["10.0.0.0/24"]
-  enforce_private_link_service_network_policies = true
+  private_link_service_network_policies_enabled = false
 }
 
 resource "azurerm_public_ip" "test" {
@@ -6235,6 +6239,7 @@ resource "azurerm_public_ip" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Dynamic"
+  sku                 = "Basic"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

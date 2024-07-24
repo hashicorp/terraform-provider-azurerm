@@ -63,16 +63,6 @@ func resourceDevTestLab() *pluginsdk.Resource {
 			// BUG: https://github.com/Azure/azure-rest-api-specs/issues/3964
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
-			"storage_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(labs.StorageTypePremium),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(labs.StorageTypeStandard),
-					string(labs.StorageTypePremium),
-				}, false),
-			},
-
 			"tags": tags.Schema(),
 
 			"artifacts_storage_account_id": {

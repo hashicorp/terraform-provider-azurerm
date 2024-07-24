@@ -877,6 +877,21 @@ func TestAccLinuxWebAppSlot_withPhp82(t *testing.T) {
 	})
 }
 
+func TestAccLinuxWebAppSlot_withPhp83(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
+	r := LinuxWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.php(data, "8.3"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
 func TestAccLinuxWebAppSlot_withPython37(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
 	r := LinuxWebAppSlotResource{}
@@ -1859,7 +1874,7 @@ resource "azurerm_linux_web_app_slot" "test" {
     local_mysql_enabled         = true
     managed_pipeline_mode       = "Integrated"
     remote_debugging_enabled    = true
-    remote_debugging_version    = "VS2019"
+    remote_debugging_version    = "VS2022"
     use_32_bit_worker           = true
     websockets_enabled          = true
     ftps_state                  = "FtpsOnly"
@@ -2478,6 +2493,9 @@ resource "azurerm_linux_web_app_slot" "test" {
     }
   }
 }
+
+
+
 
 `, r.baseTemplate(data), data.RandomInteger, phpVersion)
 }
