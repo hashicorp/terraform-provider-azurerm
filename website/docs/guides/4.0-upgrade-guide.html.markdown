@@ -10,13 +10,15 @@ Azure Resource Manager: 4.0 Upgrade Guide
 
 ## AzureRM Provider Version v4.0
 
-The last major release for the AzureRM provider was in March 2022. Since then we've added support for nearly TODO
+The last major release for the AzureRM provider was in March 2022. Since then we've added support for nearly 340 Resources and 120 Data Sources, bringing the total supported features to 1101 Resources and 358 Data Sources at the time of writing this guide.
 
 ### Considerations
 
 Version 4.0 of the AzureRM Provider is a major release and includes breaking changes which are outlined in this document.
 
 When upgrading to version 4.0 of the AzureRM Provider, we recommend upgrading to the latest version of Terraform Core ([which can be found here](https://www.terraform.io/downloads)).
+
+This guide will continue to receive updates as we incorporate feedback and continue to fix any issues during the Beta.
 
 ### Pinning your Provider Version
 
@@ -80,7 +82,7 @@ Previously the AzureRM Provider had an all(*) or nothing approach to Azure Resou
 
 The inflexibility of this method has been a pain point and is also at odds with the recommendations from Microsoft, which is to only register RPs as needed.
 
-RP registration in 4.0 has been revamped to provide users with more control over which RPs to automatically register or whether to continue managing RP registration outside of the provider.
+RP registration in 4.0 has been revamped to provide users with more control over which RPs to automatically register or whether to continue managing RP registration outside the provider.
 
 We've introduced two new feature flags in the provider block:
 
@@ -160,7 +162,7 @@ By making it mandatory to specify the subscription ID for all authentication met
 
 ## Provider Functions
 
-With the addition of Provider Functions in Terraform 1.8, we've added two Azure specific provider functions to give users the ability to correct the casing of their Resource IDs, or the access the individual components of it.
+With the addition of Provider Functions in Terraform 1.8, we've added two Azure specific provider functions to give users the ability to correct the casing of their Resource IDs, or to access the individual components of it.
 
 `normalise_resource_id` - Takes an Azure Resource ID and attempts to normalise the case-sensitive system segments as required by the AzureRM provider. User specified segments are not affected or corrected. 
 
@@ -260,13 +262,13 @@ The following resources and properties have been affected by this change:
 
 ### `azurerm_iothub`
 
-* `endpoint` has had `Computed` and `ConfigModeAttr` removed, attribute notation can no longer be used. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
-* `enrichment` has had `Computed` and `ConfigModeAttr` removed, attribute notation can no longer be used. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
-* `route` has had `Computed` and `ConfigModeAttr` removed, attribute notation can no longer be used. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
+* `endpoint` has had `Computed` and `ConfigModeAttr` removed, attribute notation can no longer be used. If you are managing `endpoint` through any of the IotHub Endpoint resources you will need to add this property to `ignore_changes`.
+* `enrichment` has had `Computed` and `ConfigModeAttr` removed, attribute notation can no longer be used. If you are managing `enrichment` through the resource `azurerm_iothub_enrichment` you will need to add this property to `ignore_changes`.
+* `route` has had `Computed` and `ConfigModeAttr` removed, attribute notation can no longer be used. If you are managing `route` through the resource `azurerm_iothub_route` you will need to add this property to `ignore_changes`.
 
 ### `azurerm_key_vault`
 
-* `access_policy` has had `Computed` and `ConfigModeAttr` removed, attribute notation can no longer be used. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
+* `access_policy` has had `Computed` and `ConfigModeAttr` removed, attribute notation can no longer be used. If you are managing `access_policy` through the resource `azurerm_key_vault_access_policy` you will need to add this property to `ignore_changes`.
 
 ### `azurerm_kusto_cluster`
 
@@ -281,7 +283,7 @@ The following resources and properties have been affected by this change:
 
 ### `azurerm_network_security_group`
 
-* `security_rule` has had `Computed` and `ConfigModeAttr` removed, attribute notation can no longer be used. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
+* `security_rule` has had `Computed` and `ConfigModeAttr` removed, attribute notation can no longer be used. If you are managing `security_rule` through the resource `azurerm_network_security_rule` you will need to add this property to `ignore_changes`.
 
 ### `azurerm_route_filter`
 
@@ -289,7 +291,7 @@ The following resources and properties have been affected by this change:
 
 ### `azurerm_route_table`
 
-* `route` has had `Computed` and `ConfigModeAttr` removed, attribute notation can no longer be used. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
+* `route` has had `Computed` and `ConfigModeAttr` removed, attribute notation can no longer be used. If you are managing `route` through the resource `azurerm_route` you will need to add this property to `ignore_changes`.
 
 ### `azurerm_site_recovery_replicated_vm`
 
@@ -299,6 +301,10 @@ The following resources and properties have been affected by this change:
 * `managed_disk.target_disk_encryption` has had `ConfigModeAttr` removed, attribute notation can no longer be used.
 * `managed_disk.target_disk_encryption.disk_encryption_key` has had `ConfigModeAttr` removed, attribute notation can no longer be used.
 * `managed_disk.target_disk_encryptionkey_encryption_key` has had `ConfigModeAttr` removed, attribute notation can no longer be used.
+
+### `azurerm_virtual_network`
+
+* `subnet` has had `Computed` and `ConfigModeAttr` removed, attribute notation can no longer be used. If you are managing `subnet` through the resource `azurerm_subnet` you will need to add this property to `ignore_changes`.
 
 ## Removed Resources
 
@@ -862,7 +868,6 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 
 * The deprecated property `public_access_behind_virtual_network_enabled` has been removed in favour of the `public_network_access_enabled` property.
 * The property `public_network_access_enabled` now defaults to `true`.
-* The `managed_network` block is no longer `Computed`. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
 
 ### `azurerm_managed_applications`
 

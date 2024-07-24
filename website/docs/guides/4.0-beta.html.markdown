@@ -23,9 +23,9 @@ This guide details how to enable these features and how you can submit feedback 
 
 ## Disclaimers
 
--> The functionality provided in this Beta is subject to change - as such we recommend **not using this Beta in Production**.
+-> The functionality provided in this Beta is subject to change - as such **this Beta should not be used in Production**.
 
--> Once opted in, it will not be possible to opt-out of the Beta, this is because the new functionality and deprecations in 4.0 can make non-reversible changes to the Terraform state. We recommend making a backup of your environment before activating the Beta in case a rollback of the environment is needed.
+-> Once opted in, it will not be possible to opt-out of the Beta, this is because the new functionality and removal of deprecated functionality in 4.0 will make **irreversible changes to the Terraform state**. We recommend making a backup of your environment before activating the Beta in case a rollback of the environment is required.
 
 -> Whilst certain feature flags may be available in earlier versions of the Azure Provider they existed in an incomplete manner - **the Beta is only supported when using version 3.114 (or later) of the Azure Provider**.
 
@@ -53,4 +53,4 @@ On a Windows System (in PowerShell) you can do this via:
 
 Firstly - thanks for trialling the new functionality coming in version 4.0 of the Azure Provider.
 
-We're keeping track of Beta Feedback in the Github Repository - as such [please follow this link to open an issue containing your feedback](https://github.com/terraform-providers/terraform-provider-azurerm/issues/new?template=Beta_Feedback.md).
+We're keeping track of Beta Feedback in the GitHub Repository - as such [please follow this link to open an issue containing your feedback](https://github.com/terraform-providers/terraform-provider-azurerm/issues/new?template=Beta_Feedback.md).
