@@ -904,10 +904,10 @@ func resourceApiManagementServiceCreate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	signInSettingsRaw := d.Get("sign_in").([]interface{})
-	if sku.Name == apimanagementservice.SkuTypeConsumption && len(signInSettingsRaw) > 0 {
-		return fmt.Errorf("`sign_in` is not support for sku tier `Consumption`")
+	if (sku.Name == apimanagementservice.SkuTypeConsumption || sku.Name == apimanagementservice.SkuTypeBasicVTwo || sku.Name == apimanagementservice.SkuTypeStandardVTwo) && len(signInSettingsRaw) > 0 {
+		return fmt.Errorf("`sign_in` is not support for sku tier `Consumption`, `BasicV2` or `StandardV2`")
 	}
-	if sku.Name != apimanagementservice.SkuTypeConsumption {
+	if sku.Name != apimanagementservice.SkuTypeConsumption && sku.Name != apimanagementservice.SkuTypeBasicVTwo && sku.Name != apimanagementservice.SkuTypeStandardVTwo {
 		signInSettingServiceId := signinsettings.NewServiceID(subscriptionId, id.ResourceGroupName, id.ServiceName)
 		signInSettings := expandApiManagementSignInSettings(signInSettingsRaw)
 		signInClient := meta.(*clients.Client).ApiManagement.SignInClient
@@ -917,10 +917,10 @@ func resourceApiManagementServiceCreate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	signUpSettingsRaw := d.Get("sign_up").([]interface{})
-	if sku.Name == apimanagementservice.SkuTypeConsumption && len(signUpSettingsRaw) > 0 {
-		return fmt.Errorf("`sign_up` is not support for sku tier `Consumption`")
+	if (sku.Name == apimanagementservice.SkuTypeConsumption || sku.Name == apimanagementservice.SkuTypeBasicVTwo || sku.Name == apimanagementservice.SkuTypeStandardVTwo) && len(signUpSettingsRaw) > 0 {
+		return fmt.Errorf("`sign_up` is not support for sku tier `Consumption`, `BasicV2` or `StandardV2`")
 	}
-	if sku.Name != apimanagementservice.SkuTypeConsumption {
+	if sku.Name != apimanagementservice.SkuTypeConsumption && sku.Name != apimanagementservice.SkuTypeBasicVTwo && sku.Name != apimanagementservice.SkuTypeStandardVTwo {
 		signUpSettingServiceId := signupsettings.NewServiceID(subscriptionId, id.ResourceGroupName, id.ServiceName)
 		signUpSettings := expandApiManagementSignUpSettings(signUpSettingsRaw)
 		signUpClient := meta.(*clients.Client).ApiManagement.SignUpClient
@@ -1150,10 +1150,10 @@ func resourceApiManagementServiceUpdate(d *pluginsdk.ResourceData, meta interfac
 
 	if d.HasChange("sign_in") {
 		signInSettingsRaw := d.Get("sign_in").([]interface{})
-		if sku.Name == apimanagementservice.SkuTypeConsumption && len(signInSettingsRaw) > 0 {
-			return fmt.Errorf("`sign_in` is not support for sku tier `Consumption`")
+		if (sku.Name == apimanagementservice.SkuTypeConsumption || sku.Name == apimanagementservice.SkuTypeBasicVTwo || sku.Name == apimanagementservice.SkuTypeStandardVTwo) && len(signInSettingsRaw) > 0 {
+			return fmt.Errorf("`sign_in` is not support for sku tier `Consumption`, `BasicV2` or `StandardV2`")
 		}
-		if sku.Name != apimanagementservice.SkuTypeConsumption {
+		if sku.Name != apimanagementservice.SkuTypeConsumption && sku.Name != apimanagementservice.SkuTypeBasicVTwo && sku.Name != apimanagementservice.SkuTypeStandardVTwo {
 			signInSettingServiceId := signinsettings.NewServiceID(subscriptionId, id.ResourceGroupName, id.ServiceName)
 			signInSettings := expandApiManagementSignInSettings(signInSettingsRaw)
 			signInClient := meta.(*clients.Client).ApiManagement.SignInClient
@@ -1165,10 +1165,10 @@ func resourceApiManagementServiceUpdate(d *pluginsdk.ResourceData, meta interfac
 
 	if d.HasChange("sign_up") {
 		signUpSettingsRaw := d.Get("sign_up").([]interface{})
-		if sku.Name == apimanagementservice.SkuTypeConsumption && len(signUpSettingsRaw) > 0 {
-			return fmt.Errorf("`sign_up` is not support for sku tier `Consumption`")
+		if (sku.Name == apimanagementservice.SkuTypeConsumption || sku.Name == apimanagementservice.SkuTypeBasicVTwo || sku.Name == apimanagementservice.SkuTypeStandardVTwo) && len(signUpSettingsRaw) > 0 {
+			return fmt.Errorf("`sign_up` is not support for sku tier `Consumption`, `BasicV2` or `StandardV2`")
 		}
-		if sku.Name != apimanagementservice.SkuTypeConsumption {
+		if sku.Name != apimanagementservice.SkuTypeConsumption && sku.Name != apimanagementservice.SkuTypeBasicVTwo && sku.Name != apimanagementservice.SkuTypeStandardVTwo {
 			signUpSettingServiceId := signupsettings.NewServiceID(subscriptionId, id.ResourceGroupName, id.ServiceName)
 			signUpSettings := expandApiManagementSignUpSettings(signUpSettingsRaw)
 			signUpClient := meta.(*clients.Client).ApiManagement.SignUpClient
@@ -1351,7 +1351,7 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 
 		d.Set("zones", zones.FlattenUntyped(model.Zones))
 
-		if model.Sku.Name != apimanagementservice.SkuTypeConsumption {
+		if model.Sku.Name != apimanagementservice.SkuTypeConsumption && model.Sku.Name != apimanagementservice.SkuTypeBasicVTwo && model.Sku.Name != apimanagementservice.SkuTypeStandardVTwo {
 			signInSettingServiceId := signinsettings.NewServiceID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName)
 			signInSettings, err := signInClient.Get(ctx, signInSettingServiceId)
 			if err != nil {
