@@ -284,9 +284,9 @@ resource "azurerm_servicebus_namespace" "updated" {
 }
 
 resource "azurerm_servicebus_queue" "updated" {
-  name                = "acctest2-%d"
-  namespace_id        = azurerm_servicebus_namespace.updated.id
-  enable_partitioning = true
+  name                 = "acctest2-%d"
+  namespace_id         = azurerm_servicebus_namespace.updated.id
+  partitioning_enabled = true
 }
 
 resource "azurerm_stream_analytics_output_servicebus_queue" "test" {
@@ -478,9 +478,9 @@ resource "azurerm_servicebus_namespace" "test" {
 }
 
 resource "azurerm_servicebus_queue" "test" {
-  name                = "acctest-%d"
-  namespace_id        = azurerm_servicebus_namespace.test.id
-  enable_partitioning = true
+  name                 = "acctest-%d"
+  namespace_id         = azurerm_servicebus_namespace.test.id
+  partitioning_enabled = true
 }
 
 resource "azurerm_stream_analytics_job" "test" {

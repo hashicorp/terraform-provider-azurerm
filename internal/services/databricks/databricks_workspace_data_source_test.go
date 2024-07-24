@@ -30,7 +30,7 @@ func TestAccDatabricksWorkspaceDataSource_basic(t *testing.T) {
 	})
 }
 
-func TestAccDatabricksWorkspaceDataSource_storage_account_identity(t *testing.T) {
+func TestAccDatabricksWorkspaceDataSource_storageAccountIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_databricks_workspace", "test")
 	r := DatabricksWorkspaceDataSource{}
 
@@ -117,6 +117,10 @@ resource "azurerm_key_vault" "test" {
   sku_name            = "premium"
 
   soft_delete_retention_days = 7
+
+  lifecycle {
+    ignore_changes = [access_policy]
+  }
 }
 
 resource "azurerm_key_vault_key" "test" {

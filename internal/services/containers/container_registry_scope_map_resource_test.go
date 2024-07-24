@@ -127,6 +127,10 @@ resource "azurerm_container_registry" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "Premium"
+
+  lifecycle {
+    ignore_changes = [network_rule_set]
+  }
 }
 
 resource "azurerm_container_registry_scope_map" "test" {
@@ -172,6 +176,10 @@ resource "azurerm_container_registry" "test" {
   tags = {
     environment = "production"
   }
+
+  lifecycle {
+    ignore_changes = [network_rule_set]
+  }
 }
 
 resource "azurerm_container_registry_scope_map" "test" {
@@ -204,6 +212,10 @@ resource "azurerm_container_registry" "test" {
 
   tags = {
     environment = "production"
+  }
+
+  lifecycle {
+    ignore_changes = [network_rule_set]
   }
 }
 

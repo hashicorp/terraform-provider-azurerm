@@ -1,9 +1,30 @@
-## 3.113.0 (Unreleased)
+## 3.114.0 (Unreleased)
+
+BUG FIXES:
+
+* `azurerm_dns_cname_record` - split create and update function to fix lifecycle - ignore [GH-26610]
+* `azurerm_dns_srv_record` - split create and update function to fix lifecycle - ignore [GH-26627]
+
+## 3.113.0 (July 18, 2024)
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v0.20240715.1100358` of `hashicorp/go-azure-sdk` [GH-26638]
+* dependencies: updating to `v0.20240715.1100358` of `hashicorp/go-azure-sdk` ([#26638](https://github.com/hashicorp/terraform-provider-azurerm/issues/26638))
+* `storage` - updating to use `hashicorp/go-azure-sdk` ([#26218](https://github.com/hashicorp/terraform-provider-azurerm/issues/26218))
 
+BUG FIXES:
+
+* `azurerm_storage_account` - fix a validation bug when replacing a StorageV2 account with a StorageV1 account ([#26639](https://github.com/hashicorp/terraform-provider-azurerm/issues/26639))
+* `azurerm_storage_account` - resolve an issue refreshing blob or queue properties after recreation ([#26218](https://github.com/hashicorp/terraform-provider-azurerm/issues/26218))
+* `azurerm_storage_account` - resolve an issue setting tags for an existing storage account where a policy mandates them ([#26218](https://github.com/hashicorp/terraform-provider-azurerm/issues/26218))
+* `azurerm_storage_account` - fix a persistent diff with the `customer_managed_key` block ([#26218](https://github.com/hashicorp/terraform-provider-azurerm/issues/26218))
+* `azurerm_storage_account` - resolve several consistency related issues when crreating a new storage account ([#26218](https://github.com/hashicorp/terraform-provider-azurerm/issues/26218))
+
+DEPRECATIONS:
+
+* `azurerm_eventhub_namespace` - deprecate the `zone_redundant` field in v4.0 ([#26611](https://github.com/hashicorp/terraform-provider-azurerm/issues/26611))
+* `azurerm_servicebus_namespace` - deprecate the `zone_redundant` field in v4.0 ([#26611](https://github.com/hashicorp/terraform-provider-azurerm/issues/26611))
+  
 ## 3.112.0 (July 12, 2024)
 
 FEATURES:

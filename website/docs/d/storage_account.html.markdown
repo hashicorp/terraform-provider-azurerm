@@ -45,6 +45,8 @@ output "storage_account_tier" {
 
 * `access_tier` - The access tier for `BlobStorage` accounts.
 
+* `dns_endpoint_type` - Which DNS endpoint type is used - either `Standard` or `AzureDnsZone`.
+
 * `enable_https_traffic_only` - Is traffic only allowed via HTTPS? See [here](https://docs.microsoft.com/azure/storage/storage-require-secure-transfer/)
     for more information.
 

@@ -868,7 +868,7 @@ resource "azurerm_container_group" "test" {
       http_get {
         path   = "/"
         port   = 443
-        scheme = "Http"
+        scheme = "http"
         http_headers = {
           h1 = "v1"
           h2 = "v2"
@@ -1890,7 +1890,7 @@ resource "azurerm_container_group" "test" {
       http_get {
         path   = "/"
         port   = 443
-        scheme = "Http"
+        scheme = "http"
         http_headers = {
           h1 = "v1"
           h2 = "v2"
@@ -2041,7 +2041,7 @@ resource "azurerm_container_group" "test" {
       http_get {
         path   = "/"
         port   = 443
-        scheme = "Http"
+        scheme = "http"
         http_headers = {
           h1 = "v1"
           h2 = "v2"
@@ -2150,6 +2150,10 @@ resource "azurerm_container_group" "test" {
 
     commands = ["/bin/sh", "-c", "node /usr/src/app/index.js & (sleep 5; touch /tmp/ready); wait"]
   }
+
+  lifecycle {
+    ignore_changes = [exposed_port]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -2210,7 +2214,7 @@ resource "azurerm_container_group" "test" {
       http_get {
         path   = "/"
         port   = 80
-        scheme = "Http"
+        scheme = "http"
       }
 
       initial_delay_seconds = 10
@@ -2500,6 +2504,10 @@ resource "azurerm_key_vault" "test" {
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
   sku_name            = "standard"
+
+  lifecycle {
+    ignore_changes = [access_policy]
+  }
 }
 
 resource "azurerm_key_vault_access_policy" "terraform" {
@@ -2600,6 +2608,10 @@ resource "azurerm_key_vault" "test" {
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
   sku_name            = "standard"
+
+  lifecycle {
+    ignore_changes = [access_policy]
+  }
 }
 
 resource "azurerm_key_vault_access_policy" "terraform" {

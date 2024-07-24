@@ -320,6 +320,10 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -378,11 +382,6 @@ resource "azurerm_synapse_workspace" "test" {
   sql_administrator_login              = "sqladminuser"
   sql_administrator_login_password     = "H@Sh1CoR4!"
   sql_identity_control_enabled         = true
-  aad_admin {
-    login     = "AzureAD Admin"
-    object_id = data.azurerm_client_config.current.object_id
-    tenant_id = data.azurerm_client_config.current.tenant_id
-  }
 
   identity {
     type         = "SystemAssigned, UserAssigned"
@@ -392,6 +391,13 @@ resource "azurerm_synapse_workspace" "test" {
   tags = {
     ENV = "Test2"
   }
+}
+
+resource "azurerm_synapse_workspace_aad_admin" "test" {
+  synapse_workspace_id = azurerm_synapse_workspace.test.id
+  login                = "AzureAD Admin"
+  object_id            = data.azurerm_client_config.current.object_id
+  tenant_id            = data.azurerm_client_config.current.tenant_id
 }
 `, template, data.RandomInteger, data.RandomInteger)
 }
@@ -419,12 +425,6 @@ resource "azurerm_synapse_workspace" "test" {
   sql_administrator_login_password     = "H@Sh1CoR4!"
   sql_identity_control_enabled         = true
 
-  sql_aad_admin {
-    login     = "AzureAD Admin"
-    object_id = data.azurerm_client_config.current.object_id
-    tenant_id = data.azurerm_client_config.current.tenant_id
-  }
-
   identity {
     type         = "SystemAssigned, UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
@@ -433,6 +433,13 @@ resource "azurerm_synapse_workspace" "test" {
   tags = {
     ENV = "Test2"
   }
+}
+
+resource "azurerm_synapse_workspace_sql_aad_admin" "test" {
+  synapse_workspace_id = azurerm_synapse_workspace.test.id
+  login                = "AzureAD Admin"
+  object_id            = data.azurerm_client_config.current.object_id
+  tenant_id            = data.azurerm_client_config.current.tenant_id
 }
 `, template, data.RandomInteger, data.RandomInteger)
 }
@@ -459,17 +466,6 @@ resource "azurerm_synapse_workspace" "test" {
   sql_administrator_login              = "sqladminuser"
   sql_administrator_login_password     = "H@Sh1CoR4!"
   sql_identity_control_enabled         = true
-  aad_admin {
-    login     = "AzureAD Admin"
-    object_id = data.azurerm_client_config.current.object_id
-    tenant_id = data.azurerm_client_config.current.tenant_id
-  }
-
-  sql_aad_admin {
-    login     = "AzureAD Admin"
-    object_id = data.azurerm_client_config.current.object_id
-    tenant_id = data.azurerm_client_config.current.tenant_id
-  }
 
   identity {
     type         = "SystemAssigned, UserAssigned"
@@ -479,6 +475,20 @@ resource "azurerm_synapse_workspace" "test" {
   tags = {
     ENV = "Test2"
   }
+}
+
+resource "azurerm_synapse_workspace_aad_admin" "test" {
+  synapse_workspace_id = azurerm_synapse_workspace.test.id
+  login                = "AzureAD Admin"
+  object_id            = data.azurerm_client_config.current.object_id
+  tenant_id            = data.azurerm_client_config.current.tenant_id
+}
+
+resource "azurerm_synapse_workspace_sql_aad_admin" "test" {
+  synapse_workspace_id = azurerm_synapse_workspace.test.id
+  login                = "AzureAD Admin"
+  object_id            = data.azurerm_client_config.current.object_id
+  tenant_id            = data.azurerm_client_config.current.tenant_id
 }
 `, template, data.RandomInteger, data.RandomInteger)
 }
