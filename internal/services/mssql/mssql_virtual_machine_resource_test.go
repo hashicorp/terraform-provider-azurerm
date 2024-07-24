@@ -421,6 +421,10 @@ resource "azurerm_network_security_group" "test" {
   name                = "acctest-NSG-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [security_rule]
+  }
 }
 
 resource "azurerm_network_security_rule" "MSSQLRule" {
