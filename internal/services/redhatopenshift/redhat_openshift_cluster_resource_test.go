@@ -603,6 +603,10 @@ resource "azurerm_network_security_group" "test" {
   name                = "test-network-security-group"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [security_rule]
+  }
 }
 
 resource "azurerm_network_security_rule" "test_allow_all_inbound" {
@@ -956,6 +960,10 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/22"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "main_subnet" {

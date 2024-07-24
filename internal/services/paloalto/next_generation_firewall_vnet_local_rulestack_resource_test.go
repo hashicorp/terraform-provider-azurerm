@@ -313,6 +313,10 @@ resource "azurerm_virtual_network" "test" {
   tags = {
     environment = "Production"
   }
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test1" {

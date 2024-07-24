@@ -343,6 +343,10 @@ resource "azurerm_virtual_network" "hybrid" {
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.hybrid.location
   resource_group_name = azurerm_resource_group.hybrid.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "hybrid" {

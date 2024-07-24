@@ -82,6 +82,10 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -138,6 +142,8 @@ resource "azurerm_virtual_machine_automanage_configuration_assignment" "test" {
   virtual_machine_id = azurerm_linux_virtual_machine.test.id
   configuration_id   = azurerm_automanage_configuration.test.id
 }
+
+
 
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)

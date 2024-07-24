@@ -305,6 +305,10 @@ resource "azurerm_virtual_network" "test1" {
   resource_group_name = azurerm_resource_group.test.name
   address_space       = ["192.168.1.0/24"]
   location            = azurerm_site_recovery_fabric.test1.location
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test1" {
@@ -319,6 +323,10 @@ resource "azurerm_virtual_network" "test2" {
   resource_group_name = azurerm_resource_group.test2.name
   address_space       = ["192.168.2.0/24"]
   location            = azurerm_site_recovery_fabric.test2.location
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test2" {
@@ -465,6 +473,10 @@ resource "azurerm_virtual_network" "tfo" {
   resource_group_name = azurerm_resource_group.test2.name
   address_space       = ["192.168.2.0/24"]
   location            = azurerm_site_recovery_fabric.test2.location
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "tfo" {
@@ -648,6 +660,10 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -993,6 +1009,10 @@ resource "azurerm_virtual_network" "test1" {
   resource_group_name = azurerm_resource_group.test.name
   address_space       = ["192.168.1.0/24"]
   location            = azurerm_site_recovery_fabric.test1.location
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test1" {
@@ -1007,6 +1027,10 @@ resource "azurerm_virtual_network" "test2" {
   resource_group_name = azurerm_resource_group.test2.name
   address_space       = ["192.168.2.0/24"]
   location            = azurerm_site_recovery_fabric.test1.location
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_network_interface" "test" {
@@ -1222,6 +1246,10 @@ resource "azurerm_virtual_network" "test1" {
   resource_group_name = azurerm_resource_group.test.name
   address_space       = ["192.168.1.0/24"]
   location            = azurerm_site_recovery_fabric.test1.location
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 resource "azurerm_subnet" "test1" {
   name                 = "snet-%[1]d"
@@ -1504,6 +1532,10 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test" {

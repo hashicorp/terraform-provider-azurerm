@@ -278,6 +278,10 @@ resource "azurerm_virtual_network" "test1" {
   resource_group_name = azurerm_resource_group.test.name
   address_space       = ["192.168.1.0/24"]
   location            = azurerm_site_recovery_fabric.test1.location
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test1" {
@@ -292,6 +296,10 @@ resource "azurerm_virtual_network" "test2" {
   resource_group_name = azurerm_resource_group.test2.name
   address_space       = ["192.168.2.0/24"]
   location            = azurerm_site_recovery_fabric.test2.location
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test2_1" {

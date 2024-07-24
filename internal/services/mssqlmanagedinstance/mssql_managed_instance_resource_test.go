@@ -1664,6 +1664,10 @@ resource "azurerm_virtual_network" "test" {
   resource_group_name = azurerm_resource_group.test.name
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -1686,6 +1690,10 @@ resource "azurerm_network_security_group" "test" {
   name                = "mi-security-group1-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [security_rule]
+  }
 }
 
 resource "azurerm_network_security_rule" "allow_management_inbound_1" {
@@ -1860,7 +1868,7 @@ resource "azurerm_route_table" "test" {
   name                          = "routetable1-%[1]d"
   location                      = azurerm_resource_group.test.location
   resource_group_name           = azurerm_resource_group.test.name
-  disable_bgp_route_propagation = false
+  bgp_route_propagation_enabled = true
 
   route {
     name           = "subnet-to-vnetlocal"
@@ -1899,6 +1907,10 @@ resource "azurerm_virtual_network" "secondary" {
   resource_group_name = azurerm_resource_group.secondary.name
   address_space       = ["10.1.0.0/16"]
   location            = azurerm_resource_group.secondary.location
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "secondary" {
@@ -1921,6 +1933,10 @@ resource "azurerm_network_security_group" "secondary" {
   name                = "mi-security-group2-%[1]d"
   location            = azurerm_resource_group.secondary.location
   resource_group_name = azurerm_resource_group.secondary.name
+
+  lifecycle {
+    ignore_changes = [security_rule]
+  }
 }
 
 resource "azurerm_network_security_rule" "allow_management_inbound_2" {
@@ -2095,7 +2111,7 @@ resource "azurerm_route_table" "secondary" {
   name                          = "routetable2-%[1]d"
   location                      = azurerm_resource_group.secondary.location
   resource_group_name           = azurerm_resource_group.secondary.name
-  disable_bgp_route_propagation = false
+  bgp_route_propagation_enabled = true
 
   route {
     name           = "subnet-to-vnetlocal"
@@ -2134,6 +2150,10 @@ resource "azurerm_virtual_network" "secondary_2" {
   resource_group_name = azurerm_resource_group.secondary_2.name
   address_space       = ["10.2.0.0/16"]
   location            = azurerm_resource_group.secondary_2.location
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "secondary_2" {
@@ -2156,6 +2176,10 @@ resource "azurerm_network_security_group" "secondary_2" {
   name                = "mi-security-group3-%[1]d"
   location            = azurerm_resource_group.secondary_2.location
   resource_group_name = azurerm_resource_group.secondary_2.name
+
+  lifecycle {
+    ignore_changes = [security_rule]
+  }
 }
 
 resource "azurerm_network_security_rule" "allow_management_inbound_3" {
@@ -2330,7 +2354,7 @@ resource "azurerm_route_table" "secondary_2" {
   name                          = "routetable3-%[1]d"
   location                      = azurerm_resource_group.secondary_2.location
   resource_group_name           = azurerm_resource_group.secondary_2.name
-  disable_bgp_route_propagation = false
+  bgp_route_propagation_enabled = true
 
   route {
     name           = "subnet-to-vnetlocal"
