@@ -161,10 +161,14 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
-					"address_prefix": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
+					"address_prefixes": {
+						Type:     pluginsdk.TypeList,
+						Required: true,
+						MinItems: 1,
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
 					},
 
 					"default_outbound_access_enabled": {
@@ -684,9 +688,26 @@ func expandVirtualNetworkSubnets(ctx context.Context, client virtualnetworks.Vir
 			subnetObj.Properties = &virtualnetworks.SubnetPropertiesFormat{}
 		}
 
-		subnetObj.Properties.AddressPrefix = pointer.To(subnet["address_prefix"].(string))
+		if !features.FourPointOhBeta() {
+			subnetObj.Properties.AddressPrefix = pointer.To(subnet["address_prefix"].(string))
+		}
 
 		if features.FourPointOhBeta() {
+			addressPrefixes := make([]string, 0)
+			for _, prefix := range subnet["address_prefixes"].([]interface{}) {
+				addressPrefixes = append(addressPrefixes, prefix.(string))
+			}
+
+			if len(addressPrefixes) == 1 {
+				subnetObj.Properties.AddressPrefix = pointer.To(addressPrefixes[0])
+				subnetObj.Properties.AddressPrefixes = nil
+			} else {
+				subnetObj.Properties.AddressPrefixes = pointer.To(addressPrefixes)
+				subnetObj.Properties.AddressPrefix = nil
+			}
+
+			subnetObj.Properties.AddressPrefixes = pointer.To(addressPrefixes)
+
 			privateEndpointNetworkPolicies := virtualnetworks.VirtualNetworkPrivateEndpointNetworkPolicies(subnet["private_endpoint_network_policies"].(string))
 			privateLinkServiceNetworkPolicies := virtualnetworks.VirtualNetworkPrivateLinkServiceNetworkPoliciesDisabled
 			if subnet["private_link_service_network_policies_enabled"].(bool) {
@@ -753,9 +774,22 @@ func expandVirtualNetworkProperties(ctx context.Context, client virtualnetworks.
 				subnetObj.Properties = &virtualnetworks.SubnetPropertiesFormat{}
 			}
 
-			subnetObj.Properties.AddressPrefix = pointer.To(subnet["address_prefix"].(string))
+			if !features.FourPointOhBeta() {
+				subnetObj.Properties.AddressPrefix = pointer.To(subnet["address_prefix"].(string))
+			}
 
 			if features.FourPointOhBeta() {
+				addressPrefixes := make([]string, 0)
+				for _, prefix := range subnet["address_prefixes"].([]interface{}) {
+					addressPrefixes = append(addressPrefixes, prefix.(string))
+				}
+
+				if len(addressPrefixes) == 1 {
+					subnetObj.Properties.AddressPrefix = pointer.To(addressPrefixes[0])
+				} else {
+					subnetObj.Properties.AddressPrefixes = pointer.To(addressPrefixes)
+				}
+
 				privateEndpointNetworkPolicies := virtualnetworks.VirtualNetworkPrivateEndpointNetworkPolicies(subnet["private_endpoint_network_policies"].(string))
 				privateLinkServiceNetworkPolicies := virtualnetworks.VirtualNetworkPrivateLinkServiceNetworkPoliciesDisabled
 				if subnet["private_link_service_network_policies_enabled"].(bool) {
@@ -894,8 +928,10 @@ func flattenVirtualNetworkSubnets(input *[]virtualnetworks.Subnet) (*pluginsdk.S
 			}
 
 			if props := subnet.Properties; props != nil {
-				if prefix := props.AddressPrefix; prefix != nil {
-					output["address_prefix"] = *prefix
+				if !features.FourPointOhBeta() {
+					if prefix := props.AddressPrefix; prefix != nil {
+						output["address_prefix"] = *prefix
+					}
 				}
 
 				if nsg := props.NetworkSecurityGroup; nsg != nil {
@@ -905,6 +941,15 @@ func flattenVirtualNetworkSubnets(input *[]virtualnetworks.Subnet) (*pluginsdk.S
 				}
 
 				if features.FourPointOhBeta() {
+					if props.AddressPrefixes == nil {
+						if props.AddressPrefix != nil && len(*props.AddressPrefix) > 0 {
+							output["address_prefixes"] = []string{*props.AddressPrefix}
+						} else {
+							output["address_prefixes"] = []string{}
+						}
+					} else {
+						output["address_prefixes"] = props.AddressPrefixes
+					}
 					output["delegation"] = flattenVirtualNetworkSubnetDelegation(props.Delegations)
 					output["default_outbound_access_enabled"] = pointer.From(props.DefaultOutboundAccess)
 					output["private_endpoint_network_policies"] = string(pointer.From(props.PrivateEndpointNetworkPolicies))
