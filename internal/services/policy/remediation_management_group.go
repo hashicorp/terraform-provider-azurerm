@@ -152,7 +152,8 @@ func resourceArmManagementGroupPolicyRemediationCreateUpdate(d *pluginsdk.Resour
 		}
 	}
 
-	parameters := remediations.Remediation{}
+	var parameters remediations.Remediation
+
 	if !features.FourPointOhBeta() {
 		parameters = remediations.Remediation{
 			Properties: readRemediationProperties(d),
