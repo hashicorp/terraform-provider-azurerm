@@ -15,7 +15,7 @@ func DevCenterNetworkConnectionDomainUsername(i interface{}, k string) (warnings
 		return
 	}
 
-	if !regexp.MustCompile("^\\w+([-+.']\\w+)*@\\w+([-.]\\w+)*\\.\\w+([-.]\\w+)*$").MatchString(v) {
+	if !regexp.MustCompile(`^\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$`).MatchString(v) {
 		errors = append(errors, fmt.Errorf("%q is not a valid email", k))
 	}
 

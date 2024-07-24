@@ -37,7 +37,7 @@ func TestDevCenterNetworkConnectionDomainUsername(t *testing.T) {
 			Expected: false,
 		},
 		{
-			Input:    "v-cheye@microsoft.com",
+			Input:    "tfuser@test.com",
 			Expected: true,
 		},
 	}
