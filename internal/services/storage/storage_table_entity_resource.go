@@ -77,6 +77,7 @@ func resourceStorageTableEntity() *pluginsdk.Resource {
 	}
 
 	if !features.FourPointOhBeta() {
+		resource.Schema["storage_table_id"].Required = false
 		resource.Schema["storage_table_id"].Optional = true
 		resource.Schema["storage_table_id"].Computed = true
 		resource.Schema["storage_table_id"].ConflictsWith = []string{"table_name", "storage_account_name"}
