@@ -1262,6 +1262,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 
 	if !features.FourPointOhBeta() {
 		resource.Schema["https_traffic_only_enabled"].Computed = true
+		resource.Schema["https_traffic_only_enabled"].Default = nil
 
 		resource.Schema["enable_https_traffic_only"] = &pluginsdk.Schema{
 			Type:          pluginsdk.TypeBool,
@@ -1311,8 +1312,11 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
-	httpsTrafficOnlyEnabled := d.Get("https_traffic_only_enabled").(bool)
-	if !features.FourPointOhBeta() {
+	httpsTrafficOnlyEnabled := true
+	// nolint staticcheck
+	if v, ok := d.GetOkExists("https_traffic_only_enabled"); ok {
+		httpsTrafficOnlyEnabled = v.(bool)
+	} else if !features.FourPointOhBeta() {
 		// nolint staticcheck
 		if v, ok := d.GetOkExists("enable_https_traffic_only"); ok {
 			httpsTrafficOnlyEnabled = v.(bool)
