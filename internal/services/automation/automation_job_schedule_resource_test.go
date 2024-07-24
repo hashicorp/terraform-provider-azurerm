@@ -204,10 +204,6 @@ resource "azurerm_automation_job_schedule" "test" {
   automation_account_name = azurerm_automation_account.test.name
   schedule_name           = azurerm_automation_schedule.test.name
   runbook_name            = azurerm_automation_runbook.test.name
-
-  lifecycle {
-    ignore_changes = [job_schedule_id]
-  }
 }
 `, AutomationJobScheduleResource{}.template(data, runbookDesc...))
 }
