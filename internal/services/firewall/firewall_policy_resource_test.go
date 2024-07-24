@@ -494,6 +494,10 @@ resource "azurerm_key_vault" "test" {
   enabled_for_template_deployment = true
   tenant_id                       = data.azurerm_client_config.current.tenant_id
   sku_name                        = "standard"
+
+  lifecycle {
+    ignore_changes = [access_policy]
+  }
 }
 
 resource "azurerm_ip_group" "test_source" {

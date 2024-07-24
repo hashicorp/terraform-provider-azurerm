@@ -512,6 +512,10 @@ resource "azurerm_virtual_network" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   address_space       = ["10.0.0.0/16"]
   location            = "${azurerm_resource_group.test.location}"
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -526,6 +530,7 @@ resource "azurerm_public_ip" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   allocation_method   = "Dynamic"
+  sku                 = "Basic"
 }
 
 # since these variables are re-used - a locals block makes this more maintainable
@@ -1742,8 +1747,6 @@ resource "azurerm_public_ip" "test" {
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   domain_name_label   = "acctest-%[3]s"
-
-  sku = "Standard"
 }
 
 resource "azurerm_lb" "test" {

@@ -1232,7 +1232,7 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 
 	criticalAddonsEnabled := raw["only_critical_addons_enabled"].(bool)
 	if criticalAddonsEnabled {
-		*nodeTaints = append(*nodeTaints, "CriticalAddonsOnly=true:NoSchedule")
+		nodeTaints = pointer.To([]string{"CriticalAddonsOnly=true:NoSchedule"})
 	}
 
 	t := raw["tags"].(map[string]interface{})
@@ -1800,7 +1800,6 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		"node_labels":                   nodeLabels,
 		"node_network_profile":          networkProfile,
 		"node_public_ip_prefix_id":      nodePublicIPPrefixID,
-		"node_taints":                   []string{},
 		"os_disk_size_gb":               osDiskSizeGB,
 		"os_disk_type":                  string(osDiskType),
 		"os_sku":                        osSKU,
@@ -1822,6 +1821,10 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		"linux_os_config":               linuxOSConfig,
 		"zones":                         zones.FlattenUntyped(agentPool.AvailabilityZones),
 		"capacity_reservation_group_id": capacityReservationGroupId,
+	}
+
+	if !features.FourPointOhBeta() {
+		out["node_taints"] = []string{}
 	}
 
 	if features.FourPointOh() {

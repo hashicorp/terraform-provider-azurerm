@@ -134,6 +134,10 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.2.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test2" {
@@ -167,7 +171,8 @@ resource "azurerm_public_ip" "test" {
   name                = "acctest-pip-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
+  sku                 = "Standard"
+  allocation_method   = "Static"
 }
 
 resource "azurerm_virtual_network_gateway" "test" {

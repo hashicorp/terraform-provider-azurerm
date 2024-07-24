@@ -1017,7 +1017,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Optional: true,
 							Computed: !features.FourPointOhBeta(),
 							Default: func() interface{} {
-								if !features.FourPointOh() {
+								if !features.FourPointOhBeta() {
 									return nil
 								}
 								return string(managedclusters.NetworkDataplaneAzure)
@@ -1785,6 +1785,16 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				string(managedclusters.NodeOSUpgradeChannelSecurityPatch),
 				string(managedclusters.NodeOSUpgradeChannelUnmanaged),
 			}, false),
+		}
+		resource.Schema["service_mesh_profile"].Elem.(*pluginsdk.Resource).Schema["revisions"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			MinItems: 1,
+			MaxItems: 2,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
 		}
 	}
 
@@ -2925,16 +2935,14 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 				d.Set("automatic_upgrade_channel", upgradeChannel)
 			}
 
-			// the API returns `node_os_channel_upgrade` when `automatic_channel_upgrade` is set to `node-image`
-			// since it's a preview feature we will only set this if it's explicitly been set in the config for the time being
 			if !features.FourPointOhBeta() {
+				// this was a preview feature and returns `node_os_channel_upgrade` when `automatic_channel_upgrade` is set to `node-image`
+				// which is why we were only setting this explicitly if it had been set in the config, keeping this as is for now
 				if v, ok := d.GetOk("node_os_channel_upgrade"); ok && v.(string) != "" {
 					d.Set("node_os_channel_upgrade", nodeOSUpgradeChannel)
 				}
 			} else {
-				if v, ok := d.GetOk("node_os_upgrade_channel"); ok && v.(string) != "" {
-					d.Set("node_os_upgrade_channel", nodeOSUpgradeChannel)
-				}
+				d.Set("node_os_upgrade_channel", nodeOSUpgradeChannel)
 			}
 
 			customCaTrustCertList := flattenCustomCaTrustCerts(props.SecurityProfile)
@@ -4855,6 +4863,12 @@ func expandKubernetesClusterServiceMeshProfile(input []interface{}, existing *ma
 			certificateAuthority := expandKubernetesClusterServiceMeshProfileCertificateAuthority(raw["certificate_authority"].([]interface{}))
 			profile.Istio.CertificateAuthority = certificateAuthority
 		}
+
+		if features.FourPointOhBeta() {
+			if raw["revisions"] != nil {
+				profile.Istio.Revisions = utils.ExpandStringSlice(raw["revisions"].([]interface{}))
+			}
+		}
 	}
 
 	return &profile
@@ -5000,6 +5014,12 @@ func flattenKubernetesClusterAzureServiceMeshProfile(input *managedclusters.Serv
 
 	if input.Istio.CertificateAuthority != nil {
 		returnMap["certificate_authority"] = flattenKubernetesClusterServiceMeshProfileCertificateAuthority(input.Istio.CertificateAuthority)
+	}
+
+	if features.FourPointOhBeta() {
+		if input.Istio.Revisions != nil {
+			returnMap["revisions"] = utils.FlattenStringSlice(input.Istio.Revisions)
+		}
 	}
 
 	return []interface{}{returnMap}

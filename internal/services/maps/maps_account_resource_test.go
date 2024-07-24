@@ -125,6 +125,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_maps_account" "test" {
   name                = "accMapsAccount-%d"
   resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   sku_name            = "G2"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -277,6 +278,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_maps_account" "test" {
   name                         = "accMapsAccount-%d"
   resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
   sku_name                     = "G2"
   local_authentication_enabled = false
 }
@@ -297,6 +299,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_maps_account" "test" {
   name                         = "accMapsAccount-%d"
   resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
   sku_name                     = "G2"
   local_authentication_enabled = true
 }

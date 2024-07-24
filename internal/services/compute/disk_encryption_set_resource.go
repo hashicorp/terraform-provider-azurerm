@@ -484,7 +484,10 @@ func resourceDiskEncryptionSetUpdate(d *pluginsdk.ResourceData, meta interface{}
 }
 
 func getManagedHsmKeyUrl(ctx context.Context, managedkeyBundleClient *keyvault.BaseClient, managedHsmKeyId string, rotationToLatestKeyVersionEnabled bool, env environments.Environment) (string, error) {
-	domainSuffix := managedHsmHelpers.DomainSuffixForManagedHSM(env)
+	domainSuffix, ok := env.ManagedHSM.DomainSuffix()
+	if !ok {
+		return "", fmt.Errorf("Managed HSM is not supported in this Environment")
+	}
 	managedHsmVersionedKey, err := managedHsmParse.ManagedHSMDataPlaneVersionedKeyID(managedHsmKeyId, domainSuffix)
 	if err == nil {
 		err = validateKeyAndRotationEnabled(rotationToLatestKeyVersionEnabled, true, managedHsmVersionedKey.ID())

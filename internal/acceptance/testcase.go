@@ -41,7 +41,22 @@ func (td TestData) DataSourceTestInSequence(t *testing.T, steps []TestStep) {
 	td.runAcceptanceSequentialTest(t, testCase)
 }
 
+var refreshStep = TestStep{
+	RefreshState: true,
+}
+
 func (td TestData) ResourceTest(t *testing.T, testResource types.TestResource, steps []TestStep) {
+	newSteps := make([]TestStep, 0)
+	for _, step := range steps {
+		if !step.ImportState {
+			newSteps = append(newSteps, step)
+		} else {
+			newSteps = append(newSteps, refreshStep)
+			newSteps = append(newSteps, step)
+		}
+	}
+	steps = newSteps
+
 	testCase := resource.TestCase{
 		PreCheck: func() { PreCheck(t) },
 		CheckDestroy: func(s *terraform.State) error {

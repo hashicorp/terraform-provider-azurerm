@@ -75,6 +75,10 @@ resource "azurerm_signalr_service" "test" {
   identity {
     type = "SystemAssigned"
   }
+
+  lifecycle {
+    ignore_changes = [cors]
+  }
 }
 
 resource "azurerm_key_vault" "test" {

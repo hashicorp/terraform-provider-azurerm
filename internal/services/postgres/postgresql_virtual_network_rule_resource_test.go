@@ -154,6 +154,10 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.7.29.0/29"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -218,6 +222,10 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.7.29.0/24"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test1" {
@@ -277,6 +285,10 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.7.29.0/24"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test1" {
@@ -336,6 +348,10 @@ resource "azurerm_virtual_network" "vnet1" {
   address_space       = ["10.7.29.0/24"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_virtual_network" "vnet2" {
@@ -343,6 +359,10 @@ resource "azurerm_virtual_network" "vnet2" {
   address_space       = ["10.1.29.0/29"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "vnet1_subnet1" {
@@ -427,6 +447,10 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.7.29.0/29"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test" {
