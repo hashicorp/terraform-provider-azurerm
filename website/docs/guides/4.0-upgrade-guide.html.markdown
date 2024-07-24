@@ -1183,6 +1183,22 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 * The deprecated property `enable_accelerated_networking` has been removed in favour of the `accelerated_networking_enabled` property.
 * The deprecated property `enable_ip_forwarding` has been removed in favour of the `ip_forwarding_enabled` property.
 
+### `azurerm_storage_account`
+
+* The deprecated property `enable_https_traffic_only` has been removed in favour of the `https_traffic_only_enabled` property.
+
+### `azurerm_storage_account_customer_managed_key`
+
+* The property `key_vault_id` no longer accepts Managed HSM keys, instead please use the `managed_hsm_key_id` property.
+
+### `azurerm_storage_share_directory`
+
+* The deprecated properties `storage_account_name` and `share_name` have been removed in favour of the `storage_share_id` property.
+
+### `azurerm_storage_table_entity`
+
+* The deprecated properties `storage_account_name` and `table_name` have been removed in favour of the `storage_table_id` property.
+
 ### `azurerm_subnet`
 
 * The deprecated property `private_endpoint_network_policies_enabled` has been removed in favour of the `private_endpoint_network_policies` property.
