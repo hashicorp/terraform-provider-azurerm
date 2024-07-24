@@ -842,7 +842,6 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   azure_active_directory_role_based_access_control {
     tenant_id          = var.tenant_id
-    managed            = true
     azure_rbac_enabled = false
   }
 }
@@ -890,7 +889,6 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   azure_active_directory_role_based_access_control {
     tenant_id          = var.tenant_id
-    managed            = true
     azure_rbac_enabled = false
   }
 }
@@ -938,7 +936,6 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   azure_active_directory_role_based_access_control {
     tenant_id          = var.tenant_id
-    managed            = true
     azure_rbac_enabled = false
   }
 }
@@ -1079,7 +1076,6 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   azure_active_directory_role_based_access_control {
     tenant_id          = var.tenant_id
-    managed            = true
     azure_rbac_enabled = true
   }
 }
