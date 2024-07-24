@@ -62,6 +62,10 @@ resource "azurerm_eventhub_namespace" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
+
+  lifecycle {
+    ignore_changes = [network_rulesets]
+  }
 }
 
 resource "azurerm_eventhub_namespace_schema_group" "test" {

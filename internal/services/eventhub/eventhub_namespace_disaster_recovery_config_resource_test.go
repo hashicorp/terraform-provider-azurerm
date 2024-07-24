@@ -94,6 +94,10 @@ resource "azurerm_eventhub_namespace" "testb" {
   location            = "%[3]s"
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
+
+  lifecycle {
+    ignore_changes = [network_rulesets]
+  }
 }
 
 resource "azurerm_eventhub_namespace_disaster_recovery_config" "test" {

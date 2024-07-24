@@ -306,6 +306,11 @@ resource "azurerm_eventhub_namespace" "test" {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
+
+  lifecycle {
+    ignore_changes = [network_rulesets]
+  }
+
 }
 
 data "azurerm_client_config" "current" {}
