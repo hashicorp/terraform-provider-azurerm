@@ -1,5 +1,9 @@
 ## 3.114.0 (Unreleased)
 
+ENHANCEMENTS:
+
+* dependencies: updating `go-azure-helpers` to `v0.70.1` [GH-26757]
+
 BUG FIXES:
 
 * `azurerm_dns_cname_record` - split create and update function to fix lifecycle - ignore [GH-26610]
