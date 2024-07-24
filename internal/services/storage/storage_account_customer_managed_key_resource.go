@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/storageaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
@@ -25,7 +26,7 @@ import (
 )
 
 func resourceStorageAccountCustomerManagedKey() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceStorageAccountCustomerManagedKeyCreateUpdate,
 		Read:   resourceStorageAccountCustomerManagedKeyRead,
 		Update: resourceStorageAccountCustomerManagedKeyCreateUpdate,
@@ -52,13 +53,9 @@ func resourceStorageAccountCustomerManagedKey() *pluginsdk.Resource {
 			},
 
 			"key_vault_id": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.Any(
-					// TODO 4.0: revert to only accepting key vault IDs as there is an explicit attribute for managed HSMs
-					commonids.ValidateKeyVaultID,
-					managedhsms.ValidateManagedHSMID,
-				),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: commonids.ValidateKeyVaultID,
 				ExactlyOneOf: []string{"managed_hsm_key_id", "key_vault_id", "key_vault_uri"},
 			},
 
@@ -103,6 +100,15 @@ func resourceStorageAccountCustomerManagedKey() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["key_vault_id"].ValidateFunc = validation.Any(
+			commonids.ValidateKeyVaultID,
+			managedhsms.ValidateManagedHSMID,
+		)
+	}
+
+	return resource
 }
 
 func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
