@@ -1786,6 +1786,16 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				string(managedclusters.NodeOSUpgradeChannelUnmanaged),
 			}, false),
 		}
+		resource.Schema["service_mesh_profile"].Elem.(*pluginsdk.Resource).Schema["revisions"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			MinItems: 1,
+			MaxItems: 2,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+		}
 	}
 
 	return resource
@@ -4853,6 +4863,12 @@ func expandKubernetesClusterServiceMeshProfile(input []interface{}, existing *ma
 			certificateAuthority := expandKubernetesClusterServiceMeshProfileCertificateAuthority(raw["certificate_authority"].([]interface{}))
 			profile.Istio.CertificateAuthority = certificateAuthority
 		}
+
+		if features.FourPointOhBeta() {
+			if raw["revisions"] != nil {
+				profile.Istio.Revisions = utils.ExpandStringSlice(raw["revisions"].([]interface{}))
+			}
+		}
 	}
 
 	return &profile
@@ -4998,6 +5014,12 @@ func flattenKubernetesClusterAzureServiceMeshProfile(input *managedclusters.Serv
 
 	if input.Istio.CertificateAuthority != nil {
 		returnMap["certificate_authority"] = flattenKubernetesClusterServiceMeshProfileCertificateAuthority(input.Istio.CertificateAuthority)
+	}
+
+	if features.FourPointOhBeta() {
+		if input.Istio.Revisions != nil {
+			returnMap["revisions"] = utils.FlattenStringSlice(input.Istio.Revisions)
+		}
 	}
 
 	return []interface{}{returnMap}
