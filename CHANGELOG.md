@@ -8,6 +8,7 @@ BUG FIXES:
 
 * `azurerm_dns_cname_record` - split create and update function to fix lifecycle - ignore [GH-26610]
 * `azurerm_dns_srv_record` - split create and update function to fix lifecycle - ignore [GH-26627]
+* `azurerm_management_group_policy_remediation` -  fix panic in deprecated schema change for 4.0 [GH-26767]
 
 ## 3.113.0 (July 18, 2024)
 
