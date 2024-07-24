@@ -222,6 +222,8 @@ The `subnet` block within the `azurerm_virtual_network_resource` has been update
 * `service_endpoints`
 * `service_endpoint_policy_ids`
 
+In addition to the new properties `address_prefix` has been replaced by `address_prefixes` to allow multiple CIDRs in both IPv4 and IPv6 notation.
+
 When upgrading to 4.0, users may receive a warning that the resource needs to be replaced, this should however just be an update in-place.
 
 ## Better consistency in emptying or removing Lists and Blocks
