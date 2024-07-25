@@ -6,23 +6,23 @@ Azure Resource Manager: 4.0 Upgrade Guide
 
 ---
 
-# AzureRM Provider
+# Azure Provider
 
-## AzureRM Provider Version v4.0
+## Azure Provider Version v4.0
 
 The last major release for the AzureRM provider was in March 2022. Since then we've added support for nearly 340 Resources and 120 Data Sources, bringing the total supported features to 1101 Resources and 358 Data Sources at the time of writing this guide.
 
 ### Considerations
 
-Version 4.0 of the AzureRM Provider is a major release and includes breaking changes which are outlined in this document.
+Version 4.0 of the Azure Provider is a major release and includes breaking changes which are outlined in this document.
 
-When upgrading to version 4.0 of the AzureRM Provider, we recommend upgrading to the latest version of Terraform Core ([which can be found here](https://www.terraform.io/downloads)).
+When upgrading to version 4.0 of the Azure Provider, we recommend upgrading to the latest version of Terraform Core ([which can be found here](https://www.terraform.io/downloads)).
 
 This guide will continue to receive updates as we incorporate feedback and continue to fix any issues during the Beta.
 
 ### Pinning your Provider Version
 
-We recommend pinning the version of each Provider you use in Terraform - you can do this using the `version` attribute within the `required_providers` block, either to a specific version of the AzureRM Provider, like so:
+We recommend pinning the version of each Provider you use in Terraform - you can do this using the `version` attribute within the `required_providers` block, either to a specific version of the Azure Provider, like so:
 
 ```hcl
 terraform {
@@ -61,7 +61,7 @@ More information on [how to pin the version of a Terraform Provider being used c
 ---
 
 
-## What's available in Version 4.0 of the AzureRM Provider?
+## What's available in Version 4.0 of the Azure Provider?
 
 -> **Note:** Version `3.114.0`-`3.115.0` of the AzureRM provider allows you to opt-into the Beta of some of these features - [read the Disclaimers in the Beta guide before doing this](https://registry.terraform.io/providers/hashicorp/azurerm/3.114.0/docs/guides/4.0-beta)
 
@@ -78,7 +78,7 @@ Below is an overview of the changes coming 4.0. Each topic is covered in more de
 
 ## Improved Resource Provider Registration
 
-Previously the AzureRM Provider had an all(*) or nothing approach to Azure Resource Provider (RP) registration, where the provider would either attempt to register a set of 68 RPs upon provider initialization, or RP registration could be skipped entirely by setting `skip_provider_registration = true` in the provider block.
+Previously the Azure Provider had an all(*) or nothing approach to Azure Resource Provider (RP) registration, where the provider would either attempt to register a set of 68 RPs upon provider initialization, or RP registration could be skipped entirely by setting `skip_provider_registration = true` in the provider block.
 
 The inflexibility of this method has been a pain point and is also at odds with the recommendations from Microsoft, which is to only register RPs as needed.
 
@@ -135,7 +135,7 @@ provider "azurerm" {
 
 ## Specifying Subscription ID is now Mandatory
 
-In version 4.0 of the AzureRM Provider, it's now required to specify the Azure Subscription ID when configuring a provider instance in your configuration. This can be done by specifying the `subscription_id` provider property, or by exporting the `ARM_SUBSCRIPTION_ID` environment variable. For example:
+In version 4.0 of the Azure Provider, it's now required to specify the Azure Subscription ID when configuring a provider instance in your configuration. This can be done by specifying the `subscription_id` provider property, or by exporting the `ARM_SUBSCRIPTION_ID` environment variable. For example:
 
 Specify the subscription ID in the provider block
 ```hcl
@@ -630,7 +630,7 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 ### `azurerm_application_insights`
 
 * The property `daily_data_cap_in_gb` now defaults to `100`.
-* The property `"daily_data_cap_notifications_disabled` now defaults to `false`.
+* The property `daily_data_cap_notifications_disabled` now defaults to `false`.
 
 ### `azurerm_attestation_provider`
 
@@ -840,7 +840,7 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 * The deprecated block `gallery_applications` has been removed in favour of the `gallery_application` block.
 * The deprecated block `terminate_notification` has been removed in favour of the `termination_notification` block.
 * The deprecated property `scale_in_policy` has been removed in favour of the `scale_in` block.
-* The property `extention_operations_enabled` now defaults to `true`.
+* The property `extension_operations_enabled` now defaults to `true`.
 
 ### `azurerm_linux_web_app`
 
@@ -941,7 +941,7 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 
 ### `azurerm_orchestrated_virtual_machine_scale_set`
 
-* The property `extention_operations_enabled` now defaults to `true`.
+* The property `extension_operations_enabled` now defaults to `true`.
 
 ### `azurerm_recovery_services_vault_resource_guard_association`
 
@@ -1120,7 +1120,7 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 * The deprecated block `gallery_applications` has been removed in favour of the `gallery_application` block.
 * The deprecated block `terminate_notification` has been removed in favour of the `termination_notification` block.
 * The deprecated property `scale_in_policy` has been removed in favour of the `scale_in` block.
-* The property `extention_operations_enabled` now defaults to `true`.
+* The property `extension_operations_enabled` now defaults to `true`.
 
 ### `azurerm_windows_web_app`
 
