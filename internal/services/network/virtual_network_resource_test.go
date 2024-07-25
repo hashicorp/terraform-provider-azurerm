@@ -786,26 +786,6 @@ resource "azurerm_virtual_network" "test" {
 }
 
 func (VirtualNetworkResource) noSubnet(data acceptance.TestData) string {
-	if !features.FourPointOhBeta() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestvirtnet%[1]d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  subnet              = []
-}
-`, data.RandomInteger, data.Locations.Primary)
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -827,6 +807,7 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  subnet              = []
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
