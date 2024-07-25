@@ -434,7 +434,7 @@ func TestAccRedisCache_WithoutAuth(t *testing.T) {
 			Config: r.withoutAuth(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("redis_configuration.0.enable_authentication").HasValue("false"),
+				check.That(data.ResourceName).Key("redis_configuration.0.authentication_enabled").HasValue("false"),
 			),
 		},
 	})
@@ -1339,7 +1339,7 @@ resource "azurerm_redis_cache" "test" {
   non_ssl_port_enabled = false
   subnet_id            = azurerm_subnet.test.id
   redis_configuration {
-    enable_authentication = false
+    authentication_enabled = false
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)

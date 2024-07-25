@@ -157,8 +157,7 @@ func dataSourceRedisCache() *pluginsdk.Resource {
 							Computed:  true,
 							Sensitive: true,
 						},
-						// TODO 4.0: change this from enable_* to *_enabled
-						"enable_authentication": {
+						"authentication_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Computed: true,
 						},
@@ -242,8 +241,15 @@ func dataSourceRedisCache() *pluginsdk.Resource {
 
 	if !features.FourPointOhBeta() {
 		resource.Schema["enable_non_ssl_port"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Type:       pluginsdk.TypeBool,
+			Computed:   true,
+			Deprecated: "`enable_non_ssl_port` will be removed in favour of the property `non_ssl_port_enabled` in version 4.0 of the AzureRM Provider.",
+		}
+		resource.Schema["redis_configuration"].Elem.(*pluginsdk.Resource).Schema["enable_authentication"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Default:    true,
+			Deprecated: "`enable_authentication` will be removed in favour of the property `authentication_enabled` in version 4.0 of the AzureRM Provider.",
 		}
 	}
 
