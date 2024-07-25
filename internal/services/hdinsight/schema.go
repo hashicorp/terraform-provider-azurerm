@@ -1601,10 +1601,6 @@ func ExpandHDInsightNodeDefinition(name string, input []interface{}, definition 
 	v := input[0].(map[string]interface{})
 	vmSize := v["vm_size"].(string)
 	username := v["username"].(string)
-	//username := ""
-	//if u, ok := v["username"]; ok {
-	//	username = u.(string)
-	//}
 	password := v["password"].(string)
 	virtualNetworkId := v["virtual_network_id"].(string)
 	subnetId := v["subnet_id"].(string)
@@ -1625,8 +1621,8 @@ func ExpandHDInsightNodeDefinition(name string, input []interface{}, definition 
 		role.OsProfile.LinuxOperatingSystemProfile.Username = utils.String(username)
 	} else {
 		// kafkamanagementnode generates a username and discards the value sent, however, the API has `Username` marked
-		// as required non-empty, so we'll send a dummy one using the Portal's default value.
-		role.OsProfile.LinuxOperatingSystemProfile.Username = utils.String("admin")
+		// as required non-empty, so we'll send a dummy one avoiding the Portal's default value, which is reserved/invalid.
+		role.OsProfile.LinuxOperatingSystemProfile.Username = utils.String("sshadmin")
 	}
 
 	virtualNetworkSpecified := virtualNetworkId != ""
