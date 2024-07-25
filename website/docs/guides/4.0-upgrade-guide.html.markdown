@@ -1093,6 +1093,10 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 
 * The property `profile_status` now defaults to `Enabled`.
 
+### `azurerm_virtual_network`
+
+* The property `address_space` has been changed from a list to a set. If you're referencing an element in this property then this will require code changes.
+
 ### `azurerm_virtual_network_gateway_connections`
 
 * The property `shared_key` has become `Required`.
