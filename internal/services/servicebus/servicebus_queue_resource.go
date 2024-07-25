@@ -338,7 +338,7 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		enableBatchedOperations = d.Get("batched_operations_enabled").(bool)
 	}
 
-	if features.FourPointOhBeta() {
+	if !features.FourPointOhBeta() {
 
 		if v := d.GetRawConfig().AsValueMap()["enable_express"]; !v.IsNull() {
 			enableExpress = d.Get("enable_express").(bool)
