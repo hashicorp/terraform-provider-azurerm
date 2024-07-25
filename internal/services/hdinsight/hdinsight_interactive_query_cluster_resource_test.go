@@ -626,7 +626,7 @@ func testAccHDInsightInteractiveQueryCluster_securityProfile(t *testing.T) {
 	})
 }
 
-func (t HDInsightInteractiveQueryClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r HDInsightInteractiveQueryClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseHDInsightClusterID(state.ID)
 	if err != nil {
 		return nil, err
@@ -1328,8 +1328,7 @@ resource "azurerm_network_security_group" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  security_rule = [
-    {
+  security_rule {
       access                                     = "Allow"
       description                                = "Rule can be deleted but do not change source ips."
       destination_address_prefix                 = "*"
@@ -1346,8 +1345,8 @@ resource "azurerm_network_security_group" "test" {
       source_application_security_group_ids      = []
       source_port_range                          = "*"
       source_port_ranges                         = []
-    },
-    {
+    }
+  security_rule {
       access                                     = "Allow"
       description                                = "Rule can be deleted but do not change source ips."
       destination_address_prefix                 = "*"
@@ -1364,8 +1363,8 @@ resource "azurerm_network_security_group" "test" {
       source_application_security_group_ids      = []
       source_port_range                          = "*"
       source_port_ranges                         = []
-    },
-    {
+    }
+  security_rule {
       access                                     = "Allow"
       description                                = "Rule can be deleted but do not change source ips."
       destination_address_prefix                 = "*"
@@ -1382,8 +1381,8 @@ resource "azurerm_network_security_group" "test" {
       source_application_security_group_ids      = []
       source_port_range                          = "*"
       source_port_ranges                         = []
-    },
-    {
+    }
+  security_rule {
       access                                     = "Deny"
       description                                = "DO NOT DELETE"
       destination_address_prefix                 = "*"
@@ -1415,8 +1414,8 @@ resource "azurerm_network_security_group" "test" {
       source_application_security_group_ids = []
       source_port_range                     = "*"
       source_port_ranges                    = []
-    },
-    {
+    }
+  security_rule {
       access                                     = "Deny"
       description                                = "DO NOT DELETE"
       destination_address_prefix                 = "*"
@@ -1448,8 +1447,8 @@ resource "azurerm_network_security_group" "test" {
       source_application_security_group_ids = []
       source_port_range                     = "*"
       source_port_ranges                    = []
-    },
-    {
+    }
+  security_rule {
       access                                     = "Deny"
       description                                = "DO NOT DELETE"
       destination_address_prefix                 = "*"
@@ -1472,8 +1471,8 @@ resource "azurerm_network_security_group" "test" {
       source_application_security_group_ids = []
       source_port_range                     = "*"
       source_port_ranges                    = []
-    },
-    {
+    }
+  security_rule {
       access                                     = "Deny"
       description                                = "DO NOT DELETE"
       destination_address_prefix                 = "*"
@@ -1506,8 +1505,8 @@ resource "azurerm_network_security_group" "test" {
       source_application_security_group_ids = []
       source_port_range                     = "*"
       source_port_ranges                    = []
-    },
-    {
+    }
+  security_rule {
       access                                     = "Deny"
       description                                = "DO NOT DELETE"
       destination_address_prefix                 = "*"
@@ -1528,7 +1527,6 @@ resource "azurerm_network_security_group" "test" {
       source_port_range                     = "*"
       source_port_ranges                    = []
     },
-  ]
 }
 `, data.RandomInteger)
 }
@@ -1695,7 +1693,7 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
 func (r HDInsightInteractiveQueryClusterResource) allMetastores(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
-resource "azurerm_sql_server" "test" {
+resource "azurerm_mssql_server" "test" {
   name                         = "acctestsql-%d"
   resource_group_name          = azurerm_resource_group.test.name
   location                     = azurerm_resource_group.test.location
@@ -1703,37 +1701,37 @@ resource "azurerm_sql_server" "test" {
   administrator_login_password = "TerrAform123!"
   version                      = "12.0"
 }
-resource "azurerm_sql_database" "hive" {
+resource "azurerm_mssql_database" "hive" {
   name                             = "hive"
   resource_group_name              = azurerm_resource_group.test.name
   location                         = azurerm_resource_group.test.location
-  server_name                      = azurerm_sql_server.test.name
+  server_name                      = azurerm_mssql_server.test.name
   collation                        = "SQL_Latin1_General_CP1_CI_AS"
   create_mode                      = "Default"
   requested_service_objective_name = "GP_Gen5_2"
 }
-resource "azurerm_sql_database" "oozie" {
+resource "azurerm_mssql_database" "oozie" {
   name                             = "oozie"
   resource_group_name              = azurerm_resource_group.test.name
   location                         = azurerm_resource_group.test.location
-  server_name                      = azurerm_sql_server.test.name
+  server_name                      = azurerm_mssql_server.test.name
   collation                        = "SQL_Latin1_General_CP1_CI_AS"
   create_mode                      = "Default"
   requested_service_objective_name = "GP_Gen5_2"
 }
-resource "azurerm_sql_database" "ambari" {
+resource "azurerm_mssql_database" "ambari" {
   name                             = "ambari"
   resource_group_name              = azurerm_resource_group.test.name
   location                         = azurerm_resource_group.test.location
-  server_name                      = azurerm_sql_server.test.name
+  server_name                      = azurerm_mssql_server.test.name
   collation                        = "SQL_Latin1_General_CP1_CI_AS"
   create_mode                      = "Default"
   requested_service_objective_name = "GP_Gen5_2"
 }
-resource "azurerm_sql_firewall_rule" "AzureServices" {
+resource "azurerm_mssql_firewall_rule" "AzureServices" {
   name                = "allow-azure-services"
   resource_group_name = azurerm_resource_group.test.name
-  server_name         = azurerm_sql_server.test.name
+  server_name         = azurerm_mssql_server.test.name
   start_ip_address    = "0.0.0.0"
   end_ip_address      = "0.0.0.0"
 }
@@ -1775,22 +1773,22 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   }
   metastores {
     hive {
-      server        = azurerm_sql_server.test.fully_qualified_domain_name
-      database_name = azurerm_sql_database.hive.name
-      username      = azurerm_sql_server.test.administrator_login
-      password      = azurerm_sql_server.test.administrator_login_password
+      server        = azurerm_mssql_server.test.fully_qualified_domain_name
+      database_name = azurerm_mssql_database.hive.name
+      username      = azurerm_mssql_server.test.administrator_login
+      password      = azurerm_mssql_server.test.administrator_login_password
     }
     oozie {
-      server        = azurerm_sql_server.test.fully_qualified_domain_name
-      database_name = azurerm_sql_database.oozie.name
-      username      = azurerm_sql_server.test.administrator_login
-      password      = azurerm_sql_server.test.administrator_login_password
+      server        = azurerm_mssql_server.test.fully_qualified_domain_name
+      database_name = azurerm_mssql_database.oozie.name
+      username      = azurerm_mssql_server.test.administrator_login
+      password      = azurerm_mssql_server.test.administrator_login_password
     }
     ambari {
-      server        = azurerm_sql_server.test.fully_qualified_domain_name
-      database_name = azurerm_sql_database.ambari.name
-      username      = azurerm_sql_server.test.administrator_login
-      password      = azurerm_sql_server.test.administrator_login_password
+      server        = azurerm_mssql_server.test.fully_qualified_domain_name
+      database_name = azurerm_mssql_database.ambari.name
+      username      = azurerm_mssql_server.test.administrator_login
+      password      = azurerm_mssql_server.test.administrator_login_password
     }
   }
 }
@@ -1800,7 +1798,7 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
 func (r HDInsightInteractiveQueryClusterResource) hiveMetastore(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
-resource "azurerm_sql_server" "test" {
+resource "azurerm_mssql_server" "test" {
   name                         = "acctestsql-%d"
   resource_group_name          = azurerm_resource_group.test.name
   location                     = azurerm_resource_group.test.location
@@ -1808,19 +1806,19 @@ resource "azurerm_sql_server" "test" {
   administrator_login_password = "TerrAform123!"
   version                      = "12.0"
 }
-resource "azurerm_sql_database" "hive" {
+resource "azurerm_mssql_database" "hive" {
   name                             = "hive"
   resource_group_name              = azurerm_resource_group.test.name
   location                         = azurerm_resource_group.test.location
-  server_name                      = azurerm_sql_server.test.name
+  server_name                      = azurerm_mssql_server.test.name
   collation                        = "SQL_Latin1_General_CP1_CI_AS"
   create_mode                      = "Default"
   requested_service_objective_name = "GP_Gen5_2"
 }
-resource "azurerm_sql_firewall_rule" "AzureServices" {
+resource "azurerm_mssql_firewall_rule" "AzureServices" {
   name                = "allow-azure-services"
   resource_group_name = azurerm_resource_group.test.name
-  server_name         = azurerm_sql_server.test.name
+  server_name         = azurerm_mssql_server.test.name
   start_ip_address    = "0.0.0.0"
   end_ip_address      = "0.0.0.0"
 }
@@ -1862,10 +1860,10 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   }
   metastores {
     hive {
-      server        = azurerm_sql_server.test.fully_qualified_domain_name
-      database_name = azurerm_sql_database.hive.name
-      username      = azurerm_sql_server.test.administrator_login
-      password      = azurerm_sql_server.test.administrator_login_password
+      server        = azurerm_mssql_server.test.fully_qualified_domain_name
+      database_name = azurerm_mssql_database.hive.name
+      username      = azurerm_mssql_server.test.administrator_login
+      password      = azurerm_mssql_server.test.administrator_login_password
     }
   }
 }
