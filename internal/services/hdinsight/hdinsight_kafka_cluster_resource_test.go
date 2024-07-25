@@ -747,7 +747,7 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["172.16.11.0/26"]
 
-  enforce_private_link_service_network_policies = true
+  private_link_service_network_policies_enabled = true
 }
 
 resource "azurerm_public_ip" "test" {
