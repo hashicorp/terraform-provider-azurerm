@@ -2266,7 +2266,7 @@ resource "azurerm_servicebus_queue" "test" {
   name         = "acctest-%[1]d"
   namespace_id = azurerm_servicebus_namespace.test.id
 
-  enable_partitioning = true
+  partitioning_enabled = true
 }
 
 resource "azurerm_servicebus_queue_authorization_rule" "test" {
@@ -2427,7 +2427,7 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
   database_name       = azurerm_cosmosdb_sql_database.test.name
-  partition_key_path  = "/definition/id"
+  partition_key_paths = ["/definition/id"]
 }
 
 resource "azurerm_iothub" "test" {

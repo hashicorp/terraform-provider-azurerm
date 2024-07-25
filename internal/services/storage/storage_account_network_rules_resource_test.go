@@ -405,10 +405,8 @@ resource "azurerm_storage_account" "test" {
 resource "azurerm_storage_account_network_rules" "test" {
   storage_account_id = azurerm_storage_account.test.id
 
-  default_action             = "Deny"
-  bypass                     = ["None"]
-  ip_rules                   = []
-  virtual_network_subnet_ids = []
+  default_action = "Deny"
+  bypass         = ["None"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

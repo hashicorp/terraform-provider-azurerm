@@ -590,7 +590,7 @@ A `maintenance_window_auto_upgrade` block supports the following:
 
 * `interval` - (Required) The interval for maintenance runs. Depending on the frequency this interval is week or month based.
 
-* `duration` - (Required) The duration of the window for maintenance to run in hours.
+* `duration` - (Required) The duration of the window for maintenance to run in hours. Possible options are between `4` to `24`.
 
 * `day_of_week` - (Optional) The day of the week for the maintenance run. Required in combination with weekly frequency. Possible values are `Friday`, `Monday`, `Saturday`, `Sunday`, `Thursday`, `Tuesday` and `Wednesday`.
 
@@ -615,7 +615,7 @@ A `maintenance_window_node_os` block supports the following:
 
 * `interval` - (Required) The interval for maintenance runs. Depending on the frequency this interval is week or month based.
 
-* `duration` - (Required) The duration of the window for maintenance to run in hours.
+* `duration` - (Required) The duration of the window for maintenance to run in hours. Possible options are between `4` to `24`.
 
 * `day_of_week` - (Optional) The day of the week for the maintenance run. Required in combination with weekly frequency. Possible values are `Friday`, `Monday`, `Saturday`, `Sunday`, `Thursday`, `Tuesday` and `Wednesday`.
 
