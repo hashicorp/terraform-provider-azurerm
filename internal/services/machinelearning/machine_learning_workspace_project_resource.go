@@ -132,7 +132,7 @@ func (r MachineLearningWorkspaceProjectResource) Attributes() map[string]*plugin
 
 func (r MachineLearningWorkspaceProjectResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			var model machineLearningWorkspaceProjectModel
 			if err := metadata.Decode(&model); err != nil {
@@ -182,7 +182,7 @@ func (r MachineLearningWorkspaceProjectResource) Create() sdk.ResourceFunc {
 
 func (r MachineLearningWorkspaceProjectResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			var model machineLearningWorkspaceProjectModel
 			if err := metadata.Decode(&model); err != nil {
@@ -305,7 +305,7 @@ func (r MachineLearningWorkspaceProjectResource) Read() sdk.ResourceFunc {
 
 func (r MachineLearningWorkspaceProjectResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MachineLearning.Workspaces
 
