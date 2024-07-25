@@ -1237,11 +1237,6 @@ func (w WindowsWebAppV0toV1) Schema() map[string]*pluginsdk.Schema {
 						},
 					},
 
-					"auto_heal_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-					},
-
 					"auto_heal_setting": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
@@ -1279,7 +1274,7 @@ func (w WindowsWebAppV0toV1) Schema() map[string]*pluginsdk.Schema {
 											},
 
 											"status_code": {
-												Type:     pluginsdk.TypeList,
+												Type:     pluginsdk.TypeSet,
 												Optional: true,
 												Elem: &pluginsdk.Resource{
 													Schema: map[string]*pluginsdk.Schema{
