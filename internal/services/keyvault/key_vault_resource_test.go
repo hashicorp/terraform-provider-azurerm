@@ -137,78 +137,46 @@ func TestAccKeyVault_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault", "test")
 	r := KeyVaultResource{}
 
-	if !features.FourPointOhBeta() {
-		data.ResourceTest(t, r, []acceptance.TestStep{
-			{
-				Config: r.basic(data),
-				Check: acceptance.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-					check.That(data.ResourceName).Key("access_policy.0.key_permissions.0").HasValue("Create"),
-					check.That(data.ResourceName).Key("access_policy.0.secret_permissions.0").HasValue("Set"),
-					check.That(data.ResourceName).Key("tags.%").HasValue("0"),
-				),
-			},
-			{
-				Config: r.update(data),
-				Check: acceptance.ComposeTestCheckFunc(
-					check.That(data.ResourceName).Key("access_policy.0.key_permissions.0").HasValue("Get"),
-					check.That(data.ResourceName).Key("access_policy.0.secret_permissions.0").HasValue("Get"),
-					check.That(data.ResourceName).Key("enabled_for_deployment").HasValue("true"),
-					check.That(data.ResourceName).Key("enabled_for_disk_encryption").HasValue("true"),
-					check.That(data.ResourceName).Key("enabled_for_template_deployment").HasValue("true"),
-					check.That(data.ResourceName).Key("enable_rbac_authorization").HasValue("true"),
-					check.That(data.ResourceName).Key("tags.environment").HasValue("Staging"),
-				),
-			},
-			{
-				Config: r.noAccessPolicyBlocks(data),
-				Check: acceptance.ComposeTestCheckFunc(
-					// There are no access_policy blocks in this configuration
-					// at all, which means to ignore any existing policies and
-					// so the one created in previous steps is still present.
-					check.That(data.ResourceName).Key("access_policy.#").HasValue("1"),
-				),
-			},
-			{
-				Config: r.accessPolicyExplicitZero(data),
-				Check: acceptance.ComposeTestCheckFunc(
-					// This config explicitly sets access_policy = [], which
-					// means to delete any existing policies.
-					check.That(data.ResourceName).Key("access_policy.#").HasValue("0"),
-				),
-			},
-		})
-	} else {
-		data.ResourceTest(t, r, []acceptance.TestStep{
-			{
-				Config: r.basic(data),
-				Check: acceptance.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-					check.That(data.ResourceName).Key("access_policy.0.key_permissions.0").HasValue("Create"),
-					check.That(data.ResourceName).Key("access_policy.0.secret_permissions.0").HasValue("Set"),
-					check.That(data.ResourceName).Key("tags.%").HasValue("0"),
-				),
-			},
-			{
-				Config: r.update(data),
-				Check: acceptance.ComposeTestCheckFunc(
-					check.That(data.ResourceName).Key("access_policy.0.key_permissions.0").HasValue("Get"),
-					check.That(data.ResourceName).Key("access_policy.0.secret_permissions.0").HasValue("Get"),
-					check.That(data.ResourceName).Key("enabled_for_deployment").HasValue("true"),
-					check.That(data.ResourceName).Key("enabled_for_disk_encryption").HasValue("true"),
-					check.That(data.ResourceName).Key("enabled_for_template_deployment").HasValue("true"),
-					check.That(data.ResourceName).Key("enable_rbac_authorization").HasValue("true"),
-					check.That(data.ResourceName).Key("tags.environment").HasValue("Staging"),
-				),
-			},
-			{
-				Config: r.noAccessPolicyBlocks(data),
-				Check: acceptance.ComposeTestCheckFunc(
-					check.That(data.ResourceName).Key("access_policy.#").HasValue("0"),
-				),
-			},
-		})
-	}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("access_policy.0.key_permissions.0").HasValue("Create"),
+				check.That(data.ResourceName).Key("access_policy.0.secret_permissions.0").HasValue("Set"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+			),
+		},
+		{
+			Config: r.update(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("access_policy.0.key_permissions.0").HasValue("Get"),
+				check.That(data.ResourceName).Key("access_policy.0.secret_permissions.0").HasValue("Get"),
+				check.That(data.ResourceName).Key("enabled_for_deployment").HasValue("true"),
+				check.That(data.ResourceName).Key("enabled_for_disk_encryption").HasValue("true"),
+				check.That(data.ResourceName).Key("enabled_for_template_deployment").HasValue("true"),
+				check.That(data.ResourceName).Key("enable_rbac_authorization").HasValue("true"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("Staging"),
+			),
+		},
+		{
+			Config: r.noAccessPolicyBlocks(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				// There are no access_policy blocks in this configuration
+				// at all, which means to ignore any existing policies and
+				// so the one created in previous steps is still present.
+				check.That(data.ResourceName).Key("access_policy.#").HasValue("1"),
+			),
+		},
+		{
+			Config: r.accessPolicyExplicitZero(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				// This config explicitly sets access_policy = [], which
+				// means to delete any existing policies.
+				check.That(data.ResourceName).Key("access_policy.#").HasValue("0"),
+			),
+		},
+	})
 }
 
 func TestAccKeyVault_upgradeSKU(t *testing.T) {
