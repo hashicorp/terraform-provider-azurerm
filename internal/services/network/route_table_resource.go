@@ -57,8 +57,10 @@ func resourceRouteTable() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"route": {
-				Type:     pluginsdk.TypeSet,
-				Optional: true,
+				Type:       pluginsdk.TypeSet,
+				ConfigMode: pluginsdk.SchemaConfigModeAttr,
+				Optional:   true,
+				Computed:   true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
@@ -128,45 +130,6 @@ func resourceRouteTable() *pluginsdk.Resource {
 				"bgp_route_propagation_enabled",
 			},
 			Deprecated: "The property `disable_bgp_route_propagation` has been superseded by the property `bgp_route_propagation_enabled` and will be removed in v4.0 of the AzureRM Provider.",
-		}
-		resource.Schema["route"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeSet,
-			ConfigMode: pluginsdk.SchemaConfigModeAttr,
-			Optional:   true,
-			Computed:   true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"name": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validate.RouteName,
-					},
-
-					"address_prefix": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-
-					"next_hop_type": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(routetables.RouteNextHopTypeVirtualNetworkGateway),
-							string(routetables.RouteNextHopTypeVnetLocal),
-							string(routetables.RouteNextHopTypeInternet),
-							string(routetables.RouteNextHopTypeVirtualAppliance),
-							string(routetables.RouteNextHopTypeNone),
-						}, false),
-					},
-
-					"next_hop_in_ip_address": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-				},
-			},
 		}
 	}
 
