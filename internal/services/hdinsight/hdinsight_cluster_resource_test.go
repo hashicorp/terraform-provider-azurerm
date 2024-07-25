@@ -41,7 +41,7 @@ provider "azurerm" {
 provider "azuread" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRGhdi-%[1]d"
+  name     = "acctestRG-hdi-%[1]d"
   location = "%[2]s"
 
   tags = {
