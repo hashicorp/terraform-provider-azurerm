@@ -22,7 +22,7 @@ import (
 )
 
 func dataSourceRedisCache() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Read: dataSourceRedisCacheRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -63,12 +63,6 @@ func dataSourceRedisCache() *pluginsdk.Resource {
 
 			"shard_count": {
 				Type:     pluginsdk.TypeInt,
-				Computed: true,
-			},
-
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_non_ssl_port": {
-				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
 
@@ -245,6 +239,15 @@ func dataSourceRedisCache() *pluginsdk.Resource {
 			"tags": commonschema.TagsDataSource(),
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["enable_non_ssl_port"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		}
+	}
+
+	return resource
 }
 
 func dataSourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
