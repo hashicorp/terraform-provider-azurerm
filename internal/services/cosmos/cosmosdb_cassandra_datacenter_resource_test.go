@@ -101,10 +101,10 @@ func testAccCassandraDatacenter_updateSku(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
-				Config: r.basicSku(data, "Standard_E2_v5"),
+				Config: r.basicSku(data, "Standard_E8s_v5"),
 				Check: acceptance.ComposeAggregateTestCheckFunc(
 					check.That(data.ResourceName).ExistsInAzure(r),
-					check.That(data.ResourceName).Key("sku_name").HasValue("Standard_E2_v5"),
+					check.That(data.ResourceName).Key("sku_name").HasValue("Standard_E8s_v5"),
 				),
 			},
 			data.ImportStep(),
