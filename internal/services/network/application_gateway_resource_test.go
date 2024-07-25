@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-07-01/applicationgateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/applicationgateways"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -1326,7 +1326,7 @@ func (t ApplicationGatewayResource) Exists(ctx context.Context, clients *clients
 		return nil, err
 	}
 
-	resp, err := clients.Network.ApplicationGatewaysClient.Get(ctx, *id)
+	resp, err := clients.Network.ApplicationGateways.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
@@ -5098,7 +5098,7 @@ func (ApplicationGatewayResource) changeCert(certificateName string) acceptance.
 			return err
 		}
 
-		agw, err := clients.Network.ApplicationGatewaysClient.Get(ctx, *id)
+		agw, err := clients.Network.ApplicationGateways.Get(ctx, *id)
 		if err != nil {
 			return fmt.Errorf("retrieving %s: %+v", id, err)
 		}
@@ -5129,7 +5129,7 @@ func (ApplicationGatewayResource) changeCert(certificateName string) acceptance.
 
 		agw.Model.Properties.SslCertificates = &newSslCertificates
 
-		if err := clients.Network.ApplicationGatewaysClient.CreateOrUpdateThenPoll(ctx, *id, *agw.Model); err != nil {
+		if err := clients.Network.ApplicationGateways.CreateOrUpdateThenPoll(ctx, *id, *agw.Model); err != nil {
 			return fmt.Errorf("updating %s: %+v", id, err)
 		}
 
@@ -7464,6 +7464,11 @@ resource "azurerm_application_gateway" "test" {
     priority                   = 10
   }
 
+  ssl_policy {
+    policy_type = "Predefined"
+    policy_name = "AppGwSslPolicy20150501"
+  }
+
   ssl_profile {
     name = local.ssl_profile_name
     ssl_policy {
@@ -7559,6 +7564,11 @@ resource "azurerm_application_gateway" "test" {
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
     priority                   = 10
+  }
+
+  ssl_policy {
+    policy_type = "Predefined"
+    policy_name = "AppGwSslPolicy20150501"
   }
 
   ssl_profile {
@@ -7659,6 +7669,12 @@ resource "azurerm_application_gateway" "test" {
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
     priority                   = 10
+  }
+
+  ssl_policy {
+    policy_type          = "Custom"
+    min_protocol_version = "TLSv1_1"
+    cipher_suites        = ["TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256", "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384", "TLS_RSA_WITH_AES_128_GCM_SHA256"]
   }
 
   ssl_profile {
@@ -7764,6 +7780,10 @@ resource "azurerm_application_gateway" "test" {
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
     priority                   = 10
+  }
+
+  ssl_policy {
+    disabled_protocols = ["TLSv1_0", "TLSv1_1"]
   }
 
   ssl_profile {
