@@ -11,6 +11,7 @@ import (
 type ConnectedCluster struct {
 	Id         *string                    `json:"id,omitempty"`
 	Identity   identity.SystemAssigned    `json:"identity"`
+	Kind       *ConnectedClusterKind      `json:"kind,omitempty"`
 	Location   string                     `json:"location"`
 	Name       *string                    `json:"name,omitempty"`
 	Properties ConnectedClusterProperties `json:"properties"`
