@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-08-01/patchschedules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-08-01/redis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -67,6 +68,11 @@ func dataSourceRedisCache() *pluginsdk.Resource {
 
 			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_non_ssl_port": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"non_ssl_port_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
@@ -294,7 +300,12 @@ func dataSourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error
 		}
 		d.Set("minimum_tls_version", minimumTlsVersion)
 		d.Set("port", props.Port)
-		d.Set("enable_non_ssl_port", props.EnableNonSslPort)
+		d.Set("non_ssl_port_enabled", props.EnableNonSslPort)
+
+		if !features.FourPointOhBeta() {
+			d.Set("enable_non_ssl_port", props.EnableNonSslPort)
+		}
+
 		shardCount := 0
 		if props.ShardCount != nil {
 			shardCount = int(*props.ShardCount)
