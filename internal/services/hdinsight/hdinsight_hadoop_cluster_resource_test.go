@@ -1949,38 +1949,28 @@ resource "azurerm_mssql_server" "test" {
   version                      = "12.0"
 }
 resource "azurerm_mssql_database" "hive" {
-  name                             = "hive"
-  resource_group_name              = azurerm_resource_group.test.name
-  location                         = azurerm_resource_group.test.location
-  server_name                      = azurerm_mssql_server.test.name
-  collation                        = "SQL_Latin1_General_CP1_CI_AS"
-  create_mode                      = "Default"
-  requested_service_objective_name = "GP_Gen5_2"
+  name        = "hive"
+  server_id   = azurerm_mssql_server.test.id
+  collation   = "SQL_Latin1_General_CP1_CI_AS"
+  create_mode = "Default"
 }
 resource "azurerm_mssql_database" "oozie" {
-  name                             = "oozie"
-  resource_group_name              = azurerm_resource_group.test.name
-  location                         = azurerm_resource_group.test.location
-  server_name                      = azurerm_mssql_server.test.name
-  collation                        = "SQL_Latin1_General_CP1_CI_AS"
-  create_mode                      = "Default"
-  requested_service_objective_name = "GP_Gen5_2"
+  name        = "oozie"
+  server_id   = azurerm_mssql_server.test.id
+  collation   = "SQL_Latin1_General_CP1_CI_AS"
+  create_mode = "Default"
 }
 resource "azurerm_mssql_database" "ambari" {
-  name                             = "ambari"
-  resource_group_name              = azurerm_resource_group.test.name
-  location                         = azurerm_resource_group.test.location
-  server_name                      = azurerm_mssql_server.test.name
-  collation                        = "SQL_Latin1_General_CP1_CI_AS"
-  create_mode                      = "Default"
-  requested_service_objective_name = "GP_Gen5_2"
+  name        = "ambari"
+  server_id   = azurerm_mssql_server.test.id
+  collation   = "SQL_Latin1_General_CP1_CI_AS"
+  create_mode = "Default"
 }
 resource "azurerm_mssql_firewall_rule" "AzureServices" {
-  name                = "allow-azure-services"
-  resource_group_name = azurerm_resource_group.test.name
-  server_name         = azurerm_mssql_server.test.name
-  start_ip_address    = "0.0.0.0"
-  end_ip_address      = "0.0.0.0"
+  name             = "allow-azure-services"
+  server_id        = azurerm_mssql_server.test.id
+  start_ip_address = "0.0.0.0"
+  end_ip_address   = "0.0.0.0"
 }
 resource "azurerm_hdinsight_hadoop_cluster" "test" {
   name                = "acctesthdi-%d"
@@ -2054,20 +2044,16 @@ resource "azurerm_mssql_server" "test" {
   version                      = "12.0"
 }
 resource "azurerm_mssql_database" "hive" {
-  name                             = "hive"
-  resource_group_name              = azurerm_resource_group.test.name
-  location                         = azurerm_resource_group.test.location
-  server_name                      = azurerm_mssql_server.test.name
-  collation                        = "SQL_Latin1_General_CP1_CI_AS"
-  create_mode                      = "Default"
-  requested_service_objective_name = "GP_Gen5_2"
+  name        = "hive"
+  server_id   = azurerm_mssql_server.test.id
+  collation   = "SQL_Latin1_General_CP1_CI_AS"
+  create_mode = "Default"
 }
 resource "azurerm_mssql_firewall_rule" "AzureServices" {
-  name                = "allow-azure-services"
-  resource_group_name = azurerm_resource_group.test.name
-  server_name         = azurerm_mssql_server.test.name
-  start_ip_address    = "0.0.0.0"
-  end_ip_address      = "0.0.0.0"
+  name             = "allow-azure-services"
+  server_id        = azurerm_mssql_server.test.id
+  start_ip_address = "0.0.0.0"
+  end_ip_address   = "0.0.0.0"
 }
 resource "azurerm_hdinsight_hadoop_cluster" "test" {
   name                = "acctesthdi-%d"
