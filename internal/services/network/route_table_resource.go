@@ -158,6 +158,7 @@ func resourceRouteTableCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	bgpRoutePropagationEnabled := d.Get("bgp_route_propagation_enabled").(bool)
 
 	if !features.FourPointOhBeta() {
+		bgpRoutePropagationEnabled = true
 		bgpRoutePropagationEnabled = !d.Get("disable_bgp_route_propagation").(bool)
 	}
 
