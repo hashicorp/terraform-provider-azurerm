@@ -14,6 +14,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/extendedlocation/2021-08-15/customlocations"
 	arckubernetes "github.com/hashicorp/go-azure-sdk/resource-manager/hybridkubernetes/2021-10-01/connectedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2022-11-01/extensions"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -39,7 +41,7 @@ type AuthModel struct {
 }
 
 func (r CustomLocationResource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	return map[string]*schema.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
@@ -67,9 +69,7 @@ func (r CustomLocationResource) Arguments() map[string]*pluginsdk.Schema {
 		"cluster_extension_ids": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
-			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
-			},
+			Elem:     commonschema.ResourceIDReferenceElem(&extensions.ScopedExtensionId{}),
 		},
 
 		"host_resource_id": {
@@ -87,6 +87,13 @@ func (r CustomLocationResource) Arguments() map[string]*pluginsdk.Schema {
 			}, false),
 		},
 
+		"display_name": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
 		"authentication": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -102,16 +109,10 @@ func (r CustomLocationResource) Arguments() map[string]*pluginsdk.Schema {
 					"value": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
+						ValidateFunc: validation.StringIsBase64,
 					},
 				},
 			},
-		},
-
-		"display_name": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
 		},
 	}
 }
@@ -205,25 +206,14 @@ func (r CustomLocationResource) Read() sdk.ResourceFunc {
 				props := model.Properties
 
 				state := CustomLocationResourceModel{
-					Name:              id.CustomLocationName,
-					ResourceGroupName: id.ResourceGroupName,
-					Location:          model.Location,
-				}
-
-				if props.ClusterExtensionIds != nil {
-					state.ClusterExtensionIds = pointer.From(props.ClusterExtensionIds)
-				}
-				if props.DisplayName != nil {
-					state.DisplayName = pointer.From(props.DisplayName)
-				}
-				if props.HostResourceId != nil {
-					state.HostResourceId = pointer.From(props.HostResourceId)
-				}
-				if props.HostType != nil {
-					state.HostType = string(pointer.From(props.HostType))
-				}
-				if props.Namespace != nil {
-					state.Namespace = pointer.From(props.Namespace)
+					Name:                id.CustomLocationName,
+					ResourceGroupName:   id.ResourceGroupName,
+					Location:            model.Location,
+					ClusterExtensionIds: pointer.From(props.ClusterExtensionIds),
+					DisplayName:         pointer.From(props.DisplayName),
+					HostResourceId:      pointer.From(props.HostResourceId),
+					HostType:            string(pointer.From(props.HostType)),
+					Namespace:           pointer.From(props.Namespace),
 				}
 
 				if props.Authentication != nil && props.Authentication.Type != nil && props.Authentication.Value != nil {
@@ -254,10 +244,8 @@ func (r CustomLocationResource) Delete() sdk.ResourceFunc {
 
 			metadata.Logger.Infof("deleting %s", *id)
 
-			if resp, err := client.Delete(ctx, *id); err != nil {
-				if !response.WasNotFound(resp.HttpResponse) {
-					return fmt.Errorf("deleting %s: %+v", *id, err)
-				}
+			if err := client.DeleteThenPoll(ctx, *id); err != nil {
+				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
 			return nil
@@ -290,6 +278,8 @@ func (r CustomLocationResource) Update() sdk.ResourceFunc {
 						Type:  pointer.To(auth.Type),
 						Value: pointer.To(auth.Value),
 					}
+				} else {
+					customLocationProps.Authentication = nil
 				}
 			}
 
@@ -297,17 +287,8 @@ func (r CustomLocationResource) Update() sdk.ResourceFunc {
 				customLocationProps.ClusterExtensionIds = pointer.To(state.ClusterExtensionIds)
 			}
 
-			if d.HasChange("display_name") {
-				customLocationProps.DisplayName = pointer.To(state.DisplayName)
-			}
-
 			if d.HasChange("host_resource_id") {
 				customLocationProps.HostResourceId = pointer.To(state.HostResourceId)
-			}
-
-			if d.HasChange("host_type") {
-				hostType := customlocations.HostType(state.HostType)
-				customLocationProps.HostType = pointer.To(hostType)
 			}
 
 			props := customlocations.PatchableCustomLocations{

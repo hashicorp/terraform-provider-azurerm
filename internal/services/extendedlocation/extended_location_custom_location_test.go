@@ -12,12 +12,10 @@ import (
 	"encoding/pem"
 	"fmt"
 	"math/rand"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/extendedlocation/2021-08-15/customlocations"
-	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -226,7 +224,7 @@ resource "azurerm_network_security_group" "my_terraform_nsg" {
   }
 }
 
-resource "azurerm_network_interface_security_group_association" "example" {
+resource "azurerm_network_interface_security_group_association" "test" {
   network_interface_id      = azurerm_network_interface.test.id
   network_security_group_id = azurerm_network_security_group.my_terraform_nsg.id
 }
@@ -254,6 +252,10 @@ resource "azurerm_linux_virtual_machine" "test" {
     sku       = "22_04-lts"
     version   = "latest"
   }
+
+  depends_on = [
+    azurerm_network_interface_security_group_association.test
+  ]
 }
 
 resource "azurerm_arc_kubernetes_cluster" "test" {
@@ -310,11 +312,6 @@ func (r CustomLocationResource) generateKey() (string, string, error) {
 }
 
 func (r CustomLocationResource) getCredentials(t *testing.T) (credential, privateKey, publicKey string) {
-	// generateKey() is a time-consuming operation, we only run this test if an env var is set.
-	if os.Getenv(resource.EnvTfAcc) == "" {
-		t.Skipf("Acceptance tests skipped unless env '%s' set", resource.EnvTfAcc)
-	}
-
 	credential = fmt.Sprintf("P@$$w0rd%d!", rand.Intn(10000))
 	privateKey, publicKey, err := r.generateKey()
 	if err != nil {
