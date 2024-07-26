@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2023-05-01/cognitiveservicesaccounts"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2023-05-01/deployments"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -21,12 +20,12 @@ import (
 )
 
 type cognitiveDeploymentModel struct {
-	Name                 string                         `tfschema:"name"`
-	CognitiveAccountId   string                         `tfschema:"cognitive_account_id"`
-	Model                []DeploymentModelModel         `tfschema:"model"`
-	RaiPolicyName        string                         `tfschema:"rai_policy_name"`
-	ScaleSettings        []DeploymentScaleSettingsModel `tfschema:"scale"`
-	VersionUpgradeOption string                         `tfschema:"version_upgrade_option"`
+	Name                 string                 `tfschema:"name"`
+	CognitiveAccountId   string                 `tfschema:"cognitive_account_id"`
+	Model                []DeploymentModelModel `tfschema:"model"`
+	RaiPolicyName        string                 `tfschema:"rai_policy_name"`
+	Sku                  []SkuModel             `tfschema:"sku"`
+	VersionUpgradeOption string                 `tfschema:"version_upgrade_option"`
 }
 
 type DeploymentModelModel struct {
@@ -35,12 +34,12 @@ type DeploymentModelModel struct {
 	Version string `tfschema:"version"`
 }
 
-type DeploymentScaleSettingsModel struct {
-	ScaleType string `tfschema:"type"`
-	Tier      string `tfschema:"tier"`
-	Size      string `tfschema:"size"`
-	Family    string `tfschema:"family"`
-	Capacity  int64  `tfschema:"capacity"`
+type SkuModel struct {
+	Capacity int64  `tfschema:"capacity"`
+	Family   string `tfschema:"family"`
+	Name     string `tfschema:"name"`
+	Size     string `tfschema:"size"`
+	Tier     string `tfschema:"tier"`
 }
 
 type CognitiveDeploymentResource struct{}
@@ -60,7 +59,7 @@ func (r CognitiveDeploymentResource) IDValidationFunc() pluginsdk.SchemaValidate
 }
 
 func (r CognitiveDeploymentResource) Arguments() map[string]*pluginsdk.Schema {
-	arguments := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -122,63 +121,34 @@ func (r CognitiveDeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 				string(deployments.DeploymentModelVersionUpgradeOptionNoAutoUpgrade),
 			}, false),
 		},
-	}
-	if !features.FourPointOh() {
-		arguments["scale"] = &pluginsdk.Schema{
+
+		"sku": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"type": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ForceNew: true,
-					},
-					"tier": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ForceNew: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(deployments.SkuTierFree),
-							string(deployments.SkuTierBasic),
-							string(deployments.SkuTierStandard),
-							string(deployments.SkuTierPremium),
-							string(deployments.SkuTierEnterprise),
-						}, false),
-					},
-					"size": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ForceNew: true,
-					},
-					"family": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ForceNew: true,
-					},
 					"capacity": {
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						Default:      1,
 						ValidateFunc: validation.IntAtLeast(1),
 					},
-				},
-			},
-		}
-	} else {
-		//TODO: 4.0 - add corresponding field in cognitiveDeploymentModel struct
-		arguments["sku"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
+					"family": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ForceNew: true,
+					},
 					"name": {
 						Type:     pluginsdk.TypeString,
 						Required: true,
 						ForceNew: true,
 					},
+					"size": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ForceNew: true,
+					},
 					"tier": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
@@ -191,27 +161,10 @@ func (r CognitiveDeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 							string(deployments.SkuTierEnterprise),
 						}, false),
 					},
-					"size": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ForceNew: true,
-					},
-					"family": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ForceNew: true,
-					},
-					"capacity": {
-						Type:         pluginsdk.TypeInt,
-						Optional:     true,
-						Default:      1,
-						ValidateFunc: validation.IntAtLeast(1),
-					},
 				},
 			},
-		}
+		},
 	}
-	return arguments
 }
 
 func (r CognitiveDeploymentResource) Attributes() map[string]*pluginsdk.Schema {
@@ -261,7 +214,7 @@ func (r CognitiveDeploymentResource) Create() sdk.ResourceFunc {
 				properties.Properties.VersionUpgradeOption = &option
 			}
 
-			properties.Sku = expandDeploymentSkuModel(model.ScaleSettings)
+			properties.Sku = expandDeploymentSkuModel(model.Sku)
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, *properties); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
@@ -302,8 +255,8 @@ func (r CognitiveDeploymentResource) Update() sdk.ResourceFunc {
 
 			properties := resp.Model
 
-			if metadata.ResourceData.HasChange("scale.0.capacity") {
-				properties.Sku.Capacity = pointer.To(model.ScaleSettings[0].Capacity)
+			if metadata.ResourceData.HasChange("sku.0.capacity") {
+				properties.Sku.Capacity = pointer.To(model.Sku[0].Capacity)
 			}
 
 			if metadata.ResourceData.HasChange("rai_policy_name") {
@@ -366,10 +319,9 @@ func (r CognitiveDeploymentResource) Read() sdk.ResourceFunc {
 				if v := properties.VersionUpgradeOption; v != nil {
 					state.VersionUpgradeOption = string(*v)
 				}
-				state.ScaleSettings = flattenDeploymentScaleSettingsModel(properties.ScaleSettings)
 			}
-			if scale := flattenDeploymentSkuModel(model.Sku); scale != nil {
-				state.ScaleSettings = scale
+			if sku := flattenDeploymentSkuModel(model.Sku); sku != nil {
+				state.Sku = sku
 			}
 			return metadata.Encode(&state)
 		},
@@ -423,13 +375,13 @@ func expandDeploymentModelModel(inputList []DeploymentModelModel) *deployments.D
 	return &output
 }
 
-func expandDeploymentSkuModel(inputList []DeploymentScaleSettingsModel) *deployments.Sku {
+func expandDeploymentSkuModel(inputList []SkuModel) *deployments.Sku {
 	if len(inputList) == 0 {
 		return nil
 	}
 	input := inputList[0]
 	s := &deployments.Sku{
-		Name: input.ScaleType,
+		Name: input.Name,
 	}
 	if input.Capacity != 0 {
 		s.Capacity = utils.Int64(input.Capacity)
@@ -475,23 +427,12 @@ func flattenDeploymentModelModel(input *deployments.DeploymentModel) []Deploymen
 	return append(outputList, output)
 }
 
-func flattenDeploymentScaleSettingsModel(input *deployments.DeploymentScaleSettings) []DeploymentScaleSettingsModel {
-	if input == nil || input.ScaleType == nil {
-		return nil
-	}
-
-	output := DeploymentScaleSettingsModel{
-		ScaleType: string(*input.ScaleType),
-	}
-	return []DeploymentScaleSettingsModel{output}
-}
-
-func flattenDeploymentSkuModel(input *deployments.Sku) []DeploymentScaleSettingsModel {
+func flattenDeploymentSkuModel(input *deployments.Sku) []SkuModel {
 	if input == nil {
 		return nil
 	}
-	output := DeploymentScaleSettingsModel{
-		ScaleType: input.Name,
+	output := SkuModel{
+		Name: input.Name,
 	}
 	if input.Capacity != nil {
 		output.Capacity = *input.Capacity
@@ -505,5 +446,5 @@ func flattenDeploymentSkuModel(input *deployments.Sku) []DeploymentScaleSettings
 	if input.Family != nil {
 		output.Family = *input.Family
 	}
-	return []DeploymentScaleSettingsModel{output}
+	return []SkuModel{output}
 }

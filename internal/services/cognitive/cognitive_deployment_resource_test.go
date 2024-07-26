@@ -85,7 +85,7 @@ func TestAccCognitiveDeployment_update(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("scale.0.capacity").HasValue("1"),
+				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("1"),
 				check.That(data.ResourceName).Key("rai_policy_name").HasValue("RAI policy"),
 			),
 		},
@@ -94,7 +94,7 @@ func TestAccCognitiveDeployment_update(t *testing.T) {
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("scale.0.capacity").HasValue("2"),
+				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("2"),
 				check.That(data.ResourceName).Key("rai_policy_name").HasValue("Microsoft.Default"),
 			),
 		},
@@ -183,8 +183,8 @@ resource "azurerm_cognitive_deployment" "test" {
     format = "OpenAI"
     name   = "text-embedding-ada-002"
   }
-  scale {
-    type = "Standard"
+  sku {
+    name = "Standard"
   }
   lifecycle {
     ignore_changes = [model.0.version]
@@ -206,8 +206,8 @@ resource "azurerm_cognitive_deployment" "import" {
     name    = "text-embedding-ada-002"
     version = "2"
   }
-  scale {
-    type = "Standard"
+  sku {
+    name = "Standard"
   }
 }
 `, config)
@@ -227,8 +227,8 @@ resource "azurerm_cognitive_deployment" "test" {
     name    = "text-embedding-ada-002"
     version = "2"
   }
-  scale {
-    type = "Standard"
+  sku {
+    name = "Standard"
   }
   rai_policy_name        = "RAI policy"
   version_upgrade_option = "OnceNewDefaultVersionAvailable"
@@ -250,8 +250,8 @@ resource "azurerm_cognitive_deployment" "test" {
     name    = "text-embedding-ada-002"
     version = "2"
   }
-  scale {
-    type     = "Standard"
+  sku {
+    name     = "Standard"
     capacity = 2
   }
 }
@@ -272,8 +272,8 @@ resource "azurerm_cognitive_deployment" "test" {
     name    = "text-embedding-ada-002"
     version = "1"
   }
-  scale {
-    type     = "Standard"
+  sku {
+    name     = "Standard"
     capacity = 2
   }
 }
@@ -295,8 +295,8 @@ resource "azurerm_cognitive_deployment" "test" {
     name    = "text-embedding-ada-002"
     version = "1"
   }
-  scale {
-    type     = "Standard"
+  sku {
+    name     = "Standard"
     capacity = 2
   }
 }
