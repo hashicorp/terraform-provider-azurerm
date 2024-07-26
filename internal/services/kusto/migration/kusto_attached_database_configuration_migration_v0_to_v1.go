@@ -46,7 +46,7 @@ func (s KustoAttachedDatabaseConfigurationV0ToV1) Schema() map[string]*pluginsdk
 			ForceNew: true,
 		},
 
-		"cluster_resource_id": {
+		"cluster_id": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
