@@ -35,13 +35,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-var _ sdk.ResourceWithUpdate = AIServicesAccountResource{}
+var _ sdk.ResourceWithUpdate = AzureAIServicesResource{}
 
-var _ sdk.ResourceWithCustomImporter = AIServicesAccountResource{}
+var _ sdk.ResourceWithCustomImporter = AzureAIServicesResource{}
 
-type AIServicesAccountResource struct{}
+type AzureAIServicesResource struct{}
 
-func (r AIServicesAccountResource) CustomImporter() sdk.ResourceRunFunc {
+func (r AzureAIServicesResource) CustomImporter() sdk.ResourceRunFunc {
 	return func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 		_, err := cognitiveservicesaccounts.ParseAccountID(metadata.ResourceData.Id())
 		if err != nil {
@@ -51,34 +51,34 @@ func (r AIServicesAccountResource) CustomImporter() sdk.ResourceRunFunc {
 	}
 }
 
-type AIServicesAccountVirtualNetworkRules struct {
+type AzureAIServicesVirtualNetworkRules struct {
 	SubnetID                         string `tfschema:"subnet_id"`
 	IgnoreMissingVnetServiceEndpoint bool   `tfschema:"ignore_missing_vnet_service_endpoint"`
 }
 
-type AIServicesAccountNetworkACLs struct {
-	DefaultAction       string                                 `tfschema:"default_action"`
-	IpRules             []string                               `tfschema:"ip_rules"`
-	VirtualNetworkRules []AIServicesAccountVirtualNetworkRules `tfschema:"virtual_network_rules"`
+type AzureAIServicesNetworkACLs struct {
+	DefaultAction       string                               `tfschema:"default_action"`
+	IpRules             []string                             `tfschema:"ip_rules"`
+	VirtualNetworkRules []AzureAIServicesVirtualNetworkRules `tfschema:"virtual_network_rules"`
 }
 
-type AIServicesAccountCustomerManagedKey struct {
+type AzureAIServicesCustomerManagedKey struct {
 	IdentityClientID string `tfschema:"identity_client_id"`
 	KeyVaultKeyID    string `tfschema:"key_vault_key_id"`
 	ManagedHsmKeyID  string `tfschema:"managed_hsm_key_id"`
 }
 
-type AIServicesAccountResourceResourceModel struct {
+type AzureAIServicesResourceResourceModel struct {
 	Name                            string                                     `tfschema:"name"`
 	ResourceGroupName               string                                     `tfschema:"resource_group_name"`
 	Location                        string                                     `tfschema:"location"`
 	SkuName                         string                                     `tfschema:"sku_name"`
 	CustomSubdomainName             string                                     `tfschema:"custom_subdomain_name"`
-	CustomerManagedKey              []AIServicesAccountCustomerManagedKey      `tfschema:"customer_managed_key"`
+	CustomerManagedKey              []AzureAIServicesCustomerManagedKey        `tfschema:"customer_managed_key"`
 	Fqdns                           []string                                   `tfschema:"fqdns"`
 	Identity                        []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 	LocalAuthorizationEnabled       bool                                       `tfschema:"local_authentication_enabled"`
-	NetworkACLs                     []AIServicesAccountNetworkACLs             `tfschema:"network_acls"`
+	NetworkACLs                     []AzureAIServicesNetworkACLs               `tfschema:"network_acls"`
 	OutboundNetworkAccessRestricted bool                                       `tfschema:"outbound_network_access_restricted"`
 	PublicNetworkAccess             string                                     `tfschema:"public_network_access"`
 	Tags                            map[string]string                          `tfschema:"tags"`
@@ -87,7 +87,7 @@ type AIServicesAccountResourceResourceModel struct {
 	SecondaryAccessKey              string                                     `tfschema:"secondary_access_key"`
 }
 
-func (AIServicesAccountResource) Arguments() map[string]*pluginsdk.Schema {
+func (AzureAIServicesResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 
 		"name": {
@@ -252,7 +252,7 @@ func (AIServicesAccountResource) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (AIServicesAccountResource) Attributes() map[string]*pluginsdk.Schema {
+func (AzureAIServicesResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"endpoint": {
 			Type:     pluginsdk.TypeString,
@@ -273,19 +273,19 @@ func (AIServicesAccountResource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (AIServicesAccountResource) ModelObject() interface{} {
-	return &AIServicesAccountResourceResourceModel{}
+func (AzureAIServicesResource) ModelObject() interface{} {
+	return &AzureAIServicesResourceResourceModel{}
 }
 
-func (AIServicesAccountResource) ResourceType() string {
-	return "azurerm_cognitive_account_ai_services"
+func (AzureAIServicesResource) ResourceType() string {
+	return "azurerm_azure_ai_services"
 }
 
-func (AIServicesAccountResource) Create() sdk.ResourceFunc {
+func (AzureAIServicesResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 180 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var model AIServicesAccountResourceResourceModel
+			var model AzureAIServicesResourceResourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return err
 			}
@@ -302,10 +302,10 @@ func (AIServicesAccountResource) Create() sdk.ResourceFunc {
 			}
 
 			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError("azurerm_cognitive_account_ai_services", id.ID())
+				return tf.ImportAsExistsError("azurerm_azure_ai_services", id.ID())
 			}
 
-			networkACLs, subnetIds := expandAIServicesAccountNetworkACLs(model.NetworkACLs)
+			networkACLs, subnetIds := expandAzureAIServicesNetworkACLs(model.NetworkACLs)
 
 			// also lock on the Virtual Network ID's since modifications in the networking stack are exclusive
 			virtualNetworkNames := make([]string, 0)
@@ -354,7 +354,7 @@ func (AIServicesAccountResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("waiting for creating of %s: %+v", id, err)
 			}
 
-			customMangedKey, err := expandAIServicesAccountCustomerManagedKey(model.CustomerManagedKey)
+			customMangedKey, err := expandAzureAIServicesCustomerManagedKey(model.CustomerManagedKey)
 			if err != nil {
 				return fmt.Errorf("expanding `customer_managed_key`: %+v", err)
 			}
@@ -378,14 +378,14 @@ func (AIServicesAccountResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (AIServicesAccountResource) Read() sdk.ResourceFunc {
+func (AzureAIServicesResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Cognitive.AccountsClient
 			env := metadata.Client.Account.Environment
 
-			state := AIServicesAccountResourceResourceModel{}
+			state := AzureAIServicesResourceResourceModel{}
 			id, err := cognitiveservicesaccounts.ParseAccountID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
@@ -428,7 +428,7 @@ func (AIServicesAccountResource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					state.Endpoint = pointer.From(props.Endpoint)
 					state.CustomSubdomainName = pointer.From(props.CustomSubDomainName)
-					state.NetworkACLs = flattenAIServicesAccountNetworkACLs(props.NetworkAcls)
+					state.NetworkACLs = flattenAzureAIServicesNetworkACLs(props.NetworkAcls)
 					state.Fqdns = pointer.From(props.AllowedFqdnList)
 
 					state.PublicNetworkAccess = string(*props.PublicNetworkAccess)
@@ -445,7 +445,7 @@ func (AIServicesAccountResource) Read() sdk.ResourceFunc {
 					}
 					state.LocalAuthorizationEnabled = localAuthEnabled
 
-					customerManagedKey, err := flattenAIServicesAccountCustomerManagedKey(props.Encryption, env)
+					customerManagedKey, err := flattenAzureAIServicesCustomerManagedKey(props.Encryption, env)
 					if err != nil {
 						return err
 					}
@@ -460,13 +460,13 @@ func (AIServicesAccountResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (AIServicesAccountResource) Update() sdk.ResourceFunc {
+func (AzureAIServicesResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 180 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Cognitive.AccountsClient
 
-			var model AIServicesAccountResourceResourceModel
+			var model AzureAIServicesResourceResourceModel
 
 			if err := metadata.Decode(&model); err != nil {
 				return err
@@ -474,10 +474,10 @@ func (AIServicesAccountResource) Update() sdk.ResourceFunc {
 
 			id, err := cognitiveservicesaccounts.ParseAccountID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf(" Cannot parse Cognitive Account AI service ID: %s", err)
+				return fmt.Errorf(" Cannot parse Azure AI service ID: %s", err)
 			}
 
-			networkACLs, subnetIds := expandAIServicesAccountNetworkACLs(model.NetworkACLs)
+			networkACLs, subnetIds := expandAzureAIServicesNetworkACLs(model.NetworkACLs)
 			locks.MultipleByName(&subnetIds, network.VirtualNetworkResourceName)
 			defer locks.UnlockMultipleByName(&subnetIds, network.VirtualNetworkResourceName)
 
@@ -514,7 +514,7 @@ func (AIServicesAccountResource) Update() sdk.ResourceFunc {
 				Tags: pointer.To(model.Tags),
 			}
 
-			customMangedKey, err := expandAIServicesAccountCustomerManagedKey(model.CustomerManagedKey)
+			customMangedKey, err := expandAzureAIServicesCustomerManagedKey(model.CustomerManagedKey)
 			if err != nil {
 				return fmt.Errorf("expanding `customer_managed_key`: %+v", err)
 			}
@@ -542,7 +542,7 @@ func (AIServicesAccountResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (AIServicesAccountResource) Delete() sdk.ResourceFunc {
+func (AzureAIServicesResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 180 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -559,7 +559,7 @@ func (AIServicesAccountResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			deletedAccountId := cognitiveservicesaccounts.NewDeletedAccountID(id.SubscriptionId, *account.Model.Location, id.ResourceGroupName, id.AccountName)
+			deletedAzureAIServicesId := cognitiveservicesaccounts.NewDeletedAccountID(id.SubscriptionId, *account.Model.Location, id.ResourceGroupName, id.AccountName)
 			if err != nil {
 				return err
 			}
@@ -570,7 +570,7 @@ func (AIServicesAccountResource) Delete() sdk.ResourceFunc {
 			}
 			if metadata.Client.Features.CognitiveAccount.PurgeSoftDeleteOnDestroy {
 				log.Printf("[DEBUG] Purging %s..", *id)
-				if err := client.DeletedAccountsPurgeThenPoll(ctx, deletedAccountId); err != nil {
+				if err := client.DeletedAccountsPurgeThenPoll(ctx, deletedAzureAIServicesId); err != nil {
 					return fmt.Errorf("purging %s: %+v", *id, err)
 				}
 			} else {
@@ -582,11 +582,11 @@ func (AIServicesAccountResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (AIServicesAccountResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (AzureAIServicesResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return cognitiveservicesaccounts.ValidateAccountID
 }
 
-func expandAIServicesAccountCustomerManagedKey(input []AIServicesAccountCustomerManagedKey) (*cognitiveservicesaccounts.Encryption, error) {
+func expandAzureAIServicesCustomerManagedKey(input []AzureAIServicesCustomerManagedKey) (*cognitiveservicesaccounts.Encryption, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
@@ -628,15 +628,15 @@ func expandAIServicesAccountCustomerManagedKey(input []AIServicesAccountCustomer
 
 }
 
-func flattenAIServicesAccountCustomerManagedKey(input *cognitiveservicesaccounts.Encryption, env environments.Environment) ([]AIServicesAccountCustomerManagedKey, error) {
+func flattenAzureAIServicesCustomerManagedKey(input *cognitiveservicesaccounts.Encryption, env environments.Environment) ([]AzureAIServicesCustomerManagedKey, error) {
 	if input == nil || *input.KeySource == cognitiveservicesaccounts.KeySourceMicrosoftPointCognitiveServices {
-		return []AIServicesAccountCustomerManagedKey{}, nil
+		return []AzureAIServicesCustomerManagedKey{}, nil
 	}
 
 	keyName := ""
 	keyVaultURI := ""
 	keyVersion := ""
-	customerManagerKey := AIServicesAccountCustomerManagedKey{}
+	customerManagerKey := AzureAIServicesCustomerManagedKey{}
 
 	if props := input.KeyVaultProperties; props != nil {
 		if props.KeyName != nil {
@@ -680,10 +680,10 @@ func flattenAIServicesAccountCustomerManagedKey(input *cognitiveservicesaccounts
 		}
 	}
 
-	return []AIServicesAccountCustomerManagedKey{customerManagerKey}, nil
+	return []AzureAIServicesCustomerManagedKey{customerManagerKey}, nil
 }
 
-func expandAIServicesAccountNetworkACLs(input []AIServicesAccountNetworkACLs) (*cognitiveservicesaccounts.NetworkRuleSet, []string) {
+func expandAzureAIServicesNetworkACLs(input []AzureAIServicesNetworkACLs) (*cognitiveservicesaccounts.NetworkRuleSet, []string) {
 	subnetIds := make([]string, 0)
 	if len(input) == 0 {
 		return nil, subnetIds
@@ -721,9 +721,9 @@ func expandAIServicesAccountNetworkACLs(input []AIServicesAccountNetworkACLs) (*
 	return &ruleSet, subnetIds
 }
 
-func flattenAIServicesAccountNetworkACLs(input *cognitiveservicesaccounts.NetworkRuleSet) []AIServicesAccountNetworkACLs {
+func flattenAzureAIServicesNetworkACLs(input *cognitiveservicesaccounts.NetworkRuleSet) []AzureAIServicesNetworkACLs {
 	if input == nil {
-		return []AIServicesAccountNetworkACLs{}
+		return []AzureAIServicesNetworkACLs{}
 	}
 
 	ipRules := make([]string, 0)
@@ -733,7 +733,7 @@ func flattenAIServicesAccountNetworkACLs(input *cognitiveservicesaccounts.Networ
 		}
 	}
 
-	virtualNetworkRules := make([]AIServicesAccountVirtualNetworkRules, 0)
+	virtualNetworkRules := make([]AzureAIServicesVirtualNetworkRules, 0)
 	if input.VirtualNetworkRules != nil {
 		for _, v := range *input.VirtualNetworkRules {
 			id := v.Id
@@ -742,14 +742,14 @@ func flattenAIServicesAccountNetworkACLs(input *cognitiveservicesaccounts.Networ
 				id = subnetId.ID()
 			}
 
-			virtualNetworkRules = append(virtualNetworkRules, AIServicesAccountVirtualNetworkRules{
+			virtualNetworkRules = append(virtualNetworkRules, AzureAIServicesVirtualNetworkRules{
 				SubnetID:                         id,
 				IgnoreMissingVnetServiceEndpoint: pointer.From(v.IgnoreMissingVnetServiceEndpoint),
 			})
 		}
 	}
 
-	return []AIServicesAccountNetworkACLs{{
+	return []AzureAIServicesNetworkACLs{{
 		DefaultAction:       string(*input.DefaultAction),
 		IpRules:             ipRules,
 		VirtualNetworkRules: virtualNetworkRules,
