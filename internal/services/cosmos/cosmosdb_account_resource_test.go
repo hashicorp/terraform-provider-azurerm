@@ -1697,6 +1697,10 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   dns_servers         = ["10.0.0.4", "10.0.0.5"]
+
+  lifecycle {
+    ignore_changes = ["subnet"]
+  }
 }
 
 resource "azurerm_subnet" "subnet1" {
@@ -2492,25 +2496,29 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   dns_servers         = ["10.0.0.4", "10.0.0.5"]
+
+  lifecycle {
+    ignore_changes = ["subnet"]
+  }
 }
 
 resource "azurerm_subnet" "subnet1" {
-  name                                           = "acctest-SN1-%[1]d-1"
-  resource_group_name                            = azurerm_resource_group.test.name
-  virtual_network_name                           = azurerm_virtual_network.test.name
-  address_prefixes                               = ["10.0.1.0/24"]
-  enforce_private_link_endpoint_network_policies = false
-  enforce_private_link_service_network_policies  = false
+  name                                          = "acctest-SN1-%[1]d-1"
+  resource_group_name                           = azurerm_resource_group.test.name
+  virtual_network_name                          = azurerm_virtual_network.test.name
+  address_prefixes                              = ["10.0.1.0/24"]
+  private_endpoint_network_policies             = "Disabled"
+  private_link_service_network_policies_enabled = false
 }
 
 resource "azurerm_subnet" "subnet2" {
-  name                                           = "acctest-SN2-%[1]d-2"
-  resource_group_name                            = azurerm_resource_group.test.name
-  virtual_network_name                           = azurerm_virtual_network.test.name
-  address_prefixes                               = ["10.0.2.0/24"]
-  service_endpoints                              = ["Microsoft.AzureCosmosDB"]
-  enforce_private_link_endpoint_network_policies = false
-  enforce_private_link_service_network_policies  = false
+  name                                          = "acctest-SN2-%[1]d-2"
+  resource_group_name                           = azurerm_resource_group.test.name
+  virtual_network_name                          = azurerm_virtual_network.test.name
+  address_prefixes                              = ["10.0.2.0/24"]
+  service_endpoints                             = ["Microsoft.AzureCosmosDB"]
+  private_endpoint_network_policies             = "Disabled"
+  private_link_service_network_policies_enabled = false
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -3431,6 +3439,8 @@ resource "azurerm_cosmosdb_account" "test" {
     type         = "UserAssigned"
     identity_ids = [%[4]s]
   }
+
+  depends_on = [azurerm_user_assigned_identity.test, azurerm_user_assigned_identity.test2]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, identityResource)
 }
@@ -3479,6 +3489,8 @@ resource "azurerm_cosmosdb_account" "test" {
     location          = azurerm_resource_group.test.location
     failover_priority = 0
   }
+
+  depends_on = [azurerm_user_assigned_identity.test, azurerm_user_assigned_identity.test2]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

@@ -1216,6 +1216,10 @@ resource "azurerm_virtual_network" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   address_space       = ["10.0.0.0/8"]
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -1319,6 +1323,10 @@ resource "azurerm_virtual_network" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   address_space       = ["10.0.0.0/8"]
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -1422,6 +1430,10 @@ resource "azurerm_virtual_network" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   address_space       = ["10.0.0.0/8"]
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -1529,6 +1541,10 @@ resource "azurerm_virtual_network" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   address_space       = ["10.0.0.0/8"]
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -1788,6 +1804,10 @@ resource "azurerm_virtual_network" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   address_space       = ["10.0.0.0/8"]
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -1948,6 +1968,7 @@ resource "azurerm_public_ip" "gwtest" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Dynamic"
+  sku                 = "Basic"
 }
 
 resource "azurerm_application_gateway" "test" {
@@ -2036,7 +2057,6 @@ resource "azurerm_public_ip" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
-  sku                 = "Standard"
 }
 
 resource "azurerm_virtual_network" "test" {
@@ -2044,6 +2064,10 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test" {

@@ -97,6 +97,10 @@ resource "azurerm_container_registry" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "Premium"
+
+  lifecycle {
+    ignore_changes = [network_rule_set]
+  }
 }
 
 resource "azurerm_container_registry_agent_pool" "test" {
@@ -124,6 +128,10 @@ resource "azurerm_container_registry" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "Premium"
+
+  lifecycle {
+    ignore_changes = [network_rule_set]
+  }
 }
 
 resource "azurerm_virtual_network" "test" {
@@ -131,6 +139,10 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test" {

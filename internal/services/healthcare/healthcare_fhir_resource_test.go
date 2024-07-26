@@ -285,6 +285,10 @@ resource "azurerm_container_registry" "test" {
     zone_redundancy_enabled = true
     tags                    = {}
   }
+
+  lifecycle {
+    ignore_changes = [network_rule_set]
+  }
 }
 
 resource "azurerm_storage_account" "test" {
@@ -354,6 +358,10 @@ resource "azurerm_container_registry" "test" {
     zone_redundancy_enabled = true
     tags                    = {}
   }
+
+  lifecycle {
+    ignore_changes = [network_rule_set]
+  }
 }
 
 resource "azurerm_storage_account" "test" {
@@ -418,6 +426,10 @@ resource "azurerm_container_registry" "test" {
     location                = "%s"
     zone_redundancy_enabled = true
     tags                    = {}
+  }
+
+  lifecycle {
+    ignore_changes = [network_rule_set]
   }
 }
 

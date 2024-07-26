@@ -183,6 +183,7 @@ func SiteConfigSchemaLinuxWebAppSlot() *pluginsdk.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						"VS2017",
 						"VS2019",
+						"VS2022",
 					}, false),
 				},
 
@@ -458,6 +459,7 @@ func SiteConfigSchemaWindowsWebAppSlot() *pluginsdk.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						"VS2017",
 						"VS2019",
+						"VS2022",
 					}, false),
 				},
 
@@ -705,6 +707,7 @@ func (s *SiteConfigLinuxWebAppSlot) ExpandForCreate(appSettings map[string]strin
 func (s *SiteConfigLinuxWebAppSlot) ExpandForUpdate(metadata sdk.ResourceMetaData, existing *webapps.SiteConfig, appSettings map[string]string) (*webapps.SiteConfig, error) {
 	expanded := *existing
 
+	expanded.AlwaysOn = pointer.To(s.AlwaysOn)
 	expanded.AcrUseManagedIdentityCreds = pointer.To(s.UseManagedIdentityACR)
 	expanded.AutoHealEnabled = pointer.To(s.AutoHeal)
 	expanded.HTTP20Enabled = pointer.To(s.Http2Enabled)

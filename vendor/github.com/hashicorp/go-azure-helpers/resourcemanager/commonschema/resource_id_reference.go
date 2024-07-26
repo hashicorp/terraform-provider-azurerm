@@ -19,6 +19,14 @@ func ResourceIDReferenceOptional(id resourceids.ResourceId) *schema.Schema {
 	}
 }
 
+// ResourceIDReferenceElem returns the schema for a Resource ID Reference which is compatible with the Elem of lists and sets.
+func ResourceIDReferenceElem(id resourceids.ResourceId) *schema.Schema {
+	return &schema.Schema{
+		Type:         schema.TypeString,
+		ValidateFunc: validationFunctionForResourceID(id),
+	}
+}
+
 // ResourceIDReferenceOptionalForceNew returns the schema for a Resource ID Reference
 // which is both Optional and ForceNew.
 func ResourceIDReferenceOptionalForceNew(id resourceids.ResourceId) *schema.Schema {

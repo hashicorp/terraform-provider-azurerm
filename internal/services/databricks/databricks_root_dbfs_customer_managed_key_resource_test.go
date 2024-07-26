@@ -257,6 +257,10 @@ resource "azurerm_key_vault" "test" {
   sku_name            = "premium"
 
   soft_delete_retention_days = 7
+
+  lifecycle {
+    ignore_changes = [access_policy]
+  }
 }
 
 resource "azurerm_key_vault_key" "test" {
@@ -331,6 +335,10 @@ resource "azurerm_key_vault" "test" {
   sku_name            = "premium"
 
   soft_delete_retention_days = 7
+
+  lifecycle {
+    ignore_changes = [access_policy]
+  }
 }
 
 resource "azurerm_key_vault_key" "test" {

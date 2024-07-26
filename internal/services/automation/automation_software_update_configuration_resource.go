@@ -120,7 +120,7 @@ type SoftwareUpdateConfigurationModel struct {
 	ErrorCode             string       `tfschema:"error_code"`
 	ErrorMeesage          string       `tfschema:"error_meesage,removedInNextMajorVersion"`
 	ErrorMessage          string       `tfschema:"error_message"`
-	OperatingSystem       string       `tfschema:"operating_system"`
+	OperatingSystem       string       `tfschema:"operating_system,removedInNextMajorVersion"`
 	Linux                 []Linux      `tfschema:"linux"`
 	Windows               []Windows    `tfschema:"windows"`
 	Duration              string       `tfschema:"duration"`

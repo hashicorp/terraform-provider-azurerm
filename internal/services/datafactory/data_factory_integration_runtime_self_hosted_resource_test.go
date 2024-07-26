@@ -158,6 +158,10 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -171,7 +175,7 @@ resource "azurerm_public_ip" "test" {
   name                = "acctpip-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
 }
 
 resource "azurerm_network_interface" "test" {

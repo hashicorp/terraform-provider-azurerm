@@ -182,6 +182,7 @@ func TestAccLinuxWebAppSlot_completeUpdate(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.always_on").HasValue("true"),
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
@@ -1874,7 +1875,7 @@ resource "azurerm_linux_web_app_slot" "test" {
     local_mysql_enabled         = true
     managed_pipeline_mode       = "Integrated"
     remote_debugging_enabled    = true
-    remote_debugging_version    = "VS2019"
+    remote_debugging_version    = "VS2022"
     use_32_bit_worker           = true
     websockets_enabled          = true
     ftps_state                  = "FtpsOnly"

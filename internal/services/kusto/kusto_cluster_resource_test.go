@@ -265,6 +265,9 @@ func TestAccKustoCluster_vnet(t *testing.T) {
 }
 
 func TestAccKustoCluster_languageExtensions(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("Property has been removed in 4.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
 	r := KustoClusterResource{}
 
@@ -1007,6 +1010,10 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -1029,6 +1036,10 @@ resource "azurerm_route_table" "test" {
   name                = "acctestkc%s-rt"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [route]
+  }
 }
 
 resource "azurerm_subnet_route_table_association" "test" {
@@ -1040,6 +1051,10 @@ resource "azurerm_network_security_group" "test" {
   name                = "acctestkc%s-nsg"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [security_rule]
+  }
 }
 
 resource "azurerm_network_security_rule" "test_allow_management_inbound" {
@@ -1117,6 +1132,10 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -1137,6 +1156,10 @@ resource "azurerm_route_table" "test" {
   name                = "acctestkc%s-rt"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [route]
+  }
 }
 
 resource "azurerm_subnet_route_table_association" "test" {
@@ -1148,6 +1171,10 @@ resource "azurerm_network_security_group" "test" {
   name                = "acctestkc%s-nsg"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [security_rule]
+  }
 }
 
 resource "azurerm_network_security_rule" "test_allow_management_inbound" {

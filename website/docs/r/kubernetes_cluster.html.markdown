@@ -422,8 +422,6 @@ A `default_node_pool` block supports the following:
 
 * `os_sku` - (Optional) Specifies the OS SKU used by the agent pool. Possible values are `AzureLinux`, `Ubuntu`, `Windows2019` and `Windows2022`. If not specified, the default is `Ubuntu` if OSType=Linux or `Windows2019` if OSType=Windows. And the default Windows OSSKU will be changed to `Windows2022` after Windows2019 is deprecated. Changing this from `AzureLinux` or `Ubuntu` to `AzureLinux` or `Ubuntu` will not replace the resource, otherwise `temporary_name_for_rotation` must be specified when attempting a change.
 
--> **Note:**  This requires that the Preview Feature `Microsoft.ContainerService/OSSKUMigrationPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://learn.microsoft.com/en-us/azure/azure-linux/tutorial-azure-linux-migration) for more information.
-
 * `pod_subnet_id` - (Optional) The ID of the Subnet where the pods in the default Node Pool should exist.
 
 * `proximity_placement_group_id` - (Optional) The ID of the Proximity Placement Group. Changing this forces a new resource to be created.
@@ -592,7 +590,7 @@ A `maintenance_window_auto_upgrade` block supports the following:
 
 * `interval` - (Required) The interval for maintenance runs. Depending on the frequency this interval is week or month based.
 
-* `duration` - (Required) The duration of the window for maintenance to run in hours.
+* `duration` - (Required) The duration of the window for maintenance to run in hours. Possible options are between `4` to `24`.
 
 * `day_of_week` - (Optional) The day of the week for the maintenance run. Required in combination with weekly frequency. Possible values are `Friday`, `Monday`, `Saturday`, `Sunday`, `Thursday`, `Tuesday` and `Wednesday`.
 
@@ -617,7 +615,7 @@ A `maintenance_window_node_os` block supports the following:
 
 * `interval` - (Required) The interval for maintenance runs. Depending on the frequency this interval is week or month based.
 
-* `duration` - (Required) The duration of the window for maintenance to run in hours.
+* `duration` - (Required) The duration of the window for maintenance to run in hours. Possible options are between `4` to `24`.
 
 * `day_of_week` - (Optional) The day of the week for the maintenance run. Required in combination with weekly frequency. Possible values are `Friday`, `Monday`, `Saturday`, `Sunday`, `Thursday`, `Tuesday` and `Wednesday`.
 
