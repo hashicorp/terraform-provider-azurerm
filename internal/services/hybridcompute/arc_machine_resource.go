@@ -123,10 +123,11 @@ func (r ArcMachineResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			state := ArcMachineResourceModel{}
+			state := ArcMachineResourceModel{
+				Name:              id.MachineName,
+				ResourceGroupName: id.ResourceGroupName,
+			}
 			if model := resp.Model; model != nil {
-				state.Name = id.MachineName
-				state.ResourceGroupName = id.ResourceGroupName
 				state.Location = location.Normalize(model.Location)
 				state.Kind = string(pointer.From(model.Kind))
 			}

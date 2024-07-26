@@ -28,7 +28,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		o.Configure(c, o.Authorizers.ResourceManager)
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("building Hybrid Compute client: %+v", err)
 	}
 
 	machineExtensionsClient, err := machineextensions.NewMachineExtensionsClientWithBaseURI(o.Environment.ResourceManager)

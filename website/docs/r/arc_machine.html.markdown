@@ -36,7 +36,7 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Arc Machine should exist. Changing this forces a new resource to be created.
 
-* `kind` - (Required) The kind of the Arc Machine. Changing this forces a new resource to be created.
+* `kind` - (Required) The kind of the Arc Machine. Possible values are `AVS`, `AWS`, `EPS`, `GCP`, `HCI`, `SCVMM` and `VMware`. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

@@ -56,10 +56,10 @@ func (r ArcMachineResource) Exists(ctx context.Context, clients *clients.Client,
 
 	resp, err := clients.HybridCompute.HybridComputeClient_v2024_05_20_preview.Machines.Get(ctx, *id, machines.DefaultGetOperationOptions())
 	if err != nil {
-		return nil, fmt.Errorf("reading %s: %+v", *id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r ArcMachineResource) basic(data acceptance.TestData) string {
