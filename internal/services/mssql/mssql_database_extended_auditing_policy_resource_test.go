@@ -423,15 +423,19 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test" {
-  name                                           = "acctestsubnet%[1]d"
-  resource_group_name                            = azurerm_resource_group.test.name
-  virtual_network_name                           = azurerm_virtual_network.test.name
-  address_prefixes                               = ["10.0.2.0/24"]
-  service_endpoints                              = ["Microsoft.Storage", "Microsoft.Sql"]
-  enforce_private_link_endpoint_network_policies = true
+  name                              = "acctestsubnet%[1]d"
+  resource_group_name               = azurerm_resource_group.test.name
+  virtual_network_name              = azurerm_virtual_network.test.name
+  address_prefixes                  = ["10.0.2.0/24"]
+  service_endpoints                 = ["Microsoft.Storage", "Microsoft.Sql"]
+  private_endpoint_network_policies = "Disabled"
 }
 
 resource "azurerm_storage_account" "test" {
@@ -557,9 +561,8 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   target_resource_id         = azurerm_mssql_database.test.id
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
 
-  log {
+  enabled_log {
     category = "SQLSecurityAuditEvents"
-    enabled  = true
 
     retention_policy {
       enabled = false
@@ -574,9 +577,9 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 
-  // log, metric will return all disabled categories
+  // enabled_log, metric will return all disabled categories
   lifecycle {
-    ignore_changes = [log, metric]
+    ignore_changes = [enabled_log, metric]
   }
 }
 
@@ -596,9 +599,8 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   target_resource_id         = azurerm_mssql_database.test.id
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
 
-  log {
+  enabled_log {
     category = "SQLSecurityAuditEvents"
-    enabled  = true
 
     retention_policy {
       enabled = false
@@ -613,9 +615,9 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 
-  // log, metric will return all disabled categories
+  // enabled_log, metric will return all disabled categories
   lifecycle {
-    ignore_changes = [log, metric]
+    ignore_changes = [enabled_log, metric]
   }
 }
 
@@ -639,9 +641,8 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   eventhub_name                  = azurerm_eventhub.test.name
 
 
-  log {
+  enabled_log {
     category = "SQLSecurityAuditEvents"
-    enabled  = true
 
     retention_policy {
       enabled = false
@@ -656,9 +657,9 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 
-  // log, metric will return all disabled categories
+  // enabled_log, metric will return all disabled categories
   lifecycle {
-    ignore_changes = [log, metric]
+    ignore_changes = [enabled_log, metric]
   }
 
 }
@@ -681,9 +682,8 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   eventhub_name                  = azurerm_eventhub.test.name
 
 
-  log {
+  enabled_log {
     category = "SQLSecurityAuditEvents"
-    enabled  = true
 
     retention_policy {
       enabled = false
@@ -698,9 +698,9 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 
-  // log, metric will return all disabled categories
+  // enabled_log, metric will return all disabled categories
   lifecycle {
-    ignore_changes = [log, metric]
+    ignore_changes = [enabled_log, metric]
   }
 
 }

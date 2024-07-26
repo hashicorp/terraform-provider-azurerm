@@ -195,6 +195,7 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 					"ip_address": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
+						ForceNew: true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -214,17 +215,20 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 					"ip_address": {
 						Type:     pluginsdk.TypeString,
 						Required: true,
+						ForceNew: true,
 					},
 
 					"allocation_method": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
+						ForceNew:     true,
 						ValidateFunc: validation.StringInSlice(nginxdeployment.PossibleValuesForNginxPrivateIPAllocationMethod(), false),
 					},
 
 					"subnet_id": {
 						Type:     pluginsdk.TypeString,
 						Required: true,
+						ForceNew: true,
 					},
 				},
 			},
@@ -239,6 +243,7 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 					"subnet_id": {
 						Type:     pluginsdk.TypeString,
 						Required: true,
+						ForceNew: true,
 					},
 				},
 			},

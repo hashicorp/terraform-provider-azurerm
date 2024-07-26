@@ -178,7 +178,6 @@ resource "azurerm_machine_learning_inference_cluster" "test" {
   kubernetes_cluster_id         = azurerm_kubernetes_cluster.test.id
   cluster_purpose               = "DevTest"
 
-
   tags = {
     ENV = "Test"
   }
@@ -412,6 +411,10 @@ resource "azurerm_key_vault" "test" {
   sku_name = "standard"
 
   purge_protection_enabled = true
+
+  lifecycle {
+    ignore_changes = [access_policy]
+  }
 }
 
 resource "azurerm_storage_account" "test" {
@@ -440,6 +443,10 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.1.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -539,14 +546,18 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.1.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test" {
-  name                                           = "acctestsubnet%[7]d"
-  resource_group_name                            = azurerm_resource_group.test.name
-  virtual_network_name                           = azurerm_virtual_network.test.name
-  enforce_private_link_endpoint_network_policies = true
-  address_prefixes                               = ["10.1.0.0/24"]
+  name                              = "acctestsubnet%[7]d"
+  resource_group_name               = azurerm_resource_group.test.name
+  virtual_network_name              = azurerm_virtual_network.test.name
+  private_endpoint_network_policies = "Enabled"
+  address_prefixes                  = ["10.1.0.0/24"]
 }
 
 resource "azurerm_kubernetes_cluster" "test" {

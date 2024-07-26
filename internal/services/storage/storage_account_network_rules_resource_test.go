@@ -116,7 +116,7 @@ func TestAccStorageAccountNetworkRules_privateLinkAccess(t *testing.T) {
 	})
 }
 
-func TestAccStorageAccountNetworkRules_SynapseAccess(t *testing.T) {
+func TestAccStorageAccountNetworkRules_synapseAccess(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_network_rules", "test")
 	r := StorageAccountNetworkRulesResource{}
 
@@ -230,6 +230,10 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -278,6 +282,10 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -326,6 +334,10 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -393,10 +405,8 @@ resource "azurerm_storage_account" "test" {
 resource "azurerm_storage_account_network_rules" "test" {
   storage_account_id = azurerm_storage_account.test.id
 
-  default_action             = "Deny"
-  bypass                     = ["None"]
-  ip_rules                   = []
-  virtual_network_subnet_ids = []
+  default_action = "Deny"
+  bypass         = ["None"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

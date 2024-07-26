@@ -163,8 +163,6 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 -> **Note:** `node_os_channel_upgrade` must be set to `NodeImage` if `automatic_channel_upgrade` has been set to `node-image`
 
--> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/NodeOsUpgradeChannelPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://learn.microsoft.com/en-us/azure/aks/auto-upgrade-node-image#register-the-nodeosupgradechannelpreview-feature-flag) for more information.
-
 * `node_resource_group` - (Optional) The name of the Resource Group where the Kubernetes Nodes should exist. Changing this forces a new resource to be created.
 
 -> **Note:** Azure requires that a new, non-existent Resource Group is used, as otherwise, the provisioning of the Kubernetes Service will fail.
@@ -424,8 +422,6 @@ A `default_node_pool` block supports the following:
 
 * `os_sku` - (Optional) Specifies the OS SKU used by the agent pool. Possible values are `AzureLinux`, `Ubuntu`, `Windows2019` and `Windows2022`. If not specified, the default is `Ubuntu` if OSType=Linux or `Windows2019` if OSType=Windows. And the default Windows OSSKU will be changed to `Windows2022` after Windows2019 is deprecated. Changing this from `AzureLinux` or `Ubuntu` to `AzureLinux` or `Ubuntu` will not replace the resource, otherwise `temporary_name_for_rotation` must be specified when attempting a change.
 
--> **Note:**  This requires that the Preview Feature `Microsoft.ContainerService/OSSKUMigrationPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://learn.microsoft.com/en-us/azure/azure-linux/tutorial-azure-linux-migration) for more information.
-
 * `pod_subnet_id` - (Optional) The ID of the Subnet where the pods in the default Node Pool should exist.
 
 * `proximity_placement_group_id` - (Optional) The ID of the Proximity Placement Group. Changing this forces a new resource to be created.
@@ -594,7 +590,7 @@ A `maintenance_window_auto_upgrade` block supports the following:
 
 * `interval` - (Required) The interval for maintenance runs. Depending on the frequency this interval is week or month based.
 
-* `duration` - (Required) The duration of the window for maintenance to run in hours.
+* `duration` - (Required) The duration of the window for maintenance to run in hours. Possible options are between `4` to `24`.
 
 * `day_of_week` - (Optional) The day of the week for the maintenance run. Required in combination with weekly frequency. Possible values are `Friday`, `Monday`, `Saturday`, `Sunday`, `Thursday`, `Tuesday` and `Wednesday`.
 
@@ -619,7 +615,7 @@ A `maintenance_window_node_os` block supports the following:
 
 * `interval` - (Required) The interval for maintenance runs. Depending on the frequency this interval is week or month based.
 
-* `duration` - (Required) The duration of the window for maintenance to run in hours.
+* `duration` - (Required) The duration of the window for maintenance to run in hours. Possible options are between `4` to `24`.
 
 * `day_of_week` - (Optional) The day of the week for the maintenance run. Required in combination with weekly frequency. Possible values are `Friday`, `Monday`, `Saturday`, `Sunday`, `Thursday`, `Tuesday` and `Wednesday`.
 
@@ -788,6 +784,24 @@ A `service_mesh_profile` block supports the following:
 * `external_ingress_gateway_enabled` - (Optional) Is Istio External Ingress Gateway enabled?
 
 -> **NOTE:** Currently only one Internal Ingress Gateway and one External Ingress Gateway are allowed per cluster
+
+* `certificate_authority` - (Optional) A `certificate_authority` block as defined below. When this property is specified, `key_vault_secrets_provider` is also required to be set. This configuration allows you to bring your own root certificate and keys for Istio CA in the Istio-based service mesh add-on for Azure Kubernetes Service.
+
+---
+
+A `certificate_authority` block supports the following:
+
+* `key_vault_id` - (Required) The resource ID of the Key Vault.
+
+* `root_cert_object_name` - (Required) The root certificate object name in Azure Key Vault.
+
+* `cert_chain_object_name` - (Required) The certificate chain object name in Azure Key Vault.
+
+* `cert_object_name` - (Required) The intermediate certificate object name in Azure Key Vault.
+
+* `key_object_name` - (Required) The intermediate certificate private key object name in Azure Key Vault.
+
+-> **Note:** For more information on [Istio-based service mesh add-on with plug-in CA certificates and how to generate these certificates](https://learn.microsoft.com/en-us/azure/aks/istio-plugin-ca),
 
 ---
 

@@ -249,6 +249,10 @@ resource "azurerm_container_registry" "test" {
   location              = azurerm_resource_group.test.location
   sku                   = "Premium"
   data_endpoint_enabled = true
+
+  lifecycle {
+    ignore_changes = [network_rule_set]
+  }
 }
 
 resource "azurerm_container_registry_scope_map" "test" {
@@ -333,6 +337,10 @@ resource "azurerm_container_registry" "test" {
   location              = azurerm_resource_group.test.location
   sku                   = "Premium"
   data_endpoint_enabled = true
+
+  lifecycle {
+    ignore_changes = [network_rule_set]
+  }
 }
 
 resource "azurerm_container_registry_scope_map" "test" {
@@ -382,6 +390,10 @@ resource "azurerm_container_registry" "test" {
   location              = azurerm_resource_group.test.location
   sku                   = "Premium"
   data_endpoint_enabled = true
+
+  lifecycle {
+    ignore_changes = [network_rule_set]
+  }
 }
 
 resource "azurerm_container_registry_scope_map" "test" {
@@ -434,6 +446,10 @@ resource "azurerm_container_registry" "test" {
   location              = azurerm_resource_group.test.location
   sku                   = "Premium"
   data_endpoint_enabled = true
+
+  lifecycle {
+    ignore_changes = [network_rule_set]
+  }
 }
 
 resource "azurerm_container_registry_scope_map" "test" {

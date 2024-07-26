@@ -30,7 +30,7 @@ resource "azurerm_cosmosdb_account" "db" {
   offer_type          = "Standard"
   kind                = "MongoDB"
 
-  enable_automatic_failover = true
+  automatic_failover_enabled = true
 
   capabilities {
     name = "EnableAggregationPipeline"

@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -19,6 +20,10 @@ import (
 type DatabricksWorkspaceCustomerManagedKeyResource struct{}
 
 func TestAccDatabricksWorkspaceCustomerManagedKey_basic(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("Resource no longer exists in 4.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace_customer_managed_key", "test")
 	parent := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
 	r := DatabricksWorkspaceCustomerManagedKeyResource{}
@@ -38,6 +43,10 @@ func TestAccDatabricksWorkspaceCustomerManagedKey_basic(t *testing.T) {
 }
 
 func TestAccDatabricksWorkspaceCustomerManagedKey_remove(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("Resource no longer exists in 4.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace_customer_managed_key", "test")
 	parent := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
 	r := DatabricksWorkspaceCustomerManagedKeyResource{}
@@ -64,6 +73,10 @@ func TestAccDatabricksWorkspaceCustomerManagedKey_remove(t *testing.T) {
 }
 
 func TestAccDatabricksWorkspaceCustomerManagedKey_requiresImport(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("Resource no longer exists in 4.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace_customer_managed_key", "test")
 	parent := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
 	r := DatabricksWorkspaceCustomerManagedKeyResource{}
@@ -81,6 +94,10 @@ func TestAccDatabricksWorkspaceCustomerManagedKey_requiresImport(t *testing.T) {
 }
 
 func TestAccDatabricksWorkspaceCustomerManagedKey_noIp(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("Resource no longer exists in 4.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace_customer_managed_key", "test")
 	parent := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
 	r := DatabricksWorkspaceCustomerManagedKeyResource{}

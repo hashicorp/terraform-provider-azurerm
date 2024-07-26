@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"reflect"
 	"testing"
 	"time"
 
@@ -18,6 +19,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders"
 )
 
 func TestProvider(t *testing.T) {
@@ -115,13 +118,219 @@ func TestProvider_impl(t *testing.T) {
 func TestProvider_counts(t *testing.T) {
 	// @tombuildsstuff: this is less a unit test and more a useful placeholder tbh
 	provider := TestAzureProvider()
+
 	log.Printf("Data Sources: %d", len(provider.DataSourcesMap))
 	log.Printf("Resources:    %d", len(provider.ResourcesMap))
 	log.Printf("-----------------")
 	log.Printf("Total:        %d", len(provider.ResourcesMap)+len(provider.DataSourcesMap))
 }
 
+func TestAccProvider_resourceProviders_legacy(t *testing.T) {
+	if os.Getenv("TF_ACC") == "" {
+		t.Skip("TF_ACC not set")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+
+	logging.SetOutput(t)
+
+	provider := TestAzureProvider()
+
+	if diags := provider.Configure(ctx, terraform.NewResourceConfigRaw(nil)); diags != nil && diags.HasError() {
+		t.Fatalf("provider failed to configure: %v", diags)
+	}
+
+	expectedResourceProviders := resourceproviders.Legacy()
+	registeredResourceProviders := provider.Meta().(*clients.Client).Account.RegisteredResourceProviders
+
+	if !reflect.DeepEqual(registeredResourceProviders, expectedResourceProviders) {
+		t.Fatalf("unexpected value for RegisteredResourceProviders: %#v", registeredResourceProviders)
+	}
+}
+
+// TODO: Remove this test in v5.0
+func TestAccProvider_resourceProviders_deprecatedSkip(t *testing.T) {
+	if os.Getenv("TF_ACC") == "" {
+		t.Skip("TF_ACC not set")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+
+	logging.SetOutput(t)
+
+	provider := TestAzureProvider()
+	config := map[string]interface{}{
+		"skip_provider_registration": "true",
+	}
+
+	if diags := provider.Configure(ctx, terraform.NewResourceConfigRaw(config)); diags != nil && diags.HasError() {
+		t.Fatalf("provider failed to configure: %v", diags)
+	}
+
+	expectedResourceProviders := make(resourceproviders.ResourceProviders)
+	registeredResourceProviders := provider.Meta().(*clients.Client).Account.RegisteredResourceProviders
+
+	if !reflect.DeepEqual(registeredResourceProviders, expectedResourceProviders) {
+		t.Fatalf("unexpected value for RegisteredResourceProviders: %#v", registeredResourceProviders)
+	}
+}
+
+func TestAccProvider_resourceProviders_legacyWithAdditional(t *testing.T) {
+	if !features.FourPointOhBeta() {
+		t.Skip("skipping 4.0 specific test")
+	}
+
+	if os.Getenv("TF_ACC") == "" {
+		t.Skip("TF_ACC not set")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+
+	logging.SetOutput(t)
+
+	provider := TestAzureProvider()
+	config := map[string]interface{}{
+		"resource_providers_to_register": []interface{}{
+			"Microsoft.ApiManagement",
+			"Microsoft.ContainerService",
+			"Microsoft.KeyVault",
+			"Microsoft.Kubernetes",
+		},
+	}
+
+	if diags := provider.Configure(ctx, terraform.NewResourceConfigRaw(config)); diags != nil && diags.HasError() {
+		t.Fatalf("provider failed to configure: %v", diags)
+	}
+
+	expectedResourceProviders := resourceproviders.Legacy().Merge(resourceproviders.ResourceProviders{
+		"Microsoft.ApiManagement": {},
+		"Microsoft.KeyVault":      {},
+	})
+	registeredResourceProviders := provider.Meta().(*clients.Client).Account.RegisteredResourceProviders
+
+	if !reflect.DeepEqual(registeredResourceProviders, expectedResourceProviders) {
+		t.Fatalf("unexpected value for RegisteredResourceProviders: %#v", registeredResourceProviders)
+	}
+}
+
+func TestAccProvider_resourceProviders_core(t *testing.T) {
+	if !features.FourPointOhBeta() {
+		t.Skip("skipping 4.0 specific test")
+	}
+
+	if os.Getenv("TF_ACC") == "" {
+		t.Skip("TF_ACC not set")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+
+	logging.SetOutput(t)
+
+	provider := TestAzureProvider()
+	config := map[string]interface{}{
+		"resource_provider_registrations": "core",
+	}
+
+	if diags := provider.Configure(ctx, terraform.NewResourceConfigRaw(config)); diags != nil && diags.HasError() {
+		t.Fatalf("provider failed to configure: %v", diags)
+	}
+
+	expectedResourceProviders := resourceproviders.Core()
+	registeredResourceProviders := provider.Meta().(*clients.Client).Account.RegisteredResourceProviders
+
+	if !reflect.DeepEqual(registeredResourceProviders, expectedResourceProviders) {
+		t.Fatalf("unexpected value for RegisteredResourceProviders: %#v", registeredResourceProviders)
+	}
+}
+
+func TestAccProvider_resourceProviders_coreWithAdditional(t *testing.T) {
+	if !features.FourPointOhBeta() {
+		t.Skip("skipping 4.0 specific test")
+	}
+
+	if os.Getenv("TF_ACC") == "" {
+		t.Skip("TF_ACC not set")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+
+	logging.SetOutput(t)
+
+	provider := TestAzureProvider()
+	config := map[string]interface{}{
+		"resource_provider_registrations": "core",
+		"resource_providers_to_register": []interface{}{
+			"Microsoft.ApiManagement",
+			"Microsoft.KeyVault",
+		},
+	}
+
+	if diags := provider.Configure(ctx, terraform.NewResourceConfigRaw(config)); diags != nil && diags.HasError() {
+		t.Fatalf("provider failed to configure: %v", diags)
+	}
+
+	expectedResourceProviders := resourceproviders.Core().Merge(resourceproviders.ResourceProviders{
+		"Microsoft.ApiManagement": {},
+		"Microsoft.KeyVault":      {},
+	})
+	registeredResourceProviders := provider.Meta().(*clients.Client).Account.RegisteredResourceProviders
+
+	if !reflect.DeepEqual(registeredResourceProviders, expectedResourceProviders) {
+		t.Fatalf("unexpected value for RegisteredResourceProviders: %#v", registeredResourceProviders)
+	}
+}
+
+func TestAccProvider_resourceProviders_explicit(t *testing.T) {
+	if !features.FourPointOhBeta() {
+		t.Skip("skipping 4.0 specific test")
+	}
+
+	if os.Getenv("TF_ACC") == "" {
+		t.Skip("TF_ACC not set")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+
+	logging.SetOutput(t)
+
+	provider := TestAzureProvider()
+	config := map[string]interface{}{
+		"resource_provider_registrations": "none",
+		"resource_providers_to_register": []interface{}{
+			"Microsoft.Compute",
+			"Microsoft.Network",
+			"Microsoft.Storage",
+		},
+	}
+
+	if diags := provider.Configure(ctx, terraform.NewResourceConfigRaw(config)); diags != nil && diags.HasError() {
+		t.Fatalf("provider failed to configure: %v", diags)
+	}
+
+	expectedResourceProviders := resourceproviders.ResourceProviders{
+		"Microsoft.Compute": {},
+		"Microsoft.Network": {},
+		"Microsoft.Storage": {},
+	}
+	registeredResourceProviders := provider.Meta().(*clients.Client).Account.RegisteredResourceProviders
+
+	if !reflect.DeepEqual(registeredResourceProviders, expectedResourceProviders) {
+		t.Fatalf("unexpected value for RegisteredResourceProviders: %#v", registeredResourceProviders)
+	}
+}
+
 func TestAccProvider_cliAuth(t *testing.T) {
+	// TODO: remove this test in v4.0
+	if features.FourPointOhBeta() {
+		t.Skip("skipping 3.x specific test")
+	}
+
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("TF_ACC not set")
 	}
@@ -160,10 +369,13 @@ func TestAccProvider_cliAuth(t *testing.T) {
 	}
 }
 
+// TODO: remove TestAccProvider_cliAuth and rename this test to TestAccProvider_cliAuth in v4.0
 func TestAccProvider_cliAuthWithSubscriptionIdHint(t *testing.T) {
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("TF_ACC not set")
 	}
+
+	// TODO: remove this condition in v4.0
 	if os.Getenv("ARM_SUBSCRIPTION_ID") == "" {
 		t.Skip("ARM_SUBSCRIPTION_ID not set")
 	}
