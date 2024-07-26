@@ -555,7 +555,7 @@ resource "azurerm_app_service_connection" "test" {
     type = "systemAssignedIdentity"
   }
   scope = "default"
-  configuration_info {
+  configuration {
     action = "optOut"
     configuration_store {
       app_configuration_id = "foo"
