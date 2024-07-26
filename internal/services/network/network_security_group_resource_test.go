@@ -68,65 +68,40 @@ func TestAccNetworkSecurityGroup_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_security_group", "test")
 	r := NetworkSecurityGroupResource{}
 
-	if !features.FourPointOhBeta() {
-		data.ResourceTest(t, r, []acceptance.TestStep{
-			{
-				Config: r.singleRule(data),
-				Check: acceptance.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.singleRule(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 
-					// The configuration for this step contains one security_rule
-					// block, which should now be reflected in the state.
-					check.That(data.ResourceName).Key("security_rule.#").HasValue("1"),
-				),
-			},
-			{
-				Config: r.basic(data),
-				Check: acceptance.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
+				// The configuration for this step contains one security_rule
+				// block, which should now be reflected in the state.
+				check.That(data.ResourceName).Key("security_rule.#").HasValue("1"),
+			),
+		},
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 
-					// The configuration for this step contains no security_rule
-					// blocks at all, which means "ignore any existing security groups"
-					// and thus the one from the previous step is preserved.
-					check.That(data.ResourceName).Key("security_rule.#").HasValue("1"),
-				),
-			},
-			{
-				Config: r.rulesExplicitZero(data),
-				Check: acceptance.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
+				// The configuration for this step contains no security_rule
+				// blocks at all, which means "ignore any existing security groups"
+				// and thus the one from the previous step is preserved.
+				check.That(data.ResourceName).Key("security_rule.#").HasValue("1"),
+			),
+		},
+		{
+			Config: r.rulesExplicitZero(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 
-					// The configuration for this step assigns security_rule = []
-					// to state explicitly that no rules are desired, so the
-					// rule from the first step should now be removed.
-					check.That(data.ResourceName).Key("security_rule.#").HasValue("0"),
-				),
-			},
-		})
-	} else {
-		data.ResourceTest(t, r, []acceptance.TestStep{
-			{
-				Config: r.singleRule(data),
-				Check: acceptance.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-
-					// The configuration for this step contains one security_rule
-					// block, which should now be reflected in the state.
-					check.That(data.ResourceName).Key("security_rule.#").HasValue("1"),
-				),
-			},
-			{
-				Config: r.basic(data),
-				Check: acceptance.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-
-					// The configuration for this step contains no security_rule
-					// blocks at all, which means the security_
-					check.That(data.ResourceName).Key("security_rule.#").HasValue("0"),
-				),
-			},
-		})
-	}
+				// The configuration for this step assigns security_rule = []
+				// to state explicitly that no rules are desired, so the
+				// rule from the first step should now be removed.
+				check.That(data.ResourceName).Key("security_rule.#").HasValue("0"),
+			),
+		},
+	})
 }
 
 func TestAccNetworkSecurityGroup_disappears(t *testing.T) {
