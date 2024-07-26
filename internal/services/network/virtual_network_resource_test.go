@@ -1011,7 +1011,6 @@ resource "azurerm_virtual_network" "test" {
     private_link_service_network_policies_enabled = true
     private_endpoint_network_policies             = "Enabled"
     service_endpoints                             = ["Microsoft.Storage"]
-    service_endpoint_policy_ids                   = [azurerm_subnet_service_endpoint_storage_policy.test.id]
 
     delegation {
       name = "first"
