@@ -35,7 +35,7 @@ type AppServiceConnectorResourceModel struct {
 	VnetSolution          string                  `tfschema:"vnet_solution"`
 	SecretStore           []SecretStoreModel      `tfschema:"secret_store"`
 	Scope                 string                  `tfschema:"scope"`
-	ConfigurationInfo     []ConfigurationInfo     `tfschema:"configuration_info"`
+	ConfigurationInfo     []ConfigurationInfo     `tfschema:"configuration"`
 	PublicNetworkSolution []PublicNetworkSolution `tfschema:"public_network_solution"`
 }
 
@@ -98,7 +98,7 @@ func (r AppServiceConnectorResource) Arguments() map[string]*schema.Schema {
 			Optional: true,
 		},
 
-		"configuration_info": {
+		"configuration": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			MaxItems: 1,
