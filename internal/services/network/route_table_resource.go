@@ -158,7 +158,8 @@ func resourceRouteTableCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	bgpRoutePropagationEnabled := d.Get("bgp_route_propagation_enabled").(bool)
 
 	if !features.FourPointOhBeta() {
-		bgpRoutePropagationEnabled = true
+		// need to set default back to true for 3.x, this triggers ineffassign linter, so ignoring for now
+		bgpRoutePropagationEnabled = true // nolint: ineffassign
 		bgpRoutePropagationEnabled = !d.Get("disable_bgp_route_propagation").(bool)
 	}
 
