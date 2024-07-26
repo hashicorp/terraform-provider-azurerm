@@ -24,7 +24,6 @@ resource "azurerm_network_security_group" "example" {
   resource_group_name = azurerm_resource_group.example.name
 }
 
-
 resource "azurerm_network_security_rule" "allow_management_inbound" {
   name                        = "allow_management_inbound"
   priority                    = 106
