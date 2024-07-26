@@ -64,7 +64,7 @@ service/cdn:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_cdn_((.|\n)*)###'
 
 service/cognitive-services:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_cognitive_((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(azure_ai_services|cognitive_)((.|\n)*)###'
 
 service/communication:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(communication_service|email_communication_service)((.|\n)*)###'
