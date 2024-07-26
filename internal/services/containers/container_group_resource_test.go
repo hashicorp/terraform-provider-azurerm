@@ -349,32 +349,6 @@ func TestAccContainerGroup_linuxBasicUpdate(t *testing.T) {
 	})
 }
 
-func TestAccContainerGroup_exposedPortUpdate(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skipf("Skipping in 4.0 since `exposed_port` is `ForceNew` and has had `Computed` removed, Terraform should successfully be recreating the resource")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
-	r := ContainerGroupResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.exposedPort(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("exposed_port.#").HasValue("1"),
-			),
-		},
-		{
-			Config: r.exposedPortUpdated(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("container.0.ports.#").HasValue("2"),
-				check.That(data.ResourceName).Key("exposed_port.#").HasValue("2"),
-			),
-		},
-	})
-}
-
 func TestAccContainerGroup_linuxBasicTagsUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
 	r := ContainerGroupResource{}
@@ -1522,56 +1496,6 @@ resource "azurerm_container_group" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (ContainerGroupResource) exposedPortUpdated(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_container_group" "test" {
-  name                = "acctestcontainergroup-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  ip_address_type     = "Public"
-  os_type             = "Linux"
-
-  exposed_port {
-    port = 80
-  }
-
-  exposed_port {
-    port     = 5443
-    protocol = "UDP"
-  }
-
-  container {
-    name   = "hw"
-    image  = "ubuntu:20.04"
-    cpu    = "0.5"
-    memory = "0.5"
-
-    ports {
-      port = 80
-    }
-
-    ports {
-      port     = 5443
-      protocol = "UDP"
-    }
-  }
-
-  tags = {
-    environment = "Testing"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
 func (ContainerGroupResource) virtualNetwork(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -2149,10 +2073,6 @@ resource "azurerm_container_group" "test" {
     }
 
     commands = ["/bin/sh", "-c", "node /usr/src/app/index.js & (sleep 5; touch /tmp/ready); wait"]
-  }
-
-  lifecycle {
-    ignore_changes = [exposed_port]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
