@@ -114,11 +114,11 @@ An `authentication` block supports the following:
 
 * `scope` - (Optional) Connection scope in source service.
 
-* `configuration_info` - (Optional) The connection information consumed by applications, including secrets, connection strings. A `configuration_info` block as defined below.
+* `configuration` - (Optional) The connection information consumed by applications, including secrets, connection strings. A `configuration` block as defined below.
 
 ---
 
-A `configuration_info` block supports the following:
+A `configuration` block supports the following:
 
 * `action` - (Optional) The action indicates whether to apply configurations on source application. Possible values are `enable` and `optOut`.
 
