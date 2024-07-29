@@ -735,10 +735,6 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["172.16.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-
-  lifecycle {
-    ignore_changes = ["subnet"]
-  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -1047,10 +1043,6 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-
-  lifecycle {
-    ignore_changes = ["subnet"]
-  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -1122,10 +1114,6 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-
-  lifecycle {
-    ignore_changes = ["subnet"]
-  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -1204,7 +1192,7 @@ resource "azurerm_network_security_group" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  security_rule {
+  security_rule = [{
     access                                     = "Allow"
     description                                = "Rule can be deleted but do not change source ips."
     destination_address_prefix                 = "*"
@@ -1221,9 +1209,7 @@ resource "azurerm_network_security_group" "test" {
     source_application_security_group_ids      = []
     source_port_range                          = "*"
     source_port_ranges                         = []
-  }
-
-  security_rule {
+    }, {
     access                                     = "Allow"
     description                                = "Rule can be deleted but do not change source ips."
     destination_address_prefix                 = "*"
@@ -1240,9 +1226,7 @@ resource "azurerm_network_security_group" "test" {
     source_application_security_group_ids      = []
     source_port_range                          = "*"
     source_port_ranges                         = []
-  }
-
-  security_rule {
+    }, {
     access                                     = "Allow"
     description                                = "Rule can be deleted but do not change source ips."
     destination_address_prefix                 = "*"
@@ -1259,9 +1243,7 @@ resource "azurerm_network_security_group" "test" {
     source_application_security_group_ids      = []
     source_port_range                          = "*"
     source_port_ranges                         = []
-  }
-
-  security_rule {
+    }, {
     access                                     = "Deny"
     description                                = "DO NOT DELETE"
     destination_address_prefix                 = "*"
@@ -1293,9 +1275,7 @@ resource "azurerm_network_security_group" "test" {
     source_application_security_group_ids = []
     source_port_range                     = "*"
     source_port_ranges                    = []
-  }
-
-  security_rule {
+    }, {
     access                                     = "Deny"
     description                                = "DO NOT DELETE"
     destination_address_prefix                 = "*"
@@ -1327,9 +1307,7 @@ resource "azurerm_network_security_group" "test" {
     source_application_security_group_ids = []
     source_port_range                     = "*"
     source_port_ranges                    = []
-  }
-
-  security_rule {
+    }, {
     access                                     = "Deny"
     description                                = "DO NOT DELETE"
     destination_address_prefix                 = "*"
@@ -1352,9 +1330,7 @@ resource "azurerm_network_security_group" "test" {
     source_application_security_group_ids = []
     source_port_range                     = "*"
     source_port_ranges                    = []
-  }
-
-  security_rule {
+    }, {
     access                                     = "Deny"
     description                                = "DO NOT DELETE"
     destination_address_prefix                 = "*"
@@ -1387,9 +1363,7 @@ resource "azurerm_network_security_group" "test" {
     source_application_security_group_ids = []
     source_port_range                     = "*"
     source_port_ranges                    = []
-  }
-
-  security_rule {
+    }, {
     access                                     = "Deny"
     description                                = "DO NOT DELETE"
     destination_address_prefix                 = "*"
@@ -1409,7 +1383,7 @@ resource "azurerm_network_security_group" "test" {
     source_application_security_group_ids = []
     source_port_range                     = "*"
     source_port_ranges                    = []
-  }
+  }, ]
 }
 `, data.RandomInteger)
 }

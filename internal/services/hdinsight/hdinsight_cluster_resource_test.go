@@ -69,10 +69,6 @@ resource "azurerm_virtual_network" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   address_space       = ["10.10.0.0/16"]
-
-  lifecycle {
-    ignore_changes = ["subnet"]
-  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -87,7 +83,7 @@ resource "azurerm_network_security_group" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  security_rule {
+  security_rule = [{
     name                       = "AllowSyncWithAzureAD"
     priority                   = 101
     direction                  = "Inbound"
@@ -97,9 +93,7 @@ resource "azurerm_network_security_group" "test" {
     destination_port_range     = "443"
     source_address_prefix      = "*"
     destination_address_prefix = "*"
-  }
-
-  security_rule {
+    }, {
     name                       = "AllowRD"
     priority                   = 201
     direction                  = "Inbound"
@@ -109,9 +103,7 @@ resource "azurerm_network_security_group" "test" {
     destination_port_range     = "3389"
     source_address_prefix      = "CorpNetSaw"
     destination_address_prefix = "*"
-  }
-
-  security_rule {
+    }, {
     name                       = "AllowPSRemoting"
     priority                   = 301
     direction                  = "Inbound"
@@ -121,9 +113,7 @@ resource "azurerm_network_security_group" "test" {
     destination_port_range     = "5986"
     source_address_prefix      = "AzureActiveDirectoryDomainServices"
     destination_address_prefix = "*"
-  }
-
-  security_rule {
+    }, {
     name                       = "AllowLDAPS"
     priority                   = 401
     direction                  = "Inbound"
@@ -133,7 +123,7 @@ resource "azurerm_network_security_group" "test" {
     destination_port_range     = "636"
     source_address_prefix      = "*"
     destination_address_prefix = "*"
-  }
+  }, ]
 }
 
 resource azurerm_subnet_network_security_group_association "test" {
