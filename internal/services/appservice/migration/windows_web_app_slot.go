@@ -1211,6 +1211,11 @@ func (w WindowsWebAppSlotV0toV1) Schema() map[string]*pluginsdk.Schema {
 						},
 					},
 
+					"auto_heal_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+					},
+
 					"auto_heal_setting": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
