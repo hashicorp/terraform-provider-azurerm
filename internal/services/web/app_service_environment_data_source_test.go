@@ -9,11 +9,15 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 type AppServiceEnvironmentDataSource struct{}
 
 func TestAccDataSourceAppServiceEnvironment_basic(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("skipping as removed in 4.0")
+	}
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service_environment", "test")
 
 	data.DataSourceTest(t, []acceptance.TestStep{
