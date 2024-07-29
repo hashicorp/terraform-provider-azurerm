@@ -82,7 +82,7 @@ The following arguments are supported:
 
 * `workspace_hub_id` - (Required) The ID of the machine learning workspace Hub where the Machine Learning Workspace Project should exist. Changing this forces a new resource to be created.
 
-* `identity` - (Required) An `identity` block as defined below.
+* `identity` - (Required) An `identity` block as defined below. Changing this forces a new resource to be created.
 
 * `friendly_name` - (Optional) Display name for this Machine Learning Workspace Project.
 

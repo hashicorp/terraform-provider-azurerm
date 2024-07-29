@@ -121,38 +121,6 @@ func TestAccMachineLearningWorkspaceProject_systemAssignedUserAssignedIdentity(t
 	})
 }
 
-func TestAccMachineLearningWorkspaceProject_identityUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace_project", "test")
-	r := WorkspaceProjectResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.systemAssignedIdentity(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.systemAssignedUserAssignedIdentity(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.systemAssignedIdentity(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccMachineLearningWorkspaceProject_purgeSoftDelete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace_project", "test")
 	r := WorkspaceProjectResource{}
@@ -449,41 +417,6 @@ resource "azurerm_machine_learning_workspace_project" "test" {
     identity_ids = [
       azurerm_user_assigned_identity.test.id,
     ]
-  }
-}
-`, r.template(data), data.RandomIntOfLength(8))
-}
-
-func (r WorkspaceProjectResource) systemAssignedIdentity(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {
-    key_vault {
-      purge_soft_delete_on_destroy       = false
-      purge_soft_deleted_keys_on_destroy = false
-    }
-    resource_group {
-      prevent_deletion_if_contains_resources = false
-    }
-  }
-}
-
-%[1]s
-
-resource "azurerm_user_assigned_identity" "test" {
-  name                = "acctestUAI-%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_machine_learning_workspace_project" "test" {
-  name                = "acctest-MLW-project-%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  workspace_hub_id    = azurerm_machine_learning_workspace_hub.test.id
-
-  identity {
-    type = "SystemAssigned"
   }
 }
 `, r.template(data), data.RandomIntOfLength(8))
