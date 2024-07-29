@@ -72,9 +72,7 @@ The following arguments are supported:
 
 ~> **NOTE:** Currently removing `virtual_network_configuration` sets the `virtual_network_configuration` to `Disabled` state. But any changes to `virtual_network_configuration` in `Disabled` state forces a new resource to be created.
 
-* `language_extensions` - (Optional) An list of `language_extensions` to enable. Valid values are: `PYTHON`, `PYTHON_3.10.8` and `R`. `PYTHON` is used to specify Python 3.6.5 image and `PYTHON_3.10.8` is used to specify Python 3.10.8 image. Note that `PYTHON_3.10.8` is only available in skus which support nested virtualization.
-
-~> **NOTE:** In `v4.0.0` and later version of the AzureRM Provider, `language_extensions` will be changed to a list of `language_extension` block. In each block, `name` and `image` are required. `name` is the name of the language extension, possible values are `PYTHON`, `R`. `image` is the image of the language extension, possible values are `Python3_6_5`, `Python3_10_8` and `R`.
+* `language_extensions` - (Optional) A `language_extensions` block defined as defined below.
 
 * `optimized_auto_scale` - (Optional) An `optimized_auto_scale` block as defined below.
 
@@ -123,6 +121,14 @@ A `optimized_auto_scale` block supports the following:
 * `minimum_instances` - (Required) The minimum number of allowed instances. Must between `0` and `1000`.
 
 * `maximum_instances` - (Required) The maximum number of allowed instances. Must between `0` and `1000`.
+
+---
+
+A `language_extensions` block supports the following:
+
+* `name` - (Required) The name of the language extension, possible values are `PYTHON`, `R`.
+
+* `image` - (Required) The image of the language extension, possible values are `Python3_6_5`, `Python3_10_8`, `Python3_10_8_DL`, `PythonCustomImage` and `R`.
 
 ## Attributes Reference
 

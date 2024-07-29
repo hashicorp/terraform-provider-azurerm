@@ -277,6 +277,10 @@ func TestAccKustoCluster_languageExtensions(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("language_extensions.#").HasValue("2"),
+				check.That(data.ResourceName).Key("language_extensions.0.name").HasValue("PYTHON"),
+				check.That(data.ResourceName).Key("language_extensions.0.image").HasValue("Python3_6_5"),
+				check.That(data.ResourceName).Key("language_extensions.1.name").HasValue("R"),
+				check.That(data.ResourceName).Key("language_extensions.1.image").HasValue("R"),
 			),
 		},
 		data.ImportStep(),
@@ -285,7 +289,10 @@ func TestAccKustoCluster_languageExtensions(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("language_extensions.#").HasValue("2"),
-				check.That(data.ResourceName).Key("language_extensions.1").HasValue("R"),
+				check.That(data.ResourceName).Key("language_extensions.0.name").HasValue("PYTHON"),
+				check.That(data.ResourceName).Key("language_extensions.0.image").HasValue("Python3_10_8"),
+				check.That(data.ResourceName).Key("language_extensions.1.name").HasValue("R"),
+				check.That(data.ResourceName).Key("language_extensions.1.image").HasValue("R"),
 			),
 		},
 		{
@@ -293,7 +300,8 @@ func TestAccKustoCluster_languageExtensions(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("language_extensions.#").HasValue("1"),
-				check.That(data.ResourceName).Key("language_extensions.0").HasValue("R"),
+				check.That(data.ResourceName).Key("language_extensions.0.name").HasValue("R"),
+				check.That(data.ResourceName).Key("language_extensions.0.image").HasValue("R"),
 			),
 		},
 		data.ImportStep(),
@@ -830,7 +838,15 @@ resource "azurerm_kusto_cluster" "test" {
     capacity = 2
   }
 
-  language_extensions = ["PYTHON", "R"]
+  language_extensions {
+    name  = "PYTHON"
+    image = "Python3_6_5"
+  }
+
+  language_extensions {
+    name  = "R"
+	image = "R"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
@@ -856,7 +872,15 @@ resource "azurerm_kusto_cluster" "test" {
     capacity = 2
   }
 
-  language_extensions = ["PYTHON_3.10.8", "R"]
+  language_extensions {
+    name  = "PYTHON"
+    image = "Python3_10_8"
+  }
+
+  language_extensions {
+    name  = "R"
+	image = "R"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
@@ -882,7 +906,10 @@ resource "azurerm_kusto_cluster" "test" {
     capacity = 2
   }
 
-  language_extensions = ["R"]
+  language_extensions {
+    name  = "R"
+	image = "R"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
