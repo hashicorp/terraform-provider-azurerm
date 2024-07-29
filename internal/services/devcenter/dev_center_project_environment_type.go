@@ -10,12 +10,14 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2023-04-01/environmenttypes"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2023-04-01/projects"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devcenter/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -33,8 +35,8 @@ type DevCenterProjectEnvironmentTypeResourceModel struct {
 	Name                       string                                              `tfschema:"name"`
 	Location                   string                                              `tfschema:"location"`
 	DevCenterProjectId         string                                              `tfschema:"dev_center_project_id"`
-	CreatorRoleAssignmentRoles []string                                            `tfschema:"creator_role_assignment_roles"`
 	DeploymentTargetId         string                                              `tfschema:"deployment_target_id"`
+	CreatorRoleAssignmentRoles []string                                            `tfschema:"creator_role_assignment_roles"`
 	Identity                   []identity.ModelSystemAssignedUserAssigned          `tfschema:"identity"`
 	UserRoleAssignment         []DevCenterProjectEnvironmentTypeUserRoleAssignment `tfschema:"user_role_assignment"`
 	Tags                       map[string]string                                   `tfschema:"tags"`
@@ -59,12 +61,18 @@ func (r DevCenterProjectEnvironmentTypeResource) Arguments() map[string]*plugins
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validate.DevCenterProjectEnvironmentTypeName,
 		},
 
 		"location": commonschema.Location(),
 
 		"dev_center_project_id": commonschema.ResourceIDReferenceRequiredForceNew(&environmenttypes.ProjectId{}),
+
+		"deployment_target_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: commonids.ValidateSubscriptionID,
+		},
 
 		"creator_role_assignment_roles": {
 			Type:     pluginsdk.TypeList,
@@ -73,12 +81,6 @@ func (r DevCenterProjectEnvironmentTypeResource) Arguments() map[string]*plugins
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.IsUUID,
 			},
-		},
-
-		"deployment_target_id": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.IsUUID,
 		},
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
@@ -151,6 +153,7 @@ func (r DevCenterProjectEnvironmentTypeResource) Create() sdk.ResourceFunc {
 			parameters := environmenttypes.ProjectEnvironmentType{
 				Location: pointer.To(location.Normalize(model.Location)),
 				Properties: &environmenttypes.ProjectEnvironmentTypeProperties{
+					DeploymentTargetId: pointer.To(model.DeploymentTargetId),
 					CreatorRoleAssignment: &environmenttypes.ProjectEnvironmentTypeUpdatePropertiesCreatorRoleAssignment{
 						Roles: expandDevCenterProjectEnvironmentTypeCreatorRoleAssignmentRoles(model.CreatorRoleAssignmentRoles),
 					},
@@ -159,10 +162,6 @@ func (r DevCenterProjectEnvironmentTypeResource) Create() sdk.ResourceFunc {
 				},
 				Identity: identity,
 				Tags:     pointer.To(model.Tags),
-			}
-
-			if v := model.DeploymentTargetId; v != "" {
-				parameters.Properties.DeploymentTargetId = pointer.To(v)
 			}
 
 			if _, err := client.ProjectEnvironmentTypesCreateOrUpdate(ctx, id, parameters); err != nil {
