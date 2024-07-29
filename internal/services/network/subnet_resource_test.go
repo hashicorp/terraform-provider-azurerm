@@ -896,7 +896,7 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
 
-  private_endpoint_network_policies_enabled = %t
+  private_endpoint_network_policies = %t
 }
 `, r.template(data), enabled)
 }
@@ -942,7 +942,7 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
 
-  enforce_private_link_endpoint_network_policies = %t
+  private_endpoint_network_policies = %t
 }
 `, r.template(data), enabled)
 }
@@ -958,7 +958,7 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
 
-  enforce_private_link_service_network_policies = %t
+  private_link_service_network_policies_enabled = %t
 }
 `, r.template(data), enabled)
 }

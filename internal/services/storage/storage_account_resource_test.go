@@ -178,6 +178,31 @@ func TestAccStorageAccount_disappears(t *testing.T) {
 	})
 }
 
+func TestAccStorageAccount_recreation(t *testing.T) {
+	// NOTE: This test is a follow-up from #23002, where when recreating a Storage Account the Data Plane API
+	// isn't necessarily ready right away - and so can return 404's for a while.
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		data.DisappearsStep(acceptance.DisappearsStepData{
+			Config:       r.basic,
+			TestResource: r,
+		}),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("account_tier").HasValue("Standard"),
+				check.That(data.ResourceName).Key("account_replication_type").HasValue("LRS"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("production"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccStorageAccount_blobConnectionString(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
@@ -201,7 +226,7 @@ func TestAccStorageAccount_enableHttpsTrafficOnly(t *testing.T) {
 			Config: r.enableHttpsTrafficOnly(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("enable_https_traffic_only").HasValue("true"),
+				check.That(data.ResourceName).Key("https_traffic_only_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -209,7 +234,7 @@ func TestAccStorageAccount_enableHttpsTrafficOnly(t *testing.T) {
 			Config: r.enableHttpsTrafficOnlyDisabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("enable_https_traffic_only").HasValue("false"),
+				check.That(data.ResourceName).Key("https_traffic_only_enabled").HasValue("false"),
 			),
 		},
 	})
@@ -885,12 +910,16 @@ func TestAccStorageAccount_largeFileShare(t *testing.T) {
 			Config: r.largeFileShareEnabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("large_file_share_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config:      r.largeFileShareDisabled(data),
-			ExpectError: regexp.MustCompile("`large_file_share_enabled` cannot be disabled once it's been enabled"),
+			Config: r.largeFileShareDisabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("large_file_share_enabled").HasValue("false"),
+			),
 		},
 	})
 }
@@ -1412,6 +1441,11 @@ func TestAccStorageAccount_updateToUsingIdentityAndCustomerManagedKey(t *testing
 }
 
 func TestAccStorageAccount_customerManagedKeyForHSM(t *testing.T) {
+	// Skipping this test by default, as the managed HSM is costly.
+	if os.Getenv("ARM_TEST_HSM_KEY") == "" {
+		t.Skip("Skipping as ARM_TEST_HSM_KEY is not specified")
+		return
+	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
 
@@ -1648,7 +1682,7 @@ func TestAccStorageAccount_invalidAccountKindForAccessTier(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.invalidAccountKindForAccessTier(data),
-			ExpectError: regexp.MustCompile("`access_tier` is only available for accounts of kind: \\[BlobStorage StorageV2 FileStorage\\]"),
+			ExpectError: regexp.MustCompile("`access_tier` is only available for accounts of kind set to one of:"),
 		},
 	})
 }
@@ -2015,10 +2049,10 @@ resource "azurerm_storage_account" "test" {
   name                = "unlikely23exst2acct%s"
   resource_group_name = azurerm_resource_group.test.name
 
-  location                  = azurerm_resource_group.test.location
-  account_tier              = "Standard"
-  account_replication_type  = "LRS"
-  enable_https_traffic_only = true
+  location                   = azurerm_resource_group.test.location
+  account_tier               = "Standard"
+  account_replication_type   = "LRS"
+  https_traffic_only_enabled = true
 
   tags = {
     environment = "production"
@@ -2042,10 +2076,10 @@ resource "azurerm_storage_account" "test" {
   name                = "unlikely23exst2acct%s"
   resource_group_name = azurerm_resource_group.test.name
 
-  location                  = azurerm_resource_group.test.location
-  account_tier              = "Standard"
-  account_replication_type  = "LRS"
-  enable_https_traffic_only = false
+  location                   = azurerm_resource_group.test.location
+  account_tier               = "Standard"
+  account_replication_type   = "LRS"
+  https_traffic_only_enabled = false
 
   tags = {
     environment = "production"
@@ -2160,13 +2194,13 @@ resource "azurerm_storage_account" "test" {
   name                = "unlikely23exst2acct%s"
   resource_group_name = azurerm_resource_group.test.name
 
-  location                  = azurerm_resource_group.test.location
-  account_tier              = "Premium"
-  account_kind              = "BlockBlobStorage"
-  account_replication_type  = "LRS"
-  is_hns_enabled            = true
-  nfsv3_enabled             = true
-  enable_https_traffic_only = false
+  location                   = azurerm_resource_group.test.location
+  account_tier               = "Premium"
+  account_kind               = "BlockBlobStorage"
+  account_replication_type   = "LRS"
+  is_hns_enabled             = true
+  nfsv3_enabled              = true
+  https_traffic_only_enabled = false
   network_rules {
     default_action             = "Deny"
     virtual_network_subnet_ids = [azurerm_subnet.test.id]
@@ -2277,6 +2311,7 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Premium"
   account_replication_type = "LRS"
   access_tier              = "Hot"
+  large_file_share_enabled = true # defaulted in the API when FileStorage & Premium
 
   tags = {
     environment = "production"
@@ -2305,6 +2340,7 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Premium"
   account_replication_type = "LRS"
   access_tier              = "Cool"
+  large_file_share_enabled = true # defaulted in the API when FileStorage & Premium
 
   tags = {
     environment = "production"
@@ -2965,7 +3001,7 @@ resource "azurerm_storage_account" "test" {
   location                        = azurerm_resource_group.test.location
   account_tier                    = "Standard"
   account_replication_type        = "LRS"
-  enable_https_traffic_only       = true
+  https_traffic_only_enabled      = true
   allow_nested_items_to_be_public = true
 
   blob_properties {
@@ -3381,7 +3417,7 @@ resource "azurerm_storage_account" "test" {
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
-  large_file_share_enabled = true
+  large_file_share_enabled = true # defaulted in the API when FileStorage & Premium
 
   tags = {
     environment = "production"
@@ -3400,15 +3436,15 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 resource "azurerm_storage_account" "test" {
-  name                      = "acctestsa%s"
-  resource_group_name       = azurerm_resource_group.test.name
-  location                  = azurerm_resource_group.test.location
-  account_kind              = "BlockBlobStorage"
-  account_tier              = "Premium"
-  account_replication_type  = "LRS"
-  is_hns_enabled            = true
-  min_tls_version           = "TLS1_2"
-  enable_https_traffic_only = true
+  name                       = "acctestsa%s"
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  account_kind               = "BlockBlobStorage"
+  account_tier               = "Premium"
+  account_replication_type   = "LRS"
+  is_hns_enabled             = true
+  min_tls_version            = "TLS1_2"
+  https_traffic_only_enabled = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
@@ -4083,6 +4119,7 @@ resource "azurerm_storage_account" "test" {
   account_tier                      = "Premium"
   account_replication_type          = "LRS"
   infrastructure_encryption_enabled = true
+  large_file_share_enabled          = true # defaulted on the API side
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
@@ -4572,6 +4609,7 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Premium"
   account_kind             = "FileStorage"
   account_replication_type = "ZRS"
+  large_file_share_enabled = true # defaulted in the API when FileStorage & Premium
 
   share_properties {
     smb {
@@ -4625,6 +4663,8 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Premium"
   account_replication_type = "LRS"
   account_kind             = "FileStorage"
+  large_file_share_enabled = true # defaulted in the API when FileStorage & Premium
+
   identity {
     type = "UserAssigned"
     identity_ids = [
@@ -4744,6 +4784,7 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Premium"
   account_replication_type = "LRS"
   account_kind             = "FileStorage"
+  large_file_share_enabled = true # defaulted in the API when FileStorage & Premium
 
   share_properties {
     retention_policy {
@@ -5131,13 +5172,14 @@ resource "azurerm_key_vault_certificate" "cert" {
   }
 }
 resource "azurerm_key_vault_managed_hardware_security_module" "test" {
-  name                     = "kvHsm%[3]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  sku_name                 = "Standard_B1"
-  tenant_id                = data.azurerm_client_config.current.tenant_id
-  admin_object_ids         = [data.azurerm_client_config.current.object_id]
-  purge_protection_enabled = false
+  name                       = "kvHsm%[3]d"
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  sku_name                   = "Standard_B1"
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  admin_object_ids           = [data.azurerm_client_config.current.object_id]
+  purge_protection_enabled   = false
+  soft_delete_retention_days = 7
 
   security_domain_key_vault_certificate_ids = [for cert in azurerm_key_vault_certificate.cert : cert.id]
   security_domain_quorum                    = 3

@@ -434,10 +434,6 @@ resource "azurerm_machine_learning_workspace" "test" {
   identity {
     type = "SystemAssigned"
   }
-
-  lifecycle {
-    ignore_changes = [managed_network]
-  }
 }
 `, template, data.RandomInteger)
 }
@@ -476,10 +472,6 @@ resource "azurerm_machine_learning_workspace" "test" {
   tags = {
     ENV = "Test"
   }
-
-  lifecycle {
-    ignore_changes = [managed_network]
-  }
 }
 `, template, data.RandomInteger)
 }
@@ -507,10 +499,6 @@ resource "azurerm_container_registry" "test" {
   location            = azurerm_resource_group.test.location
   sku                 = "Premium"
   admin_enabled       = true
-
-  lifecycle {
-    ignore_changes = [network_rule_set]
-  }
 }
 
 resource "azurerm_key_vault_key" "test" {
@@ -590,10 +578,6 @@ resource "azurerm_container_registry" "test" {
   location            = azurerm_resource_group.test.location
   sku                 = "Premium"
   admin_enabled       = true
-
-  lifecycle {
-    ignore_changes = [network_rule_set]
-  }
 }
 
 resource "azurerm_key_vault_key" "test" {
@@ -766,10 +750,6 @@ resource "azurerm_machine_learning_workspace" "test" {
   }
 
   depends_on = [azurerm_role_assignment.test]
-
-  lifecycle {
-    ignore_changes = [managed_network]
-  }
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -831,10 +811,6 @@ resource "azurerm_machine_learning_workspace" "test" {
   }
 
   depends_on = [azurerm_role_assignment.test]
-
-  lifecycle {
-    ignore_changes = [managed_network]
-  }
 }
 `, r.template(data), data.RandomInteger, data.RandomIntOfLength(8))
 }
@@ -875,10 +851,6 @@ resource "azurerm_machine_learning_workspace" "test" {
       azurerm_user_assigned_identity.test.id,
     ]
   }
-
-  lifecycle {
-    ignore_changes = [managed_network]
-  }
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -915,10 +887,6 @@ resource "azurerm_machine_learning_workspace" "test" {
 
   identity {
     type = "SystemAssigned"
-  }
-
-  lifecycle {
-    ignore_changes = [managed_network]
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -988,10 +956,6 @@ resource "azurerm_machine_learning_workspace" "test" {
   }
 
   depends_on = [azurerm_role_assignment.test]
-
-  lifecycle {
-    ignore_changes = [managed_network]
-  }
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -1126,10 +1090,6 @@ resource "azurerm_machine_learning_workspace" "test" {
     azurerm_role_assignment.test_sa1,
     azurerm_key_vault_access_policy.test-policy1,
   ]
-
-  lifecycle {
-    ignore_changes = [managed_network]
-  }
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -1169,10 +1129,6 @@ resource "azurerm_machine_learning_workspace" "test" {
 
   identity {
     type = "SystemAssigned"
-  }
-
-  lifecycle {
-    ignore_changes = [managed_network]
   }
 }
 `, template, data.RandomInteger)
@@ -1214,10 +1170,6 @@ resource "azurerm_machine_learning_workspace" "test" {
   identity {
     type = "SystemAssigned"
   }
-
-  lifecycle {
-    ignore_changes = [managed_network]
-  }
 }
 `, template, data.RandomInteger)
 }
@@ -1249,10 +1201,6 @@ resource "azurerm_machine_learning_workspace" "test" {
 
   identity {
     type = "SystemAssigned"
-  }
-
-  lifecycle {
-    ignore_changes = [managed_network]
   }
 }
 `, template, data.RandomInteger)
@@ -1292,10 +1240,6 @@ resource "azurerm_machine_learning_workspace" "test" {
   identity {
     type = "SystemAssigned"
   }
-
-  lifecycle {
-    ignore_changes = [managed_network]
-  }
 }
 `, template, data.RandomInteger)
 }
@@ -1332,10 +1276,6 @@ resource "azurerm_machine_learning_workspace" "test" {
 
   identity {
     type = "SystemAssigned"
-  }
-
-  lifecycle {
-    ignore_changes = [managed_network]
   }
 }
 `, template, data.RandomInteger)

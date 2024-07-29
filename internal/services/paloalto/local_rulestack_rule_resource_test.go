@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -182,6 +183,34 @@ func (r LocalRuleResource) Exists(ctx context.Context, client *clients.Client, s
 }
 
 func (r LocalRuleResource) basic(data acceptance.TestData) string {
+	if features.FourPointOhBeta() {
+		return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_palo_alto_local_rulestack_rule" "test" {
+  name         = "testacc-palr-%[2]d"
+  rulestack_id = azurerm_palo_alto_local_rulestack.test.id
+  priority     = 100
+  action       = "Allow"
+  protocol     = "application-default"
+
+  applications = ["any"]
+
+  destination {
+    cidrs = ["any"]
+  }
+
+  source {
+    cidrs = ["any"]
+  }
+}
+`, r.template(data), data.RandomInteger)
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -267,9 +296,30 @@ resource "azurerm_palo_alto_local_rulestack_rule" "test" {
 }
 
 func (r LocalRuleResource) requiresImport(data acceptance.TestData) string {
+	if features.FourPointOhBeta() {
+		return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_palo_alto_local_rulestack_rule" "import" {
+  name         = azurerm_palo_alto_local_rulestack_rule.test.name
+  rulestack_id = azurerm_palo_alto_local_rulestack_rule.test.rulestack_id
+  priority     = azurerm_palo_alto_local_rulestack_rule.test.priority
+  action       = "Allow"
+  applications = azurerm_palo_alto_local_rulestack_rule.test.applications
+  protocol     = azurerm_palo_alto_local_rulestack_rule.test.protocol
+
+  destination {
+    cidrs = azurerm_palo_alto_local_rulestack_rule.test.destination.0.cidrs
+  }
+
+  source {
+    cidrs = azurerm_palo_alto_local_rulestack_rule.test.source.0.cidrs
+  }
+}
+`, r.basic(data), data.RandomInteger)
+	}
+
 	return fmt.Sprintf(`
-
-
 %[1]s
 
 resource "azurerm_palo_alto_local_rulestack_rule" "import" {
@@ -291,6 +341,34 @@ resource "azurerm_palo_alto_local_rulestack_rule" "import" {
 }
 
 func (r LocalRuleResource) withDestination(data acceptance.TestData) string {
+	if features.FourPointOhBeta() {
+		return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_palo_alto_local_rulestack_rule" "test" {
+  name         = "testacc-palr-%[2]d"
+  rulestack_id = azurerm_palo_alto_local_rulestack.test.id
+  priority     = 100
+  action       = "Allow"
+  protocol     = "application-default"
+
+  applications = ["any"]
+
+  destination {
+    countries = ["US", "GB"]
+  }
+
+  source {
+    countries = ["US", "GB"]
+  }
+}
+`, r.template(data), data.RandomInteger)
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

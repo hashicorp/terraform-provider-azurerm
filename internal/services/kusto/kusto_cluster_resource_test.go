@@ -265,6 +265,9 @@ func TestAccKustoCluster_vnet(t *testing.T) {
 }
 
 func TestAccKustoCluster_languageExtensions(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("Property has been removed in 4.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
 	r := KustoClusterResource{}
 
@@ -519,8 +522,7 @@ resource "azurerm_kusto_cluster" "test" {
 }
 
 func (KustoClusterResource) unsetTrustedExternalTenants(data acceptance.TestData) string {
-	if !features.FourPointOhBeta() {
-		return fmt.Sprintf(`
+	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -544,31 +546,6 @@ resource "azurerm_kusto_cluster" "test" {
   }
 
   trusted_external_tenants = []
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
-	}
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-data "azurerm_client_config" "current" {
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_kusto_cluster" "test" {
-  name                = "acctestkc%s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  sku {
-    name     = "Dev(No SLA)_Standard_D11_v2"
-    capacity = 1
-  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

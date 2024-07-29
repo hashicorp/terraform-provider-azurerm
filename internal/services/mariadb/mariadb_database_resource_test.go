@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -19,6 +20,9 @@ import (
 type MariaDbDatabaseResource struct{}
 
 func TestAccMariaDbDatabase_basic(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("The `azurerm_mariadb_database` resource is deprecated and will be removed in v4.0 of the AzureRM Provider.")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_database", "test")
 	r := MariaDbDatabaseResource{}
 
@@ -36,6 +40,9 @@ func TestAccMariaDbDatabase_basic(t *testing.T) {
 }
 
 func TestAccMariaDbDatabase_requiresImport(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("The `azurerm_mariadb_database` resource is deprecated and will be removed in v4.0 of the AzureRM Provider.")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_database", "test")
 	r := MariaDbDatabaseResource{}
 
