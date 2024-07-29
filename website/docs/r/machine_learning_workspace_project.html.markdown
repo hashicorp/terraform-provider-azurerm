@@ -60,10 +60,10 @@ resource "azurerm_machine_learning_workspace_hub" "example" {
 }
 
 resource "azurerm_machine_learning_workspace_project" "example" {
-  name                    = "example-workspace-project"
-  location                = azurerm_resource_group.example.location
-  resource_group_name     = azurerm_resource_group.example.name
-  workspace_hub_id        = azurerm_machine_learning_workspace_hub.example.id
+  name                = "example-workspace-project"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  workspace_hub_id    = azurerm_machine_learning_workspace_hub.example.id
   identity {
     type = "SystemAssigned"
   }
