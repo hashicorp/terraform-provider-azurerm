@@ -62,9 +62,8 @@ func (r RedisEnterpriseDatabaseDataSource) dataSource(data acceptance.TestData) 
 data "azurerm_redis_enterprise_database" "test" {
   depends_on = [azurerm_redis_enterprise_database.test]
 
-  name                = "default"
-  resource_group_name = azurerm_resource_group.test.name
-  cluster_id          = azurerm_redis_enterprise_cluster.test.id
+  name       = "default"
+  cluster_id = azurerm_redis_enterprise_cluster.test.id
 }
 `, RedisEnterpriseDatabaseResource{}.basic(data))
 }
@@ -76,9 +75,8 @@ func (r RedisEnterpriseDatabaseDataSource) dataSourceGeoDatabase(data acceptance
 data "azurerm_redis_enterprise_database" "test" {
   depends_on = [azurerm_redis_enterprise_database.test]
 
-  name                = "default"
-  resource_group_name = azurerm_resource_group.test.name
-  cluster_id          = azurerm_redis_enterprise_cluster.test.id
+  name       = "default"
+  cluster_id = azurerm_redis_enterprise_cluster.test.id
 }
 `, RedisEnterpriseDatabaseResource{}.geoDatabase(data))
 }

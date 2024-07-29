@@ -186,14 +186,14 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 			"managed_network": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
+				Computed: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"isolation_mode": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Default:      string(workspaces.IsolationModeDisabled),
-							ForceNew:     true,
+							Computed:     true,
 							ValidateFunc: validation.StringInSlice(workspaces.PossibleValuesForIsolationMode(), false),
 						},
 					},
@@ -274,22 +274,6 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 			Optional:      true,
 			Computed:      true,
 			ConflictsWith: []string{"public_access_behind_virtual_network_enabled"},
-		}
-		resource.Schema["managed_network"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			Computed: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"isolation_mode": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						Computed:     true,
-						ValidateFunc: validation.StringInSlice(workspaces.PossibleValuesForIsolationMode(), false),
-					},
-				},
-			},
 		}
 	}
 

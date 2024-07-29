@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -142,29 +143,15 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 		Schema: map[string]*schema.Schema{
 			"subscription_id": {
 				Type:        schema.TypeString,
-				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("ARM_SUBSCRIPTION_ID", ""),
+				Required:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_SUBSCRIPTION_ID", nil),
 				Description: "The Subscription ID which should be used.",
-			},
-
-			"client_id": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_ID", ""),
-				Description: "The Client ID which should be used.",
-			},
-
-			"client_id_file_path": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_ID_FILE_PATH", ""),
-				Description: "The path to a file containing the Client ID which should be used.",
 			},
 
 			"tenant_id": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("ARM_TENANT_ID", ""),
+				DefaultFunc: schema.EnvDefaultFunc("ARM_TENANT_ID", nil),
 				Description: "The Tenant ID which should be used.",
 			},
 
@@ -179,37 +166,51 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 
 			"environment": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_ENVIRONMENT", "public"),
 				Description: "The Cloud Environment which should be used. Possible values are public, usgovernment, and china. Defaults to public. Not used and should not be specified when `metadata_host` is specified.",
 			},
 
 			"metadata_host": {
 				Type:        schema.TypeString,
-				Required:    true,
-				DefaultFunc: schema.EnvDefaultFunc("ARM_METADATA_HOSTNAME", ""),
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_METADATA_HOSTNAME", nil),
 				Description: "The Hostname which should be used for the Azure Metadata Service.",
+			},
+
+			"client_id": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_ID", nil),
+				Description: "The Client ID which should be used.",
+			},
+
+			"client_id_file_path": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_ID_FILE_PATH", nil),
+				Description: "The path to a file containing the Client ID which should be used.",
 			},
 
 			// Client Certificate specific fields
 			"client_certificate": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_CERTIFICATE", ""),
+				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_CERTIFICATE", nil),
 				Description: "Base64 encoded PKCS#12 certificate bundle to use when authenticating as a Service Principal using a Client Certificate",
 			},
 
 			"client_certificate_path": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_CERTIFICATE_PATH", ""),
+				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_CERTIFICATE_PATH", nil),
 				Description: "The path to the Client Certificate associated with the Service Principal for use when authenticating as a Service Principal using a Client Certificate.",
 			},
 
 			"client_certificate_password": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_CERTIFICATE_PASSWORD", ""),
+				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_CERTIFICATE_PASSWORD", nil),
 				Description: "The password associated with the Client Certificate. For use when authenticating as a Service Principal using a Client Certificate",
 			},
 
@@ -217,50 +218,50 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 			"client_secret": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_SECRET", ""),
+				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_SECRET", nil),
 				Description: "The Client Secret which should be used. For use When authenticating as a Service Principal using a Client Secret.",
 			},
 
 			"client_secret_file_path": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_SECRET_FILE_PATH", ""),
+				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_SECRET_FILE_PATH", nil),
 				Description: "The path to a file containing the Client Secret which should be used. For use When authenticating as a Service Principal using a Client Secret.",
 			},
 
-			// OIDC specifc fields
+			// OIDC specific fields
+			"use_oidc": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_USE_OIDC", false),
+				Description: "Allow OpenID Connect to be used for authentication",
+			},
+
 			"oidc_request_token": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: schema.MultiEnvDefaultFunc([]string{"ARM_OIDC_REQUEST_TOKEN", "ACTIONS_ID_TOKEN_REQUEST_TOKEN"}, ""),
+				DefaultFunc: schema.MultiEnvDefaultFunc([]string{"ARM_OIDC_REQUEST_TOKEN", "ACTIONS_ID_TOKEN_REQUEST_TOKEN"}, nil),
 				Description: "The bearer token for the request to the OIDC provider. For use when authenticating as a Service Principal using OpenID Connect.",
 			},
 			"oidc_request_url": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: schema.MultiEnvDefaultFunc([]string{"ARM_OIDC_REQUEST_URL", "ACTIONS_ID_TOKEN_REQUEST_URL"}, ""),
+				DefaultFunc: schema.MultiEnvDefaultFunc([]string{"ARM_OIDC_REQUEST_URL", "ACTIONS_ID_TOKEN_REQUEST_URL"}, nil),
 				Description: "The URL for the OIDC provider from which to request an ID token. For use when authenticating as a Service Principal using OpenID Connect.",
 			},
 
 			"oidc_token": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("ARM_OIDC_TOKEN", ""),
+				DefaultFunc: schema.EnvDefaultFunc("ARM_OIDC_TOKEN", nil),
 				Description: "The OIDC ID token for use when authenticating as a Service Principal using OpenID Connect.",
 			},
 
 			"oidc_token_file_path": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("ARM_OIDC_TOKEN_FILE_PATH", ""),
+				DefaultFunc: schema.EnvDefaultFunc("ARM_OIDC_TOKEN_FILE_PATH", nil),
 				Description: "The path to a file containing an OIDC ID token for use when authenticating as a Service Principal using OpenID Connect.",
-			},
-
-			"use_oidc": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("ARM_USE_OIDC", false),
-				Description: "Allow OpenID Connect to be used for authentication",
 			},
 
 			// Managed Service Identity specific fields
@@ -270,10 +271,11 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 				DefaultFunc: schema.EnvDefaultFunc("ARM_USE_MSI", false),
 				Description: "Allow Managed Service Identity to be used for Authentication.",
 			},
+
 			"msi_endpoint": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("ARM_MSI_ENDPOINT", ""),
+				DefaultFunc: schema.EnvDefaultFunc("ARM_MSI_ENDPOINT", nil),
 				Description: "The path to a custom endpoint for Managed Service Identity - in most circumstances this should be detected automatically. ",
 			},
 
@@ -299,7 +301,7 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.Any(ValidatePartnerID, validation.StringIsEmpty),
-				DefaultFunc:  schema.EnvDefaultFunc("ARM_PARTNER_ID", ""),
+				DefaultFunc:  schema.EnvDefaultFunc("ARM_PARTNER_ID", nil),
 				Description:  "A GUID/UUID that is registered with Microsoft to facilitate partner resource usage attribution.",
 			},
 
@@ -320,18 +322,44 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 			"features": schemaFeatures(supportLegacyTestSuite),
 
 			// Advanced feature flags
+			"resource_provider_registrations": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_RESOURCE_PROVIDER_REGISTRATIONS", resourceproviders.ProviderRegistrationsLegacy),
+				Description: "The set of Resource Providers which should be automatically registered for the subscription.",
+				ValidateFunc: validation.StringInSlice([]string{
+					resourceproviders.ProviderRegistrationsCore,
+					resourceproviders.ProviderRegistrationsExtended,
+					resourceproviders.ProviderRegistrationsAll,
+					resourceproviders.ProviderRegistrationsNone,
+					resourceproviders.ProviderRegistrationsLegacy,
+				}, false),
+			},
+
+			"resource_providers_to_register": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: "A list of Resource Providers to explicitly register for the subscription, in addition to those specified by the `resource_provider_registrations` property.",
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: resourceproviders.EnhancedValidate,
+				},
+			},
+
+			// TODO: Remove `skip_provider_registration` in v5.0
 			"skip_provider_registration": {
 				Type:        schema.TypeBool,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("ARM_SKIP_PROVIDER_REGISTRATION", false),
+				DefaultFunc: schema.EnvDefaultFunc("ARM_SKIP_PROVIDER_REGISTRATION", nil),
 				Description: "Should the AzureRM Provider skip registering all of the Resource Providers that it supports, if they're not already registered?",
+				Deprecated:  features.DeprecatedInFourPointOh("This property is deprecated and will be removed in v5.0 of the AzureRM provider. Please use the `resource_provider_registrations` property instead."),
 			},
 
 			"storage_use_azuread": {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_STORAGE_USE_AZUREAD", false),
-				Description: "Should the AzureRM Provider use AzureAD to access the Storage Data Plane API's?",
+				Description: "Should the AzureRM Provider use Azure AD Authentication when accessing the Storage Data Plane APIs?",
 			},
 		},
 
@@ -339,11 +367,22 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 		ResourcesMap:   resources,
 	}
 
+	if !features.FourPointOhBeta() {
+		p.Schema["subscription_id"].Required = false
+		p.Schema["subscription_id"].Optional = true
+
+		delete(p.Schema, "resource_provider_registrations")
+		delete(p.Schema, "resource_providers_to_register")
+	}
+
 	p.ConfigureContextFunc = providerConfigure(p)
 
 	return p
 }
 
+// providerConfigure is used to configure the cloud environment and authentication.
+// To configure behavioral aspects of the provider, use the buildClient function instead.
+// This separation allows us to robustly test different authentication scenarios.
 func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 	return func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
 		var auxTenants []string
@@ -442,8 +481,35 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 	}
 }
 
+// buildClient is used to configure behavioral aspects of the provider. To configure the
+// cloud environment and authentication-related settings, use the providerConfigure function.
 func buildClient(ctx context.Context, p *schema.Provider, d *schema.ResourceData, authConfig *auth.Credentials) (*clients.Client, diag.Diagnostics) {
-	skipProviderRegistration := d.Get("skip_provider_registration").(bool)
+	// TODO: This hardcoded default is for v3.x, where `resource_provider_registrations` is not defined. Remove this hardcoded default in v4.0
+	providerRegistrations := resourceproviders.ProviderRegistrationsLegacy
+	if features.FourPointOhBeta() {
+		providerRegistrations = d.Get("resource_provider_registrations").(string)
+	}
+
+	// TODO: Remove in v5.0
+	if d.Get("skip_provider_registration").(bool) {
+		if providerRegistrations != resourceproviders.ProviderRegistrationsLegacy {
+			return nil, diag.Errorf("provider property `skip_provider_registration` cannot be set at the same time as `resource_provider_registrations`, please remove `skip_provider_registration` from your configuration or unset the `ARM_SKIP_PROVIDER_REGISTRATION` environment variable")
+		}
+		providerRegistrations = resourceproviders.ProviderRegistrationsNone
+	}
+
+	requiredResourceProviders, err := resourceproviders.GetResourceProvidersSet(providerRegistrations)
+	if err != nil {
+		return nil, diag.FromErr(err)
+	}
+
+	if features.FourPointOhBeta() {
+		additionalProvidersToRegister := make(resourceproviders.ResourceProviders)
+		for _, rp := range d.Get("resource_providers_to_register").([]interface{}) {
+			additionalProvidersToRegister.Add(rp.(string))
+		}
+		requiredResourceProviders.Merge(additionalProvidersToRegister)
+	}
 
 	clientBuilder := clients.ClientBuilder{
 		AuthConfig:                  authConfig,
@@ -452,7 +518,7 @@ func buildClient(ctx context.Context, p *schema.Provider, d *schema.ResourceData
 		Features:                    expandFeatures(d.Get("features").([]interface{})),
 		MetadataHost:                d.Get("metadata_host").(string),
 		PartnerID:                   d.Get("partner_id").(string),
-		SkipProviderRegistration:    skipProviderRegistration,
+		RegisteredResourceProviders: requiredResourceProviders,
 		StorageUseAzureAD:           d.Get("storage_use_azuread").(bool),
 		SubscriptionID:              d.Get("subscription_id").(string),
 		TerraformVersion:            p.TerraformVersion,
@@ -462,7 +528,7 @@ func buildClient(ctx context.Context, p *schema.Provider, d *schema.ResourceData
 		CustomCorrelationRequestID: os.Getenv("ARM_CORRELATION_REQUEST_ID"),
 	}
 
-	//lint:ignore SA1019 SDKv2 migration - staticcheck's own linter directives are currently being ignored under golanci-lint
+	//lint:ignore SA1019 SDKv2 migration - staticcheck's own linter directives are currently being ignored under golangci-lint
 	stopCtx, ok := schema.StopContext(ctx) //nolint:staticcheck
 	if !ok {
 		stopCtx = ctx
@@ -475,38 +541,15 @@ func buildClient(ctx context.Context, p *schema.Provider, d *schema.ResourceData
 
 	client.StopContext = stopCtx
 
-	if !skipProviderRegistration {
-		subscriptionId := commonids.NewSubscriptionID(client.Account.SubscriptionId)
-		requiredResourceProviders := resourceproviders.Required()
-		ctx2, cancel := context.WithTimeout(ctx, 30*time.Minute)
-		defer cancel()
+	subscriptionId := commonids.NewSubscriptionID(client.Account.SubscriptionId)
 
-		if err := resourceproviders.EnsureRegistered(ctx2, client.Resource.ResourceProvidersClient, subscriptionId, requiredResourceProviders); err != nil {
-			return nil, diag.Errorf(resourceProviderRegistrationErrorFmt, err)
-		}
+	ctx2, cancel := context.WithTimeout(ctx, 30*time.Minute)
+	defer cancel()
+
+	if err = resourceproviders.EnsureRegistered(ctx2, client.Resource.ResourceProvidersClient, subscriptionId, requiredResourceProviders); err != nil {
+		return nil, diag.FromErr(err)
+
 	}
 
 	return client, nil
 }
-
-const resourceProviderRegistrationErrorFmt = `Error ensuring Resource Providers are registered.
-
-Terraform automatically attempts to register the Resource Providers it supports to
-ensure it's able to provision resources.
-
-If you don't have permission to register Resource Providers you may wish to use the
-"skip_provider_registration" flag in the Provider block to disable this functionality.
-
-Please note that if you opt out of Resource Provider Registration and Terraform tries
-to provision a resource from a Resource Provider which is unregistered, then the errors
-may appear misleading - for example:
-
-> API version 2019-XX-XX was not found for Microsoft.Foo
-
-Could indicate either that the Resource Provider "Microsoft.Foo" requires registration,
-but this could also indicate that this Azure Region doesn't support this API version.
-
-More information on the "skip_provider_registration" flag can be found here:
-https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#skip_provider_registration
-
-Original Error: %s`

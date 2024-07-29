@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -20,6 +21,10 @@ import (
 type DisksPoolIscsiTargetResource struct{}
 
 func TestDiskPoolIscsiTarget_basic(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("Resource has been removed in 4.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_disk_pool_iscsi_target", "test")
 	i := DisksPoolIscsiTargetResource{}
 
@@ -35,6 +40,10 @@ func TestDiskPoolIscsiTarget_basic(t *testing.T) {
 }
 
 func TestDiskPoolIscsiTarget_requiresImport(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("Resource has been removed in 4.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_disk_pool_iscsi_target", "test")
 	i := DisksPoolIscsiTargetResource{}
 	data.ResourceTest(t, i, []acceptance.TestStep{

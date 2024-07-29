@@ -20,6 +20,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-09-02-preview/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/kubernetes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -87,8 +88,7 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 							Computed: true,
 						},
 
-						// TODO 4.0: change this from enable_* to *_enabled
-						"enable_auto_scaling": {
+						"auto_scaling_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Computed: true,
 						},
@@ -139,8 +139,7 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 						},
 
-						// TODO 4.0: change this from enable_* to *_enabled
-						"enable_node_public_ip": {
+						"node_public_ip_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Computed: true,
 						},
@@ -162,23 +161,8 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"client_app_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"server_app_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
 						"tenant_id": {
 							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"managed": {
-							Type:     pluginsdk.TypeBool,
 							Computed: true,
 						},
 
@@ -662,7 +646,6 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-
 						"blob_driver_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Computed: true,
@@ -704,12 +687,103 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeBool,
 							Computed: true,
 						},
+						"certificate_authority": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"key_vault_id": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"root_cert_object_name": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"cert_chain_object_name": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"cert_object_name": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"key_object_name": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+								},
+							},
+						},
+						"revisions": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
 					},
 				},
 			},
 
 			"tags": commonschema.TagsDataSource(),
 		},
+	}
+
+	if !features.FourPointOhBeta() {
+		// adding revisions to the resource is a breaking change, MSFT would like the corresponding change in data source to happen at the same time
+		serviceMeshProfile := resource.Schema["service_mesh_profile"].Elem.(*pluginsdk.Resource).SchemaMap()
+		delete(serviceMeshProfile, "revisions")
+
+		resource.Schema["agent_pool_profile"].Elem.(*pluginsdk.Resource).Schema["enable_auto_scaling"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Computed:   true,
+			Deprecated: "This property is deprecated and will be removed in v4.0 of the AzureRM Provider in favour of the `auto_scaling_enabled` property.",
+		}
+		resource.Schema["agent_pool_profile"].Elem.(*pluginsdk.Resource).Schema["enable_node_public_ip"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Computed:   true,
+			Deprecated: "This property is deprecated and will be removed in v4.0 of the AzureRM Provider in favour of the `node_public_ip_enabled` property.",
+		}
+		resource.Schema["azure_active_directory_role_based_access_control"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"client_app_id": {
+						Type:       pluginsdk.TypeString,
+						Computed:   true,
+						Deprecated: "This property is deprecated and will be removed in v4.0 of the AzureRM Provider.",
+					},
+					"server_app_id": {
+						Type:       pluginsdk.TypeString,
+						Computed:   true,
+						Deprecated: "This property is deprecated and will be removed in v4.0 of the AzureRM Provider.",
+					},
+					"tenant_id": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"managed": {
+						Type:       pluginsdk.TypeBool,
+						Computed:   true,
+						Deprecated: "This property is deprecated and will be removed in v4.0 of the AzureRM Provider.",
+					},
+					"azure_rbac_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Computed: true,
+					},
+					"admin_group_object_ids": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+					},
+				},
+			},
+		}
+
 	}
 
 	return resource
@@ -1224,8 +1298,8 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]managedcluster
 
 		out := map[string]interface{}{
 			"count":                    count,
-			"enable_auto_scaling":      enableAutoScaling,
-			"enable_node_public_ip":    enableNodePublicIP,
+			"auto_scaling_enabled":     enableAutoScaling,
+			"node_public_ip_enabled":   enableNodePublicIP,
 			"max_count":                maxCount,
 			"max_pods":                 maxPods,
 			"min_count":                minCount,
@@ -1242,6 +1316,11 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]managedcluster
 			"vm_size":                  vmSize,
 			"vnet_subnet_id":           vnetSubnetId,
 			"zones":                    zones.FlattenUntyped(profile.AvailabilityZones),
+		}
+
+		if !features.FourPointOhBeta() {
+			out["enable_auto_scaling"] = enableAutoScaling
+			out["enable_node_public_ip"] = enableNodePublicIP
 		}
 		agentPoolProfiles = append(agentPoolProfiles, out)
 	}
@@ -1279,14 +1358,19 @@ func flattenKubernetesClusterDataSourceAzureActiveDirectoryRoleBasedAccessContro
 			tenantId = *profile.TenantID
 		}
 
-		results = append(results, map[string]interface{}{
+		result := map[string]interface{}{
 			"admin_group_object_ids": adminGroupObjectIds,
-			"client_app_id":          clientAppId,
-			"managed":                managed,
-			"server_app_id":          serverAppId,
 			"tenant_id":              tenantId,
 			"azure_rbac_enabled":     azureRbacEnabled,
-		})
+		}
+
+		if !features.FourPointOhBeta() {
+			result["client_app_id"] = clientAppId
+			result["managed"] = managed
+			result["server_app_id"] = serverAppId
+		}
+
+		results = append(results, result)
 	}
 
 	return results

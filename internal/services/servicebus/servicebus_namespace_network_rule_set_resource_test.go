@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -19,6 +20,9 @@ import (
 type ServiceBusNamespaceNetworkRuleSetResource struct{}
 
 func TestAccServiceBusNamespaceNetworkRule_basic(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("azurerm_servicebus_namespace_network_rule_set is deprecated for 4.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace_network_rule_set", "test")
 	r := ServiceBusNamespaceNetworkRuleSetResource{}
 
@@ -34,6 +38,9 @@ func TestAccServiceBusNamespaceNetworkRule_basic(t *testing.T) {
 }
 
 func TestAccServiceBusNamespaceNetworkRule_complete(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("azurerm_servicebus_namespace_network_rule_set is deprecated for 4.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace_network_rule_set", "test")
 	r := ServiceBusNamespaceNetworkRuleSetResource{}
 
@@ -50,6 +57,9 @@ func TestAccServiceBusNamespaceNetworkRule_complete(t *testing.T) {
 }
 
 func TestAccServiceBusNamespaceNetworkRule_update(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("azurerm_servicebus_namespace_network_rule_set is deprecated for 4.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace_network_rule_set", "test")
 	r := ServiceBusNamespaceNetworkRuleSetResource{}
 
@@ -79,6 +89,9 @@ func TestAccServiceBusNamespaceNetworkRule_update(t *testing.T) {
 }
 
 func TestAccServiceBusNamespaceNetworkRule_requiresImport(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("azurerm_servicebus_namespace_network_rule_set is deprecated for 4.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace_network_rule_set", "test")
 	r := ServiceBusNamespaceNetworkRuleSetResource{}
 

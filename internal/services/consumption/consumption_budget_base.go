@@ -700,17 +700,19 @@ func expandConsumptionBudgetFilter(i []interface{}) *budgets.BudgetFilter {
 
 	filter := budgets.BudgetFilter{}
 
-	notBlock := input["not"].([]interface{})
-	if len(notBlock) != 0 && notBlock[0] != nil {
-		not := notBlock[0].(map[string]interface{})
+	if !features.FourPointOhBeta() {
+		notBlock := input["not"].([]interface{})
+		if len(notBlock) != 0 && notBlock[0] != nil {
+			not := notBlock[0].(map[string]interface{})
 
-		tags := expandConsumptionBudgetFilterTag(not["tag"].([]interface{}))
-		dimensions := expandConsumptionBudgetFilterDimensions(not["dimension"].([]interface{}))
+			tags := expandConsumptionBudgetFilterTag(not["tag"].([]interface{}))
+			dimensions := expandConsumptionBudgetFilterDimensions(not["dimension"].([]interface{}))
 
-		if len(dimensions) != 0 {
-			filter.Not = &dimensions[0]
-		} else if len(tags) != 0 {
-			filter.Not = &tags[0]
+			if len(dimensions) != 0 {
+				filter.Not = &dimensions[0]
+			} else if len(tags) != 0 {
+				filter.Not = &tags[0]
+			}
 		}
 	}
 
@@ -754,19 +756,21 @@ func flattenConsumptionBudgetFilter(input *budgets.BudgetFilter) []interface{} {
 
 	filterBlock := make(map[string]interface{})
 
-	notBlock := make(map[string]interface{})
+	if !features.FourPointOhBeta() {
+		notBlock := make(map[string]interface{})
 
-	if input.Not != nil {
-		if input.Not.Dimensions != nil {
-			notBlock["dimension"] = []interface{}{flattenConsumptionBudgetComparisonExpression(input.Not.Dimensions)}
-		}
+		if input.Not != nil {
+			if input.Not.Dimensions != nil {
+				notBlock["dimension"] = []interface{}{flattenConsumptionBudgetComparisonExpression(input.Not.Dimensions)}
+			}
 
-		if input.Not.Tags != nil {
-			notBlock["tag"] = []interface{}{flattenConsumptionBudgetComparisonExpression(input.Not.Tags)}
-		}
+			if input.Not.Tags != nil {
+				notBlock["tag"] = []interface{}{flattenConsumptionBudgetComparisonExpression(input.Not.Tags)}
+			}
 
-		if len(notBlock) != 0 {
-			filterBlock["not"] = []interface{}{notBlock}
+			if len(notBlock) != 0 {
+				filterBlock["not"] = []interface{}{notBlock}
+			}
 		}
 	}
 

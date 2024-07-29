@@ -45,6 +45,11 @@ func dataSourceKubernetesClusterNodePool() *pluginsdk.Resource {
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
+			"auto_scaling_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
 			"eviction_policy": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -81,6 +86,11 @@ func dataSourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
+			},
+
+			"node_public_ip_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
 			},
 
 			"node_public_ip_prefix_id": {
@@ -149,16 +159,7 @@ func dataSourceKubernetesClusterNodePool() *pluginsdk.Resource {
 		},
 	}
 
-	if features.FourPointOhBeta() {
-		dataSource.Schema["auto_scaling_enabled"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
-		}
-		dataSource.Schema["node_public_ip_enabled"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
-		}
-	} else {
+	if !features.FourPointOhBeta() {
 		dataSource.Schema["enable_auto_scaling"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeBool,
 			Computed: true,
@@ -210,10 +211,10 @@ func dataSourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta int
 		props := model.Properties
 		d.Set("zones", zones.FlattenUntyped(props.AvailabilityZones))
 
-		if features.FourPointOhBeta() {
-			d.Set("auto_scaling_enabled", props.EnableAutoScaling)
-			d.Set("node_public_ip_enabled", props.EnableNodePublicIP)
-		} else {
+		d.Set("auto_scaling_enabled", props.EnableAutoScaling)
+		d.Set("node_public_ip_enabled", props.EnableNodePublicIP)
+
+		if !features.FourPointOhBeta() {
 			d.Set("enable_auto_scaling", props.EnableAutoScaling)
 			d.Set("enable_node_public_ip", props.EnableNodePublicIP)
 		}

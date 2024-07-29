@@ -159,7 +159,41 @@ func resourceAutomationRunbook() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"job_schedule": helper.JobScheduleSchema(),
+			"job_schedule": {
+				Type:       pluginsdk.TypeSet,
+				Optional:   true,
+				Computed:   true,
+				ConfigMode: pluginsdk.SchemaConfigModeAttr,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"schedule_name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validate.ScheduleName(),
+						},
+
+						"parameters": {
+							Type:     pluginsdk.TypeMap,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+							ValidateFunc: validate.ParameterNames,
+						},
+
+						"run_on": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+						},
+
+						"job_schedule_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+				Set: helper.ResourceAutomationJobScheduleHash,
+			},
 
 			"publish_content_link": contentLinkSchema(false),
 
