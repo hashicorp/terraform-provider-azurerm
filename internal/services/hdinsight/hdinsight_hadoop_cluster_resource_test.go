@@ -1560,198 +1560,207 @@ resource "azurerm_network_security_group" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  security_rule = [{
-    access                                     = "Allow"
-    description                                = "Rule can be deleted but do not change source ips."
-    destination_address_prefix                 = "*"
-    destination_address_prefixes               = []
-    destination_application_security_group_ids = []
-    destination_port_range                     = "443"
-    destination_port_ranges                    = []
-    direction                                  = "Inbound"
-    name                                       = "Rule-101"
-    priority                                   = 101
-    protocol                                   = "Tcp"
-    source_address_prefix                      = "VirtualNetwork"
-    source_address_prefixes                    = []
-    source_application_security_group_ids      = []
-    source_port_range                          = "*"
-    source_port_ranges                         = []
-    }, {
-    access                                     = "Allow"
-    description                                = "Rule can be deleted but do not change source ips."
-    destination_address_prefix                 = "*"
-    destination_address_prefixes               = []
-    destination_application_security_group_ids = []
-    destination_port_range                     = "*"
-    destination_port_ranges                    = []
-    direction                                  = "Inbound"
-    name                                       = "Rule-103"
-    priority                                   = 103
-    protocol                                   = "*"
-    source_address_prefix                      = "CorpNetPublic"
-    source_address_prefixes                    = []
-    source_application_security_group_ids      = []
-    source_port_range                          = "*"
-    source_port_ranges                         = []
-    }, {
-    access                                     = "Allow"
-    description                                = "Rule can be deleted but do not change source ips."
-    destination_address_prefix                 = "*"
-    destination_address_prefixes               = []
-    destination_application_security_group_ids = []
-    destination_port_range                     = "*"
-    destination_port_ranges                    = []
-    direction                                  = "Inbound"
-    name                                       = "Rule-104"
-    priority                                   = 104
-    protocol                                   = "*"
-    source_address_prefix                      = "CorpNetSaw"
-    source_address_prefixes                    = []
-    source_application_security_group_ids      = []
-    source_port_range                          = "*"
-    source_port_ranges                         = []
-    }, {
-    access                                     = "Deny"
-    description                                = "DO NOT DELETE"
-    destination_address_prefix                 = "*"
-    destination_address_prefixes               = []
-    destination_application_security_group_ids = []
-    destination_port_range                     = ""
-    destination_port_ranges = [
-      "111",
-      "11211",
-      "123",
-      "13",
-      "17",
-      "19",
-      "1900",
-      "512",
-      "514",
-      "53",
-      "5353",
-      "593",
-      "69",
-      "873",
-    ]
-    direction                             = "Inbound"
-    name                                  = "Rule-108"
-    priority                              = 108
-    protocol                              = "*"
-    source_address_prefix                 = "Internet"
-    source_address_prefixes               = []
-    source_application_security_group_ids = []
-    source_port_range                     = "*"
-    source_port_ranges                    = []
-    }, {
-    access                                     = "Deny"
-    description                                = "DO NOT DELETE"
-    destination_address_prefix                 = "*"
-    destination_address_prefixes               = []
-    destination_application_security_group_ids = []
-    destination_port_range                     = ""
-    destination_port_ranges = [
-      "119",
-      "137",
-      "138",
-      "139",
-      "161",
-      "162",
-      "2049",
-      "2301",
-      "2381",
-      "3268",
-      "389",
-      "5800",
-      "5900",
-      "636",
-    ]
-    direction                             = "Inbound"
-    name                                  = "Rule-109"
-    priority                              = 109
-    protocol                              = "*"
-    source_address_prefix                 = "Internet"
-    source_address_prefixes               = []
-    source_application_security_group_ids = []
-    source_port_range                     = "*"
-    source_port_ranges                    = []
-    }, {
-    access                                     = "Deny"
-    description                                = "DO NOT DELETE"
-    destination_address_prefix                 = "*"
-    destination_address_prefixes               = []
-    destination_application_security_group_ids = []
-    destination_port_range                     = ""
-    destination_port_ranges = [
-      "135",
-      "23",
-      "445",
-      "5985",
-      "5986",
-    ]
-    direction                             = "Inbound"
-    name                                  = "Rule-107"
-    priority                              = 107
-    protocol                              = "Tcp"
-    source_address_prefix                 = "Internet"
-    source_address_prefixes               = []
-    source_application_security_group_ids = []
-    source_port_range                     = "*"
-    source_port_ranges                    = []
-    }, {
-    access                                     = "Deny"
-    description                                = "DO NOT DELETE"
-    destination_address_prefix                 = "*"
-    destination_address_prefixes               = []
-    destination_application_security_group_ids = []
-    destination_port_range                     = ""
-    destination_port_ranges = [
-      "1433",
-      "1434",
-      "16379",
-      "26379",
-      "27017",
-      "3306",
-      "4333",
-      "5432",
-      "6379",
-      "7000",
-      "7001",
-      "7199",
-      "9042",
-      "9160",
-      "9300",
-    ]
-    direction                             = "Inbound"
-    name                                  = "Rule-105"
-    priority                              = 105
-    protocol                              = "*"
-    source_address_prefix                 = "Internet"
-    source_address_prefixes               = []
-    source_application_security_group_ids = []
-    source_port_range                     = "*"
-    source_port_ranges                    = []
-    }, {
-    access                                     = "Deny"
-    description                                = "DO NOT DELETE"
-    destination_address_prefix                 = "*"
-    destination_address_prefixes               = []
-    destination_application_security_group_ids = []
-    destination_port_range                     = ""
-    destination_port_ranges = [
-      "22",
-      "3389",
-    ]
-    direction                             = "Inbound"
-    name                                  = "Rule-106"
-    priority                              = 106
-    protocol                              = "Tcp"
-    source_address_prefix                 = "Internet"
-    source_address_prefixes               = []
-    source_application_security_group_ids = []
-    source_port_range                     = "*"
-    source_port_ranges                    = []
-  }, ]
+  security_rule = [
+    {
+      access                                     = "Allow"
+      description                                = "Rule can be deleted but do not change source ips."
+      destination_address_prefix                 = "*"
+      destination_address_prefixes               = []
+      destination_application_security_group_ids = []
+      destination_port_range                     = "443"
+      destination_port_ranges                    = []
+      direction                                  = "Inbound"
+      name                                       = "Rule-101"
+      priority                                   = 101
+      protocol                                   = "Tcp"
+      source_address_prefix                      = "VirtualNetwork"
+      source_address_prefixes                    = []
+      source_application_security_group_ids      = []
+      source_port_range                          = "*"
+      source_port_ranges                         = []
+    },
+    {
+      access                                     = "Allow"
+      description                                = "Rule can be deleted but do not change source ips."
+      destination_address_prefix                 = "*"
+      destination_address_prefixes               = []
+      destination_application_security_group_ids = []
+      destination_port_range                     = "*"
+      destination_port_ranges                    = []
+      direction                                  = "Inbound"
+      name                                       = "Rule-103"
+      priority                                   = 103
+      protocol                                   = "*"
+      source_address_prefix                      = "CorpNetPublic"
+      source_address_prefixes                    = []
+      source_application_security_group_ids      = []
+      source_port_range                          = "*"
+      source_port_ranges                         = []
+    },
+    {
+      access                                     = "Allow"
+      description                                = "Rule can be deleted but do not change source ips."
+      destination_address_prefix                 = "*"
+      destination_address_prefixes               = []
+      destination_application_security_group_ids = []
+      destination_port_range                     = "*"
+      destination_port_ranges                    = []
+      direction                                  = "Inbound"
+      name                                       = "Rule-104"
+      priority                                   = 104
+      protocol                                   = "*"
+      source_address_prefix                      = "CorpNetSaw"
+      source_address_prefixes                    = []
+      source_application_security_group_ids      = []
+      source_port_range                          = "*"
+      source_port_ranges                         = []
+    },
+    {
+      access                                     = "Deny"
+      description                                = "DO NOT DELETE"
+      destination_address_prefix                 = "*"
+      destination_address_prefixes               = []
+      destination_application_security_group_ids = []
+      destination_port_range                     = ""
+      destination_port_ranges = [
+        "111",
+        "11211",
+        "123",
+        "13",
+        "17",
+        "19",
+        "1900",
+        "512",
+        "514",
+        "53",
+        "5353",
+        "593",
+        "69",
+        "873",
+      ]
+      direction                             = "Inbound"
+      name                                  = "Rule-108"
+      priority                              = 108
+      protocol                              = "*"
+      source_address_prefix                 = "Internet"
+      source_address_prefixes               = []
+      source_application_security_group_ids = []
+      source_port_range                     = "*"
+      source_port_ranges                    = []
+    },
+    {
+      access                                     = "Deny"
+      description                                = "DO NOT DELETE"
+      destination_address_prefix                 = "*"
+      destination_address_prefixes               = []
+      destination_application_security_group_ids = []
+      destination_port_range                     = ""
+      destination_port_ranges = [
+        "119",
+        "137",
+        "138",
+        "139",
+        "161",
+        "162",
+        "2049",
+        "2301",
+        "2381",
+        "3268",
+        "389",
+        "5800",
+        "5900",
+        "636",
+      ]
+      direction                             = "Inbound"
+      name                                  = "Rule-109"
+      priority                              = 109
+      protocol                              = "*"
+      source_address_prefix                 = "Internet"
+      source_address_prefixes               = []
+      source_application_security_group_ids = []
+      source_port_range                     = "*"
+      source_port_ranges                    = []
+    },
+    {
+      access                                     = "Deny"
+      description                                = "DO NOT DELETE"
+      destination_address_prefix                 = "*"
+      destination_address_prefixes               = []
+      destination_application_security_group_ids = []
+      destination_port_range                     = ""
+      destination_port_ranges = [
+        "135",
+        "23",
+        "445",
+        "5985",
+        "5986",
+      ]
+      direction                             = "Inbound"
+      name                                  = "Rule-107"
+      priority                              = 107
+      protocol                              = "Tcp"
+      source_address_prefix                 = "Internet"
+      source_address_prefixes               = []
+      source_application_security_group_ids = []
+      source_port_range                     = "*"
+      source_port_ranges                    = []
+    },
+    {
+      access                                     = "Deny"
+      description                                = "DO NOT DELETE"
+      destination_address_prefix                 = "*"
+      destination_address_prefixes               = []
+      destination_application_security_group_ids = []
+      destination_port_range                     = ""
+      destination_port_ranges = [
+        "1433",
+        "1434",
+        "16379",
+        "26379",
+        "27017",
+        "3306",
+        "4333",
+        "5432",
+        "6379",
+        "7000",
+        "7001",
+        "7199",
+        "9042",
+        "9160",
+        "9300",
+      ]
+      direction                             = "Inbound"
+      name                                  = "Rule-105"
+      priority                              = 105
+      protocol                              = "*"
+      source_address_prefix                 = "Internet"
+      source_address_prefixes               = []
+      source_application_security_group_ids = []
+      source_port_range                     = "*"
+      source_port_ranges                    = []
+    },
+    {
+      access                                     = "Deny"
+      description                                = "DO NOT DELETE"
+      destination_address_prefix                 = "*"
+      destination_address_prefixes               = []
+      destination_application_security_group_ids = []
+      destination_port_range                     = ""
+      destination_port_ranges = [
+        "22",
+        "3389",
+      ]
+      direction                             = "Inbound"
+      name                                  = "Rule-106"
+      priority                              = 106
+      protocol                              = "Tcp"
+      source_address_prefix                 = "Internet"
+      source_address_prefixes               = []
+      source_application_security_group_ids = []
+      source_port_range                     = "*"
+      source_port_ranges                    = []
+    },
+  ]
 }
 `, data.RandomInteger)
 }

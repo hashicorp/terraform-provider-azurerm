@@ -41,7 +41,7 @@ provider "azurerm" {
 provider "azuread" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-hdi-%[1]d"
+  name     = "acctestRGhdi-%[1]d"
   location = "%[2]s"
 
   tags = {
@@ -75,7 +75,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestSubnet-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.10.1.0/24"]
+  address_prefixes     = [cidrsubnet(azurerm_virtual_network.test.address_space.0, 8, 0)]
 }
 
 resource "azurerm_network_security_group" "test" {
@@ -83,7 +83,7 @@ resource "azurerm_network_security_group" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  security_rule = [{
+  security_rule {
     name                       = "AllowSyncWithAzureAD"
     priority                   = 101
     direction                  = "Inbound"
@@ -93,7 +93,9 @@ resource "azurerm_network_security_group" "test" {
     destination_port_range     = "443"
     source_address_prefix      = "*"
     destination_address_prefix = "*"
-    }, {
+  }
+
+  security_rule {
     name                       = "AllowRD"
     priority                   = 201
     direction                  = "Inbound"
@@ -103,7 +105,9 @@ resource "azurerm_network_security_group" "test" {
     destination_port_range     = "3389"
     source_address_prefix      = "CorpNetSaw"
     destination_address_prefix = "*"
-    }, {
+  }
+
+  security_rule {
     name                       = "AllowPSRemoting"
     priority                   = 301
     direction                  = "Inbound"
@@ -113,7 +117,9 @@ resource "azurerm_network_security_group" "test" {
     destination_port_range     = "5986"
     source_address_prefix      = "AzureActiveDirectoryDomainServices"
     destination_address_prefix = "*"
-    }, {
+  }
+
+  security_rule {
     name                       = "AllowLDAPS"
     priority                   = 401
     direction                  = "Inbound"
@@ -123,7 +129,7 @@ resource "azurerm_network_security_group" "test" {
     destination_port_range     = "636"
     source_address_prefix      = "*"
     destination_address_prefix = "*"
-  }, ]
+  }
 }
 
 resource azurerm_subnet_network_security_group_association "test" {
