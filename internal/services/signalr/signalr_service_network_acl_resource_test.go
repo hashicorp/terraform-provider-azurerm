@@ -309,10 +309,6 @@ resource "azurerm_signalr_service" "test" {
     name     = "Standard_S1"
     capacity = 1
   }
-
-  lifecycle {
-    ignore_changes = [cors]
-  }
 }
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
