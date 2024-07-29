@@ -214,7 +214,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
 
   cluster_profile {
     domain  = "aro-%[3]s.com"
-    version = "4.13.23"
+    version = "4.14.16"
   }
 
   network_profile {
@@ -336,7 +336,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
 
   cluster_profile {
     domain  = "aro-%[3]s.com"
-    version = "4.13.23"
+    version = "4.14.16"
   }
 
   network_profile {
@@ -393,7 +393,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
 
   cluster_profile {
     domain      = "aro-%[3]s.com"
-    version     = "4.13.23"
+    version     = "4.14.16"
     pull_secret = <<SECRET
 %[4]s
 SECRET
@@ -448,7 +448,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
 
   cluster_profile {
     domain  = "aro-%[3]s.com"
-    version = "4.13.23"
+    version = "4.14.16"
   }
 
   network_profile {
@@ -501,7 +501,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
 
   cluster_profile {
     domain  = "aro-%[3]s.com"
-    version = "4.13.23"
+    version = "4.14.16"
   }
 
   network_profile {
@@ -553,7 +553,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
 
   cluster_profile {
     domain       = "aro-%[3]s.com"
-    version      = "4.13.23"
+    version      = "4.14.16"
     fips_enabled = true
   }
 
@@ -662,7 +662,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
 
   cluster_profile {
     domain  = "aro-%[3]s.com"
-    version = "4.13.23"
+    version = "4.14.16"
   }
 
   network_profile {
@@ -797,7 +797,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
 
   cluster_profile {
     domain  = "aro-%[3]s.com"
-    version = "4.13.23"
+    version = "4.14.16"
   }
 
   network_profile {
@@ -856,7 +856,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
 
   cluster_profile {
     domain                      = "aro-%[3]s.com"
-    version                     = "4.13.23"
+    version                     = "4.14.16"
     managed_resource_group_name = "acctestrg-aro-infra-%[3]s"
   }
 
