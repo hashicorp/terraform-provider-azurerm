@@ -1244,7 +1244,7 @@ func (l LinuxWebAppV0toV1) Schema() map[string]*pluginsdk.Schema {
 											},
 
 											"status_code": {
-												Type:     pluginsdk.TypeSet,
+												Type:     pluginsdk.TypeList,
 												Optional: true,
 												Elem: &pluginsdk.Resource{
 													Schema: map[string]*pluginsdk.Schema{
