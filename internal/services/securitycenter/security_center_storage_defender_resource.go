@@ -126,12 +126,19 @@ func (s StorageDefenderResource) Create() sdk.ResourceFunc {
 							IsEnabled:     pointer.To(plan.MalwareScanningOnUploadEnabled),
 							CapGBPerMonth: pointer.To(plan.MalwareScanningOnUploadCapPerMon),
 						},
-						ScanResultsEventGridTopicResourceId: pointer.To(plan.ScanResultsEventGridTopicId),
 					},
 					SensitiveDataDiscovery: &defenderforstorage.SensitiveDataDiscoveryProperties{
 						IsEnabled: pointer.To(plan.SensitiveDataDiscoveryEnabled),
 					},
 				},
+			}
+
+			if plan.ScanResultsEventGridTopicId != "" {
+				topicId, err := topics.ParseTopicID(plan.ScanResultsEventGridTopicId)
+				if err != nil {
+					return err
+				}
+				input.Properties.MalwareScanning.ScanResultsEventGridTopicResourceId = pointer.To(topicId.ID())
 			}
 
 			_, err = client.Create(ctx, id, input)
