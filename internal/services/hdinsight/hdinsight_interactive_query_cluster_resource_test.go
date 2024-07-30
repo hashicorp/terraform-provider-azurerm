@@ -1790,7 +1790,7 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
 func (r HDInsightInteractiveQueryClusterResource) hiveMetastore(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
-resource "azurerm_sql_server" "test" {
+resource "azurerm_mssql_server" "test" {
   name                         = "acctestsql-%d"
   resource_group_name          = azurerm_resource_group.test.name
   location                     = azurerm_resource_group.test.location
@@ -1798,21 +1798,17 @@ resource "azurerm_sql_server" "test" {
   administrator_login_password = "TerrAform123!"
   version                      = "12.0"
 }
-resource "azurerm_sql_database" "hive" {
-  name                             = "hive"
-  resource_group_name              = azurerm_resource_group.test.name
-  location                         = azurerm_resource_group.test.location
-  server_name                      = azurerm_sql_server.test.name
-  collation                        = "SQL_Latin1_General_CP1_CI_AS"
-  create_mode                      = "Default"
-  requested_service_objective_name = "GP_Gen5_2"
+resource "azurerm_mssql_database" "hive" {
+  name        = "hive"
+  server_id   = azurerm_mssql_server.test.id
+  collation   = "SQL_Latin1_General_CP1_CI_AS"
+  create_mode = "Default"
 }
-resource "azurerm_sql_firewall_rule" "AzureServices" {
-  name                = "allow-azure-services"
-  resource_group_name = azurerm_resource_group.test.name
-  server_name         = azurerm_sql_server.test.name
-  start_ip_address    = "0.0.0.0"
-  end_ip_address      = "0.0.0.0"
+resource "azurerm_mssql_firewall_rule" "AzureServices" {
+  name             = "allow-azure-services"
+  server_id        = azurerm_mssql_server.test.id
+  start_ip_address = "0.0.0.0"
+  end_ip_address   = "0.0.0.0"
 }
 resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   name                = "acctesthdi-%d"
@@ -1852,10 +1848,10 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   }
   metastores {
     hive {
-      server        = azurerm_sql_server.test.fully_qualified_domain_name
-      database_name = azurerm_sql_database.hive.name
-      username      = azurerm_sql_server.test.administrator_login
-      password      = azurerm_sql_server.test.administrator_login_password
+      server        = azurerm_mssql_server.test.fully_qualified_domain_name
+      database_name = azurerm_mssql_database.hive.name
+      username      = azurerm_mssql_server.test.administrator_login
+      password      = azurerm_mssql_server.test.administrator_login_password
     }
   }
 }
