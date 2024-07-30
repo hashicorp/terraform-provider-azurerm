@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -265,9 +264,6 @@ func TestAccKustoCluster_vnet(t *testing.T) {
 }
 
 func TestAccKustoCluster_languageExtensions(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skip("Property has been removed in 4.0")
-	}
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
 	r := KustoClusterResource{}
 
@@ -277,10 +273,6 @@ func TestAccKustoCluster_languageExtensions(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("language_extensions.#").HasValue("2"),
-				check.That(data.ResourceName).Key("language_extensions.0.name").HasValue("PYTHON"),
-				check.That(data.ResourceName).Key("language_extensions.0.image").HasValue("Python3_6_5"),
-				check.That(data.ResourceName).Key("language_extensions.1.name").HasValue("R"),
-				check.That(data.ResourceName).Key("language_extensions.1.image").HasValue("R"),
 			),
 		},
 		data.ImportStep(),
@@ -289,10 +281,6 @@ func TestAccKustoCluster_languageExtensions(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("language_extensions.#").HasValue("2"),
-				check.That(data.ResourceName).Key("language_extensions.0.name").HasValue("PYTHON"),
-				check.That(data.ResourceName).Key("language_extensions.0.image").HasValue("Python3_10_8"),
-				check.That(data.ResourceName).Key("language_extensions.1.name").HasValue("R"),
-				check.That(data.ResourceName).Key("language_extensions.1.image").HasValue("R"),
 			),
 		},
 		{
@@ -300,8 +288,6 @@ func TestAccKustoCluster_languageExtensions(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("language_extensions.#").HasValue("1"),
-				check.That(data.ResourceName).Key("language_extensions.0.name").HasValue("R"),
-				check.That(data.ResourceName).Key("language_extensions.0.image").HasValue("R"),
 			),
 		},
 		data.ImportStep(),

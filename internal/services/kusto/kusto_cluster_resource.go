@@ -228,9 +228,8 @@ func resourceKustoCluster() *pluginsdk.Resource {
 			},
 
 			"language_extensions": {
-				Type:     pluginsdk.TypeList,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
@@ -339,7 +338,7 @@ func resourceKustoClusterCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	clusterProperties.RestrictOutboundNetworkAccess = &restrictOutboundNetworkAccess
 
 	if v, ok := d.GetOk("language_extensions"); ok {
-		extList := v.([]interface{})
+		extList := v.(*pluginsdk.Set).List()
 		clusterProperties.LanguageExtensions = expandKustoClusterLanguageExtensionList(extList)
 	}
 
@@ -467,7 +466,7 @@ func resourceKustoClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	if d.HasChange("language_extensions") {
 		if v, ok := d.GetOk("language_extensions"); ok {
-			props.LanguageExtensions = expandKustoClusterLanguageExtensionList(v.([]interface{}))
+			props.LanguageExtensions = expandKustoClusterLanguageExtensionList(v.(*pluginsdk.Set).List())
 		}
 	}
 
