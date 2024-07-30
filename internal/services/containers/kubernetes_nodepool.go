@@ -78,11 +78,6 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						ValidateFunc: capacityreservationgroups.ValidateCapacityReservationGroupID,
 					},
 
-					"custom_ca_trust_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-					},
-
 					"kubelet_config": schemaNodePoolKubeletConfig(),
 
 					"linux_os_config": schemaNodePoolLinuxOSConfig(),
@@ -127,13 +122,6 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						Type:     pluginsdk.TypeInt,
 						Optional: true,
 						Computed: true,
-					},
-
-					"message_of_the_day": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ForceNew:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"min_count": {
@@ -269,7 +257,6 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						Computed: true,
 						ValidateFunc: validation.StringInSlice([]string{
 							string(managedclusters.WorkloadRuntimeOCIContainer),
-							string(managedclusters.WorkloadRuntimeKataMshvVMIsolation),
 						}, false),
 					},
 
@@ -292,6 +279,20 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 				}
 
 				if !features.FourPointOhBeta() {
+					s["custom_ca_trust_enabled"] = &pluginsdk.Schema{
+						Deprecated: "This feature is a preview feature and will be removed in version 4.0 of the AzureRM Provider.",
+						Type:       pluginsdk.TypeBool,
+						Optional:   true,
+					}
+
+					s["message_of_the_day"] = &pluginsdk.Schema{
+						Deprecated:   "This feature is a preview feature and will be removed in version 4.0 of the AzureRM Provider.",
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					}
+
 					s["os_sku"].ValidateFunc = validation.StringInSlice([]string{
 						string(agentpools.OSSKUAzureLinux),
 						string(agentpools.OSSKUCBLMariner),
@@ -299,6 +300,11 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						string(agentpools.OSSKUUbuntu),
 						string(agentpools.OSSKUWindowsTwoZeroOneNine),
 						string(agentpools.OSSKUWindowsTwoZeroTwoTwo),
+					}, false)
+
+					s["workload_runtime"].ValidateFunc = validation.StringInSlice([]string{
+						string(managedclusters.WorkloadRuntimeOCIContainer),
+						string(managedclusters.WorkloadRuntimeKataMshvVMIsolation),
 					}, false)
 
 					s["node_taints"] = &pluginsdk.Schema{
@@ -1076,10 +1082,8 @@ func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAg
 			VnetSubnetID:              defaultCluster.VnetSubnetID,
 			MaxPods:                   defaultCluster.MaxPods,
 			MaxCount:                  defaultCluster.MaxCount,
-			MessageOfTheDay:           defaultCluster.MessageOfTheDay,
 			MinCount:                  defaultCluster.MinCount,
 			EnableAutoScaling:         defaultCluster.EnableAutoScaling,
-			EnableCustomCATrust:       defaultCluster.EnableCustomCATrust,
 			EnableEncryptionAtHost:    defaultCluster.EnableEncryptionAtHost,
 			EnableFIPS:                defaultCluster.EnableFIPS,
 			EnableUltraSSD:            defaultCluster.EnableUltraSSD,
@@ -1095,6 +1099,12 @@ func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAg
 			Tags:                      defaultCluster.Tags,
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		agentpool.Properties.MessageOfTheDay = defaultCluster.MessageOfTheDay
+		agentpool.Properties.EnableCustomCATrust = defaultCluster.EnableCustomCATrust
+	}
+
 	if osDisktypeNodePool := defaultCluster.OsDiskType; osDisktypeNodePool != nil {
 		osDisktype := agentpools.OSDiskType(string(*osDisktypeNodePool))
 		agentpool.Properties.OsDiskType = &osDisktype
@@ -1253,7 +1263,6 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 
 	profile := managedclusters.ManagedClusterAgentPoolProfile{
 		EnableAutoScaling:      utils.Bool(enableAutoScaling),
-		EnableCustomCATrust:    utils.Bool(raw["custom_ca_trust_enabled"].(bool)),
 		EnableFIPS:             utils.Bool(raw["fips_enabled"].(bool)),
 		EnableNodePublicIP:     utils.Bool(nodePublicIp),
 		EnableEncryptionAtHost: utils.Bool(hostEncryption),
@@ -1291,9 +1300,13 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 		profile.MaxPods = utils.Int64(maxPods)
 	}
 
-	if v := raw["message_of_the_day"].(string); v != "" {
-		messageOfTheDayEncoded := base64.StdEncoding.EncodeToString([]byte(v))
-		profile.MessageOfTheDay = &messageOfTheDayEncoded
+	if !features.FourPointOhBeta() {
+		if v := raw["message_of_the_day"].(string); v != "" {
+			messageOfTheDayEncoded := base64.StdEncoding.EncodeToString([]byte(v))
+			profile.MessageOfTheDay = &messageOfTheDayEncoded
+		}
+
+		profile.EnableCustomCATrust = utils.Bool(raw["custom_ca_trust_enabled"].(bool))
 	}
 
 	if prefixID := raw["node_public_ip_prefix_id"].(string); prefixID != "" {
@@ -1620,11 +1633,6 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		enableAutoScaling = *agentPool.EnableAutoScaling
 	}
 
-	customCaTrustEnabled := false
-	if agentPool.EnableCustomCATrust != nil {
-		customCaTrustEnabled = *agentPool.EnableCustomCATrust
-	}
-
 	enableFIPS := false
 	if agentPool.EnableFIPS != nil {
 		enableFIPS = *agentPool.EnableFIPS
@@ -1653,15 +1661,6 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 	maxPods := 0
 	if agentPool.MaxPods != nil {
 		maxPods = int(*agentPool.MaxPods)
-	}
-
-	messageOfTheDay := ""
-	if agentPool.MessageOfTheDay != nil {
-		messageOfTheDayDecoded, err := base64.StdEncoding.DecodeString(*agentPool.MessageOfTheDay)
-		if err != nil {
-			return nil, err
-		}
-		messageOfTheDay = string(messageOfTheDayDecoded)
 	}
 
 	minCount := 0
@@ -1786,14 +1785,12 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 	networkProfile := flattenClusterPoolNetworkProfile(agentPool.NetworkProfile)
 
 	out := map[string]interface{}{
-		"custom_ca_trust_enabled":       customCaTrustEnabled,
 		"fips_enabled":                  enableFIPS,
 		"gpu_instance":                  gpuInstanceProfile,
 		"host_group_id":                 hostGroupID,
 		"kubelet_disk_type":             kubeletDiskType,
 		"max_count":                     maxCount,
 		"max_pods":                      maxPods,
-		"message_of_the_day":            messageOfTheDay,
 		"min_count":                     minCount,
 		"name":                          name,
 		"node_count":                    count,
@@ -1824,7 +1821,23 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 	}
 
 	if !features.FourPointOhBeta() {
+		customCaTrustEnabled := false
+		if agentPool.EnableCustomCATrust != nil {
+			customCaTrustEnabled = *agentPool.EnableCustomCATrust
+		}
+
+		messageOfTheDay := ""
+		if agentPool.MessageOfTheDay != nil {
+			messageOfTheDayDecoded, err := base64.StdEncoding.DecodeString(*agentPool.MessageOfTheDay)
+			if err != nil {
+				return nil, err
+			}
+			messageOfTheDay = string(messageOfTheDayDecoded)
+		}
+
 		out["node_taints"] = []string{}
+		out["custom_ca_trust_enabled"] = customCaTrustEnabled
+		out["message_of_the_day"] = messageOfTheDay
 	}
 
 	if features.FourPointOh() {

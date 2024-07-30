@@ -134,11 +134,6 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: capacityreservationgroups.ValidateCapacityReservationGroupID,
 		},
 
-		"custom_ca_trust_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-		},
-
 		"eviction_policy": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
@@ -193,13 +188,6 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			Optional: true,
 			Computed: true,
 			ForceNew: true,
-		},
-
-		"message_of_the_day": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"mode": {
@@ -390,7 +378,6 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice([]string{
 				string(agentpools.WorkloadRuntimeOCIContainer),
 				string(agentpools.WorkloadRuntimeWasmWasi),
-				string(agentpools.WorkloadRuntimeKataMshvVMIsolation),
 			}, false),
 		},
 
@@ -415,6 +402,20 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 	}
 
 	if !features.FourPointOhBeta() {
+		s["message_of_the_day"] = &pluginsdk.Schema{
+			Deprecated:   "This feature is a preview feature and will be removed in version 4.0 of the AzureRM Provider.",
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		}
+
+		s["custom_ca_trust_enabled"] = &pluginsdk.Schema{
+			Deprecated: "This feature is a preview feature and will be removed in version 4.0 of the AzureRM Provider.",
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+		}
+
 		s["os_sku"].ValidateFunc = validation.StringInSlice([]string{
 			string(agentpools.OSSKUAzureLinux),
 			string(agentpools.OSSKUCBLMariner),
@@ -422,6 +423,12 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			string(agentpools.OSSKUUbuntu),
 			string(agentpools.OSSKUWindowsTwoZeroOneNine),
 			string(agentpools.OSSKUWindowsTwoZeroTwoTwo),
+		}, false)
+
+		s["workload_runtime"].ValidateFunc = validation.StringInSlice([]string{
+			string(agentpools.WorkloadRuntimeOCIContainer),
+			string(agentpools.WorkloadRuntimeWasmWasi),
+			string(agentpools.WorkloadRuntimeKataMshvVMIsolation),
 		}, false)
 	}
 
@@ -546,7 +553,6 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 	profile := agentpools.ManagedClusterAgentPoolProfileProperties{
 		OsType:                 pointer.To(agentpools.OSType(osType)),
 		EnableAutoScaling:      pointer.To(enableAutoScaling),
-		EnableCustomCATrust:    pointer.To(d.Get("custom_ca_trust_enabled").(bool)),
 		EnableFIPS:             pointer.To(d.Get("fips_enabled").(bool)),
 		EnableEncryptionAtHost: pointer.To(hostEncryption),
 		EnableUltraSSD:         pointer.To(d.Get("ultra_ssd_enabled").(bool)),
@@ -562,6 +568,10 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 
 		// this must always be sent during creation, but is optional for auto-scaled clusters during update
 		Count: utils.Int64(int64(count)),
+	}
+
+	if !features.FourPointOhBeta() {
+		profile.EnableCustomCATrust = pointer.To(d.Get("custom_ca_trust_enabled").(bool))
 	}
 
 	if gpuInstanceProfile := d.Get("gpu_instance").(string); gpuInstanceProfile != "" {
@@ -625,12 +635,14 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		profile.NodeTaints = nodeTaints
 	}
 
-	if v := d.Get("message_of_the_day").(string); v != "" {
-		if profile.OsType != nil && *profile.OsType == agentpools.OSTypeWindows {
-			return fmt.Errorf("`message_of_the_day` cannot be specified for Windows nodes and must be a static string (i.e. will be printed raw and not executed as a script)")
+	if !features.FourPointOhBeta() {
+		if v := d.Get("message_of_the_day").(string); v != "" {
+			if profile.OsType != nil && *profile.OsType == agentpools.OSTypeWindows {
+				return fmt.Errorf("`message_of_the_day` cannot be specified for Windows nodes and must be a static string (i.e. will be printed raw and not executed as a script)")
+			}
+			messageOfTheDayEncoded := base64.StdEncoding.EncodeToString([]byte(v))
+			profile.MessageOfTheDay = &messageOfTheDayEncoded
 		}
-		messageOfTheDayEncoded := base64.StdEncoding.EncodeToString([]byte(v))
-		profile.MessageOfTheDay = &messageOfTheDayEncoded
 	}
 
 	if osDiskSizeGB := d.Get("os_disk_size_gb").(int); osDiskSizeGB > 0 {
@@ -810,8 +822,10 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
-	if d.HasChange("custom_ca_trust_enabled") {
-		props.EnableCustomCATrust = utils.Bool(d.Get("custom_ca_trust_enabled").(bool))
+	if !features.FourPointOhBeta() {
+		if d.HasChange("custom_ca_trust_enabled") {
+			props.EnableCustomCATrust = utils.Bool(d.Get("custom_ca_trust_enabled").(bool))
+		}
 	}
 
 	if d.HasChange("max_count") || enableAutoScaling {
@@ -973,12 +987,12 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 			d.Set("auto_scaling_enabled", props.EnableAutoScaling)
 			d.Set("node_public_ip_enabled", props.EnableNodePublicIP)
 			d.Set("host_encryption_enabled", props.EnableEncryptionAtHost)
+			d.Set("custom_ca_trust_enabled", props.EnableCustomCATrust)
 		} else {
 			d.Set("enable_auto_scaling", props.EnableAutoScaling)
 			d.Set("enable_node_public_ip", props.EnableNodePublicIP)
 			d.Set("enable_host_encryption", props.EnableEncryptionAtHost)
 		}
-		d.Set("custom_ca_trust_enabled", props.EnableCustomCATrust)
 		d.Set("fips_enabled", props.EnableFIPS)
 		d.Set("ultra_ssd_enabled", props.EnableUltraSSD)
 
@@ -1028,15 +1042,17 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 		}
 		d.Set("max_count", maxCount)
 
-		messageOfTheDay := ""
-		if props.MessageOfTheDay != nil {
-			messageOfTheDayDecoded, err := base64.StdEncoding.DecodeString(*props.MessageOfTheDay)
-			if err != nil {
-				return fmt.Errorf("setting `message_of_the_day`: %+v", err)
+		if !features.FourPointOhBeta() {
+			messageOfTheDay := ""
+			if props.MessageOfTheDay != nil {
+				messageOfTheDayDecoded, err := base64.StdEncoding.DecodeString(*props.MessageOfTheDay)
+				if err != nil {
+					return fmt.Errorf("setting `message_of_the_day`: %+v", err)
+				}
+				messageOfTheDay = string(messageOfTheDayDecoded)
 			}
-			messageOfTheDay = string(messageOfTheDayDecoded)
+			d.Set("message_of_the_day", messageOfTheDay)
 		}
-		d.Set("message_of_the_day", messageOfTheDay)
 
 		maxPods := 0
 		if props.MaxPods != nil {
