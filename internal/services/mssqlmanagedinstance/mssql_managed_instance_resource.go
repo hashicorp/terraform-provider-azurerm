@@ -18,14 +18,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/publicmaintenanceconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstances"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type MsSqlManagedInstanceModel struct {
@@ -201,11 +200,11 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 		"proxy_override": {
 			Type:     schema.TypeString,
 			Optional: true,
-			Default:  string(sql.ManagedInstanceProxyOverrideDefault),
+			Default:  string(managedinstances.ManagedInstanceProxyOverrideDefault),
 			ValidateFunc: validation.StringInSlice([]string{
-				string(sql.ManagedInstanceProxyOverrideDefault),
-				string(sql.ManagedInstanceProxyOverrideRedirect),
-				string(sql.ManagedInstanceProxyOverrideProxy),
+				string(managedinstances.ManagedInstanceProxyOverrideDefault),
+				string(managedinstances.ManagedInstanceProxyOverrideRedirect),
+				string(managedinstances.ManagedInstanceProxyOverrideProxy),
 			}, false),
 		},
 
@@ -296,15 +295,15 @@ func (r MsSqlManagedInstanceResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			id := parse.NewManagedInstanceID(subscriptionId, model.ResourceGroupName, model.Name)
+			id := commonids.NewSqlManagedInstanceID(subscriptionId, model.ResourceGroupName, model.Name)
 
 			metadata.Logger.Infof("Import check for %s", id)
-			existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
-			if err != nil && !utils.ResponseWasNotFound(existing.Response) {
+			existing, err := client.Get(ctx, id, managedinstances.GetOperationOptions{})
+			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
@@ -315,50 +314,42 @@ func (r MsSqlManagedInstanceResource) Create() sdk.ResourceFunc {
 
 			maintenanceConfigId := publicmaintenanceconfigurations.NewPublicMaintenanceConfigurationID(subscriptionId, model.MaintenanceConfigurationName)
 
-			parameters := sql.ManagedInstance{
+			parameters := managedinstances.ManagedInstance{
 				Sku:      sku,
 				Identity: r.expandIdentity(model.Identity),
-				Location: pointer.To(location.Normalize(model.Location)),
-				ManagedInstanceProperties: &sql.ManagedInstanceProperties{
-					AdministratorLogin:         pointer.To(model.AdministratorLogin),
-					AdministratorLoginPassword: pointer.To(model.AdministratorLoginPassword),
-					Collation:                  pointer.To(model.Collation),
-					DNSZonePartner:             pointer.To(model.DnsZonePartnerId),
-					LicenseType:                sql.ManagedInstanceLicenseType(model.LicenseType),
-					MaintenanceConfigurationID: pointer.To(maintenanceConfigId.ID()),
-					MinimalTLSVersion:          pointer.To(model.MinimumTlsVersion),
-					ProxyOverride:              sql.ManagedInstanceProxyOverride(model.ProxyOverride),
-					PublicDataEndpointEnabled:  pointer.To(model.PublicDataEndpointEnabled),
-					StorageAccountType:         sql.StorageAccountType(model.StorageAccountType),
-					StorageSizeInGB:            pointer.To(int32(model.StorageSizeInGb)),
-					SubnetID:                   pointer.To(model.SubnetId),
-					TimezoneID:                 pointer.To(model.TimezoneId),
-					VCores:                     pointer.To(int32(model.VCores)),
-					ZoneRedundant:              pointer.To(model.ZoneRedundantEnabled),
+				Location: location.Normalize(model.Location),
+				Properties: &managedinstances.ManagedInstanceProperties{
+					AdministratorLogin:               pointer.To(model.AdministratorLogin),
+					AdministratorLoginPassword:       pointer.To(model.AdministratorLoginPassword),
+					Collation:                        pointer.To(model.Collation),
+					DnsZonePartner:                   pointer.To(model.DnsZonePartnerId),
+					LicenseType:                      pointer.To(managedinstances.ManagedInstanceLicenseType(model.LicenseType)),
+					MaintenanceConfigurationId:       pointer.To(maintenanceConfigId.ID()),
+					MinimalTlsVersion:                pointer.To(model.MinimumTlsVersion),
+					ProxyOverride:                    pointer.To(managedinstances.ManagedInstanceProxyOverride(model.ProxyOverride)),
+					PublicDataEndpointEnabled:        pointer.To(model.PublicDataEndpointEnabled),
+					RequestedBackupStorageRedundancy: pointer.To(storageAccTypeToBackupStorageRedundancy(model.StorageAccountType)),
+					StorageSizeInGB:                  pointer.To(model.StorageSizeInGb),
+					SubnetId:                         pointer.To(model.SubnetId),
+					TimezoneId:                       pointer.To(model.TimezoneId),
+					VCores:                           pointer.To(model.VCores),
+					ZoneRedundant:                    pointer.To(model.ZoneRedundantEnabled),
 				},
-				Tags: tags.FromTypedObject(model.Tags),
+				Tags: pointer.To(model.Tags),
 			}
 
-			if parameters.Identity != nil && len(parameters.Identity.UserAssignedIdentities) > 0 {
-				for k := range parameters.Identity.UserAssignedIdentities {
-					parameters.ManagedInstanceProperties.PrimaryUserAssignedIdentityID = pointer.To(k)
+			if parameters.Identity != nil && len(parameters.Identity.IdentityIds) > 0 {
+				for k := range parameters.Identity.IdentityIds {
+					parameters.Properties.PrimaryUserAssignedIdentityId = pointer.To(k)
 					break
 				}
 			}
 
 			metadata.Logger.Infof("Creating %s", id)
 
-			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters)
+			err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
 			if err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
-			}
-
-			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				if response.WasConflict(future.Response()) {
-					return fmt.Errorf("sql managed instance names need to be globally unique and %q is already in use", id.Name)
-				}
-
-				return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -373,7 +364,7 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MSSQLManagedInstance.ManagedInstancesClient
 
-			id, err := parse.ManagedInstanceID(metadata.ResourceData.Id())
+			id, err := commonids.ParseSqlManagedInstanceID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -391,48 +382,44 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("expanding `sku_name` for SQL Managed Instance Server %q: %v", id.ID(), err)
 			}
 
-			properties := sql.ManagedInstance{
+			properties := managedinstances.ManagedInstance{
 				Sku:      sku,
 				Identity: r.expandIdentity(state.Identity),
-				Location: pointer.To(location.Normalize(state.Location)),
-				ManagedInstanceProperties: &sql.ManagedInstanceProperties{
-					DNSZonePartner:            pointer.To(state.DnsZonePartnerId),
-					LicenseType:               sql.ManagedInstanceLicenseType(state.LicenseType),
-					MinimalTLSVersion:         pointer.To(state.MinimumTlsVersion),
-					ProxyOverride:             sql.ManagedInstanceProxyOverride(state.ProxyOverride),
+				Location: location.Normalize(state.Location),
+				Properties: &managedinstances.ManagedInstanceProperties{
+					DnsZonePartner:            pointer.To(state.DnsZonePartnerId),
+					LicenseType:               pointer.To(managedinstances.ManagedInstanceLicenseType(state.LicenseType)),
+					MinimalTlsVersion:         pointer.To(state.MinimumTlsVersion),
+					ProxyOverride:             pointer.To(managedinstances.ManagedInstanceProxyOverride(state.ProxyOverride)),
 					PublicDataEndpointEnabled: pointer.To(state.PublicDataEndpointEnabled),
-					StorageSizeInGB:           pointer.To(int32(state.StorageSizeInGb)),
-					VCores:                    pointer.To(int32(state.VCores)),
+					StorageSizeInGB:           pointer.To(state.StorageSizeInGb),
+					VCores:                    pointer.To(state.VCores),
 					ZoneRedundant:             pointer.To(state.ZoneRedundantEnabled),
 				},
-				Tags: tags.FromTypedObject(state.Tags),
+				Tags: pointer.To(state.Tags),
 			}
 
-			if properties.Identity != nil && len(properties.Identity.UserAssignedIdentities) > 0 {
-				for k := range properties.Identity.UserAssignedIdentities {
-					properties.ManagedInstanceProperties.PrimaryUserAssignedIdentityID = pointer.To(k)
+			if properties.Identity != nil && len(properties.Identity.IdentityIds) > 0 {
+				for k := range properties.Identity.IdentityIds {
+					properties.Properties.PrimaryUserAssignedIdentityId = pointer.To(k)
 					break
 				}
 			}
 
 			if metadata.ResourceData.HasChange("maintenance_configuration_name") {
 				maintenanceConfigId := publicmaintenanceconfigurations.NewPublicMaintenanceConfigurationID(id.SubscriptionId, state.MaintenanceConfigurationName)
-				properties.MaintenanceConfigurationID = pointer.To(maintenanceConfigId.ID())
+				properties.Properties.MaintenanceConfigurationId = pointer.To(maintenanceConfigId.ID())
 			}
 
 			if metadata.ResourceData.HasChange("administrator_login_password") {
-				properties.AdministratorLoginPassword = pointer.To(state.AdministratorLoginPassword)
+				properties.Properties.AdministratorLoginPassword = pointer.To(state.AdministratorLoginPassword)
 			}
 
 			metadata.Logger.Infof("Updating %s", id)
 
-			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, properties)
+			err = client.CreateOrUpdateThenPoll(ctx, *id, properties)
 			if err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
-			}
-
-			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for update of %s: %+v", id, err)
 			}
 
 			return nil
@@ -446,7 +433,7 @@ func (r MsSqlManagedInstanceResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MSSQLManagedInstance.ManagedInstancesClient
 
-			id, err := parse.ManagedInstanceID(metadata.ResourceData.Id())
+			id, err := commonids.ParseSqlManagedInstanceID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -457,79 +444,62 @@ func (r MsSqlManagedInstanceResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+			existing, err := client.Get(ctx, *id, managedinstances.GetOperationOptions{})
 			if err != nil {
-				if utils.ResponseWasNotFound(existing.Response) {
+				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("retrieving %s: %v", id, err)
 			}
+			model := MsSqlManagedInstanceModel{}
 
-			model := MsSqlManagedInstanceModel{
-				Name:              id.Name,
-				Location:          location.NormalizeNilable(existing.Location),
-				ResourceGroupName: id.ResourceGroup,
-				Identity:          r.flattenIdentity(existing.Identity),
-				Tags:              tags.ToTypedObject(existing.Tags),
+			if existing.Model != nil {
 
-				// This value is not returned, so we'll just set whatever is in the state/config
-				AdministratorLoginPassword: state.AdministratorLoginPassword,
-				// This value is not returned, so we'll just set whatever is in the state/config
-				DnsZonePartnerId: state.DnsZonePartnerId,
-			}
+				model = MsSqlManagedInstanceModel{
+					Name:              id.ManagedInstanceName,
+					Location:          location.NormalizeNilable(&existing.Model.Location),
+					ResourceGroupName: id.ResourceGroupName,
+					Identity:          r.flattenIdentity(existing.Model.Identity),
+					Tags:              pointer.From(existing.Model.Tags),
 
-			if sku := existing.Sku; sku != nil && sku.Name != nil {
-				model.SkuName = r.normalizeSku(*sku.Name)
-			}
-
-			if props := existing.ManagedInstanceProperties; props != nil {
-				model.LicenseType = string(props.LicenseType)
-				model.ProxyOverride = string(props.ProxyOverride)
-				model.StorageAccountType = string(props.StorageAccountType)
-
-				if props.AdministratorLogin != nil {
-					model.AdministratorLogin = *props.AdministratorLogin
+					// This value is not returned, so we'll just set whatever is in the state/config
+					AdministratorLoginPassword: state.AdministratorLoginPassword,
+					// This value is not returned, so we'll just set whatever is in the state/config
+					DnsZonePartnerId: state.DnsZonePartnerId,
 				}
-				if props.Collation != nil {
-					model.Collation = *props.Collation
+
+				if sku := existing.Model.Sku; sku != nil {
+					model.SkuName = r.normalizeSku(sku.Name)
 				}
-				if props.DNSZone != nil {
-					model.DnsZone = *props.DNSZone
-				}
-				if props.FullyQualifiedDomainName != nil {
-					model.Fqdn = *props.FullyQualifiedDomainName
-				}
-				if props.MaintenanceConfigurationID != nil {
-					maintenanceConfigId, err := publicmaintenanceconfigurations.ParsePublicMaintenanceConfigurationIDInsensitively(*props.MaintenanceConfigurationID)
-					if err != nil {
-						return err
+
+				if props := existing.Model.Properties; props != nil {
+					model.LicenseType = string(pointer.From(props.LicenseType))
+					model.ProxyOverride = string(pointer.From(props.ProxyOverride))
+					model.StorageAccountType = backupStorageRedundancyToStorageAccType(pointer.From(props.RequestedBackupStorageRedundancy))
+
+					model.AdministratorLogin = pointer.From(props.AdministratorLogin)
+					model.Collation = pointer.From(props.Collation)
+					model.DnsZone = pointer.From(props.DnsZone)
+					model.Fqdn = pointer.From(props.FullyQualifiedDomainName)
+
+					if props.MaintenanceConfigurationId != nil {
+						maintenanceConfigId, err := publicmaintenanceconfigurations.ParsePublicMaintenanceConfigurationIDInsensitively(*props.MaintenanceConfigurationId)
+						if err != nil {
+							return err
+						}
+						model.MaintenanceConfigurationName = maintenanceConfigId.PublicMaintenanceConfigurationName
 					}
-					model.MaintenanceConfigurationName = maintenanceConfigId.PublicMaintenanceConfigurationName
-				}
-				if props.MinimalTLSVersion != nil {
-					model.MinimumTlsVersion = *props.MinimalTLSVersion
-				}
-				if props.PublicDataEndpointEnabled != nil {
-					model.PublicDataEndpointEnabled = *props.PublicDataEndpointEnabled
-				}
-				if props.StorageSizeInGB != nil {
-					model.StorageSizeInGb = int64(*props.StorageSizeInGB)
-				}
-				if props.SubnetID != nil {
-					model.SubnetId = *props.SubnetID
-				}
-				if props.TimezoneID != nil {
-					model.TimezoneId = *props.TimezoneID
-				}
-				if props.VCores != nil {
-					model.VCores = int64(*props.VCores)
+
+					model.MinimumTlsVersion = pointer.From(props.MinimalTlsVersion)
+					model.PublicDataEndpointEnabled = pointer.From(props.PublicDataEndpointEnabled)
+					model.StorageSizeInGb = pointer.From(props.StorageSizeInGB)
+					model.SubnetId = pointer.From(props.SubnetId)
+					model.TimezoneId = pointer.From(props.TimezoneId)
+					model.VCores = pointer.From(props.VCores)
+					model.ZoneRedundantEnabled = pointer.From(props.ZoneRedundant)
 				}
 
-				if props.ZoneRedundant != nil {
-					model.ZoneRedundantEnabled = *props.ZoneRedundant
-				}
 			}
-
 			return metadata.Encode(&model)
 		},
 	}
@@ -541,18 +511,14 @@ func (r MsSqlManagedInstanceResource) Delete() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MSSQLManagedInstance.ManagedInstancesClient
 
-			id, err := parse.ManagedInstanceID(metadata.ResourceData.Id())
+			id, err := commonids.ParseSqlManagedInstanceID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+			err = client.DeleteThenPoll(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
-			}
-
-			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for deletion of %s: %+v", id, err)
 			}
 
 			return nil
@@ -560,7 +526,7 @@ func (r MsSqlManagedInstanceResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (r MsSqlManagedInstanceResource) expandIdentity(input []identity.SystemOrUserAssignedList) *sql.ResourceIdentity {
+func (r MsSqlManagedInstanceResource) expandIdentity(input []identity.SystemOrUserAssignedList) *identity.LegacySystemAndUserAssignedMap {
 	if len(input) == 0 {
 		return nil
 	}
@@ -570,37 +536,27 @@ func (r MsSqlManagedInstanceResource) expandIdentity(input []identity.SystemOrUs
 		return nil
 	}
 
-	var identityIds map[string]*sql.UserIdentity
+	var identityIds map[string]identity.UserAssignedIdentityDetails
 	if len(input[0].IdentityIds) != 0 {
-		identityIds = map[string]*sql.UserIdentity{}
+		identityIds = map[string]identity.UserAssignedIdentityDetails{}
 		for _, id := range input[0].IdentityIds {
-			identityIds[id] = &sql.UserIdentity{}
+			identityIds[id] = identity.UserAssignedIdentityDetails{}
 		}
 	}
 
-	return &sql.ResourceIdentity{
-		Type:                   sql.IdentityType(input[0].Type),
-		UserAssignedIdentities: identityIds,
+	return &identity.LegacySystemAndUserAssignedMap{
+		Type:        input[0].Type,
+		IdentityIds: identityIds,
 	}
 }
 
-func (r MsSqlManagedInstanceResource) flattenIdentity(input *sql.ResourceIdentity) []identity.SystemOrUserAssignedList {
+func (r MsSqlManagedInstanceResource) flattenIdentity(input *identity.LegacySystemAndUserAssignedMap) []identity.SystemOrUserAssignedList {
 	if input == nil {
 		return nil
 	}
 
-	principalId := ""
-	if input.PrincipalID != nil {
-		principalId = input.PrincipalID.String()
-	}
-
-	tenantId := ""
-	if input.TenantID != nil {
-		tenantId = input.TenantID.String()
-	}
-
 	var identityIds = make([]string, 0)
-	for k := range input.UserAssignedIdentities {
+	for k := range input.IdentityIds {
 		parsedId, err := commonids.ParseUserAssignedIdentityIDInsensitively(k)
 		if err != nil {
 			continue
@@ -609,14 +565,14 @@ func (r MsSqlManagedInstanceResource) flattenIdentity(input *sql.ResourceIdentit
 	}
 
 	return []identity.SystemOrUserAssignedList{{
-		Type:        identity.Type(input.Type),
-		PrincipalId: principalId,
-		TenantId:    tenantId,
+		Type:        input.Type,
+		PrincipalId: input.PrincipalId,
+		TenantId:    input.TenantId,
 		IdentityIds: identityIds,
 	}}
 }
 
-func (r MsSqlManagedInstanceResource) expandSkuName(skuName string) (*sql.Sku, error) {
+func (r MsSqlManagedInstanceResource) expandSkuName(skuName string) (*managedinstances.Sku, error) {
 	parts := strings.Split(skuName, "_")
 	if len(parts) != 2 {
 		return nil, fmt.Errorf("sku_name (%s) has the wrong number of parts (%d) after splitting on _", skuName, len(parts))
@@ -632,8 +588,8 @@ func (r MsSqlManagedInstanceResource) expandSkuName(skuName string) (*sql.Sku, e
 		return nil, fmt.Errorf("sku_name %s has unknown sku tier %s", skuName, parts[0])
 	}
 
-	return &sql.Sku{
-		Name:   pointer.To(skuName),
+	return &managedinstances.Sku{
+		Name:   skuName,
 		Tier:   pointer.To(tier),
 		Family: pointer.To(parts[1]),
 	}, nil
@@ -652,4 +608,33 @@ func (r MsSqlManagedInstanceResource) normalizeSku(sku string) string {
 	}
 
 	return sku
+}
+
+// the StorageAccountType property has changed to RequestedBackupStorageRedundancy with 1-1 mapping of the following values:
+// GRS -> Geo
+// ZRS -> Zone
+// LRS -> Local
+// GZRS -> GeoZone
+func storageAccTypeToBackupStorageRedundancy(storageAccountType string) managedinstances.BackupStorageRedundancy {
+	switch storageAccountType {
+	case string(sql.StorageAccountTypeZRS):
+		return managedinstances.BackupStorageRedundancyZone
+	case string(sql.StorageAccountTypeLRS):
+		return managedinstances.BackupStorageRedundancyLocal
+	case "GZRS":
+		return managedinstances.BackupStorageRedundancyGeoZone
+	}
+	return managedinstances.BackupStorageRedundancyGeo
+}
+
+func backupStorageRedundancyToStorageAccType(backupStorageRedundancy managedinstances.BackupStorageRedundancy) string {
+	switch backupStorageRedundancy {
+	case managedinstances.BackupStorageRedundancyZone:
+		return string(sql.StorageAccountTypeZRS)
+	case managedinstances.BackupStorageRedundancyLocal:
+		return string(sql.StorageAccountTypeLRS)
+	case managedinstances.BackupStorageRedundancyGeoZone:
+		return "GZRS"
+	}
+	return string(sql.StorageAccountTypeGRS)
 }

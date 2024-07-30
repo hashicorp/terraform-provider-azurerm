@@ -8,8 +8,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/instancefailovergroups"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/validate"
@@ -100,8 +103,8 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Arguments() map[string]*plugi
 						Type:     pluginsdk.TypeString,
 						Required: true,
 						ValidateFunc: validation.StringInSlice([]string{
-							string(sql.ReadWriteEndpointFailoverPolicyAutomatic),
-							string(sql.ReadWriteEndpointFailoverPolicyManual),
+							string(instancefailovergroups.ReadWriteEndpointFailoverPolicyAutomatic),
+							string(instancefailovergroups.ReadWriteEndpointFailoverPolicyManual),
 						}, false),
 					},
 
@@ -151,13 +154,13 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			managedInstanceId, err := parse.ManagedInstanceID(model.ManagedInstanceId)
+			managedInstanceId, err := commonids.ParseSqlManagedInstanceID(model.ManagedInstanceId)
 			if err != nil {
 				return fmt.Errorf("parsing `managed_instance_id`: %v", err)
 			}
 
-			id := parse.NewInstanceFailoverGroupID(managedInstanceId.SubscriptionId,
-				managedInstanceId.ResourceGroup, model.Location, model.Name)
+			id := instancefailovergroups.NewInstanceFailoverGroupID(managedInstanceId.SubscriptionId,
+				managedInstanceId.ResourceGroupName, model.Location, model.Name)
 
 			partnerId, err := parse.ManagedInstanceID(model.PartnerManagedInstanceId)
 			if err != nil {
@@ -171,56 +174,52 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.Logger.Infof("Import check for %s", id)
-			existing, err := client.Get(ctx, id.ResourceGroup, id.LocationName, id.Name)
-			if err != nil && !utils.ResponseWasNotFound(existing.Response) {
+			existing, err := client.Get(ctx, id)
+			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			readOnlyFailoverPolicy := sql.ReadOnlyEndpointFailoverPolicyDisabled
+			readOnlyFailoverPolicy := instancefailovergroups.ReadOnlyEndpointFailoverPolicyDisabled
 			if model.ReadOnlyEndpointFailoverPolicyEnabled {
-				readOnlyFailoverPolicy = sql.ReadOnlyEndpointFailoverPolicyEnabled
+				readOnlyFailoverPolicy = instancefailovergroups.ReadOnlyEndpointFailoverPolicyEnabled
 			}
 
-			parameters := sql.InstanceFailoverGroup{
-				InstanceFailoverGroupProperties: &sql.InstanceFailoverGroupProperties{
-					ReadOnlyEndpoint: &sql.InstanceFailoverGroupReadOnlyEndpoint{
-						FailoverPolicy: readOnlyFailoverPolicy,
+			parameters := instancefailovergroups.InstanceFailoverGroup{
+				Properties: &instancefailovergroups.InstanceFailoverGroupProperties{
+					ReadOnlyEndpoint: &instancefailovergroups.InstanceFailoverGroupReadOnlyEndpoint{
+						FailoverPolicy: &readOnlyFailoverPolicy,
 					},
-					ReadWriteEndpoint: &sql.InstanceFailoverGroupReadWriteEndpoint{},
-					PartnerRegions: &[]sql.PartnerRegionInfo{
+					ReadWriteEndpoint: instancefailovergroups.InstanceFailoverGroupReadWriteEndpoint{},
+					PartnerRegions: []instancefailovergroups.PartnerRegionInfo{
 						{
 							Location: partner.Location,
 						},
 					},
-					ManagedInstancePairs: &[]sql.ManagedInstancePairInfo{
+					ManagedInstancePairs: []instancefailovergroups.ManagedInstancePairInfo{
 						{
-							PrimaryManagedInstanceID: utils.String(managedInstanceId.ID()),
-							PartnerManagedInstanceID: utils.String(partnerId.ID()),
+							PrimaryManagedInstanceId: utils.String(managedInstanceId.ID()),
+							PartnerManagedInstanceId: utils.String(partnerId.ID()),
 						},
 					},
 				},
 			}
 
 			if rwPolicy := model.ReadWriteEndpointFailurePolicy; len(rwPolicy) > 0 {
-				parameters.InstanceFailoverGroupProperties.ReadWriteEndpoint.FailoverPolicy = sql.ReadWriteEndpointFailoverPolicy(rwPolicy[0].Mode)
-				if rwPolicy[0].Mode == string(sql.ReadWriteEndpointFailoverPolicyAutomatic) {
-					parameters.InstanceFailoverGroupProperties.ReadWriteEndpoint.FailoverWithDataLossGracePeriodMinutes = utils.Int32(int32(rwPolicy[0].GraceMinutes))
+				parameters.Properties.ReadWriteEndpoint.FailoverPolicy = instancefailovergroups.ReadWriteEndpointFailoverPolicy(rwPolicy[0].Mode)
+				if rwPolicy[0].Mode == string(instancefailovergroups.ReadWriteEndpointFailoverPolicyAutomatic) {
+					parameters.Properties.ReadWriteEndpoint.FailoverWithDataLossGracePeriodMinutes = &rwPolicy[0].GraceMinutes
 				}
 			}
 
 			metadata.Logger.Infof("Creating %s", id)
 
-			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.LocationName, id.Name, parameters)
+			err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
 			if err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
-			}
-
-			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -236,7 +235,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Update() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MSSQLManagedInstance.ManagedInstanceFailoverGroupsClient
 
-			id, err := parse.InstanceFailoverGroupID(metadata.ResourceData.Id())
+			id, err := instancefailovergroups.ParseInstanceFailoverGroupID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -247,7 +246,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			managedInstanceId, err := parse.ManagedInstanceID(state.ManagedInstanceId)
+			managedInstanceId, err := commonids.ParseSqlManagedInstanceID(state.ManagedInstanceId)
 			if err != nil {
 				return fmt.Errorf("parsing `managed_instance_id`: %v", err)
 			}
@@ -263,47 +262,43 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("checking for existence and region of Partner of %q: %+v", id, err)
 			}
 
-			readOnlyFailoverPolicy := sql.ReadOnlyEndpointFailoverPolicyDisabled
+			readOnlyFailoverPolicy := instancefailovergroups.ReadOnlyEndpointFailoverPolicyDisabled
 			if state.ReadOnlyEndpointFailoverPolicyEnabled {
-				readOnlyFailoverPolicy = sql.ReadOnlyEndpointFailoverPolicyEnabled
+				readOnlyFailoverPolicy = instancefailovergroups.ReadOnlyEndpointFailoverPolicyEnabled
 			}
 
-			parameters := sql.InstanceFailoverGroup{
-				InstanceFailoverGroupProperties: &sql.InstanceFailoverGroupProperties{
-					ReadOnlyEndpoint: &sql.InstanceFailoverGroupReadOnlyEndpoint{
-						FailoverPolicy: readOnlyFailoverPolicy,
+			parameters := instancefailovergroups.InstanceFailoverGroup{
+				Properties: &instancefailovergroups.InstanceFailoverGroupProperties{
+					ReadOnlyEndpoint: &instancefailovergroups.InstanceFailoverGroupReadOnlyEndpoint{
+						FailoverPolicy: &readOnlyFailoverPolicy,
 					},
-					ReadWriteEndpoint: &sql.InstanceFailoverGroupReadWriteEndpoint{},
-					PartnerRegions: &[]sql.PartnerRegionInfo{
+					ReadWriteEndpoint: instancefailovergroups.InstanceFailoverGroupReadWriteEndpoint{},
+					PartnerRegions: []instancefailovergroups.PartnerRegionInfo{
 						{
 							Location: partner.Location,
 						},
 					},
-					ManagedInstancePairs: &[]sql.ManagedInstancePairInfo{
+					ManagedInstancePairs: []instancefailovergroups.ManagedInstancePairInfo{
 						{
-							PrimaryManagedInstanceID: utils.String(managedInstanceId.ID()),
-							PartnerManagedInstanceID: utils.String(partnerId.ID()),
+							PrimaryManagedInstanceId: utils.String(managedInstanceId.ID()),
+							PartnerManagedInstanceId: utils.String(partnerId.ID()),
 						},
 					},
 				},
 			}
 
 			if rwPolicy := state.ReadWriteEndpointFailurePolicy; len(rwPolicy) > 0 {
-				parameters.InstanceFailoverGroupProperties.ReadWriteEndpoint.FailoverPolicy = sql.ReadWriteEndpointFailoverPolicy(rwPolicy[0].Mode)
-				if rwPolicy[0].Mode == string(sql.ReadWriteEndpointFailoverPolicyAutomatic) {
-					parameters.InstanceFailoverGroupProperties.ReadWriteEndpoint.FailoverWithDataLossGracePeriodMinutes = utils.Int32(int32(rwPolicy[0].GraceMinutes))
+				parameters.Properties.ReadWriteEndpoint.FailoverPolicy = instancefailovergroups.ReadWriteEndpointFailoverPolicy(rwPolicy[0].Mode)
+				if rwPolicy[0].Mode == string(instancefailovergroups.ReadWriteEndpointFailoverPolicyAutomatic) {
+					parameters.Properties.ReadWriteEndpoint.FailoverWithDataLossGracePeriodMinutes = &rwPolicy[0].GraceMinutes
 				}
 			}
 
 			metadata.Logger.Infof("Updating %s", id)
 
-			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.LocationName, id.Name, parameters)
+			err = client.CreateOrUpdateThenPoll(ctx, *id, parameters)
 			if err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
-			}
-
-			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for update of %s: %+v", id, err)
 			}
 
 			return nil
@@ -317,7 +312,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MSSQLManagedInstance.ManagedInstanceFailoverGroupsClient
 
-			id, err := parse.InstanceFailoverGroupID(metadata.ResourceData.Id())
+			id, err := instancefailovergroups.ParseInstanceFailoverGroupID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -328,44 +323,44 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			result, err := client.Get(ctx, id.ResourceGroup, id.LocationName, id.Name)
+			result, err := client.Get(ctx, *id)
 			if err != nil {
-				if utils.ResponseWasNotFound(result.Response) {
+				if response.WasNotFound(result.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("retrieving %s: %v", id, err)
 			}
 
 			model := MsSqlManagedInstanceFailoverGroupModel{
-				Name:     id.Name,
+				Name:     id.InstanceFailoverGroupName,
 				Location: id.LocationName,
 			}
 
-			if props := result.InstanceFailoverGroupProperties; props != nil {
-				model.Role = string(props.ReplicationRole)
+			if result.Model != nil {
+				if props := result.Model.Properties; props != nil {
+					model.Role = string(pointer.From(props.ReplicationRole))
 
-				if instancePairs := props.ManagedInstancePairs; instancePairs != nil && len(*instancePairs) == 1 {
-					if primaryId := (*instancePairs)[0].PrimaryManagedInstanceID; primaryId != nil {
-						id, err := parse.ManagedInstanceIDInsensitively(*primaryId)
-						if err != nil {
-							return fmt.Errorf("parsing `PrimaryManagedInstanceID` from response: %v", err)
+					if instancePairs := props.ManagedInstancePairs; len(instancePairs) == 1 {
+						if primaryId := instancePairs[0].PrimaryManagedInstanceId; primaryId != nil {
+							id, err := parse.ManagedInstanceIDInsensitively(*primaryId)
+							if err != nil {
+								return fmt.Errorf("parsing `PrimaryManagedInstanceID` from response: %v", err)
+							}
+
+							model.ManagedInstanceId = id.ID()
 						}
 
-						model.ManagedInstanceId = id.ID()
-					}
+						if partnerId := instancePairs[0].PartnerManagedInstanceId; partnerId != nil {
+							id, err := parse.ManagedInstanceIDInsensitively(*partnerId)
+							if err != nil {
+								return fmt.Errorf("parsing `PrimaryManagedInstanceID` from response: %v", err)
+							}
 
-					if partnerId := (*instancePairs)[0].PartnerManagedInstanceID; partnerId != nil {
-						id, err := parse.ManagedInstanceIDInsensitively(*partnerId)
-						if err != nil {
-							return fmt.Errorf("parsing `PrimaryManagedInstanceID` from response: %v", err)
+							model.PartnerManagedInstanceId = id.ID()
 						}
-
-						model.PartnerManagedInstanceId = id.ID()
 					}
-				}
 
-				if partnerRegions := props.PartnerRegions; partnerRegions != nil {
-					for _, partnerRegion := range *partnerRegions {
+					for _, partnerRegion := range props.PartnerRegions {
 						var location string
 						if partnerRegion.Location != nil {
 							location = *partnerRegion.Location
@@ -373,27 +368,20 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Read() sdk.ResourceFunc {
 
 						model.PartnerRegion = append(model.PartnerRegion, MsSqlManagedInstancePartnerRegionModel{
 							Location: location,
-							Role:     string(partnerRegion.ReplicationRole),
+							Role:     string(pointer.From(partnerRegion.ReplicationRole)),
 						})
 					}
-				}
 
-				if readOnlyEndpoint := props.ReadOnlyEndpoint; readOnlyEndpoint != nil {
-					if readOnlyEndpoint.FailoverPolicy == sql.ReadOnlyEndpointFailoverPolicyEnabled {
-						model.ReadOnlyEndpointFailoverPolicyEnabled = true
-					}
-				}
-
-				if readWriteEndpoint := props.ReadWriteEndpoint; readWriteEndpoint != nil {
-					var graceMinutes int64
-					if readWriteEndpoint.FailoverWithDataLossGracePeriodMinutes != nil {
-						graceMinutes = int64(*readWriteEndpoint.FailoverWithDataLossGracePeriodMinutes)
+					if readOnlyEndpoint := props.ReadOnlyEndpoint; readOnlyEndpoint != nil {
+						if *readOnlyEndpoint.FailoverPolicy == instancefailovergroups.ReadOnlyEndpointFailoverPolicyEnabled {
+							model.ReadOnlyEndpointFailoverPolicyEnabled = true
+						}
 					}
 
 					model.ReadWriteEndpointFailurePolicy = []MsSqlManagedInstanceReadWriteEndpointFailurePolicyModel{
 						{
-							Mode:         string(readWriteEndpoint.FailoverPolicy),
-							GraceMinutes: graceMinutes,
+							Mode:         string(props.ReadWriteEndpoint.FailoverPolicy),
+							GraceMinutes: pointer.From(props.ReadWriteEndpoint.FailoverWithDataLossGracePeriodMinutes),
 						},
 					}
 				}
@@ -410,18 +398,14 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Delete() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MSSQLManagedInstance.ManagedInstanceFailoverGroupsClient
 
-			id, err := parse.InstanceFailoverGroupID(metadata.ResourceData.Id())
+			id, err := instancefailovergroups.ParseInstanceFailoverGroupID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			future, err := client.Delete(ctx, id.ResourceGroup, id.LocationName, id.Name)
+			err = client.DeleteThenPoll(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
-			}
-
-			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for deletion of %s: %+v", id, err)
 			}
 
 			return nil

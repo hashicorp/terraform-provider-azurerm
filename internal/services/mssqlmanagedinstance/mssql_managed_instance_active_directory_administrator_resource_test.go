@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -49,9 +51,11 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Exists(ctx con
 		return nil, err
 	}
 
-	resp, err := client.MSSQLManagedInstance.ManagedInstanceAdministratorsClient.Get(ctx, id.ResourceGroup, id.ManagedInstanceName)
+	serverId := commonids.NewSqlServerID(id.SubscriptionId, id.ResourceGroup, id.ManagedInstanceName)
+
+	resp, err := client.MSSQLManagedInstance.ManagedInstanceAdministratorsClient.Get(ctx, serverId)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)

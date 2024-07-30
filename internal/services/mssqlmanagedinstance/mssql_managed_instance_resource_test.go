@@ -8,10 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstances"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -1068,7 +1070,22 @@ func TestAccMsSqlManagedInstance_backupRedundancyLRS(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.storageType(data, "LRS"),
+			Config: r.storageType(data, "GZRS"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+	})
+}
+
+func TestAccMsSqlManagedInstance_backupRedundancyGZRS(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance", "test")
+	r := MsSqlManagedInstanceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.storageType(data, "GZRS"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1219,14 +1236,14 @@ func TestAccMsSqlManagedInstance_withMaintenanceConfig(t *testing.T) {
 }
 
 func (r MsSqlManagedInstanceResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ManagedInstanceID(state.ID)
+	id, err := commonids.ParseSqlManagedInstanceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.MSSQLManagedInstance.ManagedInstancesClient.Get(ctx, id.ResourceGroup, id.Name, "")
+	resp, err := client.MSSQLManagedInstance.ManagedInstancesClient.Get(ctx, *id, managedinstances.GetOperationOptions{})
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)

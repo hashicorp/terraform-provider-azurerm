@@ -4,76 +4,122 @@
 package client
 
 import (
+	"fmt"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/instancefailovergroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedbackupshorttermretentionpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/manageddatabases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstanceazureadonlyauthentications"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstanceencryptionprotectors"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstancekeys"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstancelongtermretentionpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstances"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstancevulnerabilityassessments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedserversecurityalertpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/serverazureadadministrators"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-	ManagedDatabasesClient                           *sql.ManagedDatabasesClient
-	ManagedInstancesClient                           *sql.ManagedInstancesClient
-	ManagedInstancesLongTermRetentionPoliciesClient  *sql.ManagedInstanceLongTermRetentionPoliciesClient
-	ManagedInstancesShortTermRetentionPoliciesClient *sql.ManagedBackupShortTermRetentionPoliciesClient
-	ManagedInstanceVulnerabilityAssessmentsClient    *sql.ManagedInstanceVulnerabilityAssessmentsClient
-	ManagedInstanceServerSecurityAlertPoliciesClient *sql.ManagedServerSecurityAlertPoliciesClient
-	ManagedInstanceAdministratorsClient              *sql.ManagedInstanceAdministratorsClient
-	ManagedInstanceAzureADOnlyAuthenticationsClient  *sql.ManagedInstanceAzureADOnlyAuthenticationsClient
-	ManagedInstanceEncryptionProtectorClient         *sql.ManagedInstanceEncryptionProtectorsClient
-	ManagedInstanceFailoverGroupsClient              *sql.InstanceFailoverGroupsClient
-	ManagedInstanceKeysClient                        *sql.ManagedInstanceKeysClient
+	ManagedDatabasesClient                           *manageddatabases.ManagedDatabasesClient
+	ManagedInstancesClient                           *managedinstances.ManagedInstancesClient
+	ManagedInstancesLongTermRetentionPoliciesClient  *managedinstancelongtermretentionpolicies.ManagedInstanceLongTermRetentionPoliciesClient
+	ManagedInstancesShortTermRetentionPoliciesClient *managedbackupshorttermretentionpolicies.ManagedBackupShortTermRetentionPoliciesClient
+	ManagedInstanceVulnerabilityAssessmentsClient    *managedinstancevulnerabilityassessments.ManagedInstanceVulnerabilityAssessmentsClient
+	ManagedInstanceServerSecurityAlertPoliciesClient *managedserversecurityalertpolicies.ManagedServerSecurityAlertPoliciesClient
+	ManagedInstanceAdministratorsClient              *serverazureadadministrators.ServerAzureADAdministratorsClient
+	ManagedInstanceAzureADOnlyAuthenticationsClient  *managedinstanceazureadonlyauthentications.ManagedInstanceAzureADOnlyAuthenticationsClient
+	ManagedInstanceEncryptionProtectorClient         *managedinstanceencryptionprotectors.ManagedInstanceEncryptionProtectorsClient
+	ManagedInstanceFailoverGroupsClient              *instancefailovergroups.InstanceFailoverGroupsClient
+	ManagedInstanceKeysClient                        *managedinstancekeys.ManagedInstanceKeysClient
 
 	options *common.ClientOptions
 }
 
-func NewClient(o *common.ClientOptions) *Client {
+func NewClient(o *common.ClientOptions) (*Client, error) {
 
-	managedDatabasesClient := sql.NewManagedDatabasesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&managedDatabasesClient.Client, o.ResourceManagerAuthorizer)
+	managedDatabasesClient, err := manageddatabases.NewManagedDatabasesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Managed Databases Client: %+v", err)
+	}
+	o.Configure(managedDatabasesClient.Client, o.Authorizers.ResourceManager)
 
-	managedInstancesClient := sql.NewManagedInstancesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&managedInstancesClient.Client, o.ResourceManagerAuthorizer)
+	managedInstancesClient, err := managedinstances.NewManagedInstancesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Managed Instance Client: %+v", err)
+	}
+	o.Configure(managedInstancesClient.Client, o.Authorizers.ResourceManager)
 
-	managedInstancesLongTermRetentionPoliciesClient := sql.NewManagedInstanceLongTermRetentionPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&managedInstancesLongTermRetentionPoliciesClient.Client, o.ResourceManagerAuthorizer)
+	managedInstancesLongTermRetentionPoliciesClient, err := managedinstancelongtermretentionpolicies.NewManagedInstanceLongTermRetentionPoliciesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Managed Instance Long Term Retention Policies Client: %+v", err)
+	}
+	o.Configure(managedInstancesLongTermRetentionPoliciesClient.Client, o.Authorizers.ResourceManager)
 
-	managedInstancesShortTermRetentionPoliciesClient := sql.NewManagedBackupShortTermRetentionPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&managedInstancesShortTermRetentionPoliciesClient.Client, o.ResourceManagerAuthorizer)
+	managedInstancesShortTermRetentionPoliciesClient, err := managedbackupshorttermretentionpolicies.NewManagedBackupShortTermRetentionPoliciesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Managed Instance Short Term Retention Policies Client: %+v", err)
+	}
+	o.Configure(managedInstancesShortTermRetentionPoliciesClient.Client, o.Authorizers.ResourceManager)
 
-	managedInstancesAdministratorsClient := sql.NewManagedInstanceAdministratorsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&managedInstancesAdministratorsClient.Client, o.ResourceManagerAuthorizer)
+	managedInstancesAdministratorsClient, err := serverazureadadministrators.NewServerAzureADAdministratorsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Managed Instance Administrators Client: %+v", err)
+	}
+	o.Configure(managedInstancesAdministratorsClient.Client, o.Authorizers.ResourceManager)
 
-	managedInstanceAzureADOnlyAuthenticationsClient := sql.NewManagedInstanceAzureADOnlyAuthenticationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&managedInstanceAzureADOnlyAuthenticationsClient.Client, o.ResourceManagerAuthorizer)
+	managedInstanceAzureADOnlyAuthenticationsClient, err := managedinstanceazureadonlyauthentications.NewManagedInstanceAzureADOnlyAuthenticationsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Azure ADOnly Authentications Client: %+v", err)
+	}
+	o.Configure(managedInstanceAzureADOnlyAuthenticationsClient.Client, o.Authorizers.ResourceManager)
 
-	managedInstanceEncryptionProtectorsClient := sql.NewManagedInstanceEncryptionProtectorsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&managedInstanceEncryptionProtectorsClient.Client, o.ResourceManagerAuthorizer)
+	managedInstanceEncryptionProtectorsClient, err := managedinstanceencryptionprotectors.NewManagedInstanceEncryptionProtectorsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Managed Instance Failover Groups Client: %+v", err)
+	}
+	o.Configure(managedInstanceEncryptionProtectorsClient.Client, o.Authorizers.ResourceManager)
 
-	managedInstanceFailoverGroupsClient := sql.NewInstanceFailoverGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&managedInstanceFailoverGroupsClient.Client, o.ResourceManagerAuthorizer)
+	managedInstanceFailoverGroupsClient, err := instancefailovergroups.NewInstanceFailoverGroupsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Managed Instance Failover Groups Client: %+v", err)
+	}
+	o.Configure(managedInstanceFailoverGroupsClient.Client, o.Authorizers.ResourceManager)
 
-	managedInstanceKeysClient := sql.NewManagedInstanceKeysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&managedInstanceKeysClient.Client, o.ResourceManagerAuthorizer)
+	managedInstanceKeysClient, err := managedinstancekeys.NewManagedInstanceKeysClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Managed Instance Keys Client: %+v", err)
+	}
+	o.Configure(managedInstanceKeysClient.Client, o.Authorizers.ResourceManager)
 
-	managedInstanceVulnerabilityAssessmentsClient := sql.NewManagedInstanceVulnerabilityAssessmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&managedInstanceVulnerabilityAssessmentsClient.Client, o.ResourceManagerAuthorizer)
+	managedInstanceVulnerabilityAssessmentsClient, err := managedinstancevulnerabilityassessments.NewManagedInstanceVulnerabilityAssessmentsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Managed Instance Vulnerability Assessments Client: %+v", err)
+	}
+	o.Configure(managedInstanceVulnerabilityAssessmentsClient.Client, o.Authorizers.ResourceManager)
 
-	managedInstanceServerSecurityAlertPoliciesClient := sql.NewManagedServerSecurityAlertPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&managedInstanceServerSecurityAlertPoliciesClient.Client, o.ResourceManagerAuthorizer)
+	managedInstanceServerSecurityAlertPoliciesClient, err := managedserversecurityalertpolicies.NewManagedServerSecurityAlertPoliciesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Managed Instance Server Security Alert Policies Client: %+v", err)
+	}
+	o.Configure(managedInstanceServerSecurityAlertPoliciesClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
-		ManagedDatabasesClient:                           &managedDatabasesClient,
-		ManagedInstanceAdministratorsClient:              &managedInstancesAdministratorsClient,
-		ManagedInstanceAzureADOnlyAuthenticationsClient:  &managedInstanceAzureADOnlyAuthenticationsClient,
-		ManagedInstanceEncryptionProtectorClient:         &managedInstanceEncryptionProtectorsClient,
-		ManagedInstanceFailoverGroupsClient:              &managedInstanceFailoverGroupsClient,
-		ManagedInstanceKeysClient:                        &managedInstanceKeysClient,
-		ManagedInstancesLongTermRetentionPoliciesClient:  &managedInstancesLongTermRetentionPoliciesClient,
-		ManagedInstanceServerSecurityAlertPoliciesClient: &managedInstanceServerSecurityAlertPoliciesClient,
-		ManagedInstancesShortTermRetentionPoliciesClient: &managedInstancesShortTermRetentionPoliciesClient,
-		ManagedInstanceVulnerabilityAssessmentsClient:    &managedInstanceVulnerabilityAssessmentsClient,
-		ManagedInstancesClient:                           &managedInstancesClient,
+		ManagedDatabasesClient:                           managedDatabasesClient,
+		ManagedInstanceAdministratorsClient:              managedInstancesAdministratorsClient,
+		ManagedInstanceAzureADOnlyAuthenticationsClient:  managedInstanceAzureADOnlyAuthenticationsClient,
+		ManagedInstanceEncryptionProtectorClient:         managedInstanceEncryptionProtectorsClient,
+		ManagedInstanceFailoverGroupsClient:              managedInstanceFailoverGroupsClient,
+		ManagedInstanceKeysClient:                        managedInstanceKeysClient,
+		ManagedInstancesLongTermRetentionPoliciesClient:  managedInstancesLongTermRetentionPoliciesClient,
+		ManagedInstanceServerSecurityAlertPoliciesClient: managedInstanceServerSecurityAlertPoliciesClient,
+		ManagedInstancesShortTermRetentionPoliciesClient: managedInstancesShortTermRetentionPoliciesClient,
+		ManagedInstanceVulnerabilityAssessmentsClient:    managedInstanceVulnerabilityAssessmentsClient,
+		ManagedInstancesClient:                           managedInstancesClient,
 
 		options: o,
-	}
+	}, nil
 }
 
 func (c Client) ManagedInstancesClientForSubscription(subscriptionID string) *sql.ManagedInstancesClient {
