@@ -118,10 +118,10 @@ func (r SpringCloudAppMysqlAssociationResource) update(data acceptance.TestData)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_mysql_database" "updated" {
-  name                = "acctest-db2-%d"
+resource "azurerm_mysql_flexible_database" "updated" {
+  name                = "acctestdb2_%d"
   resource_group_name = azurerm_resource_group.test.name
-  server_name         = azurerm_mysql_server.test.name
+  server_name         = azurerm_mysql_flexible_server.test.name
   charset             = "utf8"
   collation           = "utf8_unicode_ci"
 }
