@@ -831,7 +831,7 @@ resource "azurerm_kusto_cluster" "test" {
 
   language_extensions {
     name  = "R"
-	image = "R"
+    image = "R"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
@@ -865,7 +865,7 @@ resource "azurerm_kusto_cluster" "test" {
 
   language_extensions {
     name  = "R"
-	image = "R"
+    image = "R"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
@@ -894,7 +894,7 @@ resource "azurerm_kusto_cluster" "test" {
 
   language_extensions {
     name  = "R"
-	image = "R"
+    image = "R"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
