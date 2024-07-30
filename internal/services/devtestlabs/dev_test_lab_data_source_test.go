@@ -36,7 +36,7 @@ func TestAccAzureRMDevTestLabDataSource_complete(t *testing.T) {
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("storage_type").HasValue("Standard"),
+				check.That(data.ResourceName).Key("storage_type").HasValue("Premium"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.Hello").HasValue("World"),
 			),
@@ -83,7 +83,6 @@ resource "azurerm_dev_test_lab" "test" {
   name                = "acctestdtl%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  storage_type        = "Standard"
 
   tags = {
     Hello = "World"
