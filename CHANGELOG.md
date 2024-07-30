@@ -19,6 +19,10 @@ BUG FIXES:
 * `azurerm_linux_web_app_slot` - correctly set `site_config.always_on` as configured during Update [GH-25753]
 * `azurerm_management_group_policy_remediation` - fix panic in deprecated schema change for 4.0 [GH-26767]
 
+DEPRECATIONS:
+* `azurerm_redis_cache` - `enable_non_ssl_port` has been superseded by `non_ssl_port_enabled` and `redis_configuration. enable_authentication` has been superseded by `redis_configuration.authentication_enabled` [GH-26608]
+
+
 ## 3.113.0 (July 18, 2024)
 
 ENHANCEMENTS:
