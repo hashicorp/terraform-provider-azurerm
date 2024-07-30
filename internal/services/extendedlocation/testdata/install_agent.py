@@ -188,9 +188,10 @@ def helm_install_release(chart_path, subscription_id, kubernetes_distro, kuberne
                             cloud_name),
                         "--set", "systemDefaultValues.clusterconnect-agent.enabled=true",
                         "--set", "systemDefaultValues.customLocations.enabled=true",
-                        # feb5d117-1f5e-486d-8aa7-0606b8056bda is from: az ad sp show --id bc313c14-388c-4e7d-a58e-70017303ee3b --query id -o tsv
+                        # ccce55cc-eb6c-45ec-b9ca-562ababa6a44 is from: az ad sp show --id bc313c14-388c-4e7d-a58e-70017303ee3b --query id -o tsv
+                        # As a user, you need to run the above command to get the object id of the service principal and replace it in the below command.
                         # refs: https://learn.microsoft.com/en-us/azure/azure-arc/kubernetes/custom-locations#enable-custom-locations-on-your-cluster
-                        "--set", "systemDefaultValues.customLocations.oid={}".format("feb5d117-1f5e-486d-8aa7-0606b8056bda"),
+                        "--set", "systemDefaultValues.customLocations.oid={}".format("ccce55cc-eb6c-45ec-b9ca-562ababa6a44"),
                         "--namespace", "{}".format("azure-arc-release"),
                         "--create-namespace",
                         "--output", "json"]
