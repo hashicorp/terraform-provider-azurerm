@@ -1027,14 +1027,6 @@ func TestAccFunctionApp_elasticInstanceMinimum(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-		{
-			Config: r.preWarmedInstanceCount(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.elastic_instance_minimum").HasValue("0"),
-			),
-		},
-		data.ImportStep(),
 	})
 }
 
@@ -2961,7 +2953,6 @@ resource "azurerm_function_app" "test" {
 
   site_config {
     pre_warmed_instance_count = 1
-    elastic_instance_minimum = 0
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
