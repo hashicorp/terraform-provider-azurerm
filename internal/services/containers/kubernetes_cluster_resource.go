@@ -20,9 +20,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-09-02-preview/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-09-02-preview/maintenanceconfigurations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-09-02-preview/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-05-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-05-01/maintenanceconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-05-01/managedclusters"
 	dnsValidate "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2020-06-01/privatezones"
@@ -1980,12 +1980,6 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		autoUpgradeProfile.NodeOSUpgradeChannel = pointer.To(managedclusters.NodeOSUpgradeChannel(nodeOsChannelUpgrade))
 	}
 
-	if !features.FourPointOhBeta() {
-		if customCaTrustCertListRaw := d.Get("custom_ca_trust_certificates_base64").([]interface{}); len(customCaTrustCertListRaw) > 0 {
-			securityProfile.CustomCATrustCertificates = convertCustomCaTrustCertsInput(customCaTrustCertListRaw)
-		}
-	}
-
 	parameters := managedclusters.ManagedCluster{
 		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
 		Location:         location,
@@ -2537,12 +2531,6 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		existing.Model.Properties.SecurityProfile.AzureKeyVaultKms = azureKeyVaultKms
 	}
 
-	if !features.FourPointOhBeta() && d.HasChanges("custom_ca_trust_certificates_base64") {
-		updateCluster = true
-		customCaTrustCertListRaw := d.Get("custom_ca_trust_certificates_base64").([]interface{})
-		existing.Model.Properties.SecurityProfile.CustomCATrustCertificates = convertCustomCaTrustCertsInput(customCaTrustCertListRaw)
-	}
-
 	if d.HasChanges("microsoft_defender") {
 		updateCluster = true
 		microsoftDefenderRaw := d.Get("microsoft_defender").([]interface{})
@@ -2745,10 +2733,9 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 				}
 			}
 
-			deleteOpts := agentpools.DeleteOperationOptions{}
 			// delete the old default node pool if it exists
 			if defaultExisting.Model != nil {
-				if err := nodePoolsClient.DeleteThenPoll(ctx, defaultNodePoolId, deleteOpts); err != nil {
+				if err := nodePoolsClient.DeleteThenPoll(ctx, defaultNodePoolId); err != nil {
 					return fmt.Errorf("deleting default %s: %+v", defaultNodePoolId, err)
 				}
 			}
@@ -2761,7 +2748,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 				return fmt.Errorf("creating default %s: %+v", defaultNodePoolId, err)
 			}
 
-			if err := nodePoolsClient.DeleteThenPoll(ctx, tempNodePoolId, deleteOpts); err != nil {
+			if err := nodePoolsClient.DeleteThenPoll(ctx, tempNodePoolId); err != nil {
 				return fmt.Errorf("deleting temporary %s: %+v", tempNodePoolId, err)
 			}
 
@@ -2942,11 +2929,6 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 				}
 			} else {
 				d.Set("node_os_upgrade_channel", nodeOSUpgradeChannel)
-			}
-
-			if !features.FourPointOhBeta() {
-				customCaTrustCertList := flattenCustomCaTrustCerts(props.SecurityProfile)
-				d.Set("custom_ca_trust_certificates_base64", customCaTrustCertList)
 			}
 
 			enablePrivateCluster := false
@@ -3207,10 +3189,7 @@ func resourceKubernetesClusterDelete(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	ignorePodDisruptionBudget := true
-	err = client.DeleteThenPoll(ctx, *id, managedclusters.DeleteOperationOptions{
-		IgnorePodDisruptionBudget: &ignorePodDisruptionBudget,
-	})
+	err = client.DeleteThenPoll(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
@@ -3385,20 +3364,6 @@ func expandKubernetesClusterAPIAccessProfile(d *pluginsdk.ResourceData) *managed
 		}
 	}
 
-	if !features.FourPointOhBeta() {
-		enableVnetIntegration := false
-		if v := config["vnet_integration_enabled"]; v != nil {
-			enableVnetIntegration = v.(bool)
-		}
-		apiAccessProfile.EnableVnetIntegration = utils.Bool(enableVnetIntegration)
-
-		subnetId := ""
-		if v := config["subnet_id"]; v != nil {
-			subnetId = v.(string)
-		}
-		apiAccessProfile.SubnetId = utils.String(subnetId)
-	}
-
 	return apiAccessProfile
 }
 
@@ -3407,9 +3372,7 @@ func flattenKubernetesClusterAPIAccessProfile(profile *managedclusters.ManagedCl
 	// top level properties which causes strange diffs depending on what is being set, so this also needs to check
 	// whether the properties in the block are returned or nil
 	if !features.FourPointOhBeta() {
-		if profile == nil || (profile.AuthorizedIPRanges == nil && profile.SubnetId == nil && profile.EnableVnetIntegration == nil) {
-			return []interface{}{}
-		}
+
 	} else {
 		if profile == nil || profile.AuthorizedIPRanges == nil {
 			return []interface{}{}
@@ -3417,25 +3380,6 @@ func flattenKubernetesClusterAPIAccessProfile(profile *managedclusters.ManagedCl
 	}
 
 	apiServerAuthorizedIPRanges := utils.FlattenStringSlice(profile.AuthorizedIPRanges)
-
-	if !features.FourPointOhBeta() {
-		enableVnetIntegration := false
-		if profile.EnableVnetIntegration != nil {
-			enableVnetIntegration = *profile.EnableVnetIntegration
-		}
-		subnetId := ""
-		if profile.SubnetId != nil && *profile.SubnetId != "" {
-			subnetId = *profile.SubnetId
-		}
-
-		return []interface{}{
-			map[string]interface{}{
-				"authorized_ip_ranges":     apiServerAuthorizedIPRanges,
-				"subnet_id":                subnetId,
-				"vnet_integration_enabled": enableVnetIntegration,
-			},
-		}
-	}
 
 	return []interface{}{
 		map[string]interface{}{
@@ -4795,10 +4739,6 @@ func expandStorageProfile(input []interface{}) *managedclusters.ManagedClusterSt
 		SnapshotController: &managedclusters.ManagedClusterStorageProfileSnapshotController{
 			Enabled: utils.Bool(raw["snapshot_controller_enabled"].(bool)),
 		},
-	}
-
-	if !features.FourPointOhBeta() {
-		profile.DiskCSIDriver.Version = utils.String(raw["disk_driver_version"].(string))
 	}
 
 	return &profile

@@ -5,7 +5,6 @@ package containers
 
 import (
 	"context"
-	"encoding/base64"
 	"fmt"
 	"log"
 	"regexp"
@@ -20,9 +19,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-09-02-preview/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-09-02-preview/managedclusters"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-09-02-preview/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-05-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-05-01/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-05-01/snapshots"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/subnets"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -401,63 +400,6 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		},
 	}
 
-	if !features.FourPointOhBeta() {
-		s["message_of_the_day"] = &pluginsdk.Schema{
-			Deprecated:   "This feature is a preview feature and will be removed in version 4.0 of the AzureRM Provider.",
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		}
-
-		s["custom_ca_trust_enabled"] = &pluginsdk.Schema{
-			Deprecated: "This feature is a preview feature and will be removed in version 4.0 of the AzureRM Provider.",
-			Type:       pluginsdk.TypeBool,
-			Optional:   true,
-		}
-
-		s["os_sku"].ValidateFunc = validation.StringInSlice([]string{
-			string(agentpools.OSSKUAzureLinux),
-			string(agentpools.OSSKUCBLMariner),
-			string(agentpools.OSSKUMariner),
-			string(agentpools.OSSKUUbuntu),
-			string(agentpools.OSSKUWindowsTwoZeroOneNine),
-			string(agentpools.OSSKUWindowsTwoZeroTwoTwo),
-		}, false)
-
-		s["workload_runtime"].ValidateFunc = validation.StringInSlice([]string{
-			string(agentpools.WorkloadRuntimeOCIContainer),
-			string(agentpools.WorkloadRuntimeWasmWasi),
-			string(agentpools.WorkloadRuntimeKataMshvVMIsolation),
-		}, false)
-	}
-
-	if !features.FourPointOh() {
-		s["enable_auto_scaling"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeBool,
-			Optional:   true,
-			Deprecated: features.DeprecatedInFourPointOh("The property `enable_auto_scaling` will be renamed to `auto_scaling_enabled` in v4.0 of the AzureRM Provider."),
-		}
-
-		s["enable_node_public_ip"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeBool,
-			Optional:   true,
-			ForceNew:   true,
-			Deprecated: features.DeprecatedInFourPointOh("The property `enable_node_public_ip` will be renamed to `node_public_ip_enabled` in v4.0 of the AzureRM Provider."),
-		}
-
-		s["enable_host_encryption"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeBool,
-			Optional:   true,
-			ForceNew:   true,
-			Deprecated: features.DeprecatedInFourPointOh("The property `enable_host_encryption` will be renamed to `host_encryption_enabled` in v4.0 of the AzureRM Provider."),
-		}
-
-		delete(s, "auto_scaling_enabled")
-		delete(s, "node_public_ip_enabled")
-		delete(s, "host_encryption_enabled")
-	}
-
 	return s
 }
 
@@ -570,10 +512,6 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		Count: utils.Int64(int64(count)),
 	}
 
-	if !features.FourPointOhBeta() {
-		profile.EnableCustomCATrust = pointer.To(d.Get("custom_ca_trust_enabled").(bool))
-	}
-
 	if gpuInstanceProfile := d.Get("gpu_instance").(string); gpuInstanceProfile != "" {
 		profile.GpuInstanceProfile = pointer.To(agentpools.GPUInstanceProfile(gpuInstanceProfile))
 	}
@@ -633,16 +571,6 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 	nodeTaintsRaw := d.Get("node_taints").([]interface{})
 	if nodeTaints := utils.ExpandStringSlice(nodeTaintsRaw); len(*nodeTaints) > 0 {
 		profile.NodeTaints = nodeTaints
-	}
-
-	if !features.FourPointOhBeta() {
-		if v := d.Get("message_of_the_day").(string); v != "" {
-			if profile.OsType != nil && *profile.OsType == agentpools.OSTypeWindows {
-				return fmt.Errorf("`message_of_the_day` cannot be specified for Windows nodes and must be a static string (i.e. will be printed raw and not executed as a script)")
-			}
-			messageOfTheDayEncoded := base64.StdEncoding.EncodeToString([]byte(v))
-			profile.MessageOfTheDay = &messageOfTheDayEncoded
-		}
 	}
 
 	if osDiskSizeGB := d.Get("os_disk_size_gb").(int); osDiskSizeGB > 0 {
@@ -822,12 +750,6 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
-	if !features.FourPointOhBeta() {
-		if d.HasChange("custom_ca_trust_enabled") {
-			props.EnableCustomCATrust = utils.Bool(d.Get("custom_ca_trust_enabled").(bool))
-		}
-	}
-
 	if d.HasChange("max_count") || enableAutoScaling {
 		props.MaxCount = utils.Int64(int64(d.Get("max_count").(int)))
 	}
@@ -991,7 +913,6 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 			d.Set("enable_auto_scaling", props.EnableAutoScaling)
 			d.Set("enable_node_public_ip", props.EnableNodePublicIP)
 			d.Set("enable_host_encryption", props.EnableEncryptionAtHost)
-			d.Set("custom_ca_trust_enabled", props.EnableCustomCATrust)
 		}
 		d.Set("fips_enabled", props.EnableFIPS)
 		d.Set("ultra_ssd_enabled", props.EnableUltraSSD)
@@ -1041,18 +962,6 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 			maxCount = int(*props.MaxCount)
 		}
 		d.Set("max_count", maxCount)
-
-		if !features.FourPointOhBeta() {
-			messageOfTheDay := ""
-			if props.MessageOfTheDay != nil {
-				messageOfTheDayDecoded, err := base64.StdEncoding.DecodeString(*props.MessageOfTheDay)
-				if err != nil {
-					return fmt.Errorf("setting `message_of_the_day`: %+v", err)
-				}
-				messageOfTheDay = string(messageOfTheDayDecoded)
-			}
-			d.Set("message_of_the_day", messageOfTheDay)
-		}
 
 		maxPods := 0
 		if props.MaxPods != nil {
@@ -1161,7 +1070,7 @@ func resourceKubernetesClusterNodePoolDelete(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, *id, agentpools.DefaultDeleteOperationOptions())
+	err = client.DeleteThenPoll(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
