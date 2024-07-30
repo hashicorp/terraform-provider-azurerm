@@ -768,30 +768,6 @@ func flattenKustoClusterVNET(vnet *clusters.VirtualNetworkConfiguration) []inter
 	return []interface{}{output}
 }
 
-func flattenKustoClusterLanguageExtensions(extensions *clusters.LanguageExtensionsList) []interface{} {
-	if extensions == nil {
-		return []interface{}{}
-	}
-
-	output := make([]interface{}, 0)
-	if extensions.Value != nil {
-		for _, v := range *extensions.Value {
-			if v.LanguageExtensionImageName != nil {
-				switch *v.LanguageExtensionImageName {
-				case clusters.LanguageExtensionImageNameR:
-					output = append(output, "R")
-				case clusters.LanguageExtensionImageNamePythonThreeSixFive:
-					output = append(output, "PYTHON")
-				case clusters.LanguageExtensionImageNamePythonThreeOneZeroEight:
-					output = append(output, "PYTHON_3.10.8")
-				}
-			}
-		}
-	}
-
-	return output
-}
-
 func flattenKustoClusterLanguageExtensionList(extensions *clusters.LanguageExtensionsList) []interface{} {
 	if extensions == nil {
 		return []interface{}{}
