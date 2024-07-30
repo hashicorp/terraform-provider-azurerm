@@ -722,9 +722,9 @@ func TestAccAppService_zeroedIpRestrictionHeaders(t *testing.T) {
 				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_forwarded_for.#").HasValue("1"),
 				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_forwarded_for.0").HasValue("9.9.9.9/32"),
 				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_forwarded_for.1").DoesNotExist(),
-				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_azure_fdid").DoesNotExist(),
-				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_fd_health_probe").DoesNotExist(),
-				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_forwarded_host").DoesNotExist(),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_azure_fdid.#").DoesNotExist(),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_fd_health_probe.#").DoesNotExist(),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_forwarded_host.#").DoesNotExist(),
 			),
 		},
 		data.ImportStep(),
@@ -738,9 +738,9 @@ func TestAccAppService_zeroedIpRestrictionHeaders(t *testing.T) {
 				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_forwarded_for.#").HasValue("1"),
 				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_forwarded_for.0").HasValue("9.9.9.9/32"),
 				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_forwarded_for.1").DoesNotExist(),
-				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_azure_fdid").DoesNotExist(),
-				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_fd_health_probe").DoesNotExist(),
-				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_forwarded_host").DoesNotExist(),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_azure_fdid.#").DoesNotExist(),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_fd_health_probe.#").DoesNotExist(),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.headers.0.x_forwarded_host.#").DoesNotExist(),
 			),
 		},
 		data.ImportStep(),
@@ -1411,7 +1411,7 @@ func TestAccAppService_windowsPHP7(t *testing.T) {
 			Config: r.windowsPHP(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.php_version").HasValue("7.3"),
+				check.That(data.ResourceName).Key("site_config.0.php_version").HasValue("7.4"),
 			),
 		},
 		data.ImportStep(),
@@ -4474,7 +4474,7 @@ resource "azurerm_app_service" "test" {
   app_service_plan_id = azurerm_app_service_plan.test.id
 
   site_config {
-    php_version = "7.3"
+    php_version = "7.4"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
