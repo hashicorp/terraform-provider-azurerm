@@ -151,10 +151,19 @@ func (s KustoAttachedClusterV0ToV1) Schema() map[string]*pluginsdk.Schema {
 		},
 
 		"language_extensions": {
-			Type:     pluginsdk.TypeList,
+			Type:     pluginsdk.TypeSet,
 			Optional: true,
-			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+					},
+					"image": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+					},
+				},
 			},
 		},
 
