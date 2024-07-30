@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2017-12-01/configurations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -20,6 +21,9 @@ import (
 type MySQLConfigurationResource struct{}
 
 func TestAccMySQLConfiguration_characterSetServer(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skipf("Skipping since `azurerm_mysql_configuration` is deprecated and will be removed in 4.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_mysql_configuration", "test")
 	r := MySQLConfigurationResource{}
 
@@ -42,6 +46,9 @@ func TestAccMySQLConfiguration_characterSetServer(t *testing.T) {
 }
 
 func TestAccMySQLConfiguration_interactiveTimeout(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skipf("Skipping since `azurerm_mysql_configuration` is deprecated and will be removed in 4.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_mysql_configuration", "test")
 	r := MySQLConfigurationResource{}
 
@@ -64,6 +71,9 @@ func TestAccMySQLConfiguration_interactiveTimeout(t *testing.T) {
 }
 
 func TestAccMySQLConfiguration_logSlowAdminStatements(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skipf("Skipping since `azurerm_mysql_configuration` is deprecated and will be removed in 4.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_mysql_configuration", "test")
 	r := MySQLConfigurationResource{}
 
