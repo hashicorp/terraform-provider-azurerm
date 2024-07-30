@@ -987,11 +987,11 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 			d.Set("auto_scaling_enabled", props.EnableAutoScaling)
 			d.Set("node_public_ip_enabled", props.EnableNodePublicIP)
 			d.Set("host_encryption_enabled", props.EnableEncryptionAtHost)
-			d.Set("custom_ca_trust_enabled", props.EnableCustomCATrust)
 		} else {
 			d.Set("enable_auto_scaling", props.EnableAutoScaling)
 			d.Set("enable_node_public_ip", props.EnableNodePublicIP)
 			d.Set("enable_host_encryption", props.EnableEncryptionAtHost)
+			d.Set("custom_ca_trust_enabled", props.EnableCustomCATrust)
 		}
 		d.Set("fips_enabled", props.EnableFIPS)
 		d.Set("ultra_ssd_enabled", props.EnableUltraSSD)
