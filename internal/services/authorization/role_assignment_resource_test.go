@@ -651,7 +651,7 @@ provider "azurerm" {
 data "azurerm_client_config" "test" {}
 
 resource "azurerm_role_assignment" "test" {
-  scope                = "/providers/Micrososoft.Capacity"
+  scope                = "/providers/Microsoft.Capacity"
   role_definition_name = "Reservations Reader"
   principal_id         = data.azurerm_client_config.test.object_id
 }
