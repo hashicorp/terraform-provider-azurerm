@@ -101,10 +101,10 @@ func testAccCassandraDatacenter_updateSku(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
-				Config: r.basicSku(data, "Standard_E2_v5"),
+				Config: r.basicSku(data, "Standard_E8s_v5"),
 				Check: acceptance.ComposeAggregateTestCheckFunc(
 					check.That(data.ResourceName).ExistsInAzure(r),
-					check.That(data.ResourceName).Key("sku_name").HasValue("Standard_E2_v5"),
+					check.That(data.ResourceName).Key("sku_name").HasValue("Standard_E8s_v5"),
 				),
 			},
 			data.ImportStep(),
@@ -181,10 +181,6 @@ resource "azurerm_key_vault" "test" {
   sku_name                   = "standard"
   soft_delete_retention_days = 7
   purge_protection_enabled   = true
-
-  lifecycle {
-    ignore_changes = ["access_policy"]
-  }
 }
 
 resource "azurerm_key_vault_access_policy" "current_user" {
@@ -281,10 +277,6 @@ resource "azurerm_key_vault" "test" {
   sku_name                   = "standard"
   soft_delete_retention_days = 7
   purge_protection_enabled   = true
-
-  lifecycle {
-    ignore_changes = ["access_policy"]
-  }
 }
 
 resource "azurerm_key_vault_access_policy" "current_user" {
@@ -406,10 +398,6 @@ resource "azurerm_virtual_network" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   address_space       = ["10.0.0.0/16"]
-
-  lifecycle {
-    ignore_changes = ["subnet"]
-  }
 }
 
 resource "azurerm_subnet" "test" {

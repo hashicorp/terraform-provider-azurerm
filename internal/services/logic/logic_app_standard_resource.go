@@ -919,119 +919,11 @@ func schemaLogicAppCorsSettings() *pluginsdk.Schema {
 }
 
 func schemaLogicAppStandardIpRestriction() *pluginsdk.Schema {
-	if !features.FourPointOhBeta() {
-		return &pluginsdk.Schema{
-			Type:       pluginsdk.TypeList,
-			Optional:   true,
-			Computed:   true,
-			ConfigMode: pluginsdk.SchemaConfigModeAttr,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"ip_address": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-
-					"service_tag": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-
-					"virtual_network_subnet_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-
-					"name": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						Computed:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-
-					"priority": {
-						Type:         pluginsdk.TypeInt,
-						Optional:     true,
-						Default:      65000,
-						ValidateFunc: validation.IntBetween(1, 2147483647),
-					},
-
-					"action": {
-						Type:     pluginsdk.TypeString,
-						Default:  "Allow",
-						Optional: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							"Allow",
-							"Deny",
-						}, false),
-					},
-
-					// lintignore:XS003
-					"headers": {
-						Type:       pluginsdk.TypeList,
-						Optional:   true,
-						Computed:   true,
-						MaxItems:   1,
-						ConfigMode: pluginsdk.SchemaConfigModeAttr,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								// lintignore:S018
-								"x_forwarded_host": {
-									Type:     pluginsdk.TypeSet,
-									Optional: true,
-									MaxItems: 8,
-									Elem: &pluginsdk.Schema{
-										Type: pluginsdk.TypeString,
-									},
-								},
-
-								// lintignore:S018
-								"x_forwarded_for": {
-									Type:     pluginsdk.TypeSet,
-									Optional: true,
-									MaxItems: 8,
-									Elem: &pluginsdk.Schema{
-										Type:         pluginsdk.TypeString,
-										ValidateFunc: validation.IsCIDR,
-									},
-								},
-
-								// lintignore:S018
-								"x_azure_fdid": {
-									Type:     pluginsdk.TypeSet,
-									Optional: true,
-									MaxItems: 8,
-									Elem: &pluginsdk.Schema{
-										Type:         pluginsdk.TypeString,
-										ValidateFunc: validation.IsUUID,
-									},
-								},
-
-								// lintignore:S018
-								"x_fd_health_probe": {
-									Type:     pluginsdk.TypeSet,
-									Optional: true,
-									MaxItems: 1,
-									Elem: &pluginsdk.Schema{
-										Type: pluginsdk.TypeString,
-										ValidateFunc: validation.StringInSlice([]string{
-											"1",
-										}, false),
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		}
-	}
 	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
+		Type:       pluginsdk.TypeList,
+		Optional:   true,
+		Computed:   true,
+		ConfigMode: pluginsdk.SchemaConfigModeAttr,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"ip_address": {
@@ -1078,9 +970,11 @@ func schemaLogicAppStandardIpRestriction() *pluginsdk.Schema {
 
 				// lintignore:XS003
 				"headers": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					MaxItems: 1,
+					Type:       pluginsdk.TypeList,
+					Optional:   true,
+					Computed:   true,
+					MaxItems:   1,
+					ConfigMode: pluginsdk.SchemaConfigModeAttr,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							// lintignore:S018
