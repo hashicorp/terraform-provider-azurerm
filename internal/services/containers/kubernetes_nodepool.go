@@ -1151,9 +1151,13 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 	raw := input[0].(map[string]interface{})
 	var enableAutoScaling bool
 	if !features.FourPointOh() {
-		enableAutoScaling = raw["enable_auto_scaling"].(bool)
+		if v := raw["enable_auto_scaling"]; v != nil {
+			enableAutoScaling = v.(bool)
+		}
 	} else {
-		enableAutoScaling = raw["auto_scaling_enabled"].(bool)
+		if v := raw["enable_auto_scaling"]; v != nil {
+			enableAutoScaling = v.(bool)
+		}
 	}
 
 	nodeLabelsRaw := raw["node_labels"].(map[string]interface{})
