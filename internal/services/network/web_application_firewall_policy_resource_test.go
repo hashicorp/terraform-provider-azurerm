@@ -636,6 +636,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
     enabled                          = true
     mode                             = "Prevention"
     request_body_inspect_limit_in_kb = 1000
+    js_challenge_cookie_expiration_in_minutes = 60
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -720,6 +721,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
     enabled                          = true
     mode                             = "Prevention"
     request_body_inspect_limit_in_kb = 1234
+    js_challenge_cookie_expiration_in_minutes = 1440
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
