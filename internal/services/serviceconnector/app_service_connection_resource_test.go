@@ -485,6 +485,13 @@ resource "azurerm_linux_web_app" "test" {
   }
 }
 
+resource "azurerm_app_configuration" "test" {
+  name                = "testacc-appconf%[3]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "free"
+}
+
 resource "azurerm_app_service_connection" "test" {
   name               = "acctestserviceconnector%[3]d"
   app_service_id     = azurerm_linux_web_app.test.id
@@ -496,9 +503,9 @@ resource "azurerm_app_service_connection" "test" {
   }
   scope = "default"
   configuration {
-    action = "optOut"
+    action = "enable"
     configuration_store {
-      app_configuration_id = "foo"
+      app_configuration_id = azurerm_app_configuration.test.id
     }
   }
   public_network_solution {
