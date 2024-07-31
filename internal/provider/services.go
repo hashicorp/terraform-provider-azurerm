@@ -222,6 +222,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		voiceservices.Registration{},
 		web.Registration{},
 		workloads.Registration{},
+		postgres.Registration{},
 	}
 	services = append(services, autoRegisteredTypedServices()...)
 	return services
