@@ -151,8 +151,10 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"subnet": {
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
+			Type:       pluginsdk.TypeSet,
+			Optional:   true,
+			Computed:   true,
+			ConfigMode: pluginsdk.SchemaConfigModeAttr,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
@@ -178,9 +180,10 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"delegation": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 1,
+						Type:       pluginsdk.TypeList,
+						Optional:   true,
+						MaxItems:   1,
+						ConfigMode: pluginsdk.SchemaConfigModeAttr,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"name": {
@@ -188,9 +191,10 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 									Required: true,
 								},
 								"service_delegation": {
-									Type:     pluginsdk.TypeList,
-									Required: true,
-									MaxItems: 1,
+									Type:       pluginsdk.TypeList,
+									Required:   true,
+									MaxItems:   1,
+									ConfigMode: pluginsdk.SchemaConfigModeAttr,
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"name": {

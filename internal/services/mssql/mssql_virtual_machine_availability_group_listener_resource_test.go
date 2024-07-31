@@ -415,10 +415,6 @@ resource "azurerm_virtual_network" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   dns_servers         = ["10.0.1.4", "8.8.8.8"]
-
-  lifecycle {
-    ignore_changes = [subnet]
-  }
 }
 
 resource "azurerm_subnet" "domain_controllers" {

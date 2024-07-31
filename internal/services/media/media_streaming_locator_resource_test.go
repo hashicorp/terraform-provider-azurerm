@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -19,6 +20,9 @@ import (
 type StreamingLocatorResource struct{}
 
 func TestAccStreamingLocator_basic(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("The `azurerm_media_streaming_locator` resource is deprecated and will be removed in v4.0 of the AzureRM Provider.")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_media_streaming_locator", "test")
 	r := StreamingLocatorResource{}
 
@@ -35,6 +39,9 @@ func TestAccStreamingLocator_basic(t *testing.T) {
 }
 
 func TestAccStreamingLocator_requiresImport(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("The `azurerm_media_streaming_locator` resource is deprecated and will be removed in v4.0 of the AzureRM Provider.")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_media_streaming_locator", "test")
 	r := StreamingLocatorResource{}
 
@@ -51,6 +58,9 @@ func TestAccStreamingLocator_requiresImport(t *testing.T) {
 }
 
 func TestAccStreamingLocator_complete(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("The `azurerm_media_streaming_locator` resource is deprecated and will be removed in v4.0 of the AzureRM Provider.")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_media_streaming_locator", "test")
 	r := StreamingLocatorResource{}
 
@@ -67,6 +77,9 @@ func TestAccStreamingLocator_complete(t *testing.T) {
 }
 
 func TestAccStreamingLocator_update(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("The `azurerm_media_streaming_locator` resource is deprecated and will be removed in v4.0 of the AzureRM Provider.")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_media_streaming_locator", "test")
 	r := StreamingLocatorResource{}
 

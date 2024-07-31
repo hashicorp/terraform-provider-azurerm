@@ -9,11 +9,15 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 type MariaDbServerDataSource struct{}
 
 func TestAccMariaDbServerDataSource_basic(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("The `data.azurerm_mariadb_server` resource is deprecated and will be removed in v4.0 of the AzureRM Provider.")
+	}
 	data := acceptance.BuildTestData(t, "data.azurerm_mariadb_server", "test")
 	r := MariaDbServerDataSource{}
 

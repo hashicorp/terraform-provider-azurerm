@@ -285,10 +285,6 @@ resource "azurerm_key_vault" "test" {
   tenant_id = data.azurerm_client_config.test.tenant_id
 
   sku_name = "standard"
-
-  lifecycle {
-    ignore_changes = [access_policy]
-  }
 }
 
 resource "azurerm_key_vault_access_policy" "sptest" {

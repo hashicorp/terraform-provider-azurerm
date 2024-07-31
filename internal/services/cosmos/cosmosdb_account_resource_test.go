@@ -1697,10 +1697,6 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   dns_servers         = ["10.0.0.4", "10.0.0.5"]
-
-  lifecycle {
-    ignore_changes = ["subnet"]
-  }
 }
 
 resource "azurerm_subnet" "subnet1" {
@@ -2496,10 +2492,6 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   dns_servers         = ["10.0.0.4", "10.0.0.5"]
-
-  lifecycle {
-    ignore_changes = ["subnet"]
-  }
 }
 
 resource "azurerm_subnet" "subnet1" {
@@ -3793,12 +3785,6 @@ resource "azurerm_cosmosdb_account" "test" {
     location          = azurerm_resource_group.test.location
     failover_priority = 0
   }
-
-  lifecycle {
-    ignore_changes = [
-      capabilities
-    ]
-  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(consistency))
 }
@@ -3869,13 +3855,6 @@ resource "azurerm_cosmosdb_account" "test" {
     location          = azurerm_resource_group.test.location
     failover_priority = 0
   }
-
-  lifecycle {
-    ignore_changes = [
-      capabilities
-    ]
-  }
-
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(consistency))
 }
@@ -3935,12 +3914,6 @@ resource "azurerm_cosmosdb_account" "test" {
     location          = azurerm_resource_group.test.location
     failover_priority = 0
   }
-
-  lifecycle {
-    ignore_changes = [
-      capabilities
-    ]
-  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(consistency))
 }
@@ -3975,12 +3948,6 @@ resource "azurerm_cosmosdb_account" "test" {
   geo_location {
     location          = azurerm_resource_group.test.location
     failover_priority = 0
-  }
-
-  lifecycle {
-    ignore_changes = [
-      capabilities
-    ]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(consistency))
