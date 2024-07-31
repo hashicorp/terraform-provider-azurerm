@@ -380,7 +380,6 @@ func TestAccKubernetesCluster_enableNodePublicIP(t *testing.T) {
 			Config: r.enableNodePublicIPConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("default_node_pool.0.enable_node_public_ip").HasValue("true"),
 			),
 		},
 		data.ImportStep(),

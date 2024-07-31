@@ -2663,10 +2663,6 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 		hostEncryptionEnabled := "default_node_pool.0.host_encryption_enabled"
 		nodePublicIpEnabled := "default_node_pool.0.node_public_ip_enabled"
-		if !features.FourPointOhBeta() {
-			hostEncryptionEnabled = "default_node_pool.0.enable_host_encryption"
-			nodePublicIpEnabled = "default_node_pool.0.enable_node_public_ip"
-		}
 
 		cycleNodePoolProperties := []string{
 			"default_node_pool.0.name",

@@ -222,9 +222,6 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			Optional: true,
 			ForceNew: true,
 			RequiredWith: func() []string {
-				if !features.FourPointOh() {
-					return []string{"enable_node_public_ip"}
-				}
 				return []string{"node_public_ip_enabled"}
 			}(),
 		},
