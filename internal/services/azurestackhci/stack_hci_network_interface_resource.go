@@ -50,7 +50,6 @@ type StackHCINetworkInterfaceResourceModel struct {
 }
 
 type StackHCIIPConfigurationModel struct {
-	Name             string `tfschema:"name"`
 	Gateway          string `tfschema:"gateway"`
 	PrefixLength     string `tfschema:"prefix_length"`
 	PrivateIPAddress string `tfschema:"private_ip_address"`
@@ -88,7 +87,7 @@ func (StackHCINetworkInterfaceResource) Arguments() map[string]*pluginsdk.Schema
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"subnet_id": {
-						Type:         pluginsdk.TypeInt,
+						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
 						ValidateFunc: logicalnetworks.ValidateLogicalNetworkID,
@@ -170,18 +169,25 @@ func (r StackHCINetworkInterfaceResource) Create() sdk.ResourceFunc {
 					Type: pointer.To(networkinterfaces.ExtendedLocationTypesCustomLocation),
 				},
 				Properties: &networkinterfaces.NetworkInterfaceProperties{
-					MacAddress:       pointer.To(config.MACAddress),
 					IPConfigurations: expandStackHCINetworkInterfaceIPConfiguration(config.IPConfiguration),
-					DnsSettings: &networkinterfaces.InterfaceDNSSettings{
-						DnsServers: pointer.To(config.DNSServers),
-					},
 				},
+			}
+
+			if config.MACAddress != "" {
+				payload.Properties.MacAddress = pointer.To(config.MACAddress)
+			}
+
+			if len(config.DNSServers) != 0 {
+				payload.Properties.DnsSettings = &networkinterfaces.InterfaceDNSSettings{
+					DnsServers: pointer.To(config.DNSServers),
+				}
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 				return fmt.Errorf("performing create %s: %+v", id, err)
 			}
 
+			time.Sleep(2 * time.Minute)
 			metadata.SetID(id)
 
 			return nil
@@ -270,7 +276,7 @@ func (r StackHCINetworkInterfaceResource) Update() sdk.ResourceFunc {
 
 			parameters := resp.Model
 			if parameters == nil {
-				return fmt.Errorf("retrieving %s: model was nil", *id)
+				return fmt.Errorf("retrieving %s: `model` was nil", *id)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -312,14 +318,19 @@ func expandStackHCINetworkInterfaceIPConfiguration(input []StackHCIIPConfigurati
 
 	results := make([]networkinterfaces.IPConfiguration, 0)
 	for _, v := range input {
-		results = append(results, networkinterfaces.IPConfiguration{
+		result := networkinterfaces.IPConfiguration{
 			Properties: &networkinterfaces.IPConfigurationProperties{
-				PrivateIPAddress: pointer.To(v.PrivateIPAddress),
 				Subnet: &networkinterfaces.IPConfigurationPropertiesSubnet{
 					Id: pointer.To(v.SubnetID),
 				},
 			},
-		})
+		}
+
+		if v.PrivateIPAddress != "" {
+			result.Properties.PrivateIPAddress = pointer.To(v.PrivateIPAddress)
+		}
+
+		results = append(results, result)
 	}
 
 	return &results
@@ -332,6 +343,8 @@ func flattenStackHCINetworkInterfaceIPConfiguration(input *[]networkinterfaces.I
 
 	results := make([]StackHCIIPConfigurationModel, 0)
 	for _, v := range *input {
+		result := StackHCIIPConfigurationModel{}
+
 		if v.Properties != nil {
 			var subnetId string
 			if v.Properties.Subnet != nil && v.Properties.Subnet.Id != nil {
@@ -343,12 +356,12 @@ func flattenStackHCINetworkInterfaceIPConfiguration(input *[]networkinterfaces.I
 				subnetId = parsedSubnetId.ID()
 			}
 
-			results = append(results, StackHCIIPConfigurationModel{
-				Gateway:          pointer.From(v.Properties.Gateway),
-				PrefixLength:     pointer.From(v.Properties.PrefixLength),
-				PrivateIPAddress: pointer.From(v.Properties.PrivateIPAddress),
-				SubnetID:         subnetId,
-			})
+			result.Gateway = pointer.From(v.Properties.Gateway)
+			result.PrefixLength = pointer.From(v.Properties.PrefixLength)
+			result.PrivateIPAddress = pointer.From(v.Properties.PrivateIPAddress)
+			result.SubnetID = subnetId
+
+			results = append(results, result)
 		}
 	}
 

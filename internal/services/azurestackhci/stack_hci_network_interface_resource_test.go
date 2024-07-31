@@ -6,13 +6,12 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/networkinterfaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type StackHCINetworkInterfaceResource struct{}
@@ -22,7 +21,7 @@ func TestAccStackHCINetworkInterface_dynamic(t *testing.T) {
 	r := StackHCINetworkInterfaceResource{}
 
 	if os.Getenv(customLocationIdEnv) == "" {
-		t.Skipf("skip the test as one or more of below environment variables are not specified: %q", customLocationIdEnv)
+		t.Skipf("skipping since %q has not been specified", customLocationIdEnv)
 	}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -41,7 +40,7 @@ func TestAccStackHCINetworkInterface_update(t *testing.T) {
 	r := StackHCINetworkInterfaceResource{}
 
 	if os.Getenv(customLocationIdEnv) == "" {
-		t.Skipf("skip the test as one or more of below environment variables are not specified: %q", customLocationIdEnv)
+		t.Skipf("skipping since %q has not been specified", customLocationIdEnv)
 	}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -115,30 +114,26 @@ func (r StackHCINetworkInterfaceResource) Exists(ctx context.Context, client *cl
 
 	resp, err := clusterClient.Get(ctx, *id)
 	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
-		}
-
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r StackHCINetworkInterfaceResource) dynamic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_stack_hci_logical_network" "test" {
-  name                = "acctest-ln-${var.random_string}"
+  name                = "acctest-ln-%[2]s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  custom_location_id  = %q
+  custom_location_id  = %[3]q
   virtual_switch_name = "ConvergedSwitch(managementcompute)"
 
   subnet {
@@ -147,16 +142,16 @@ resource "azurerm_stack_hci_logical_network" "test" {
 }
 
 resource "azurerm_stack_hci_network_interface" "test" {
-  name                = "acctest-ni-${var.random_string}"
+  name                = "acctest-ni-%[2]s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  custom_location_id  = %q
+  custom_location_id  = %[3]q
 
   ip_configuration {
     subnet_id = azurerm_stack_hci_logical_network.test.id
   }
 }
-`, template, os.Getenv(customLocationIdEnv))
+`, template, data.RandomString, os.Getenv(customLocationIdEnv))
 }
 
 func (r StackHCINetworkInterfaceResource) requiresImport(data acceptance.TestData) string {
@@ -181,67 +176,67 @@ resource "azurerm_stack_hci_network_interface" "import" {
 func (r StackHCINetworkInterfaceResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_stack_hci_logical_network" "test" {
-  name                = "acctest-ln-${var.random_string}"
+  name                = "acctest-ln-%[2]s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  custom_location_id  = %q
+  custom_location_id  = %[3]q
   virtual_switch_name = "ConvergedSwitch(managementcompute)"
   dns_servers         = ["10.0.0.7"]
   subnet {
     ip_allocation_method = "Static"
-    address_prefix       = "10.0.0.0/24"
+    address_prefix       = "10.0.12.0/24"
     vlan_id              = 123
 
     route {
       name                = "test-route"
       address_prefix      = "0.0.0.0/0"
-      next_hop_ip_address = "10.0.20.1"
+      next_hop_ip_address = "10.0.0.1"
     }
   }
 }
 
 resource "azurerm_stack_hci_network_interface" "test" {
-  name                = "acctest-ni-${var.random_string}"
+  name                = "acctest-ni-%[2]s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  custom_location_id  = %q
+  custom_location_id  = %[3]q
   dns_servers         = ["10.0.0.8"]
   mac_address         = "02:ec:01:0c:00:09"
 
   ip_configuration {
-    private_ip_address = "10.0.0.2"
+    private_ip_address = "10.0.12.%[4]d"
     subnet_id          = azurerm_stack_hci_logical_network.test.id
   }
 }
-`, template, os.Getenv(customLocationIdEnv))
+`, template, data.RandomString, os.Getenv(customLocationIdEnv), data.RandomInteger%100)
 }
 
 func (r StackHCINetworkInterfaceResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_stack_hci_logical_network" "test" {
-  name                = "acctest-ln-${var.random_string}"
+  name                = "acctest-ln-%[2]s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  custom_location_id  = %[1]q
+  custom_location_id  = %[3]q
   virtual_switch_name = "ConvergedSwitch(managementcompute)"
   dns_servers         = ["10.0.0.7"]
   subnet {
     ip_allocation_method = "Static"
-    address_prefix       = "10.0.0.0/24"
+    address_prefix       = "10.0.12.0/24"
     vlan_id              = 123
 
     route {
@@ -253,15 +248,15 @@ resource "azurerm_stack_hci_logical_network" "test" {
 }
 
 resource "azurerm_stack_hci_network_interface" "test" {
-  name                = "acctest-ni-${var.random_string}"
+  name                = "acctest-ni-%[2]s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  custom_location_id  = %[1]q
+  custom_location_id  = %[3]q
   dns_servers         = ["10.0.0.8"]
   mac_address         = "02:ec:01:0c:00:09"
 
   ip_configuration {
-    private_ip_address = "10.0.0.2"
+    private_ip_address = "10.0.12.%[4]d"
     subnet_id          = azurerm_stack_hci_logical_network.test.id
   }
 
@@ -269,28 +264,28 @@ resource "azurerm_stack_hci_network_interface" "test" {
     foo = "bar"
   }
 }
-`, template, os.Getenv(customLocationIdEnv))
+`, template, data.RandomString, os.Getenv(customLocationIdEnv), data.RandomInteger%100)
 }
 
 func (r StackHCINetworkInterfaceResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_stack_hci_logical_network" "test" {
-  name                = "acctest-ln-${var.random_string}"
+  name                = "acctest-ln-%[2]s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  custom_location_id  = %q
+  custom_location_id  = %[3]q
   virtual_switch_name = "ConvergedSwitch(managementcompute)"
   dns_servers         = ["10.0.0.7"]
   subnet {
     ip_allocation_method = "Static"
-    address_prefix       = "10.0.0.0/24"
+    address_prefix       = "10.0.12.0/24"
     vlan_id              = 123
 
     route {
@@ -302,15 +297,15 @@ resource "azurerm_stack_hci_logical_network" "test" {
 }
 
 resource "azurerm_stack_hci_network_interface" "test" {
-  name                = "acctest-ni-${var.random_string}"
+  name                = "acctest-ni-%[2]s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  custom_location_id  = %[1]q
+  custom_location_id  = %[3]q
   dns_servers         = ["10.0.0.8"]
   mac_address         = "02:ec:01:0c:00:09"
 
   ip_configuration {
-    private_ip_address = "10.0.0.2"
+    private_ip_address = "10.0.12.%[4]d"
     subnet_id          = azurerm_stack_hci_logical_network.test.id
   }
 
@@ -319,22 +314,14 @@ resource "azurerm_stack_hci_network_interface" "test" {
     env = "test"
   }
 }
-`, template, os.Getenv(customLocationIdEnv))
+`, template, data.RandomString, os.Getenv(customLocationIdEnv), data.RandomInteger%100)
 }
 
 func (r StackHCINetworkInterfaceResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-variable "primary_location" {
-  default = %q
-}
-
-variable "random_string" {
-  default = %q
-}
-
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-hci-ni-${var.random_string}"
-  location = var.primary_location
+  name     = "acctest-hci-ni-%[2]s"
+  location = "%[1]s"
 }
 `, data.Locations.Primary, data.RandomString)
 }
