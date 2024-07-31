@@ -231,6 +231,7 @@ func OrchestratedVirtualMachineScaleSetExtensionsSchema() *pluginsdk.Schema {
 				"failure_suppression_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
+					Default:  false,
 				},
 
 				"force_extension_execution_on_change": {
