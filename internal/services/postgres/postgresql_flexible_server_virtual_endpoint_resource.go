@@ -153,13 +153,18 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Read() sdk.ResourceFunc
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			virtualEndpoint := PostgresqlFlexibleServerVirtualEndpointModel{
-				SourceServerId: virtualendpoints.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName).ID(),
-			}
+			virtualEndpoint := PostgresqlFlexibleServerVirtualEndpointModel{}
 
 			if model := resp.Model; model != nil && model.Properties != nil {
+				virtualEndpoint.Name = *model.Name
+
+				if resp.Model.Properties.EndpointType != nil {
+					virtualEndpoint.Type = string(*model.Properties.EndpointType)
+				}
+
 				// Model.Properties.Members should be a tuple => [source_server, replication_server]
 				if resp.Model.Properties.Members != nil && len(*resp.Model.Properties.Members) == 2 {
+					virtualEndpoint.SourceServerId = servers.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, (*resp.Model.Properties.Members)[0]).ID()
 					virtualEndpoint.ReplicaServerId = servers.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, (*resp.Model.Properties.Members)[1]).ID()
 				} else {
 					// if members list is nil, this is an endpoint that was previously deleted
