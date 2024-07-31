@@ -1697,10 +1697,6 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   dns_servers         = ["10.0.0.4", "10.0.0.5"]
-
-  lifecycle {
-    ignore_changes = ["subnet"]
-  }
 }
 
 resource "azurerm_subnet" "subnet1" {
@@ -2496,10 +2492,6 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   dns_servers         = ["10.0.0.4", "10.0.0.5"]
-
-  lifecycle {
-    ignore_changes = ["subnet"]
-  }
 }
 
 resource "azurerm_subnet" "subnet1" {
@@ -3418,7 +3410,7 @@ resource "azurerm_cosmosdb_account" "test" {
   offer_type          = "Standard"
   kind                = "MongoDB"
 
-  default_identity_type = join("=", ["UserAssignedIdentity", "%[4]s"])
+  default_identity_type = join("=", ["UserAssignedIdentity", %[4]s])
 
   capabilities {
     name = "EnableMongo"
@@ -3439,6 +3431,8 @@ resource "azurerm_cosmosdb_account" "test" {
     type         = "UserAssigned"
     identity_ids = [%[4]s]
   }
+
+  depends_on = [azurerm_user_assigned_identity.test, azurerm_user_assigned_identity.test2]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, identityResource)
 }
@@ -3487,6 +3481,8 @@ resource "azurerm_cosmosdb_account" "test" {
     location          = azurerm_resource_group.test.location
     failover_priority = 0
   }
+
+  depends_on = [azurerm_user_assigned_identity.test, azurerm_user_assigned_identity.test2]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -3789,12 +3785,6 @@ resource "azurerm_cosmosdb_account" "test" {
     location          = azurerm_resource_group.test.location
     failover_priority = 0
   }
-
-  lifecycle {
-    ignore_changes = [
-      capabilities
-    ]
-  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(consistency))
 }
@@ -3865,13 +3855,6 @@ resource "azurerm_cosmosdb_account" "test" {
     location          = azurerm_resource_group.test.location
     failover_priority = 0
   }
-
-  lifecycle {
-    ignore_changes = [
-      capabilities
-    ]
-  }
-
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(consistency))
 }
@@ -3931,12 +3914,6 @@ resource "azurerm_cosmosdb_account" "test" {
     location          = azurerm_resource_group.test.location
     failover_priority = 0
   }
-
-  lifecycle {
-    ignore_changes = [
-      capabilities
-    ]
-  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(consistency))
 }
@@ -3971,12 +3948,6 @@ resource "azurerm_cosmosdb_account" "test" {
   geo_location {
     location          = azurerm_resource_group.test.location
     failover_priority = 0
-  }
-
-  lifecycle {
-    ignore_changes = [
-      capabilities
-    ]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(consistency))

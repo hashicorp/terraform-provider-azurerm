@@ -3082,6 +3082,8 @@ resource "azurerm_linux_function_app" "test" {
     ftps_state         = "FtpsOnly"
     health_check_path  = "/health-check"
 
+    health_check_eviction_time_in_min = 7
+
     application_stack {
       python_version = "3.9"
     }

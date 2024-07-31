@@ -111,8 +111,10 @@ func resourceKustoCluster() *pluginsdk.Resource {
 			},
 
 			"trusted_external_tenants": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
+				Type:       pluginsdk.TypeList,
+				Optional:   true,
+				Computed:   true,
+				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.Any(validation.IsUUID, validation.StringIsEmpty, validation.StringInSlice([]string{"*"}, false)),
@@ -249,16 +251,6 @@ func resourceKustoCluster() *pluginsdk.Resource {
 						ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForLanguageExtensionImageName(), false),
 					},
 				},
-			},
-		}
-		resource.Schema["trusted_external_tenants"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeList,
-			Optional:   true,
-			Computed:   true,
-			ConfigMode: pluginsdk.SchemaConfigModeAttr,
-			Elem: &pluginsdk.Schema{
-				Type:         pluginsdk.TypeString,
-				ValidateFunc: validation.Any(validation.IsUUID, validation.StringIsEmpty, validation.StringInSlice([]string{"*"}, false)),
 			},
 		}
 	} else {
