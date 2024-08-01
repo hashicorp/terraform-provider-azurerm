@@ -37,19 +37,7 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) ResourceType() string {
 }
 
 func (r PostgresqlFlexibleServerVirtualEndpointResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return func(input interface{}, key string) (warnings []string, errors []error) {
-		v, ok := input.(string)
-		if !ok {
-			errors = append(errors, fmt.Errorf("expected %q to be a string", key))
-			return
-		}
-
-		if _, err := virtualendpoints.ParseVirtualEndpointID(v); err != nil {
-			errors = append(errors, err)
-		}
-
-		return
-	}
+	return virtualendpoints.ValidateVirtualEndpointID
 }
 
 func (r PostgresqlFlexibleServerVirtualEndpointResource) Attributes() map[string]*pluginsdk.Schema {
