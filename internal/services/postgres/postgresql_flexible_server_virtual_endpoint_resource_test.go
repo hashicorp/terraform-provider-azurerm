@@ -53,7 +53,7 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Exists(ctx context.Cont
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.Members != nil), nil
+	return pointer.To(resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.Members != nil), nil
 }
 
 func (r PostgresqlFlexibleServerVirtualEndpointResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
