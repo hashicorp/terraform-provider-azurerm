@@ -2,8 +2,9 @@
 
 ENHANCEMENTS:
 
-* `azurerm_web_application_firewall_policy`: `excluded_rule_set.0.type` supports `Microsoft_BotManagerRuleSet` [GH-26903]
 * `azurerm_cosmosdb_account` - avoid infinite diff to `default_identity_type` for legacy resources where an empty string is returned by the RP [GH-26525]
+* `azurerm_monitor_data_collection_rule` - update `performance_counter.x.sampling_frequency_in_seconds` range `1` to `1800` [GH-26898]
+* `azurerm_web_application_firewall_policy`: `excluded_rule_set.0.type` supports `Microsoft_BotManagerRuleSet` [GH-26903]
 
 ## 3.114.0 (August 01, 2024)
 
