@@ -66,16 +66,17 @@ func (r CustomLocationResource) Arguments() map[string]*pluginsdk.Schema {
 			),
 		},
 
+		"host_resource_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: arckubernetes.ValidateConnectedClusterID,
+		},
+
 		"cluster_extension_ids": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
 			Elem:     commonschema.ResourceIDReferenceElem(&extensions.ScopedExtensionId{}),
-		},
-
-		"host_resource_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: arckubernetes.ValidateConnectedClusterID,
 		},
 
 		"host_type": {
@@ -278,17 +279,11 @@ func (r CustomLocationResource) Update() sdk.ResourceFunc {
 						Type:  pointer.To(auth.Type),
 						Value: pointer.To(auth.Value),
 					}
-				} else {
-					customLocationProps.Authentication = nil
 				}
 			}
 
 			if d.HasChange("cluster_extension_ids") {
 				customLocationProps.ClusterExtensionIds = pointer.To(state.ClusterExtensionIds)
-			}
-
-			if d.HasChange("host_resource_id") {
-				customLocationProps.HostResourceId = pointer.To(state.HostResourceId)
 			}
 
 			props := customlocations.PatchableCustomLocations{

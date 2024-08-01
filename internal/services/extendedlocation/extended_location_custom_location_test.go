@@ -57,7 +57,7 @@ func TestAccExtendedLocationCustomLocations_basic(t *testing.T) {
 	})
 }
 
-func TestAccExtendedLocationCustomLocaitons_complete(t *testing.T) {
+func TestAccExtendedLocationCustomLocations_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_extended_custom_location", "test")
 	r := CustomLocationResource{}
 	credential, privateKey, publicKey := r.getCredentials(t)
