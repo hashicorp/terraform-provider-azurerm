@@ -167,19 +167,11 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						ForceNew:     true,
 						ValidateFunc: publicipprefixes.ValidatePublicIPPrefixID,
 						RequiredWith: func() []string {
-							if !features.FourPointOhBeta() {
+							if !features.FourPointOh() {
 								return []string{"default_node_pool.0.enable_node_public_ip"}
 							}
 							return []string{"default_node_pool.0.node_public_ip_enabled"}
 						}(),
-					},
-
-					"node_taints": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeString,
-						},
 					},
 
 					"tags": commonschema.Tags(),
@@ -280,9 +272,24 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 							string(managedclusters.WorkloadRuntimeKataMshvVMIsolation),
 						}, false),
 					},
-				}
 
-				s["zones"] = commonschema.ZonesMultipleOptional()
+					"zones": commonschema.ZonesMultipleOptional(),
+
+					"auto_scaling_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+					},
+
+					"node_public_ip_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+					},
+
+					"host_encryption_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+					},
+				}
 
 				if !features.FourPointOhBeta() {
 					s["os_sku"].ValidateFunc = validation.StringInSlice([]string{
@@ -302,39 +309,30 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						},
 						Deprecated: "This field will be removed in v4.0 of the Azure Provider since the AKS API doesn't allow arbitrary node taints on the default node pool",
 					}
+				}
 
+				if !features.FourPointOh() {
+					// These properties are not undergoing a soft deprecation but are being renamed, so they need to be put behind the FourPointOh flag
 					s["enable_auto_scaling"] = &pluginsdk.Schema{
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
+						Type:       pluginsdk.TypeBool,
+						Optional:   true,
+						Deprecated: features.DeprecatedInFourPointOh("The property `enable_auto_scaling` will be renamed to `auto_scaling_enabled` in v4.0 of the AzureRM Provider."),
 					}
 
 					s["enable_node_public_ip"] = &pluginsdk.Schema{
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
+						Type:       pluginsdk.TypeBool,
+						Optional:   true,
+						Deprecated: features.DeprecatedInFourPointOh("The property `enable_node_public_ip` will be renamed to `node_public_ip_enabled` in v4.0 of the AzureRM Provider."),
 					}
 
 					s["enable_host_encryption"] = &pluginsdk.Schema{
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
+						Type:       pluginsdk.TypeBool,
+						Optional:   true,
+						Deprecated: features.DeprecatedInFourPointOh("The property `enable_host_encryption` will be renamed to `host_encryption_enabled` in v4.0 of the AzureRM Provider."),
 					}
-
-				}
-
-				if features.FourPointOhBeta() {
-					s["auto_scaling_enabled"] = &pluginsdk.Schema{
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-					}
-
-					s["node_public_ip_enabled"] = &pluginsdk.Schema{
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-					}
-
-					s["host_encryption_enabled"] = &pluginsdk.Schema{
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-					}
+					delete(s, "auto_scaling_enabled")
+					delete(s, "node_public_ip_enabled")
+					delete(s, "host_encryption_enabled")
 				}
 
 				return s
@@ -1214,7 +1212,7 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 
 	raw := input[0].(map[string]interface{})
 	var enableAutoScaling bool
-	if !features.FourPointOhBeta() {
+	if !features.FourPointOh() {
 		enableAutoScaling = raw["enable_auto_scaling"].(bool)
 	} else {
 		enableAutoScaling = raw["auto_scaling_enabled"].(bool)
@@ -1234,20 +1232,20 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 
 	criticalAddonsEnabled := raw["only_critical_addons_enabled"].(bool)
 	if criticalAddonsEnabled {
-		*nodeTaints = append(*nodeTaints, "CriticalAddonsOnly=true:NoSchedule")
+		nodeTaints = pointer.To([]string{"CriticalAddonsOnly=true:NoSchedule"})
 	}
 
 	t := raw["tags"].(map[string]interface{})
 
 	var nodePublicIp bool
-	if !features.FourPointOhBeta() {
+	if !features.FourPointOh() {
 		nodePublicIp = raw["enable_node_public_ip"].(bool)
 	} else {
 		nodePublicIp = raw["node_public_ip_enabled"].(bool)
 	}
 
 	var hostEncryption bool
-	if !features.FourPointOhBeta() {
+	if !features.FourPointOh() {
 		hostEncryption = raw["enable_host_encryption"].(bool)
 	} else {
 		nodePublicIp = raw["host_encryption_enabled"].(bool)
@@ -1386,7 +1384,8 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 
 		if maxCount > 0 {
 			profile.MaxCount = utils.Int64(int64(maxCount))
-			if maxCount < count {
+
+			if maxCount < count && d.IsNewResource() {
 				return nil, fmt.Errorf("`node_count`(%d) must be equal to or less than `max_count`(%d) when `enable_auto_scaling` is set to `true`", count, maxCount)
 			}
 		} else {
@@ -1802,7 +1801,6 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		"node_labels":                   nodeLabels,
 		"node_network_profile":          networkProfile,
 		"node_public_ip_prefix_id":      nodePublicIPPrefixID,
-		"node_taints":                   []string{},
 		"os_disk_size_gb":               osDiskSizeGB,
 		"os_disk_type":                  string(osDiskType),
 		"os_sku":                        osSKU,
@@ -1826,13 +1824,15 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		"capacity_reservation_group_id": capacityReservationGroupId,
 	}
 
-	if features.FourPointOhBeta() {
+	if !features.FourPointOhBeta() {
+		out["node_taints"] = []string{}
+	}
+
+	if features.FourPointOh() {
 		out["auto_scaling_enabled"] = enableAutoScaling
 		out["node_public_ip_enabled"] = enableNodePublicIP
 		out["host_encryption_enabled"] = enableHostEncryption
-	}
-
-	if !features.FourPointOhBeta() {
+	} else {
 		out["enable_auto_scaling"] = enableAutoScaling
 		out["enable_node_public_ip"] = enableNodePublicIP
 		out["enable_host_encryption"] = enableHostEncryption
@@ -1844,7 +1844,8 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 }
 
 func flattenClusterNodePoolUpgradeSettings(input *managedclusters.AgentPoolUpgradeSettings) []interface{} {
-	if input == nil {
+	// The API returns an empty upgrade settings object for spot node pools, so we need to explicitly check whether there's anything in it
+	if input == nil || (input.MaxSurge == nil && input.DrainTimeoutInMinutes == nil && input.NodeSoakDurationInMinutes == nil) {
 		return []interface{}{}
 	}
 

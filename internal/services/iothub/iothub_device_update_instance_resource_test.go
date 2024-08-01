@@ -289,7 +289,6 @@ resource "azurerm_iothub_device_update_instance" "test" {
   device_update_account_id = azurerm_iothub_device_update_account.test.id
   iothub_id                = azurerm_iothub.test.id
 
-
   diagnostic_storage_account {
     connection_string = azurerm_storage_account.test2.primary_connection_string
     id                = azurerm_storage_account.test2.id

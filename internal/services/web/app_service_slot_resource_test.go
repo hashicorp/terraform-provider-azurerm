@@ -768,7 +768,7 @@ func TestAccAppServiceSlot_remoteDebugging(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.remote_debugging_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("site_config.0.remote_debugging_version").HasValue("VS2019"),
+				check.That(data.ResourceName).Key("site_config.0.remote_debugging_version").HasValue("VS2022"),
 			),
 		},
 	})
@@ -3294,7 +3294,7 @@ resource "azurerm_app_service_slot" "test" {
 
   site_config {
     remote_debugging_enabled = true
-    remote_debugging_version = "VS2019"
+    remote_debugging_version = "VS2022"
   }
 
   tags = {

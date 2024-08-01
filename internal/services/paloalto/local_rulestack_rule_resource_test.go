@@ -194,6 +194,7 @@ resource "azurerm_palo_alto_local_rulestack_rule" "test" {
   rulestack_id = azurerm_palo_alto_local_rulestack.test.id
   priority     = 100
   action       = "Allow"
+  protocol     = "application-default"
 
   applications = ["any"]
 
@@ -268,8 +269,6 @@ resource "azurerm_palo_alto_local_rulestack_rule" "test" {
 
 func (r LocalRuleResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-
-
 %[1]s
 
 resource "azurerm_palo_alto_local_rulestack_rule" "import" {
@@ -278,6 +277,7 @@ resource "azurerm_palo_alto_local_rulestack_rule" "import" {
   priority     = azurerm_palo_alto_local_rulestack_rule.test.priority
   action       = "Allow"
   applications = azurerm_palo_alto_local_rulestack_rule.test.applications
+  protocol     = azurerm_palo_alto_local_rulestack_rule.test.protocol
 
   destination {
     cidrs = azurerm_palo_alto_local_rulestack_rule.test.destination.0.cidrs
@@ -303,6 +303,7 @@ resource "azurerm_palo_alto_local_rulestack_rule" "test" {
   rulestack_id = azurerm_palo_alto_local_rulestack.test.id
   priority     = 100
   action       = "Allow"
+  protocol     = "application-default"
 
   applications = ["any"]
 

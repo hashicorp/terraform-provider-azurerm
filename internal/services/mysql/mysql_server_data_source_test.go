@@ -9,11 +9,15 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 type MySQLServerDataSource struct{}
 
 func TestAccDataSourceMySQLServerDataSourceMySQLServer_basicFiveSeven(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skipf("Skipping since `data.azurerm_mysql_server` is deprecated and will be removed in 4.0")
+	}
 	data := acceptance.BuildTestData(t, "data.azurerm_mysql_server", "test")
 	r := MySQLServerDataSource{}
 
@@ -33,6 +37,9 @@ func TestAccDataSourceMySQLServerDataSourceMySQLServer_basicFiveSeven(t *testing
 }
 
 func TestAccDataSourceMySQLServerDataSourceMySQLServer_basicEightZero(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skipf("Skipping since `data.azurerm_mysql_server` is deprecated and will be removed in 4.0")
+	}
 	data := acceptance.BuildTestData(t, "data.azurerm_mysql_server", "test")
 	r := MySQLServerDataSource{}
 
@@ -52,6 +59,9 @@ func TestAccDataSourceMySQLServerDataSourceMySQLServer_basicEightZero(t *testing
 }
 
 func TestAccDataSourceMySQLServerDataSourceMySQLServer_autogrowOnly(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skipf("Skipping since `data.azurerm_mysql_server` is deprecated and will be removed in 4.0")
+	}
 	data := acceptance.BuildTestData(t, "data.azurerm_mysql_server", "test")
 	r := MySQLServerDataSource{}
 	mysqlVersion := "5.7"
@@ -71,6 +81,9 @@ func TestAccDataSourceMySQLServerDataSourceMySQLServer_autogrowOnly(t *testing.T
 }
 
 func TestAccDataSourceMySQLServerDataSourceMySQLServer_complete(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skipf("Skipping since `data.azurerm_mysql_server` is deprecated and will be removed in 4.0")
+	}
 	data := acceptance.BuildTestData(t, "data.azurerm_mysql_server", "test")
 	r := MySQLServerDataSource{}
 

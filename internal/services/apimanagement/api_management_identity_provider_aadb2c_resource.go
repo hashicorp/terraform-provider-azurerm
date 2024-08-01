@@ -88,6 +88,12 @@ func resourceArmApiManagementIdentityProviderAADB2C() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			"client_library": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringLenBetween(0, 16),
+			},
+
 			"profile_editing_policy": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -113,6 +119,7 @@ func resourceArmApiManagementIdentityProviderAADB2CCreateUpdate(d *pluginsdk.Res
 
 	clientID := d.Get("client_id").(string)
 	clientSecret := d.Get("client_secret").(string)
+	clientLibrary := d.Get("client_library").(string)
 
 	allowedTenant := d.Get("allowed_tenant").(string)
 	signinTenant := d.Get("signin_tenant").(string)
@@ -139,6 +146,7 @@ func resourceArmApiManagementIdentityProviderAADB2CCreateUpdate(d *pluginsdk.Res
 	parameters := identityprovider.IdentityProviderCreateContract{
 		Properties: &identityprovider.IdentityProviderCreateContractProperties{
 			ClientId:                 clientID,
+			ClientLibrary:            pointer.To(clientLibrary),
 			ClientSecret:             clientSecret,
 			Type:                     pointer.To(identityprovider.IdentityProviderTypeAadBTwoC),
 			AllowedTenants:           utils.ExpandStringSlice([]interface{}{allowedTenant}),
@@ -186,6 +194,7 @@ func resourceArmApiManagementIdentityProviderAADB2CRead(d *pluginsdk.ResourceDat
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
 			d.Set("client_id", props.ClientId)
+			d.Set("client_library", pointer.From(props.ClientLibrary))
 			d.Set("signin_tenant", props.SigninTenant)
 			d.Set("authority", props.Authority)
 			d.Set("signup_policy", props.SignupPolicyName)

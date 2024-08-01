@@ -492,5 +492,7 @@ resource "azurerm_firewall" "test" {
 }
 
 
+
+
 `, data.RandomInteger, data.Locations.Primary)
 }

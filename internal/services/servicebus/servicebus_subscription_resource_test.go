@@ -108,7 +108,7 @@ func TestAccServiceBusSubscription_updateEnableBatched(t *testing.T) {
 		{
 			Config: r.updateEnableBatched(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("enable_batched_operations").HasValue("true"),
+				check.That(data.ResourceName).Key("batched_operations_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -332,7 +332,7 @@ func (ServiceBusSubscriptionResource) withDefaultTtl(data acceptance.TestData) s
 
 func (ServiceBusSubscriptionResource) updateEnableBatched(data acceptance.TestData) string {
 	return fmt.Sprintf(testAccServiceBusSubscription_tfTemplate, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger,
-		"enable_batched_operations = true\n")
+		"batched_operations_enabled = true\n")
 }
 
 func (ServiceBusSubscriptionResource) updateRequiresSession(data acceptance.TestData) string {

@@ -371,7 +371,7 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "test" {
-  vault_base_url     = azurerm_key_vault_managed_hardware_security_module.test.hsm_uri
+  managed_hsm_id     = azurerm_key_vault_managed_hardware_security_module.test.id
   name               = "1e243909-064c-6ac3-84e9-1c8bf8d6ad22"
   scope              = "/keys"
   role_definition_id = "/Microsoft.KeyVault/providers/Microsoft.Authorization/roleDefinitions/21dbd100-6940-42c2-9190-5d6cb909625b"
@@ -379,7 +379,7 @@ resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "t
 }
 
 resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "test1" {
-  vault_base_url     = azurerm_key_vault_managed_hardware_security_module.test.hsm_uri
+  managed_hsm_id     = azurerm_key_vault_managed_hardware_security_module.test.id
   name               = "1e243909-064c-6ac3-84e9-1c8bf8d6ad23"
   scope              = "/keys"
   role_definition_id = "/Microsoft.KeyVault/providers/Microsoft.Authorization/roleDefinitions/515eb02d-2335-4d2d-92f2-b1cbdf9c3778"
@@ -387,7 +387,7 @@ resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "t
 }
 
 resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "user" {
-  vault_base_url     = azurerm_key_vault_managed_hardware_security_module.test.hsm_uri
+  managed_hsm_id     = azurerm_key_vault_managed_hardware_security_module.test.id
   name               = "1e243909-064c-6ac3-84e9-1c8bf8d6ad20"
   scope              = "/keys"
   role_definition_id = "/Microsoft.KeyVault/providers/Microsoft.Authorization/roleDefinitions/21dbd100-6940-42c2-9190-5d6cb909625b"

@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -21,6 +22,10 @@ import (
 type LabServiceScheduleResource struct{}
 
 func TestAccLabServiceSchedule_basic(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("Resource has been removed in 4.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_lab_service_schedule", "test")
 	r := LabServiceScheduleResource{}
 	stopTime := time.Now().Add(time.Hour * 1).Format(time.RFC3339)
@@ -37,6 +42,10 @@ func TestAccLabServiceSchedule_basic(t *testing.T) {
 }
 
 func TestAccLabServiceSchedule_requiresImport(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("Resource has been removed in 4.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_lab_service_schedule", "test")
 	r := LabServiceScheduleResource{}
 	stopTime := time.Now().Add(time.Hour * 1).Format(time.RFC3339)
@@ -56,6 +65,10 @@ func TestAccLabServiceSchedule_requiresImport(t *testing.T) {
 }
 
 func TestAccLabServiceSchedule_complete(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("Resource has been removed in 4.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_lab_service_schedule", "test")
 	r := LabServiceScheduleResource{}
 
@@ -75,6 +88,10 @@ func TestAccLabServiceSchedule_complete(t *testing.T) {
 }
 
 func TestAccLabServiceSchedule_update(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("Resource has been removed in 4.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_lab_service_schedule", "test")
 	r := LabServiceScheduleResource{}
 

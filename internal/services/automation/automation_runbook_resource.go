@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -154,12 +155,46 @@ func resourceAutomationRunbook() *pluginsdk.Resource {
 			"content": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     !features.FourPointOhBeta(),
 				AtLeastOneOf: []string{"content", "publish_content_link", "draft"},
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"job_schedule": helper.JobScheduleSchema(),
+			"job_schedule": {
+				Type:       pluginsdk.TypeSet,
+				Optional:   true,
+				Computed:   true,
+				ConfigMode: pluginsdk.SchemaConfigModeAttr,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"schedule_name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validate.ScheduleName(),
+						},
+
+						"parameters": {
+							Type:     pluginsdk.TypeMap,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+							ValidateFunc: validate.ParameterNames,
+						},
+
+						"run_on": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+						},
+
+						"job_schedule_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+				Set: helper.ResourceAutomationJobScheduleHash,
+			},
 
 			"publish_content_link": contentLinkSchema(false),
 

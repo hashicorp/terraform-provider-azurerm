@@ -448,10 +448,6 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
     azurerm_site_recovery_protection_container_mapping.test,
     azurerm_site_recovery_network_mapping.test,
   ]
-
-  lifecycle {
-    ignore_changes = ["network_interface"]
-  }
 }
 `, r.template(data), data.RandomInteger)
 }
