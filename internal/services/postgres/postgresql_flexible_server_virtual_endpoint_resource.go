@@ -127,7 +127,7 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Read() sdk.ResourceFunc
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Postgres.VirtualEndpointClient
+state := PostgresqlFlexibleServerVirtualEndpointModel{}
 
 			id, err := virtualendpoints.ParseVirtualEndpointID(metadata.ResourceData.Id())
 			if err != nil {
@@ -137,41 +137,31 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Read() sdk.ResourceFunc
 			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
-					log.Printf("[INFO] Postgresql Flexible Server Endpoint %q does not exist - removing from state", metadata.ResourceData.Id())
+					log.Printf("[INFO] %s does not exist - removing from state", metadata.ResourceData.Id())
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			model := resp.Model
-			if model == nil {
-				return fmt.Errorf("retrieving %s: model was nil", id)
+			state.Name = id.VirtualEndpointName
+			
+			if model := resp.Model; model != nil {
+				if props := model.Properties; props != nil {
+					state.Type = string(pointer.From(props.EndpointType))
+
+					if props.Members == nil || len(*props.Members) != 2 {
+						// if members list is nil, this is an endpoint that was previously deleted
+						log.Printf("[INFO] Postgresql Flexible Server Endpoint %q was previously deleted - removing from state", id.ID())
+						return metadata.MarkAsGone(id)
+					}
+
+					// Model.Properties.Members should be a tuple => [source_server, replication_server]
+					state.SourceServerId = servers.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, (*resp.Model.Properties.Members)[0]).ID()
+					state.ReplicaServerId = servers.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, (*resp.Model.Properties.Members)[1]).ID()
+				}
 			}
 
-			properties := resp.Model.Properties
-			if properties == nil {
-				return fmt.Errorf("retrieving %s: properties were nil", id)
-			}
-
-			virtualEndpoint := PostgresqlFlexibleServerVirtualEndpointModel{
-				Name: *model.Name,
-			}
-
-			if properties.EndpointType != nil {
-				virtualEndpoint.Type = string(*model.Properties.EndpointType)
-			}
-
-			if properties.Members == nil || len(*properties.Members) != 2 {
-				// if members list is nil, this is an endpoint that was previously deleted
-				log.Printf("[INFO] Postgresql Flexible Server Endpoint %q was previously deleted - removing from state", id.ID())
-				return metadata.MarkAsGone(id)
-			}
-
-			// Model.Properties.Members should be a tuple => [source_server, replication_server]
-			virtualEndpoint.SourceServerId = servers.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, (*resp.Model.Properties.Members)[0]).ID()
-			virtualEndpoint.ReplicaServerId = servers.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, (*resp.Model.Properties.Members)[1]).ID()
-
-			return metadata.Encode(&virtualEndpoint)
+			return metadata.Encode(&state)
 		},
 	}
 }
