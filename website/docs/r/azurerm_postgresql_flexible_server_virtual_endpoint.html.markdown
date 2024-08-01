@@ -3,7 +3,7 @@ subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_postgresql_flexible_server_virtual_endpoint"
 description: |-
-  Manages a Virtual Endpoint on a PostgreSQL Flexible server
+  Manages a Virtual Endpoint on a PostgreSQL Flexible Server
 ---
 
 # azurerm_postgresql_flexible_server_virtual_endpoint
