@@ -2048,6 +2048,7 @@ func VirtualMachineScaleSetExtensionsSchema() *pluginsdk.Schema {
 				"automatic_upgrade_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
+					Default:  false,
 				},
 
 				"force_update_tag": {
