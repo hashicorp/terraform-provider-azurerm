@@ -47,10 +47,11 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Attributes() map[string
 func (r PostgresqlFlexibleServerVirtualEndpointResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:        pluginsdk.TypeString,
-			Description: "The name of the Virtual Endpoint",
-			ForceNew:    true,
-			Required:    true,
+			Type:         pluginsdk.TypeString,
+			Description:  "The name of the Virtual Endpoint",
+			ForceNew:     true,
+			Required:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 		"source_server_id": {
 			Type:         pluginsdk.TypeString,
