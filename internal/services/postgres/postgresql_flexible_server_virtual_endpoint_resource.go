@@ -108,7 +108,7 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Create() sdk.ResourceFu
 			if err = client.CreateThenPoll(ctx, id, virtualendpoints.VirtualEndpointResource{
 				Name: &virtualEndpoint.Name,
 				Properties: &virtualendpoints.VirtualEndpointResourceProperties{
-					EndpointType: (*virtualendpoints.VirtualEndpointType)(&virtualEndpoint.Type),
+					EndpointType: pointer.To(virtualendpoints.VirtualEndpointType(virtualEndpoint.Type)),
 					Members:      &[]string{replicaServerId.FlexibleServerName},
 				},
 			}); err != nil {
