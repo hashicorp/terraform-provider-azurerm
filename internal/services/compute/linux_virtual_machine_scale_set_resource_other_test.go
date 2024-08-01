@@ -1230,10 +1230,6 @@ resource "azurerm_virtual_network" "test" {
   location            = azurerm_resource_group.test.location
   edge_zone           = data.azurerm_extended_locations.test.extended_locations[0]
   resource_group_name = azurerm_resource_group.test.name
-
-  lifecycle {
-    ignore_changes = [subnet]
-  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -2332,6 +2328,7 @@ resource "azurerm_public_ip" "test" {
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
   allocation_method       = "Dynamic"
+  sku                     = "Basic"
   idle_timeout_in_minutes = 4
 }
 
@@ -2444,6 +2441,7 @@ resource "azurerm_public_ip" "test" {
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
   allocation_method       = "Dynamic"
+  sku                     = "Basic"
   idle_timeout_in_minutes = 4
 }
 

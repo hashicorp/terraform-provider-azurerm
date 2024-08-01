@@ -522,8 +522,7 @@ resource "azurerm_kusto_cluster" "test" {
 }
 
 func (KustoClusterResource) unsetTrustedExternalTenants(data acceptance.TestData) string {
-	if !features.FourPointOhBeta() {
-		return fmt.Sprintf(`
+	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -547,31 +546,6 @@ resource "azurerm_kusto_cluster" "test" {
   }
 
   trusted_external_tenants = []
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
-	}
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-data "azurerm_client_config" "current" {
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_kusto_cluster" "test" {
-  name                = "acctestkc%s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  sku {
-    name     = "Dev(No SLA)_Standard_D11_v2"
-    capacity = 1
-  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
@@ -1010,10 +984,6 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-
-  lifecycle {
-    ignore_changes = [subnet]
-  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -1047,10 +1017,6 @@ resource "azurerm_network_security_group" "test" {
   name                = "acctestkc%s-nsg"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-
-  lifecycle {
-    ignore_changes = [security_rule]
-  }
 }
 
 resource "azurerm_network_security_rule" "test_allow_management_inbound" {
@@ -1128,10 +1094,6 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-
-  lifecycle {
-    ignore_changes = [subnet]
-  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -1163,10 +1125,6 @@ resource "azurerm_network_security_group" "test" {
   name                = "acctestkc%s-nsg"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-
-  lifecycle {
-    ignore_changes = [security_rule]
-  }
 }
 
 resource "azurerm_network_security_rule" "test_allow_management_inbound" {

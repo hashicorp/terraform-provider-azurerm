@@ -350,10 +350,6 @@ resource "azurerm_key_vault" "remotetest" {
   tenant_id                = "%s"
   sku_name                 = "standard"
   purge_protection_enabled = true
-
-  lifecycle {
-    ignore_changes = [access_policy]
-  }
 }
 
 resource "azurerm_key_vault_access_policy" "storage" {
@@ -460,10 +456,6 @@ resource "azurerm_key_vault" "test" {
   tenant_id                = data.azurerm_client_config.current.tenant_id
   sku_name                 = "standard"
   purge_protection_enabled = true
-
-  lifecycle {
-    ignore_changes = [access_policy]
-  }
 }
 
 resource "azurerm_key_vault_access_policy" "storage" {
@@ -541,10 +533,6 @@ resource "azurerm_key_vault" "test" {
   tenant_id                = data.azurerm_client_config.current.tenant_id
   sku_name                 = "standard"
   purge_protection_enabled = true
-
-  lifecycle {
-    ignore_changes = [access_policy]
-  }
 }
 
 resource "azurerm_key_vault_access_policy" "storage" {

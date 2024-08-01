@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -20,6 +21,9 @@ import (
 type MariaDbConfigurationResource struct{}
 
 func TestAccMariaDbConfiguration_characterSetServer(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("The `azurerm_mariadb_configuration` resource is deprecated and will be removed in v4.0 of the AzureRM Provider.")
+	}
 	srv := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_configuration", "test")
 	r := MariaDbConfigurationResource{}
@@ -43,6 +47,9 @@ func TestAccMariaDbConfiguration_characterSetServer(t *testing.T) {
 }
 
 func TestAccMariaDbConfiguration_interactiveTimeout(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("The `azurerm_mariadb_configuration` resource is deprecated and will be removed in v4.0 of the AzureRM Provider.")
+	}
 	srv := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_configuration", "test")
 	r := MariaDbConfigurationResource{}
@@ -66,6 +73,9 @@ func TestAccMariaDbConfiguration_interactiveTimeout(t *testing.T) {
 }
 
 func TestAccMariaDbConfiguration_logSlowAdminStatements(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("The `azurerm_mariadb_configuration` resource is deprecated and will be removed in v4.0 of the AzureRM Provider.")
+	}
 	srv := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_configuration", "test")
 	r := MariaDbConfigurationResource{}
