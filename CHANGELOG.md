@@ -1,5 +1,8 @@
 ## 3.114.0 (Unreleased)
 
+UPGRADE NOTES:
+* **4.0 Beta:** This release includes a new feature-flag to opt-into the 4.0 Beta - which (when enabled) introduces a number of behavioural changes, field renames and removes some older deprecated resources and data sources. Please read the disclaimers carefully that are outlined in our [guide on how to opt-into the 4.0 Beta](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/4.0-beta) before enabling this, as this will cause irreversible changes to your state. The 4.0 Beta is still a work-in-progress at this time and the changes listed in the [4.0 Upgrade Guide](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/4.0-upgrade-guide) may change. We're interested to hear your feedback which can be provided by following [this link](https://github.com/terraform-providers/terraform-provider-azurerm/issues/new?template=Beta_Feedback.md).
+
 FEATURES:
 
 * **New Resource:** `azurerm_dev_center_network_connection` [GH-26718]
