@@ -225,8 +225,8 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Update() sdk.ResourceFu
 
 			if err := client.UpdateThenPoll(ctx, *id, virtualendpoints.VirtualEndpointResourceForPatch{
 				Properties: &virtualendpoints.VirtualEndpointResourceProperties{
-					EndpointType: (*virtualendpoints.VirtualEndpointType)(&virtualEndpoint.Type),
-					Members:      &[]string{replicaServerId.FlexibleServerName},
+					EndpointType: pointer.To(virtualendpoints.VirtualEndpointType(virtualEndpoint.Type)),
+					Members:      pointer.To([]string{replicaServerId.FlexibleServerName}),
 				},
 			}); err != nil {
 				return fmt.Errorf("updating %q: %+v", id, err)
