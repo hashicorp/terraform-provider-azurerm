@@ -1,3 +1,9 @@
+## 3.115.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* `azurerm_web_application_firewall_policy`: `excluded_rule_set.0.type` supports `Microsoft_BotManagerRuleSet` [GH-26903]
+
 ## 3.114.0 (August 01, 2024)
 
 UPGRADE NOTES:
