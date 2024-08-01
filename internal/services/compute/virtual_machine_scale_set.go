@@ -2009,7 +2009,7 @@ func FlattenVirtualMachineScaleSetAutomaticRepairsPolicy(input *virtualmachinesc
 }
 
 func VirtualMachineScaleSetExtensionsSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	schema := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeSet,
 		Optional: true,
 		Computed: true,
@@ -2084,6 +2084,15 @@ func VirtualMachineScaleSetExtensionsSchema() *pluginsdk.Schema {
 		},
 		Set: virtualMachineScaleSetExtensionHash,
 	}
+
+	if !features.FourPointOhBeta() {
+		schema.Elem.(*pluginsdk.Resource).Schema["automatic_upgrade_enabled"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+		}
+	}
+
+	return schema
 }
 
 func virtualMachineScaleSetExtensionHash(v interface{}) int {
