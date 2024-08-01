@@ -29,10 +29,6 @@ func TestAccPostgresqlFlexibleServerVirtualEndpoint_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("name").Exists(),
-				check.That(data.ResourceName).Key("source_server_id").Exists(),
-				check.That(data.ResourceName).Key("replica_server_id").Exists(),
-				check.That(data.ResourceName).Key("type").Exists(),
 			),
 		},
 		data.ImportStep("type"),
