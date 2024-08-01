@@ -127,7 +127,8 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Read() sdk.ResourceFunc
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-state := PostgresqlFlexibleServerVirtualEndpointModel{}
+			client := metadata.Client.Postgres.VirtualEndpointClient
+			state := PostgresqlFlexibleServerVirtualEndpointModel{}
 
 			id, err := virtualendpoints.ParseVirtualEndpointID(metadata.ResourceData.Id())
 			if err != nil {
@@ -144,7 +145,7 @@ state := PostgresqlFlexibleServerVirtualEndpointModel{}
 			}
 
 			state.Name = id.VirtualEndpointName
-			
+
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
 					state.Type = string(pointer.From(props.EndpointType))
