@@ -45,14 +45,14 @@ func TestAccPostgresqlFlexibleServerVirtualEndpoint_update(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.update(data, "azurerm_postgresql_flexible_server.test_replica.id"),
+			Config: r.update(data, "azurerm_postgresql_flexible_server.test_replica_0.id"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.update(data, "azurerm_postgresql_flexible_server.test_replica_2.id"),
+			Config: r.update(data, "azurerm_postgresql_flexible_server.test_replica_1.id"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -160,8 +160,8 @@ resource "azurerm_postgresql_flexible_server" "test" {
   sku_name                      = "GP_Standard_D2ads_v5"
 }
 
-resource "azurerm_postgresql_flexible_server" "test_replica" {
-  name                          = "acctest-psql-virtualendpoint-replica-%[1]d"
+resource "azurerm_postgresql_flexible_server" "test_replica_0" {
+  name                          = "${azurerm_postgresql_flexible_server.test.name}-replica-0"
   resource_group_name           = azurerm_postgresql_flexible_server.test.resource_group_name
   location                      = azurerm_postgresql_flexible_server.test.location
   create_mode                   = "Replica"
@@ -173,8 +173,8 @@ resource "azurerm_postgresql_flexible_server" "test_replica" {
   storage_tier                  = azurerm_postgresql_flexible_server.test.storage_tier
 }
 
-resource "azurerm_postgresql_flexible_server" "test_replica_2" {
-  name                          = "acctest-psql-virtualendpoint-replica-%[1]d-2"
+resource "azurerm_postgresql_flexible_server" "test_replica_1" {
+  name                          = "${azurerm_postgresql_flexible_server.test.name}-replica-1"
   resource_group_name           = azurerm_postgresql_flexible_server.test.resource_group_name
   location                      = azurerm_postgresql_flexible_server.test.location
   create_mode                   = "Replica"
@@ -186,7 +186,7 @@ resource "azurerm_postgresql_flexible_server" "test_replica_2" {
   storage_tier                  = azurerm_postgresql_flexible_server.test.storage_tier
 
   ## this prevents a race condition that can occur in the test
-  depends_on = [azurerm_postgresql_flexible_server.test_replica]
+  depends_on = [azurerm_postgresql_flexible_server.test_replica_0]
 }
 
 resource "azurerm_postgresql_flexible_server_virtual_endpoint" "test" {
@@ -196,7 +196,7 @@ resource "azurerm_postgresql_flexible_server_virtual_endpoint" "test" {
   type              = "ReadWrite"
 
   ## this prevents a race condition that can occur in the test
-  depends_on = [azurerm_postgresql_flexible_server.test_replica, azurerm_postgresql_flexible_server.test_replica_2]
+  depends_on = [azurerm_postgresql_flexible_server.test_replica_0, azurerm_postgresql_flexible_server.test_replica_1]
 }
 `, data.RandomInteger, "eastus", replicaId) // force region due to SKU constraints
 }
