@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Resource:** `azurerm_dev_center_network_connection` [GH-26718]
 * **New Resource:** `azurerm_stack_hci_logical_network` [GH-26473]
 
 ENHANCEMENTS:
@@ -9,15 +10,19 @@ ENHANCEMENTS:
 * dependencies: updating `go-azure-helpers` to `v0.70.1` [GH-26757]
 * `arckubernetes` - updating to use version `2024-01-01` [GH-26761]
 * `data.azurerm_storage_account` - the `enable_https_traffic_only` property has been superseded by `https_traffic_only_enabled` [GH-26740]
+* `azurerm_log_analytics_cluster` - add support for setting `size_gb` to `100` [GH-#26865]
 * `azurerm_storage_account` - the `enable_https_traffic_only` property has been superseded by `https_traffic_only_enabled` [GH-26740]
 
 BUG FIXES:
 
 * `azurerm_dns_cname_record` - split create and update function to fix lifecycle - ignore [GH-26610]
 * `azurerm_dns_srv_record` - split create and update function to fix lifecycle - ignore [GH-26627]
+* `azurerm_kubernetes_cluster` - fix issue that prevented `max_count` from being updated [GH-26417]
 * `azurerm_linux_web_app` - correctly set `site_config.always_on` as configured during Update [GH-25753]
 * `azurerm_linux_web_app_slot` - correctly set `site_config.always_on` as configured during Update [GH-25753]
 * `azurerm_management_group_policy_remediation` - fix panic in deprecated schema change for 4.0 [GH-26767]
+* `azurerm_network_security_rule` - fix panic when updating `source_port_ranges` [GH-26883]
+* `azurerm_public_ip` - fix panix when updating `idle_timeout_in_minutes`
 
 DEPRECATIONS:
 * `azurerm_redis_cache` - `enable_non_ssl_port` has been superseded by `non_ssl_port_enabled` and `redis_configuration. enable_authentication` has been superseded by `redis_configuration.authentication_enabled` [GH-26608]
