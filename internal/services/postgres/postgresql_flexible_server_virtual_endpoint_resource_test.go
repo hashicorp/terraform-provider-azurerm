@@ -31,11 +31,33 @@ func TestAccPostgresqlFlexibleServerVirtualEndpoint_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("type"),
+		data.ImportStep(),
 		data.DisappearsStep(acceptance.DisappearsStepData{
 			Config:       r.basic,
 			TestResource: r,
 		}),
+	})
+}
+
+func TestAccPostgresqlFlexibleServerVirtualEndpoint_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server_virtual_endpoint", "test")
+	r := PostgresqlFlexibleServerVirtualEndpointResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.update(data, "azurerm_postgresql_flexible_server.test_replica.id"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.update(data, "azurerm_postgresql_flexible_server.test_replica_2.id"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -111,4 +133,70 @@ resource "azurerm_postgresql_flexible_server_virtual_endpoint" "test" {
   type              = "ReadWrite"
 }
 `, data.RandomInteger, "eastus") // force region due to SKU constraints
+}
+
+func (PostgresqlFlexibleServerVirtualEndpointResource) update(data acceptance.TestData, replicaId string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctest-psql-virtualendpoint-rg-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_postgresql_flexible_server" "test" {
+  name                          = "acctest-psql-virtualendpoint-primary-%[1]d"
+  resource_group_name           = azurerm_resource_group.test.name
+  location                      = azurerm_resource_group.test.location
+  version                       = "16"
+  public_network_access_enabled = false
+  administrator_login           = "psqladmin"
+  administrator_password        = "H@Sh1CoR3!"
+  zone                          = "1"
+  storage_mb                    = 32768
+  storage_tier                  = "P30"
+  sku_name                      = "GP_Standard_D2ads_v5"
+}
+
+resource "azurerm_postgresql_flexible_server" "test_replica" {
+  name                          = "acctest-psql-virtualendpoint-replica-%[1]d"
+  resource_group_name           = azurerm_postgresql_flexible_server.test.resource_group_name
+  location                      = azurerm_postgresql_flexible_server.test.location
+  create_mode                   = "Replica"
+  source_server_id              = azurerm_postgresql_flexible_server.test.id
+  version                       = azurerm_postgresql_flexible_server.test.version
+  public_network_access_enabled = azurerm_postgresql_flexible_server.test.public_network_access_enabled
+  zone                          = azurerm_postgresql_flexible_server.test.zone
+  storage_mb                    = azurerm_postgresql_flexible_server.test.storage_mb
+  storage_tier                  = azurerm_postgresql_flexible_server.test.storage_tier
+}
+
+resource "azurerm_postgresql_flexible_server" "test_replica_2" {
+  name                          = "acctest-psql-virtualendpoint-replica-%[1]d-2"
+  resource_group_name           = azurerm_postgresql_flexible_server.test.resource_group_name
+  location                      = azurerm_postgresql_flexible_server.test.location
+  create_mode                   = "Replica"
+  source_server_id              = azurerm_postgresql_flexible_server.test.id
+  version                       = azurerm_postgresql_flexible_server.test.version
+  public_network_access_enabled = azurerm_postgresql_flexible_server.test.public_network_access_enabled
+  zone                          = azurerm_postgresql_flexible_server.test.zone
+  storage_mb                    = azurerm_postgresql_flexible_server.test.storage_mb
+  storage_tier                  = azurerm_postgresql_flexible_server.test.storage_tier
+
+  ## this prevents a race condition that can occur in the test
+  depends_on = [azurerm_postgresql_flexible_server.test_replica]
+}
+
+resource "azurerm_postgresql_flexible_server_virtual_endpoint" "test" {
+  name              = "acctest-psqlvirtualendpoint-endpoint-%[1]d"
+  source_server_id  = azurerm_postgresql_flexible_server.test.id
+  replica_server_id = %[3]s
+  type              = "ReadWrite"
+
+  ## this prevents a race condition that can occur in the test
+  depends_on = [azurerm_postgresql_flexible_server.test_replica, azurerm_postgresql_flexible_server.test_replica_2]
+}
+`, data.RandomInteger, "eastus", replicaId) // force region due to SKU constraints
 }
