@@ -195,24 +195,13 @@ func (r DevCenterNetworkConnectionResource) Read() sdk.ResourceFunc {
 				state.Tags = pointer.From(model.Tags)
 
 				if props := model.Properties; props != nil {
+					state.SubnetId = pointer.From(props.SubnetId)
+					state.DomainName = pointer.From(props.DomainName)
+					state.DomainUsername = pointer.From(props.DomainUsername)
+					state.OrganizationUnit = pointer.From(props.OrganizationUnit)
+
 					if v := props.DomainJoinType; v != "" {
 						state.DomainJoinType = string(v)
-					}
-
-					if v := props.SubnetId; v != nil {
-						state.SubnetId = pointer.From(v)
-					}
-
-					if v := props.DomainName; v != nil {
-						state.DomainName = pointer.From(v)
-					}
-
-					if v := props.DomainUsername; v != nil {
-						state.DomainUsername = pointer.From(v)
-					}
-
-					if v := props.OrganizationUnit; v != nil {
-						state.OrganizationUnit = pointer.From(v)
 					}
 				}
 			}
