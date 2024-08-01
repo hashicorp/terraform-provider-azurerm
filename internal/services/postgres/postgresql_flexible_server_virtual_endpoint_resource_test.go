@@ -63,7 +63,7 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Destroy(ctx context.Con
 	}
 
 	if err := postgres.DeletePostgresFlexibileServerVirtualEndpoint(ctx, client.Postgres.VirtualEndpointClient, id); err != nil {
-		return nil, fmt.Errorf("deleting Postgresql Virtual Endpoint (%s): %+v", id.String(), err)
+		return nil, fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return utils.Bool(true), nil
