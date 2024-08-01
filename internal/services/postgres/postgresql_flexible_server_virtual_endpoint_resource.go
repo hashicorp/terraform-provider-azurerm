@@ -194,7 +194,7 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Delete() sdk.ResourceFu
 				return err
 			}
 
-			return metadata.MarkAsGone(id) // is this correct??
+			return nil
 		},
 	}
 }
