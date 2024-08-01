@@ -66,6 +66,6 @@ func (p postgresFlexibleServerVirtualEndpointPoller) Poll(ctx context.Context) (
 		HttpResponse: &client.Response{
 			Response: resp.HttpResponse,
 		},
-		Message: fmt.Sprintln("failed to delete flexible server virtual endpoint"),
+		Message: fmt.Sprintln("failed to delete %s", p.id),
 	}
 }
