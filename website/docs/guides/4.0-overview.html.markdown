@@ -60,7 +60,3 @@ With the introduction of provider functions in Terraform 1.8, we'll be introduci
 ### Additional Configuration Options for Subnets defined in the Virtual Network Resource
 
 We've extended the `subnet` block within the `azurerm_virtual_network` resource to allow creation of subnets with delegations and route tables, among other options.
-
-### Better consistency in resetting or removal of Lists and Blocks
-
-There are several instances in the provider where a block can only be removed by using the attribute syntax to set it to an empty list e.g. `subnet = []`, several instances have been removed and those blocks now behave as other blocks in the provider do.
