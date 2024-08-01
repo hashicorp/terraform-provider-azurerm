@@ -50,7 +50,7 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Exists(ctx context.Cont
 
 	resp, err := clients.Postgres.VirtualEndpointClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading Postgresql Virtual Endpoint (%s): %+v", id.String(), err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	return utils.Bool(resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.Members != nil), nil
