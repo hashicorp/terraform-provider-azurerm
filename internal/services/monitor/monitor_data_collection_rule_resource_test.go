@@ -675,11 +675,6 @@ resource "azurerm_monitor_data_collection_rule" "test" {
       name    = "test-datasource-prometheus"
     }
 
-    platform_telemetry {
-      streams = ["Microsoft.Cache/redis:Metrics-Group-All"]
-      name    = "test-datasource-telemetry"
-    }
-
     windows_event_log {
       streams        = ["Microsoft-WindowsEvent"]
       x_path_queries = ["System!*[System[EventID=4648]]"]
