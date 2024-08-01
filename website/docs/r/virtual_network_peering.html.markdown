@@ -168,7 +168,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the virtual network peering. Changing this forces a new resource to be created.
 
-* `allow_virtual_network_access` - (Optional) Controls if the VMs in the remote virtual network can access VMs in the local virtual network. Defaults to `true`.
+* `allow_virtual_network_access` - (Optional) Controls if the traffic from the local virtual network can reach the remote virtual network. Defaults to `true`.
 
 * `allow_forwarded_traffic` - (Optional) Controls if forwarded traffic from VMs in the remote virtual network is allowed. Defaults to `false`.
 

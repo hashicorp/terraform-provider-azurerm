@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/file/directories"
@@ -51,6 +52,10 @@ func TestAccStorageShareDirectory_basicAzureADAuth(t *testing.T) {
 
 func TestAccStorageShareDirectory_basicDeprecated(t *testing.T) {
 	// TODO: remove test in v4.0
+	if features.FourPointOhBeta() {
+		t.Skip("test not applicable in v4.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_storage_share_directory", "test")
 	r := StorageShareDirectoryResource{}
 
@@ -67,6 +72,10 @@ func TestAccStorageShareDirectory_basicDeprecated(t *testing.T) {
 
 func TestAccStorageShareDirectory_migrateStorageShareId(t *testing.T) {
 	// TODO: remove test in v4.0
+	if features.FourPointOhBeta() {
+		t.Skip("test not applicable in v4.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_storage_share_directory", "test")
 	r := StorageShareDirectoryResource{}
 
@@ -269,6 +278,7 @@ resource "azurerm_storage_share_directory" "test" {
 }
 
 func (r StorageShareDirectoryResource) basicDeprecated(data acceptance.TestData) string {
+	// TODO: remove in v4.0
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s

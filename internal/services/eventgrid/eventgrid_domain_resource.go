@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/domains"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -26,7 +25,7 @@ import (
 )
 
 func resourceEventGridDomain() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceEventGridDomainCreate,
 		Read:   resourceEventGridDomainRead,
 		Update: resourceEventGridDomainUpdate,
@@ -166,9 +165,10 @@ func resourceEventGridDomain() *pluginsdk.Resource {
 			},
 
 			"inbound_ip_rule": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 128,
+				Type:       pluginsdk.TypeList,
+				Optional:   true,
+				ConfigMode: pluginsdk.SchemaConfigModeAttr,
+				MaxItems:   128,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"ip_mask": {
@@ -207,32 +207,6 @@ func resourceEventGridDomain() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-
-	if !features.FourPointOhBeta() {
-		resource.Schema["inbound_ip_rule"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeList,
-			Optional:   true,
-			MaxItems:   128,
-			ConfigMode: pluginsdk.SchemaConfigModeAttr,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"ip_mask": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-					},
-					"action": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  string(domains.IPActionTypeAllow),
-						ValidateFunc: validation.StringInSlice([]string{
-							string(domains.IPActionTypeAllow),
-						}, false),
-					},
-				},
-			},
-		}
-	}
-	return resource
 }
 
 func resourceEventGridDomainCreate(d *pluginsdk.ResourceData, meta interface{}) error {

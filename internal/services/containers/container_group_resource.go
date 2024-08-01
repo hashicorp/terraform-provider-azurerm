@@ -191,10 +191,12 @@ func resourceContainerGroup() *pluginsdk.Resource {
 			},
 
 			"exposed_port": {
-				Type:     pluginsdk.TypeSet,
-				Optional: true,
-				ForceNew: true,
-				Set:      resourceContainerGroupPortsHash,
+				Type:       pluginsdk.TypeSet,
+				Optional:   true,
+				Computed:   true,
+				ForceNew:   true,
+				ConfigMode: pluginsdk.SchemaConfigModeAttr,
+				Set:        resourceContainerGroupPortsHash,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"port": {
@@ -519,36 +521,6 @@ func resourceContainerGroup() *pluginsdk.Resource {
 	}
 
 	if !features.FourPointOhBeta() {
-		resource.Schema["exposed_port"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeSet,
-			Optional:   true,
-			ForceNew:   true,
-			Computed:   true,
-			ConfigMode: pluginsdk.SchemaConfigModeAttr,
-			Set:        resourceContainerGroupPortsHash,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"port": {
-						Type:         pluginsdk.TypeInt,
-						Optional:     true,
-						ForceNew:     true,
-						ValidateFunc: validate.PortNumber,
-					},
-
-					"protocol": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ForceNew: true,
-						Default:  string(containerinstance.ContainerGroupNetworkProtocolTCP),
-						ValidateFunc: validation.StringInSlice([]string{
-							string(containerinstance.ContainerGroupNetworkProtocolTCP),
-							string(containerinstance.ContainerGroupNetworkProtocolUDP),
-						}, false),
-					},
-				},
-			},
-		}
-
 		resource.Schema["container"].Elem.(*pluginsdk.Resource).Schema["gpu"] = &pluginsdk.Schema{
 			Type:       pluginsdk.TypeList,
 			Optional:   true,

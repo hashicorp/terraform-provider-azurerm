@@ -861,21 +861,6 @@ func TestAccLinuxFunctionApp_dailyTimeQuotaElasticPremiumPlan(t *testing.T) {
 	})
 }
 
-func TestAccLinuxFunctionApp_healthCheckPath(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
-	r := LinuxFunctionAppResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.healthCheckPath(data, "S1"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("site_credential.0.password"),
-	})
-}
-
 func TestAccLinuxFunctionApp_healthCheckPathWithEviction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
 	r := LinuxFunctionAppResource{}
@@ -2043,30 +2028,6 @@ resource "azurerm_linux_function_app" "test" {
 `, r.template(data, SkuStandardPlan), data.RandomInteger)
 }
 
-func (r LinuxFunctionAppResource) healthCheckPath(data acceptance.TestData, planSku string) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-LFA-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
-
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
-
-  site_config {
-    health_check_path = "/health"
-  }
-}
-`, r.template(data, planSku), data.RandomInteger)
-}
-
 func (r LinuxFunctionAppResource) healthCheckPathWithEviction(data acceptance.TestData, planSku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3121,6 +3082,8 @@ resource "azurerm_linux_function_app" "test" {
     ftps_state         = "FtpsOnly"
     health_check_path  = "/health-check"
 
+    health_check_eviction_time_in_min = 7
+
     application_stack {
       python_version = "3.9"
     }
@@ -3279,7 +3242,7 @@ resource "azurerm_linux_function_app" "test" {
     load_balancing_mode       = "LeastResponseTime"
     pre_warmed_instance_count = 2
     remote_debugging_enabled  = true
-    remote_debugging_version  = "VS2017"
+    remote_debugging_version  = "VS2022"
 
     scm_ip_restriction {
       ip_address = "10.20.20.20/32"
@@ -3307,11 +3270,12 @@ resource "azurerm_linux_function_app" "test" {
       }
     }
 
-    use_32_bit_worker  = true
-    websockets_enabled = true
-    ftps_state         = "FtpsOnly"
-    health_check_path  = "/health-check"
-    worker_count       = 3
+    use_32_bit_worker                 = true
+    websockets_enabled                = true
+    ftps_state                        = "FtpsOnly"
+    health_check_path                 = "/health-check"
+    health_check_eviction_time_in_min = 7
+    worker_count                      = 3
 
     minimum_tls_version     = "1.1"
     scm_minimum_tls_version = "1.1"
@@ -3434,7 +3398,7 @@ resource "azurerm_linux_function_app" "test" {
     load_balancing_mode       = "LeastResponseTime"
     pre_warmed_instance_count = 2
     remote_debugging_enabled  = true
-    remote_debugging_version  = "VS2017"
+    remote_debugging_version  = "VS2022"
 
     scm_ip_restriction {
       ip_address = "10.20.20.20/32"
@@ -3462,11 +3426,12 @@ resource "azurerm_linux_function_app" "test" {
       }
     }
 
-    use_32_bit_worker  = true
-    websockets_enabled = true
-    ftps_state         = "FtpsOnly"
-    health_check_path  = "/health-check"
-    worker_count       = 3
+    use_32_bit_worker                 = true
+    websockets_enabled                = true
+    ftps_state                        = "FtpsOnly"
+    health_check_path                 = "/health-check"
+    health_check_eviction_time_in_min = 7
+    worker_count                      = 3
 
     minimum_tls_version     = "1.1"
     scm_minimum_tls_version = "1.1"

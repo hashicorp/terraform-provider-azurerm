@@ -161,7 +161,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						"vnet_integration_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
-							Default:  false,
 						},
 
 						"subnet_id": {
@@ -1017,7 +1016,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Optional: true,
 							Computed: !features.FourPointOhBeta(),
 							Default: func() interface{} {
-								if !features.FourPointOh() {
+								if !features.FourPointOhBeta() {
 									return nil
 								}
 								return string(managedclusters.NetworkDataplaneAzure)
@@ -1596,7 +1595,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			Type:          pluginsdk.TypeSet,
 			Optional:      true,
 			Computed:      true,
-			ConfigMode:    pluginsdk.SchemaConfigModeAttr,
 			ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.managed_outbound_ip_count", "network_profile.0.load_balancer_profile.0.outbound_ip_address_ids"},
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
@@ -1607,7 +1605,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			Type:          pluginsdk.TypeSet,
 			Optional:      true,
 			Computed:      true,
-			ConfigMode:    pluginsdk.SchemaConfigModeAttr,
 			ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.managed_outbound_ip_count", "network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids"},
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
@@ -1785,6 +1782,16 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				string(managedclusters.NodeOSUpgradeChannelSecurityPatch),
 				string(managedclusters.NodeOSUpgradeChannelUnmanaged),
 			}, false),
+		}
+		resource.Schema["service_mesh_profile"].Elem.(*pluginsdk.Resource).Schema["revisions"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			MinItems: 1,
+			MaxItems: 2,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
 		}
 	}
 
@@ -2925,16 +2932,14 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 				d.Set("automatic_upgrade_channel", upgradeChannel)
 			}
 
-			// the API returns `node_os_channel_upgrade` when `automatic_channel_upgrade` is set to `node-image`
-			// since it's a preview feature we will only set this if it's explicitly been set in the config for the time being
 			if !features.FourPointOhBeta() {
+				// this was a preview feature and returns `node_os_channel_upgrade` when `automatic_channel_upgrade` is set to `node-image`
+				// which is why we were only setting this explicitly if it had been set in the config, keeping this as is for now
 				if v, ok := d.GetOk("node_os_channel_upgrade"); ok && v.(string) != "" {
 					d.Set("node_os_channel_upgrade", nodeOSUpgradeChannel)
 				}
 			} else {
-				if v, ok := d.GetOk("node_os_upgrade_channel"); ok && v.(string) != "" {
-					d.Set("node_os_upgrade_channel", nodeOSUpgradeChannel)
-				}
+				d.Set("node_os_upgrade_channel", nodeOSUpgradeChannel)
 			}
 
 			customCaTrustCertList := flattenCustomCaTrustCerts(props.SecurityProfile)
@@ -2943,6 +2948,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			enablePrivateCluster := false
 			enablePrivateClusterPublicFQDN := false
 			runCommandEnabled := true
+			privateDnsZoneId := ""
 
 			apiServerAccessProfile := flattenKubernetesClusterAPIAccessProfile(props.ApiServerAccessProfile)
 			if err := d.Set("api_server_access_profile", apiServerAccessProfile); err != nil {
@@ -2966,13 +2972,14 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 				}
 				switch {
 				case accessProfile.PrivateDNSZone != nil && strings.EqualFold("System", *accessProfile.PrivateDNSZone):
-					d.Set("private_dns_zone_id", "System")
+					privateDnsZoneId = "System"
 				case accessProfile.PrivateDNSZone != nil && strings.EqualFold("None", *accessProfile.PrivateDNSZone):
-					d.Set("private_dns_zone_id", "None")
+					privateDnsZoneId = "None"
 				default:
-					d.Set("private_dns_zone_id", accessProfile.PrivateDNSZone)
+					privateDnsZoneId = pointer.From(accessProfile.PrivateDNSZone)
 				}
 			}
+			d.Set("private_dns_zone_id", privateDnsZoneId)
 			d.Set("private_cluster_enabled", enablePrivateCluster)
 			d.Set("private_cluster_public_fqdn_enabled", enablePrivateClusterPublicFQDN)
 			d.Set("run_command_enabled", runCommandEnabled)
@@ -3390,7 +3397,10 @@ func expandKubernetesClusterAPIAccessProfile(d *pluginsdk.ResourceData) *managed
 }
 
 func flattenKubernetesClusterAPIAccessProfile(profile *managedclusters.ManagedClusterAPIServerAccessProfile) []interface{} {
-	if profile == nil {
+	// some properties in this block are exposed within the `api_server_access_profile` block and others are exposed as
+	// top level properties which causes strange diffs depending on what is being set, so this also needs to check
+	// whether the properties in the block are returned or nil
+	if profile == nil || (profile.AuthorizedIPRanges == nil && profile.SubnetId == nil && profile.EnableVnetIntegration == nil) {
 		return []interface{}{}
 	}
 
@@ -4855,6 +4865,12 @@ func expandKubernetesClusterServiceMeshProfile(input []interface{}, existing *ma
 			certificateAuthority := expandKubernetesClusterServiceMeshProfileCertificateAuthority(raw["certificate_authority"].([]interface{}))
 			profile.Istio.CertificateAuthority = certificateAuthority
 		}
+
+		if features.FourPointOhBeta() {
+			if raw["revisions"] != nil {
+				profile.Istio.Revisions = utils.ExpandStringSlice(raw["revisions"].([]interface{}))
+			}
+		}
 	}
 
 	return &profile
@@ -5000,6 +5016,12 @@ func flattenKubernetesClusterAzureServiceMeshProfile(input *managedclusters.Serv
 
 	if input.Istio.CertificateAuthority != nil {
 		returnMap["certificate_authority"] = flattenKubernetesClusterServiceMeshProfileCertificateAuthority(input.Istio.CertificateAuthority)
+	}
+
+	if features.FourPointOhBeta() {
+		if input.Istio.Revisions != nil {
+			returnMap["revisions"] = utils.FlattenStringSlice(input.Istio.Revisions)
+		}
 	}
 
 	return []interface{}{returnMap}

@@ -259,8 +259,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 
 			"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
 
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_https_traffic_only": {
+			"https_traffic_only_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
@@ -1277,6 +1276,16 @@ func resourceStorageAccount() *pluginsdk.Resource {
 					},
 				},
 			},
+
+		resource.Schema["https_traffic_only_enabled"].Computed = true
+		resource.Schema["https_traffic_only_enabled"].Default = nil
+
+		resource.Schema["enable_https_traffic_only"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"https_traffic_only_enabled"},
+			Deprecated:    "The property `enable_https_traffic_only` has been superseded by `https_traffic_only_enabled` and will be removed in v4.0 of the AzureRM Provider.",
 		}
 	}
 
@@ -1320,6 +1329,17 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
+	httpsTrafficOnlyEnabled := true
+	// nolint staticcheck
+	if v, ok := d.GetOkExists("https_traffic_only_enabled"); ok {
+		httpsTrafficOnlyEnabled = v.(bool)
+	} else if !features.FourPointOhBeta() {
+		// nolint staticcheck
+		if v, ok := d.GetOkExists("enable_https_traffic_only"); ok {
+			httpsTrafficOnlyEnabled = v.(bool)
+		}
+	}
+
 	dnsEndpointType := d.Get("dns_endpoint_type").(string)
 	isHnsEnabled := d.Get("is_hns_enabled").(bool)
 	nfsV3Enabled := d.Get("nfsv3_enabled").(bool)
@@ -1334,7 +1354,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			AllowSharedKeyAccess:         pointer.To(d.Get("shared_access_key_enabled").(bool)),
 			DnsEndpointType:              pointer.To(storageaccounts.DnsEndpointType(dnsEndpointType)),
 			DefaultToOAuthAuthentication: pointer.To(d.Get("default_to_oauth_authentication").(bool)),
-			SupportsHTTPSTrafficOnly:     pointer.To(d.Get("enable_https_traffic_only").(bool)),
+			SupportsHTTPSTrafficOnly:     pointer.To(httpsTrafficOnlyEnabled),
 			IsNfsV3Enabled:               pointer.To(nfsV3Enabled),
 			IsHnsEnabled:                 pointer.To(isHnsEnabled),
 			IsLocalUserEnabled:           pointer.To(d.Get("local_user_enabled").(bool)),
@@ -1758,9 +1778,16 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	if d.HasChange("default_to_oauth_authentication") {
 		props.DefaultToOAuthAuthentication = pointer.To(d.Get("default_to_oauth_authentication").(bool))
 	}
-	if d.HasChange("enable_https_traffic_only") {
-		props.SupportsHTTPSTrafficOnly = pointer.To(d.Get("enable_https_traffic_only").(bool))
+
+	if d.HasChange("https_traffic_only_enabled") {
+		props.SupportsHTTPSTrafficOnly = pointer.To(d.Get("https_traffic_only_enabled").(bool))
 	}
+	if !features.FourPointOhBeta() {
+		if d.HasChange("enable_https_traffic_only") {
+			props.SupportsHTTPSTrafficOnly = pointer.To(d.Get("enable_https_traffic_only").(bool))
+		}
+	}
+
 	if d.HasChange("large_file_share_enabled") {
 		// largeFileSharesState can only be set to `Enabled` and not `Disabled`, even if it is currently `Disabled`
 		if oldValue, newValue := d.GetChange("large_file_share_enabled"); oldValue.(bool) && !newValue.(bool) {
@@ -2093,7 +2120,10 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 				return fmt.Errorf("setting `azure_files_authentication`: %+v", err)
 			}
 			d.Set("cross_tenant_replication_enabled", pointer.From(props.AllowCrossTenantReplication))
-			d.Set("enable_https_traffic_only", pointer.From(props.SupportsHTTPSTrafficOnly))
+			d.Set("https_traffic_only_enabled", pointer.From(props.SupportsHTTPSTrafficOnly))
+			if !features.FourPointOhBeta() {
+				d.Set("enable_https_traffic_only", pointer.From(props.SupportsHTTPSTrafficOnly))
+			}
 			d.Set("is_hns_enabled", pointer.From(props.IsHnsEnabled))
 			d.Set("nfsv3_enabled", pointer.From(props.IsNfsV3Enabled))
 			d.Set("primary_location", pointer.From(props.PrimaryLocation))

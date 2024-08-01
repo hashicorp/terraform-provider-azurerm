@@ -633,6 +633,10 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 			d.Set("primary_location", location.NormalizeNilable(props.PrimaryLocation))
 			d.Set("secondary_location", location.NormalizeNilable(props.SecondaryLocation))
 
+			if !features.FourPointOhBeta() {
+				d.Set("enable_https_traffic_only", pointer.From(props.SupportsHTTPSTrafficOnly))
+			}
+
 			// Setting the encryption key type to "Service" in PUT. The following GET will not return the queue/table in the service list of its response.
 			// So defaults to setting the encryption key type to "Service" if it is absent in the GET response. Also, define the default value as "Service" in the schema.
 			infrastructureEncryption := false

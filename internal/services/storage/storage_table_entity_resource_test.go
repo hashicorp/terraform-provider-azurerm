@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/table/entities"
@@ -51,6 +52,10 @@ func TestAccTableEntity_basicAzureADAuth(t *testing.T) {
 
 func TestAccTableEntity_basicDeprecated(t *testing.T) {
 	// TODO: remove test in v4.0
+	if features.FourPointOhBeta() {
+		t.Skip("test not applicable in v4.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_storage_table_entity", "test")
 	r := StorageTableEntityResource{}
 
@@ -67,6 +72,10 @@ func TestAccTableEntity_basicDeprecated(t *testing.T) {
 
 func TestAccTableEntity_migrateStorageTableId(t *testing.T) {
 	// TODO: remove test in v4.0
+	if features.FourPointOhBeta() {
+		t.Skip("test not applicable in v4.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_storage_table_entity", "test")
 	r := StorageTableEntityResource{}
 

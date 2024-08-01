@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -19,6 +20,9 @@ import (
 type AssetFilterResource struct{}
 
 func TestAccAssetFilter_basic(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("The `azurerm_media_asset_filter` resource is deprecated and will be removed in v4.0 of the AzureRM Provider.")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_media_asset_filter", "test")
 	r := AssetFilterResource{}
 
@@ -34,6 +38,9 @@ func TestAccAssetFilter_basic(t *testing.T) {
 }
 
 func TestAccAssetFilter_requiresImport(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("The `azurerm_media_asset_filter` resource is deprecated and will be removed in v4.0 of the AzureRM Provider.")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_media_asset_filter", "test")
 	r := AssetFilterResource{}
 
@@ -49,6 +56,9 @@ func TestAccAssetFilter_requiresImport(t *testing.T) {
 }
 
 func TestAccAssetFilter_complete(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("The `azurerm_media_asset_filter` resource is deprecated and will be removed in v4.0 of the AzureRM Provider.")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_media_asset_filter", "test")
 	r := AssetFilterResource{}
 
@@ -64,6 +74,9 @@ func TestAccAssetFilter_complete(t *testing.T) {
 }
 
 func TestAccAssetFilter_update(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("The `azurerm_media_asset_filter` resource is deprecated and will be removed in v4.0 of the AzureRM Provider.")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_media_asset_filter", "test")
 	r := AssetFilterResource{}
 

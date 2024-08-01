@@ -124,6 +124,7 @@ func TestAccLinuxWebApp_completeUpdated(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.always_on").HasValue("true"),
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
@@ -1979,19 +1980,20 @@ resource "azurerm_linux_web_app" "test" {
       "third.aspx",
       "hostingstart.html",
     ]
-    http2_enabled               = true
-    scm_use_main_ip_restriction = true
-    local_mysql_enabled         = true
-    managed_pipeline_mode       = "Integrated"
-    remote_debugging_enabled    = true
-    remote_debugging_version    = "VS2022"
-    use_32_bit_worker           = false
-    websockets_enabled          = true
-    ftps_state                  = "FtpsOnly"
-    health_check_path           = "/health"
-    worker_count                = 1
-    minimum_tls_version         = "1.1"
-    scm_minimum_tls_version     = "1.1"
+    http2_enabled                     = true
+    scm_use_main_ip_restriction       = true
+    local_mysql_enabled               = true
+    managed_pipeline_mode             = "Integrated"
+    remote_debugging_enabled          = true
+    remote_debugging_version          = "VS2022"
+    use_32_bit_worker                 = false
+    websockets_enabled                = true
+    ftps_state                        = "FtpsOnly"
+    health_check_path                 = "/health"
+    health_check_eviction_time_in_min = 7
+    worker_count                      = 1
+    minimum_tls_version               = "1.1"
+    scm_minimum_tls_version           = "1.1"
 
     cors {
       allowed_origins = [
@@ -2157,11 +2159,11 @@ resource "azurerm_linux_web_app" "test" {
     local_mysql_enabled               = false
     managed_pipeline_mode             = "Integrated"
     remote_debugging_enabled          = true
-    remote_debugging_version          = "VS2017"
+    remote_debugging_version          = "VS2022"
     websockets_enabled                = true
     ftps_state                        = "FtpsOnly"
     health_check_path                 = "/health2"
-    health_check_eviction_time_in_min = 7
+    health_check_eviction_time_in_min = 8
     worker_count                      = 2
     minimum_tls_version               = "1.2"
     scm_minimum_tls_version           = "1.2"

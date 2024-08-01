@@ -9,6 +9,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/policyinsights/2021-10-01/remediations"
@@ -23,6 +24,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceArmManagementGroupPolicyRemediation() *pluginsdk.Resource {
@@ -150,8 +152,36 @@ func resourceArmManagementGroupPolicyRemediationCreateUpdate(d *pluginsdk.Resour
 		}
 	}
 
-	parameters := remediations.Remediation{
-		Properties: readRemediationProperties(d),
+	var parameters remediations.Remediation
+
+	if !features.FourPointOhBeta() {
+		parameters = remediations.Remediation{
+			Properties: readRemediationProperties(d),
+		}
+	} else {
+		props := &remediations.RemediationProperties{
+			Filters: &remediations.RemediationFilters{
+				Locations: utils.ExpandStringSlice(d.Get("location_filters").([]interface{})),
+			},
+			PolicyAssignmentId:          pointer.To(d.Get("policy_assignment_id").(string)),
+			PolicyDefinitionReferenceId: pointer.To(d.Get("policy_definition_reference_id").(string)),
+		}
+
+		if v := d.Get("failure_percentage").(float64); v != 0 {
+			props.FailureThreshold = &remediations.RemediationPropertiesFailureThreshold{
+				Percentage: pointer.To(v),
+			}
+		}
+		if v := d.Get("parallel_deployments").(int); v != 0 {
+			props.ParallelDeployments = pointer.To(int64(v))
+		}
+		if v := d.Get("resource_count").(int); v != 0 {
+			props.ResourceCount = pointer.To(int64(v))
+		}
+
+		parameters = remediations.Remediation{
+			Properties: props,
+		}
 	}
 
 	if _, err := client.CreateOrUpdateAtManagementGroup(ctx, id, parameters); err != nil {
@@ -187,7 +217,30 @@ func resourceArmManagementGroupPolicyRemediationRead(d *pluginsdk.ResourceData, 
 	managementGroupID := managmentGroupParse.NewManagementGroupId(id.ManagementGroupId)
 	d.Set("management_group_id", managementGroupID.ID())
 
-	return setRemediationProperties(d, resp.Model.Properties)
+	if !features.FourPointOhBeta() {
+		return setRemediationProperties(d, resp.Model.Properties)
+	}
+
+	if props := resp.Model.Properties; props != nil {
+		locations := make([]interface{}, 0)
+		if filters := props.Filters; filters != nil {
+			locations = utils.FlattenStringSlice(filters.Locations)
+		}
+		if err := d.Set("location_filters", locations); err != nil {
+			return fmt.Errorf("setting `location_filters`: %+v", err)
+		}
+
+		d.Set("policy_assignment_id", props.PolicyAssignmentId)
+		d.Set("policy_definition_reference_id", props.PolicyDefinitionReferenceId)
+
+		d.Set("resource_count", props.ResourceCount)
+		d.Set("parallel_deployments", props.ParallelDeployments)
+		if props.FailureThreshold != nil {
+			d.Set("failure_percentage", props.FailureThreshold.Percentage)
+		}
+	}
+
+	return nil
 }
 
 func resourceArmManagementGroupPolicyRemediationDelete(d *pluginsdk.ResourceData, meta interface{}) error {

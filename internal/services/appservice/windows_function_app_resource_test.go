@@ -743,21 +743,6 @@ func TestAccWindowsFunctionApp_dailyTimeQuotaElasticPremiumPlan(t *testing.T) {
 	})
 }
 
-func TestAccWindowsFunctionApp_healthCheckPath(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_windows_function_app", "test")
-	r := WindowsFunctionAppResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.healthCheckPath(data, "S1"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("site_credential.0.password"),
-	})
-}
-
 func TestAccWindowsFunctionApp_healthCheckPathWithEviction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_function_app", "test")
 	r := WindowsFunctionAppResource{}
@@ -2219,10 +2204,11 @@ resource "azurerm_windows_function_app" "test" {
       }
     }
 
-    use_32_bit_worker  = false
-    websockets_enabled = true
-    ftps_state         = "FtpsOnly"
-    health_check_path  = "/health-check"
+    use_32_bit_worker                 = false
+    websockets_enabled                = true
+    ftps_state                        = "FtpsOnly"
+    health_check_path                 = "/health-check"
+    health_check_eviction_time_in_min = 7
 
     application_stack {
       powershell_core_version = "7"
@@ -2382,7 +2368,7 @@ resource "azurerm_windows_function_app" "test" {
     load_balancing_mode       = "LeastResponseTime"
     pre_warmed_instance_count = 2
     remote_debugging_enabled  = true
-    remote_debugging_version  = "VS2017"
+    remote_debugging_version  = "VS2022"
 
     scm_ip_restriction {
       ip_address = "10.20.20.20/32"
@@ -2410,11 +2396,12 @@ resource "azurerm_windows_function_app" "test" {
       }
     }
 
-    use_32_bit_worker  = true
-    websockets_enabled = true
-    ftps_state         = "FtpsOnly"
-    health_check_path  = "/health-check"
-    worker_count       = 3
+    use_32_bit_worker                 = true
+    websockets_enabled                = true
+    ftps_state                        = "FtpsOnly"
+    health_check_path                 = "/health-check"
+    health_check_eviction_time_in_min = 7
+    worker_count                      = 3
 
     minimum_tls_version     = "1.1"
     scm_minimum_tls_version = "1.1"
@@ -2526,7 +2513,7 @@ resource "azurerm_windows_function_app" "test" {
     load_balancing_mode       = "LeastResponseTime"
     pre_warmed_instance_count = 2
     remote_debugging_enabled  = true
-    remote_debugging_version  = "VS2017"
+    remote_debugging_version  = "VS2022"
 
     scm_ip_restriction {
       ip_address = "10.20.20.20/32"
@@ -2554,11 +2541,12 @@ resource "azurerm_windows_function_app" "test" {
       }
     }
 
-    use_32_bit_worker  = true
-    websockets_enabled = true
-    ftps_state         = "FtpsOnly"
-    health_check_path  = "/health-check"
-    worker_count       = 3
+    use_32_bit_worker                 = true
+    websockets_enabled                = true
+    ftps_state                        = "FtpsOnly"
+    health_check_path                 = "/health-check"
+    health_check_eviction_time_in_min = 7
+    worker_count                      = 3
 
     minimum_tls_version     = "1.1"
     scm_minimum_tls_version = "1.1"
@@ -2734,30 +2722,6 @@ resource "azurerm_windows_function_app" "test" {
   site_config {}
 }
 `, r.template(data, planSku), data.RandomInteger, quota)
-}
-
-func (r WindowsFunctionAppResource) healthCheckPath(data acceptance.TestData, planSku string) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_windows_function_app" "test" {
-  name                = "acctest-WFA-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
-
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
-
-  site_config {
-    health_check_path = "/health"
-  }
-}
-`, r.template(data, planSku), data.RandomInteger)
 }
 
 func (r WindowsFunctionAppResource) healthCheckPathWithEviction(data acceptance.TestData, planSku string) string {

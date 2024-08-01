@@ -28,7 +28,6 @@ func TestAccMonitorDiagnosticSetting_eventhub(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("eventhub_name").Exists(),
 				check.That(data.ResourceName).Key("eventhub_authorization_rule_id").Exists(),
-				check.That(data.ResourceName).Key("log.#").HasValue("2"),
 				check.That(data.ResourceName).Key("metric.#").HasValue("1"),
 			),
 		},
@@ -46,7 +45,7 @@ func TestAccMonitorDiagnosticSetting_CategoryGroup(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("eventhub_name").Exists(),
 				check.That(data.ResourceName).Key("eventhub_authorization_rule_id").Exists(),
-				check.That(data.ResourceName).Key("log.#").HasValue("2"),
+				check.That(data.ResourceName).Key("enabled_log.#").HasValue("1"),
 				check.That(data.ResourceName).Key("metric.#").HasValue("1"),
 			),
 		},
@@ -82,7 +81,6 @@ func TestAccMonitorDiagnosticSetting_logAnalyticsWorkspace(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("log_analytics_workspace_id").Exists(),
-				check.That(data.ResourceName).Key("log.#").HasValue("2"),
 				check.That(data.ResourceName).Key("metric.#").HasValue("1"),
 			),
 		},
@@ -115,7 +113,6 @@ func TestAccMonitorDiagnosticSetting_partnerSolution(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("partner_solution_id").Exists(),
-				check.That(data.ResourceName).Key("log.#").HasValue("2"),
 				check.That(data.ResourceName).Key("metric.#").HasValue("1"),
 			),
 		},
@@ -133,7 +130,6 @@ func TestAccMonitorDiagnosticSetting_storageAccount(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("storage_account_id").Exists(),
-				check.That(data.ResourceName).Key("log.#").HasValue("2"),
 				check.That(data.ResourceName).Key("metric.#").HasValue("1"),
 			),
 		},

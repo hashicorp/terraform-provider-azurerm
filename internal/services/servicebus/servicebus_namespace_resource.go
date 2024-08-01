@@ -182,7 +182,7 @@ func resourceServiceBusNamespace() *pluginsdk.Resource {
 			"network_rule_set": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: !features.FourPointOhBeta(),
+				Computed: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
