@@ -437,7 +437,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
   managed_rules {
     managed_rule_set {
       type    = "OWASP"
-      version = "3.1"
+      version = "3.2"
     }
   }
 
@@ -883,7 +883,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
   managed_rules {
     managed_rule_set {
       type    = "OWASP"
-      version = "3.1"
+      version = "3.2"
 
       rule_group_override {
         disabled_rules = [
