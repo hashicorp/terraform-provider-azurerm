@@ -38,6 +38,7 @@ type StaticWebAppDataSourceModel struct {
 	DefaultHostName     string                                     `tfschema:"default_host_name"`
 	Identity            []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 	PreviewEnvironments bool                                       `tfschema:"preview_environments_enabled"`
+	PublicNetworkAccess bool                                       `tfschema:"public_network_access_enabled"`
 	SkuTier             string                                     `tfschema:"sku_tier"`
 	SkuSize             string                                     `tfschema:"sku_size"`
 	Tags                map[string]string                          `tfschema:"tags"`
@@ -66,6 +67,11 @@ func (s StaticWebAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"preview_environments_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
+
+		"public_network_access_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Computed: true,
 		},
@@ -151,6 +157,7 @@ func (s StaticWebAppDataSource) Read() sdk.ResourceFunc {
 					state.ConfigFileChanges = pointer.From(props.AllowConfigFileUpdates)
 					state.DefaultHostName = pointer.From(props.DefaultHostname)
 					state.PreviewEnvironments = pointer.From(props.StagingEnvironmentPolicy) == staticsites.StagingEnvironmentPolicyEnabled
+					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
 				}
 
 				if sku := model.Sku; sku != nil {
