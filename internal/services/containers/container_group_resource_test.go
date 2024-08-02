@@ -2182,7 +2182,7 @@ resource "azurerm_container_group" "test" {
 
   init_container {
     name     = "init"
-    image    = "busybox"
+    image    = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     commands = ["touch", "/sharedempty/file.txt"]
 
     volume {
@@ -2286,7 +2286,7 @@ resource "azurerm_container_group" "test" {
 
   init_container {
     name     = "init"
-    image    = "busybox"
+    image    = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     commands = ["echo", "hello from init"]
     secure_environment_variables = {
       PASSWORD = "something_very_secure_for_init"
