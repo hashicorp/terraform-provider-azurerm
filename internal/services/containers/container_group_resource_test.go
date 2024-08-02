@@ -839,7 +839,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "ubuntu:20.04"
+    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -879,7 +879,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "ubuntu:20.04"
+    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -930,7 +930,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "ubuntu:20.04"
+    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu    = "0.5"
     memory = "0.5"
     liveness_probe {
@@ -973,7 +973,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "ubuntu:20.04"
+    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu    = "0.5"
     memory = "0.5"
   }
@@ -1009,7 +1009,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "ubuntu:20.04"
+    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu    = "0.5"
     memory = "0.5"
   }
@@ -1054,7 +1054,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "ubuntu:20.04"
+    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -1123,7 +1123,7 @@ resource "azurerm_container_group" "test" {
   os_type             = "Linux"
   container {
     name   = "hw"
-    image  = "ubuntu:20.04"
+    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -1173,7 +1173,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "ubuntu:20.04"
+    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -1216,7 +1216,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "ubuntu:20.04"
+    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -1257,7 +1257,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "ubuntu:20.04"
+    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -1297,7 +1297,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "ubuntu:20.04"
+    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -1327,7 +1327,7 @@ resource "azurerm_container_group" "import" {
 
   container {
     name   = "hw"
-    image  = "ubuntu:20.04"
+    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -1363,7 +1363,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "ubuntu:20.04"
+    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -1418,7 +1418,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "ubuntu:20.04"
+    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu    = "0.5"
     memory = "0.5"
 
@@ -1474,7 +1474,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "ubuntu:20.04"
+    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -1516,7 +1516,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "ubuntu:20.04"
+    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu    = "0.5"
     memory = "0.5"
 
@@ -1573,7 +1573,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "ubuntu:20.04"
+    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu    = "0.5"
     memory = "0.5"
 
@@ -1637,7 +1637,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "ubuntu:20.04"
+    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -1705,7 +1705,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "ubuntu:20.04"
+    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -1759,7 +1759,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "ubuntu:20.04"
+    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -2016,19 +2016,8 @@ resource "azurerm_container_group" "test" {
       protocol = "TCP"
     }
 
-    gpu {
-      count = 1
-      sku   = "V100"
-    }
-
     cpu_limit    = "1"
     memory_limit = "1.5"
-
-    gpu_limit {
-      count = 1
-      sku   = "V100"
-    }
-
 
     volume {
       name       = "logs"
@@ -2282,7 +2271,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "reader"
-    image  = "ubuntu:20.04"
+    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu    = "1"
     memory = "1.5"
 
@@ -2320,7 +2309,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name     = "writer"
-    image    = "ubuntu:20.04"
+    image    = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu      = "1"
     memory   = "1.5"
     commands = ["touch", "/sharedempty/file.txt"]
@@ -2335,7 +2324,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "reader"
-    image  = "ubuntu:20.04"
+    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu    = "1"
     memory = "1.5"
 
@@ -2382,7 +2371,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "ubuntu:20.04"
+    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu    = "1"
     memory = "1.5"
 
@@ -2415,7 +2404,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "ubuntu:20.04"
+    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -2480,7 +2469,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hello-world"
-    image  = "ubuntu:20.04"
+    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu    = "0.5"
     memory = "1.5"
 
@@ -2589,7 +2578,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "ubuntu:20.04"
+    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -2690,7 +2679,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "ubuntu:20.04"
+    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -2730,7 +2719,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "ubuntu:20.04"
+    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -2765,7 +2754,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "ubuntu:20.04"
+    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
