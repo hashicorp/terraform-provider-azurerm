@@ -57,10 +57,11 @@ func resourceArcKubernetesCluster() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"agent_public_key_certificate": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				ForceNew:      true,
-				ValidateFunc:  azValidate.Base64EncodedString,
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: azValidate.Base64EncodedString,
+				// agentPublicKeyCertificate input must be empty for Connected Cluster of Kind: Provisioned Cluster
 				ConflictsWith: []string{"kind"},
 			},
 
@@ -69,9 +70,10 @@ func resourceArcKubernetesCluster() *pluginsdk.Resource {
 			"location": commonschema.Location(),
 
 			"kind": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				ForceNew:      true,
+				ConflictsWith: []string{"agent_public_key_certificate"},
 				ValidateFunc: validation.StringInSlice([]string{
 					string(arckubernetes.ConnectedClusterKindProvisionedCluster),
 				}, false),
