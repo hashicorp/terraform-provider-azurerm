@@ -6,6 +6,7 @@ package cognitive_test
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"os"
 	"testing"
 
@@ -14,13 +15,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type AzureAIServicesResource struct{}
 
 func TestAccCognitiveAzureAIServices_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_azure_ai_services", "test")
+	data := acceptance.BuildTestData(t, "azurerm_ai_services", "test")
 	r := AzureAIServicesResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -38,7 +38,7 @@ func TestAccCognitiveAzureAIServices_basic(t *testing.T) {
 }
 
 func TestAccCognitiveAzureAIServices_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_azure_ai_services", "test")
+	data := acceptance.BuildTestData(t, "azurerm_ai_services", "test")
 	r := AzureAIServicesResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -50,13 +50,13 @@ func TestAccCognitiveAzureAIServices_requiresImport(t *testing.T) {
 		},
 		{
 			Config:      r.requiresImport(data),
-			ExpectError: acceptance.RequiresImportError("azurerm_azure_ai_services"),
+			ExpectError: acceptance.RequiresImportError("azurerm_ai_services"),
 		},
 	})
 }
 
 func TestAccCognitiveAzureAIServices_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_azure_ai_services", "test")
+	data := acceptance.BuildTestData(t, "azurerm_ai_services", "test")
 	r := AzureAIServicesResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -75,7 +75,7 @@ func TestAccCognitiveAzureAIServices_complete(t *testing.T) {
 }
 
 func TestAccCognitiveAzureAIServices_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_azure_ai_services", "test")
+	data := acceptance.BuildTestData(t, "azurerm_ai_services", "test")
 	r := AzureAIServicesResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -101,30 +101,8 @@ func TestAccCognitiveAzureAIServices_update(t *testing.T) {
 	})
 }
 
-func TestAccCognitiveAzureAIServices_networkACLsVirtualNetworkRules(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_azure_ai_services", "test")
-	r := AzureAIServicesResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.networkACLsVirtualNetworkRules(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.networkACLsVirtualNetworkRulesUpdated(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccCognitiveAzureAIServices_networkACLs(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_azure_ai_services", "test")
+	data := acceptance.BuildTestData(t, "azurerm_ai_services", "test")
 	r := AzureAIServicesResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -146,7 +124,7 @@ func TestAccCognitiveAzureAIServices_networkACLs(t *testing.T) {
 }
 
 func TestAccCognitiveAzureAIServices_identity(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_azure_ai_services", "test")
+	data := acceptance.BuildTestData(t, "azurerm_ai_services", "test")
 	r := AzureAIServicesResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -185,25 +163,8 @@ func TestAccCognitiveAzureAIServices_identity(t *testing.T) {
 	})
 }
 
-func TestAccCognitiveAzureAIServices_customerManagedKey(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_azure_ai_services", "test")
-	r := AzureAIServicesResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.customerManagedKey(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("customer_managed_key.0.key_vault_key_id").Exists(),
-				check.That(data.ResourceName).Key("customer_managed_key.0.identity_client_id").IsUUID(),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccCognitiveAzureAIServices_customerManagedKey_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_azure_ai_services", "test")
+	data := acceptance.BuildTestData(t, "azurerm_ai_services", "test")
 	r := AzureAIServicesResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -240,7 +201,7 @@ func TestAccCognitiveAzureAIServices_KVHsmManagedKey(t *testing.T) {
 		t.Skip("Skipping as ARM_TEST_HSM_KEY is not specified")
 		return
 	}
-	data := acceptance.BuildTestData(t, "azurerm_azure_ai_services", "test")
+	data := acceptance.BuildTestData(t, "azurerm_ai_services", "test")
 	r := AzureAIServicesResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -267,7 +228,7 @@ func (AzureAIServicesResource) Exists(ctx context.Context, clients *clients.Clie
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (AzureAIServicesResource) basic(data acceptance.TestData) string {
@@ -281,7 +242,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_azure_ai_services" "test" {
+resource "azurerm_ai_services" "test" {
   name                = "acctestcogacc-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -301,7 +262,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_azure_ai_services" "test" {
+resource "azurerm_ai_services" "test" {
   name                = "acctestcogacc-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -330,7 +291,7 @@ resource "azurerm_user_assigned_identity" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_azure_ai_services" "test" {
+resource "azurerm_ai_services" "test" {
   name                = "acctestcogacc-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -362,7 +323,7 @@ resource "azurerm_user_assigned_identity" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_azure_ai_services" "test" {
+resource "azurerm_ai_services" "test" {
   name                = "acctestcogacc-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -382,10 +343,10 @@ func (AzureAIServicesResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_azure_ai_services" "import" {
-  name                = azurerm_azure_ai_services.test.name
-  location            = azurerm_azure_ai_services.test.location
-  resource_group_name = azurerm_azure_ai_services.test.resource_group_name
+resource "azurerm_ai_services" "import" {
+  name                = azurerm_ai_services.test.name
+  location            = azurerm_ai_services.test.location
+  resource_group_name = azurerm_ai_services.test.resource_group_name
   sku_name            = "S0"
 }
 `, template)
@@ -411,12 +372,13 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                     = "acctestkv%[3]s"
-  location                 = azurerm_resource_group.test.location
-  resource_group_name      = azurerm_resource_group.test.name
-  tenant_id                = data.azurerm_client_config.current.tenant_id
-  sku_name                 = "standard"
-  purge_protection_enabled = true
+  name                       = "acctestkv%[3]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  soft_delete_retention_days = 7
+  purge_protection_enabled   = true
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
@@ -472,7 +434,7 @@ resource "azurerm_subnet" "test_b" {
   service_endpoints    = ["Microsoft.CognitiveServices"]
 }
 
-resource "azurerm_azure_ai_services" "test" {
+resource "azurerm_ai_services" "test" {
   name                               = "acctestcogacc-%[1]d"
   location                           = azurerm_resource_group.test.location
   resource_group_name                = azurerm_resource_group.test.name
@@ -515,7 +477,7 @@ func (r AzureAIServicesResource) networkACLs(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_azure_ai_services" "test" {
+resource "azurerm_ai_services" "test" {
   name                  = "acctestcogacc-%d"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
@@ -538,7 +500,7 @@ resource "azurerm_azure_ai_services" "test" {
 func (r AzureAIServicesResource) networkACLsUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
-resource "azurerm_azure_ai_services" "test" {
+resource "azurerm_ai_services" "test" {
   name                  = "acctestcogacc-%d"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
@@ -563,7 +525,7 @@ func (r AzureAIServicesResource) networkACLsVirtualNetworkRules(data acceptance.
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_azure_ai_services" "test" {
+resource "azurerm_ai_services" "test" {
   name                  = "acctestcogacc-%d"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
@@ -588,7 +550,7 @@ resource "azurerm_azure_ai_services" "test" {
 func (r AzureAIServicesResource) networkACLsVirtualNetworkRulesUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
-resource "azurerm_azure_ai_services" "test" {
+resource "azurerm_ai_services" "test" {
   name                  = "acctestcogacc-%d"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
@@ -671,12 +633,13 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                     = "acctestkv%s"
-  location                 = azurerm_resource_group.test.location
-  resource_group_name      = azurerm_resource_group.test.name
-  tenant_id                = data.azurerm_client_config.current.tenant_id
-  sku_name                 = "standard"
-  purge_protection_enabled = true
+  name                       = "acctestkv%s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  soft_delete_retention_days = 7
+  purge_protection_enabled   = true
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
@@ -709,7 +672,7 @@ resource "azurerm_key_vault_key" "test" {
   key_opts     = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
 }
 
-resource "azurerm_azure_ai_services" "test" {
+resource "azurerm_ai_services" "test" {
   name                  = "acctest-cogacc-%d"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
@@ -756,12 +719,13 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                     = "acctestkv%s"
-  location                 = azurerm_resource_group.test.location
-  resource_group_name      = azurerm_resource_group.test.name
-  tenant_id                = data.azurerm_client_config.current.tenant_id
-  sku_name                 = "standard"
-  purge_protection_enabled = true
+  name                       = "acctestkv%s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  soft_delete_retention_days = 7
+  purge_protection_enabled   = true
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
@@ -794,7 +758,7 @@ resource "azurerm_key_vault_key" "test" {
   key_opts     = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
 }
 
-resource "azurerm_azure_ai_services" "test" {
+resource "azurerm_ai_services" "test" {
   name                  = "acctest-cogacc-%d"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
@@ -836,12 +800,13 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                     = "acctestkv%[3]s"
-  location                 = azurerm_resource_group.test.location
-  resource_group_name      = azurerm_resource_group.test.name
-  tenant_id                = data.azurerm_client_config.current.tenant_id
-  sku_name                 = "standard"
-  purge_protection_enabled = true
+  name                       = "acctestkv%[3]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  soft_delete_retention_days = 7
+  purge_protection_enabled   = true
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
@@ -874,7 +839,7 @@ resource "azurerm_key_vault" "test" {
   }
 }
 
-resource "azurerm_azure_ai_services" "test" {
+resource "azurerm_ai_services" "test" {
   name                  = "acctest-cogacc-%[1]d"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name

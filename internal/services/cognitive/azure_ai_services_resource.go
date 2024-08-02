@@ -278,7 +278,7 @@ func (AzureAIServicesResource) ModelObject() interface{} {
 }
 
 func (AzureAIServicesResource) ResourceType() string {
-	return "azurerm_azure_ai_services"
+	return "azurerm_ai_services"
 }
 
 func (AzureAIServicesResource) Create() sdk.ResourceFunc {
@@ -302,7 +302,7 @@ func (AzureAIServicesResource) Create() sdk.ResourceFunc {
 			}
 
 			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError("azurerm_azure_ai_services", id.ID())
+				return tf.ImportAsExistsError("azurerm_ai_services", id.ID())
 			}
 
 			networkACLs, subnetIds := expandAzureAIServicesNetworkACLs(model.NetworkACLs)
@@ -330,7 +330,7 @@ func (AzureAIServicesResource) Create() sdk.ResourceFunc {
 				},
 				Properties: &cognitiveservicesaccounts.AccountProperties{
 					NetworkAcls:                   networkACLs,
-					CustomSubDomainName:           pointer.FromString(model.CustomSubdomainName),
+					CustomSubDomainName:           pointer.To(model.CustomSubdomainName),
 					AllowedFqdnList:               pointer.To(model.Fqdns),
 					PublicNetworkAccess:           pointer.To(cognitiveservicesaccounts.PublicNetworkAccess(model.PublicNetworkAccess)),
 					RestrictOutboundNetworkAccess: pointer.To(model.OutboundNetworkAccessRestricted),
@@ -345,13 +345,8 @@ func (AzureAIServicesResource) Create() sdk.ResourceFunc {
 			}
 			props.Identity = expandIdentity
 
-			future, err := client.AccountsCreate(ctx, id, props)
-			if err != nil {
+			if err := client.AccountsCreateThenPoll(ctx, id, props); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
-			}
-
-			if err := future.Poller.PollUntilDone(ctx); err != nil {
-				return fmt.Errorf("waiting for creating of %s: %+v", id, err)
 			}
 
 			customMangedKey, err := expandAzureAIServicesCustomerManagedKey(model.CustomerManagedKey)
@@ -401,7 +396,6 @@ func (AzureAIServicesResource) Read() sdk.ResourceFunc {
 
 			keys, err := client.AccountsListKeys(ctx, *id)
 			if err != nil {
-				// note for the resource we shouldn't gracefully fail since we have permission to CRUD it
 				return fmt.Errorf("listing the Keys for %s: %+v", id, err)
 			}
 
@@ -421,7 +415,7 @@ func (AzureAIServicesResource) Read() sdk.ResourceFunc {
 
 				identityFlatten, err := identity.FlattenSystemAndUserAssignedMapToModel(model.Identity)
 				if err != nil {
-					return err
+					return fmt.Errorf("flattening `identity`: %+v", err)
 				}
 				state.Identity = *identityFlatten
 
@@ -431,13 +425,8 @@ func (AzureAIServicesResource) Read() sdk.ResourceFunc {
 					state.NetworkACLs = flattenAzureAIServicesNetworkACLs(props.NetworkAcls)
 					state.Fqdns = pointer.From(props.AllowedFqdnList)
 
-					state.PublicNetworkAccess = string(*props.PublicNetworkAccess)
-
-					outboundNetworkAccessRestricted := false
-					if props.RestrictOutboundNetworkAccess != nil {
-						outboundNetworkAccessRestricted = *props.RestrictOutboundNetworkAccess
-					}
-					state.OutboundNetworkAccessRestricted = outboundNetworkAccessRestricted
+					state.PublicNetworkAccess = string(pointer.From(props.PublicNetworkAccess))
+					state.OutboundNetworkAccessRestricted = pointer.From(props.RestrictOutboundNetworkAccess)
 
 					localAuthEnabled := true
 					if props.DisableLocalAuth != nil {
@@ -447,7 +436,7 @@ func (AzureAIServicesResource) Read() sdk.ResourceFunc {
 
 					customerManagedKey, err := flattenAzureAIServicesCustomerManagedKey(props.Encryption, env)
 					if err != nil {
-						return err
+						return fmt.Errorf("flattening `customer_managed_key`: %+v", err)
 					}
 					state.CustomerManagedKey = customerManagedKey
 				}
@@ -474,61 +463,91 @@ func (AzureAIServicesResource) Update() sdk.ResourceFunc {
 
 			id, err := cognitiveservicesaccounts.ParseAccountID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf(" Cannot parse Azure AI service ID: %s", err)
+				return err
 			}
 
-			networkACLs, subnetIds := expandAzureAIServicesNetworkACLs(model.NetworkACLs)
-			locks.MultipleByName(&subnetIds, network.VirtualNetworkResourceName)
-			defer locks.UnlockMultipleByName(&subnetIds, network.VirtualNetworkResourceName)
-
-			// also lock on the Virtual Network ID's since modifications in the networking stack are exclusive
-			virtualNetworkNames := make([]string, 0)
-			for _, v := range subnetIds {
-				subnetId, err := commonids.ParseSubnetIDInsensitively(v)
-				if err != nil {
-					return err
+			resp, err := client.AccountsGet(ctx, *id)
+			if err != nil {
+				if response.WasNotFound(resp.HttpResponse) {
+					return metadata.MarkAsGone(id)
 				}
-				if !utils.SliceContainsValue(virtualNetworkNames, subnetId.VirtualNetworkName) {
-					virtualNetworkNames = append(virtualNetworkNames, subnetId.VirtualNetworkName)
-				}
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			locks.MultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
-			defer locks.UnlockMultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
+			props := resp.Model
+			if metadata.ResourceData.HasChange("network_acls") {
+				networkACLs, subnetIds := expandAzureAIServicesNetworkACLs(model.NetworkACLs)
+				locks.MultipleByName(&subnetIds, network.VirtualNetworkResourceName)
+				defer locks.UnlockMultipleByName(&subnetIds, network.VirtualNetworkResourceName)
 
-			props := cognitiveservicesaccounts.Account{
-				Sku: &cognitiveservicesaccounts.Sku{
+				// also lock on the Virtual Network ID's since modifications in the networking stack are exclusive
+				virtualNetworkNames := make([]string, 0)
+				for _, v := range subnetIds {
+					subnetId, err := commonids.ParseSubnetIDInsensitively(v)
+					if err != nil {
+						return err
+					}
+					if !utils.SliceContainsValue(virtualNetworkNames, subnetId.VirtualNetworkName) {
+						virtualNetworkNames = append(virtualNetworkNames, subnetId.VirtualNetworkName)
+					}
+				}
+
+				locks.MultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
+				defer locks.UnlockMultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
+
+				props.Properties.NetworkAcls = networkACLs
+			}
+
+			if metadata.ResourceData.HasChange("sku_name") {
+				props.Sku = &cognitiveservicesaccounts.Sku{
 					Name: model.SkuName,
-				},
-				Properties: &cognitiveservicesaccounts.AccountProperties{
-					NetworkAcls:                   networkACLs,
-					CustomSubDomainName:           pointer.FromString(model.CustomSubdomainName),
-					AllowedFqdnList:               pointer.To(model.Fqdns),
-					PublicNetworkAccess:           pointer.To(cognitiveservicesaccounts.PublicNetworkAccess(model.PublicNetworkAccess)),
-					RestrictOutboundNetworkAccess: pointer.To(model.OutboundNetworkAccessRestricted),
-					DisableLocalAuth:              pointer.To(!model.LocalAuthorizationEnabled),
-					Encryption: &cognitiveservicesaccounts.Encryption{
-						KeySource: pointer.To(cognitiveservicesaccounts.KeySourceMicrosoftPointCognitiveServices),
-					},
-				},
-				Tags: pointer.To(model.Tags),
+				}
 			}
 
-			customMangedKey, err := expandAzureAIServicesCustomerManagedKey(model.CustomerManagedKey)
-			if err != nil {
-				return fmt.Errorf("expanding `customer_managed_key`: %+v", err)
-			}
-			if customMangedKey != nil {
-				props.Properties.Encryption = customMangedKey
+			if metadata.ResourceData.HasChange("custom_subdomain_name") {
+				props.Properties.CustomSubDomainName = pointer.FromString(model.CustomSubdomainName)
 			}
 
-			expandIdentity, err := identity.ExpandSystemAndUserAssignedMapFromModel(model.Identity)
-			if err != nil {
-				return fmt.Errorf("expanding `identity`: %+v", err)
+			if metadata.ResourceData.HasChange("fqdns") {
+				props.Properties.AllowedFqdnList = pointer.To(model.Fqdns)
 			}
-			props.Identity = expandIdentity
 
-			future, err := client.AccountsUpdate(ctx, *id, props)
+			if metadata.ResourceData.HasChange("public_network_access") {
+				props.Properties.PublicNetworkAccess = pointer.To(cognitiveservicesaccounts.PublicNetworkAccess(model.PublicNetworkAccess))
+			}
+
+			if metadata.ResourceData.HasChange("outbound_network_access_restricted") {
+				props.Properties.RestrictOutboundNetworkAccess = pointer.To(model.OutboundNetworkAccessRestricted)
+			}
+
+			if metadata.ResourceData.HasChange("local_authentication_enabled") {
+				props.Properties.DisableLocalAuth = pointer.To(!model.LocalAuthorizationEnabled)
+			}
+
+			if metadata.ResourceData.HasChange("tags") {
+				props.Tags = pointer.To(model.Tags)
+			}
+
+			if metadata.ResourceData.HasChange("customer_managed_key") {
+				customerManagedKey, err := expandAzureAIServicesCustomerManagedKey(model.CustomerManagedKey)
+				if err != nil {
+					return fmt.Errorf("expanding `customer_managed_key`: %+v", err)
+				}
+
+				if customerManagedKey != nil {
+					props.Properties.Encryption = customerManagedKey
+				}
+			}
+
+			if metadata.ResourceData.HasChange("identity") {
+				expandIdentity, err := identity.ExpandSystemAndUserAssignedMapFromModel(model.Identity)
+				if err != nil {
+					return fmt.Errorf("expanding `identity`: %+v", err)
+				}
+				props.Identity = expandIdentity
+			}
+
+			future, err := client.AccountsUpdate(ctx, *id, *props)
 			if err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
@@ -588,11 +607,12 @@ func (AzureAIServicesResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 
 func expandAzureAIServicesCustomerManagedKey(input []AzureAIServicesCustomerManagedKey) (*cognitiveservicesaccounts.Encryption, error) {
 	if len(input) == 0 {
-		return nil, nil
+		return &cognitiveservicesaccounts.Encryption{
+			KeySource: pointer.To(cognitiveservicesaccounts.KeySourceMicrosoftPointCognitiveServices),
+		}, nil
 	}
 
 	v := input[0]
-	keySource := cognitiveservicesaccounts.KeySourceMicrosoftPointKeyVault
 
 	var identityClientId string
 	if value := v.IdentityClientID; value != "" {
@@ -600,29 +620,29 @@ func expandAzureAIServicesCustomerManagedKey(input []AzureAIServicesCustomerMana
 	}
 
 	encryption := &cognitiveservicesaccounts.Encryption{
-		KeySource: &keySource,
+		KeySource: pointer.To(cognitiveservicesaccounts.KeySourceMicrosoftPointKeyVault),
 		KeyVaultProperties: &cognitiveservicesaccounts.KeyVaultProperties{
-			IdentityClientId: utils.String(identityClientId),
+			IdentityClientId: pointer.To(identityClientId),
 		},
 	}
 
 	if v.KeyVaultKeyID != "" {
 		keyId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(v.KeyVaultKeyID)
 		if err != nil {
-			return nil, fmt.Errorf(" Failed to parse '%s' as Key Vault key ID", keySource)
+			return nil, err
 		}
-		encryption.KeyVaultProperties.KeyName = utils.String(keyId.Name)
-		encryption.KeyVaultProperties.KeyVersion = utils.String(keyId.Version)
-		encryption.KeyVaultProperties.KeyVaultUri = utils.String(keyId.KeyVaultBaseUrl)
+		encryption.KeyVaultProperties.KeyName = pointer.To(keyId.Name)
+		encryption.KeyVaultProperties.KeyVersion = pointer.To(keyId.Version)
+		encryption.KeyVaultProperties.KeyVaultUri = pointer.To(keyId.KeyVaultBaseUrl)
 	} else {
 		hsmKyId, err := managedHsmParse.ManagedHSMDataPlaneVersionedKeyID(v.ManagedHsmKeyID, nil)
 		if err != nil {
-			return nil, fmt.Errorf(" Failed to parse '%s' as Key Vault Managed HSM key ID", hsmKyId)
+			return nil, err
 		}
 
-		encryption.KeyVaultProperties.KeyName = utils.String(hsmKyId.KeyName)
-		encryption.KeyVaultProperties.KeyVersion = utils.String(hsmKyId.KeyVersion)
-		encryption.KeyVaultProperties.KeyVaultUri = utils.String(hsmKyId.BaseUri())
+		encryption.KeyVaultProperties.KeyName = pointer.To(hsmKyId.KeyName)
+		encryption.KeyVaultProperties.KeyVersion = pointer.To(hsmKyId.KeyVersion)
+		encryption.KeyVaultProperties.KeyVaultUri = pointer.To(hsmKyId.BaseUri())
 	}
 	return encryption, nil
 
@@ -708,7 +728,7 @@ func expandAzureAIServicesNetworkACLs(input []AzureAIServicesNetworkACLs) (*cogn
 		subnetIds = append(subnetIds, subnetId)
 		rule := cognitiveservicesaccounts.VirtualNetworkRule{
 			Id:                               subnetId,
-			IgnoreMissingVnetServiceEndpoint: utils.Bool(val.IgnoreMissingVnetServiceEndpoint),
+			IgnoreMissingVnetServiceEndpoint: pointer.To(val.IgnoreMissingVnetServiceEndpoint),
 		}
 		networkRules = append(networkRules, rule)
 	}
