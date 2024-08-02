@@ -357,24 +357,9 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 		return fmt.Errorf("an `eviction_policy` must be specified when `priority` is set to `Spot`")
 	}
 
-	scaleInPolicy := &virtualmachinescalesets.ScaleInPolicy{
-		Rules:         &[]virtualmachinescalesets.VirtualMachineScaleSetScaleInRules{virtualmachinescalesets.VirtualMachineScaleSetScaleInRules(string(virtualmachinescalesets.VirtualMachineScaleSetScaleInRulesDefault))},
-		ForceDeletion: pointer.To(false),
-	}
-
 	if !features.FourPointOhBeta() {
-		if v, ok := d.GetOk("scale_in_policy"); ok {
-			scaleInPolicy.Rules = &[]virtualmachinescalesets.VirtualMachineScaleSetScaleInRules{virtualmachinescalesets.VirtualMachineScaleSetScaleInRules(v.(string))}
-		}
-
 		if v, ok := d.GetOk("terminate_notification"); ok {
 			virtualMachineProfile.ScheduledEventsProfile = ExpandVirtualMachineScaleSetScheduledEventsProfile(v.([]interface{}))
-		}
-	}
-
-	if v, ok := d.GetOk("scale_in"); ok {
-		if v := ExpandVirtualMachineScaleSetScaleInPolicy(v.([]interface{})); v != nil {
-			scaleInPolicy = v
 		}
 	}
 
@@ -410,8 +395,26 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 			// standard VMSS resource, since virtualMachineProfile is now supported
 			// in both VMSS and Orchestrated VMSS...
 			OrchestrationMode: pointer.To(virtualmachinescalesets.OrchestrationModeUniform),
-			ScaleInPolicy:     scaleInPolicy,
 		},
+	}
+
+	if !features.FourPointOhBeta() {
+		scaleInPolicy := &virtualmachinescalesets.ScaleInPolicy{
+			Rules:         &[]virtualmachinescalesets.VirtualMachineScaleSetScaleInRules{virtualmachinescalesets.VirtualMachineScaleSetScaleInRules(string(virtualmachinescalesets.VirtualMachineScaleSetScaleInRulesDefault))},
+			ForceDeletion: pointer.To(false),
+		}
+
+		if v, ok := d.GetOk("scale_in_policy"); ok {
+			scaleInPolicy.Rules = &[]virtualmachinescalesets.VirtualMachineScaleSetScaleInRules{virtualmachinescalesets.VirtualMachineScaleSetScaleInRules(v.(string))}
+		}
+
+		props.Properties.ScaleInPolicy = scaleInPolicy
+	}
+
+	if v, ok := d.GetOk("scale_in"); ok {
+		if v := ExpandVirtualMachineScaleSetScaleInPolicy(v.([]interface{})); v != nil {
+			props.Properties.ScaleInPolicy = v
+		}
 	}
 
 	if v, ok := d.GetOk("host_group_id"); ok {

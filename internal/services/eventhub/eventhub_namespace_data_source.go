@@ -15,12 +15,13 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/authorizationrulesnamespaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2022-01-01-preview/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func EventHubNamespaceDataSource() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Read: EventHubNamespaceDataSourceRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -50,11 +51,6 @@ func EventHubNamespaceDataSource() *pluginsdk.Resource {
 			},
 
 			"auto_inflate_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
-			},
-
-			"zone_redundant": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
@@ -111,6 +107,16 @@ func EventHubNamespaceDataSource() *pluginsdk.Resource {
 			"tags": commonschema.TagsDataSource(),
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["zone_redundant"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Computed:   true,
+			Deprecated: "The `zone_redundant` property has been deprecated and will be removed in v4.0 of the provider.",
+		}
+	}
+
+	return resource
 }
 
 func EventHubNamespaceDataSourceRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -146,8 +152,11 @@ func EventHubNamespaceDataSourceRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("auto_inflate_enabled", props.IsAutoInflateEnabled)
 			d.Set("kafka_enabled", props.KafkaEnabled)
 			d.Set("maximum_throughput_units", int(*props.MaximumThroughputUnits))
-			d.Set("zone_redundant", props.ZoneRedundant)
 			d.Set("dedicated_cluster_id", props.ClusterArmId)
+
+			if !features.FourPointOhBeta() {
+				d.Set("zone_redundant", props.ZoneRedundant)
+			}
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {

@@ -325,14 +325,14 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 			"resource_provider_registrations": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("ARM_RESOURCE_PROVIDER_REGISTRATIONS", "legacy"),
+				DefaultFunc: schema.EnvDefaultFunc("ARM_RESOURCE_PROVIDER_REGISTRATIONS", resourceproviders.ProviderRegistrationsLegacy),
 				Description: "The set of Resource Providers which should be automatically registered for the subscription.",
 				ValidateFunc: validation.StringInSlice([]string{
-					"core",
-					"extended",
-					"all",
-					"none",
-					"legacy",
+					resourceproviders.ProviderRegistrationsCore,
+					resourceproviders.ProviderRegistrationsExtended,
+					resourceproviders.ProviderRegistrationsAll,
+					resourceproviders.ProviderRegistrationsNone,
+					resourceproviders.ProviderRegistrationsLegacy,
 				}, false),
 			},
 
@@ -485,33 +485,22 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 // cloud environment and authentication-related settings, use the providerConfigure function.
 func buildClient(ctx context.Context, p *schema.Provider, d *schema.ResourceData, authConfig *auth.Credentials) (*clients.Client, diag.Diagnostics) {
 	// TODO: This hardcoded default is for v3.x, where `resource_provider_registrations` is not defined. Remove this hardcoded default in v4.0
-	providerRegistrations := "legacy"
+	providerRegistrations := resourceproviders.ProviderRegistrationsLegacy
 	if features.FourPointOhBeta() {
 		providerRegistrations = d.Get("resource_provider_registrations").(string)
 	}
 
 	// TODO: Remove in v5.0
 	if d.Get("skip_provider_registration").(bool) {
-		if providerRegistrations != "legacy" {
+		if providerRegistrations != resourceproviders.ProviderRegistrationsLegacy {
 			return nil, diag.Errorf("provider property `skip_provider_registration` cannot be set at the same time as `resource_provider_registrations`, please remove `skip_provider_registration` from your configuration or unset the `ARM_SKIP_PROVIDER_REGISTRATION` environment variable")
 		}
-		providerRegistrations = "none"
+		providerRegistrations = resourceproviders.ProviderRegistrationsNone
 	}
 
-	requiredResourceProviders := make(resourceproviders.ResourceProviders)
-	switch providerRegistrations {
-	case "core":
-		requiredResourceProviders = resourceproviders.Core()
-	case "extended":
-		requiredResourceProviders = resourceproviders.Extended()
-	case "all":
-		requiredResourceProviders = resourceproviders.All()
-	case "none":
-	// defining this explicitly even though there is nothing to do here
-	case "legacy":
-		requiredResourceProviders = resourceproviders.Legacy()
-	default:
-		return nil, diag.Errorf("unsupported value %q for provider property `resource_provider_registrations`", providerRegistrations)
+	requiredResourceProviders, err := resourceproviders.GetResourceProvidersSet(providerRegistrations)
+	if err != nil {
+		return nil, diag.FromErr(err)
 	}
 
 	if features.FourPointOhBeta() {
@@ -559,6 +548,7 @@ func buildClient(ctx context.Context, p *schema.Provider, d *schema.ResourceData
 
 	if err = resourceproviders.EnsureRegistered(ctx2, client.Resource.ResourceProvidersClient, subscriptionId, requiredResourceProviders); err != nil {
 		return nil, diag.FromErr(err)
+
 	}
 
 	return client, nil

@@ -125,8 +125,8 @@ func TestAccServiceBusTopic_update(t *testing.T) {
 		{
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("enable_batched_operations").HasValue("true"),
-				check.That(data.ResourceName).Key("enable_express").HasValue("true"),
+				check.That(data.ResourceName).Key("batched_operations_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("express_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -148,7 +148,7 @@ func TestAccServiceBusTopic_enablePartitioningStandard(t *testing.T) {
 		{
 			Config: r.enablePartitioningStandard(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("enable_partitioning").HasValue("true"),
+				check.That(data.ResourceName).Key("partitioning_enabled").HasValue("true"),
 				// Ensure size is read back in its original value and not the x16 value returned by Azure
 				check.That(data.ResourceName).Key("max_size_in_megabytes").HasValue("5120"),
 			),
@@ -187,7 +187,7 @@ func TestAccServiceBusTopic_enablePartitioningPremium(t *testing.T) {
 		{
 			Config: r.enablePartitioningPremium(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("enable_partitioning").HasValue("false"),
+				check.That(data.ResourceName).Key("partitioning_enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("max_size_in_megabytes").HasValue("81920"),
 			),
 		},
@@ -357,10 +357,10 @@ resource "azurerm_servicebus_namespace" "test" {
 }
 
 resource "azurerm_servicebus_topic" "test" {
-  name                      = "acctestservicebustopic-%d"
-  namespace_id              = azurerm_servicebus_namespace.test.id
-  enable_batched_operations = true
-  enable_express            = true
+  name                       = "acctestservicebustopic-%d"
+  namespace_id               = azurerm_servicebus_namespace.test.id
+  batched_operations_enabled = true
+  express_enabled            = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -386,9 +386,9 @@ resource "azurerm_servicebus_namespace" "test" {
 }
 
 resource "azurerm_servicebus_topic" "test" {
-  name                = "acctestservicebustopic-%d"
-  namespace_id        = azurerm_servicebus_namespace.test.id
-  enable_partitioning = false
+  name                 = "acctestservicebustopic-%d"
+  namespace_id         = azurerm_servicebus_namespace.test.id
+  partitioning_enabled = false
 
   max_message_size_in_kilobytes = 102400
 }
@@ -416,7 +416,7 @@ resource "azurerm_servicebus_namespace" "test" {
 resource "azurerm_servicebus_topic" "test" {
   name                  = "acctestservicebustopic-%d"
   namespace_id          = azurerm_servicebus_namespace.test.id
-  enable_partitioning   = true
+  partitioning_enabled  = true
   max_size_in_megabytes = 5120
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -445,7 +445,7 @@ resource "azurerm_servicebus_namespace" "test" {
 resource "azurerm_servicebus_topic" "test" {
   name                  = "acctestservicebustopic-%d"
   namespace_id          = azurerm_servicebus_namespace.test.id
-  enable_partitioning   = false
+  partitioning_enabled  = false
   max_size_in_megabytes = 81920
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)

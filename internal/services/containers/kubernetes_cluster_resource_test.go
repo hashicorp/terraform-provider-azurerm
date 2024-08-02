@@ -443,7 +443,7 @@ resource "azurerm_route_table" "test" {
   disable_bgp_route_propagation = false
   route {
     name           = "internal"
-    address_prefix = azurerm_virtual_network.test.address_space[0]
+    address_prefix = tolist(azurerm_virtual_network.test.address_space)[0]
     next_hop_type  = "VnetLocal"
   }
   route {

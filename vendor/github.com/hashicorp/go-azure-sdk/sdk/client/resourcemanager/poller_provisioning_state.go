@@ -143,13 +143,15 @@ func (p *provisioningStatePoller) Poll(ctx context.Context) (*pollers.PollResult
 }
 
 type provisioningStateResult struct {
-	Properties struct {
-		// Some API's (such as Storage) return the Resource Representation from the LRO API, as such we need to check provisioningState
-		ProvisioningState status `json:"provisioningState"`
-	} `json:"properties"`
+	Properties provisioningStateResultProperties `json:"properties"`
 
 	// others return Status, so we check that too
 	Status status `json:"status"`
+}
+
+type provisioningStateResultProperties struct {
+	// Some API's (such as Storage) return the Resource Representation from the LRO API, as such we need to check provisioningState
+	ProvisioningState status `json:"provisioningState"`
 }
 
 func resourceManagerResourcePathFromUri(input string) (*string, error) {

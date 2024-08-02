@@ -296,11 +296,6 @@ resource "azurerm_network_security_group" "hybrid" {
     source_address_prefix      = "*"
     destination_address_prefix = "*"
   }
-
-
-  lifecycle {
-    ignore_changes = [security_rule]
-  }
 }
 
 resource "azurerm_network_interface_security_group_association" "hybrid" {

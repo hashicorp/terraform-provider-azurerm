@@ -957,7 +957,7 @@ func (s *SiteConfigWindows) DecodeDockerAppStack(input map[string]string) {
 
 	registryHost := trimURLScheme(applicationStack.DockerRegistryUrl)
 	dockerString := strings.TrimPrefix(s.WindowsFxVersion, "DOCKER|")
-	applicationStack.DockerImageName = strings.TrimPrefix(dockerString, registryHost)
+	applicationStack.DockerImageName = strings.TrimPrefix(dockerString, registryHost+"/")
 
 	s.ApplicationStack = []ApplicationStackWindows{applicationStack}
 }

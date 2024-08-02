@@ -2024,12 +2024,11 @@ resource "azurerm_storage_blob" "test" {
   source                 = "testdata/sql_import.bacpac"
 }
 
-resource "azurerm_sql_firewall_rule" "test" {
-  name                = "allowazure"
-  resource_group_name = azurerm_resource_group.test.name
-  server_name         = azurerm_mssql_server.test.name
-  start_ip_address    = "0.0.0.0"
-  end_ip_address      = "0.0.0.0"
+resource "azurerm_mssql_firewall_rule" "test" {
+  name             = "allowazure"
+  server_id        = azurerm_mssql_server.test.id
+  start_ip_address = "0.0.0.0"
+  end_ip_address   = "0.0.0.0"
 }
 
 resource "azurerm_mssql_database" "test" {

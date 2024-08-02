@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -22,7 +23,7 @@ import (
 )
 
 func resourceArmLoadBalancerNatRule() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceArmLoadBalancerNatRuleCreateUpdate,
 		Read:   resourceArmLoadBalancerNatRuleRead,
 		Update: resourceArmLoadBalancerNatRuleCreateUpdate,
@@ -131,7 +132,7 @@ func resourceArmLoadBalancerNatRule() *pluginsdk.Resource {
 			"idle_timeout_in_minutes": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Computed:     true,
+				Default:      4,
 				ValidateFunc: validation.IntBetween(4, 30),
 			},
 
@@ -146,6 +147,17 @@ func resourceArmLoadBalancerNatRule() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["idle_timeout_in_minutes"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validation.IntBetween(4, 30),
+		}
+	}
+
+	return resource
 }
 
 func resourceArmLoadBalancerNatRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {

@@ -768,7 +768,7 @@ func TestAccAppServiceSlot_remoteDebugging(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.remote_debugging_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("site_config.0.remote_debugging_version").HasValue("VS2019"),
+				check.That(data.ResourceName).Key("site_config.0.remote_debugging_version").HasValue("VS2022"),
 			),
 		},
 	})
@@ -1036,7 +1036,7 @@ func TestAccAppServiceSlot_windowsPHP7(t *testing.T) {
 			Config: r.windowsPHP(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.php_version").HasValue("7.3"),
+				check.That(data.ResourceName).Key("site_config.0.php_version").HasValue("7.4"),
 			),
 		},
 	})
@@ -3294,7 +3294,7 @@ resource "azurerm_app_service_slot" "test" {
 
   site_config {
     remote_debugging_enabled = true
-    remote_debugging_version = "VS2019"
+    remote_debugging_version = "VS2022"
   }
 
   tags = {
@@ -3429,7 +3429,7 @@ resource "azurerm_app_service_slot" "test" {
   app_service_name    = azurerm_app_service.test.name
 
   site_config {
-    php_version = "7.3"
+    php_version = "7.4"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)

@@ -12,6 +12,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -137,10 +138,16 @@ func schemaAppServiceFunctionAppSiteConfig() *pluginsdk.Schema {
 				},
 
 				"elastic_instance_minimum": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
-					Computed:     true,
-					ValidateFunc: validation.IntBetween(0, 20),
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+					Computed: true,
+					ValidateFunc: func() pluginsdk.SchemaValidateFunc {
+						// 0 is no longer a valid value
+						if features.FourPointOhBeta() {
+							return validation.IntBetween(1, 20)
+						}
+						return validation.IntBetween(0, 20)
+					}(),
 				},
 
 				"app_scale_limit": {
@@ -478,7 +485,7 @@ func expandFunctionAppSiteConfig(d *pluginsdk.ResourceData) (web.SiteConfig, err
 		siteConfig.JavaVersion = utils.String(v.(string))
 	}
 
-	if v, ok := config["elastic_instance_minimum"]; ok {
+	if v, ok := config["elastic_instance_minimum"]; ok && v.(int) > 0 {
 		siteConfig.MinimumElasticInstanceCount = utils.Int32(int32(v.(int)))
 	}
 

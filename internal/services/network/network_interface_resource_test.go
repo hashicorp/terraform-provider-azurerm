@@ -461,12 +461,12 @@ func (r NetworkInterfaceResource) auxiliaryAcceleratedConnections(data acceptanc
 %s
 
 resource "azurerm_network_interface" "test" {
-  name                          = "acctestni-%d"
-  location                      = "%s"
-  resource_group_name           = azurerm_resource_group.test.name
-  auxiliary_mode                = "AcceleratedConnections"
-  auxiliary_sku                 = "A2"
-  enable_accelerated_networking = true
+  name                           = "acctestni-%d"
+  location                       = "%s"
+  resource_group_name            = azurerm_resource_group.test.name
+  auxiliary_mode                 = "AcceleratedConnections"
+  auxiliary_sku                  = "A2"
+  accelerated_networking_enabled = true
 
   ip_configuration {
     name                          = "primary"
@@ -1022,6 +1022,7 @@ resource "azurerm_virtual_network" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   address_space       = ["10.0.0.0/16"]
+
 }
 
 resource "azurerm_subnet" "test" {

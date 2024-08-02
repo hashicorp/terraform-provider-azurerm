@@ -149,7 +149,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		CustomCorrelationRequestID:  builder.CustomCorrelationRequestID,
 		DisableCorrelationRequestID: builder.DisableCorrelationRequestID,
 		DisableTerraformPartnerID:   builder.DisableTerraformPartnerID,
-		SkipProviderReg:             builder.RegisteredResourceProviders == nil,
+		SkipProviderReg:             len(builder.RegisteredResourceProviders) == 0,
 		StorageUseAzureAD:           builder.StorageUseAzureAD,
 
 		ResourceManagerEndpoint: *resourceManagerEndpoint,
