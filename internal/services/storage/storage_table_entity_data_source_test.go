@@ -71,9 +71,9 @@ func (d StorageTableEntityDataSource) basicWithDataSource(data acceptance.TestDa
 %s
 
 data "azurerm_storage_table_entity" "test" {
-  storage_table_name = azurerm_storage_table_entity.test.id
-  partition_key      = azurerm_storage_table_entity.test.partition_key
-  row_key            = azurerm_storage_table_entity.test.row_key
+  storage_table_id = azurerm_storage_table_entity.test.storage_table_id
+  partition_key    = azurerm_storage_table_entity.test.partition_key
+  row_key          = azurerm_storage_table_entity.test.row_key
 }
 `, config)
 }
