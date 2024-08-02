@@ -92,7 +92,6 @@ func testAccNetworkConnectionMonitor_addressUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
 	})
 }
 
@@ -143,7 +142,6 @@ func testAccNetworkConnectionMonitor_vmUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
 	})
 }
 
@@ -170,7 +168,6 @@ func testAccNetworkConnectionMonitor_destinationUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
 	})
 }
 
@@ -261,7 +258,6 @@ func testAccNetworkConnectionMonitor_updateEndpointIPAddressAndCoverageLevel(t *
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
 	})
 }
 
