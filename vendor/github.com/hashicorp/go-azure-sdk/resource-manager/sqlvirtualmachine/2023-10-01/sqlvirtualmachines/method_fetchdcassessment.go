@@ -14,26 +14,29 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type RedeployOperationResponse struct {
+type FetchDCAssessmentOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
 }
 
-// Redeploy ...
-func (c SqlVirtualMachinesClient) Redeploy(ctx context.Context, id SqlVirtualMachineId) (result RedeployOperationResponse, err error) {
+// FetchDCAssessment ...
+func (c SqlVirtualMachinesClient) FetchDCAssessment(ctx context.Context, id SqlVirtualMachineId, input DiskConfigAssessmentRequest) (result FetchDCAssessmentOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
-			http.StatusOK,
 		},
 		HttpMethod: http.MethodPost,
-		Path:       fmt.Sprintf("%s/redeploy", id.ID()),
+		Path:       fmt.Sprintf("%s/fetchDCAssessment", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
 	if err != nil {
+		return
+	}
+
+	if err = req.Marshal(input); err != nil {
 		return
 	}
 
@@ -55,15 +58,15 @@ func (c SqlVirtualMachinesClient) Redeploy(ctx context.Context, id SqlVirtualMac
 	return
 }
 
-// RedeployThenPoll performs Redeploy then polls until it's completed
-func (c SqlVirtualMachinesClient) RedeployThenPoll(ctx context.Context, id SqlVirtualMachineId) error {
-	result, err := c.Redeploy(ctx, id)
+// FetchDCAssessmentThenPoll performs FetchDCAssessment then polls until it's completed
+func (c SqlVirtualMachinesClient) FetchDCAssessmentThenPoll(ctx context.Context, id SqlVirtualMachineId, input DiskConfigAssessmentRequest) error {
+	result, err := c.FetchDCAssessment(ctx, id, input)
 	if err != nil {
-		return fmt.Errorf("performing Redeploy: %+v", err)
+		return fmt.Errorf("performing FetchDCAssessment: %+v", err)
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
-		return fmt.Errorf("polling after Redeploy: %+v", err)
+		return fmt.Errorf("polling after FetchDCAssessment: %+v", err)
 	}
 
 	return nil

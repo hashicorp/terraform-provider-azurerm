@@ -17,8 +17,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2022-02-01/sqlvirtualmachinegroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2022-02-01/sqlvirtualmachines"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2023-10-01/sqlvirtualmachinegroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2023-10-01/sqlvirtualmachines"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
@@ -255,6 +255,24 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  false,
+						},
+					},
+				},
+			},
+
+			// TODO Refer to this as entraID once remaining Entra migration branding occurs?
+			"azureAdAuthenticationSettings": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"clientId": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							// https://learn.microsoft.com/en-us/azure/templates/microsoft.sqlvirtualmachine/sqlvirtualmachines?pivots=deployment-language-bicep#aadauthenticationsettings
+							// For validation notes: An empty string can be used
+							// to refer to the system assigned Managed Identity
 						},
 					},
 				},
@@ -561,6 +579,7 @@ func resourceMsSqlVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta int
 			WsfcDomainCredentials:            expandSqlVirtualMachineWsfcDomainCredentials(d.Get("wsfc_domain_credential").([]interface{})),
 			SqlVirtualMachineGroupResourceId: pointer.To(sqlVmGroupId),
 			ServerConfigurationsManagementSettings: &sqlvirtualmachines.ServerConfigurationsManagementSettings{
+				AzureAdAuthenticationSettings: expandSqlVirtualMachineAzureADAuthSettings(d.Get("azure_ad_authentication").([]interface{})),
 				AdditionalFeaturesServerConfigurations: &sqlvirtualmachines.AdditionalFeaturesServerConfigurations{
 					IsRServicesEnabled: utils.Bool(d.Get("r_services_enabled").(bool)),
 				},
@@ -1156,6 +1175,17 @@ func flattenSqlVirtualMachineAssessmentSettings(assessmentSettings *sqlvirtualma
 			"enabled":         enabled,
 			"schedule":        []interface{}{attr},
 		},
+	}
+}
+
+func expandSqlVirtualMachineAzureADAuthSettings(input []interface{}) *sqlvirtualmachines.AADAuthenticationSettings {
+	if len(input) == 0 {
+		return nil
+	}
+	azureADAuthenticationSetting := input[0].(map[string]interface{})
+
+	return &sqlvirtualmachines.AADAuthenticationSettings{
+		ClientId: utils.String(azureADAuthenticationSetting["client_id"].(string)),
 	}
 }
 
