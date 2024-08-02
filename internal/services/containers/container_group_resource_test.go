@@ -1931,7 +1931,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hf"
-    image  = "seanmckenna/aci-hellofiles"
+    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu    = "1"
     memory = "1.5"
 
