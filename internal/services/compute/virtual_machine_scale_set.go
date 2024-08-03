@@ -374,11 +374,9 @@ func VirtualMachineScaleSetScaleInPolicySchema() *pluginsdk.Schema {
 		}
 	}
 
-	// NOTE: Keeping this O + C in 4.0, in v5.0 this will need to be transitioned into a required field...
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Computed: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -1942,8 +1940,7 @@ func VirtualMachineScaleSetAutomaticRepairsPolicySchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeBool,
 					Required: true,
 				},
-				// NOTE: 'grace_period' and 'action' must be optional + computed because
-				// the API always returns these values once they have been set.
+				// NOTE: O+C 'grace_period' and 'action' will always return a value once they've been set.
 				"grace_period": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
@@ -1970,11 +1967,8 @@ func ExpandVirtualMachineScaleSetAutomaticRepairsPolicy(input []interface{}) *vi
 
 	result := virtualmachinescalesets.AutomaticRepairsPolicy{}
 
-	result.Enabled = utils.Bool(v["enabled"].(bool))
-
-	if v["grace_period"].(string) != "" {
-		result.GracePeriod = utils.String(v["grace_period"].(string))
-	}
+	result.Enabled = pointer.To(v["enabled"].(bool))
+	result.GracePeriod = pointer.To(v["grace_period"].(string))
 
 	if v["action"].(string) != "" {
 		result.RepairAction = pointer.To(virtualmachinescalesets.RepairAction(v["action"].(string)))
@@ -1991,19 +1985,9 @@ func FlattenVirtualMachineScaleSetAutomaticRepairsPolicy(input *virtualmachinesc
 
 	result := make(map[string]interface{})
 
-	if input.Enabled != nil {
-		result["enabled"] = *input.Enabled
-	}
-
-	result["grace_period"] = nil
-	if input.GracePeriod != nil {
-		result["grace_period"] = *input.GracePeriod
-	}
-
-	result["action"] = nil
-	if input.RepairAction != nil {
-		result["action"] = string(*input.RepairAction)
-	}
+	result["enabled"] = pointer.From(input.Enabled)
+	result["grace_period"] = pointer.From(input.GracePeriod)
+	result["action"] = pointer.From(input.RepairAction)
 
 	return append(results, result)
 }
