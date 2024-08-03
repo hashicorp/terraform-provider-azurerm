@@ -698,6 +698,7 @@ func resourceMsSqlVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 				return fmt.Errorf("setting `key_vault_credential`: %+v", err)
 			}
 
+			// TODO Verify AzureADAuthSettings here
 			if mgmtSettings := props.ServerConfigurationsManagementSettings; mgmtSettings != nil {
 				if cfgs := mgmtSettings.AdditionalFeaturesServerConfigurations; cfgs != nil {
 					d.Set("r_services_enabled", mgmtSettings.AdditionalFeaturesServerConfigurations.IsRServicesEnabled)
@@ -707,6 +708,7 @@ func resourceMsSqlVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 					d.Set("sql_connectivity_type", pointer.From(mgmtSettings.SqlConnectivityUpdateSettings.ConnectivityType))
 				}
 
+				d.Set("azure_ad_authentication", flattenSqlVirtualMachineAzureADAuthSettings(mgmtSettings.AzureAdAuthenticationSettings))
 				d.Set("sql_instance", flattenSqlVirtualMachineSQLInstance(mgmtSettings.SqlInstanceSettings))
 			}
 
@@ -1189,6 +1191,18 @@ func expandSqlVirtualMachineAzureADAuthSettings(input []interface{}) *sqlvirtual
 	}
 }
 
+func flattenSqlVirtualMachineAzureADAuthSettings(input *sqlvirtualmachines.AADAuthenticationSettings) []interface{} {
+	if input == nil || input.ClientId == nil {
+		return []interface{}{}
+	}
+	client_id := *input.ClientId
+	return []interface{}{
+		map[string]interface{}{
+			"client_id": client_id,
+		},
+	}
+}
+
 func expandSqlVirtualMachineKeyVaultCredential(input []interface{}) *sqlvirtualmachines.KeyVaultCredentialSettings {
 	if len(input) == 0 {
 		return nil
@@ -1396,6 +1410,7 @@ func flattenSqlVirtualMachineTempDbSettings(input *sqlvirtualmachines.SQLTempDbS
 
 	return []interface{}{attrs}
 }
+
 func expandSqlVirtualMachineSQLInstance(input []interface{}) (*sqlvirtualmachines.SQLInstanceSettings, error) {
 	if len(input) == 0 || input[0] == nil {
 		return &sqlvirtualmachines.SQLInstanceSettings{}, nil
