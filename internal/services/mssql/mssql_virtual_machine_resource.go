@@ -261,18 +261,18 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 			},
 
 			// TODO Refer to this as entraID once remaining Entra migration branding occurs?
-			"azureAdAuthenticationSettings": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
+			// https://learn.microsoft.com/en-us/azure/templates/microsoft.sqlvirtualmachine/sqlvirtualmachines?pivots=deployment-language-bicep#aadauthenticationsettings
+			"azure_ad_authentication": {
+				Type:        pluginsdk.TypeList,
+				Optional:    true,
+				MaxItems:    1,
+				Description: "Azure AD authentication Settings",
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"clientId": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							// https://learn.microsoft.com/en-us/azure/templates/microsoft.sqlvirtualmachine/sqlvirtualmachines?pivots=deployment-language-bicep#aadauthenticationsettings
-							// For validation notes: An empty string can be used
-							// to refer to the system assigned Managed Identity
+						"client_id": {
+							Type:        pluginsdk.TypeString,
+							Description: "The client Id of the Managed Identity to query Microsoft Graph API. An empty string must be used for the system assigned Managed Identity",
+							Required:    true,
 						},
 					},
 				},
@@ -556,6 +556,7 @@ func resourceMsSqlVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta int
 		sqlVmGroupId = parsedVmGroupId.ID()
 	}
 
+	// azureADAuth := expandSqlVirtualMachineAzureADAuthSettings(d.Get("dummy").([]interface{}))
 	sqlInstance, err := expandSqlVirtualMachineSQLInstance(d.Get("sql_instance").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `sql_instance`: %+v", err)
@@ -579,7 +580,7 @@ func resourceMsSqlVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta int
 			WsfcDomainCredentials:            expandSqlVirtualMachineWsfcDomainCredentials(d.Get("wsfc_domain_credential").([]interface{})),
 			SqlVirtualMachineGroupResourceId: pointer.To(sqlVmGroupId),
 			ServerConfigurationsManagementSettings: &sqlvirtualmachines.ServerConfigurationsManagementSettings{
-				AzureAdAuthenticationSettings: expandSqlVirtualMachineAzureADAuthSettings(d.Get("azure_ad_authentication").([]interface{})),
+				// AzureAdAuthenticationSettings: azureADAuth,
 				AdditionalFeaturesServerConfigurations: &sqlvirtualmachines.AdditionalFeaturesServerConfigurations{
 					IsRServicesEnabled: utils.Bool(d.Get("r_services_enabled").(bool)),
 				},
@@ -698,7 +699,6 @@ func resourceMsSqlVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 				return fmt.Errorf("setting `key_vault_credential`: %+v", err)
 			}
 
-			// TODO Verify AzureADAuthSettings here
 			if mgmtSettings := props.ServerConfigurationsManagementSettings; mgmtSettings != nil {
 				if cfgs := mgmtSettings.AdditionalFeaturesServerConfigurations; cfgs != nil {
 					d.Set("r_services_enabled", mgmtSettings.AdditionalFeaturesServerConfigurations.IsRServicesEnabled)
@@ -708,7 +708,8 @@ func resourceMsSqlVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 					d.Set("sql_connectivity_type", pointer.From(mgmtSettings.SqlConnectivityUpdateSettings.ConnectivityType))
 				}
 
-				d.Set("azure_ad_authentication", flattenSqlVirtualMachineAzureADAuthSettings(mgmtSettings.AzureAdAuthenticationSettings))
+				ad_settings := flattenSqlVirtualMachineAzureADAuthSettings(mgmtSettings.AzureAdAuthenticationSettings)
+				d.Set("azure_ad_authentication", ad_settings)
 				d.Set("sql_instance", flattenSqlVirtualMachineSQLInstance(mgmtSettings.SqlInstanceSettings))
 			}
 
@@ -1181,24 +1182,27 @@ func flattenSqlVirtualMachineAssessmentSettings(assessmentSettings *sqlvirtualma
 }
 
 func expandSqlVirtualMachineAzureADAuthSettings(input []interface{}) *sqlvirtualmachines.AADAuthenticationSettings {
-	if len(input) == 0 {
-		return nil
+	if len(input) == 0 || input[0] == nil {
+		return &sqlvirtualmachines.AADAuthenticationSettings{}
 	}
-	azureADAuthenticationSetting := input[0].(map[string]interface{})
+	settings := input[0].(map[string]interface{})
 
 	return &sqlvirtualmachines.AADAuthenticationSettings{
-		ClientId: utils.String(azureADAuthenticationSetting["client_id"].(string)),
+		ClientId: utils.String(settings["client_id"].(string)),
 	}
 }
 
 func flattenSqlVirtualMachineAzureADAuthSettings(input *sqlvirtualmachines.AADAuthenticationSettings) []interface{} {
 	if input == nil || input.ClientId == nil {
-		return []interface{}{}
+		return []interface{}{
+			map[string]interface{}{
+				"client_id": nil,
+			},
+		}
 	}
-	client_id := *input.ClientId
 	return []interface{}{
 		map[string]interface{}{
-			"client_id": client_id,
+			"client_id": *input.ClientId,
 		},
 	}
 }
