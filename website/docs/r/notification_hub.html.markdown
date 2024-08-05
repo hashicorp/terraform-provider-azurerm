@@ -52,6 +52,8 @@ The following arguments are supported:
 
 ~> **NOTE:** Removing the `apns_credential` block will currently force a recreation of this resource [due to this bug in the Azure SDK for Go](https://github.com/Azure/azure-sdk-for-go/issues/2246) - we'll remove this limitation when the SDK bug is fixed.
 
+* `browser_credential` - (Optional) A `browser_credential` block as defined below.
+
 * `gcm_credential` - (Optional) A `gcm_credential` block as defined below.
 
 ~> **NOTE:** Removing the `gcm_credential` block will currently force a recreation of this resource [due to this bug in the Azure SDK for Go](https://github.com/Azure/azure-sdk-for-go/issues/2246) - we'll remove this limitation when the SDK bug is fixed.
@@ -71,6 +73,16 @@ A `apns_credential` block contains:
 * `team_id` - (Required) The ID of the team the Token.
 
 * `token` - (Required) The Push Token associated with the Apple Developer Account. This is the contents of the `key` downloaded from [the Apple Developer Portal](https://developer.apple.com/account/ios/authkey/) between the `-----BEGIN PRIVATE KEY-----` and `-----END PRIVATE KEY-----` blocks.
+
+---
+
+A `browser_credential` block contains:
+
+* `subject` - (Required) The subject name of web push.
+
+* `vapid_private_key` - (Required) The VAPID private key.
+
+* `vapid_public_key` - (Required) The VAPID public key.
 
 ---
 
