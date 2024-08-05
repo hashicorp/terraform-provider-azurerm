@@ -98,7 +98,7 @@ func (r CommunicationServiceEmailDomainAssociationResource) Create() sdk.Resourc
 
 			existingCommunicationService, err := client.Get(ctx, *communicationServiceId)
 			if err != nil && !response.WasNotFound(existingCommunicationService.HttpResponse) {
-				return fmt.Errorf("checking for the presence of existing Communication Service %q: %+v", model.CommunicationServiceId, err)
+				return fmt.Errorf("checking for the presence of existing  %s: %+v", communicationServiceId, err)
 			}
 
 			if response.WasNotFound(existingCommunicationService.HttpResponse) {
