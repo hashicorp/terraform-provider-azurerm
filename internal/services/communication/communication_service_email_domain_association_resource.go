@@ -227,12 +227,12 @@ func (CommunicationServiceEmailDomainAssociationResource) Delete() sdk.ResourceF
 
 			communicationServiceId, err := communicationservices.ParseCommunicationServiceID(model.CommunicationServiceId)
 			if err != nil {
-				return fmt.Errorf("parsing Communication Service ID: %w", err)
+				return err
 			}
 
 			eMailServiceDomainId, err := domains.ParseDomainID(model.EMailServiceDomainId)
 			if err != nil {
-				return fmt.Errorf("parsing EMail Service Domain ID: %w", err)
+				return err
 			}
 
 			locks.ByName(communicationServiceId.CommunicationServiceName, "azurerm_communication_service")
