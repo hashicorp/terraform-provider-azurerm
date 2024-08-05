@@ -59,7 +59,7 @@ func TestAccStackHCINetworkInterface_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.updateTag(data),
+			Config: r.updateTagAgain(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
