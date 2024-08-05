@@ -35,17 +35,17 @@ resource "azurerm_stack_hci_extension" "example" {
   automatic_upgrade_enabled          = false
   type_handler_version               = "1.22.0"
 
-  protected_setting = <<PROTECTED_SETTING
+  protected_settings = <<PROTECTED_SETTINGS
 {
 	"workspaceKey": "${azurerm_log_analytics_workspace.test.primary_shared_key}"
 }
-PROTECTED_SETTING
+PROTECTED_SETTINGS
 
-  setting = <<SETTING
+  settings = <<SETTINGS
 {
 	"workspaceId": "${azurerm_log_analytics_workspace.test.workspace_id}"
 }
-SETTING
+SETTINGS
 }
 ```
 
