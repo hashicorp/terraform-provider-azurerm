@@ -6,7 +6,7 @@ package client
 import (
 	"fmt"
 
-	redis_2023_08_01 "github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-08-01"
+	redis_2023_08_01 "github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-03-01"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )

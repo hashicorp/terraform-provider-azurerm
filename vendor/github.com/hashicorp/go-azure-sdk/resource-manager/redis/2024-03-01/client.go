@@ -1,4 +1,4 @@
-package v2023_08_01
+package v2024_03_01
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -6,12 +6,12 @@ package v2023_08_01
 import (
 	"fmt"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-08-01/aad"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-08-01/firewallrules"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-08-01/patchschedules"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-08-01/privateendpointconnections"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-08-01/privatelinkresources"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-08-01/redis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-03-01/aad"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-03-01/firewallrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-03-01/patchschedules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-03-01/privateendpointconnections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-03-01/privatelinkresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-03-01/redis"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
