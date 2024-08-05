@@ -144,7 +144,7 @@ func resourceImage() *pluginsdk.Resource {
 							ValidateFunc: validate.DiskEncryptionSetID,
 						},
 
-						"storage_account_type": {
+						"storage_type": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ForceNew:     true,
@@ -196,7 +196,7 @@ func resourceImage() *pluginsdk.Resource {
 							ValidateFunc: validation.NoZeroValues,
 						},
 
-						"storage_account_type": {
+						"storage_type": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ForceNew:     true,
@@ -386,7 +386,7 @@ func expandImageOSDisk(input []interface{}) *images.ImageOSDisk {
 			}
 		}
 
-		if storageAccountType := config["storage_account_type"].(string); storageAccountType != "" {
+		if storageAccountType := config["storage_type"].(string); storageAccountType != "" {
 			out.StorageAccountType = pointer.To(images.StorageAccountTypes(storageAccountType))
 		}
 
@@ -421,7 +421,7 @@ func expandImageDataDisks(disks []interface{}) *[]images.ImageDataDisk {
 			item.ManagedDisk = managedDisk
 		}
 
-		if storageAccountType := config["storage_account_type"].(string); storageAccountType != "" {
+		if storageAccountType := config["storage_type"].(string); storageAccountType != "" {
 			item.StorageAccountType = pointer.To(images.StorageAccountTypes(storageAccountType))
 		}
 
@@ -468,7 +468,7 @@ func flattenImageOSDisk(input *images.ImageStorageProfile) []interface{} {
 				"os_state":               string(v.OsState),
 				"size_gb":                diskSizeGB,
 				"disk_encryption_set_id": diskEncryptionSetId,
-				"storage_account_type":   storageAccountType,
+				"storage_type":           storageAccountType,
 			})
 		}
 	}
@@ -503,12 +503,12 @@ func flattenImageDataDisks(input *images.ImageStorageProfile) []interface{} {
 					storageAccountType = string(*disk.StorageAccountType)
 				}
 				output = append(output, map[string]interface{}{
-					"blob_uri":             blobUri,
-					"caching":              caching,
-					"lun":                  int(disk.Lun),
-					"managed_disk_id":      managedDiskId,
-					"size_gb":              diskSizeGb,
-					"storage_account_type": storageAccountType,
+					"blob_uri":        blobUri,
+					"caching":         caching,
+					"lun":             int(disk.Lun),
+					"managed_disk_id": managedDiskId,
+					"size_gb":         diskSizeGb,
+					"storage_type":    storageAccountType,
 				})
 			}
 		}
