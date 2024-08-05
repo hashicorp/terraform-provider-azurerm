@@ -48,6 +48,8 @@ var refreshStep = TestStep{
 func (td TestData) ResourceTest(t *testing.T, testResource types.TestResource, steps []TestStep) {
 	newSteps := make([]TestStep, 0)
 	for index, step := range steps {
+		// Testing framework as of 1.6.0 no longer auto-refreshes state, so adding it back in here for all steps that update
+		// the config rather than having to modify 1000's of tests individually to add a refresh-only step
 		if !step.ImportState && step.Config == "" && step.ConfigDirectory == nil && step.ConfigFile == nil && index != 0 {
 			step.RefreshState = true
 		}
