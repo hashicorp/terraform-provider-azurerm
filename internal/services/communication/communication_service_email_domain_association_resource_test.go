@@ -69,29 +69,35 @@ func TestAccCommunicationServiceEmailDomainAssociationResource_deleted(t *testin
 }
 
 func (r CommunicationServiceEmailDomainAssociationResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	exists := false
-
 	id, err := commonids.ParseCompositeResourceID(state.ID, &communicationservices.CommunicationServiceId{}, &domains.DomainId{})
 	if err != nil {
-		return &exists, fmt.Errorf("parsing ID: %w", err)
+		return pointer.To(false), fmt.Errorf("parsing ID: %w", err)
 	}
 
 	serviceClient := client.Communication.ServiceClient
 	existingCommunicationService, err := serviceClient.Get(ctx, *id.First)
 	if err != nil && !response.WasNotFound(existingCommunicationService.HttpResponse) {
-		return &exists, fmt.Errorf("checking for the presence of existing PrivateEndpoint %q: %+v", id.First, err)
+		return pointer.To(false), fmt.Errorf("checking for the presence of existing %s: %+v", id.First, err)
 	}
 
 	if response.WasNotFound(existingCommunicationService.HttpResponse) {
-		return &exists, fmt.Errorf("PrivateEndpoint %q does not exsits", id.First)
+		return pointer.To(false), fmt.Errorf("%s does not exist", id.First)
 	}
 
 	input := existingCommunicationService
-	if input.Model != nil && input.Model.Properties != nil && input.Model.Properties.LinkedDomains != nil {
-		exists = slices.Contains(*input.Model.Properties.LinkedDomains, id.Second.ID())
+	if input.Model != nil && input.Model.Properties != nil {
+		for _, v := range pointer.From(input.Model.Properties.LinkedDomains) {
+			tmpID, tmpErr := domains.ParseDomainID(v)
+			if tmpErr != nil {
+				return pointer.To(false), fmt.Errorf("parsing domain ID %q from LinkedDomains for %s: %+v", v, id.First, err)
+			}
+			if strings.EqualFold(id.Second.ID(), tmpID.ID()) {
+				return pointer.To(true), nil
+			}
+		}
 	}
 
-	return &exists, nil
+	return pointer.To(false), nil
 }
 
 func (r CommunicationServiceEmailDomainAssociationResource) basic(data acceptance.TestData) string {
