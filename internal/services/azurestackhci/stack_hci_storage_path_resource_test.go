@@ -16,12 +16,6 @@ import (
 
 type StackHCIStoragePathResource struct{}
 
-// https://learn.microsoft.com/en-us/azure-stack/hci/manage/create-logical-networks?tabs=azurecli#prerequisites
-// The resource can only be created on the customlocation generated after HCI deployment
-const (
-	customLocationIdEnv = "ARM_TEST_STACK_HCI_CUSTOM_LOCATION_ID"
-)
-
 func TestAccStackHCIStoragePath_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stack_hci_storage_path", "test")
 	r := StackHCIStoragePathResource{}
