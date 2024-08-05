@@ -46,10 +46,7 @@ func TestAccCommunicationServiceEmailDomainAssociationResource_requiresImport(t 
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		{
-			Config:      r.requiresImport(data),
-			ExpectError: acceptance.RequiresImportError("azurerm_communication_service_email_domain_association"),
-		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
