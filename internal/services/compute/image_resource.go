@@ -175,6 +175,7 @@ func resourceImage() *pluginsdk.Resource {
 
 						"blob_uri": {
 							Type:         pluginsdk.TypeString,
+							Description:  "The type of storage disk",
 							Optional:     true,
 							Computed:     true,
 							ValidateFunc: validation.IsURLWithScheme([]string{"http", "https"}),
