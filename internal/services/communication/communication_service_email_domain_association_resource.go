@@ -108,8 +108,10 @@ func (r CommunicationServiceEmailDomainAssociationResource) Create() sdk.Resourc
 			if existingCommunicationService.Model == nil {
 				return fmt.Errorf("model for %s was nil", communicationServiceId)
 			}
+
 			if existingCommunicationService.Model.Properties == nil {
 				return fmt.Errorf("properties for %s was nil", communicationServiceId)
+			}
 
 			domainList := make([]string, 0)
 			if existingDomainList := existingCommunicationService.Model.Properties.LinkedDomains; existingDomainList != nil {
