@@ -4990,12 +4990,14 @@ resource "azurerm_public_ip" "test" {
   resource_group_name     = azurerm_resource_group.test.name
   allocation_method       = "Dynamic"
   idle_timeout_in_minutes = 4
+  sku = "Basic"
 }
 
 resource "azurerm_lb" "test" {
   name                = "acctestlb-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  sku = "Basic"
 
   frontend_ip_configuration {
     name                 = "PublicIPAddress"
