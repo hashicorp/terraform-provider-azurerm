@@ -253,9 +253,8 @@ func resourceServiceBusSubscriptionCreateUpdate(d *pluginsdk.ResourceData, meta 
 	enableBatchedOperations := d.Get("batched_operations_enabled").(bool)
 	if !features.FourPointOhBeta() {
 
-		// nolint staticcheck
-		if v, ok := d.GetOkExists("enable_batched_operations"); ok {
-			enableBatchedOperations = v.(bool)
+		if v := d.GetRawConfig().AsValueMap()["enable_batched_operations"]; !v.IsNull() {
+			enableBatchedOperations = d.Get("enable_batched_operations").(bool)
 		}
 	}
 

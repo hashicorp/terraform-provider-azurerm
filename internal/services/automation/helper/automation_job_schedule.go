@@ -12,85 +12,9 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/jobschedule"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
-
-func JobScheduleSchema() *pluginsdk.Schema {
-	if !features.FourPointOhBeta() {
-		return &pluginsdk.Schema{
-			Type:       pluginsdk.TypeSet,
-			Optional:   true,
-			Computed:   true,
-			ConfigMode: pluginsdk.SchemaConfigModeAttr,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"schedule_name": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validate.ScheduleName(),
-					},
-
-					"parameters": {
-						Type:     pluginsdk.TypeMap,
-						Optional: true,
-						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeString,
-						},
-						ValidateFunc: validate.ParameterNames,
-					},
-
-					"run_on": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-					},
-
-					"job_schedule_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-				},
-			},
-			Set: resourceAutomationJobScheduleHash,
-		}
-	}
-
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeSet,
-		Optional: true,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"schedule_name": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ValidateFunc: validate.ScheduleName(),
-				},
-
-				"parameters": {
-					Type:     pluginsdk.TypeMap,
-					Optional: true,
-					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeString,
-					},
-					ValidateFunc: validate.ParameterNames,
-				},
-
-				"run_on": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-				},
-
-				"job_schedule_id": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-			},
-		},
-		Set: resourceAutomationJobScheduleHash,
-	}
-}
 
 func ExpandAutomationJobSchedule(input []interface{}, runBookName string) (*map[string]jobschedule.JobScheduleCreateParameters, error) {
 	res := make(map[string]jobschedule.JobScheduleCreateParameters)
@@ -136,7 +60,7 @@ func ExpandAutomationJobSchedule(input []interface{}, runBookName string) (*map[
 
 func FlattenAutomationJobSchedule(jsMap map[uuid.UUID]jobschedule.JobScheduleProperties) *pluginsdk.Set {
 	res := &pluginsdk.Set{
-		F: resourceAutomationJobScheduleHash,
+		F: ResourceAutomationJobScheduleHash,
 	}
 	for jsId, js := range jsMap {
 		var scheduleName, runOn string
@@ -207,6 +131,6 @@ func ResourceAutomationJobScheduleDigest(v interface{}) string {
 	return buf.String()
 }
 
-func resourceAutomationJobScheduleHash(v interface{}) int {
+func ResourceAutomationJobScheduleHash(v interface{}) int {
 	return pluginsdk.HashString(ResourceAutomationJobScheduleDigest(v))
 }

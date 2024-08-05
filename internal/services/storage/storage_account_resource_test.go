@@ -226,7 +226,7 @@ func TestAccStorageAccount_enableHttpsTrafficOnly(t *testing.T) {
 			Config: r.enableHttpsTrafficOnly(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("enable_https_traffic_only").HasValue("true"),
+				check.That(data.ResourceName).Key("https_traffic_only_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -234,7 +234,7 @@ func TestAccStorageAccount_enableHttpsTrafficOnly(t *testing.T) {
 			Config: r.enableHttpsTrafficOnlyDisabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("enable_https_traffic_only").HasValue("false"),
+				check.That(data.ResourceName).Key("https_traffic_only_enabled").HasValue("false"),
 			),
 		},
 	})
@@ -2049,10 +2049,10 @@ resource "azurerm_storage_account" "test" {
   name                = "unlikely23exst2acct%s"
   resource_group_name = azurerm_resource_group.test.name
 
-  location                  = azurerm_resource_group.test.location
-  account_tier              = "Standard"
-  account_replication_type  = "LRS"
-  enable_https_traffic_only = true
+  location                   = azurerm_resource_group.test.location
+  account_tier               = "Standard"
+  account_replication_type   = "LRS"
+  https_traffic_only_enabled = true
 
   tags = {
     environment = "production"
@@ -2076,10 +2076,10 @@ resource "azurerm_storage_account" "test" {
   name                = "unlikely23exst2acct%s"
   resource_group_name = azurerm_resource_group.test.name
 
-  location                  = azurerm_resource_group.test.location
-  account_tier              = "Standard"
-  account_replication_type  = "LRS"
-  enable_https_traffic_only = false
+  location                   = azurerm_resource_group.test.location
+  account_tier               = "Standard"
+  account_replication_type   = "LRS"
+  https_traffic_only_enabled = false
 
   tags = {
     environment = "production"
@@ -2180,10 +2180,6 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-
-  lifecycle {
-    ignore_changes = [subnet]
-  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -2198,13 +2194,13 @@ resource "azurerm_storage_account" "test" {
   name                = "unlikely23exst2acct%s"
   resource_group_name = azurerm_resource_group.test.name
 
-  location                  = azurerm_resource_group.test.location
-  account_tier              = "Premium"
-  account_kind              = "BlockBlobStorage"
-  account_replication_type  = "LRS"
-  is_hns_enabled            = true
-  nfsv3_enabled             = true
-  enable_https_traffic_only = false
+  location                   = azurerm_resource_group.test.location
+  account_tier               = "Premium"
+  account_kind               = "BlockBlobStorage"
+  account_replication_type   = "LRS"
+  is_hns_enabled             = true
+  nfsv3_enabled              = true
+  https_traffic_only_enabled = false
   network_rules {
     default_action             = "Deny"
     virtual_network_subnet_ids = [azurerm_subnet.test.id]
@@ -2576,10 +2572,6 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-
-  lifecycle {
-    ignore_changes = [subnet]
-  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -3009,7 +3001,7 @@ resource "azurerm_storage_account" "test" {
   location                        = azurerm_resource_group.test.location
   account_tier                    = "Standard"
   account_replication_type        = "LRS"
-  enable_https_traffic_only       = true
+  https_traffic_only_enabled      = true
   allow_nested_items_to_be_public = true
 
   blob_properties {
@@ -3444,15 +3436,15 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 resource "azurerm_storage_account" "test" {
-  name                      = "acctestsa%s"
-  resource_group_name       = azurerm_resource_group.test.name
-  location                  = azurerm_resource_group.test.location
-  account_kind              = "BlockBlobStorage"
-  account_tier              = "Premium"
-  account_replication_type  = "LRS"
-  is_hns_enabled            = true
-  min_tls_version           = "TLS1_2"
-  enable_https_traffic_only = true
+  name                       = "acctestsa%s"
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  account_kind               = "BlockBlobStorage"
+  account_tier               = "Premium"
+  account_replication_type   = "LRS"
+  is_hns_enabled             = true
+  min_tls_version            = "TLS1_2"
+  https_traffic_only_enabled = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
@@ -4286,10 +4278,6 @@ resource "azurerm_key_vault" "update" {
   tenant_id                = data.azurerm_client_config.current.tenant_id
   sku_name                 = "standard"
   purge_protection_enabled = true
-
-  lifecycle {
-    ignore_changes = [access_policy]
-  }
 }
 
 resource "azurerm_key_vault_access_policy" "storageupdate" {
@@ -4486,10 +4474,6 @@ resource "azurerm_key_vault" "remotetest" {
   tenant_id                = "%s"
   sku_name                 = "standard"
   purge_protection_enabled = true
-
-  lifecycle {
-    ignore_changes = [access_policy]
-  }
 }
 
 resource "azurerm_key_vault_access_policy" "storage" {

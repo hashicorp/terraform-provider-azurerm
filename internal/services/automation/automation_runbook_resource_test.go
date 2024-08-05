@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -304,6 +303,9 @@ resource "azurerm_automation_runbook" "test" {
       value     = "115775B8FF2BE672D8A946BD0B489918C724DDE15A440373CA54461D53010A80"
     }
   }
+  lifecycle {
+    ignore_changes = [content]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -494,8 +496,7 @@ CONTENT
 }
 
 func (AutomationRunbookResource) withoutJobSchedule(data acceptance.TestData) string {
-	if !features.FourPointOhBeta() {
-		return fmt.Sprintf(`
+	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -539,52 +540,6 @@ param(
 CONTENT
 
   job_schedule = []
-}
-`, data.RandomInteger, data.Locations.Primary)
-	}
-
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_automation_account" "test" {
-  name                = "acctest-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku_name            = "Basic"
-}
-
-resource "azurerm_automation_schedule" "test" {
-  name                    = "acctestAS-%[1]d"
-  resource_group_name     = azurerm_resource_group.test.name
-  automation_account_name = azurerm_automation_account.test.name
-  frequency               = "Week"
-  timezone                = "Etc/UTC"
-}
-
-resource "azurerm_automation_runbook" "test" {
-  name                    = "Get-AzureVMTutorial"
-  location                = azurerm_resource_group.test.location
-  resource_group_name     = azurerm_resource_group.test.name
-  automation_account_name = azurerm_automation_account.test.name
-
-  log_verbose  = "true"
-  log_progress = "true"
-  description  = "This is a test runbook for terraform acceptance test"
-  runbook_type = "PowerShell"
-
-  content = <<CONTENT
-param(
-    [string]$Output = "World",
-  )
-  "Hello, " + $Output + "!"
-CONTENT
 }
 `, data.RandomInteger, data.Locations.Primary)
 }

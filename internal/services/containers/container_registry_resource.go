@@ -1148,9 +1148,11 @@ func resourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"encryption": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
+			Type:       pluginsdk.TypeList,
+			Optional:   true,
+			Computed:   true,
+			ConfigMode: pluginsdk.SchemaConfigModeAttr,
+			MaxItems:   1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"identity_client_id": {
@@ -1170,7 +1172,10 @@ func resourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 		"network_rule_set": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			MaxItems: 1,
+			Computed: true,
+			// ConfigModeAttr ensures we can set this to an empty array for Premium -> Basic
+			ConfigMode: pluginsdk.SchemaConfigModeAttr,
+			MaxItems:   1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"default_action": {
@@ -1184,8 +1189,10 @@ func resourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 					},
 
 					"ip_rule": {
-						Type:     pluginsdk.TypeSet,
-						Optional: true,
+						Type:       pluginsdk.TypeSet,
+						Optional:   true,
+						Computed:   true,
+						ConfigMode: pluginsdk.SchemaConfigModeAttr,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"action": {
@@ -1294,7 +1301,7 @@ func resourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 			Optional:   true,
 			Computed:   true,
 			ConfigMode: pluginsdk.SchemaConfigModeAttr,
-			Deprecated: features.DeprecatedInFourPointOh("The block `retention_policy` will be removed and replace by the property `retention_policy_in_days` in v4.0 of the AzureRM provider"),
+			Deprecated: features.DeprecatedInFourPointOh("The block `retention_policy` will be removed and replaced by the property `retention_policy_in_days` in v4.0 of the AzureRM provider"),
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"days": {
@@ -1316,7 +1323,7 @@ func resourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 			Optional:   true,
 			Computed:   true,
 			ConfigMode: pluginsdk.SchemaConfigModeAttr,
-			Deprecated: features.DeprecatedInFourPointOh("The block `trust_policy` will be removed and replace by the property `trust_policy_enabled` in v4.0 of the AzureRM provider"),
+			Deprecated: features.DeprecatedInFourPointOh("The block `trust_policy` will be removed and replaced by the property `trust_policy_enabled` in v4.0 of the AzureRM provider"),
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"enabled": {

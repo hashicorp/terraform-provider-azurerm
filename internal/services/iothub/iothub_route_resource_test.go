@@ -152,10 +152,6 @@ resource "azurerm_iothub" "test" {
   tags = {
     purpose = "testing"
   }
-
-  lifecycle {
-    ignore_changes = [endpoint, route]
-  }
 }
 
 resource "azurerm_iothub_endpoint_storage_container" "test" {
@@ -221,10 +217,6 @@ resource "azurerm_iothub" "test" {
 
   tags = {
     purpose = "testing"
-  }
-
-  lifecycle {
-    ignore_changes = [endpoint, route]
   }
 }
 

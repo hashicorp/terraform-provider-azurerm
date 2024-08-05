@@ -121,10 +121,6 @@ resource "azurerm_container_registry" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "Premium"
-
-  lifecycle {
-    ignore_changes = [network_rule_set]
-  }
 }
 
 # use system wide scope map for tests
@@ -176,10 +172,6 @@ resource "azurerm_container_registry" "test" {
 
   tags = {
     environment = "production"
-  }
-
-  lifecycle {
-    ignore_changes = [network_rule_set]
   }
 }
 

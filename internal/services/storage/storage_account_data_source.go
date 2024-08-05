@@ -18,13 +18,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/storageaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func dataSourceStorageAccount() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Read: dataSourceStorageAccountRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -77,8 +78,7 @@ func dataSourceStorageAccount() *pluginsdk.Resource {
 				},
 			},
 
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_https_traffic_only": {
+			"https_traffic_only_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
@@ -537,6 +537,15 @@ func dataSourceStorageAccount() *pluginsdk.Resource {
 			"tags": commonschema.TagsDataSource(),
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["enable_https_traffic_only"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		}
+	}
+
+	return resource
 }
 
 func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -602,11 +611,15 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 			if err := d.Set("custom_domain", flattenAccountCustomDomain(props.CustomDomain)); err != nil {
 				return fmt.Errorf("setting `custom_domain`: %+v", err)
 			}
-			d.Set("enable_https_traffic_only", pointer.From(props.SupportsHTTPSTrafficOnly))
+			d.Set("https_traffic_only_enabled", pointer.From(props.SupportsHTTPSTrafficOnly))
 			d.Set("is_hns_enabled", pointer.From(props.IsHnsEnabled))
 			d.Set("nfsv3_enabled", pointer.From(props.IsNfsV3Enabled))
 			d.Set("primary_location", location.NormalizeNilable(props.PrimaryLocation))
 			d.Set("secondary_location", location.NormalizeNilable(props.SecondaryLocation))
+
+			if !features.FourPointOhBeta() {
+				d.Set("enable_https_traffic_only", pointer.From(props.SupportsHTTPSTrafficOnly))
+			}
 
 			// Setting the encryption key type to "Service" in PUT. The following GET will not return the queue/table in the service list of its response.
 			// So defaults to setting the encryption key type to "Service" if it is absent in the GET response. Also, define the default value as "Service" in the schema.

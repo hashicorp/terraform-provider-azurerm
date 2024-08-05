@@ -169,10 +169,6 @@ resource "azurerm_iothub" "test" {
     name     = "S1"
     capacity = "1"
   }
-
-  lifecycle {
-    ignore_changes = [route]
-  }
 }
 
 resource "azurerm_iothub_device_update_account" "test" {

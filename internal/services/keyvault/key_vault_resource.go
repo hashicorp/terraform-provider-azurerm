@@ -89,9 +89,11 @@ func resourceKeyVault() *pluginsdk.Resource {
 			},
 
 			"access_policy": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1024,
+				Type:       pluginsdk.TypeList,
+				ConfigMode: pluginsdk.SchemaConfigModeAttr,
+				Optional:   true,
+				Computed:   true,
+				MaxItems:   1024,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"tenant_id": {
@@ -241,38 +243,6 @@ func resourceKeyVault() *pluginsdk.Resource {
 		},
 	}
 
-	if !features.FourPointOhBeta() {
-		resource.Schema["access_policy"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeList,
-			ConfigMode: pluginsdk.SchemaConfigModeAttr,
-			Optional:   true,
-			Computed:   true,
-			MaxItems:   1024,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"tenant_id": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.IsUUID,
-					},
-					"object_id": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.IsUUID,
-					},
-					"application_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validate.IsUUIDOrEmpty,
-					},
-					"certificate_permissions": schemaCertificatePermissions(),
-					"key_permissions":         schemaKeyPermissions(),
-					"secret_permissions":      schemaSecretPermissions(),
-					"storage_permissions":     schemaStoragePermissions(),
-				},
-			},
-		}
-	}
 	return resource
 }
 

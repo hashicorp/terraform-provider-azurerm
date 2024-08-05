@@ -646,7 +646,6 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-
 						"blob_driver_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Computed: true,
@@ -716,6 +715,13 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 								},
 							},
 						},
+						"revisions": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
 					},
 				},
 			},
@@ -725,6 +731,10 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 	}
 
 	if !features.FourPointOhBeta() {
+		// adding revisions to the resource is a breaking change, MSFT would like the corresponding change in data source to happen at the same time
+		serviceMeshProfile := resource.Schema["service_mesh_profile"].Elem.(*pluginsdk.Resource).SchemaMap()
+		delete(serviceMeshProfile, "revisions")
+
 		resource.Schema["agent_pool_profile"].Elem.(*pluginsdk.Resource).Schema["enable_auto_scaling"] = &pluginsdk.Schema{
 			Type:       pluginsdk.TypeBool,
 			Computed:   true,
@@ -1350,9 +1360,6 @@ func flattenKubernetesClusterDataSourceAzureActiveDirectoryRoleBasedAccessContro
 
 		result := map[string]interface{}{
 			"admin_group_object_ids": adminGroupObjectIds,
-			"client_app_id":          clientAppId,
-			"managed":                managed,
-			"server_app_id":          serverAppId,
 			"tenant_id":              tenantId,
 			"azure_rbac_enabled":     azureRbacEnabled,
 		}
