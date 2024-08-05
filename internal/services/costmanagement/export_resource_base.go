@@ -400,16 +400,14 @@ func flattenExportDefinition(input *exports.ExportDefinition) []interface{} {
 		queryType = string(input.Type)
 	}
 
-	version := ""
-	if input.DataSet != nil && input.DataSet.Configuration != nil {
-		version = pointer.From(input.DataSet.Configuration.DataVersion)
+	result := map[string]interface{}{
+		"time_frame": string(input.Timeframe),
+		"type":       queryType,
 	}
 
-	return []interface{}{
-		map[string]interface{}{
-			"data_version": version,
-			"time_frame":   string(input.Timeframe),
-			"type":         queryType,
-		},
+	if input.DataSet != nil && input.DataSet.Configuration != nil {
+		result["data_version"] = pointer.From(input.DataSet.Configuration.DataVersion)
 	}
+
+	return []interface{}{result}
 }
