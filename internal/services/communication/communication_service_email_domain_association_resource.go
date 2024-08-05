@@ -102,7 +102,7 @@ func (r CommunicationServiceEmailDomainAssociationResource) Create() sdk.Resourc
 			}
 
 			if response.WasNotFound(existingCommunicationService.HttpResponse) {
-				return fmt.Errorf("Communication Service %q does not exists", model.CommunicationServiceId)
+				return fmt.Errorf("%s was not found", communicationServiceId)
 			}
 
 			if existingCommunicationService.Model == nil || existingCommunicationService.Model.Properties == nil {
