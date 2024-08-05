@@ -105,9 +105,11 @@ func (r CommunicationServiceEmailDomainAssociationResource) Create() sdk.Resourc
 				return fmt.Errorf("%s was not found", communicationServiceId)
 			}
 
-			if existingCommunicationService.Model == nil || existingCommunicationService.Model.Properties == nil {
-				return fmt.Errorf("model/properties for %s was nil", model.CommunicationServiceId)
+			if existingCommunicationService.Model == nil {
+				return fmt.Errorf("model for %s was nil", communicationServiceId)
 			}
+			if existingCommunicationService.Model.Properties == nil {
+				return fmt.Errorf("properties for %s was nil", communicationServiceId)
 
 			domainList := existingCommunicationService.Model.Properties.LinkedDomains
 			if domainList == nil {
