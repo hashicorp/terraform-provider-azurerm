@@ -192,8 +192,12 @@ func (CommunicationServiceEmailDomainAssociationResource) Read() sdk.ResourceFun
 				return metadata.MarkAsGone(id)
 			}
 
-			if existingCommunicationService.Model == nil || existingCommunicationService.Model.Properties == nil {
-				return fmt.Errorf("model/properties for %s was nil", state.CommunicationServiceId)
+			if existingCommunicationService.Model == nil {
+				return fmt.Errorf("model for %s was nil", state.CommunicationServiceId)
+			}
+			
+			if existingCommunicationService.Model.Properties == nil {
+				return fmt.Errorf("properties for %s was nil", state.CommunicationServiceId)
 			}
 
 			domainList := existingCommunicationService.Model.Properties.LinkedDomains
