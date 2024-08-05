@@ -208,7 +208,7 @@ resource "azurerm_dev_center_project_pool" "test" {
     Env = "Test2"
   }
 }
-`, r.template(data), data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (r DevCenterProjectPoolTestResource) template(data acceptance.TestData) string {
@@ -229,7 +229,7 @@ resource "azurerm_dev_center" "test" {
 }
 
 resource "azurerm_dev_center_project" "test" {
-  name                = "acctest-dcp-%s"
+  name                = "acctest-dcp-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   dev_center_id       = azurerm_dev_center.test.id
@@ -268,5 +268,5 @@ resource "azurerm_dev_center_network_connection" "test" {
   domain_join_type    = "AzureADJoin"
   subnet_id           = azurerm_subnet.test.id
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

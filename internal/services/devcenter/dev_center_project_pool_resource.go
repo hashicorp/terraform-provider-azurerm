@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devcenter/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 var _ sdk.Resource = DevCenterProjectPoolResource{}
@@ -75,7 +74,7 @@ func (r DevCenterProjectPoolResource) Arguments() map[string]*pluginsdk.Schema {
 		"network_connection_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validation.StringIsNotEmpty, // Will use custom validation once PR to support Dev Center Network Connection is merged
+			ValidateFunc: validate.DevCenterNetworkConnectionName,
 		},
 
 		"stop_on_disconnect_grace_period_minutes": {
