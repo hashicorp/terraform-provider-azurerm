@@ -7,15 +7,17 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2023-08-01/extensions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/extensions"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var _ sdk.Resource = StackHCIExtensionResource{}
-var _ sdk.ResourceWithUpdate = StackHCIExtensionResource{}
+var (
+	_ sdk.Resource           = StackHCIExtensionResource{}
+	_ sdk.ResourceWithUpdate = StackHCIExtensionResource{}
+)
 
 type StackHCIExtensionResource struct{}
 
@@ -32,16 +34,15 @@ func (r StackHCIExtensionResource) IDValidationFunc() pluginsdk.SchemaValidateFu
 }
 
 type StackHCIExtensionResourceModel struct {
-	Name                    string `tfschema:"name"`
-	ArcSettingId            string `tfschema:"arc_setting_id"`
-	AutoUpgradeMinorVersion bool   `tfschema:"auto_upgrade_minor_version"`
-	AutomaticUpgradeEnabled bool   `tfschema:"automatic_upgrade_enabled"`
-	ForceUpdateTag          string `tfschema:"force_update_tag"`
-	ProtectedSettings       string `tfschema:"protected_setting"`
-	Publisher               string `tfschema:"publisher"`
-	Setting                 string `tfschema:"setting"`
-	Type                    string `tfschema:"type"`
-	TypeHandlerVersion      string `tfschema:"type_handler_version"`
+	Name                           string `tfschema:"name"`
+	ArcSettingId                   string `tfschema:"arc_setting_id"`
+	AutoUpgradeMinorVersionEnabled bool   `tfschema:"auto_upgrade_minor_version_enabled"`
+	AutomaticUpgradeEnabled        bool   `tfschema:"automatic_upgrade_enabled"`
+	ProtectedSettings              string `tfschema:"protected_settings"`
+	Publisher                      string `tfschema:"publisher"`
+	Settings                       string `tfschema:"settings"`
+	Type                           string `tfschema:"type"`
+	TypeHandlerVersion             string `tfschema:"type_handler_version"`
 }
 
 func (r StackHCIExtensionResource) Arguments() map[string]*schema.Schema {
@@ -77,7 +78,7 @@ func (r StackHCIExtensionResource) Arguments() map[string]*schema.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"auto_upgrade_minor_version": {
+		"auto_upgrade_minor_version_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 		},
@@ -87,14 +88,7 @@ func (r StackHCIExtensionResource) Arguments() map[string]*schema.Schema {
 			Optional: true,
 		},
 
-		"force_update_tag": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
-		"protected_setting": {
+		"protected_settings": {
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
 			Sensitive:        true,
@@ -102,7 +96,7 @@ func (r StackHCIExtensionResource) Arguments() map[string]*schema.Schema {
 			DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 		},
 
-		"setting": {
+		"settings": {
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
 			ValidateFunc:     validation.StringIsJSON,
@@ -168,9 +162,8 @@ func (r StackHCIExtensionResource) Create() sdk.ResourceFunc {
 			input := extensions.Extension{
 				Properties: &extensions.ExtensionProperties{
 					ExtensionParameters: &extensions.ExtensionParameters{
-						AutoUpgradeMinorVersion: pointer.To(config.AutoUpgradeMinorVersion),
+						AutoUpgradeMinorVersion: pointer.To(config.AutoUpgradeMinorVersionEnabled),
 						EnableAutomaticUpgrade:  pointer.To(config.AutomaticUpgradeEnabled),
-						ForceUpdateTag:          pointer.To(config.ForceUpdateTag),
 						Publisher:               pointer.To(config.Publisher),
 						Type:                    pointer.To(config.Type),
 					},
@@ -181,8 +174,8 @@ func (r StackHCIExtensionResource) Create() sdk.ResourceFunc {
 				input.Properties.ExtensionParameters.TypeHandlerVersion = pointer.To(config.TypeHandlerVersion)
 			}
 
-			if config.Setting != "" {
-				expandedSetting, err := pluginsdk.ExpandJsonFromString(config.Setting)
+			if config.Settings != "" {
+				expandedSetting, err := pluginsdk.ExpandJsonFromString(config.Settings)
 				if err != nil {
 					return fmt.Errorf("expanding `setting`: %+v", err)
 				}
@@ -193,7 +186,7 @@ func (r StackHCIExtensionResource) Create() sdk.ResourceFunc {
 			if config.ProtectedSettings != "" {
 				expandedSetting, err := pluginsdk.ExpandJsonFromString(config.ProtectedSettings)
 				if err != nil {
-					return fmt.Errorf("expanding `protected_setting`: %+v", err)
+					return fmt.Errorf("expanding `protected_settings`: %+v", err)
 				}
 
 				input.Properties.ExtensionParameters.ProtectedSettings = pointer.To(interface{}(expandedSetting))
@@ -205,7 +198,6 @@ func (r StackHCIExtensionResource) Create() sdk.ResourceFunc {
 
 			metadata.SetID(id)
 			return nil
-
 		},
 	}
 }
@@ -229,7 +221,7 @@ func (r StackHCIExtensionResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading %s: %+v", id, err)
 			}
 
-			// protected_settings is not returned in the response, so we read it from the state
+			// protected_settingss is not returned in the response, so we read it from the state
 			var extension StackHCIExtensionResourceModel
 			if err := metadata.Decode(&extension); err != nil {
 				return err
@@ -242,8 +234,7 @@ func (r StackHCIExtensionResource) Read() sdk.ResourceFunc {
 				if model.Properties != nil && model.Properties.ExtensionParameters != nil {
 					param := model.Properties.ExtensionParameters
 					extension.AutomaticUpgradeEnabled = pointer.From(param.EnableAutomaticUpgrade)
-					extension.AutoUpgradeMinorVersion = pointer.From(param.AutoUpgradeMinorVersion)
-					extension.ForceUpdateTag = pointer.From(param.ForceUpdateTag)
+					extension.AutoUpgradeMinorVersionEnabled = pointer.From(param.AutoUpgradeMinorVersion)
 					extension.Publisher = pointer.From(param.Publisher)
 					extension.Type = pointer.From(param.Type)
 					extension.TypeHandlerVersion = pointer.From(param.TypeHandlerVersion)
@@ -255,7 +246,7 @@ func (r StackHCIExtensionResource) Read() sdk.ResourceFunc {
 							return fmt.Errorf("flatenning `settings`: %+v", err)
 						}
 					}
-					extension.Setting = setting
+					extension.Settings = setting
 				}
 			}
 
@@ -309,24 +300,28 @@ func (r StackHCIExtensionResource) Update() sdk.ResourceFunc {
 
 			model := resp.Model
 			if model == nil || model.Properties == nil || model.Properties.ExtensionParameters == nil {
-				return fmt.Errorf("retrieving %s: properties was nil", id)
+				return fmt.Errorf("retrieving %s: `model` was nil", id)
 			}
 
-			if metadata.ResourceData.HasChange("auto_upgrade_enabled") {
+			if metadata.ResourceData.HasChange("auto_upgrade_minor_version_enabled") {
+				model.Properties.ExtensionParameters.AutoUpgradeMinorVersion = pointer.To(config.AutoUpgradeMinorVersionEnabled)
+			}
+
+			if metadata.ResourceData.HasChange("automatic_upgrade_enabled") {
 				model.Properties.ExtensionParameters.EnableAutomaticUpgrade = pointer.To(config.AutomaticUpgradeEnabled)
 			}
 
-			if metadata.ResourceData.HasChange("protected_setting") {
+			if metadata.ResourceData.HasChange("protected_settings") {
 				expandedSetting, err := pluginsdk.ExpandJsonFromString(config.ProtectedSettings)
 				if err != nil {
-					return fmt.Errorf("expanding `protected_setting`: %+v", err)
+					return fmt.Errorf("expanding `protected_settings`: %+v", err)
 				}
 
 				model.Properties.ExtensionParameters.ProtectedSettings = pointer.To(interface{}(expandedSetting))
 			}
 
-			if metadata.ResourceData.HasChange("setting") {
-				expandedSetting, err := pluginsdk.ExpandJsonFromString(config.Setting)
+			if metadata.ResourceData.HasChange("settings") {
+				expandedSetting, err := pluginsdk.ExpandJsonFromString(config.Settings)
 				if err != nil {
 					return fmt.Errorf("expanding `setting`: %+v", err)
 				}
@@ -336,10 +331,6 @@ func (r StackHCIExtensionResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("type_handler_version") {
 				model.Properties.ExtensionParameters.TypeHandlerVersion = pointer.To(config.TypeHandlerVersion)
-			}
-
-			if metadata.ResourceData.HasChange("auto_upgrade_minor_version") {
-				model.Properties.ExtensionParameters.AutoUpgradeMinorVersion = pointer.To(config.AutoUpgradeMinorVersion)
 			}
 
 			if err := client.CreateThenPoll(ctx, *id, *model); err != nil {

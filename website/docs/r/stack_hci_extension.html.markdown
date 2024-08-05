@@ -13,35 +13,37 @@ Manages an Azure Stack HCI Extension.
 ## Example Usage
 
 ```hcl
-data "azurerm_stack_hci_cluster" "example" {
-  name                = "aro-cluster"
-  resource_group_name = "example-resources"
+resource "azurerm_resource_group" "example" {
+  name     = "example-hci-ext"
+  location = "West Europe"
 }
 
-data "azurerm_stack_hci_cluster_arc_setting" "example" {
-  name                 = "default"
-  stack_hci_cluster_id = data.azurerm_stack_hci_cluster.example.id
+resource "azurerm_log_analytics_workspace" "example" {
+  name                = "example-hci-law"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
 }
 
 resource "azurerm_stack_hci_extension" "example" {
-  name                       = "example-shce"
-  arc_setting_id             = data.azurerm_stack_hci_cluster_arc_setting.example.id
-  publisher                  = "Microsoft.EnterpriseCloud.Monitoring"
-  type                       = "MicrosoftMonitoringAgent"
-  auto_upgrade_minor_version = true
-  automatic_upgrade_enabled  = false
-  force_update_tag           = "1"
-  type_handler_version       = "1.22.0"
+  name                               = "example-shce"
+  arc_setting_id                     = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-hci/providers/Microsoft.AzureStackHCI/clusters/hci-cl/arcSettings/default"
+  publisher                          = "Microsoft.EnterpriseCloud.Monitoring"
+  type                               = "MicrosoftMonitoringAgent"
+  auto_upgrade_minor_version_enabled = true
+  automatic_upgrade_enabled          = false
+  type_handler_version               = "1.22.0"
 
   protected_setting = <<PROTECTED_SETTING
 {
-	"workspaceKey": "xxxxx"
+	"workspaceKey": "${azurerm_log_analytics_workspace.test.primary_shared_key}"
 }
 PROTECTED_SETTING
 
   setting = <<SETTING
 {
-	"workspaceId": "00000000-0000-0000-0000-000000000000"
+	"workspaceId": "${azurerm_log_analytics_workspace.test.workspace_id}"
 }
 SETTING
 }
@@ -59,19 +61,19 @@ The following arguments are supported:
 
 * `type` - (Required) Specifies the type of the extension. For example `CustomScriptExtension` or `AzureMonitorLinuxAgent`. Changing this forces a new resource to be created.
 
--> **NOTE:** The `Publisher` and `Type` of Azure Stack HCI Extensions can be found in this [Azure document](https://learn.microsoft.com/en-us/azure/azure-arc/servers/manage-vm-extensions#windows-extensions).
+* `auto_upgrade_minor_version_enabled` - (Optional) Indicates whether the extension should use a newer minor version if one is available at deployment time. Once deployed, however, the extension will not upgrade minor versions unless redeployed, even with this property set to true. Possible values are `true` and `false`.
 
 * `automatic_upgrade_enabled` - (Optional) Indicates whether the extension should be automatically upgraded by the platform if there is a newer version available. Possible values are `true` and `false`.
 
-* `protected_settings` - (Optional) Json formatted protected settings for the extension.
+* `protected_settings` - (Optional) The json formatted protected settings for the extension.
 
-* `settings` - (Optional) Json formatted public settings for the extension.
+* `settings` - (Optional) The json formatted public settings for the extension.
 
 * `type_handler_version` - (Optional) Specifies the version of the script handler.
 
 -> **NOTE:** `type_handler_version` cannot be set when `automatic_upgrade_enabled` is set to `true`.
 
--> **NOTE:** Possible values for `type_handler_version` can be found using the Azure CLI, via:
+-> **NOTE:** Possible values for `type_handler_version` can be found using the Azure CLI, e.g.:
 
 ```shell
 az vm extension image list --publisher Microsoft.Azure.Monitor -n AzureMonitorWindowsAgent --location westus -o table
