@@ -279,7 +279,6 @@ func (CommunicationServiceEmailDomainAssociationResource) Delete() sdk.ResourceF
 				return n == eMailServiceDomainId.ID()
 			})
 
-			existingCommunicationService.Model.Properties.LinkedDomains = domainList
 
 			input := communicationservices.CommunicationServiceResourceUpdate{
 				Properties: &communicationservices.CommunicationServiceUpdateProperties{
