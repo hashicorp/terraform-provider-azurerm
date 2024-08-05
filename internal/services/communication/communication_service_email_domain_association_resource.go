@@ -78,7 +78,7 @@ func (r CommunicationServiceEmailDomainAssociationResource) Create() sdk.Resourc
 
 			eMailServiceDomainId, err := domains.ParseDomainID(model.EMailServiceDomainId)
 			if err != nil {
-				return fmt.Errorf("parsing EMail Service Domain ID: %w", err)
+				return err
 			}
 
 			locks.ByName(communicationServiceId.CommunicationServiceName, "azurerm_communication_service")
