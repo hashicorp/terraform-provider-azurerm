@@ -153,8 +153,8 @@ func (r CommunicationServiceEmailDomainAssociationResource) requiresImport(data 
 %s
 
 resource "azurerm_communication_service_email_domain_association" "import" {
-  communication_service_id = azurerm_communication_service.test.id
-  email_service_domain_id  = azurerm_email_communication_service_domain.test.id
+  communication_service_id = azurerm_communication_service_email_domain_association.test.communication_service_id
+  email_service_domain_id  = azurerm_communication_service_email_domain_association.test.email_service_domain_id
 }
 `, r.basic(data))
 }
