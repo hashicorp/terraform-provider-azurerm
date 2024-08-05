@@ -6,8 +6,8 @@ package communication
 import (
 	"context"
 	"fmt"
-	"log"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -20,7 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-var _ sdk.Resource = CommunicationServiceEmailDomainAssociationResource{}
+var _ sdk.Resource = EmailDomainAssociationResource{}
 
 type EmailDomainAssociationResource struct{}
 
@@ -29,7 +29,7 @@ type EmailDomainAssociationResourceModel struct {
 	EMailServiceDomainId   string `tfschema:"email_service_domain_id"`
 }
 
-func (CommunicationServiceEmailDomainAssociationResource) Arguments() map[string]*pluginsdk.Schema {
+func (EmailDomainAssociationResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"communication_service_id": {
 			Type:         pluginsdk.TypeString,
@@ -46,26 +46,26 @@ func (CommunicationServiceEmailDomainAssociationResource) Arguments() map[string
 	}
 }
 
-func (CommunicationServiceEmailDomainAssociationResource) Attributes() map[string]*pluginsdk.Schema {
+func (EmailDomainAssociationResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (CommunicationServiceEmailDomainAssociationResource) ModelObject() interface{} {
-	return &CommunicationServiceEmailDomainAssociationResourceModel{}
+func (EmailDomainAssociationResource) ModelObject() interface{} {
+	return &EmailDomainAssociationResourceModel{}
 }
 
-func (CommunicationServiceEmailDomainAssociationResource) ResourceType() string {
+func (EmailDomainAssociationResource) ResourceType() string {
 	return "azurerm_communication_service_email_domain_association"
 }
 
-func (r CommunicationServiceEmailDomainAssociationResource) Create() sdk.ResourceFunc {
+func (r EmailDomainAssociationResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Communication.ServiceClient
 			domainClient := metadata.Client.Communication.DomainClient
 
-			var model CommunicationServiceEmailDomainAssociationResourceModel
+			var model EmailDomainAssociationResourceModel
 
 			if err := metadata.Decode(&model); err != nil {
 				return err
@@ -117,7 +117,7 @@ func (r CommunicationServiceEmailDomainAssociationResource) Create() sdk.Resourc
 			if existingDomainList := existingCommunicationService.Model.Properties.LinkedDomains; existingDomainList != nil {
 				domainList = pointer.From(existingDomainList)
 			}
-			
+
 			domainList = append(domainList, eMailServiceDomainId.ID())
 
 			input := communicationservices.CommunicationServiceResourceUpdate{
@@ -142,7 +142,7 @@ func (r CommunicationServiceEmailDomainAssociationResource) Create() sdk.Resourc
 	}
 }
 
-func (CommunicationServiceEmailDomainAssociationResource) Read() sdk.ResourceFunc {
+func (EmailDomainAssociationResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -154,7 +154,7 @@ func (CommunicationServiceEmailDomainAssociationResource) Read() sdk.ResourceFun
 				return err
 			}
 
-			state := CommunicationServiceEmailDomainAssociationResourceModel{}
+			state := EmailDomainAssociationResourceModel{}
 			state.CommunicationServiceId = id.First.ID()
 			state.EMailServiceDomainId = id.Second.ID()
 
@@ -195,7 +195,7 @@ func (CommunicationServiceEmailDomainAssociationResource) Read() sdk.ResourceFun
 			if existingCommunicationService.Model == nil {
 				return fmt.Errorf("model for %s was nil", state.CommunicationServiceId)
 			}
-			
+
 			if existingCommunicationService.Model.Properties == nil {
 				return fmt.Errorf("properties for %s was nil", state.CommunicationServiceId)
 			}
@@ -205,6 +205,8 @@ func (CommunicationServiceEmailDomainAssociationResource) Read() sdk.ResourceFun
 				return fmt.Errorf("checking for Domain Association %s for %s", *eMailServiceDomainId, *communicationServiceId)
 			}
 
+			var found bool
+
 			for _, v := range pointer.From(domainList) {
 				tmpID, tmpErr := domains.ParseDomainID(v)
 				if tmpErr != nil {
@@ -213,6 +215,7 @@ func (CommunicationServiceEmailDomainAssociationResource) Read() sdk.ResourceFun
 				if strings.EqualFold(eMailServiceDomainId.ID(), tmpID.ID()) {
 					found = true
 				}
+
 				if !found {
 					return metadata.MarkAsGone(id)
 				}
@@ -223,28 +226,26 @@ func (CommunicationServiceEmailDomainAssociationResource) Read() sdk.ResourceFun
 	}
 }
 
-func (CommunicationServiceEmailDomainAssociationResource) Delete() sdk.ResourceFunc {
+func (EmailDomainAssociationResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Communication.ServiceClient
 			domainClient := metadata.Client.Communication.DomainClient
 
-			var model CommunicationServiceEmailDomainAssociationResourceModel
+			var model EmailDomainAssociationResourceModel
 
 			if err := metadata.Decode(&model); err != nil {
 				return err
 			}
 
-			communicationServiceId, err := communicationservices.ParseCommunicationServiceID(model.CommunicationServiceId)
+			id, err := commonids.ParseCompositeResourceID(metadata.ResourceData.Id(), &communicationservices.CommunicationServiceId{}, &domains.DomainId{})
 			if err != nil {
 				return err
 			}
 
-			eMailServiceDomainId, err := domains.ParseDomainID(model.EMailServiceDomainId)
-			if err != nil {
-				return err
-			}
+			communicationServiceId := id.First
+			eMailServiceDomainId := id.Second
 
 			locks.ByName(communicationServiceId.CommunicationServiceName, "azurerm_communication_service")
 			defer locks.UnlockByName(communicationServiceId.CommunicationServiceName, "azurerm_communication_service")
@@ -258,7 +259,7 @@ func (CommunicationServiceEmailDomainAssociationResource) Delete() sdk.ResourceF
 			}
 
 			if response.WasNotFound(existingEMailServiceDomain.HttpResponse) {
-				return return metadata.MarkAsGone(id)
+				return metadata.MarkAsGone(id)
 			}
 
 			existingCommunicationService, err := client.Get(ctx, *communicationServiceId)
@@ -267,30 +268,29 @@ func (CommunicationServiceEmailDomainAssociationResource) Delete() sdk.ResourceF
 			}
 
 			if response.WasNotFound(existingCommunicationService.HttpResponse) {
-				return return metadata.MarkAsGone(id)
+				return metadata.MarkAsGone(id)
 			}
 
 			if existingCommunicationService.Model == nil {
 				return fmt.Errorf("model for %s was nil", model.CommunicationServiceId)
 			}
-			
+
 			if existingCommunicationService.Model.Properties == nil {
 				return fmt.Errorf("properties for %s was nil", model.CommunicationServiceId)
 			}
 
 			domainList := existingCommunicationService.Model.Properties.LinkedDomains
 			if domainList == nil {
-				domainList = pointer.FromSliceOfStrings(make([]string, 0, 1))
+				return metadata.MarkAsGone(id)
 			}
 
 			if !slices.Contains(*domainList, eMailServiceDomainId.ID()) {
-				return nil
+				return metadata.MarkAsGone(id)
 			}
 
 			*domainList = slices.DeleteFunc(*domainList, func(n string) bool {
 				return n == eMailServiceDomainId.ID()
 			})
-
 
 			input := communicationservices.CommunicationServiceResourceUpdate{
 				Properties: &communicationservices.CommunicationServiceUpdateProperties{
@@ -307,7 +307,7 @@ func (CommunicationServiceEmailDomainAssociationResource) Delete() sdk.ResourceF
 	}
 }
 
-func (CommunicationServiceEmailDomainAssociationResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (EmailDomainAssociationResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return func(input interface{}, key string) (warnings []string, errors []error) {
 		v, ok := input.(string)
 		if !ok {

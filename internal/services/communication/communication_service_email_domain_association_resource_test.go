@@ -6,10 +6,10 @@ package communication_test
 import (
 	"context"
 	"fmt"
-	"slices"
+	"strings"
 	"testing"
-	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/communicationservices"
@@ -49,7 +49,6 @@ func TestAccCommunicationServiceEmailDomainAssociationResource_requiresImport(t 
 		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
-
 
 func (r CommunicationServiceEmailDomainAssociationResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseCompositeResourceID(state.ID, &communicationservices.CommunicationServiceId{}, &domains.DomainId{})
@@ -141,4 +140,3 @@ resource "azurerm_communication_service_email_domain_association" "import" {
 }
 `, r.basic(data))
 }
-
