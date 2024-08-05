@@ -93,7 +93,7 @@ func (r CommunicationServiceEmailDomainAssociationResource) Create() sdk.Resourc
 			}
 
 			if response.WasNotFound(existingEMailServiceDomain.HttpResponse) {
-				return fmt.Errorf("EMail Service Domain %q does not exsits", model.EMailServiceDomainId)
+				return fmt.Errorf("%s was not found", eMailServiceDomainId)
 			}
 
 			existingCommunicationService, err := client.Get(ctx, *communicationServiceId)
