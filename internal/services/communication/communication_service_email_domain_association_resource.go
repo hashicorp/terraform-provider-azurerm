@@ -199,11 +199,16 @@ func (CommunicationServiceEmailDomainAssociationResource) Read() sdk.ResourceFun
 				return fmt.Errorf("checking for Domain Association %s for %s", *eMailServiceDomainId, *communicationServiceId)
 			}
 
-			if !slices.Contains(*domainList, eMailServiceDomainId.ID()) {
-				log.Printf("EMail Service Domain %q does not exsits in %q, removing from state.", eMailServiceDomainId, communicationServiceId)
-				err := metadata.MarkAsGone(id)
-				if err != nil {
-					return err
+			for _, v := range pointer.From(domainList) {
+				tmpID, tmpErr := domains.ParseDomainID(v)
+				if tmpErr != nil {
+					return fmt.Errorf("parsing domain ID %q from LinkedDomains for %s: %+v", v, communicationServiceId, err)
+				}
+				if strings.EqualFold(eMailServiceDomainId.ID(), tmpID.ID()) {
+					found = true
+				}
+				if !found {
+					return metadata.MarkAsGone(id)
 				}
 			}
 
