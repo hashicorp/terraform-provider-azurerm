@@ -118,6 +118,19 @@ func (r EmailDomainAssociationResource) Create() sdk.ResourceFunc {
 				domainList = pointer.From(existingDomainList)
 			}
 
+			id := commonids.NewCompositeResourceID(communicationServiceId, eMailServiceDomainId)
+
+			for _, v := range domainList {
+				tmpID, tmpErr := domains.ParseDomainIDInsensitively(v)
+				if tmpErr != nil {
+					return fmt.Errorf("parsing domain ID %q from LinkedDomains for %s: %+v", v, communicationServiceId, err)
+				}
+
+				if strings.EqualFold(eMailServiceDomainId.ID(), tmpID.ID()) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
+			}
+
 			domainList = append(domainList, eMailServiceDomainId.ID())
 
 			input := communicationservices.CommunicationServiceResourceUpdate{
@@ -128,11 +141,6 @@ func (r EmailDomainAssociationResource) Create() sdk.ResourceFunc {
 
 			if _, err = client.Update(ctx, *communicationServiceId, input); err != nil {
 				return fmt.Errorf("updating %s: %+v", *communicationServiceId, err)
-			}
-
-			id := commonids.NewCompositeResourceID(communicationServiceId, eMailServiceDomainId)
-			if slices.Contains(domainList, eMailServiceDomainId.ID()) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
 			metadata.SetID(id)
@@ -212,13 +220,16 @@ func (EmailDomainAssociationResource) Read() sdk.ResourceFunc {
 				if tmpErr != nil {
 					return fmt.Errorf("parsing domain ID %q from LinkedDomains for %s: %+v", v, communicationServiceId, err)
 				}
+
 				if strings.EqualFold(eMailServiceDomainId.ID(), tmpID.ID()) {
 					found = true
-				}
 
-				if !found {
-					return metadata.MarkAsGone(id)
+					break
 				}
+			}
+
+			if !found {
+				return metadata.MarkAsGone(id)
 			}
 
 			return metadata.Encode(&state)
