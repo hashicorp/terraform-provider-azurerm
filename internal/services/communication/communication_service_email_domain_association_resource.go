@@ -208,7 +208,7 @@ func (EmailDomainAssociationResource) Read() sdk.ResourceFunc {
 			var found bool
 
 			for _, v := range pointer.From(domainList) {
-				tmpID, tmpErr := domains.ParseDomainID(v)
+				tmpID, tmpErr := domains.ParseDomainIDInsensitively(v)
 				if tmpErr != nil {
 					return fmt.Errorf("parsing domain ID %q from LinkedDomains for %s: %+v", v, communicationServiceId, err)
 				}
@@ -288,8 +288,13 @@ func (EmailDomainAssociationResource) Delete() sdk.ResourceFunc {
 				return metadata.MarkAsGone(id)
 			}
 
-			*domainList = slices.DeleteFunc(*domainList, func(n string) bool {
-				return n == eMailServiceDomainId.ID()
+			*domainList = slices.DeleteFunc(*domainList, func(domainID string) bool {
+				parsedDomainID, err := domains.ParseDomainIDInsensitively(domainID)
+				if err != nil {
+					return false
+				}
+
+				return strings.EqualFold(parsedDomainID.ID(), eMailServiceDomainId.ID())
 			})
 
 			input := communicationservices.CommunicationServiceResourceUpdate{
