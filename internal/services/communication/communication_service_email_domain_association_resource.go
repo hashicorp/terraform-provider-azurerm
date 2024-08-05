@@ -268,9 +268,6 @@ func (CommunicationServiceEmailDomainAssociationResource) Delete() sdk.ResourceF
 				domainList = pointer.FromSliceOfStrings(make([]string, 0, 1))
 			}
 
-			id := commonids.NewCompositeResourceID(communicationServiceId, eMailServiceDomainId)
-			metadata.SetID(id)
-
 			if !slices.Contains(*domainList, eMailServiceDomainId.ID()) {
 				return nil
 			}
