@@ -1380,6 +1380,223 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 	return s
 }
 
+func SchemaHDInsightNodeDefinitionKafka(schemaLocation string, definition HDInsightNodeDefinition, required bool) *pluginsdk.Schema {
+	result := map[string]*pluginsdk.Schema{
+		"vm_size": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(validate.NodeDefinitionVMSize, false),
+		},
+		"username": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+		"password": {
+			Type:      pluginsdk.TypeString,
+			Optional:  true,
+			ForceNew:  true,
+			Sensitive: true,
+		},
+		"ssh_keys": {
+			Type:     pluginsdk.TypeSet,
+			Optional: true,
+			ForceNew: true,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+			Set: pluginsdk.HashString,
+			ConflictsWith: []string{
+				fmt.Sprintf("%s.0.password", schemaLocation),
+			},
+		},
+
+		"subnet_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: commonids.ValidateSubnetID,
+		},
+
+		"virtual_network_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: commonids.ValidateVirtualNetworkID,
+		},
+
+		"script_actions": SchemaHDInsightsScriptActions(),
+	}
+
+	if definition.CanSpecifyInstanceCount {
+		countValidation := validation.IntAtLeast(definition.MinInstanceCount)
+		if definition.MaxInstanceCount != nil {
+			countValidation = validation.IntBetween(definition.MinInstanceCount, *definition.MaxInstanceCount)
+		}
+
+		result["target_instance_count"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeInt,
+			Required:     true,
+			ValidateFunc: countValidation,
+		}
+
+		if definition.CanAutoScaleByCapacity || definition.CanAutoScaleOnSchedule {
+			autoScales := map[string]*pluginsdk.Schema{}
+
+			if definition.CanAutoScaleByCapacity {
+				autoScales["capacity"] = &pluginsdk.Schema{
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					MaxItems: 1,
+					ConflictsWith: []string{
+						fmt.Sprintf("%s.0.autoscale.0.recurrence", schemaLocation),
+					},
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"min_instance_count": {
+								Type:         pluginsdk.TypeInt,
+								Required:     true,
+								ValidateFunc: countValidation,
+							},
+							"max_instance_count": {
+								Type:         pluginsdk.TypeInt,
+								Required:     true,
+								ValidateFunc: countValidation,
+							},
+						},
+					},
+				}
+				if definition.CanAutoScaleOnSchedule {
+					autoScales["capacity"].ConflictsWith = []string{
+						fmt.Sprintf("%s.0.autoscale.0.recurrence", schemaLocation),
+					}
+				}
+			}
+			// managing `azurerm_hdinsight_interactive_query_cluster` autoscaling through `capacity` doesn't work so we'll deprecate this portion of the schema for 4.0
+			if definition.CanAutoScaleByCapacityDeprecated4PointOh {
+				autoScales["capacity"] = &pluginsdk.Schema{
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					MaxItems: 1,
+					ConflictsWith: []string{
+						fmt.Sprintf("%s.0.autoscale.0.recurrence", schemaLocation),
+					},
+					Deprecated: "HDInsight interactive query clusters can no longer be configured through `autoscale.0.capacity`. Use `autoscale.0.recurrence` instead.",
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"min_instance_count": {
+								Type:         pluginsdk.TypeInt,
+								Required:     true,
+								ValidateFunc: countValidation,
+							},
+							"max_instance_count": {
+								Type:         pluginsdk.TypeInt,
+								Required:     true,
+								ValidateFunc: countValidation,
+							},
+						},
+					},
+				}
+				if definition.CanAutoScaleOnSchedule {
+					autoScales["capacity"].ConflictsWith = []string{
+						fmt.Sprintf("%s.0.autoscale.0.recurrence", schemaLocation),
+					}
+				}
+			}
+			if definition.CanAutoScaleOnSchedule {
+				autoScales["recurrence"] = &pluginsdk.Schema{
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					MaxItems: 1,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"timezone": {
+								Type:     pluginsdk.TypeString,
+								Required: true,
+							},
+							"schedule": {
+								Type:     pluginsdk.TypeList,
+								Required: true,
+								MinItems: 1,
+								Elem: &pluginsdk.Resource{
+									Schema: map[string]*pluginsdk.Schema{
+										"time": {
+											Type:     pluginsdk.TypeString,
+											Required: true,
+											ValidateFunc: validation.StringMatch(
+												regexp.MustCompile("^([01][0-9]|[2][0-3]):([03][0])$"), // time must be on the hour or half past
+												"Time of day must match the format HH:mm where HH is 00-23 and mm is 00 or 30",
+											),
+										},
+										"days": {
+											Type:     pluginsdk.TypeList,
+											Required: true,
+											Elem: &pluginsdk.Schema{
+												Type: pluginsdk.TypeString,
+												ValidateFunc: validation.StringInSlice([]string{
+													string(clusters.DaysOfWeekMonday),
+													string(clusters.DaysOfWeekTuesday),
+													string(clusters.DaysOfWeekWednesday),
+													string(clusters.DaysOfWeekThursday),
+													string(clusters.DaysOfWeekFriday),
+													string(clusters.DaysOfWeekSaturday),
+													string(clusters.DaysOfWeekSunday),
+												}, false),
+											},
+										},
+
+										"target_instance_count": {
+											Type:         pluginsdk.TypeInt,
+											Required:     true,
+											ValidateFunc: countValidation,
+										},
+									},
+								},
+							},
+						},
+					},
+				}
+				if definition.CanAutoScaleByCapacity {
+					autoScales["recurrence"].ConflictsWith = []string{
+						fmt.Sprintf("%s.0.autoscale.0.capacity", schemaLocation),
+					}
+				}
+			}
+
+			result["autoscale"] = &pluginsdk.Schema{
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: autoScales,
+				},
+			}
+		}
+	}
+
+	if definition.CanSpecifyDisks {
+		result["number_of_disks_per_node"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeInt,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.IntBetween(1, *definition.MaxNumberOfDisksPerNode),
+		}
+	}
+
+	s := &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		MaxItems: 1,
+		Required: required,
+		Optional: !required,
+		Elem: &pluginsdk.Resource{
+			Schema: result,
+		},
+	}
+
+	return s
+}
+
 func ExpandHDInsightNodeDefinition(name string, input []interface{}, definition HDInsightNodeDefinition) (*clusters.Role, error) {
 	v := input[0].(map[string]interface{})
 	vmSize := v["vm_size"].(string)
@@ -1395,11 +1612,17 @@ func ExpandHDInsightNodeDefinition(name string, input []interface{}, definition 
 			VMSize: utils.String(vmSize),
 		},
 		OsProfile: &clusters.OsProfile{
-			LinuxOperatingSystemProfile: &clusters.LinuxOperatingSystemProfile{
-				Username: utils.String(username),
-			},
+			LinuxOperatingSystemProfile: &clusters.LinuxOperatingSystemProfile{},
 		},
 		ScriptActions: ExpandHDInsightsRolesScriptActions(scriptActions),
+	}
+
+	if name != "kafkamanagementnode" {
+		role.OsProfile.LinuxOperatingSystemProfile.Username = utils.String(username)
+	} else {
+		// kafkamanagementnode generates a username and discards the value sent, however, the API has `Username` marked
+		// as required non-empty, so we'll send a dummy one avoiding the Portal's default value, which is reserved/invalid.
+		role.OsProfile.LinuxOperatingSystemProfile.Username = utils.String("sshadmin")
 	}
 
 	virtualNetworkSpecified := virtualNetworkId != ""

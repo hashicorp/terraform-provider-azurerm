@@ -320,12 +320,12 @@ func resourceNetworkSecurityRuleUpdate(d *pluginsdk.ResourceData, meta interface
 
 	if d.HasChange("source_port_ranges") {
 		var sourcePortRanges []string
-		r := d.Get("destination_port_range").(*pluginsdk.Set).List()
+		r := d.Get("source_port_ranges").(*pluginsdk.Set).List()
 		for _, v := range r {
 			s := v.(string)
 			sourcePortRanges = append(sourcePortRanges, s)
 		}
-		payload.Properties.DestinationPortRanges = pointer.To(sourcePortRanges)
+		payload.Properties.SourcePortRanges = pointer.To(sourcePortRanges)
 	}
 
 	if d.HasChange("destination_port_range") {

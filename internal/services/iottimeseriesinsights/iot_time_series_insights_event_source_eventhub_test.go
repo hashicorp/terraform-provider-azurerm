@@ -14,12 +14,16 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type IoTTimeSeriesInsightsEventSourceEventhubResource struct{}
 
 func TestAccIoTTimeSeriesInsightsEventSourceEventhub_basic(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("skipping as removed in 4.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_iot_time_series_insights_event_source_eventhub", "test")
 	r := IoTTimeSeriesInsightsEventSourceEventhubResource{}
 
@@ -35,6 +39,9 @@ func TestAccIoTTimeSeriesInsightsEventSourceEventhub_basic(t *testing.T) {
 }
 
 func TestAccIoTTimeSeriesInsightsEventSourceEventhub_update(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("skipping as removed in 4.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_iot_time_series_insights_event_source_eventhub", "test")
 	r := IoTTimeSeriesInsightsEventSourceEventhubResource{}
 
@@ -63,6 +70,9 @@ func TestAccIoTTimeSeriesInsightsEventSourceEventhub_update(t *testing.T) {
 }
 
 func TestAccIoTTimeSeriesInsightsEventSourceEventhub_complete(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("skipping as removed in 4.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_iot_time_series_insights_event_source_eventhub", "test")
 	r := IoTTimeSeriesInsightsEventSourceEventhubResource{}
 

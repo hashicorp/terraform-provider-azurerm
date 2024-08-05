@@ -117,10 +117,6 @@ resource "azurerm_key_vault" "test" {
   tenant_id                       = "%[3]s"
 
   sku_name = "standard"
-
-  lifecycle {
-    ignore_changes = ["access_policy"]
-  }
 }
 
 resource "azurerm_key_vault_access_policy" "test-currentuser" {
@@ -304,10 +300,6 @@ resource "azurerm_key_vault" "test" {
   tenant_id                       = "%[3]s"
 
   sku_name = "standard"
-
-  lifecycle {
-    ignore_changes = ["access_policy"]
-  }
 }
 
 resource "azurerm_key_vault_access_policy" "test-currentuser" {
@@ -421,10 +413,6 @@ resource "azurerm_key_vault" "test" {
   tenant_id                       = "%[3]s"
 
   sku_name = "standard"
-
-  lifecycle {
-    ignore_changes = ["access_policy"]
-  }
 }
 
 resource "azurerm_key_vault_access_policy" "test-currentuser" {

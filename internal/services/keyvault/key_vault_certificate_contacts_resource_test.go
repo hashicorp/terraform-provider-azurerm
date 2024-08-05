@@ -265,7 +265,7 @@ resource "azurerm_key_vault" "test" {
   soft_delete_retention_days = 7
 
   lifecycle {
-    ignore_changes = [contact, access_policy]
+    ignore_changes = [contact]
   }
 }
 

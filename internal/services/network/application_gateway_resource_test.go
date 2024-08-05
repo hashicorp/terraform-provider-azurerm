@@ -1433,7 +1433,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
   managed_rules {
     managed_rule_set {
       type    = "OWASP"
-      version = "3.1"
+      version = "3.2"
     }
   }
   policy_settings {
@@ -2923,7 +2923,7 @@ resource "azurerm_web_application_firewall_policy" "testfwp" {
   managed_rules {
     managed_rule_set {
       type    = "OWASP"
-      version = "3.1"
+      version = "3.2"
     }
   }
 }
@@ -3024,7 +3024,7 @@ resource "azurerm_web_application_firewall_policy" "testfwp" {
   managed_rules {
     managed_rule_set {
       type    = "OWASP"
-      version = "3.1"
+      version = "3.2"
     }
   }
 }
@@ -3042,7 +3042,7 @@ resource "azurerm_web_application_firewall_policy" "testfwp_listener" {
   managed_rules {
     managed_rule_set {
       type    = "OWASP"
-      version = "3.1"
+      version = "3.2"
     }
   }
 }
@@ -3146,7 +3146,7 @@ resource "azurerm_web_application_firewall_policy" "testfwp" {
   managed_rules {
     managed_rule_set {
       type    = "OWASP"
-      version = "3.1"
+      version = "3.2"
     }
   }
 }
@@ -3164,7 +3164,7 @@ resource "azurerm_web_application_firewall_policy" "testfwp_path_rule" {
   managed_rules {
     managed_rule_set {
       type    = "OWASP"
-      version = "3.1"
+      version = "3.2"
     }
   }
 }
@@ -6220,10 +6220,6 @@ resource "azurerm_virtual_network" "test" {
   resource_group_name = azurerm_resource_group.test.name
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
-
-  lifecycle {
-    ignore_changes = [subnet]
-  }
 }
 
 resource "azurerm_subnet" "test" {
