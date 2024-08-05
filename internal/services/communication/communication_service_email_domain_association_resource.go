@@ -287,7 +287,7 @@ func (CommunicationServiceEmailDomainAssociationResource) Delete() sdk.ResourceF
 			}
 
 			if _, err := client.Update(ctx, *communicationServiceId, input); err != nil {
-				return fmt.Errorf("updating %s: %+v", *communicationServiceId, err)
+				return fmt.Errorf("deleting Email Domain Association for %s from %s: %+v", *eMailServiceDomainId, *communicationServiceId, err)
 			}
 
 			return nil
