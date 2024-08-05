@@ -22,9 +22,9 @@ import (
 
 var _ sdk.Resource = CommunicationServiceEmailDomainAssociationResource{}
 
-type CommunicationServiceEmailDomainAssociationResource struct{}
+type EmailDomainAssociationResource struct{}
 
-type CommunicationServiceEmailDomainAssociationResourceModel struct {
+type EmailDomainAssociationResourceModel struct {
 	CommunicationServiceId string `tfschema:"communication_service_id"`
 	EMailServiceDomainId   string `tfschema:"email_service_domain_id"`
 }
