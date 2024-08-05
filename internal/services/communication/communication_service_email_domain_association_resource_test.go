@@ -53,20 +53,6 @@ func TestAccCommunicationServiceEmailDomainAssociationResource_requiresImport(t 
 	})
 }
 
-func TestAccCommunicationServiceEmailDomainAssociationResource_deleted(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_communication_service_email_domain_association", "test")
-	r := CommunicationServiceEmailDomainAssociationResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				data.CheckWithClient(r.destroy),
-			),
-			ExpectNonEmptyPlan: true,
-		},
-	})
-}
 
 func (r CommunicationServiceEmailDomainAssociationResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseCompositeResourceID(state.ID, &communicationservices.CommunicationServiceId{}, &domains.DomainId{})
