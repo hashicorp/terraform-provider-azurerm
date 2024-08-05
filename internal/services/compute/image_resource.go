@@ -173,6 +173,7 @@ func resourceImage() *pluginsdk.Resource {
 
 						"blob_uri": {
 							Type:         pluginsdk.TypeString,
+							Description:  "The type of storage disk",
 							Optional:     true,
 							Computed:     true,
 							ValidateFunc: validation.IsURLWithScheme([]string{"http", "https"}),
@@ -198,6 +199,7 @@ func resourceImage() *pluginsdk.Resource {
 
 						"storage_type": {
 							Type:         pluginsdk.TypeString,
+							Description:  "The type of storage disk",
 							Optional:     true,
 							ForceNew:     true,
 							ValidateFunc: validation.StringInSlice(images.PossibleValuesForStorageAccountTypes(), false),
