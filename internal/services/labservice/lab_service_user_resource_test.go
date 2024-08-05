@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -20,6 +21,10 @@ import (
 type LabServiceUserResource struct{}
 
 func TestAccLabServiceUser_basic(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("Resource has been removed in 4.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_lab_service_user", "test")
 	r := LabServiceUserResource{}
 
@@ -35,6 +40,10 @@ func TestAccLabServiceUser_basic(t *testing.T) {
 }
 
 func TestAccLabServiceUser_requiresImport(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("Resource has been removed in 4.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_lab_service_user", "test")
 	r := LabServiceUserResource{}
 
@@ -50,6 +59,10 @@ func TestAccLabServiceUser_requiresImport(t *testing.T) {
 }
 
 func TestAccLabServiceUser_complete(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("Resource has been removed in 4.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_lab_service_user", "test")
 	r := LabServiceUserResource{}
 
@@ -65,6 +78,10 @@ func TestAccLabServiceUser_complete(t *testing.T) {
 }
 
 func TestAccLabServiceUser_update(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("Resource has been removed in 4.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_lab_service_user", "test")
 	r := LabServiceUserResource{}
 
