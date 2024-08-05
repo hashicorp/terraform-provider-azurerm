@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = OutboundEndpointId{}
+func init() {
+	recaser.RegisterResourceId(&OutboundEndpointId{})
+}
+
+var _ resourceids.ResourceId = &OutboundEndpointId{}
 
 // OutboundEndpointId is a struct representing the Resource ID for a Outbound Endpoint
 type OutboundEndpointId struct {
@@ -32,7 +37,7 @@ func NewOutboundEndpointID(subscriptionId string, resourceGroupName string, dnsR
 
 // ParseOutboundEndpointID parses 'input' into a OutboundEndpointId
 func ParseOutboundEndpointID(input string) (*OutboundEndpointId, error) {
-	parser := resourceids.NewParserFromResourceIdType(OutboundEndpointId{})
+	parser := resourceids.NewParserFromResourceIdType(&OutboundEndpointId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +54,7 @@ func ParseOutboundEndpointID(input string) (*OutboundEndpointId, error) {
 // ParseOutboundEndpointIDInsensitively parses 'input' case-insensitively into a OutboundEndpointId
 // note: this method should only be used for API response data and not user input
 func ParseOutboundEndpointIDInsensitively(input string) (*OutboundEndpointId, error) {
-	parser := resourceids.NewParserFromResourceIdType(OutboundEndpointId{})
+	parser := resourceids.NewParserFromResourceIdType(&OutboundEndpointId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

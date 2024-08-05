@@ -32,24 +32,36 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		return nil, fmt.Errorf("building Automation client: %+v", err)
 	}
 
-	agentRegistrationInfoClient := agentregistrationinformation.NewAgentRegistrationInformationClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&agentRegistrationInfoClient.Client, o.ResourceManagerAuthorizer)
+	agentRegistrationInfoClient, err := agentregistrationinformation.NewAgentRegistrationInformationClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Agent Registration Info client : %+v", err)
+	}
+	o.Configure(agentRegistrationInfoClient.Client, o.Authorizers.ResourceManager)
 
-	softUpClient := softwareupdateconfiguration.NewSoftwareUpdateConfigurationClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&softUpClient.Client, o.ResourceManagerAuthorizer)
+	softUpClient, err := softwareupdateconfiguration.NewSoftwareUpdateConfigurationClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Soft Up client : %+v", err)
+	}
+	o.Configure(softUpClient.Client, o.Authorizers.ResourceManager)
 
-	watcherClient := watcher.NewWatcherClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&watcherClient.Client, o.ResourceManagerAuthorizer)
+	watcherClient, err := watcher.NewWatcherClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Watcher client : %+v", err)
+	}
+	o.Configure(watcherClient.Client, o.Authorizers.ResourceManager)
 
-	webhookClient := webhook.NewWebhookClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&webhookClient.Client, o.ResourceManagerAuthorizer)
+	webhookClient, err := webhook.NewWebhookClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Webhook client : %+v", err)
+	}
+	o.Configure(webhookClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
 		Client: metaClient,
 
-		AgentRegistrationInfoClient: &agentRegistrationInfoClient,
-		SoftwareUpdateConfigClient:  &softUpClient,
-		WatcherClient:               &watcherClient,
-		WebhookClient:               &webhookClient,
+		AgentRegistrationInfoClient: agentRegistrationInfoClient,
+		SoftwareUpdateConfigClient:  softUpClient,
+		WatcherClient:               watcherClient,
+		WebhookClient:               webhookClient,
 	}, nil
 }

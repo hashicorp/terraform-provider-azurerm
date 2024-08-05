@@ -45,7 +45,10 @@ func (c BlobInventoryPoliciesClient) List(ctx context.Context, id commonids.Stor
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ListBlobInventoryPolicy
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

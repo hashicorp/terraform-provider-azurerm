@@ -20,7 +20,20 @@ type ListValidSkusOperationResponse struct {
 }
 
 type ListValidSkusCompleteResult struct {
-	Items []IotDpsSkuDefinition
+	LatestHttpResponse *http.Response
+	Items              []IotDpsSkuDefinition
+}
+
+type ListValidSkusCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListValidSkusCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListValidSkus ...
@@ -31,6 +44,7 @@ func (c IotDpsResourceClient) ListValidSkus(ctx context.Context, id commonids.Pr
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListValidSkusCustomPager{},
 		Path:       fmt.Sprintf("%s/skus", id.ID()),
 	}
 
@@ -72,6 +86,7 @@ func (c IotDpsResourceClient) ListValidSkusCompleteMatchingPredicate(ctx context
 
 	resp, err := c.ListValidSkus(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -84,7 +99,8 @@ func (c IotDpsResourceClient) ListValidSkusCompleteMatchingPredicate(ctx context
 	}
 
 	result = ListValidSkusCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

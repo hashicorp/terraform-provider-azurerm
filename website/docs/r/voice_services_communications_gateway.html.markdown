@@ -90,6 +90,7 @@ The following arguments are supported:
 * `tags` - (Optional) A mapping of tags which should be assigned to the Voice Services Communications Gateways.
 
 * `microsoft_teams_voicemail_pilot_number` - (Optional) This number is used in Teams Phone Mobile scenarios for access to the voicemail IVR from the native dialer.
+
 ---
 
 A `service_location` block supports the following:

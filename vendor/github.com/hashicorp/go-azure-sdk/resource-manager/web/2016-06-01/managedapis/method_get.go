@@ -43,7 +43,10 @@ func (c ManagedAPIsClient) Get(ctx context.Context, id ManagedApiId) (result Get
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ManagedApiDefinition
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

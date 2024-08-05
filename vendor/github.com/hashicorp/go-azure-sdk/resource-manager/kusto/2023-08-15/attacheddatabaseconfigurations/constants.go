@@ -1,6 +1,10 @@
 package attacheddatabaseconfigurations
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -15,6 +19,19 @@ func PossibleValuesForAttachedDatabaseType() []string {
 	return []string{
 		string(AttachedDatabaseTypeMicrosoftPointKustoClustersAttachedDatabaseConfigurations),
 	}
+}
+
+func (s *AttachedDatabaseType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseAttachedDatabaseType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseAttachedDatabaseType(input string) (*AttachedDatabaseType, error) {
@@ -44,6 +61,19 @@ func PossibleValuesForDefaultPrincipalsModificationKind() []string {
 		string(DefaultPrincipalsModificationKindReplace),
 		string(DefaultPrincipalsModificationKindUnion),
 	}
+}
+
+func (s *DefaultPrincipalsModificationKind) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseDefaultPrincipalsModificationKind(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseDefaultPrincipalsModificationKind(input string) (*DefaultPrincipalsModificationKind, error) {
@@ -85,6 +115,19 @@ func PossibleValuesForProvisioningState() []string {
 	}
 }
 
+func (s *ProvisioningState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseProvisioningState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseProvisioningState(input string) (*ProvisioningState, error) {
 	vals := map[string]ProvisioningState{
 		"canceled":  ProvisioningStateCanceled,
@@ -116,6 +159,19 @@ func PossibleValuesForReason() []string {
 		string(ReasonAlreadyExists),
 		string(ReasonInvalid),
 	}
+}
+
+func (s *Reason) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseReason(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseReason(input string) (*Reason, error) {

@@ -19,7 +19,8 @@ type ListByServiceOperationResponse struct {
 }
 
 type ListByServiceCompleteResult struct {
-	Items []SharedPrivateLinkResource
+	LatestHttpResponse *http.Response
+	Items              []SharedPrivateLinkResource
 }
 
 type ListByServiceOperationOptions struct {
@@ -49,6 +50,18 @@ func (o ListByServiceOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListByServiceCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByServiceCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByService ...
 func (c SharedPrivateLinkResourcesClient) ListByService(ctx context.Context, id SearchServiceId, options ListByServiceOperationOptions) (result ListByServiceOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -57,8 +70,9 @@ func (c SharedPrivateLinkResourcesClient) ListByService(ctx context.Context, id 
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/sharedPrivateLinkResources", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListByServiceCustomPager{},
+		Path:          fmt.Sprintf("%s/sharedPrivateLinkResources", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -99,6 +113,7 @@ func (c SharedPrivateLinkResourcesClient) ListByServiceCompleteMatchingPredicate
 
 	resp, err := c.ListByService(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -111,7 +126,8 @@ func (c SharedPrivateLinkResourcesClient) ListByServiceCompleteMatchingPredicate
 	}
 
 	result = ListByServiceCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

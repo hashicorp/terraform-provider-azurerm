@@ -44,7 +44,10 @@ func (c WorkflowTriggersClient) GetSchemaJson(ctx context.Context, id TriggerId)
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model JsonSchema
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -53,8 +53,8 @@ func (c FileSharesClient) Lease(ctx context.Context, id ShareId, input LeaseShar
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPost,
-		Path:          fmt.Sprintf("%s/lease", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/lease", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -76,7 +76,10 @@ func (c FileSharesClient) Lease(ctx context.Context, id ShareId, input LeaseShar
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model LeaseShareResponse
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

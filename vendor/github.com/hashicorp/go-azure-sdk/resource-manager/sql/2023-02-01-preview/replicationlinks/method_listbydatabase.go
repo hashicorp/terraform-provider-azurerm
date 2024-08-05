@@ -20,7 +20,20 @@ type ListByDatabaseOperationResponse struct {
 }
 
 type ListByDatabaseCompleteResult struct {
-	Items []ReplicationLink
+	LatestHttpResponse *http.Response
+	Items              []ReplicationLink
+}
+
+type ListByDatabaseCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByDatabaseCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListByDatabase ...
@@ -31,6 +44,7 @@ func (c ReplicationLinksClient) ListByDatabase(ctx context.Context, id commonids
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByDatabaseCustomPager{},
 		Path:       fmt.Sprintf("%s/replicationLinks", id.ID()),
 	}
 
@@ -72,6 +86,7 @@ func (c ReplicationLinksClient) ListByDatabaseCompleteMatchingPredicate(ctx cont
 
 	resp, err := c.ListByDatabase(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -84,7 +99,8 @@ func (c ReplicationLinksClient) ListByDatabaseCompleteMatchingPredicate(ctx cont
 	}
 
 	result = ListByDatabaseCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

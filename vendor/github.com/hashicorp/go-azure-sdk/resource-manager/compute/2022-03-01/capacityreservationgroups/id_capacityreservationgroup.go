@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = CapacityReservationGroupId{}
+func init() {
+	recaser.RegisterResourceId(&CapacityReservationGroupId{})
+}
+
+var _ resourceids.ResourceId = &CapacityReservationGroupId{}
 
 // CapacityReservationGroupId is a struct representing the Resource ID for a Capacity Reservation Group
 type CapacityReservationGroupId struct {
@@ -30,7 +35,7 @@ func NewCapacityReservationGroupID(subscriptionId string, resourceGroupName stri
 
 // ParseCapacityReservationGroupID parses 'input' into a CapacityReservationGroupId
 func ParseCapacityReservationGroupID(input string) (*CapacityReservationGroupId, error) {
-	parser := resourceids.NewParserFromResourceIdType(CapacityReservationGroupId{})
+	parser := resourceids.NewParserFromResourceIdType(&CapacityReservationGroupId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +52,7 @@ func ParseCapacityReservationGroupID(input string) (*CapacityReservationGroupId,
 // ParseCapacityReservationGroupIDInsensitively parses 'input' case-insensitively into a CapacityReservationGroupId
 // note: this method should only be used for API response data and not user input
 func ParseCapacityReservationGroupIDInsensitively(input string) (*CapacityReservationGroupId, error) {
-	parser := resourceids.NewParserFromResourceIdType(CapacityReservationGroupId{})
+	parser := resourceids.NewParserFromResourceIdType(&CapacityReservationGroupId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

@@ -62,8 +62,8 @@ resource "azurerm_iot_time_series_insights_event_source_iothub" "example" {
   location                 = azurerm_resource_group.example.location
   environment_id           = azurerm_iot_time_series_insights_gen2_environment.example.id
   iothub_name              = azurerm_iothub.example.name
-  shared_access_key        = azurerm_iothub.example.shared_access_policy.0.primary_key
-  shared_access_key_name   = azurerm_iothub.example.shared_access_policy.0.key_name
+  shared_access_key        = azurerm_iothub.example.shared_access_policy[0].primary_key
+  shared_access_key_name   = azurerm_iothub.example.shared_access_policy[0].key_name
   consumer_group_name      = azurerm_iothub_consumer_group.example.name
   event_source_resource_id = azurerm_iothub.example.id
 }

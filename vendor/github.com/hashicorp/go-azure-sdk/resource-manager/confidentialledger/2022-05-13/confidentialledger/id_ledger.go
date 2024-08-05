@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = LedgerId{}
+func init() {
+	recaser.RegisterResourceId(&LedgerId{})
+}
+
+var _ resourceids.ResourceId = &LedgerId{}
 
 // LedgerId is a struct representing the Resource ID for a Ledger
 type LedgerId struct {
@@ -30,7 +35,7 @@ func NewLedgerID(subscriptionId string, resourceGroupName string, ledgerName str
 
 // ParseLedgerID parses 'input' into a LedgerId
 func ParseLedgerID(input string) (*LedgerId, error) {
-	parser := resourceids.NewParserFromResourceIdType(LedgerId{})
+	parser := resourceids.NewParserFromResourceIdType(&LedgerId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +52,7 @@ func ParseLedgerID(input string) (*LedgerId, error) {
 // ParseLedgerIDInsensitively parses 'input' case-insensitively into a LedgerId
 // note: this method should only be used for API response data and not user input
 func ParseLedgerIDInsensitively(input string) (*LedgerId, error) {
-	parser := resourceids.NewParserFromResourceIdType(LedgerId{})
+	parser := resourceids.NewParserFromResourceIdType(&LedgerId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

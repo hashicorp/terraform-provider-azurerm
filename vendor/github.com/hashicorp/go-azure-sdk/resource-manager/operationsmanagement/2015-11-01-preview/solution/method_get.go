@@ -43,7 +43,10 @@ func (c SolutionClient) Get(ctx context.Context, id SolutionId) (result GetOpera
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Solution
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

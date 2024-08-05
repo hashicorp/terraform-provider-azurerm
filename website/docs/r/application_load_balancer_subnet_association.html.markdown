@@ -62,9 +62,9 @@ The following arguments are supported:
 
 * `application_load_balancer_id` - (Required) The ID of the Application Gateway for Containers. Changing this forces a new resource to be created.
 
-* `subnet_id` - (Required) The ID of the subnet which the Application Gateway for Containers associated to. Changing this forces a new resource to be created.
+* `subnet_id` - (Required) The ID of the subnet which the Application Gateway for Containers associated to.
 
-**Note:** The subnet to be used must have a delegation for  `Microsoft.ServiceNetworking/trafficControllers` as shown in the example above.
+~> **Note:** The subnet to be used must have a delegation for  `Microsoft.ServiceNetworking/trafficControllers` as shown in the example above.
 
 ---
 

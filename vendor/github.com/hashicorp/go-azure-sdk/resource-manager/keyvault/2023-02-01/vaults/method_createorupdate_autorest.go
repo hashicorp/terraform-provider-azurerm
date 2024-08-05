@@ -17,6 +17,7 @@ import (
 type CreateOrUpdateOperationResponse struct {
 	Poller       polling.LongRunningPoller
 	HttpResponse *http.Response
+	Model        *Vault
 }
 
 // CreateOrUpdate ...

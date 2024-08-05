@@ -10,6 +10,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+var _ resourceids.ResourceId = &VirtualMachineScaleSetId{}
+
 // VirtualMachineScaleSetId is a struct representing the Resource ID for a Virtual Machine Scale Set
 type VirtualMachineScaleSetId struct {
 	SubscriptionId             string
@@ -28,25 +30,15 @@ func NewVirtualMachineScaleSetID(subscriptionId string, resourceGroupName string
 
 // ParseVirtualMachineScaleSetID parses 'input' into a VirtualMachineScaleSetId
 func ParseVirtualMachineScaleSetID(input string) (*VirtualMachineScaleSetId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VirtualMachineScaleSetId{})
+	parser := resourceids.NewParserFromResourceIdType(&VirtualMachineScaleSetId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := VirtualMachineScaleSetId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.VirtualMachineScaleSetName, ok = parsed.Parsed["virtualMachineScaleSetName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "virtualMachineScaleSetName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -55,28 +47,36 @@ func ParseVirtualMachineScaleSetID(input string) (*VirtualMachineScaleSetId, err
 // ParseVirtualMachineScaleSetIDInsensitively parses 'input' case-insensitively into a VirtualMachineScaleSetId
 // note: this method should only be used for API response data and not user input
 func ParseVirtualMachineScaleSetIDInsensitively(input string) (*VirtualMachineScaleSetId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VirtualMachineScaleSetId{})
+	parser := resourceids.NewParserFromResourceIdType(&VirtualMachineScaleSetId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := VirtualMachineScaleSetId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.VirtualMachineScaleSetName, ok = parsed.Parsed["virtualMachineScaleSetName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "virtualMachineScaleSetName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *VirtualMachineScaleSetId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.VirtualMachineScaleSetName, ok = input.Parsed["virtualMachineScaleSetName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "virtualMachineScaleSetName", input)
+	}
+
+	return nil
 }
 
 // ValidateVirtualMachineScaleSetID checks that 'input' can be parsed as a Virtual Machine Scale Set ID

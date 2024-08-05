@@ -53,8 +53,8 @@ func (c DelegationSettingsClient) CreateOrUpdate(ctx context.Context, id Service
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPut,
-		Path:          fmt.Sprintf("%s/portalsettings/delegation", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/portalsettings/delegation", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -76,7 +76,10 @@ func (c DelegationSettingsClient) CreateOrUpdate(ctx context.Context, id Service
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model PortalDelegationSettings
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

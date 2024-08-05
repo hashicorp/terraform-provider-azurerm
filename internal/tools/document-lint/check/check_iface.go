@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package check
 
 import (
@@ -57,5 +60,31 @@ func newCheckBase(line int, key string, mdField *model.Field) checkBase {
 		line:    line,
 		key:     key,
 		mdField: mdField,
+	}
+}
+
+// for some special diff, we need to show message instead of diff
+type diffWithMessage struct {
+	checkBase
+	msg  string
+	skip bool
+}
+
+func (i diffWithMessage) Fix(line string) (string, error) {
+	return line, nil
+}
+
+func (i diffWithMessage) String() string {
+	return i.msg
+}
+func (i diffWithMessage) ShouldSkip() bool {
+	return i.skip
+}
+
+func newDiffWithMessage(msg string, skip bool) Checker {
+	return diffWithMessage{
+		checkBase: newCheckBase(0, msg, nil),
+		msg:       msg,
+		skip:      skip,
 	}
 }

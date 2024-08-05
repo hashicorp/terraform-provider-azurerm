@@ -43,7 +43,10 @@ func (c IntegrationAccountSchemasClient) Get(ctx context.Context, id SchemaId) (
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model IntegrationAccountSchema
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

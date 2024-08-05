@@ -20,7 +20,20 @@ type ListInSubscriptionOperationResponse struct {
 }
 
 type ListInSubscriptionCompleteResult struct {
-	Items []PrivateCloud
+	LatestHttpResponse *http.Response
+	Items              []PrivateCloud
+}
+
+type ListInSubscriptionCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListInSubscriptionCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListInSubscription ...
@@ -31,6 +44,7 @@ func (c PrivateCloudsClient) ListInSubscription(ctx context.Context, id commonid
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListInSubscriptionCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.AVS/privateClouds", id.ID()),
 	}
 
@@ -72,6 +86,7 @@ func (c PrivateCloudsClient) ListInSubscriptionCompleteMatchingPredicate(ctx con
 
 	resp, err := c.ListInSubscription(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -84,7 +99,8 @@ func (c PrivateCloudsClient) ListInSubscriptionCompleteMatchingPredicate(ctx con
 	}
 
 	result = ListInSubscriptionCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

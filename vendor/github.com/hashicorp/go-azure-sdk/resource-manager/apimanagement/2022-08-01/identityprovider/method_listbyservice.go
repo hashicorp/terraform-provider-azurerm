@@ -19,7 +19,20 @@ type ListByServiceOperationResponse struct {
 }
 
 type ListByServiceCompleteResult struct {
-	Items []IdentityProviderContract
+	LatestHttpResponse *http.Response
+	Items              []IdentityProviderContract
+}
+
+type ListByServiceCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByServiceCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListByService ...
@@ -30,6 +43,7 @@ func (c IdentityProviderClient) ListByService(ctx context.Context, id ServiceId)
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByServiceCustomPager{},
 		Path:       fmt.Sprintf("%s/identityProviders", id.ID()),
 	}
 
@@ -71,6 +85,7 @@ func (c IdentityProviderClient) ListByServiceCompleteMatchingPredicate(ctx conte
 
 	resp, err := c.ListByService(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +98,8 @@ func (c IdentityProviderClient) ListByServiceCompleteMatchingPredicate(ctx conte
 	}
 
 	result = ListByServiceCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

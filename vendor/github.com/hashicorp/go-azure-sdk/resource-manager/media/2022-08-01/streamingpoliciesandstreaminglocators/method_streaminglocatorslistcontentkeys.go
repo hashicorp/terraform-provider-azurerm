@@ -44,7 +44,10 @@ func (c StreamingPoliciesAndStreamingLocatorsClient) StreamingLocatorsListConten
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ListContentKeysResponse
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

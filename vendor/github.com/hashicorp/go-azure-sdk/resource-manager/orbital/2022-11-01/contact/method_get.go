@@ -43,7 +43,10 @@ func (c ContactClient) Get(ctx context.Context, id ContactId) (result GetOperati
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Contact
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

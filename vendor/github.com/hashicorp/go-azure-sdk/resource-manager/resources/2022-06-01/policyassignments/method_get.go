@@ -43,7 +43,10 @@ func (c PolicyAssignmentsClient) Get(ctx context.Context, id ScopedPolicyAssignm
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model PolicyAssignment
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

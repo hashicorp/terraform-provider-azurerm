@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ScopeMapId{}
+func init() {
+	recaser.RegisterResourceId(&ScopeMapId{})
+}
+
+var _ resourceids.ResourceId = &ScopeMapId{}
 
 // ScopeMapId is a struct representing the Resource ID for a Scope Map
 type ScopeMapId struct {
@@ -32,7 +37,7 @@ func NewScopeMapID(subscriptionId string, resourceGroupName string, registryName
 
 // ParseScopeMapID parses 'input' into a ScopeMapId
 func ParseScopeMapID(input string) (*ScopeMapId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScopeMapId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScopeMapId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +54,7 @@ func ParseScopeMapID(input string) (*ScopeMapId, error) {
 // ParseScopeMapIDInsensitively parses 'input' case-insensitively into a ScopeMapId
 // note: this method should only be used for API response data and not user input
 func ParseScopeMapIDInsensitively(input string) (*ScopeMapId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScopeMapId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScopeMapId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

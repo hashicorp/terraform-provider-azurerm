@@ -19,7 +19,20 @@ type CustomDomainsListOperationResponse struct {
 }
 
 type CustomDomainsListCompleteResult struct {
-	Items []CustomDomain
+	LatestHttpResponse *http.Response
+	Items              []CustomDomain
+}
+
+type CustomDomainsListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *CustomDomainsListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // CustomDomainsList ...
@@ -30,6 +43,7 @@ func (c SignalRClient) CustomDomainsList(ctx context.Context, id SignalRId) (res
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &CustomDomainsListCustomPager{},
 		Path:       fmt.Sprintf("%s/customDomains", id.ID()),
 	}
 
@@ -71,6 +85,7 @@ func (c SignalRClient) CustomDomainsListCompleteMatchingPredicate(ctx context.Co
 
 	resp, err := c.CustomDomainsList(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +98,8 @@ func (c SignalRClient) CustomDomainsListCompleteMatchingPredicate(ctx context.Co
 	}
 
 	result = CustomDomainsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

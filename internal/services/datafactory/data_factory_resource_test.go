@@ -154,6 +154,18 @@ func TestAccDataFactory_github(t *testing.T) {
 	})
 }
 
+func TestAccDataFactory_githubEmpty(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory", "test")
+	r := DataFactoryResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		data.DisappearsStep(acceptance.DisappearsStepData{
+			Config:       r.githubUrlEmpty,
+			TestResource: r,
+		}),
+	})
+}
+
 func TestAccDataFactory_publicNetworkDisabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory", "test")
 	r := DataFactoryResource{}
@@ -522,6 +534,33 @@ resource "azurerm_data_factory" "test" {
     root_folder        = "/azuread"
     account_name       = "acctestGitHub-%d"
     publishing_enabled = true
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (DataFactoryResource) githubUrlEmpty(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%d"
+  location = "%s"
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestDF%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  github_configuration {
+    repository_name    = "terraform-provider-azurerm"
+    branch_name        = "main"
+    root_folder        = "/"
+    account_name       = "acctestGH-%d"
+    publishing_enabled = false
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)

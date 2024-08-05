@@ -47,7 +47,10 @@ func (c ConnectionsClient) Update(ctx context.Context, id ConnectionId, input Ap
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ApiConnectionDefinition
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

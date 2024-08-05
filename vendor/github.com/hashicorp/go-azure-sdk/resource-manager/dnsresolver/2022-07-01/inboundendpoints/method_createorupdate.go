@@ -18,6 +18,7 @@ type CreateOrUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *InboundEndpoint
 }
 
 type CreateOrUpdateOperationOptions struct {
@@ -61,8 +62,8 @@ func (c InboundEndpointsClient) CreateOrUpdate(ctx context.Context, id InboundEn
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPut,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

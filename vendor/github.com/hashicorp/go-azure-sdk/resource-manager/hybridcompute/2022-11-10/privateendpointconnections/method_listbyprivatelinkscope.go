@@ -19,7 +19,20 @@ type ListByPrivateLinkScopeOperationResponse struct {
 }
 
 type ListByPrivateLinkScopeCompleteResult struct {
-	Items []PrivateEndpointConnection
+	LatestHttpResponse *http.Response
+	Items              []PrivateEndpointConnection
+}
+
+type ListByPrivateLinkScopeCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByPrivateLinkScopeCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListByPrivateLinkScope ...
@@ -30,6 +43,7 @@ func (c PrivateEndpointConnectionsClient) ListByPrivateLinkScope(ctx context.Con
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByPrivateLinkScopeCustomPager{},
 		Path:       fmt.Sprintf("%s/privateEndpointConnections", id.ID()),
 	}
 
@@ -71,6 +85,7 @@ func (c PrivateEndpointConnectionsClient) ListByPrivateLinkScopeCompleteMatching
 
 	resp, err := c.ListByPrivateLinkScope(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +98,8 @@ func (c PrivateEndpointConnectionsClient) ListByPrivateLinkScopeCompleteMatching
 	}
 
 	result = ListByPrivateLinkScopeCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

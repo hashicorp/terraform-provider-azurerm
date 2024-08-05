@@ -19,7 +19,8 @@ type ListByNamespaceOperationResponse struct {
 }
 
 type ListByNamespaceCompleteResult struct {
-	Items []SchemaGroup
+	LatestHttpResponse *http.Response
+	Items              []SchemaGroup
 }
 
 type ListByNamespaceOperationOptions struct {
@@ -53,6 +54,18 @@ func (o ListByNamespaceOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListByNamespaceCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByNamespaceCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByNamespace ...
 func (c SchemaRegistryClient) ListByNamespace(ctx context.Context, id NamespaceId, options ListByNamespaceOperationOptions) (result ListByNamespaceOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -61,8 +74,9 @@ func (c SchemaRegistryClient) ListByNamespace(ctx context.Context, id NamespaceI
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/schemaGroups", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListByNamespaceCustomPager{},
+		Path:          fmt.Sprintf("%s/schemaGroups", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -103,6 +117,7 @@ func (c SchemaRegistryClient) ListByNamespaceCompleteMatchingPredicate(ctx conte
 
 	resp, err := c.ListByNamespace(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -115,7 +130,8 @@ func (c SchemaRegistryClient) ListByNamespaceCompleteMatchingPredicate(ctx conte
 	}
 
 	result = ListByNamespaceCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -51,9 +51,9 @@ The following attributes are exported:
 
 * `ip_range_filter` - The current IP Filter for this CosmosDB account
 
-* `enable_free_tier` - If Free Tier pricing option is enabled for this CosmosDB Account. You can have up to one free tier Azure Cosmos DB account per Azure subscription.
+* `free_tier_enabled` - If Free Tier pricing option is enabled for this CosmosDB Account. You can have up to one free tier Azure Cosmos DB account per Azure subscription.
 
-* `enable_automatic_failover` - If automatic failover is enabled for this CosmosDB Account.
+* `automatic_failover_enabled` - If automatic failover is enabled for this CosmosDB Account.
 
 * `capabilities` - Capabilities enabled on this Cosmos DB account.
 
@@ -61,7 +61,7 @@ The following attributes are exported:
 
 * `virtual_network_rule` - Subnets that are allowed to access this CosmosDB account.
 
-* `enable_multiple_write_locations` - If multiple write locations are enabled for this Cosmos DB account.
+* `multiple_write_locations_enabled` - If multiple write locations are enabled for this Cosmos DB account.
 
 `consistency_policy` The current consistency Settings for this CosmosDB account with the following properties:
 
@@ -92,8 +92,6 @@ The following attributes are exported:
 * `primary_readonly_key` - The primary read-only Key for the CosmosDB account.
 
 * `secondary_readonly_key` - The secondary read-only key for the CosmosDB account.
-
-* `connection_strings` - A list of connection strings available for this CosmosDB account.
 
 * `primary_sql_connection_string` - The primary SQL connection string for the CosmosDB Account.
 

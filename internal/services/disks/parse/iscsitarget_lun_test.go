@@ -6,13 +6,13 @@ package parse
 import (
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagepool/2021-08-01/iscsitargets"
 )
 
 func TestNewDiskPoolIscsiTargetLunId(t *testing.T) {
 	iscsiTargetId := iscsitargets.NewIscsiTargetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "diskPoolValue", "iscsiTargetValue")
-	managedDiskId := disks.NewDiskID("12345678-1234-9876-4563-123456789012", "resGroup1", "disk1")
+	managedDiskId := commonids.NewManagedDiskID("12345678-1234-9876-4563-123456789012", "resGroup1", "disk1")
 	id := NewDiskPoolIscsiTargetLunId(iscsiTargetId, managedDiskId)
 
 	if id.IscsiTargetId != iscsiTargetId {
@@ -26,7 +26,7 @@ func TestNewDiskPoolIscsiTargetLunId(t *testing.T) {
 
 func TestFormatIscsiTargetLunId(t *testing.T) {
 	iscsiTargetId := iscsitargets.NewIscsiTargetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "diskPoolValue", "iscsiTargetValue")
-	managedDiskId := disks.NewDiskID("12345678-1234-9876-4563-123456789012", "resGroup1", "disk1")
+	managedDiskId := commonids.NewManagedDiskID("12345678-1234-9876-4563-123456789012", "resGroup1", "disk1")
 	id := NewDiskPoolIscsiTargetLunId(iscsiTargetId, managedDiskId)
 
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.StoragePool/diskPools/diskPoolValue/iscsiTargets/iscsiTargetValue/lun|/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/disks/disk1"
@@ -107,7 +107,7 @@ func TestParseIscsiTargetLunID(t *testing.T) {
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.StoragePool/diskPools/diskPoolValue/iscsiTargets/iscsiTargetValue/lun|/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/disks/disk1",
 			Expected: &DiskPoolIscsiTargetLunId{
 				IscsiTargetId: iscsitargets.NewIscsiTargetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "diskPoolValue", "iscsiTargetValue"),
-				ManagedDiskId: disks.NewDiskID("12345678-1234-9876-4563-123456789012", "resGroup1", "disk1"),
+				ManagedDiskId: commonids.NewManagedDiskID("12345678-1234-9876-4563-123456789012", "resGroup1", "disk1"),
 			},
 		},
 		{

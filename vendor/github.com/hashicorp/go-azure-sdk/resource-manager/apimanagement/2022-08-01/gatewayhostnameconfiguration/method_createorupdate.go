@@ -54,8 +54,8 @@ func (c GatewayHostnameConfigurationClient) CreateOrUpdate(ctx context.Context, 
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPut,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -77,7 +77,10 @@ func (c GatewayHostnameConfigurationClient) CreateOrUpdate(ctx context.Context, 
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model GatewayHostnameConfigurationContract
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

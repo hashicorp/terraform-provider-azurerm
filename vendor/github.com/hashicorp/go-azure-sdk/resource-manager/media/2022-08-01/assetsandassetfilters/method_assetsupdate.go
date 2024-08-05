@@ -47,7 +47,10 @@ func (c AssetsAndAssetFiltersClient) AssetsUpdate(ctx context.Context, id AssetI
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Asset
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

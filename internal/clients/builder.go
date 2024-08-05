@@ -9,7 +9,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/authentication"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/sdk/auth"
@@ -24,16 +23,15 @@ type ClientBuilder struct {
 	AuthConfig *auth.Credentials
 	Features   features.UserFeatures
 
+	CustomCorrelationRequestID  string
 	DisableCorrelationRequestID bool
 	DisableTerraformPartnerID   bool
-	SkipProviderRegistration    bool
+	MetadataHost                string
+	PartnerID                   string
+	RegisteredResourceProviders resourceproviders.ResourceProviders
 	StorageUseAzureAD           bool
-
-	CustomCorrelationRequestID string
-	MetadataHost               string
-	PartnerID                  string
-	SubscriptionID             string
-	TerraformVersion           string
+	SubscriptionID              string
+	TerraformVersion            string
 }
 
 const azureStackEnvironmentError = `
@@ -98,14 +96,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		return authorizer, nil
 	})
 
-	// TODO: remove these when autorest clients are no longer used
-	azureEnvironment, err := authentication.AzureEnvironmentByNameFromEndpoint(ctx, builder.MetadataHost, builder.AuthConfig.Environment.Name)
-	if err != nil {
-		return nil, fmt.Errorf("unable to find environment %q from endpoint %q: %+v", builder.AuthConfig.Environment.Name, builder.MetadataHost, err)
-	}
-	resourceManagerEndpoint, _ := builder.AuthConfig.Environment.ResourceManager.Endpoint()
-
-	account, err := NewResourceManagerAccount(ctx, *builder.AuthConfig, builder.SubscriptionID, builder.SkipProviderRegistration, *azureEnvironment)
+	account, err := NewResourceManagerAccount(ctx, *builder.AuthConfig, builder.SubscriptionID, builder.RegisteredResourceProviders)
 	if err != nil {
 		return nil, fmt.Errorf("building account: %+v", err)
 	}
@@ -118,6 +109,11 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		}
 	} else {
 		log.Printf("[DEBUG] Skipping building the Managed HSM Authorizer since this is not supported in the current Azure Environment")
+	}
+
+	resourceManagerEndpoint, ok := builder.AuthConfig.Environment.ResourceManager.Endpoint()
+	if !ok {
+		return nil, fmt.Errorf("unable to determine resource manager endpoint for the current environment")
 	}
 
 	client := Client{
@@ -135,6 +131,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 			AuthorizerFunc:  authorizerFunc,
 		},
 
+		AuthConfig:  builder.AuthConfig,
 		Environment: builder.AuthConfig.Environment,
 		Features:    builder.Features,
 
@@ -147,17 +144,14 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		KeyVaultAuthorizer:        authWrapper.AutorestAuthorizer(keyVaultAuth).BearerAuthorizerCallback(),
 		ManagedHSMAuthorizer:      authWrapper.AutorestAuthorizer(managedHSMAuth).BearerAuthorizerCallback(),
 		ResourceManagerAuthorizer: authWrapper.AutorestAuthorizer(resourceManagerAuth),
-		StorageAuthorizer:         authWrapper.AutorestAuthorizer(storageAuth),
 		SynapseAuthorizer:         authWrapper.AutorestAuthorizer(synapseAuth),
 
 		CustomCorrelationRequestID:  builder.CustomCorrelationRequestID,
 		DisableCorrelationRequestID: builder.DisableCorrelationRequestID,
 		DisableTerraformPartnerID:   builder.DisableTerraformPartnerID,
-		SkipProviderReg:             builder.SkipProviderRegistration,
+		SkipProviderReg:             len(builder.RegisteredResourceProviders) == 0,
 		StorageUseAzureAD:           builder.StorageUseAzureAD,
 
-		// TODO: remove when `Azure/go-autorest` is no longer used
-		AzureEnvironment:        *azureEnvironment,
 		ResourceManagerEndpoint: *resourceManagerEndpoint,
 	}
 

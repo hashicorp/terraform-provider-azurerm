@@ -44,7 +44,10 @@ func (c OrdersClient) ListDCAccessCode(ctx context.Context, id DataBoxEdgeDevice
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model DCAccessCode
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

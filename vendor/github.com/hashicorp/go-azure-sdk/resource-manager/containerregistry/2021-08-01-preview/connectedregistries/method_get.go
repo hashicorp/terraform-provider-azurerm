@@ -43,7 +43,10 @@ func (c ConnectedRegistriesClient) Get(ctx context.Context, id ConnectedRegistry
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ConnectedRegistry
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

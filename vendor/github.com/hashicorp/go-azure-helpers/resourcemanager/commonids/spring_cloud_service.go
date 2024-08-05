@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = SpringCloudServiceId{}
+var _ resourceids.ResourceId = &SpringCloudServiceId{}
 
 // SpringCloudServiceId is a struct representing the Resource ID for a Spring Cloud Service
 type SpringCloudServiceId struct {
@@ -30,25 +30,15 @@ func NewSpringCloudServiceID(subscriptionId string, resourceGroupName string, se
 
 // ParseSpringCloudServiceID parses 'input' into a SpringCloudServiceId
 func ParseSpringCloudServiceID(input string) (*SpringCloudServiceId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SpringCloudServiceId{})
+	parser := resourceids.NewParserFromResourceIdType(&SpringCloudServiceId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := SpringCloudServiceId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ServiceName, ok = parsed.Parsed["serviceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "serviceName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +47,36 @@ func ParseSpringCloudServiceID(input string) (*SpringCloudServiceId, error) {
 // ParseSpringCloudServiceIDInsensitively parses 'input' case-insensitively into a SpringCloudServiceId
 // note: this method should only be used for API response data and not user input
 func ParseSpringCloudServiceIDInsensitively(input string) (*SpringCloudServiceId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SpringCloudServiceId{})
+	parser := resourceids.NewParserFromResourceIdType(&SpringCloudServiceId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := SpringCloudServiceId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ServiceName, ok = parsed.Parsed["serviceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "serviceName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *SpringCloudServiceId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.ServiceName, ok = input.Parsed["serviceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "serviceName", input)
+	}
+
+	return nil
 }
 
 // ValidateSpringCloudServiceID checks that 'input' can be parsed as a Spring Cloud Service ID

@@ -44,7 +44,10 @@ func (c VolumeQuotaRulesClient) ListByVolume(ctx context.Context, id VolumeId) (
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model VolumeQuotaRulesList
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

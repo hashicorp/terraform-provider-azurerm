@@ -57,8 +57,8 @@ func (c PoolClient) Create(ctx context.Context, id PoolId, input Pool, options C
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPut,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -80,7 +80,10 @@ func (c PoolClient) Create(ctx context.Context, id PoolId, input Pool, options C
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Pool
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

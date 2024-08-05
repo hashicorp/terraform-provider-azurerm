@@ -19,7 +19,8 @@ type ListByAutomationAccountOperationResponse struct {
 }
 
 type ListByAutomationAccountCompleteResult struct {
-	Items []JobCollectionItem
+	LatestHttpResponse *http.Response
+	Items              []JobCollectionItem
 }
 
 type ListByAutomationAccountOperationOptions struct {
@@ -52,6 +53,18 @@ func (o ListByAutomationAccountOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListByAutomationAccountCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByAutomationAccountCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByAutomationAccount ...
 func (c JobClient) ListByAutomationAccount(ctx context.Context, id AutomationAccountId, options ListByAutomationAccountOperationOptions) (result ListByAutomationAccountOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -60,8 +73,9 @@ func (c JobClient) ListByAutomationAccount(ctx context.Context, id AutomationAcc
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/jobs", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListByAutomationAccountCustomPager{},
+		Path:          fmt.Sprintf("%s/jobs", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -102,6 +116,7 @@ func (c JobClient) ListByAutomationAccountCompleteMatchingPredicate(ctx context.
 
 	resp, err := c.ListByAutomationAccount(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -114,7 +129,8 @@ func (c JobClient) ListByAutomationAccountCompleteMatchingPredicate(ctx context.
 	}
 
 	result = ListByAutomationAccountCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

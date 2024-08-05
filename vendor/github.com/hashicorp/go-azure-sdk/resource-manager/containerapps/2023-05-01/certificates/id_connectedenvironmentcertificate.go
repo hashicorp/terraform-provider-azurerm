@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ConnectedEnvironmentCertificateId{}
+func init() {
+	recaser.RegisterResourceId(&ConnectedEnvironmentCertificateId{})
+}
+
+var _ resourceids.ResourceId = &ConnectedEnvironmentCertificateId{}
 
 // ConnectedEnvironmentCertificateId is a struct representing the Resource ID for a Connected Environment Certificate
 type ConnectedEnvironmentCertificateId struct {
@@ -32,7 +37,7 @@ func NewConnectedEnvironmentCertificateID(subscriptionId string, resourceGroupNa
 
 // ParseConnectedEnvironmentCertificateID parses 'input' into a ConnectedEnvironmentCertificateId
 func ParseConnectedEnvironmentCertificateID(input string) (*ConnectedEnvironmentCertificateId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ConnectedEnvironmentCertificateId{})
+	parser := resourceids.NewParserFromResourceIdType(&ConnectedEnvironmentCertificateId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +54,7 @@ func ParseConnectedEnvironmentCertificateID(input string) (*ConnectedEnvironment
 // ParseConnectedEnvironmentCertificateIDInsensitively parses 'input' case-insensitively into a ConnectedEnvironmentCertificateId
 // note: this method should only be used for API response data and not user input
 func ParseConnectedEnvironmentCertificateIDInsensitively(input string) (*ConnectedEnvironmentCertificateId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ConnectedEnvironmentCertificateId{})
+	parser := resourceids.NewParserFromResourceIdType(&ConnectedEnvironmentCertificateId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

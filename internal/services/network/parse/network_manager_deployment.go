@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/networkmanagers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkmanagers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 )
 

@@ -48,7 +48,10 @@ func (c CapacitiesClient) CheckNameAvailability(ctx context.Context, id Location
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model CheckCapacityNameAvailabilityResult
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

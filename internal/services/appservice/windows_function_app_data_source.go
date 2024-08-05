@@ -11,16 +11,18 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/web/2022-09-01/web"
 )
 
 type WindowsFunctionAppDataSource struct{}
@@ -45,7 +47,7 @@ type WindowsFunctionAppDataSourceModel struct {
 	ClientCertMode                   string                                 `tfschema:"client_certificate_mode"`
 	ClientCertExclusionPaths         string                                 `tfschema:"client_certificate_exclusion_paths"`
 	ConnectionStrings                []helpers.ConnectionString             `tfschema:"connection_string"`
-	DailyMemoryTimeQuota             int                                    `tfschema:"daily_memory_time_quota"`
+	DailyMemoryTimeQuota             int64                                  `tfschema:"daily_memory_time_quota"`
 	Enabled                          bool                                   `tfschema:"enabled"`
 	FunctionExtensionsVersion        string                                 `tfschema:"functions_extension_version"`
 	ForceDisableContentShare         bool                                   `tfschema:"content_share_force_disabled"`
@@ -68,6 +70,8 @@ type WindowsFunctionAppDataSourceModel struct {
 	PossibleOutboundIPAddressList []string `tfschema:"possible_outbound_ip_address_list"`
 
 	SiteCredentials []helpers.SiteCredential `tfschema:"site_credential"`
+
+	Identity []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 }
 
 var _ sdk.DataSource = WindowsFunctionAppDataSource{}
@@ -275,161 +279,165 @@ func (d WindowsFunctionAppDataSource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			id := parse.NewFunctionAppID(subscriptionId, functionApp.ResourceGroup, functionApp.Name)
-
-			existing, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
+			baseID := commonids.NewAppServiceID(subscriptionId, functionApp.ResourceGroup, functionApp.Name)
+			id, err := commonids.ParseFunctionAppID(baseID.ID())
 			if err != nil {
-				if utils.ResponseWasNotFound(existing.Response) {
+				return err
+			}
+
+			existing, err := client.Get(ctx, *id)
+			if err != nil {
+				if response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("Windows %s not found", id)
 				}
 				return fmt.Errorf("checking for presence of existing Windows %s: %+v", id, err)
 			}
 
-			if existing.SiteProperties == nil {
+			if existing.Model == nil || existing.Model.Properties == nil {
 				return fmt.Errorf("reading properties of Windows %s", id)
 			}
-			props := *existing.SiteProperties
 
 			functionApp.Name = id.SiteName
-			functionApp.ResourceGroup = id.ResourceGroup
-			functionApp.ServicePlanId = utils.NormalizeNilableString(props.ServerFarmID)
-			functionApp.Location = location.NormalizeNilable(existing.Location)
-			functionApp.Enabled = utils.NormaliseNilableBool(existing.Enabled)
-			functionApp.ClientCertMode = string(existing.ClientCertMode)
-			functionApp.ClientCertExclusionPaths = utils.NormalizeNilableString(existing.ClientCertExclusionPaths)
-			functionApp.DailyMemoryTimeQuota = int(utils.NormaliseNilableInt32(props.DailyMemoryTimeQuota))
-			functionApp.Tags = tags.ToTypedObject(existing.Tags)
-			functionApp.Kind = utils.NormalizeNilableString(existing.Kind)
-			functionApp.CustomDomainVerificationId = utils.NormalizeNilableString(props.CustomDomainVerificationID)
-			functionApp.DefaultHostname = utils.NormalizeNilableString(props.DefaultHostName)
-			functionApp.VirtualNetworkSubnetId = utils.NormalizeNilableString(props.VirtualNetworkSubnetID)
-			functionApp.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
+			functionApp.ResourceGroup = id.ResourceGroupName
+			if model := existing.Model; model != nil {
+				functionApp.Location = location.Normalize(model.Location)
+				functionApp.Tags = pointer.From(model.Tags)
+				functionApp.Kind = pointer.From(model.Kind)
 
-			basicAuthFTP := true
-			if basicAuthFTPResp, err := client.GetFtpAllowed(ctx, id.ResourceGroup, id.SiteName); err != nil {
-				return fmt.Errorf("retrieving state of FTP Basic Auth for %s: %+v", id, err)
-			} else if csmProps := basicAuthFTPResp.CsmPublishingCredentialsPoliciesEntityProperties; csmProps != nil {
-				basicAuthFTP = pointer.From(csmProps.Allow)
-			}
+				if props := model.Properties; props != nil {
+					servicePlanId, err := commonids.ParseAppServicePlanIDInsensitively(pointer.From(props.ServerFarmId))
+					if err != nil {
+						return fmt.Errorf("reading Service Plan Id for %s: %+v", id, err)
+					}
+					functionApp.ServicePlanId = servicePlanId.ID()
+					functionApp.Enabled = utils.NormaliseNilableBool(props.Enabled)
+					functionApp.ClientCertMode = string(pointer.From(props.ClientCertMode))
+					functionApp.ClientCertExclusionPaths = pointer.From(props.ClientCertExclusionPaths)
+					functionApp.DailyMemoryTimeQuota = pointer.From(props.DailyMemoryTimeQuota)
+					functionApp.CustomDomainVerificationId = pointer.From(props.CustomDomainVerificationId)
+					functionApp.DefaultHostname = pointer.From(props.DefaultHostName)
+					functionApp.VirtualNetworkSubnetId = pointer.From(props.VirtualNetworkSubnetId)
+					functionApp.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
 
-			basicAuthWebDeploy := true
-			if basicAuthWebDeployResp, err := client.GetScmAllowed(ctx, id.ResourceGroup, id.SiteName); err != nil {
-				return fmt.Errorf("retrieving state of WebDeploy Basic Auth for %s: %+v", id, err)
-			} else if csmProps := basicAuthWebDeployResp.CsmPublishingCredentialsPoliciesEntityProperties; csmProps != nil {
-				basicAuthWebDeploy = pointer.From(csmProps.Allow)
-			}
+					if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
+						functionApp.HostingEnvId = pointer.From(hostingEnv.Id)
+					}
 
-			functionApp.PublishingFTPBasicAuthEnabled = basicAuthFTP
-			functionApp.PublishingDeployBasicAuthEnabled = basicAuthWebDeploy
+					if v := props.OutboundIPAddresses; v != nil {
+						functionApp.OutboundIPAddresses = *v
+						functionApp.OutboundIPAddressList = strings.Split(*v, ",")
+					}
 
-			if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
-				functionApp.HostingEnvId = pointer.From(hostingEnv.ID)
-			}
+					if v := props.PossibleOutboundIPAddresses; v != nil {
+						functionApp.PossibleOutboundIPAddresses = *v
+						functionApp.PossibleOutboundIPAddressList = strings.Split(*v, ",")
+					}
 
-			if v := props.OutboundIPAddresses; v != nil {
-				functionApp.OutboundIPAddresses = *v
-				functionApp.OutboundIPAddressList = strings.Split(*v, ",")
-			}
-
-			if v := props.PossibleOutboundIPAddresses; v != nil {
-				functionApp.PossibleOutboundIPAddresses = *v
-				functionApp.PossibleOutboundIPAddressList = strings.Split(*v, ",")
-			}
-
-			appSettingsResp, err := client.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
-			if err != nil {
-				return fmt.Errorf("reading App Settings for Windows %s: %+v", id, err)
-			}
-
-			connectionStrings, err := client.ListConnectionStrings(ctx, id.ResourceGroup, id.SiteName)
-			if err != nil {
-				return fmt.Errorf("reading Connection String information for Windows %s: %+v", id, err)
-			}
-
-			stickySettings, err := client.ListSlotConfigurationNames(ctx, id.ResourceGroup, id.SiteName)
-			if err != nil {
-				return fmt.Errorf("reading Sticky Settings for Windows %s: %+v", id, err)
-			}
-
-			siteCredentialsFuture, err := client.ListPublishingCredentials(ctx, id.ResourceGroup, id.SiteName)
-			if err != nil {
-				return fmt.Errorf("listing Site Publishing Credential information for Windows %s: %+v", id, err)
-			}
-
-			if err := siteCredentialsFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for Site Publishing Credential information for Windows %s: %+v", id, err)
-			}
-			siteCredentials, err := siteCredentialsFuture.Result(*client)
-			if err != nil {
-				return fmt.Errorf("reading Site Publishing Credential information for Windows %s: %+v", id, err)
-			}
-
-			auth, err := client.GetAuthSettings(ctx, id.ResourceGroup, id.SiteName)
-			if err != nil {
-				return fmt.Errorf("reading Auth Settings for Windows %s: %+v", id, err)
-			}
-
-			authV2, err := client.GetAuthSettingsV2(ctx, id.ResourceGroup, id.SiteName)
-			if err != nil {
-				return fmt.Errorf("reading authV2 settings for Windows %s: %+v", id, err)
-			}
-
-			backup, err := client.GetBackupConfiguration(ctx, id.ResourceGroup, id.SiteName)
-			if err != nil {
-				if !utils.ResponseWasNotFound(backup.Response) {
-					return fmt.Errorf("reading Backup Settings for Windows %s: %+v", id, err)
+					functionApp.HttpsOnly = pointer.From(props.HTTPSOnly)
+					functionApp.ClientCertEnabled = pointer.From(props.ClientCertEnabled)
 				}
-			}
 
-			logs, err := client.GetDiagnosticLogsConfiguration(ctx, id.ResourceGroup, id.SiteName)
-			if err != nil {
-				return fmt.Errorf("reading logs configuration for Windows %s: %+v", id, err)
-			}
+				basicAuthFTP := true
+				if basicAuthFTPResp, err := client.GetFtpAllowed(ctx, *id); err != nil || basicAuthFTPResp.Model.Properties == nil {
+					return fmt.Errorf("retrieving state of FTP Basic Auth for %s: %+v", id, err)
+				} else if csmProps := basicAuthFTPResp.Model.Properties; csmProps != nil {
+					basicAuthFTP = csmProps.Allow
+				}
 
-			configResp, err := client.GetConfiguration(ctx, id.ResourceGroup, id.SiteName)
-			if err != nil {
-				return fmt.Errorf("making Read request on AzureRM Function App Configuration %q: %+v", id.SiteName, err)
-			}
+				basicAuthWebDeploy := true
+				if basicAuthWebDeployResp, err := client.GetScmAllowed(ctx, *id); err != nil || basicAuthWebDeployResp.Model.Properties == nil {
+					return fmt.Errorf("retrieving state of WebDeploy Basic Auth for %s: %+v", id, err)
+				} else if csmProps := basicAuthWebDeployResp.Model.Properties; csmProps != nil {
+					basicAuthWebDeploy = csmProps.Allow
+				}
 
-			siteConfig, err := helpers.FlattenSiteConfigWindowsFunctionApp(configResp.SiteConfig)
-			if err != nil {
-				return fmt.Errorf("reading Site Config for Windows %s: %+v", id, err)
-			}
+				functionApp.PublishingFTPBasicAuthEnabled = basicAuthFTP
+				functionApp.PublishingDeployBasicAuthEnabled = basicAuthWebDeploy
 
-			functionApp.SiteConfig = []helpers.SiteConfigWindowsFunctionApp{*siteConfig}
+				appSettingsResp, err := client.ListApplicationSettings(ctx, *id)
+				if err != nil {
+					return fmt.Errorf("reading App Settings for Windows %s: %+v", id, err)
+				}
 
-			functionApp.unpackWindowsFunctionAppSettings(appSettingsResp)
+				connectionStrings, err := client.ListConnectionStrings(ctx, *id)
+				if err != nil {
+					return fmt.Errorf("reading Connection String information for Windows %s: %+v", id, err)
+				}
 
-			functionApp.ConnectionStrings = helpers.FlattenConnectionStrings(connectionStrings)
+				stickySettings, err := client.ListSlotConfigurationNames(ctx, *id)
+				if err != nil {
+					return fmt.Errorf("reading Sticky Settings for Windows %s: %+v", id, err)
+				}
 
-			functionApp.SiteCredentials = helpers.FlattenSiteCredentials(siteCredentials)
+				siteCredentials, err := helpers.ListPublishingCredentials(ctx, client, *id)
+				if err != nil {
+					return fmt.Errorf("listing Site Publishing Credential information for %s: %+v", id, err)
+				}
 
-			functionApp.AuthSettings = helpers.FlattenAuthSettings(auth)
+				auth, err := client.GetAuthSettings(ctx, *id)
+				if err != nil {
+					return fmt.Errorf("reading Auth Settings for Windows %s: %+v", id, err)
+				}
 
-			functionApp.AuthV2Settings = helpers.FlattenAuthV2Settings(authV2)
+				var authV2 webapps.SiteAuthSettingsV2
+				authV2Resp, err := client.GetAuthSettingsV2(ctx, *id)
+				if err != nil {
+					return fmt.Errorf("reading authV2 settings for Linux %s: %+v", id, err)
+				}
+				authV2 = *authV2Resp.Model
 
-			functionApp.Backup = helpers.FlattenBackupConfig(backup)
+				backup, err := client.GetBackupConfiguration(ctx, *id)
+				if err != nil {
+					if !response.WasNotFound(backup.HttpResponse) {
+						return fmt.Errorf("reading Backup Settings for Windows %s: %+v", id, err)
+					}
+				}
 
-			functionApp.SiteConfig[0].AppServiceLogs = helpers.FlattenFunctionAppAppServiceLogs(logs)
+				logs, err := client.GetDiagnosticLogsConfiguration(ctx, *id)
+				if err != nil {
+					return fmt.Errorf("reading logs configuration for Windows %s: %+v", id, err)
+				}
 
-			functionApp.StickySettings = helpers.FlattenStickySettings(stickySettings.SlotConfigNames)
+				configResp, err := client.GetConfiguration(ctx, *id)
+				if err != nil || configResp.Model == nil {
+					return fmt.Errorf("making Read request on AzureRM Function App Configuration %q: %+v", id.SiteName, err)
+				}
 
-			functionApp.HttpsOnly = utils.NormaliseNilableBool(existing.HTTPSOnly)
+				siteConfig, err := helpers.FlattenSiteConfigWindowsFunctionApp(configResp.Model.Properties)
+				if err != nil {
+					return fmt.Errorf("reading Site Config for Windows %s: %+v", id, err)
+				}
 
-			functionApp.ClientCertEnabled = utils.NormaliseNilableBool(existing.ClientCertEnabled)
+				functionApp.SiteConfig = []helpers.SiteConfigWindowsFunctionApp{*siteConfig}
 
-			metadata.SetID(id)
+				functionApp.unpackWindowsFunctionAppSettings(appSettingsResp.Model)
 
-			if err := metadata.Encode(&functionApp); err != nil {
-				return fmt.Errorf("encoding: %+v", err)
-			}
+				functionApp.ConnectionStrings = helpers.FlattenConnectionStrings(connectionStrings.Model)
 
-			flattenedIdentity, err := flattenIdentity(existing.Identity)
-			if err != nil {
-				return fmt.Errorf("flattening `identity`: %+v", err)
-			}
-			if err := metadata.ResourceData.Set("identity", flattenedIdentity); err != nil {
-				return fmt.Errorf("setting `identity`: %+v", err)
+				functionApp.SiteCredentials = helpers.FlattenSiteCredentials(siteCredentials)
+
+				functionApp.AuthSettings = helpers.FlattenAuthSettings(auth.Model)
+
+				functionApp.AuthV2Settings = helpers.FlattenAuthV2Settings(authV2)
+
+				functionApp.Backup = helpers.FlattenBackupConfig(backup.Model)
+
+				functionApp.SiteConfig[0].AppServiceLogs = helpers.FlattenFunctionAppAppServiceLogs(logs.Model)
+
+				functionApp.StickySettings = helpers.FlattenStickySettings(stickySettings.Model.Properties)
+
+				flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMapToModel(model.Identity)
+				if err != nil {
+					return fmt.Errorf("flattening `identity`: %+v", err)
+				}
+
+				functionApp.Identity = pointer.From(flattenedIdentity)
+
+				metadata.SetID(id)
+
+				if err := metadata.Encode(&functionApp); err != nil {
+					return fmt.Errorf("encoding: %+v", err)
+				}
 			}
 
 			return nil
@@ -437,8 +445,8 @@ func (d WindowsFunctionAppDataSource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (m *WindowsFunctionAppDataSourceModel) unpackWindowsFunctionAppSettings(input web.StringDictionary) {
-	if input.Properties == nil {
+func (m *WindowsFunctionAppDataSourceModel) unpackWindowsFunctionAppSettings(input *webapps.StringDictionary) {
+	if input == nil || input.Properties == nil {
 		return
 	}
 
@@ -446,10 +454,10 @@ func (m *WindowsFunctionAppDataSourceModel) unpackWindowsFunctionAppSettings(inp
 	var dockerSettings helpers.ApplicationStackDocker
 	m.BuiltinLogging = false
 
-	for k, v := range input.Properties {
+	for k, v := range *input.Properties {
 		switch k {
 		case "FUNCTIONS_EXTENSION_VERSION":
-			m.FunctionExtensionsVersion = utils.NormalizeNilableString(v)
+			m.FunctionExtensionsVersion = (v)
 
 		case "WEBSITE_NODE_DEFAULT_VERSION": // Note - This is only set if it's not the default of 12, but we collect it from WindowsFxVersion so can discard it here
 		case "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING":
@@ -457,27 +465,27 @@ func (m *WindowsFunctionAppDataSourceModel) unpackWindowsFunctionAppSettings(inp
 		case "WEBSITE_HTTPLOGGING_RETENTION_DAYS":
 		case "FUNCTIONS_WORKER_RUNTIME":
 			if len(m.SiteConfig) > 0 && len(m.SiteConfig[0].ApplicationStack) > 0 {
-				m.SiteConfig[0].ApplicationStack[0].CustomHandler = strings.EqualFold(*v, "custom")
+				m.SiteConfig[0].ApplicationStack[0].CustomHandler = strings.EqualFold(v, "custom")
 			}
 
 		case "DOCKER_REGISTRY_SERVER_URL":
-			dockerSettings.RegistryURL = utils.NormalizeNilableString(v)
+			dockerSettings.RegistryURL = v
 
 		case "DOCKER_REGISTRY_SERVER_USERNAME":
-			dockerSettings.RegistryUsername = utils.NormalizeNilableString(v)
+			dockerSettings.RegistryUsername = v
 
 		case "DOCKER_REGISTRY_SERVER_PASSWORD":
-			dockerSettings.RegistryPassword = utils.NormalizeNilableString(v)
+			dockerSettings.RegistryPassword = v
 
 		case "APPINSIGHTS_INSTRUMENTATIONKEY":
-			m.SiteConfig[0].AppInsightsInstrumentationKey = utils.NormalizeNilableString(v)
+			m.SiteConfig[0].AppInsightsInstrumentationKey = v
 
 		case "APPLICATIONINSIGHTS_CONNECTION_STRING":
-			m.SiteConfig[0].AppInsightsConnectionString = utils.NormalizeNilableString(v)
+			m.SiteConfig[0].AppInsightsConnectionString = v
 
 		case "AzureWebJobsStorage":
-			if v != nil && strings.HasPrefix(*v, "@Microsoft.KeyVault") {
-				trimmed := strings.TrimPrefix(strings.TrimSuffix(*v, ")"), "@Microsoft.KeyVault(")
+			if strings.HasPrefix(v, "@Microsoft.KeyVault") {
+				trimmed := strings.TrimPrefix(strings.TrimSuffix(v, ")"), "@Microsoft.KeyVault(")
 				m.StorageKeyVaultSecretID = trimmed
 			} else {
 				m.StorageAccountName, m.StorageAccountKey = helpers.ParseWebJobsStorageString(v)
@@ -487,11 +495,11 @@ func (m *WindowsFunctionAppDataSourceModel) unpackWindowsFunctionAppSettings(inp
 			m.BuiltinLogging = true
 
 		case "WEBSITE_HEALTHCHECK_MAXPINGFAILURES":
-			i, _ := strconv.Atoi(utils.NormalizeNilableString(v))
-			m.SiteConfig[0].HealthCheckEvictionTime = utils.NormaliseNilableInt(&i)
+			i, _ := strconv.Atoi(v)
+			m.SiteConfig[0].HealthCheckEvictionTime = int64(i)
 
 		default:
-			appSettings[k] = utils.NormalizeNilableString(v)
+			appSettings[k] = v
 		}
 	}
 

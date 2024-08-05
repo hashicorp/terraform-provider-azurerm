@@ -43,7 +43,10 @@ func (c ScalingPlanClient) Get(ctx context.Context, id ScalingPlanId) (result Ge
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ScalingPlan
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

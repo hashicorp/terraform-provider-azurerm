@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = CloudEndpointId{}
+func init() {
+	recaser.RegisterResourceId(&CloudEndpointId{})
+}
+
+var _ resourceids.ResourceId = &CloudEndpointId{}
 
 // CloudEndpointId is a struct representing the Resource ID for a Cloud Endpoint
 type CloudEndpointId struct {
@@ -34,7 +39,7 @@ func NewCloudEndpointID(subscriptionId string, resourceGroupName string, storage
 
 // ParseCloudEndpointID parses 'input' into a CloudEndpointId
 func ParseCloudEndpointID(input string) (*CloudEndpointId, error) {
-	parser := resourceids.NewParserFromResourceIdType(CloudEndpointId{})
+	parser := resourceids.NewParserFromResourceIdType(&CloudEndpointId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -51,7 +56,7 @@ func ParseCloudEndpointID(input string) (*CloudEndpointId, error) {
 // ParseCloudEndpointIDInsensitively parses 'input' case-insensitively into a CloudEndpointId
 // note: this method should only be used for API response data and not user input
 func ParseCloudEndpointIDInsensitively(input string) (*CloudEndpointId, error) {
-	parser := resourceids.NewParserFromResourceIdType(CloudEndpointId{})
+	parser := resourceids.NewParserFromResourceIdType(&CloudEndpointId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

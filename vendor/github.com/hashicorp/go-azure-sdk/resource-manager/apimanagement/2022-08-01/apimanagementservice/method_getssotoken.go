@@ -44,7 +44,10 @@ func (c ApiManagementServiceClient) GetSsoToken(ctx context.Context, id ServiceI
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ApiManagementServiceGetSsoTokenResult
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

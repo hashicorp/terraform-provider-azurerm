@@ -226,9 +226,9 @@ If specified, the extensions mentioned in this configuration will be installed o
 
 ~> **NOTE:** When `automatic_upgrade_enabled` is set to `true`, the `type_handler_version` is automatically updated by the Azure platform when a new version is available and any change in `type_handler_version` should be manually ignored by user.
 
-* `settings_json` - (Optional) JSON formatted public settings for the extension.
+* `settings_json` - (Optional) JSON formatted public settings for the extension, the value should be encoded with [`jsonencode`](https://developer.hashicorp.com/terraform/language/functions/jsonencode) function.
 
-* `protected_settings` - (Optional) The extension can contain either `protected_settings` or `provision_after_extensions` or no protected settings at all.
+* `protected_settings` - (Optional) JSON formatted protected settings for the extension, the value should be encoded with [`jsonencode`](https://developer.hashicorp.com/terraform/language/functions/jsonencode) function. The extension can contain either `protected_settings` or `provision_after_extensions` or no protected settings at all.
 
 * `provision_after_extensions` - (Optional) The collection of extension names. Collection of extension names after which this extension needs to be provisioned.
 

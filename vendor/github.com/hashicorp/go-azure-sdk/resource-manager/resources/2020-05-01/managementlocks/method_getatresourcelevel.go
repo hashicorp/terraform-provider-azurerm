@@ -43,7 +43,10 @@ func (c ManagementLocksClient) GetAtResourceLevel(ctx context.Context, id Scoped
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ManagementLockObject
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

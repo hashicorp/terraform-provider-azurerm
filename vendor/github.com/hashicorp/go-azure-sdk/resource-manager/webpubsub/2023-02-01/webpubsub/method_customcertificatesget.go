@@ -43,7 +43,10 @@ func (c WebPubSubClient) CustomCertificatesGet(ctx context.Context, id CustomCer
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model CustomCertificate
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

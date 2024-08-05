@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package arcresourcebridge
 
 import (
@@ -17,7 +20,9 @@ func (r Registration) Name() string {
 }
 
 func (r Registration) DataSources() []sdk.DataSource {
-	return []sdk.DataSource{}
+	return []sdk.DataSource{
+		ArcResourceBridgeApplianceDataSource{},
+	}
 }
 
 func (r Registration) Resources() []sdk.Resource {

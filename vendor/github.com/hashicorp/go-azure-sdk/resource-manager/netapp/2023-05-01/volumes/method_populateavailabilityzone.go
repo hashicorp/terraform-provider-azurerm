@@ -18,6 +18,7 @@ type PopulateAvailabilityZoneOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *Volume
 }
 
 // PopulateAvailabilityZone ...

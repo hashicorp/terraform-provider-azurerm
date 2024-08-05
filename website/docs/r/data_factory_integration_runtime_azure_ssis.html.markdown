@@ -47,6 +47,10 @@ The following arguments are supported:
 
 * `number_of_nodes` - (Optional) Number of nodes for the Azure-SSIS Integration Runtime. Max is `10`. Defaults to `1`.
 
+* `credential_name` - (Optional) The name of a Data Factory Credential that the SSIS integration will use to access data sources. For example, [`azurerm_data_factory_credential_user_managed_identity`](data_factory_credential_user_assigned_managed_identity.html.html)
+
+~> **NOTE** If `credential_name` is omitted, the integration runtime will use the Data Factory assigned identity.
+
 * `max_parallel_executions_per_node` - (Optional) Defines the maximum parallel executions per node. Defaults to `1`. Max is `1`.
 
 * `edition` - (Optional) The Azure-SSIS Integration Runtime edition. Valid values are `Standard` and `Enterprise`. Defaults to `Standard`.
@@ -55,6 +59,8 @@ The following arguments are supported:
 
 * `catalog_info` - (Optional) A `catalog_info` block as defined below.
 
+* `copy_compute_scale` - (Optional) One `copy_compute_scale` block as defined below.
+
 * `custom_setup_script` - (Optional) A `custom_setup_script` block as defined below.
 
 * `express_custom_setup` - (Optional) An `express_custom_setup` block as defined below.
@@ -62,7 +68,9 @@ The following arguments are supported:
 * `express_vnet_integration` - (Optional) A `express_vnet_integration` block as defined below.
 
 * `package_store` - (Optional) One or more `package_store` block as defined below.
-  
+
+* `pipeline_external_compute_scale` - (Optional) One `pipeline_external_compute_scale` block as defined below.
+
 * `proxy` - (Optional) A `proxy` block as defined below.
 
 * `vnet_integration` - (Optional) A `vnet_integration` block as defined below.
@@ -84,6 +92,14 @@ A `catalog_info` block supports the following:
 * `elastic_pool_name` - (Optional) The name of SQL elastic pool where the database will be created for the SSIS catalog. Mutually exclusive with `pricing_tier`.
 
 * `dual_standby_pair_name` - (Optional) The dual standby Azure-SSIS Integration Runtime pair with SSISDB failover.
+
+---
+
+A `copy_compute_scale` block supports the following:
+
+* `data_integration_unit` - (Optional) Specifies the data integration unit number setting reserved for copy activity execution. Supported values are multiples of `4` in range 4-256.
+
+* `time_to_live` - (Optional) Specifies the time to live (in minutes) setting of integration runtime which will execute copy activity. Possible values are at least `5`.
 
 ---
 
@@ -164,6 +180,16 @@ A `proxy` block supports the following:
 * `staging_storage_linked_service_name` - (Required) Name of Azure Blob Storage linked service to reference the staging data store to be used when moving data between self-hosted and Azure-SSIS integration runtimes.
 
 * `path` - (Optional) The path in the data store to be used when moving data between Self-Hosted and Azure-SSIS Integration Runtimes.
+
+---
+
+A `pipeline_external_compute_scale` block supports the following:
+
+* `number_of_external_nodes` - (Optional) Specifies the number of the external nodes, which should be greater than `0` and less than `11`.
+
+* `number_of_pipeline_nodes` - (Optional) Specifies the number of the pipeline nodes, which should be greater than `0` and less than `11`.
+
+* `time_to_live` - (Optional) Specifies the time to live (in minutes) setting of integration runtime which will execute copy activity. Possible values are at least `5`.
 
 ---
 

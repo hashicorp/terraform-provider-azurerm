@@ -43,7 +43,10 @@ func (c NamedValueClient) Get(ctx context.Context, id NamedValueId) (result GetO
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model NamedValueContract
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

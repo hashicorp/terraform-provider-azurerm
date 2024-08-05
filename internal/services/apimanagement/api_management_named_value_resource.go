@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -50,7 +51,7 @@ func resourceApiManagementNamedValue() *pluginsdk.Resource {
 			"display_name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: validate.ApiManagementNamedValueDisplayName,
 			},
 
 			"value_from_key_vault": {
@@ -72,6 +73,7 @@ func resourceApiManagementNamedValue() *pluginsdk.Resource {
 						},
 					},
 				},
+				RequiredWith: []string{"secret"},
 			},
 
 			"value": {
@@ -126,6 +128,10 @@ func resourceApiManagementNamedValueCreateUpdate(d *pluginsdk.ResourceData, meta
 			Secret:      pointer.To(d.Get("secret").(bool)),
 			KeyVault:    expandApiManagementNamedValueKeyVault(d.Get("value_from_key_vault").([]interface{})),
 		},
+	}
+
+	if parameters.Properties.KeyVault != nil && (parameters.Properties.Secret == nil || !*parameters.Properties.Secret) {
+		return fmt.Errorf("`secret` must be true when `value_from_key_vault` is set")
 	}
 
 	if v, ok := d.GetOk("value"); ok {

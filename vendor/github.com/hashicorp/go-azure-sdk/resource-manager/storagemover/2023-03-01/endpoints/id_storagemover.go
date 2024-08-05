@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = StorageMoverId{}
+func init() {
+	recaser.RegisterResourceId(&StorageMoverId{})
+}
+
+var _ resourceids.ResourceId = &StorageMoverId{}
 
 // StorageMoverId is a struct representing the Resource ID for a Storage Mover
 type StorageMoverId struct {
@@ -30,7 +35,7 @@ func NewStorageMoverID(subscriptionId string, resourceGroupName string, storageM
 
 // ParseStorageMoverID parses 'input' into a StorageMoverId
 func ParseStorageMoverID(input string) (*StorageMoverId, error) {
-	parser := resourceids.NewParserFromResourceIdType(StorageMoverId{})
+	parser := resourceids.NewParserFromResourceIdType(&StorageMoverId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +52,7 @@ func ParseStorageMoverID(input string) (*StorageMoverId, error) {
 // ParseStorageMoverIDInsensitively parses 'input' case-insensitively into a StorageMoverId
 // note: this method should only be used for API response data and not user input
 func ParseStorageMoverIDInsensitively(input string) (*StorageMoverId, error) {
-	parser := resourceids.NewParserFromResourceIdType(StorageMoverId{})
+	parser := resourceids.NewParserFromResourceIdType(&StorageMoverId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

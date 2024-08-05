@@ -43,7 +43,10 @@ func (c AmlFilesystemsClient) Get(ctx context.Context, id AmlFilesystemId) (resu
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model AmlFilesystem
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

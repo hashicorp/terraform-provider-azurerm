@@ -20,7 +20,20 @@ type MediaservicesListBySubscriptionOperationResponse struct {
 }
 
 type MediaservicesListBySubscriptionCompleteResult struct {
-	Items []MediaService
+	LatestHttpResponse *http.Response
+	Items              []MediaService
+}
+
+type MediaservicesListBySubscriptionCustomPager struct {
+	NextLink *odata.Link `json:"@odata.nextLink"`
+}
+
+func (p *MediaservicesListBySubscriptionCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // MediaservicesListBySubscription ...
@@ -31,6 +44,7 @@ func (c AccountsClient) MediaservicesListBySubscription(ctx context.Context, id 
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &MediaservicesListBySubscriptionCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.Media/mediaServices", id.ID()),
 	}
 
@@ -72,6 +86,7 @@ func (c AccountsClient) MediaservicesListBySubscriptionCompleteMatchingPredicate
 
 	resp, err := c.MediaservicesListBySubscription(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -84,7 +99,8 @@ func (c AccountsClient) MediaservicesListBySubscriptionCompleteMatchingPredicate
 	}
 
 	result = MediaservicesListBySubscriptionCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

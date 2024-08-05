@@ -20,7 +20,20 @@ type GrafanaListOperationResponse struct {
 }
 
 type GrafanaListCompleteResult struct {
-	Items []ManagedGrafana
+	LatestHttpResponse *http.Response
+	Items              []ManagedGrafana
+}
+
+type GrafanaListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *GrafanaListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // GrafanaList ...
@@ -31,6 +44,7 @@ func (c GrafanaResourceClient) GrafanaList(ctx context.Context, id commonids.Sub
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &GrafanaListCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.Dashboard/grafana", id.ID()),
 	}
 
@@ -72,6 +86,7 @@ func (c GrafanaResourceClient) GrafanaListCompleteMatchingPredicate(ctx context.
 
 	resp, err := c.GrafanaList(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -84,7 +99,8 @@ func (c GrafanaResourceClient) GrafanaListCompleteMatchingPredicate(ctx context.
 	}
 
 	result = GrafanaListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -43,7 +43,10 @@ func (c ReplicationRecoveryPlansClient) Get(ctx context.Context, id ReplicationR
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model RecoveryPlan
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

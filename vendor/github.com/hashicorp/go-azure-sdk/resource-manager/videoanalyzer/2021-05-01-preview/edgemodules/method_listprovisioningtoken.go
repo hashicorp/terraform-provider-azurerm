@@ -48,7 +48,10 @@ func (c EdgeModulesClient) ListProvisioningToken(ctx context.Context, id EdgeMod
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model EdgeModuleProvisioningToken
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

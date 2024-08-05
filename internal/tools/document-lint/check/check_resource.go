@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package check
 
 import (
@@ -72,10 +75,19 @@ func NewResourceDiff(tf *schema.Resource) *ResourceDiff {
 
 func (r *ResourceDiff) DiffAll() {
 	if r.md == nil {
+		if r.MDFile == "" {
+			r.Diff = append(r.Diff, newDiffWithMessage(fmt.Sprintf("%s has no document", r.tf.ResourceType), r.tf.IsDeprecated()))
+			return
+		}
 		mark := md.MustNewMarkFromFile(r.MDFile)
 		r.md = mark.BuildResourceDoc()
-
 	}
+
+	if name := r.md.HasCircularRef(); name != "" {
+		r.Diff = append(r.Diff, newCircularRef(name, r.md))
+		return
+	}
+
 	r.Diff = checkPossibleValues(r.tf, r.md)
 
 	missDiff := crossCheckProperty(r.tf, r.md)

@@ -47,7 +47,10 @@ func (c VideoAnalyzersClient) VideoAnalyzersUpdate(ctx context.Context, id Video
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model VideoAnalyzer
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

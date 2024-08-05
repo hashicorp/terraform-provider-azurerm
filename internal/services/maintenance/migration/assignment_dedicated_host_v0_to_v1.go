@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package migration
 
 import (
@@ -5,8 +8,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/dedicatedhosts"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2022-07-01-preview/configurationassignments"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/configurationassignments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -45,7 +48,7 @@ func (AssignmentDedicatedHostV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 			return nil, fmt.Errorf("parsing old id %q: %+v", oldIdRaw, err)
 		}
 
-		dedicatedHostId, err := dedicatedhosts.ParseHostIDInsensitively(oldId.Scope)
+		dedicatedHostId, err := commonids.ParseDedicatedHostIDInsensitively(oldId.Scope)
 		if err != nil {
 			return nil, fmt.Errorf("parsing %q as a dedicated hosts id: %+v", oldId.Scope, err)
 		}

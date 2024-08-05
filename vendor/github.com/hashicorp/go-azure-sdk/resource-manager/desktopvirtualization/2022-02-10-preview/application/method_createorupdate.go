@@ -48,7 +48,10 @@ func (c ApplicationClient) CreateOrUpdate(ctx context.Context, id ApplicationId,
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Application
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

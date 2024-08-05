@@ -20,7 +20,20 @@ type ListByServerOperationResponse struct {
 }
 
 type ListByServerCompleteResult struct {
-	Items []ServerAzureADOnlyAuthentication
+	LatestHttpResponse *http.Response
+	Items              []ServerAzureADOnlyAuthentication
+}
+
+type ListByServerCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByServerCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListByServer ...
@@ -31,6 +44,7 @@ func (c ServerAzureADOnlyAuthenticationsClient) ListByServer(ctx context.Context
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByServerCustomPager{},
 		Path:       fmt.Sprintf("%s/azureADOnlyAuthentications", id.ID()),
 	}
 
@@ -72,6 +86,7 @@ func (c ServerAzureADOnlyAuthenticationsClient) ListByServerCompleteMatchingPred
 
 	resp, err := c.ListByServer(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -84,7 +99,8 @@ func (c ServerAzureADOnlyAuthenticationsClient) ListByServerCompleteMatchingPred
 	}
 
 	result = ListByServerCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

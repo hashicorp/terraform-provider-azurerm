@@ -84,8 +84,8 @@ func (c DpsCertificateClient) VerifyCertificate(ctx context.Context, id Certific
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPost,
-		Path:          fmt.Sprintf("%s/verify", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/verify", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -107,7 +107,10 @@ func (c DpsCertificateClient) VerifyCertificate(ctx context.Context, id Certific
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model CertificateResponse
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

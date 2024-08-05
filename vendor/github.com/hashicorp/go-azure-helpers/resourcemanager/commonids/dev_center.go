@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = DevCenterId{}
+var _ resourceids.ResourceId = &DevCenterId{}
 
 // DevCenterId is a struct representing the Resource ID for a Dev Center
 type DevCenterId struct {
@@ -30,25 +30,15 @@ func NewDevCenterID(subscriptionId string, resourceGroupName string, devCenterNa
 
 // ParseDevCenterID parses 'input' into a DevCenterId
 func ParseDevCenterID(input string) (*DevCenterId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DevCenterId{})
+	parser := resourceids.NewParserFromResourceIdType(&DevCenterId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := DevCenterId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.DevCenterName, ok = parsed.Parsed["devCenterName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "devCenterName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +47,36 @@ func ParseDevCenterID(input string) (*DevCenterId, error) {
 // ParseDevCenterIDInsensitively parses 'input' case-insensitively into a DevCenterId
 // note: this method should only be used for API response data and not user input
 func ParseDevCenterIDInsensitively(input string) (*DevCenterId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DevCenterId{})
+	parser := resourceids.NewParserFromResourceIdType(&DevCenterId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := DevCenterId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.DevCenterName, ok = parsed.Parsed["devCenterName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "devCenterName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *DevCenterId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.DevCenterName, ok = input.Parsed["devCenterName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "devCenterName", input)
+	}
+
+	return nil
 }
 
 func ValidateDevCenterID(input interface{}, key string) (warnings []string, errors []error) {

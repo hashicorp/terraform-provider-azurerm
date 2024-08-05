@@ -44,7 +44,10 @@ func (c IntegrationAccountBatchConfigurationsClient) List(ctx context.Context, i
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model BatchConfigurationCollection
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

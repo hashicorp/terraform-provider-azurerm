@@ -38,7 +38,7 @@ func NewStaticSitesClientWithBaseURI(baseURI string, subscriptionID string) Stat
 // name - name of the static site.
 // privateEndpointConnectionName - name of the private endpoint connection.
 // privateEndpointWrapper - request body.
-func (client StaticSitesClient) ApproveOrRejectPrivateEndpointConnection(ctx context.Context, resourceGroupName string, name string, privateEndpointConnectionName string, privateEndpointWrapper PrivateLinkConnectionApprovalRequestResource) (result StaticSitesApproveOrRejectPrivateEndpointConnectionFuture, err error) {
+func (client StaticSitesClient) ApproveOrRejectPrivateEndpointConnection(ctx context.Context, resourceGroupName string, name string, privateEndpointConnectionName string, privateEndpointWrapper RemotePrivateEndpointConnectionARMResource) (result StaticSitesApproveOrRejectPrivateEndpointConnectionFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/StaticSitesClient.ApproveOrRejectPrivateEndpointConnection")
 		defer func() {
@@ -73,7 +73,7 @@ func (client StaticSitesClient) ApproveOrRejectPrivateEndpointConnection(ctx con
 }
 
 // ApproveOrRejectPrivateEndpointConnectionPreparer prepares the ApproveOrRejectPrivateEndpointConnection request.
-func (client StaticSitesClient) ApproveOrRejectPrivateEndpointConnectionPreparer(ctx context.Context, resourceGroupName string, name string, privateEndpointConnectionName string, privateEndpointWrapper PrivateLinkConnectionApprovalRequestResource) (*http.Request, error) {
+func (client StaticSitesClient) ApproveOrRejectPrivateEndpointConnectionPreparer(ctx context.Context, resourceGroupName string, name string, privateEndpointConnectionName string, privateEndpointWrapper RemotePrivateEndpointConnectionARMResource) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"name":                          autorest.Encode("path", name),
 		"privateEndpointConnectionName": autorest.Encode("path", privateEndpointConnectionName),

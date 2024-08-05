@@ -19,7 +19,20 @@ type ListByDevCenterOperationResponse struct {
 }
 
 type ListByDevCenterCompleteResult struct {
-	Items []DevBoxDefinition
+	LatestHttpResponse *http.Response
+	Items              []DevBoxDefinition
+}
+
+type ListByDevCenterCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByDevCenterCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListByDevCenter ...
@@ -30,6 +43,7 @@ func (c DevBoxDefinitionsClient) ListByDevCenter(ctx context.Context, id DevCent
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByDevCenterCustomPager{},
 		Path:       fmt.Sprintf("%s/devBoxDefinitions", id.ID()),
 	}
 
@@ -71,6 +85,7 @@ func (c DevBoxDefinitionsClient) ListByDevCenterCompleteMatchingPredicate(ctx co
 
 	resp, err := c.ListByDevCenter(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +98,8 @@ func (c DevBoxDefinitionsClient) ListByDevCenterCompleteMatchingPredicate(ctx co
 	}
 
 	result = ListByDevCenterCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

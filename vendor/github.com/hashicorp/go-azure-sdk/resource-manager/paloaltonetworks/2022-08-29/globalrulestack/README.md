@@ -116,12 +116,13 @@ for _, item := range items {
 ctx := context.TODO()
 id := globalrulestack.NewGlobalRulestackID("globalRulestackValue")
 
-read, err := client.ListAdvancedSecurityObjects(ctx, id, globalrulestack.DefaultListAdvancedSecurityObjectsOperationOptions())
+// alternatively `client.ListAdvancedSecurityObjects(ctx, id, globalrulestack.DefaultListAdvancedSecurityObjectsOperationOptions())` can be used to do batched pagination
+items, err := client.ListAdvancedSecurityObjectsComplete(ctx, id, globalrulestack.DefaultListAdvancedSecurityObjectsOperationOptions())
 if err != nil {
 	// handle the error
 }
-if model := read.Model; model != nil {
-	// do something with the model/response object
+for _, item := range items {
+	// do something
 }
 ```
 
@@ -132,12 +133,13 @@ if model := read.Model; model != nil {
 ctx := context.TODO()
 id := globalrulestack.NewGlobalRulestackID("globalRulestackValue")
 
-read, err := client.ListAppIds(ctx, id, globalrulestack.DefaultListAppIdsOperationOptions())
+// alternatively `client.ListAppIds(ctx, id, globalrulestack.DefaultListAppIdsOperationOptions())` can be used to do batched pagination
+items, err := client.ListAppIdsComplete(ctx, id, globalrulestack.DefaultListAppIdsOperationOptions())
 if err != nil {
 	// handle the error
 }
-if model := read.Model; model != nil {
-	// do something with the model/response object
+for _, item := range items {
+	// do something
 }
 ```
 
@@ -148,12 +150,13 @@ if model := read.Model; model != nil {
 ctx := context.TODO()
 id := globalrulestack.NewGlobalRulestackID("globalRulestackValue")
 
-read, err := client.ListCountries(ctx, id, globalrulestack.DefaultListCountriesOperationOptions())
+// alternatively `client.ListCountries(ctx, id, globalrulestack.DefaultListCountriesOperationOptions())` can be used to do batched pagination
+items, err := client.ListCountriesComplete(ctx, id, globalrulestack.DefaultListCountriesOperationOptions())
 if err != nil {
 	// handle the error
 }
-if model := read.Model; model != nil {
-	// do something with the model/response object
+for _, item := range items {
+	// do something
 }
 ```
 
@@ -164,12 +167,13 @@ if model := read.Model; model != nil {
 ctx := context.TODO()
 id := globalrulestack.NewGlobalRulestackID("globalRulestackValue")
 
-read, err := client.ListFirewalls(ctx, id)
+// alternatively `client.ListFirewalls(ctx, id)` can be used to do batched pagination
+items, err := client.ListFirewallsComplete(ctx, id)
 if err != nil {
 	// handle the error
 }
-if model := read.Model; model != nil {
-	// do something with the model/response object
+for _, item := range items {
+	// do something
 }
 ```
 
@@ -180,12 +184,13 @@ if model := read.Model; model != nil {
 ctx := context.TODO()
 id := globalrulestack.NewGlobalRulestackID("globalRulestackValue")
 
-read, err := client.ListPredefinedUrlCategories(ctx, id, globalrulestack.DefaultListPredefinedUrlCategoriesOperationOptions())
+// alternatively `client.ListPredefinedUrlCategories(ctx, id, globalrulestack.DefaultListPredefinedUrlCategoriesOperationOptions())` can be used to do batched pagination
+items, err := client.ListPredefinedUrlCategoriesComplete(ctx, id, globalrulestack.DefaultListPredefinedUrlCategoriesOperationOptions())
 if err != nil {
 	// handle the error
 }
-if model := read.Model; model != nil {
-	// do something with the model/response object
+for _, item := range items {
+	// do something
 }
 ```
 
@@ -196,12 +201,13 @@ if model := read.Model; model != nil {
 ctx := context.TODO()
 id := globalrulestack.NewGlobalRulestackID("globalRulestackValue")
 
-read, err := client.ListSecurityServices(ctx, id, globalrulestack.DefaultListSecurityServicesOperationOptions())
+// alternatively `client.ListSecurityServices(ctx, id, globalrulestack.DefaultListSecurityServicesOperationOptions())` can be used to do batched pagination
+items, err := client.ListSecurityServicesComplete(ctx, id, globalrulestack.DefaultListSecurityServicesOperationOptions())
 if err != nil {
 	// handle the error
 }
-if model := read.Model; model != nil {
-	// do something with the model/response object
+for _, item := range items {
+	// do something
 }
 ```
 

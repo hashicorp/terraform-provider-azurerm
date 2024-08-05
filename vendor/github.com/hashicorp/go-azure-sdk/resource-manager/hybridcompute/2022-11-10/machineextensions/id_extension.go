@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ExtensionId{}
+func init() {
+	recaser.RegisterResourceId(&ExtensionId{})
+}
+
+var _ resourceids.ResourceId = &ExtensionId{}
 
 // ExtensionId is a struct representing the Resource ID for a Extension
 type ExtensionId struct {
@@ -32,7 +37,7 @@ func NewExtensionID(subscriptionId string, resourceGroupName string, machineName
 
 // ParseExtensionID parses 'input' into a ExtensionId
 func ParseExtensionID(input string) (*ExtensionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ExtensionId{})
+	parser := resourceids.NewParserFromResourceIdType(&ExtensionId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +54,7 @@ func ParseExtensionID(input string) (*ExtensionId, error) {
 // ParseExtensionIDInsensitively parses 'input' case-insensitively into a ExtensionId
 // note: this method should only be used for API response data and not user input
 func ParseExtensionIDInsensitively(input string) (*ExtensionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ExtensionId{})
+	parser := resourceids.NewParserFromResourceIdType(&ExtensionId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

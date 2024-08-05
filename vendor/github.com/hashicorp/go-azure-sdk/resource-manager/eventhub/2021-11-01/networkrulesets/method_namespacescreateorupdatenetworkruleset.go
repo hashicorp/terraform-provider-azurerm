@@ -48,7 +48,10 @@ func (c NetworkRuleSetsClient) NamespacesCreateOrUpdateNetworkRuleSet(ctx contex
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model NetworkRuleSet
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

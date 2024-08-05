@@ -23,7 +23,7 @@ output "azurerm_data_protection_backup_vault_id" {
 }
 
 output "azurerm_data_protection_backup_vault_principal_id" {
-  value = data.azurerm_data_protection_backup_vault.example.identity.0.principal_id
+  value = data.azurerm_data_protection_backup_vault.example.identity[0].principal_id
 }
 ```
 

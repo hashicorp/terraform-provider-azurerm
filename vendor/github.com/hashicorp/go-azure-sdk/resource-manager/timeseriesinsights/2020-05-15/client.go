@@ -4,11 +4,14 @@ package v2020_05_15
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 import (
-	"github.com/Azure/go-autorest/autorest"
+	"fmt"
+
 	"github.com/hashicorp/go-azure-sdk/resource-manager/timeseriesinsights/2020-05-15/accesspolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/timeseriesinsights/2020-05-15/environments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/timeseriesinsights/2020-05-15/eventsources"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/timeseriesinsights/2020-05-15/referencedatasets"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 type Client struct {
@@ -18,24 +21,35 @@ type Client struct {
 	ReferenceDataSets *referencedatasets.ReferenceDataSetsClient
 }
 
-func NewClientWithBaseURI(endpoint string, configureAuthFunc func(c *autorest.Client)) Client {
-
-	accessPoliciesClient := accesspolicies.NewAccessPoliciesClientWithBaseURI(endpoint)
-	configureAuthFunc(&accessPoliciesClient.Client)
-
-	environmentsClient := environments.NewEnvironmentsClientWithBaseURI(endpoint)
-	configureAuthFunc(&environmentsClient.Client)
-
-	eventSourcesClient := eventsources.NewEventSourcesClientWithBaseURI(endpoint)
-	configureAuthFunc(&eventSourcesClient.Client)
-
-	referenceDataSetsClient := referencedatasets.NewReferenceDataSetsClientWithBaseURI(endpoint)
-	configureAuthFunc(&referenceDataSetsClient.Client)
-
-	return Client{
-		AccessPolicies:    &accessPoliciesClient,
-		Environments:      &environmentsClient,
-		EventSources:      &eventSourcesClient,
-		ReferenceDataSets: &referenceDataSetsClient,
+func NewClientWithBaseURI(sdkApi sdkEnv.Api, configureFunc func(c *resourcemanager.Client)) (*Client, error) {
+	accessPoliciesClient, err := accesspolicies.NewAccessPoliciesClientWithBaseURI(sdkApi)
+	if err != nil {
+		return nil, fmt.Errorf("building AccessPolicies client: %+v", err)
 	}
+	configureFunc(accessPoliciesClient.Client)
+
+	environmentsClient, err := environments.NewEnvironmentsClientWithBaseURI(sdkApi)
+	if err != nil {
+		return nil, fmt.Errorf("building Environments client: %+v", err)
+	}
+	configureFunc(environmentsClient.Client)
+
+	eventSourcesClient, err := eventsources.NewEventSourcesClientWithBaseURI(sdkApi)
+	if err != nil {
+		return nil, fmt.Errorf("building EventSources client: %+v", err)
+	}
+	configureFunc(eventSourcesClient.Client)
+
+	referenceDataSetsClient, err := referencedatasets.NewReferenceDataSetsClientWithBaseURI(sdkApi)
+	if err != nil {
+		return nil, fmt.Errorf("building ReferenceDataSets client: %+v", err)
+	}
+	configureFunc(referenceDataSetsClient.Client)
+
+	return &Client{
+		AccessPolicies:    accessPoliciesClient,
+		Environments:      environmentsClient,
+		EventSources:      eventSourcesClient,
+		ReferenceDataSets: referenceDataSetsClient,
+	}, nil
 }

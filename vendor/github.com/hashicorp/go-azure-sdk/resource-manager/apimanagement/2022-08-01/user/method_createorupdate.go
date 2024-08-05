@@ -57,8 +57,8 @@ func (c UserClient) CreateOrUpdate(ctx context.Context, id UserId, input UserCre
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPut,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -80,7 +80,10 @@ func (c UserClient) CreateOrUpdate(ctx context.Context, id UserId, input UserCre
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model UserContract
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -20,11 +20,11 @@ import (
 
 type BotChannelWebChatResource struct{}
 
-func testAccBotChannelWebChat_basic(t *testing.T) {
+func TestAccBotChannelWebChat_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_web_chat", "test")
 	r := BotChannelWebChatResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -35,11 +35,11 @@ func testAccBotChannelWebChat_basic(t *testing.T) {
 	})
 }
 
-func testAccBotChannelWebChat_requiresImport(t *testing.T) {
+func TestAccBotChannelWebChat_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_web_chat", "test")
 	r := BotChannelWebChatResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -50,11 +50,11 @@ func testAccBotChannelWebChat_requiresImport(t *testing.T) {
 	})
 }
 
-func testAccBotChannelWebChat_complete(t *testing.T) {
+func TestAccBotChannelWebChat_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_web_chat", "test")
 	r := BotChannelWebChatResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -65,7 +65,7 @@ func testAccBotChannelWebChat_complete(t *testing.T) {
 	})
 }
 
-func testAccBotChannelWebChat_update(t *testing.T) {
+func TestAccBotChannelWebChat_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_web_chat", "test")
 	r := BotChannelWebChatResource{}
 
@@ -76,7 +76,7 @@ func testAccBotChannelWebChat_update(t *testing.T) {
 		basicConfig = r.siteNames(data)
 	}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: basicConfig,
 			Check: acceptance.ComposeTestCheckFunc(

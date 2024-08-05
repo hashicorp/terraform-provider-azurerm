@@ -19,7 +19,20 @@ type StorageInsightConfigsListByWorkspaceOperationResponse struct {
 }
 
 type StorageInsightConfigsListByWorkspaceCompleteResult struct {
-	Items []StorageInsight
+	LatestHttpResponse *http.Response
+	Items              []StorageInsight
+}
+
+type StorageInsightConfigsListByWorkspaceCustomPager struct {
+	NextLink *odata.Link `json:"@odata.nextLink"`
+}
+
+func (p *StorageInsightConfigsListByWorkspaceCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // StorageInsightConfigsListByWorkspace ...
@@ -30,6 +43,7 @@ func (c StorageInsightsClient) StorageInsightConfigsListByWorkspace(ctx context.
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &StorageInsightConfigsListByWorkspaceCustomPager{},
 		Path:       fmt.Sprintf("%s/storageInsightConfigs", id.ID()),
 	}
 
@@ -71,6 +85,7 @@ func (c StorageInsightsClient) StorageInsightConfigsListByWorkspaceCompleteMatch
 
 	resp, err := c.StorageInsightConfigsListByWorkspace(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +98,8 @@ func (c StorageInsightsClient) StorageInsightConfigsListByWorkspaceCompleteMatch
 	}
 
 	result = StorageInsightConfigsListByWorkspaceCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

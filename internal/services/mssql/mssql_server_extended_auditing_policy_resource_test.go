@@ -114,6 +114,64 @@ func TestAccMsSqlServerExtendedAuditingPolicy_storageAccBehindFireWall(t *testin
 	})
 }
 
+func TestAccMsSqlServerExtendedAuditingPolicy_predicateExpression(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_server_extended_auditing_policy", "test")
+	r := MsSqlServerExtendedAuditingPolicyResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("storage_account_access_key"),
+		{
+			Config: r.predicateExpression(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("storage_account_access_key"),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("storage_account_access_key"),
+	})
+}
+
+func TestAccMsSqlServerExtendedAuditingPolicy_auditActionsAndGroups(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_server_extended_auditing_policy", "test")
+	r := MsSqlServerExtendedAuditingPolicyResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("storage_account_access_key"),
+		{
+			Config: r.auditActionsAndGroups(data, "[\"BATCH_COMPLETED_GROUP\"]"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("storage_account_access_key"),
+		{
+			Config: r.auditActionsAndGroups(data, "[\"BATCH_COMPLETED_GROUP\", \"SUCCESSFUL_DATABASE_AUTHENTICATION_GROUP\"]"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("storage_account_access_key"),
+	})
+}
+
 func (MsSqlServerExtendedAuditingPolicyResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ServerExtendedAuditingPolicyID(state.ID)
 	if err != nil {
@@ -320,4 +378,32 @@ resource "azurerm_mssql_server_extended_auditing_policy" "test" {
   ]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r MsSqlServerExtendedAuditingPolicyResource) predicateExpression(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_server_extended_auditing_policy" "test" {
+  server_id                  = azurerm_mssql_server.test.id
+  storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  predicate_expression = "action_id != 17234"
+}
+`, r.template(data))
+}
+
+func (r MsSqlServerExtendedAuditingPolicyResource) auditActionsAndGroups(data acceptance.TestData, input string) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_server_extended_auditing_policy" "test" {
+  server_id                  = azurerm_mssql_server.test.id
+  storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  audit_actions_and_groups = %s
+}
+`, r.template(data), input)
 }

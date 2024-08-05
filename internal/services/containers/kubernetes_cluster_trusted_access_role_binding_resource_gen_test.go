@@ -47,50 +47,6 @@ func TestAccKubernetesClusterTrustedAccessRoleBinding_requiresImport(t *testing.
 		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
-
-func TestAccKubernetesClusterTrustedAccessRoleBinding_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_trusted_access_role_binding", "test")
-	r := KubernetesClusterTrustedAccessRoleBindingTestResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccKubernetesClusterTrustedAccessRoleBinding_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_trusted_access_role_binding", "test")
-	r := KubernetesClusterTrustedAccessRoleBindingTestResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
 func (r KubernetesClusterTrustedAccessRoleBindingTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := trustedaccess.ParseTrustedAccessRoleBindingID(state.ID)
 	if err != nil {
@@ -132,23 +88,6 @@ resource "azurerm_kubernetes_cluster_trusted_access_role_binding" "import" {
   source_resource_id    = azurerm_kubernetes_cluster_trusted_access_role_binding.test.source_resource_id
 }
 `, r.basic(data))
-}
-
-func (r KubernetesClusterTrustedAccessRoleBindingTestResource) complete(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_kubernetes_cluster_trusted_access_role_binding" "test" {
-  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  name                  = "acctestkctarb-${var.random_string}"
-  roles                 = ["Microsoft.MachineLearningServices/workspaces/mlworkload", "Microsoft.MachineLearningServices/workspaces/inference-v1"]
-  source_resource_id    = azurerm_machine_learning_workspace.test.id
-}
-`, r.template(data))
 }
 
 func (r KubernetesClusterTrustedAccessRoleBindingTestResource) template(data acceptance.TestData) string {
@@ -209,6 +148,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = 1
     vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {

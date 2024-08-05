@@ -48,7 +48,10 @@ func (c DomainsClient) RegenerateKey(ctx context.Context, id DomainId, input Dom
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model DomainSharedAccessKeys
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

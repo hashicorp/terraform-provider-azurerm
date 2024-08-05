@@ -47,7 +47,10 @@ func (c PoliciesClient) Update(ctx context.Context, id PolicyId, input UpdateRes
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Policy
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

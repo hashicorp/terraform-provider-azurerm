@@ -43,7 +43,10 @@ func (c EndpointsClient) DigitalTwinsEndpointGet(ctx context.Context, id Endpoin
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model DigitalTwinsEndpointResource
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

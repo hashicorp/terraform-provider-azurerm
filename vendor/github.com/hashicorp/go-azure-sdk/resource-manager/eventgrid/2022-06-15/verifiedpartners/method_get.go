@@ -43,7 +43,10 @@ func (c VerifiedPartnersClient) Get(ctx context.Context, id VerifiedPartnerId) (
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model VerifiedPartner
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -20,7 +20,20 @@ type MarketplaceAgreementsListOperationResponse struct {
 }
 
 type MarketplaceAgreementsListCompleteResult struct {
-	Items []DatadogAgreementResource
+	LatestHttpResponse *http.Response
+	Items              []DatadogAgreementResource
+}
+
+type MarketplaceAgreementsListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *MarketplaceAgreementsListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // MarketplaceAgreementsList ...
@@ -31,6 +44,7 @@ func (c AgreementsClient) MarketplaceAgreementsList(ctx context.Context, id comm
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &MarketplaceAgreementsListCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.Datadog/agreements", id.ID()),
 	}
 
@@ -72,6 +86,7 @@ func (c AgreementsClient) MarketplaceAgreementsListCompleteMatchingPredicate(ctx
 
 	resp, err := c.MarketplaceAgreementsList(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -84,7 +99,8 @@ func (c AgreementsClient) MarketplaceAgreementsListCompleteMatchingPredicate(ctx
 	}
 
 	result = MarketplaceAgreementsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

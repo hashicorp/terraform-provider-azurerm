@@ -1,6 +1,10 @@
 package dataconnections
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -17,6 +21,19 @@ func PossibleValuesForBlobStorageEventType() []string {
 		string(BlobStorageEventTypeMicrosoftPointStoragePointBlobCreated),
 		string(BlobStorageEventTypeMicrosoftPointStoragePointBlobRenamed),
 	}
+}
+
+func (s *BlobStorageEventType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseBlobStorageEventType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseBlobStorageEventType(input string) (*BlobStorageEventType, error) {
@@ -45,6 +62,19 @@ func PossibleValuesForCompression() []string {
 		string(CompressionGZip),
 		string(CompressionNone),
 	}
+}
+
+func (s *Compression) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseCompression(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseCompression(input string) (*Compression, error) {
@@ -79,6 +109,19 @@ func PossibleValuesForDataConnectionKind() []string {
 	}
 }
 
+func (s *DataConnectionKind) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseDataConnectionKind(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseDataConnectionKind(input string) (*DataConnectionKind, error) {
 	vals := map[string]DataConnectionKind{
 		"cosmosdb":  DataConnectionKindCosmosDb,
@@ -107,6 +150,19 @@ func PossibleValuesForDataConnectionType() []string {
 	}
 }
 
+func (s *DataConnectionType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseDataConnectionType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseDataConnectionType(input string) (*DataConnectionType, error) {
 	vals := map[string]DataConnectionType{
 		"microsoft.kusto/clusters/databases/dataconnections": DataConnectionTypeMicrosoftPointKustoClustersDatabasesDataConnections,
@@ -132,6 +188,19 @@ func PossibleValuesForDatabaseRouting() []string {
 		string(DatabaseRoutingMulti),
 		string(DatabaseRoutingSingle),
 	}
+}
+
+func (s *DatabaseRouting) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseDatabaseRouting(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseDatabaseRouting(input string) (*DatabaseRouting, error) {
@@ -188,6 +257,19 @@ func PossibleValuesForEventGridDataFormat() []string {
 		string(EventGridDataFormatTXT),
 		string(EventGridDataFormatWThreeCLOGFILE),
 	}
+}
+
+func (s *EventGridDataFormat) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseEventGridDataFormat(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseEventGridDataFormat(input string) (*EventGridDataFormat, error) {
@@ -260,6 +342,19 @@ func PossibleValuesForEventHubDataFormat() []string {
 	}
 }
 
+func (s *EventHubDataFormat) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseEventHubDataFormat(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseEventHubDataFormat(input string) (*EventHubDataFormat, error) {
 	vals := map[string]EventHubDataFormat{
 		"apacheavro": EventHubDataFormatAPACHEAVRO,
@@ -330,6 +425,19 @@ func PossibleValuesForIotHubDataFormat() []string {
 	}
 }
 
+func (s *IotHubDataFormat) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseIotHubDataFormat(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseIotHubDataFormat(input string) (*IotHubDataFormat, error) {
 	vals := map[string]IotHubDataFormat{
 		"apacheavro": IotHubDataFormatAPACHEAVRO,
@@ -382,6 +490,19 @@ func PossibleValuesForProvisioningState() []string {
 	}
 }
 
+func (s *ProvisioningState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseProvisioningState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseProvisioningState(input string) (*ProvisioningState, error) {
 	vals := map[string]ProvisioningState{
 		"canceled":  ProvisioningStateCanceled,
@@ -413,6 +534,19 @@ func PossibleValuesForReason() []string {
 		string(ReasonAlreadyExists),
 		string(ReasonInvalid),
 	}
+}
+
+func (s *Reason) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseReason(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseReason(input string) (*Reason, error) {

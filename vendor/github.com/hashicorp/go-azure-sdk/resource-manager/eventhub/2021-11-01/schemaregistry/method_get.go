@@ -43,7 +43,10 @@ func (c SchemaRegistryClient) Get(ctx context.Context, id SchemaGroupId) (result
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model SchemaGroup
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

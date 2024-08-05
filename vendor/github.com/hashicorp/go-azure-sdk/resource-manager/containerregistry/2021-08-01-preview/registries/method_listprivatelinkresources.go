@@ -19,7 +19,20 @@ type ListPrivateLinkResourcesOperationResponse struct {
 }
 
 type ListPrivateLinkResourcesCompleteResult struct {
-	Items []PrivateLinkResource
+	LatestHttpResponse *http.Response
+	Items              []PrivateLinkResource
+}
+
+type ListPrivateLinkResourcesCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListPrivateLinkResourcesCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListPrivateLinkResources ...
@@ -30,6 +43,7 @@ func (c RegistriesClient) ListPrivateLinkResources(ctx context.Context, id Regis
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListPrivateLinkResourcesCustomPager{},
 		Path:       fmt.Sprintf("%s/privateLinkResources", id.ID()),
 	}
 
@@ -71,6 +85,7 @@ func (c RegistriesClient) ListPrivateLinkResourcesCompleteMatchingPredicate(ctx 
 
 	resp, err := c.ListPrivateLinkResources(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +98,8 @@ func (c RegistriesClient) ListPrivateLinkResourcesCompleteMatchingPredicate(ctx 
 	}
 
 	result = ListPrivateLinkResourcesCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

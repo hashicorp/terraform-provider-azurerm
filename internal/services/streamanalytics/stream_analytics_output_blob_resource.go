@@ -121,6 +121,13 @@ func resourceStreamAnalyticsOutputBlob() *pluginsdk.Resource {
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
+
+			"blob_write_mode": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(outputs.BlobWriteModeAppend),
+				ValidateFunc: validation.StringInSlice(outputs.PossibleValuesForBlobWriteMode(), false),
+			},
 		},
 	}
 }
@@ -174,6 +181,7 @@ func resourceStreamAnalyticsOutputBlobCreateUpdate(d *pluginsdk.ResourceData, me
 					PathPattern:        pointer.To(pathPattern),
 					TimeFormat:         pointer.To(timeFormat),
 					AuthenticationMode: pointer.To(outputs.AuthenticationMode(d.Get("authentication_mode").(string))),
+					BlobWriteMode:      pointer.To(outputs.BlobWriteMode(d.Get("blob_write_mode").(string))),
 				},
 			},
 			Serialization: serialization,
@@ -281,6 +289,12 @@ func resourceStreamAnalyticsOutputBlobRead(d *pluginsdk.ResourceData, meta inter
 			}
 			d.Set("batch_max_wait_time", props.TimeWindow)
 			d.Set("batch_min_rows", props.SizeWindow)
+
+			blobWriteMode := ""
+			if v := output.Properties.BlobWriteMode; v != nil {
+				blobWriteMode = string(*v)
+			}
+			d.Set("blob_write_mode", blobWriteMode)
 		}
 	}
 	return nil

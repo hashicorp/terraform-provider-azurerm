@@ -44,7 +44,10 @@ func (c WorkspacesClient) SharedKeysGetSharedKeys(ctx context.Context, id Worksp
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model SharedKeys
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -44,7 +44,10 @@ func (c MonitorsClient) VMHostPayload(ctx context.Context, id MonitorId) (result
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model VMExtensionPayload
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

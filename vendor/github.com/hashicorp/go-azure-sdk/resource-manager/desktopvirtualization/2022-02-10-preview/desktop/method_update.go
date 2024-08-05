@@ -47,7 +47,10 @@ func (c DesktopClient) Update(ctx context.Context, id DesktopId, input DesktopPa
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Desktop
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

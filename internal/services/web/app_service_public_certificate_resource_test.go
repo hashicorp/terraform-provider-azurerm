@@ -8,10 +8,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -49,17 +50,17 @@ func TestAccAppServicePublicCertificate_basicFunctionApp(t *testing.T) {
 }
 
 func (r AppServicePublicCertificateResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.PublicCertificateID(state.ID)
+	id, err := webapps.ParsePublicCertificateID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.AppService.WebAppsClient.GetPublicCertificate(ctx, id.ResourceGroup, id.SiteName, id.Name)
+	resp, err := clients.AppService.WebAppsClient.GetPublicCertificate(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving App Service Public Certificate %q (Resource Group %q, App Service %q): %+v", id.Name, id.ResourceGroup, id.SiteName, err)
+		return nil, fmt.Errorf("retrieving App Service Public Certificate %s: %+v", *id, err)
 	}
 	return utils.Bool(true), nil
 }

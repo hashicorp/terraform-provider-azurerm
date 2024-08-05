@@ -47,7 +47,10 @@ func (c TagRulesClient) CreateOrUpdate(ctx context.Context, id TagRuleId, input 
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model MonitoringTagRules
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

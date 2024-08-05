@@ -45,7 +45,10 @@ func (c BlobServiceClient) GetServiceProperties(ctx context.Context, id commonid
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model BlobServiceProperties
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

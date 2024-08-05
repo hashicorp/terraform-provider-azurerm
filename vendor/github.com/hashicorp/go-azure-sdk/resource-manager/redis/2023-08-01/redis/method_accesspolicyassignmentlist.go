@@ -19,7 +19,20 @@ type AccessPolicyAssignmentListOperationResponse struct {
 }
 
 type AccessPolicyAssignmentListCompleteResult struct {
-	Items []RedisCacheAccessPolicyAssignment
+	LatestHttpResponse *http.Response
+	Items              []RedisCacheAccessPolicyAssignment
+}
+
+type AccessPolicyAssignmentListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *AccessPolicyAssignmentListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // AccessPolicyAssignmentList ...
@@ -30,6 +43,7 @@ func (c RedisClient) AccessPolicyAssignmentList(ctx context.Context, id RediId) 
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &AccessPolicyAssignmentListCustomPager{},
 		Path:       fmt.Sprintf("%s/accessPolicyAssignments", id.ID()),
 	}
 
@@ -71,6 +85,7 @@ func (c RedisClient) AccessPolicyAssignmentListCompleteMatchingPredicate(ctx con
 
 	resp, err := c.AccessPolicyAssignmentList(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +98,8 @@ func (c RedisClient) AccessPolicyAssignmentListCompleteMatchingPredicate(ctx con
 	}
 
 	result = AccessPolicyAssignmentListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

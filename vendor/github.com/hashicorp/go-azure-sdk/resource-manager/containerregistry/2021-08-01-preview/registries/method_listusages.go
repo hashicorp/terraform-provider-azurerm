@@ -44,7 +44,10 @@ func (c RegistriesClient) ListUsages(ctx context.Context, id RegistryId) (result
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model RegistryUsageListResult
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -19,7 +19,20 @@ type ListByLabOperationResponse struct {
 }
 
 type ListByLabCompleteResult struct {
-	Items []User
+	LatestHttpResponse *http.Response
+	Items              []User
+}
+
+type ListByLabCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByLabCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListByLab ...
@@ -30,6 +43,7 @@ func (c UserClient) ListByLab(ctx context.Context, id LabId) (result ListByLabOp
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByLabCustomPager{},
 		Path:       fmt.Sprintf("%s/users", id.ID()),
 	}
 
@@ -71,6 +85,7 @@ func (c UserClient) ListByLabCompleteMatchingPredicate(ctx context.Context, id L
 
 	resp, err := c.ListByLab(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +98,8 @@ func (c UserClient) ListByLabCompleteMatchingPredicate(ctx context.Context, id L
 	}
 
 	result = ListByLabCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

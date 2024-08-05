@@ -19,7 +19,20 @@ type ListHealthDetailsOperationResponse struct {
 }
 
 type ListHealthDetailsCompleteResult struct {
-	Items []HealthCheckStatusDetails
+	LatestHttpResponse *http.Response
+	Items              []HealthCheckStatusDetails
+}
+
+type ListHealthDetailsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListHealthDetailsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListHealthDetails ...
@@ -30,6 +43,7 @@ func (c NetworkConnectionsClient) ListHealthDetails(ctx context.Context, id Netw
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListHealthDetailsCustomPager{},
 		Path:       fmt.Sprintf("%s/healthChecks", id.ID()),
 	}
 
@@ -71,6 +85,7 @@ func (c NetworkConnectionsClient) ListHealthDetailsCompleteMatchingPredicate(ctx
 
 	resp, err := c.ListHealthDetails(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +98,8 @@ func (c NetworkConnectionsClient) ListHealthDetailsCompleteMatchingPredicate(ctx
 	}
 
 	result = ListHealthDetailsCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

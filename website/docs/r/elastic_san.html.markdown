@@ -59,11 +59,11 @@ The following arguments are supported:
 
 The `sku` block supports the following arguments:
 
-* `name` - (Required) The SKU name. Possible values are `Premium_LRS` and `Premium_ZRS`.
+* `name` - (Required) The SKU name. Possible values are `Premium_LRS` and `Premium_ZRS`. Changing this forces a new resource to be created.
 
 -> **NOTE** `Premium_ZRS` SKU is only available in limited Azure regions including `France Central`, `North Europe`, `West Europe`, and `West US 2`. Please refer to this [document](https://azure.microsoft.com/updates/regional-expansion-azure-elastic-san-public-preview-is-now-available-in-more-regions) for more details.
 
-* `tier` - (Optional) The SKU tier. The only possible value is `Premium`.
+* `tier` - (Optional) The SKU tier. The only possible value is `Premium`. Defaults to `Premium`.
 
 ## Attributes Reference
 

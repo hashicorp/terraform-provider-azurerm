@@ -19,7 +19,8 @@ type ListByDevCenterOperationResponse struct {
 }
 
 type ListByDevCenterCompleteResult struct {
-	Items []Image
+	LatestHttpResponse *http.Response
+	Items              []Image
 }
 
 type ListByDevCenterOperationOptions struct {
@@ -49,6 +50,18 @@ func (o ListByDevCenterOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListByDevCenterCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByDevCenterCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByDevCenter ...
 func (c ImagesClient) ListByDevCenter(ctx context.Context, id DevCenterId, options ListByDevCenterOperationOptions) (result ListByDevCenterOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -57,8 +70,9 @@ func (c ImagesClient) ListByDevCenter(ctx context.Context, id DevCenterId, optio
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/images", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListByDevCenterCustomPager{},
+		Path:          fmt.Sprintf("%s/images", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -99,6 +113,7 @@ func (c ImagesClient) ListByDevCenterCompleteMatchingPredicate(ctx context.Conte
 
 	resp, err := c.ListByDevCenter(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -111,7 +126,8 @@ func (c ImagesClient) ListByDevCenterCompleteMatchingPredicate(ctx context.Conte
 	}
 
 	result = ListByDevCenterCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -43,7 +43,10 @@ func (c TaskRunsClient) Get(ctx context.Context, id TaskRunId) (result GetOperat
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model TaskRun
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

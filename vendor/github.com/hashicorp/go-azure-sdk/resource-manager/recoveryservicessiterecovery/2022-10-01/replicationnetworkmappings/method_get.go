@@ -43,7 +43,10 @@ func (c ReplicationNetworkMappingsClient) Get(ctx context.Context, id Replicatio
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model NetworkMapping
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

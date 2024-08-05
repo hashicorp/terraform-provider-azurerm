@@ -48,7 +48,10 @@ func (c DashboardClient) CreateOrUpdate(ctx context.Context, id DashboardId, inp
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Dashboard
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

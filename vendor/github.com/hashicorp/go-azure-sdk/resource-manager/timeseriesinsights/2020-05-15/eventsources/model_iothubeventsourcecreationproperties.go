@@ -12,7 +12,7 @@ import (
 type IoTHubEventSourceCreationProperties struct {
 	ConsumerGroupName     string                    `json:"consumerGroupName"`
 	CreationTime          *string                   `json:"creationTime,omitempty"`
-	EventSourceResourceId *string                   `json:"eventSourceResourceId,omitempty"`
+	EventSourceResourceId string                    `json:"eventSourceResourceId"`
 	IngressStartAt        *IngressStartAtProperties `json:"ingressStartAt,omitempty"`
 	IotHubName            string                    `json:"iotHubName"`
 	KeyName               string                    `json:"keyName"`

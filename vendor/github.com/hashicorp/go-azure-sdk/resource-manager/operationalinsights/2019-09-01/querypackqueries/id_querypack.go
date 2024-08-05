@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = QueryPackId{}
+func init() {
+	recaser.RegisterResourceId(&QueryPackId{})
+}
+
+var _ resourceids.ResourceId = &QueryPackId{}
 
 // QueryPackId is a struct representing the Resource ID for a Query Pack
 type QueryPackId struct {
@@ -30,7 +35,7 @@ func NewQueryPackID(subscriptionId string, resourceGroupName string, queryPackNa
 
 // ParseQueryPackID parses 'input' into a QueryPackId
 func ParseQueryPackID(input string) (*QueryPackId, error) {
-	parser := resourceids.NewParserFromResourceIdType(QueryPackId{})
+	parser := resourceids.NewParserFromResourceIdType(&QueryPackId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +52,7 @@ func ParseQueryPackID(input string) (*QueryPackId, error) {
 // ParseQueryPackIDInsensitively parses 'input' case-insensitively into a QueryPackId
 // note: this method should only be used for API response data and not user input
 func ParseQueryPackIDInsensitively(input string) (*QueryPackId, error) {
-	parser := resourceids.NewParserFromResourceIdType(QueryPackId{})
+	parser := resourceids.NewParserFromResourceIdType(&QueryPackId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

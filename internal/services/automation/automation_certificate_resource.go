@@ -13,13 +13,14 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/certificate"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceAutomationCertificate() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceAutomationCertificateCreateUpdate,
 		Read:   resourceAutomationCertificateRead,
 		Update: resourceAutomationCertificateCreateUpdate,
@@ -69,7 +70,7 @@ func resourceAutomationCertificate() *pluginsdk.Resource {
 
 			"exportable": {
 				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Default:  false,
 				Optional: true,
 			},
 
@@ -79,6 +80,15 @@ func resourceAutomationCertificate() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["exportable"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+			Optional: true,
+		}
+	}
+	return resource
 }
 
 func resourceAutomationCertificateCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {

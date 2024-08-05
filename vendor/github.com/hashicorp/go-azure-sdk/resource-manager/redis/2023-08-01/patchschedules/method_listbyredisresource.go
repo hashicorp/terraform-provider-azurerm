@@ -19,7 +19,20 @@ type ListByRedisResourceOperationResponse struct {
 }
 
 type ListByRedisResourceCompleteResult struct {
-	Items []RedisPatchSchedule
+	LatestHttpResponse *http.Response
+	Items              []RedisPatchSchedule
+}
+
+type ListByRedisResourceCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByRedisResourceCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListByRedisResource ...
@@ -30,6 +43,7 @@ func (c PatchSchedulesClient) ListByRedisResource(ctx context.Context, id RediId
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByRedisResourceCustomPager{},
 		Path:       fmt.Sprintf("%s/patchSchedules", id.ID()),
 	}
 
@@ -71,6 +85,7 @@ func (c PatchSchedulesClient) ListByRedisResourceCompleteMatchingPredicate(ctx c
 
 	resp, err := c.ListByRedisResource(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +98,8 @@ func (c PatchSchedulesClient) ListByRedisResourceCompleteMatchingPredicate(ctx c
 	}
 
 	result = ListByRedisResourceCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

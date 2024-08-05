@@ -20,7 +20,20 @@ type MonitorsListByResourceGroupOperationResponse struct {
 }
 
 type MonitorsListByResourceGroupCompleteResult struct {
-	Items []DatadogMonitorResource
+	LatestHttpResponse *http.Response
+	Items              []DatadogMonitorResource
+}
+
+type MonitorsListByResourceGroupCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *MonitorsListByResourceGroupCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // MonitorsListByResourceGroup ...
@@ -31,6 +44,7 @@ func (c MonitorsResourceClient) MonitorsListByResourceGroup(ctx context.Context,
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &MonitorsListByResourceGroupCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.Datadog/monitors", id.ID()),
 	}
 
@@ -72,6 +86,7 @@ func (c MonitorsResourceClient) MonitorsListByResourceGroupCompleteMatchingPredi
 
 	resp, err := c.MonitorsListByResourceGroup(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -84,7 +99,8 @@ func (c MonitorsResourceClient) MonitorsListByResourceGroupCompleteMatchingPredi
 	}
 
 	result = MonitorsListByResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

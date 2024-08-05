@@ -107,7 +107,7 @@ func dataSourceBlueprintDefinitionRead(d *pluginsdk.ResourceData, meta interface
 		d.Set("display_name", pointer.From(p.DisplayName))
 		d.Set("last_modified", p.Status.LastModified)
 		d.Set("time_created", p.Status.TimeCreated)
-		d.Set("target_scope", p.TargetScope)
+		d.Set("target_scope", pointer.From(p.TargetScope))
 
 		publishedId := publishedblueprint.NewScopedBlueprintID(id.ResourceScope, id.BlueprintName)
 

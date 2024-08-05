@@ -48,7 +48,10 @@ func (c StorageAccountsClient) Update(ctx context.Context, id commonids.StorageA
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model StorageAccount
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

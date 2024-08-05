@@ -44,7 +44,10 @@ func (c RunbookDraftClient) UndoEdit(ctx context.Context, id RunbookId) (result 
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model RunbookDraftUndoEditResult
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -19,7 +19,8 @@ type ListOperationResponse struct {
 }
 
 type ListCompleteResult struct {
-	Items []EdgeModuleEntity
+	LatestHttpResponse *http.Response
+	Items              []EdgeModuleEntity
 }
 
 type ListOperationOptions struct {
@@ -57,6 +58,18 @@ func (o ListOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListCustomPager struct {
+	NextLink *odata.Link `json:"@nextLink"`
+}
+
+func (p *ListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // List ...
 func (c EdgeModulesClient) List(ctx context.Context, id VideoAnalyzerId, options ListOperationOptions) (result ListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -65,8 +78,9 @@ func (c EdgeModulesClient) List(ctx context.Context, id VideoAnalyzerId, options
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/edgeModules", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListCustomPager{},
+		Path:          fmt.Sprintf("%s/edgeModules", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -107,6 +121,7 @@ func (c EdgeModulesClient) ListCompleteMatchingPredicate(ctx context.Context, id
 
 	resp, err := c.List(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -119,7 +134,8 @@ func (c EdgeModulesClient) ListCompleteMatchingPredicate(ctx context.Context, id
 	}
 
 	result = ListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -8,7 +8,8 @@ package web
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=AppServiceSlot -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1/slots/slot1
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=AppServiceSlotCustomHostnameBinding -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1/slots/slot1/hostNameBindings/binding1
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=Certificate -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/certificates/certificate1
-//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=CertificateOrder -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/certificateOrders/order1
+//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=CertificateOrder -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.CertificateRegistration/certificateOrders/order1
+//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=CertificateOrderOld -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/certificateOrders/order1
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=FunctionApp -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=FunctionAppSlot -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1/slots/slot1
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=HostnameBinding -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/mygroup1/providers/Microsoft.Web/sites/site1/hostNameBindings/binding1
@@ -21,4 +22,4 @@ package web
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=VirtualNetworkSwiftConnection -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1/config/virtualNetwork
 
 // @tombuildsstuff: this is going to require a State Migration to account for `serverfarms` -> `serverFarms` prior to migrating to `hashicorp/go-azure-sdk`
-//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=AppServicePlan -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/serverfarms/farm1
+//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=AppServicePlan -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/serverFarms/farm1

@@ -19,7 +19,20 @@ type ListByAutomationAccountOperationResponse struct {
 }
 
 type ListByAutomationAccountCompleteResult struct {
-	Items []Module
+	LatestHttpResponse *http.Response
+	Items              []Module
+}
+
+type ListByAutomationAccountCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByAutomationAccountCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListByAutomationAccount ...
@@ -30,6 +43,7 @@ func (c ModuleClient) ListByAutomationAccount(ctx context.Context, id Automation
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByAutomationAccountCustomPager{},
 		Path:       fmt.Sprintf("%s/modules", id.ID()),
 	}
 
@@ -71,6 +85,7 @@ func (c ModuleClient) ListByAutomationAccountCompleteMatchingPredicate(ctx conte
 
 	resp, err := c.ListByAutomationAccount(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +98,8 @@ func (c ModuleClient) ListByAutomationAccountCompleteMatchingPredicate(ctx conte
 	}
 
 	result = ListByAutomationAccountCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

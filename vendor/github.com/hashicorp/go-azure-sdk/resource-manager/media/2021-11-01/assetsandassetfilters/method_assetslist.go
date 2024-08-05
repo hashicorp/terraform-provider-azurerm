@@ -19,7 +19,8 @@ type AssetsListOperationResponse struct {
 }
 
 type AssetsListCompleteResult struct {
-	Items []Asset
+	LatestHttpResponse *http.Response
+	Items              []Asset
 }
 
 type AssetsListOperationOptions struct {
@@ -57,6 +58,18 @@ func (o AssetsListOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type AssetsListCustomPager struct {
+	NextLink *odata.Link `json:"@odata.nextLink"`
+}
+
+func (p *AssetsListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // AssetsList ...
 func (c AssetsAndAssetFiltersClient) AssetsList(ctx context.Context, id MediaServiceId, options AssetsListOperationOptions) (result AssetsListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -65,8 +78,9 @@ func (c AssetsAndAssetFiltersClient) AssetsList(ctx context.Context, id MediaSer
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/assets", id.ID()),
 		OptionsObject: options,
+		Pager:         &AssetsListCustomPager{},
+		Path:          fmt.Sprintf("%s/assets", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -107,6 +121,7 @@ func (c AssetsAndAssetFiltersClient) AssetsListCompleteMatchingPredicate(ctx con
 
 	resp, err := c.AssetsList(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -119,7 +134,8 @@ func (c AssetsAndAssetFiltersClient) AssetsListCompleteMatchingPredicate(ctx con
 	}
 
 	result = AssetsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

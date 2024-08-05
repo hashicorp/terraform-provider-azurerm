@@ -48,7 +48,10 @@ func (c IntegrationAccountsClient) ListKeyVaultKeys(ctx context.Context, id Inte
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model KeyVaultKeyCollection
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

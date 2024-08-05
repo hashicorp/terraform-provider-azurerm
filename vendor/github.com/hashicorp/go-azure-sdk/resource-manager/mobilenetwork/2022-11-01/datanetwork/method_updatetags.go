@@ -47,7 +47,10 @@ func (c DataNetworkClient) UpdateTags(ctx context.Context, id DataNetworkId, inp
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model DataNetwork
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

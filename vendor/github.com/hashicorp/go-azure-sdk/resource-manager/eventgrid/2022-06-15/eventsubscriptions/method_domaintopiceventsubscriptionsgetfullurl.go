@@ -44,7 +44,10 @@ func (c EventSubscriptionsClient) DomainTopicEventSubscriptionsGetFullUrl(ctx co
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model EventSubscriptionFullUrl
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

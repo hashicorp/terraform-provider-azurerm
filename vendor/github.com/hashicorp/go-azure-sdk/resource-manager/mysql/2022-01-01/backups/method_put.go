@@ -43,7 +43,10 @@ func (c BackupsClient) Put(ctx context.Context, id BackupId) (result PutOperatio
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ServerBackup
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

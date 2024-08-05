@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagepool/2021-08-01/diskpools"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -45,7 +45,7 @@ func (d DiskPoolManagedDiskAttachmentResource) Arguments() map[string]*schema.Sc
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: disks.ValidateDiskID,
+			ValidateFunc: commonids.ValidateManagedDiskID,
 		},
 	}
 }
@@ -79,7 +79,7 @@ func (d DiskPoolManagedDiskAttachmentResource) Create() sdk.ResourceFunc {
 			if poolId.SubscriptionId != subscriptionId {
 				return fmt.Errorf("Disk Pool subscription id %q is different from provider's subscription", poolId.SubscriptionId)
 			}
-			diskId, err := disks.ParseDiskID(attachment.DiskId)
+			diskId, err := commonids.ParseManagedDiskID(attachment.DiskId)
 			if err != nil {
 				return err
 			}
@@ -98,7 +98,7 @@ func (d DiskPoolManagedDiskAttachmentResource) Create() sdk.ResourceFunc {
 				inputDisks = *poolResp.Model.Properties.Disks
 			}
 			for _, disk := range inputDisks {
-				existedDiskId, err := disks.ParseDiskID(disk.Id)
+				existedDiskId, err := commonids.ParseManagedDiskID(disk.Id)
 				if err != nil {
 					return fmt.Errorf("error on parsing existing attached disk id %q %+v", disk.Id, err)
 				}

@@ -19,7 +19,20 @@ type ListByProjectOperationResponse struct {
 }
 
 type ListByProjectCompleteResult struct {
-	Items []DevBoxDefinition
+	LatestHttpResponse *http.Response
+	Items              []DevBoxDefinition
+}
+
+type ListByProjectCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByProjectCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListByProject ...
@@ -30,6 +43,7 @@ func (c DevBoxDefinitionsClient) ListByProject(ctx context.Context, id ProjectId
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByProjectCustomPager{},
 		Path:       fmt.Sprintf("%s/devBoxDefinitions", id.ID()),
 	}
 
@@ -71,6 +85,7 @@ func (c DevBoxDefinitionsClient) ListByProjectCompleteMatchingPredicate(ctx cont
 
 	resp, err := c.ListByProject(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +98,8 @@ func (c DevBoxDefinitionsClient) ListByProjectCompleteMatchingPredicate(ctx cont
 	}
 
 	result = ListByProjectCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

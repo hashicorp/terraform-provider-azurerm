@@ -18,6 +18,24 @@ type BatchUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *[]Configuration
+}
+
+type BatchUpdateCompleteResult struct {
+	LatestHttpResponse *http.Response
+	Items              []Configuration
+}
+
+type BatchUpdateCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *BatchUpdateCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // BatchUpdate ...
@@ -29,6 +47,7 @@ func (c ConfigurationsClient) BatchUpdate(ctx context.Context, id FlexibleServer
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodPost,
+		Pager:      &BatchUpdateCustomPager{},
 		Path:       fmt.Sprintf("%s/updateConfigurations", id.ID()),
 	}
 

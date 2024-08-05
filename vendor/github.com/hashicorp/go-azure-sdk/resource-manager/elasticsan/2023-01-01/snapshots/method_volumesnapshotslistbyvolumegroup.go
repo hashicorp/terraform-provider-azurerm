@@ -19,7 +19,8 @@ type VolumeSnapshotsListByVolumeGroupOperationResponse struct {
 }
 
 type VolumeSnapshotsListByVolumeGroupCompleteResult struct {
-	Items []Snapshot
+	LatestHttpResponse *http.Response
+	Items              []Snapshot
 }
 
 type VolumeSnapshotsListByVolumeGroupOperationOptions struct {
@@ -49,6 +50,18 @@ func (o VolumeSnapshotsListByVolumeGroupOperationOptions) ToQuery() *client.Quer
 	return &out
 }
 
+type VolumeSnapshotsListByVolumeGroupCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *VolumeSnapshotsListByVolumeGroupCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // VolumeSnapshotsListByVolumeGroup ...
 func (c SnapshotsClient) VolumeSnapshotsListByVolumeGroup(ctx context.Context, id VolumeGroupId, options VolumeSnapshotsListByVolumeGroupOperationOptions) (result VolumeSnapshotsListByVolumeGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -57,8 +70,9 @@ func (c SnapshotsClient) VolumeSnapshotsListByVolumeGroup(ctx context.Context, i
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/snapshots", id.ID()),
 		OptionsObject: options,
+		Pager:         &VolumeSnapshotsListByVolumeGroupCustomPager{},
+		Path:          fmt.Sprintf("%s/snapshots", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -99,6 +113,7 @@ func (c SnapshotsClient) VolumeSnapshotsListByVolumeGroupCompleteMatchingPredica
 
 	resp, err := c.VolumeSnapshotsListByVolumeGroup(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -111,7 +126,8 @@ func (c SnapshotsClient) VolumeSnapshotsListByVolumeGroupCompleteMatchingPredica
 	}
 
 	result = VolumeSnapshotsListByVolumeGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

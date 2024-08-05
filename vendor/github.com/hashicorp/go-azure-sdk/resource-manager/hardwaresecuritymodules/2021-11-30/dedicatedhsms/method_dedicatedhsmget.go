@@ -43,7 +43,10 @@ func (c DedicatedHsmsClient) DedicatedHsmGet(ctx context.Context, id DedicatedHS
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model DedicatedHsm
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

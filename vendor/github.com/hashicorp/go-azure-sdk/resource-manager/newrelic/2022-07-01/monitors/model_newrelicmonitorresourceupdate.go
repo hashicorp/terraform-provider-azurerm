@@ -8,7 +8,7 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type NewRelicMonitorResourceUpdate struct {
-	Identity   *identity.SystemAndUserAssignedMap       `json:"identity,omitempty"`
+	Identity   *identity.SystemAssigned                 `json:"identity,omitempty"`
 	Properties *NewRelicMonitorResourceUpdateProperties `json:"properties,omitempty"`
 	Tags       *map[string]string                       `json:"tags,omitempty"`
 }

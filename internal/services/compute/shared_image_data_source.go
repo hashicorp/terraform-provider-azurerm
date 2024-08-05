@@ -7,16 +7,16 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryimages"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 )
 
 func dataSourceSharedImage() *pluginsdk.Resource {
@@ -126,7 +126,7 @@ func dataSourceSharedImage() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.SchemaDataSource(),
+			"tags": commonschema.TagsDataSource(),
 		},
 	}
 }
@@ -137,70 +137,66 @@ func dataSourceSharedImageRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewSharedImageID(subscriptionId, d.Get("resource_group_name").(string), d.Get("gallery_name").(string), d.Get("name").(string))
+	id := galleryimages.NewGalleryImageID(subscriptionId, d.Get("resource_group_name").(string), d.Get("gallery_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.GalleryName, id.ImageName)
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 
-		return fmt.Errorf("making Read request on %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
 
 	d.Set("name", id.ImageName)
 	d.Set("gallery_name", id.GalleryName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	d.Set("location", location.NormalizeNilable(resp.Location))
+	if model := resp.Model; model != nil {
+		d.Set("location", location.Normalize(model.Location))
 
-	if props := resp.GalleryImageProperties; props != nil {
-		d.Set("description", props.Description)
-		d.Set("eula", props.Eula)
-		d.Set("os_type", string(props.OsType))
-		d.Set("architecture", string(props.Architecture))
-		d.Set("specialized", props.OsState == compute.OperatingSystemStateTypesSpecialized)
-		d.Set("hyper_v_generation", string(props.HyperVGeneration))
-		d.Set("privacy_statement_uri", props.PrivacyStatementURI)
-		d.Set("release_note_uri", props.ReleaseNoteURI)
+		if props := model.Properties; props != nil {
+			d.Set("description", props.Description)
+			d.Set("eula", props.Eula)
+			d.Set("os_type", string(props.OsType))
+			d.Set("architecture", pointer.From(props.Architecture))
+			d.Set("specialized", props.OsState == galleryimages.OperatingSystemStateTypesSpecialized)
+			d.Set("hyper_v_generation", pointer.From(props.HyperVGeneration))
+			d.Set("privacy_statement_uri", props.PrivacyStatementUri)
+			d.Set("release_note_uri", props.ReleaseNoteUri)
 
-		if err := d.Set("identifier", flattenGalleryImageDataSourceIdentifier(props.Identifier)); err != nil {
-			return fmt.Errorf("setting `identifier`: %+v", err)
+			if err := d.Set("identifier", flattenGalleryImageDataSourceIdentifier(&props.Identifier)); err != nil {
+				return fmt.Errorf("setting `identifier`: %+v", err)
+			}
+
+			if err := d.Set("purchase_plan", flattenGalleryImageDataSourcePurchasePlan(props.PurchasePlan)); err != nil {
+				return fmt.Errorf("setting `purchase_plan`: %+v", err)
+			}
 		}
 
-		if err := d.Set("purchase_plan", flattenGalleryImageDataSourcePurchasePlan(props.PurchasePlan)); err != nil {
-			return fmt.Errorf("setting `purchase_plan`: %+v", err)
-		}
+		return tags.FlattenAndSet(d, model.Tags)
+
 	}
-
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
-func flattenGalleryImageDataSourceIdentifier(input *compute.GalleryImageIdentifier) []interface{} {
+func flattenGalleryImageDataSourceIdentifier(input *galleryimages.GalleryImageIdentifier) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
 
-	result := make(map[string]interface{})
-
-	if input.Offer != nil {
-		result["offer"] = *input.Offer
+	return []interface{}{
+		map[string]interface{}{
+			"offer":     input.Offer,
+			"publisher": input.Publisher,
+			"sku":       input.Sku,
+		},
 	}
-
-	if input.Publisher != nil {
-		result["publisher"] = *input.Publisher
-	}
-
-	if input.Sku != nil {
-		result["sku"] = *input.Sku
-	}
-
-	return []interface{}{result}
 }
 
-func flattenGalleryImageDataSourcePurchasePlan(input *compute.ImagePurchasePlan) []interface{} {
+func flattenGalleryImageDataSourcePurchasePlan(input *galleryimages.ImagePurchasePlan) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}

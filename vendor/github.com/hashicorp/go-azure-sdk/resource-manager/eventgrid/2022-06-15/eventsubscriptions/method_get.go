@@ -43,7 +43,10 @@ func (c EventSubscriptionsClient) Get(ctx context.Context, id ScopedEventSubscri
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model EventSubscription
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

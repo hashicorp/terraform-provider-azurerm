@@ -43,7 +43,10 @@ func (c ContentKeyPoliciesClient) Get(ctx context.Context, id ContentKeyPolicyId
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ContentKeyPolicy
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

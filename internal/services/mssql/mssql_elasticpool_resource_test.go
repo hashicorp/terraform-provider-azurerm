@@ -369,6 +369,7 @@ func TestAccMsSqlElasticPool_vCoreToStandardDTU(t *testing.T) {
 }
 
 func TestAccMsSqlElasticPool_enclaveTypeUpdate(t *testing.T) {
+	// NOTE: Once the enclave_type has be set it cannot be removed...
 	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
 	r := MsSqlElasticPoolResource{}
 
@@ -390,10 +391,18 @@ func TestAccMsSqlElasticPool_enclaveTypeUpdate(t *testing.T) {
 		},
 		data.ImportStep("max_size_gb"),
 		{
-			Config: r.basicDTU(data, ""),
+			Config: r.basicDTU(data, `enclave_type = "Default"`),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("enclave_type").IsEmpty(),
+				check.That(data.ResourceName).Key("enclave_type").HasValue("Default"),
+			),
+		},
+		data.ImportStep("max_size_gb"),
+		{
+			Config: r.basicDTU(data, `enclave_type = "VBS"`),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enclave_type").HasValue("VBS"),
 			),
 		},
 		data.ImportStep("max_size_gb"),

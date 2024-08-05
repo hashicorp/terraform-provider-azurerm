@@ -9,11 +9,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2020-02-02/insights" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	smartdetection "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2015-05-01/componentproactivedetectionapis"
+	components "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -28,13 +29,14 @@ func resourceApplicationInsightsSmartDetectionRule() *pluginsdk.Resource {
 		Delete: resourceApplicationInsightsSmartDetectionRuleDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.SmartDetectionRuleID(id)
+			_, err := smartdetection.ParseProactiveDetectionConfigID(id)
 			return err
 		}),
 
-		SchemaVersion: 1,
+		SchemaVersion: 2,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
 			0: migration.SmartDetectionRuleUpgradeV0ToV1{},
+			1: migration.SmartDetectionRuleUpgradeV1ToV2{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -69,7 +71,7 @@ func resourceApplicationInsightsSmartDetectionRule() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ComponentID,
+				ValidateFunc: components.ValidateComponentID,
 			},
 
 			"enabled": {
@@ -104,23 +106,23 @@ func resourceApplicationInsightsSmartDetectionRuleUpdate(d *pluginsdk.ResourceDa
 	// We'll have the user submit what the name looks like in the UI and convert it behind the scenes to match what the API accepts
 	name := convertUiNameToApiName(d.Get("name"))
 
-	appInsightsId, err := parse.ComponentID(d.Get("application_insights_id").(string))
+	appInsightsId, err := smartdetection.ParseComponentID(d.Get("application_insights_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewSmartDetectionRuleID(appInsightsId.SubscriptionId, appInsightsId.ResourceGroup, appInsightsId.Name, name)
+	id := smartdetection.NewProactiveDetectionConfigID(appInsightsId.SubscriptionId, appInsightsId.ResourceGroupName, appInsightsId.ComponentName, name)
 
-	smartDetectionRuleProperties := insights.ApplicationInsightsComponentProactiveDetectionConfiguration{
+	smartDetectionRuleProperties := smartdetection.ApplicationInsightsComponentProactiveDetectionConfiguration{
 		Name:                           &name,
-		Enabled:                        utils.Bool(d.Get("enabled").(bool)),
-		SendEmailsToSubscriptionOwners: utils.Bool(d.Get("send_emails_to_subscription_owners").(bool)),
+		Enabled:                        pointer.To(d.Get("enabled").(bool)),
+		SendEmailsToSubscriptionOwners: pointer.To(d.Get("send_emails_to_subscription_owners").(bool)),
 		CustomEmails:                   utils.ExpandStringSlice(d.Get("additional_email_recipients").(*pluginsdk.Set).List()),
 	}
 
-	_, err = client.Update(ctx, id.ResourceGroup, id.ComponentName, name, smartDetectionRuleProperties)
+	_, err = client.ProactiveDetectionConfigurationsUpdate(ctx, id, smartDetectionRuleProperties)
 	if err != nil {
-		return fmt.Errorf("updating Application Insights Smart Detection Rule %s: %+v", id, err)
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -133,28 +135,32 @@ func resourceApplicationInsightsSmartDetectionRuleRead(d *pluginsdk.ResourceData
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SmartDetectionRuleID(d.Id())
+	id, err := smartdetection.ParseProactiveDetectionConfigID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	log.Printf("[DEBUG] Reading AzureRM Application Insights Smart Detection Rule %s", id)
 
-	result, err := client.Get(ctx, id.ResourceGroup, id.ComponentName, id.SmartDetectionRuleName)
+	resp, err := client.ProactiveDetectionConfigurationsGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(result.Response) {
-			log.Printf("[WARN] AzureRM Application Insights Smart Detection Rule %s not found, removing from state", id)
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[DEBUG] %s was not found, removing from state", id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("making Read request on AzureRM Application Insights Smart Detection Rule %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", result.Name)
-	d.Set("application_insights_id", parse.NewComponentID(id.SubscriptionId, id.ResourceGroup, id.ComponentName).ID())
-	d.Set("enabled", result.Enabled)
-	d.Set("send_emails_to_subscription_owners", result.SendEmailsToSubscriptionOwners)
-	d.Set("additional_email_recipients", utils.FlattenStringSlice(result.CustomEmails))
+	d.Set("application_insights_id", smartdetection.NewComponentID(id.SubscriptionId, id.ResourceGroupName, id.ComponentName).ID())
+
+	if model := resp.Model; model != nil {
+		d.Set("name", model.Name)
+		d.Set("enabled", model.Enabled)
+		d.Set("send_emails_to_subscription_owners", model.SendEmailsToSubscriptionOwners)
+		d.Set("additional_email_recipients", utils.FlattenStringSlice(model.CustomEmails))
+
+	}
 	return nil
 }
 
@@ -163,37 +169,40 @@ func resourceApplicationInsightsSmartDetectionRuleDelete(d *pluginsdk.ResourceDa
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SmartDetectionRuleID(d.Id())
+	id, err := smartdetection.ParseProactiveDetectionConfigID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	log.Printf("[DEBUG] reseting AzureRM Application Insights Smart Detection Rule %s", id)
 
-	result, err := client.Get(ctx, id.ResourceGroup, id.ComponentName, id.SmartDetectionRuleName)
+	resp, err := client.ProactiveDetectionConfigurationsGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(result.Response) {
-			log.Printf("[WARN] AzureRM Application Insights Smart Detection Rule %s not found, removing from state", id)
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[DEBUG] %s was not found, removing from state", id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("making Read request on AzureRM Application Insights Smart Detection Rule %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	smartDetectionRuleProperties := insights.ApplicationInsightsComponentProactiveDetectionConfiguration{
-		Name:                           utils.String(id.SmartDetectionRuleName),
-		Enabled:                        result.RuleDefinitions.IsEnabledByDefault,
-		SendEmailsToSubscriptionOwners: result.RuleDefinitions.SupportsEmailNotifications,
+	if resp.Model == nil {
+		return fmt.Errorf("model was nil for %s", id)
+	}
+	smartDetectionRuleProperties := smartdetection.ApplicationInsightsComponentProactiveDetectionConfiguration{
+		Name:                           pointer.To(id.ConfigurationId),
+		Enabled:                        resp.Model.RuleDefinitions.IsEnabledByDefault,
+		SendEmailsToSubscriptionOwners: resp.Model.RuleDefinitions.SupportsEmailNotifications,
 		CustomEmails:                   utils.ExpandStringSlice([]interface{}{}),
 	}
 
 	// Application Insights defaults all the Smart Detection Rules so if a user wants to delete a rule, we'll update it back to it's default values.
-	_, err = client.Update(ctx, id.ResourceGroup, id.ComponentName, id.SmartDetectionRuleName, smartDetectionRuleProperties)
+	_, err = client.ProactiveDetectionConfigurationsUpdate(ctx, *id, smartDetectionRuleProperties)
 	if err != nil {
-		if utils.ResponseWasNotFound(result.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return nil
 		}
-		return fmt.Errorf("issuing AzureRM reset update request for Application Insights Smart Detection Rule %q: %+v", id.String(), err)
+		return fmt.Errorf("resetting %s: %+v", id, err)
 	}
 
 	return nil

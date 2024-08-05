@@ -19,7 +19,20 @@ type ListByModuleOperationResponse struct {
 }
 
 type ListByModuleCompleteResult struct {
-	Items []Activity
+	LatestHttpResponse *http.Response
+	Items              []Activity
+}
+
+type ListByModuleCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByModuleCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListByModule ...
@@ -30,6 +43,7 @@ func (c ActivityClient) ListByModule(ctx context.Context, id ModuleId) (result L
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByModuleCustomPager{},
 		Path:       fmt.Sprintf("%s/activities", id.ID()),
 	}
 
@@ -71,6 +85,7 @@ func (c ActivityClient) ListByModuleCompleteMatchingPredicate(ctx context.Contex
 
 	resp, err := c.ListByModule(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +98,8 @@ func (c ActivityClient) ListByModuleCompleteMatchingPredicate(ctx context.Contex
 	}
 
 	result = ListByModuleCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

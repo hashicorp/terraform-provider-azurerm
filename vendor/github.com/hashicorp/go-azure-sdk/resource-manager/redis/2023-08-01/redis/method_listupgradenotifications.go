@@ -19,7 +19,8 @@ type ListUpgradeNotificationsOperationResponse struct {
 }
 
 type ListUpgradeNotificationsCompleteResult struct {
-	Items []UpgradeNotification
+	LatestHttpResponse *http.Response
+	Items              []UpgradeNotification
 }
 
 type ListUpgradeNotificationsOperationOptions struct {
@@ -49,6 +50,18 @@ func (o ListUpgradeNotificationsOperationOptions) ToQuery() *client.QueryParams 
 	return &out
 }
 
+type ListUpgradeNotificationsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListUpgradeNotificationsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListUpgradeNotifications ...
 func (c RedisClient) ListUpgradeNotifications(ctx context.Context, id RediId, options ListUpgradeNotificationsOperationOptions) (result ListUpgradeNotificationsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -57,8 +70,9 @@ func (c RedisClient) ListUpgradeNotifications(ctx context.Context, id RediId, op
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/listUpgradeNotifications", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListUpgradeNotificationsCustomPager{},
+		Path:          fmt.Sprintf("%s/listUpgradeNotifications", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -99,6 +113,7 @@ func (c RedisClient) ListUpgradeNotificationsCompleteMatchingPredicate(ctx conte
 
 	resp, err := c.ListUpgradeNotifications(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -111,7 +126,8 @@ func (c RedisClient) ListUpgradeNotificationsCompleteMatchingPredicate(ctx conte
 	}
 
 	result = ListUpgradeNotificationsCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

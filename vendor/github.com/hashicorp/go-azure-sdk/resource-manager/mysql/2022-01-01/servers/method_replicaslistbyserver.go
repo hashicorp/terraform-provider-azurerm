@@ -19,7 +19,20 @@ type ReplicasListByServerOperationResponse struct {
 }
 
 type ReplicasListByServerCompleteResult struct {
-	Items []Server
+	LatestHttpResponse *http.Response
+	Items              []Server
+}
+
+type ReplicasListByServerCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ReplicasListByServerCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ReplicasListByServer ...
@@ -30,6 +43,7 @@ func (c ServersClient) ReplicasListByServer(ctx context.Context, id FlexibleServ
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ReplicasListByServerCustomPager{},
 		Path:       fmt.Sprintf("%s/replicas", id.ID()),
 	}
 
@@ -71,6 +85,7 @@ func (c ServersClient) ReplicasListByServerCompleteMatchingPredicate(ctx context
 
 	resp, err := c.ReplicasListByServer(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +98,8 @@ func (c ServersClient) ReplicasListByServerCompleteMatchingPredicate(ctx context
 	}
 
 	result = ReplicasListByServerCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

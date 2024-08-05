@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = OfferPlanId{}
+func init() {
+	recaser.RegisterResourceId(&OfferPlanId{})
+}
+
+var _ resourceids.ResourceId = &OfferPlanId{}
 
 // OfferPlanId is a struct representing the Resource ID for a Offer Plan
 type OfferPlanId struct {
@@ -32,7 +37,7 @@ func NewOfferPlanID(subscriptionId string, publisherId string, offerId string, p
 
 // ParseOfferPlanID parses 'input' into a OfferPlanId
 func ParseOfferPlanID(input string) (*OfferPlanId, error) {
-	parser := resourceids.NewParserFromResourceIdType(OfferPlanId{})
+	parser := resourceids.NewParserFromResourceIdType(&OfferPlanId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +54,7 @@ func ParseOfferPlanID(input string) (*OfferPlanId, error) {
 // ParseOfferPlanIDInsensitively parses 'input' case-insensitively into a OfferPlanId
 // note: this method should only be used for API response data and not user input
 func ParseOfferPlanIDInsensitively(input string) (*OfferPlanId, error) {
-	parser := resourceids.NewParserFromResourceIdType(OfferPlanId{})
+	parser := resourceids.NewParserFromResourceIdType(&OfferPlanId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

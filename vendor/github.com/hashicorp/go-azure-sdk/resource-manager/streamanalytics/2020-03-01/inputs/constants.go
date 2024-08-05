@@ -1,6 +1,10 @@
 package inputs
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -19,6 +23,19 @@ func PossibleValuesForAuthenticationMode() []string {
 		string(AuthenticationModeMsi),
 		string(AuthenticationModeUserToken),
 	}
+}
+
+func (s *AuthenticationMode) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseAuthenticationMode(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseAuthenticationMode(input string) (*AuthenticationMode, error) {
@@ -52,6 +69,19 @@ func PossibleValuesForCompressionType() []string {
 	}
 }
 
+func (s *CompressionType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseCompressionType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseCompressionType(input string) (*CompressionType, error) {
 	vals := map[string]CompressionType{
 		"deflate": CompressionTypeDeflate,
@@ -77,6 +107,19 @@ func PossibleValuesForEncoding() []string {
 	return []string{
 		string(EncodingUTFEight),
 	}
+}
+
+func (s *Encoding) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseEncoding(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseEncoding(input string) (*Encoding, error) {
@@ -110,6 +153,19 @@ func PossibleValuesForEventSerializationType() []string {
 	}
 }
 
+func (s *EventSerializationType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseEventSerializationType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseEventSerializationType(input string) (*EventSerializationType, error) {
 	vals := map[string]EventSerializationType{
 		"avro":    EventSerializationTypeAvro,
@@ -140,6 +196,19 @@ func PossibleValuesForJsonOutputSerializationFormat() []string {
 	}
 }
 
+func (s *JsonOutputSerializationFormat) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseJsonOutputSerializationFormat(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseJsonOutputSerializationFormat(input string) (*JsonOutputSerializationFormat, error) {
 	vals := map[string]JsonOutputSerializationFormat{
 		"array":         JsonOutputSerializationFormatArray,
@@ -168,6 +237,19 @@ func PossibleValuesForRefreshType() []string {
 		string(RefreshTypeRefreshPeriodicallyWithFull),
 		string(RefreshTypeStatic),
 	}
+}
+
+func (s *RefreshType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseRefreshType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseRefreshType(input string) (*RefreshType, error) {

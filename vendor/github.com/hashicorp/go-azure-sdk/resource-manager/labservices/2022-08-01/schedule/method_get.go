@@ -43,7 +43,10 @@ func (c ScheduleClient) Get(ctx context.Context, id ScheduleId) (result GetOpera
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Schedule
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

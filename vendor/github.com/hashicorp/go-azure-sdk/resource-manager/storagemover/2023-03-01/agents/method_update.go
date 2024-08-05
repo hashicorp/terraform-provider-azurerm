@@ -47,7 +47,10 @@ func (c AgentsClient) Update(ctx context.Context, id AgentId, input AgentUpdateP
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Agent
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

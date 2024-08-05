@@ -1,6 +1,10 @@
 package environments
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -17,6 +21,19 @@ func PossibleValuesForEnvironmentKind() []string {
 		string(EnvironmentKindGenOne),
 		string(EnvironmentKindGenTwo),
 	}
+}
+
+func (s *EnvironmentKind) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseEnvironmentKind(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseEnvironmentKind(input string) (*EnvironmentKind, error) {
@@ -53,6 +70,19 @@ func PossibleValuesForIngressState() []string {
 	}
 }
 
+func (s *IngressState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseIngressState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseIngressState(input string) (*IngressState, error) {
 	vals := map[string]IngressState{
 		"disabled": IngressStateDisabled,
@@ -84,6 +114,19 @@ func PossibleValuesForKind() []string {
 	}
 }
 
+func (s *Kind) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseKind(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseKind(input string) (*Kind, error) {
 	vals := map[string]Kind{
 		"gen1": KindGenOne,
@@ -108,6 +151,19 @@ func PossibleValuesForPropertyType() []string {
 	return []string{
 		string(PropertyTypeString),
 	}
+}
+
+func (s *PropertyType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parsePropertyType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parsePropertyType(input string) (*PropertyType, error) {
@@ -143,6 +199,19 @@ func PossibleValuesForProvisioningState() []string {
 		string(ProvisioningStateSucceeded),
 		string(ProvisioningStateUpdating),
 	}
+}
+
+func (s *ProvisioningState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseProvisioningState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseProvisioningState(input string) (*ProvisioningState, error) {
@@ -181,6 +250,19 @@ func PossibleValuesForSkuName() []string {
 	}
 }
 
+func (s *SkuName) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSkuName(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseSkuName(input string) (*SkuName, error) {
 	vals := map[string]SkuName{
 		"l1": SkuNameLOne,
@@ -211,6 +293,19 @@ func PossibleValuesForStorageLimitExceededBehavior() []string {
 	}
 }
 
+func (s *StorageLimitExceededBehavior) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseStorageLimitExceededBehavior(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseStorageLimitExceededBehavior(input string) (*StorageLimitExceededBehavior, error) {
 	vals := map[string]StorageLimitExceededBehavior{
 		"pauseingress": StorageLimitExceededBehaviorPauseIngress,
@@ -239,6 +334,19 @@ func PossibleValuesForWarmStoragePropertiesState() []string {
 		string(WarmStoragePropertiesStateOk),
 		string(WarmStoragePropertiesStateUnknown),
 	}
+}
+
+func (s *WarmStoragePropertiesState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseWarmStoragePropertiesState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseWarmStoragePropertiesState(input string) (*WarmStoragePropertiesState, error) {

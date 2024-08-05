@@ -18,6 +18,7 @@ type DeleteOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *TimeSeriesDatabaseConnection
 }
 
 type DeleteOperationOptions struct {
@@ -57,8 +58,8 @@ func (c TimeSeriesDatabaseConnectionsClient) Delete(ctx context.Context, id Time
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodDelete,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

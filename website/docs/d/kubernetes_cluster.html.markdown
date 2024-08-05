@@ -182,6 +182,10 @@ An `azure_active_directory_role_based_access_control` block exports the followin
 
 A `upgrade_settings` block exports the following:
 
+* `drain_timeout_in_minutes` - The amount of time in minutes to wait on eviction of pods and graceful termination per node. This eviction wait time honors waiting on pod disruption budgets. If this time is exceeded, the upgrade fails.
+
+* `node_soak_duration_in_minutes` - The amount of time in minutes to wait after draining a node and before reimaging it and moving on to next node.
+
 * `max_surge` - The maximum number or percentage of nodes that will be added to the Node Pool size during an upgrade.
 
 ---
@@ -222,12 +226,12 @@ The `kube_admin_config` and `kube_config` blocks export the following:
 
 ```hcl
 provider "kubernetes" {
-  host                   = data.azurerm_kubernetes_cluster.main.kube_config.0.host
-  username               = data.azurerm_kubernetes_cluster.main.kube_config.0.username
-  password               = data.azurerm_kubernetes_cluster.main.kube_config.0.password
-  client_certificate     = base64decode(data.azurerm_kubernetes_cluster.main.kube_config.0.client_certificate)
-  client_key             = base64decode(data.azurerm_kubernetes_cluster.main.kube_config.0.client_key)
-  cluster_ca_certificate = base64decode(data.azurerm_kubernetes_cluster.main.kube_config.0.cluster_ca_certificate)
+  host                   = data.azurerm_kubernetes_cluster.main.kube_config[0].host
+  username               = data.azurerm_kubernetes_cluster.main.kube_config[0].username
+  password               = data.azurerm_kubernetes_cluster.main.kube_config[0].password
+  client_certificate     = base64decode(data.azurerm_kubernetes_cluster.main.kube_config[0].client_certificate)
+  client_key             = base64decode(data.azurerm_kubernetes_cluster.main.kube_config[0].client_key)
+  cluster_ca_certificate = base64decode(data.azurerm_kubernetes_cluster.main.kube_config[0].cluster_ca_certificate)
 }
 ```
 
@@ -262,7 +266,7 @@ A `network_profile` block exports the following:
 * `network_plugin` - Network plugin used such as `azure` or `kubenet`.
 
 * `network_policy` - Network policy to be used with Azure CNI. e.g. `calico` or `azure`
-  
+
 * `network_mode` - Network mode to be used with Azure CNI. e.g. `bridge` or `transparent`
 
 * `pod_cidr` - The CIDR used for pod IP addresses.
@@ -277,7 +281,7 @@ An `oms_agent` block exports the following:
 
 * `msi_auth_for_monitoring_enabled` - Is managed identity authentication for monitoring enabled?
 
-* `oms_agent_identity` - An `oms_agent_identity` block as defined below.  
+* `oms_agent_identity` - An `oms_agent_identity` block as defined below.
 
 ---
 
@@ -301,7 +305,7 @@ An `ingress_application_gateway` block supports the following:
 
 * `subnet_id` - The ID of the subnet on which to create an Application Gateway, which in turn will be integrated with the ingress controller of this Kubernetes Cluster. This attribute is only set when `subnet_id` is specified when configuring the `ingress_application_gateway` addon.
 
-* `ingress_application_gateway_identity` - An `ingress_application_gateway_identity` block as defined below.  
+* `ingress_application_gateway_identity` - An `ingress_application_gateway_identity` block as defined below.
 
 ---
 
@@ -355,8 +359,6 @@ An `identity` block exports the following:
 
 * `identity_ids` - The list of User Assigned Managed Identity IDs assigned to this Kubernetes Cluster.
 
--> **NOTE:** Currently only one User Assigned Identity is supported.
-
 ---
 
 The `kubelet_identity` block exports the following:
@@ -383,7 +385,21 @@ A `service_mesh_profile` block exports the following:
 
 * `external_ingress_gateway_enabled` - Is Istio External Ingress Gateway enabled?
 
--> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/AzureServiceMeshPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://learn.microsoft.com/en-us/azure/aks/istio-deploy-addon#register-the-azureservicemeshpreview-feature-flag) for more information.
+* `certificate_authority` - A `certificate_authority` block as documented below.
+
+---
+
+A `certificate_authority` block exports the following:
+
+* `key_vault_id` - The resource ID of the Key Vault.
+
+* `root_cert_object_name` - The root certificate object name in Azure Key Vault.
+
+* `cert_chain_object_name` - The certificate chain object name in Azure Key Vault.
+
+* `cert_object_name` - The intermediate certificate object name in Azure Key Vault.
+
+* `key_object_name` - The intermediate certificate private key object name in Azure Key Vault.
 
 ---
 

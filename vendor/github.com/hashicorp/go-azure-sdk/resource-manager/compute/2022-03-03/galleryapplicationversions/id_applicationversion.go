@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ApplicationVersionId{}
+func init() {
+	recaser.RegisterResourceId(&ApplicationVersionId{})
+}
+
+var _ resourceids.ResourceId = &ApplicationVersionId{}
 
 // ApplicationVersionId is a struct representing the Resource ID for a Application Version
 type ApplicationVersionId struct {
@@ -34,7 +39,7 @@ func NewApplicationVersionID(subscriptionId string, resourceGroupName string, ga
 
 // ParseApplicationVersionID parses 'input' into a ApplicationVersionId
 func ParseApplicationVersionID(input string) (*ApplicationVersionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ApplicationVersionId{})
+	parser := resourceids.NewParserFromResourceIdType(&ApplicationVersionId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -51,7 +56,7 @@ func ParseApplicationVersionID(input string) (*ApplicationVersionId, error) {
 // ParseApplicationVersionIDInsensitively parses 'input' case-insensitively into a ApplicationVersionId
 // note: this method should only be used for API response data and not user input
 func ParseApplicationVersionIDInsensitively(input string) (*ApplicationVersionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ApplicationVersionId{})
+	parser := resourceids.NewParserFromResourceIdType(&ApplicationVersionId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

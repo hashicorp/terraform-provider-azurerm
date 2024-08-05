@@ -19,7 +19,20 @@ type AssetFiltersListOperationResponse struct {
 }
 
 type AssetFiltersListCompleteResult struct {
-	Items []AssetFilter
+	LatestHttpResponse *http.Response
+	Items              []AssetFilter
+}
+
+type AssetFiltersListCustomPager struct {
+	NextLink *odata.Link `json:"@odata.nextLink"`
+}
+
+func (p *AssetFiltersListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // AssetFiltersList ...
@@ -30,6 +43,7 @@ func (c AssetsAndAssetFiltersClient) AssetFiltersList(ctx context.Context, id As
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &AssetFiltersListCustomPager{},
 		Path:       fmt.Sprintf("%s/assetFilters", id.ID()),
 	}
 
@@ -71,6 +85,7 @@ func (c AssetsAndAssetFiltersClient) AssetFiltersListCompleteMatchingPredicate(c
 
 	resp, err := c.AssetFiltersList(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +98,8 @@ func (c AssetsAndAssetFiltersClient) AssetFiltersListCompleteMatchingPredicate(c
 	}
 
 	result = AssetFiltersListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

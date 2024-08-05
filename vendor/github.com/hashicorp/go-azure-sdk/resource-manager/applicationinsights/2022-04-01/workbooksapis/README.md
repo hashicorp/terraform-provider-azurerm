@@ -8,6 +8,7 @@ This readme covers example usages, but further information on [using this SDK ca
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-04-01/workbooksapis"
 ```
 
@@ -77,7 +78,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := workbooksapis.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
+id := commonids.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
 // alternatively `client.WorkbooksListByResourceGroup(ctx, id, workbooksapis.DefaultWorkbooksListByResourceGroupOperationOptions())` can be used to do batched pagination
 items, err := client.WorkbooksListByResourceGroupComplete(ctx, id, workbooksapis.DefaultWorkbooksListByResourceGroupOperationOptions())
@@ -94,7 +95,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := workbooksapis.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 // alternatively `client.WorkbooksListBySubscription(ctx, id, workbooksapis.DefaultWorkbooksListBySubscriptionOperationOptions())` can be used to do batched pagination
 items, err := client.WorkbooksListBySubscriptionComplete(ctx, id, workbooksapis.DefaultWorkbooksListBySubscriptionOperationOptions())

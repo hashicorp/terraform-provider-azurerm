@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = AccessConnectorId{}
+func init() {
+	recaser.RegisterResourceId(&AccessConnectorId{})
+}
+
+var _ resourceids.ResourceId = &AccessConnectorId{}
 
 // AccessConnectorId is a struct representing the Resource ID for a Access Connector
 type AccessConnectorId struct {
@@ -30,7 +35,7 @@ func NewAccessConnectorID(subscriptionId string, resourceGroupName string, acces
 
 // ParseAccessConnectorID parses 'input' into a AccessConnectorId
 func ParseAccessConnectorID(input string) (*AccessConnectorId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AccessConnectorId{})
+	parser := resourceids.NewParserFromResourceIdType(&AccessConnectorId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +52,7 @@ func ParseAccessConnectorID(input string) (*AccessConnectorId, error) {
 // ParseAccessConnectorIDInsensitively parses 'input' case-insensitively into a AccessConnectorId
 // note: this method should only be used for API response data and not user input
 func ParseAccessConnectorIDInsensitively(input string) (*AccessConnectorId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AccessConnectorId{})
+	parser := resourceids.NewParserFromResourceIdType(&AccessConnectorId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

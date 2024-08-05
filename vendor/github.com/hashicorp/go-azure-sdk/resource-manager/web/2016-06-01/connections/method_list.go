@@ -58,8 +58,8 @@ func (c ConnectionsClient) List(ctx context.Context, id commonids.ResourceGroupI
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/providers/Microsoft.Web/connections", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/providers/Microsoft.Web/connections", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -77,7 +77,10 @@ func (c ConnectionsClient) List(ctx context.Context, id commonids.ResourceGroupI
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ApiConnectionDefinitionCollection
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

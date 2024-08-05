@@ -388,11 +388,14 @@ func expandEncryption(input []interface{}) (*automationaccount.EncryptionPropert
 		return nil, fmt.Errorf("read encryption user identity id error")
 	}
 	prop := &automationaccount.EncryptionProperties{
-		Identity: &automationaccount.EncryptionPropertiesIdentity{
-			UserAssignedIdentity: &id,
-		},
 		KeySource: pointer.To(automationaccount.EncryptionKeySourceTypeMicrosoftPointKeyvault),
 	}
+	if id != "" {
+		prop.Identity = &automationaccount.EncryptionPropertiesIdentity{
+			UserAssignedIdentity: &id,
+		}
+	}
+
 	if keyIdStr := v["key_vault_key_id"].(string); keyIdStr != "" {
 		keyId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(keyIdStr)
 		if err != nil {

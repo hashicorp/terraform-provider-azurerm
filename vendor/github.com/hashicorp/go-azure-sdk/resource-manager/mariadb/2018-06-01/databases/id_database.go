@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = DatabaseId{}
+func init() {
+	recaser.RegisterResourceId(&DatabaseId{})
+}
+
+var _ resourceids.ResourceId = &DatabaseId{}
 
 // DatabaseId is a struct representing the Resource ID for a Database
 type DatabaseId struct {
@@ -32,7 +37,7 @@ func NewDatabaseID(subscriptionId string, resourceGroupName string, serverName s
 
 // ParseDatabaseID parses 'input' into a DatabaseId
 func ParseDatabaseID(input string) (*DatabaseId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DatabaseId{})
+	parser := resourceids.NewParserFromResourceIdType(&DatabaseId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +54,7 @@ func ParseDatabaseID(input string) (*DatabaseId, error) {
 // ParseDatabaseIDInsensitively parses 'input' case-insensitively into a DatabaseId
 // note: this method should only be used for API response data and not user input
 func ParseDatabaseIDInsensitively(input string) (*DatabaseId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DatabaseId{})
+	parser := resourceids.NewParserFromResourceIdType(&DatabaseId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

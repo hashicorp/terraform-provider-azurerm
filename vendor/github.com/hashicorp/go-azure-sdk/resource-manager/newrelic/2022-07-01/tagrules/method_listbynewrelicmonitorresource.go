@@ -19,7 +19,20 @@ type ListByNewRelicMonitorResourceOperationResponse struct {
 }
 
 type ListByNewRelicMonitorResourceCompleteResult struct {
-	Items []TagRule
+	LatestHttpResponse *http.Response
+	Items              []TagRule
+}
+
+type ListByNewRelicMonitorResourceCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByNewRelicMonitorResourceCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListByNewRelicMonitorResource ...
@@ -30,6 +43,7 @@ func (c TagRulesClient) ListByNewRelicMonitorResource(ctx context.Context, id Mo
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByNewRelicMonitorResourceCustomPager{},
 		Path:       fmt.Sprintf("%s/tagRules", id.ID()),
 	}
 
@@ -71,6 +85,7 @@ func (c TagRulesClient) ListByNewRelicMonitorResourceCompleteMatchingPredicate(c
 
 	resp, err := c.ListByNewRelicMonitorResource(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +98,8 @@ func (c TagRulesClient) ListByNewRelicMonitorResourceCompleteMatchingPredicate(c
 	}
 
 	result = ListByNewRelicMonitorResourceCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

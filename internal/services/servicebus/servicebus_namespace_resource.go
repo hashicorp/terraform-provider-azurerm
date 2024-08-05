@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/namespacesauthorizationrule"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2022-01-01-preview/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2022-10-01-preview/namespaces"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -43,7 +43,7 @@ var (
 )
 
 func resourceServiceBusNamespace() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceServiceBusNamespaceCreateUpdate,
 		Read:   resourceServiceBusNamespaceRead,
 		Update: resourceServiceBusNamespaceCreateUpdate,
@@ -97,6 +97,14 @@ func resourceServiceBusNamespace() *pluginsdk.Resource {
 				ValidateFunc: validation.IntInSlice([]int{0, 1, 2, 4, 8, 16}),
 			},
 
+			"premium_messaging_partitions": {
+				Type:         pluginsdk.TypeInt,
+				ForceNew:     true,
+				Default:      0,
+				Optional:     true,
+				ValidateFunc: validation.IntInSlice([]int{0, 1, 2, 4}),
+			},
+
 			"customer_managed_key": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -139,7 +147,7 @@ func resourceServiceBusNamespace() *pluginsdk.Resource {
 			"minimum_tls_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Default:  string(namespaces.TlsVersionOnePointTwo),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(namespaces.TlsVersionOnePointZero),
 					string(namespaces.TlsVersionOnePointOne),
@@ -171,16 +179,10 @@ func resourceServiceBusNamespace() *pluginsdk.Resource {
 				Sensitive: true,
 			},
 
-			"zone_redundant": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				ForceNew: true,
-			},
-
 			"network_rule_set": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: !features.FourPointOhBeta(),
+				Computed: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -266,6 +268,29 @@ func resourceServiceBusNamespace() *pluginsdk.Resource {
 			pluginsdk.CustomizeDiffShim(servicebusTLSVersionDiff),
 		),
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["zone_redundant"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Computed:   true,
+			Deprecated: "The `zone_redundant` property has been deprecated and will be removed in v4.0 of the provider.",
+			ForceNew:   true,
+		}
+
+		resource.Schema["minimum_tls_version"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(namespaces.TlsVersionOnePointZero),
+				string(namespaces.TlsVersionOnePointOne),
+				string(namespaces.TlsVersionOnePointTwo),
+			}, false),
+		}
+	}
+
+	return resource
 }
 
 func resourceServiceBusNamespaceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -313,12 +338,15 @@ func resourceServiceBusNamespaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 			Tier: &s,
 		},
 		Properties: &namespaces.SBNamespaceProperties{
-			ZoneRedundant:       utils.Bool(d.Get("zone_redundant").(bool)),
 			Encryption:          expandServiceBusNamespaceEncryption(d.Get("customer_managed_key").([]interface{})),
 			DisableLocalAuth:    utils.Bool(!d.Get("local_auth_enabled").(bool)),
 			PublicNetworkAccess: &publicNetworkEnabled,
 		},
 		Tags: expandTags(t),
+	}
+
+	if !features.FourPointOhBeta() {
+		parameters.Properties.ZoneRedundant = utils.Bool(d.Get("zone_redundant").(bool))
 	}
 
 	if tlsValue := d.Get("minimum_tls_version").(string); tlsValue != "" {
@@ -328,12 +356,22 @@ func resourceServiceBusNamespaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 
 	if capacity := d.Get("capacity"); capacity != nil {
 		if !strings.EqualFold(sku, string(namespaces.SkuNamePremium)) && capacity.(int) > 0 {
-			return fmt.Errorf("Service Bus SKU %q only supports `capacity` of 0", sku)
+			return fmt.Errorf("service bus SKU %q only supports `capacity` of 0", sku)
 		}
 		if strings.EqualFold(sku, string(namespaces.SkuNamePremium)) && capacity.(int) == 0 {
-			return fmt.Errorf("Service Bus SKU %q only supports `capacity` of 1, 2, 4, 8 or 16", sku)
+			return fmt.Errorf("service bus SKU %q only supports `capacity` of 1, 2, 4, 8 or 16", sku)
 		}
 		parameters.Sku.Capacity = utils.Int64(int64(capacity.(int)))
+	}
+
+	if premiumMessagingUnit := d.Get("premium_messaging_partitions"); premiumMessagingUnit != nil {
+		if !strings.EqualFold(sku, string(namespaces.SkuNamePremium)) && premiumMessagingUnit.(int) > 0 {
+			return fmt.Errorf("premium messaging partition is not supported by service Bus SKU %q and it can only be set to 0", sku)
+		}
+		if strings.EqualFold(sku, string(namespaces.SkuNamePremium)) && premiumMessagingUnit.(int) == 0 {
+			return fmt.Errorf("service bus SKU %q only supports `premium_messaging_partitions` of 1, 2, 4", sku)
+		}
+		parameters.Properties.PremiumMessagingPartitions = utils.Int64(int64(premiumMessagingUnit.(int)))
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
@@ -411,7 +449,12 @@ func resourceServiceBusNamespaceRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("capacity", sku.Capacity)
 
 			if props := model.Properties; props != nil {
-				d.Set("zone_redundant", props.ZoneRedundant)
+				d.Set("premium_messaging_partitions", props.PremiumMessagingPartitions)
+
+				if !features.FourPointOhBeta() {
+					d.Set("zone_redundant", props.ZoneRedundant)
+				}
+
 				if customerManagedKey, err := flattenServiceBusNamespaceEncryption(props.Encryption); err == nil {
 					d.Set("customer_managed_key", customerManagedKey)
 				}
@@ -524,7 +567,11 @@ func flattenServiceBusNamespaceEncryption(encryption *namespaces.Encryption) ([]
 		}
 		keyId = keyVaultKeyId.ID()
 		if props.Identity != nil && props.Identity.UserAssignedIdentity != nil {
-			identityId = *props.Identity.UserAssignedIdentity
+			sbnUaiId, err := commonids.ParseUserAssignedIdentityIDInsensitively(*props.Identity.UserAssignedIdentity)
+			if err != nil {
+				return nil, err
+			}
+			identityId = sbnUaiId.ID()
 		}
 	}
 

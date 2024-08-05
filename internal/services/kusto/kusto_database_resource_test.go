@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/databases"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -334,7 +335,7 @@ resource "azurerm_kusto_database" "test" {
 }
 
 func (KustoDatabaseResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := databases.ParseDatabaseID(state.ID)
+	id, err := commonids.ParseKustoDatabaseID(state.ID)
 	if err != nil {
 		return nil, err
 	}

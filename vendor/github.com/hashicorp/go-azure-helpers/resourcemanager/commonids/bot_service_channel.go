@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = BotServiceChannelId{}
+var _ resourceids.ResourceId = &BotServiceChannelId{}
 
 // BotServiceChannelId is a struct representing the Resource ID for a Bot Service Channel
 type BotServiceChannelId struct {
@@ -32,37 +32,15 @@ func NewBotServiceChannelID(subscriptionId string, resourceGroupName string, bot
 
 // ParseBotServiceChannelID parses 'input' into a BotServiceChannelId
 func ParseBotServiceChannelID(input string) (*BotServiceChannelId, error) {
-	parser := resourceids.NewParserFromResourceIdType(BotServiceChannelId{})
+	parser := resourceids.NewParserFromResourceIdType(&BotServiceChannelId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := BotServiceChannelId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.BotServiceName, ok = parsed.Parsed["botServiceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "botServiceName", *parsed)
-	}
-
-	if v, ok := parsed.Parsed["channelType"]; true {
-		if !ok {
-			return nil, resourceids.NewSegmentNotSpecifiedError(id, "channelType", *parsed)
-		}
-
-		channelType, err := parseBotServiceChannelType(v)
-		if err != nil {
-			return nil, fmt.Errorf("parsing %q: %+v", v, err)
-		}
-		id.ChannelType = *channelType
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -71,40 +49,48 @@ func ParseBotServiceChannelID(input string) (*BotServiceChannelId, error) {
 // ParseBotServiceChannelIDInsensitively parses 'input' case-insensitively into a BotServiceChannelId
 // note: this method should only be used for API response data and not user input
 func ParseBotServiceChannelIDInsensitively(input string) (*BotServiceChannelId, error) {
-	parser := resourceids.NewParserFromResourceIdType(BotServiceChannelId{})
+	parser := resourceids.NewParserFromResourceIdType(&BotServiceChannelId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := BotServiceChannelId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
+	return &id, nil
+}
+
+func (id *BotServiceChannelId) FromParseResult(input resourceids.ParseResult) error {
+
+	var ok bool
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
 	}
 
-	if id.BotServiceName, ok = parsed.Parsed["botServiceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "botServiceName", *parsed)
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
 	}
 
-	if v, ok := parsed.Parsed["channelType"]; true {
+	if id.BotServiceName, ok = input.Parsed["botServiceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "botServiceName", input)
+	}
+
+	if v, ok := input.Parsed["channelType"]; true {
 		if !ok {
-			return nil, resourceids.NewSegmentNotSpecifiedError(id, "channelType", *parsed)
+			return resourceids.NewSegmentNotSpecifiedError(id, "channelType", input)
 		}
 
 		channelType, err := parseBotServiceChannelType(v)
 		if err != nil {
-			return nil, fmt.Errorf("parsing %q: %+v", v, err)
+			return fmt.Errorf("parsing %q: %+v", v, err)
 		}
 		id.ChannelType = *channelType
 	}
 
-	return &id, nil
+	return nil
 }
 
 // ValidateBotServiceChannelID checks that 'input' can be parsed as a Bot Service Channel ID
@@ -186,8 +172,8 @@ func parseBotServiceChannelType(input string) (*BotServiceChannelType, error) {
 		"DirectLineChannel":       DirectLineBotServiceChannelType,
 		"DirectLineSpeechChannel": DirectLineSpeechBotServiceChannelType,
 		"EmailChannel":            EmailBotServiceChannelType,
-		"KikChannel":              FacebookBotServiceChannelType,
-		"FacebookChannel":         KikChannelBotServiceChannelType,
+		"KikChannel":              KikChannelBotServiceChannelType,
+		"FacebookChannel":         FacebookBotServiceChannelType,
 		"LineChannel":             LineBotServiceChannelType,
 		"M365Extensions":          M365ExtensionsBotServiceChannelType,
 		"MsTeamsChannel":          MsTeamsBotServiceChannelType,

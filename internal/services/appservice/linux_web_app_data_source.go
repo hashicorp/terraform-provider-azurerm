@@ -10,57 +10,60 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type LinuxWebAppDataSource struct{}
 
 type LinuxWebAppDataSourceModel struct {
-	Name                             string                     `tfschema:"name"`
-	ResourceGroup                    string                     `tfschema:"resource_group_name"`
-	Location                         string                     `tfschema:"location"`
-	ServicePlanId                    string                     `tfschema:"service_plan_id"`
-	AppSettings                      map[string]string          `tfschema:"app_settings"`
-	AuthSettings                     []helpers.AuthSettings     `tfschema:"auth_settings"`
-	AuthV2Settings                   []helpers.AuthV2Settings   `tfschema:"auth_settings_v2"`
-	Availability                     string                     `tfschema:"availability"`
-	Backup                           []helpers.Backup           `tfschema:"backup"`
-	ClientAffinityEnabled            bool                       `tfschema:"client_affinity_enabled"`
-	ClientCertEnabled                bool                       `tfschema:"client_certificate_enabled"`
-	ClientCertMode                   string                     `tfschema:"client_certificate_mode"`
-	ClientCertExclusionPaths         string                     `tfschema:"client_certificate_exclusion_paths"`
-	Enabled                          bool                       `tfschema:"enabled"`
-	HttpsOnly                        bool                       `tfschema:"https_only"`
-	KeyVaultReferenceIdentityID      string                     `tfschema:"key_vault_reference_identity_id"`
-	LogsConfig                       []helpers.LogsConfig       `tfschema:"logs"`
-	MetaData                         map[string]string          `tfschema:"app_metadata"`
-	SiteConfig                       []helpers.SiteConfigLinux  `tfschema:"site_config"`
-	StickySettings                   []helpers.StickySettings   `tfschema:"sticky_settings"`
-	StorageAccounts                  []helpers.StorageAccount   `tfschema:"storage_account"`
-	ConnectionStrings                []helpers.ConnectionString `tfschema:"connection_string"`
-	Tags                             map[string]string          `tfschema:"tags"`
-	CustomDomainVerificationId       string                     `tfschema:"custom_domain_verification_id"`
-	HostingEnvId                     string                     `tfschema:"hosting_environment_id"`
-	DefaultHostname                  string                     `tfschema:"default_hostname"`
-	Kind                             string                     `tfschema:"kind"`
-	OutboundIPAddresses              string                     `tfschema:"outbound_ip_addresses"`
-	OutboundIPAddressList            []string                   `tfschema:"outbound_ip_address_list"`
-	PossibleOutboundIPAddresses      string                     `tfschema:"possible_outbound_ip_addresses"`
-	PossibleOutboundIPAddressList    []string                   `tfschema:"possible_outbound_ip_address_list"`
-	PublicNetworkAccess              bool                       `tfschema:"public_network_access_enabled"`
-	Usage                            string                     `tfschema:"usage"`
-	PublishingDeployBasicAuthEnabled bool                       `tfschema:"webdeploy_publish_basic_authentication_enabled"`
-	PublishingFTPBasicAuthEnabled    bool                       `tfschema:"ftp_publish_basic_authentication_enabled"`
-	SiteCredentials                  []helpers.SiteCredential   `tfschema:"site_credential"`
-	VirtualNetworkSubnetID           string                     `tfschema:"virtual_network_subnet_id"`
+	Name                             string                                     `tfschema:"name"`
+	ResourceGroup                    string                                     `tfschema:"resource_group_name"`
+	Location                         string                                     `tfschema:"location"`
+	ServicePlanId                    string                                     `tfschema:"service_plan_id"`
+	AppSettings                      map[string]string                          `tfschema:"app_settings"`
+	AuthSettings                     []helpers.AuthSettings                     `tfschema:"auth_settings"`
+	AuthV2Settings                   []helpers.AuthV2Settings                   `tfschema:"auth_settings_v2"`
+	Availability                     string                                     `tfschema:"availability"`
+	Backup                           []helpers.Backup                           `tfschema:"backup"`
+	ClientAffinityEnabled            bool                                       `tfschema:"client_affinity_enabled"`
+	ClientCertEnabled                bool                                       `tfschema:"client_certificate_enabled"`
+	ClientCertMode                   string                                     `tfschema:"client_certificate_mode"`
+	ClientCertExclusionPaths         string                                     `tfschema:"client_certificate_exclusion_paths"`
+	Enabled                          bool                                       `tfschema:"enabled"`
+	HttpsOnly                        bool                                       `tfschema:"https_only"`
+	KeyVaultReferenceIdentityID      string                                     `tfschema:"key_vault_reference_identity_id"`
+	LogsConfig                       []helpers.LogsConfig                       `tfschema:"logs"`
+	MetaData                         map[string]string                          `tfschema:"app_metadata"`
+	SiteConfig                       []helpers.SiteConfigLinux                  `tfschema:"site_config"`
+	StickySettings                   []helpers.StickySettings                   `tfschema:"sticky_settings"`
+	StorageAccounts                  []helpers.StorageAccount                   `tfschema:"storage_account"`
+	ConnectionStrings                []helpers.ConnectionString                 `tfschema:"connection_string"`
+	Tags                             map[string]string                          `tfschema:"tags"`
+	CustomDomainVerificationId       string                                     `tfschema:"custom_domain_verification_id"`
+	HostingEnvId                     string                                     `tfschema:"hosting_environment_id"`
+	DefaultHostname                  string                                     `tfschema:"default_hostname"`
+	Kind                             string                                     `tfschema:"kind"`
+	Identity                         []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	OutboundIPAddresses              string                                     `tfschema:"outbound_ip_addresses"`
+	OutboundIPAddressList            []string                                   `tfschema:"outbound_ip_address_list"`
+	PossibleOutboundIPAddresses      string                                     `tfschema:"possible_outbound_ip_addresses"`
+	PossibleOutboundIPAddressList    []string                                   `tfschema:"possible_outbound_ip_address_list"`
+	PublicNetworkAccess              bool                                       `tfschema:"public_network_access_enabled"`
+	Usage                            string                                     `tfschema:"usage"`
+	PublishingDeployBasicAuthEnabled bool                                       `tfschema:"webdeploy_publish_basic_authentication_enabled"`
+	PublishingFTPBasicAuthEnabled    bool                                       `tfschema:"ftp_publish_basic_authentication_enabled"`
+	SiteCredentials                  []helpers.SiteCredential                   `tfschema:"site_credential"`
+	VirtualNetworkSubnetID           string                                     `tfschema:"virtual_network_subnet_id"`
 }
 
 var _ sdk.DataSource = LinuxWebAppDataSource{}
@@ -259,171 +262,161 @@ func (r LinuxWebAppDataSource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			id := parse.NewWebAppID(subscriptionId, webApp.ResourceGroup, webApp.Name)
-
-			existing, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
+			baseID := commonids.NewAppServiceID(subscriptionId, webApp.ResourceGroup, webApp.Name)
+			id, err := commonids.ParseWebAppID(baseID.ID())
 			if err != nil {
-				if utils.ResponseWasNotFound(existing.Response) {
-					return fmt.Errorf("Linux %s not found", id)
+				return err
+			}
+
+			existing, err := client.Get(ctx, *id)
+			if err != nil {
+				if response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("Linux %s not found", *id)
 				}
 				return fmt.Errorf("retreiving Linux %s: %+v", id, err)
 			}
 
-			webAppSiteConfig, err := client.GetConfiguration(ctx, id.ResourceGroup, id.SiteName)
+			webAppSiteConfig, err := client.GetConfiguration(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("reading Site Config for Linux %s: %+v", id, err)
 			}
 
-			auth, err := client.GetAuthSettings(ctx, id.ResourceGroup, id.SiteName)
+			auth, err := client.GetAuthSettings(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("reading Auth Settings for Linux %s: %+v", id, err)
 			}
 
-			authV2, err := client.GetAuthSettingsV2(ctx, id.ResourceGroup, id.SiteName)
+			var authV2 webapps.SiteAuthSettingsV2
+			authV2Resp, err := client.GetAuthSettingsV2(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("reading authV2 settings for Linux %s: %+v", id, err)
 			}
+			authV2 = *authV2Resp.Model
 
-			backup, err := client.GetBackupConfiguration(ctx, id.ResourceGroup, id.SiteName)
+			backup, err := client.GetBackupConfiguration(ctx, *id)
 			if err != nil {
-				if !utils.ResponseWasNotFound(backup.Response) {
+				if !response.WasNotFound(backup.HttpResponse) {
 					return fmt.Errorf("reading Backup Settings for Linux %s: %+v", id, err)
 				}
 			}
 
-			logsConfig, err := client.GetDiagnosticLogsConfiguration(ctx, id.ResourceGroup, id.SiteName)
+			logsConfig, err := client.GetDiagnosticLogsConfiguration(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("reading Diagnostic Logs information for Linux %s: %+v", id, err)
 			}
 
-			appSettings, err := client.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
+			appSettings, err := client.ListApplicationSettings(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("reading App Settings for Linux %s: %+v", id, err)
 			}
 
-			storageAccounts, err := client.ListAzureStorageAccounts(ctx, id.ResourceGroup, id.SiteName)
+			storageAccounts, err := client.ListAzureStorageAccounts(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("reading Storage Account information for Linux %s: %+v", id, err)
 			}
 
-			connectionStrings, err := client.ListConnectionStrings(ctx, id.ResourceGroup, id.SiteName)
+			connectionStrings, err := client.ListConnectionStrings(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("reading Connection String information for Linux %s: %+v", id, err)
 			}
 
-			stickySettings, err := client.ListSlotConfigurationNames(ctx, id.ResourceGroup, id.SiteName)
+			stickySettings, err := client.ListSlotConfigurationNames(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("reading Sticky Settings for Linux %s: %+v", id, err)
 			}
 
-			siteCredentialsFuture, err := client.ListPublishingCredentials(ctx, id.ResourceGroup, id.SiteName)
+			siteCredentials, err := helpers.ListPublishingCredentials(ctx, client, *id)
 			if err != nil {
-				return fmt.Errorf("listing Site Publishing Credential information for Linux %s: %+v", id, err)
-			}
-
-			if err := siteCredentialsFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for Site Publishing Credential information for Linux %s: %+v", id, err)
-			}
-			siteCredentials, err := siteCredentialsFuture.Result(*client)
-			if err != nil {
-				return fmt.Errorf("reading Site Publishing Credential information for Linux %s: %+v", id, err)
-			}
-
-			webApp.AppSettings = helpers.FlattenWebStringDictionary(appSettings)
-			webApp.Kind = pointer.From(existing.Kind)
-			webApp.Location = location.NormalizeNilable(existing.Location)
-			webApp.Tags = tags.ToTypedObject(existing.Tags)
-			if props := existing.SiteProperties; props != nil {
-				webApp.Availability = string(props.AvailabilityState)
-				if props.ClientAffinityEnabled != nil {
-					webApp.ClientAffinityEnabled = *props.ClientAffinityEnabled
-				}
-				if props.ClientCertEnabled != nil {
-					webApp.ClientCertEnabled = *props.ClientCertEnabled
-				}
-				webApp.ClientCertMode = string(props.ClientCertMode)
-				webApp.ClientCertExclusionPaths = pointer.From(props.ClientCertExclusionPaths)
-				webApp.CustomDomainVerificationId = pointer.From(props.CustomDomainVerificationID)
-				webApp.DefaultHostname = pointer.From(props.DefaultHostName)
-				if props.Enabled != nil {
-					webApp.Enabled = *props.Enabled
-				}
-				if props.HTTPSOnly != nil {
-					webApp.HttpsOnly = *props.HTTPSOnly
-				}
-				webApp.ServicePlanId = pointer.From(props.ServerFarmID)
-				webApp.OutboundIPAddresses = pointer.From(props.OutboundIPAddresses)
-				webApp.OutboundIPAddressList = strings.Split(webApp.OutboundIPAddresses, ",")
-				webApp.PossibleOutboundIPAddresses = pointer.From(props.PossibleOutboundIPAddresses)
-				webApp.PossibleOutboundIPAddressList = strings.Split(webApp.PossibleOutboundIPAddresses, ",")
-				webApp.Usage = string(props.UsageState)
-				if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
-					webApp.HostingEnvId = pointer.From(hostingEnv.ID)
-				}
-				if subnetId := pointer.From(props.VirtualNetworkSubnetID); subnetId != "" {
-					webApp.VirtualNetworkSubnetID = subnetId
-				}
-				webApp.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
+				return fmt.Errorf("listing Site Publishing Credential information for %s: %+v", id, err)
 			}
 
 			basicAuthFTP := true
-			if basicAuthFTPResp, err := client.GetFtpAllowed(ctx, id.ResourceGroup, id.SiteName); err != nil {
+			if basicAuthFTPResp, err := client.GetFtpAllowed(ctx, *id); err != nil && basicAuthFTPResp.Model != nil {
 				return fmt.Errorf("retrieving state of FTP Basic Auth for %s: %+v", id, err)
-			} else if csmProps := basicAuthFTPResp.CsmPublishingCredentialsPoliciesEntityProperties; csmProps != nil {
-				basicAuthFTP = pointer.From(csmProps.Allow)
+			} else if csmProps := basicAuthFTPResp.Model.Properties; csmProps != nil {
+				basicAuthFTP = csmProps.Allow
 			}
 
 			basicAuthWebDeploy := true
-			if basicAuthWebDeployResp, err := client.GetScmAllowed(ctx, id.ResourceGroup, id.SiteName); err != nil {
+			if basicAuthWebDeployResp, err := client.GetScmAllowed(ctx, *id); err != nil && basicAuthWebDeployResp.Model != nil {
 				return fmt.Errorf("retrieving state of WebDeploy Basic Auth for %s: %+v", id, err)
-			} else if csmProps := basicAuthWebDeployResp.CsmPublishingCredentialsPoliciesEntityProperties; csmProps != nil {
-				basicAuthWebDeploy = pointer.From(csmProps.Allow)
+			} else if csmProps := basicAuthWebDeployResp.Model.Properties; csmProps != nil {
+				basicAuthWebDeploy = csmProps.Allow
 			}
 
 			webApp.PublishingFTPBasicAuthEnabled = basicAuthFTP
 			webApp.PublishingDeployBasicAuthEnabled = basicAuthWebDeploy
-
-			webApp.AuthSettings = helpers.FlattenAuthSettings(auth)
-
+			webApp.AuthSettings = helpers.FlattenAuthSettings(auth.Model)
 			webApp.AuthV2Settings = helpers.FlattenAuthV2Settings(authV2)
-
-			webApp.Backup = helpers.FlattenBackupConfig(backup)
-
-			webApp.LogsConfig = helpers.FlattenLogsConfig(logsConfig)
-
-			siteConfig := helpers.SiteConfigLinux{}
-			siteConfig.Flatten(webAppSiteConfig.SiteConfig)
-			siteConfig.SetHealthCheckEvictionTime(webApp.AppSettings)
-
-			if helpers.FxStringHasPrefix(siteConfig.LinuxFxVersion, helpers.FxStringPrefixDocker) {
-				siteConfig.DecodeDockerAppStack(webApp.AppSettings)
-			}
-
-			webApp.SiteConfig = []helpers.SiteConfigLinux{siteConfig}
-
-			// Filter out all settings we've consumed above
-			webApp.AppSettings = helpers.FilterManagedAppSettings(webApp.AppSettings)
-
-			webApp.StorageAccounts = helpers.FlattenStorageAccounts(storageAccounts)
-
-			webApp.ConnectionStrings = helpers.FlattenConnectionStrings(connectionStrings)
-
-			webApp.StickySettings = helpers.FlattenStickySettings(stickySettings.SlotConfigNames)
-
+			webApp.Backup = helpers.FlattenBackupConfig(backup.Model)
+			webApp.LogsConfig = helpers.FlattenLogsConfig(logsConfig.Model)
+			webApp.StorageAccounts = helpers.FlattenStorageAccounts(storageAccounts.Model)
+			webApp.ConnectionStrings = helpers.FlattenConnectionStrings(connectionStrings.Model)
+			webApp.StickySettings = helpers.FlattenStickySettings(stickySettings.Model.Properties)
 			webApp.SiteCredentials = helpers.FlattenSiteCredentials(siteCredentials)
 
-			metadata.SetID(id)
+			if model := existing.Model; model != nil {
+				webApp.AppSettings = helpers.FlattenWebStringDictionary(appSettings.Model)
+				webApp.Kind = pointer.From(model.Kind)
+				webApp.Location = location.Normalize(model.Location)
+				webApp.Tags = pointer.From(model.Tags)
+				if props := model.Properties; props != nil {
+					webApp.Availability = string(pointer.From(props.AvailabilityState))
+					webApp.ClientAffinityEnabled = pointer.From(props.ClientAffinityEnabled)
+					webApp.ClientCertEnabled = pointer.From(props.ClientCertEnabled)
+					webApp.ClientCertMode = string(pointer.From(props.ClientCertMode))
+					webApp.ClientCertExclusionPaths = pointer.From(props.ClientCertExclusionPaths)
+					webApp.CustomDomainVerificationId = pointer.From(props.CustomDomainVerificationId)
+					webApp.DefaultHostname = pointer.From(props.DefaultHostName)
+					if props.Enabled != nil {
+						webApp.Enabled = *props.Enabled
+					}
+					if props.HTTPSOnly != nil {
+						webApp.HttpsOnly = *props.HTTPSOnly
+					}
+					servicePlanId, err := commonids.ParseAppServicePlanIDInsensitively(pointer.From(props.ServerFarmId))
+					if err != nil {
+						return err
+					}
+					webApp.ServicePlanId = servicePlanId.ID()
+					webApp.OutboundIPAddresses = pointer.From(props.OutboundIPAddresses)
+					webApp.OutboundIPAddressList = strings.Split(webApp.OutboundIPAddresses, ",")
+					webApp.PossibleOutboundIPAddresses = pointer.From(props.PossibleOutboundIPAddresses)
+					webApp.PossibleOutboundIPAddressList = strings.Split(webApp.PossibleOutboundIPAddresses, ",")
+					webApp.Usage = string(pointer.From(props.UsageState))
+					if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
+						webApp.HostingEnvId = pointer.From(hostingEnv.Id)
+					}
+					if subnetId := pointer.From(props.VirtualNetworkSubnetId); subnetId != "" {
+						webApp.VirtualNetworkSubnetID = subnetId
+					}
+					webApp.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
+				}
 
-			if err := metadata.Encode(&webApp); err != nil {
-				return fmt.Errorf("encoding: %+v", err)
-			}
+				siteConfig := helpers.SiteConfigLinux{}
+				siteConfig.Flatten(webAppSiteConfig.Model.Properties)
+				siteConfig.SetHealthCheckEvictionTime(webApp.AppSettings)
 
-			flattenedIdentity, err := flattenIdentity(existing.Identity)
-			if err != nil {
-				return fmt.Errorf("flattening `identity`: %+v", err)
-			}
-			if err := metadata.ResourceData.Set("identity", flattenedIdentity); err != nil {
-				return fmt.Errorf("setting `identity`: %+v", err)
+				if helpers.FxStringHasPrefix(siteConfig.LinuxFxVersion, helpers.FxStringPrefixDocker) {
+					siteConfig.DecodeDockerAppStack(webApp.AppSettings)
+				}
+
+				webApp.SiteConfig = []helpers.SiteConfigLinux{siteConfig}
+
+				// Filter out all settings we've consumed above
+				webApp.AppSettings = helpers.FilterManagedAppSettings(webApp.AppSettings)
+				flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMapToModel(model.Identity)
+				if err != nil {
+					return fmt.Errorf("flattening `identity`: %+v", err)
+				}
+				webApp.Identity = pointer.From(flattenedIdentity)
+
+				metadata.SetID(id)
+
+				if err := metadata.Encode(&webApp); err != nil {
+					return fmt.Errorf("encoding: %+v", err)
+				}
+
 			}
 
 			return nil

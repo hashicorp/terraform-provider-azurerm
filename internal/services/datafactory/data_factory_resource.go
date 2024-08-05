@@ -88,9 +88,8 @@ func resourceDataFactory() *pluginsdk.Resource {
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"git_url": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							Type:     pluginsdk.TypeString,
+							Optional: true,
 						},
 						"repository_name": {
 							Type:         pluginsdk.TypeString,

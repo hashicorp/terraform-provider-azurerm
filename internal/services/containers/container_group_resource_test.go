@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -149,6 +150,41 @@ func TestAccContainerGroup_multipleAssignedIdentities(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccContainerGroup_AssignedIdentityUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	r := ContainerGroupResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.SystemAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
+				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("0"),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
+			),
+		},
+		{
+			Config: r.UserAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("UserAssigned"),
+				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("1"),
+				check.That(data.ResourceName).Key("identity.0.principal_id").HasValue(""),
+			),
+		},
+		{
+			Config: r.MultipleAssignedIdentities(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned, UserAssigned"),
+				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("1"),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
+			),
+		},
 	})
 }
 
@@ -313,29 +349,6 @@ func TestAccContainerGroup_linuxBasicUpdate(t *testing.T) {
 	})
 }
 
-func TestAccContainerGroup_exposedPortUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
-	r := ContainerGroupResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.exposedPort(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("exposed_port.#").HasValue("1"),
-			),
-		},
-		{
-			Config: r.exposedPortUpdated(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("container.0.ports.#").HasValue("2"),
-				check.That(data.ResourceName).Key("exposed_port.#").HasValue("2"),
-			),
-		},
-	})
-}
-
 func TestAccContainerGroup_linuxBasicTagsUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
 	r := ContainerGroupResource{}
@@ -360,6 +373,10 @@ func TestAccContainerGroup_linuxBasicTagsUpdate(t *testing.T) {
 }
 
 func TestAccContainerGroup_linuxComplete(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("Skipping in 4.0 since `gpu` and `gpu_limit`has been deprecated.")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
 
 	// Override locations for this test to location that has GPU SKU support:
@@ -389,7 +406,7 @@ func TestAccContainerGroup_linuxComplete(t *testing.T) {
 				check.That(data.ResourceName).Key("container.0.secure_environment_variables.secureFoo1").HasValue("secureBar1"),
 				check.That(data.ResourceName).Key("container.0.gpu.#").HasValue("1"),
 				check.That(data.ResourceName).Key("container.0.gpu.0.count").HasValue("1"),
-				check.That(data.ResourceName).Key("container.0.gpu.0.sku").HasValue("K80"),
+				check.That(data.ResourceName).Key("container.0.gpu.0.sku").HasValue("V100"),
 				check.That(data.ResourceName).Key("container.0.volume.#").HasValue("1"),
 				check.That(data.ResourceName).Key("container.0.volume.0.mount_path").HasValue("/aci/logs"),
 				check.That(data.ResourceName).Key("container.0.volume.0.name").HasValue("logs"),
@@ -416,7 +433,7 @@ func TestAccContainerGroup_linuxComplete(t *testing.T) {
 				check.That(data.ResourceName).Key("container.0.liveness_probe.0.http_get.#").HasValue("1"),
 				check.That(data.ResourceName).Key("container.0.liveness_probe.0.http_get.0.path").HasValue("/"),
 				check.That(data.ResourceName).Key("container.0.liveness_probe.0.http_get.0.port").HasValue("443"),
-				check.That(data.ResourceName).Key("container.0.liveness_probe.0.http_get.0.scheme").HasValue("Http"),
+				check.That(data.ResourceName).Key("container.0.liveness_probe.0.http_get.0.scheme").HasValue("http"),
 				check.That(data.ResourceName).Key("container.0.liveness_probe.0.initial_delay_seconds").HasValue("1"),
 				check.That(data.ResourceName).Key("container.0.liveness_probe.0.period_seconds").HasValue("1"),
 				check.That(data.ResourceName).Key("container.0.liveness_probe.0.success_threshold").HasValue("1"),
@@ -557,7 +574,7 @@ func TestAccContainerGroup_windowsComplete(t *testing.T) {
 				check.That(data.ResourceName).Key("container.0.liveness_probe.0.http_get.#").HasValue("1"),
 				check.That(data.ResourceName).Key("container.0.liveness_probe.0.http_get.0.path").HasValue("/"),
 				check.That(data.ResourceName).Key("container.0.liveness_probe.0.http_get.0.port").HasValue("443"),
-				check.That(data.ResourceName).Key("container.0.liveness_probe.0.http_get.0.scheme").HasValue("Http"),
+				check.That(data.ResourceName).Key("container.0.liveness_probe.0.http_get.0.scheme").HasValue("http"),
 				check.That(data.ResourceName).Key("container.0.liveness_probe.0.initial_delay_seconds").HasValue("1"),
 				check.That(data.ResourceName).Key("container.0.liveness_probe.0.period_seconds").HasValue("1"),
 				check.That(data.ResourceName).Key("container.0.liveness_probe.0.success_threshold").HasValue("1"),
@@ -716,19 +733,41 @@ func TestAccContainerGroup_securityContext(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.securityContextPriviledged(data, false),
+			Config: r.securityContextPrivileged(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.securityContextPriviledged(data, true),
+			Config: r.securityContextPrivileged(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccContainerGroup_priority(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	r := ContainerGroupResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.priority(data, "Regular"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("ip_address_type"),
+		{
+			Config: r.priority(data, "Spot"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("ip_address_type"),
 	})
 }
 
@@ -803,7 +842,7 @@ resource "azurerm_container_group" "test" {
       http_get {
         path   = "/"
         port   = 443
-        scheme = "Http"
+        scheme = "http"
         http_headers = {
           h1 = "v1"
           h2 = "v2"
@@ -1457,56 +1496,6 @@ resource "azurerm_container_group" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (ContainerGroupResource) exposedPortUpdated(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_container_group" "test" {
-  name                = "acctestcontainergroup-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  ip_address_type     = "Public"
-  os_type             = "Linux"
-
-  exposed_port {
-    port = 80
-  }
-
-  exposed_port {
-    port     = 5443
-    protocol = "UDP"
-  }
-
-  container {
-    name   = "hw"
-    image  = "ubuntu:20.04"
-    cpu    = "0.5"
-    memory = "0.5"
-
-    ports {
-      port = 80
-    }
-
-    ports {
-      port     = 5443
-      protocol = "UDP"
-    }
-  }
-
-  tags = {
-    environment = "Testing"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
 func (ContainerGroupResource) virtualNetwork(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1770,6 +1759,13 @@ resource "azurerm_log_analytics_solution" "test" {
   }
 }
 
+resource "azurerm_user_assigned_identity" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  name = "acctest%s"
+}
+
 resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroup-%d"
   location            = azurerm_resource_group.test.location
@@ -1778,6 +1774,11 @@ resource "azurerm_container_group" "test" {
   dns_name_label      = "acctestcontainergroup-%d"
   os_type             = "Windows"
   restart_policy      = "Never"
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
 
   container {
     name   = "windowsservercore"
@@ -1813,7 +1814,7 @@ resource "azurerm_container_group" "test" {
       http_get {
         path   = "/"
         port   = 443
-        scheme = "Http"
+        scheme = "http"
         http_headers = {
           h1 = "v1"
           h2 = "v2"
@@ -1846,7 +1847,7 @@ resource "azurerm_container_group" "test" {
     environment = "Testing"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
 func (ContainerGroupResource) linuxComplete(data acceptance.TestData) string {
@@ -1919,7 +1920,7 @@ resource "azurerm_container_group" "test" {
 
     gpu {
       count = 1
-      sku   = "K80"
+      sku   = "V100"
     }
 
     cpu_limit    = "1"
@@ -1927,7 +1928,7 @@ resource "azurerm_container_group" "test" {
 
     gpu_limit {
       count = 1
-      sku   = "K80"
+      sku   = "V100"
     }
 
 
@@ -1964,7 +1965,7 @@ resource "azurerm_container_group" "test" {
       http_get {
         path   = "/"
         port   = 443
-        scheme = "Http"
+        scheme = "http"
         http_headers = {
           h1 = "v1"
           h2 = "v2"
@@ -2021,8 +2022,8 @@ resource "azurerm_container_group" "test" {
   restart_policy      = "OnFailure"
 
   container {
-    name   = "hf"
-    image  = "seanmckenna/aci-hellofiles"
+    name   = "aci-tutorial-app"
+    image  = "mcr.microsoft.com/azuredocs/aci-helloworld"
     cpu    = "1"
     memory = "1.5"
 
@@ -2049,10 +2050,10 @@ resource "azurerm_container_group" "test" {
     }
 
     readiness_probe {
-      exec                  = ["cat", "/tmp/healthy"]
-      initial_delay_seconds = 1
+      exec                  = ["cat", "/tmp/ready"]
+      initial_delay_seconds = 10
       period_seconds        = 1
-      failure_threshold     = 1
+      failure_threshold     = 3
       success_threshold     = 1
       timeout_seconds       = 1
     }
@@ -2060,18 +2061,18 @@ resource "azurerm_container_group" "test" {
     liveness_probe {
       http_get {
         path   = "/"
-        port   = 443
-        scheme = "Http"
+        port   = 80
+        scheme = "http"
       }
 
-      initial_delay_seconds = 1
+      initial_delay_seconds = 10
       period_seconds        = 1
-      failure_threshold     = 1
+      failure_threshold     = 3
       success_threshold     = 1
       timeout_seconds       = 1
     }
 
-    commands = ["/bin/bash", "-c", "ls"]
+    commands = ["/bin/sh", "-c", "node /usr/src/app/index.js & (sleep 5; touch /tmp/ready); wait"]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -2098,8 +2099,8 @@ resource "azurerm_container_group" "test" {
   restart_policy      = "OnFailure"
 
   container {
-    name   = "hf"
-    image  = "seanmckenna/aci-hellofiles"
+    name   = "aci-tutorial-app"
+    image  = "mcr.microsoft.com/azuredocs/aci-helloworld"
     cpu    = "1"
     memory = "1.5"
 
@@ -2121,8 +2122,8 @@ resource "azurerm_container_group" "test" {
     }
 
     readiness_probe {
-      exec                  = ["cat", "/tmp/healthy"]
-      initial_delay_seconds = 1
+      exec                  = ["cat", "/tmp/ready"]
+      initial_delay_seconds = 10
       period_seconds        = 1
       failure_threshold     = 1
       success_threshold     = 1
@@ -2132,18 +2133,18 @@ resource "azurerm_container_group" "test" {
     liveness_probe {
       http_get {
         path   = "/"
-        port   = 443
-        scheme = "Http"
+        port   = 80
+        scheme = "http"
       }
 
-      initial_delay_seconds = 1
+      initial_delay_seconds = 10
       period_seconds        = 1
       failure_threshold     = 1
       success_threshold     = 1
       timeout_seconds       = 1
     }
 
-    commands = ["/bin/bash", "-c", "ls"]
+    commands = ["/bin/sh", "-c", "node /usr/src/app/index.js & (sleep 5; touch /tmp/ready); wait"]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -2610,7 +2611,7 @@ resource "azurerm_container_group" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (ContainerGroupResource) securityContextPriviledged(data acceptance.TestData, v bool) string {
+func (ContainerGroupResource) securityContextPrivileged(data acceptance.TestData, v bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2644,4 +2645,38 @@ resource "azurerm_container_group" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, v)
+}
+
+func (ContainerGroupResource) priority(data acceptance.TestData, priority string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_container_group" "test" {
+  name                = "acctestcontainergroup-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  ip_address_type     = "None"
+  os_type             = "Linux"
+
+  container {
+    name   = "hw"
+    image  = "ubuntu:20.04"
+    cpu    = "0.5"
+    memory = "0.5"
+    ports {
+      port     = 80
+      protocol = "TCP"
+    }
+  }
+
+  priority = "%s"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, priority)
 }

@@ -126,6 +126,7 @@ func resourceAutomationModuleCreateUpdate(d *pluginsdk.ResourceData, meta interf
 	}
 
 	// the API returns 'done' but it's not actually finished provisioning yet
+	// tracking issue: https://github.com/Azure/azure-rest-api-specs/pull/25435
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending: []string{
 			string(module.ModuleProvisioningStateActivitiesStored),

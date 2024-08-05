@@ -41,6 +41,7 @@ func TestAccDataSourceAppGateway_userAssignedIdentity(t *testing.T) {
 		},
 	})
 }
+
 func TestAccDataSourceAppGateway_backendAddressPool(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_application_gateway", "test")
 	r := AppGatewayDataSource{}
@@ -83,6 +84,21 @@ func TestAccDataSourceAppGateway_sslProfile(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceAppGateway_sslProfileWithClientCertificateVerification(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_application_gateway", "test")
+	r := AppGatewayDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.sslProfileWithClientCertificateVerification(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("trusted_client_certificate.0.name").IsNotEmpty(),
+				check.That(data.ResourceName).Key("trusted_client_certificate.0.data").IsNotEmpty(),
+			),
+		},
+	})
+}
+
 func (AppGatewayDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -105,6 +121,17 @@ data "azurerm_application_gateway" "test" {
 `, ApplicationGatewayResource{}.sslProfileUpdateOne(data))
 }
 
+func (AppGatewayDataSource) sslProfileWithClientCertificateVerification(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_application_gateway" "test" {
+  resource_group_name = azurerm_application_gateway.test.resource_group_name
+  name                = azurerm_application_gateway.test.name
+}
+`, ApplicationGatewayResource{}.sslProfileWithClientCertificateVerification(data))
+}
+
 func (AppGatewayDataSource) userAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -115,6 +142,7 @@ data "azurerm_application_gateway" "test" {
 }
 `, ApplicationGatewayResource{}.UserDefinedIdentity(data))
 }
+
 func (AppGatewayDataSource) backendAddressPool(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s

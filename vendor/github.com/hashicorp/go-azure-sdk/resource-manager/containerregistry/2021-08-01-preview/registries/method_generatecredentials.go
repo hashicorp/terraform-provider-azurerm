@@ -18,6 +18,7 @@ type GenerateCredentialsOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *GenerateCredentialsResult
 }
 
 // GenerateCredentials ...

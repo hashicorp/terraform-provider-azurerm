@@ -44,7 +44,10 @@ func (c PoolClient) DisableAutoScale(ctx context.Context, id PoolId) (result Dis
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Pool
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

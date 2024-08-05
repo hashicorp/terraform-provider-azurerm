@@ -20,7 +20,20 @@ type ListAllOperationResponse struct {
 }
 
 type ListAllCompleteResult struct {
-	Items []FeatureResult
+	LatestHttpResponse *http.Response
+	Items              []FeatureResult
+}
+
+type ListAllCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListAllCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListAll ...
@@ -31,6 +44,7 @@ func (c FeaturesClient) ListAll(ctx context.Context, id commonids.SubscriptionId
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListAllCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.Features/features", id.ID()),
 	}
 
@@ -72,6 +86,7 @@ func (c FeaturesClient) ListAllCompleteMatchingPredicate(ctx context.Context, id
 
 	resp, err := c.ListAll(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -84,7 +99,8 @@ func (c FeaturesClient) ListAllCompleteMatchingPredicate(ctx context.Context, id
 	}
 
 	result = ListAllCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

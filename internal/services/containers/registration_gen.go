@@ -20,7 +20,7 @@ func (autoRegistration) DataSources() []sdk.DataSource {
 func (autoRegistration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		KubernetesClusterTrustedAccessRoleBindingResource{},
-		KubernetesFleetManagerResource{},
+		KubernetesFleetMemberResource{},
 	}
 }
 

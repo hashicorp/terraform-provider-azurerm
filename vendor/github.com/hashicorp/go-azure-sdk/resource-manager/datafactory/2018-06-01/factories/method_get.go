@@ -53,8 +53,8 @@ func (c FactoriesClient) Get(ctx context.Context, id FactoryId, options GetOpera
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -72,7 +72,10 @@ func (c FactoriesClient) Get(ctx context.Context, id FactoryId, options GetOpera
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Factory
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

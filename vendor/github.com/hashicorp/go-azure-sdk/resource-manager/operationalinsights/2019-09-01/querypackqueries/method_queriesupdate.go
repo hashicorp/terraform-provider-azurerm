@@ -47,7 +47,10 @@ func (c QueryPackQueriesClient) QueriesUpdate(ctx context.Context, id QueryId, i
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model LogAnalyticsQueryPackQuery
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

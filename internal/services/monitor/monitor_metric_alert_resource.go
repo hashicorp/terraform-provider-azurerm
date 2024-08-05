@@ -16,11 +16,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	components "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
+	webtests "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-06-15/webtestsapis"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2018-03-01/metricalerts"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -291,12 +292,12 @@ func resourceMonitorMetricAlert() *pluginsdk.Resource {
 						"web_test_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: validate.WebTestID,
+							ValidateFunc: webtests.ValidateWebTestID,
 						},
 						"component_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: validate.ComponentID,
+							ValidateFunc: components.ValidateComponentID,
 						},
 						"failed_location_count": {
 							Type:         pluginsdk.TypeInt,

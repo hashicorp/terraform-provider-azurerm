@@ -19,7 +19,8 @@ type TransformsListOperationResponse struct {
 }
 
 type TransformsListCompleteResult struct {
-	Items []Transform
+	LatestHttpResponse *http.Response
+	Items              []Transform
 }
 
 type TransformsListOperationOptions struct {
@@ -53,6 +54,18 @@ func (o TransformsListOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type TransformsListCustomPager struct {
+	NextLink *odata.Link `json:"@odata.nextLink"`
+}
+
+func (p *TransformsListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // TransformsList ...
 func (c EncodingsClient) TransformsList(ctx context.Context, id MediaServiceId, options TransformsListOperationOptions) (result TransformsListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -61,8 +74,9 @@ func (c EncodingsClient) TransformsList(ctx context.Context, id MediaServiceId, 
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/transforms", id.ID()),
 		OptionsObject: options,
+		Pager:         &TransformsListCustomPager{},
+		Path:          fmt.Sprintf("%s/transforms", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -103,6 +117,7 @@ func (c EncodingsClient) TransformsListCompleteMatchingPredicate(ctx context.Con
 
 	resp, err := c.TransformsList(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -115,7 +130,8 @@ func (c EncodingsClient) TransformsListCompleteMatchingPredicate(ctx context.Con
 	}
 
 	result = TransformsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -19,7 +19,8 @@ type ListByApiOperationResponse struct {
 }
 
 type ListByApiCompleteResult struct {
-	Items []SchemaContract
+	LatestHttpResponse *http.Response
+	Items              []SchemaContract
 }
 
 type ListByApiOperationOptions struct {
@@ -57,6 +58,18 @@ func (o ListByApiOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListByApiCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByApiCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByApi ...
 func (c ApiSchemaClient) ListByApi(ctx context.Context, id ApiId, options ListByApiOperationOptions) (result ListByApiOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -65,8 +78,9 @@ func (c ApiSchemaClient) ListByApi(ctx context.Context, id ApiId, options ListBy
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/schemas", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListByApiCustomPager{},
+		Path:          fmt.Sprintf("%s/schemas", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -107,6 +121,7 @@ func (c ApiSchemaClient) ListByApiCompleteMatchingPredicate(ctx context.Context,
 
 	resp, err := c.ListByApi(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -119,7 +134,8 @@ func (c ApiSchemaClient) ListByApiCompleteMatchingPredicate(ctx context.Context,
 	}
 
 	result = ListByApiCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -4,34 +4,42 @@
 package client
 
 import (
+	"fmt"
+
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automanage/2022-05-04/configurationprofileassignments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automanage/2022-05-04/configurationprofilehciassignments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automanage/2022-05-04/configurationprofiles"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
-	"github.com/tombuildsstuff/kermit/sdk/automanage/2022-05-04/automanage"
 )
 
 type Client struct {
-	ConfigurationClient  *automanage.ConfigurationProfilesClient
-	HCIAssignmentClient  *automanage.ConfigurationProfileHCIAssignmentsClient
-	HCRPAssignmentClient *automanage.ConfigurationProfileHCRPAssignmentsClient
-	VMAssignmentClient   *automanage.ConfigurationProfileAssignmentsClient
+	ConfigurationProfilesClient              *configurationprofiles.ConfigurationProfilesClient
+	ConfigurationProfileHCIAssignmentsClient *configurationprofilehciassignments.ConfigurationProfileHCIAssignmentsClient
+	ConfigurationProfileVMAssignmentsClient  *configurationprofileassignments.ConfigurationProfileAssignmentsClient
 }
 
-func NewClient(o *common.ClientOptions) *Client {
-	configurationProfileClient := automanage.NewConfigurationProfilesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&configurationProfileClient.Client, o.ResourceManagerAuthorizer)
+func NewClient(o *common.ClientOptions) (*Client, error) {
+	configurationProfilesClient, err := configurationprofiles.NewConfigurationProfilesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building ConfigurationProfiles client: %+v", err)
+	}
+	o.Configure(configurationProfilesClient.Client, o.Authorizers.ResourceManager)
 
-	hciAssignmentClient := automanage.NewConfigurationProfileHCIAssignmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&hciAssignmentClient.Client, o.ResourceManagerAuthorizer)
+	configurationProfileHCIAssignmentsClient, err := configurationprofilehciassignments.NewConfigurationProfileHCIAssignmentsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building ConfigurationProfilesHCIAssignments client: %+v", err)
+	}
+	o.Configure(configurationProfileHCIAssignmentsClient.Client, o.Authorizers.ResourceManager)
 
-	hcrpAssignmentClient := automanage.NewConfigurationProfileHCRPAssignmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&hcrpAssignmentClient.Client, o.ResourceManagerAuthorizer)
-
-	vmAssignmentClient := automanage.NewConfigurationProfileAssignmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&vmAssignmentClient.Client, o.ResourceManagerAuthorizer)
+	configurationProfileVMAssignmentsClient, err := configurationprofileassignments.NewConfigurationProfileAssignmentsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building ConfigurationProfilesHCIAssignments client: %+v", err)
+	}
+	o.Configure(configurationProfileVMAssignmentsClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
-		ConfigurationClient:  &configurationProfileClient,
-		HCIAssignmentClient:  &hciAssignmentClient,
-		HCRPAssignmentClient: &hcrpAssignmentClient,
-		VMAssignmentClient:   &vmAssignmentClient,
-	}
+		ConfigurationProfilesClient:              configurationProfilesClient,
+		ConfigurationProfileHCIAssignmentsClient: configurationProfileHCIAssignmentsClient,
+		ConfigurationProfileVMAssignmentsClient:  configurationProfileVMAssignmentsClient,
+	}, nil
 }

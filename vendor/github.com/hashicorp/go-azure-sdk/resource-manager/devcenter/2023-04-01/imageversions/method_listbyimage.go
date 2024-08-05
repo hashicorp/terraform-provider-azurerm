@@ -19,7 +19,20 @@ type ListByImageOperationResponse struct {
 }
 
 type ListByImageCompleteResult struct {
-	Items []ImageVersion
+	LatestHttpResponse *http.Response
+	Items              []ImageVersion
+}
+
+type ListByImageCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByImageCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListByImage ...
@@ -30,6 +43,7 @@ func (c ImageVersionsClient) ListByImage(ctx context.Context, id ImageId) (resul
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByImageCustomPager{},
 		Path:       fmt.Sprintf("%s/versions", id.ID()),
 	}
 
@@ -71,6 +85,7 @@ func (c ImageVersionsClient) ListByImageCompleteMatchingPredicate(ctx context.Co
 
 	resp, err := c.ListByImage(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +98,8 @@ func (c ImageVersionsClient) ListByImageCompleteMatchingPredicate(ctx context.Co
 	}
 
 	result = ListByImageCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

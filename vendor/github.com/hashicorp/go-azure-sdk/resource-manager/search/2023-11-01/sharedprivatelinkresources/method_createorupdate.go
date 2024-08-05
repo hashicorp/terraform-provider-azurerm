@@ -18,6 +18,7 @@ type CreateOrUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *SharedPrivateLinkResource
 }
 
 type CreateOrUpdateOperationOptions struct {
@@ -56,8 +57,8 @@ func (c SharedPrivateLinkResourcesClient) CreateOrUpdate(ctx context.Context, id
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPut,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

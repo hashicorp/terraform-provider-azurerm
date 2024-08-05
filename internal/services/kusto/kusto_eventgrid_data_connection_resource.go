@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/eventsubscriptions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/eventhubs"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/clusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/dataconnections"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -151,7 +150,7 @@ func resourceKustoEventGridDataConnection() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.Any(
-					clusters.ValidateClusterID,
+					commonids.ValidateKustoClusterID,
 					commonids.ValidateUserAssignedIdentityID,
 				),
 			},
@@ -272,7 +271,7 @@ func resourceKustoEventGridDataConnectionRead(d *pluginsdk.ResourceData, meta in
 			managedIdentityResourceId := ""
 			if props.ManagedIdentityResourceId != nil && *props.ManagedIdentityResourceId != "" {
 				managedIdentityResourceId = *props.ManagedIdentityResourceId
-				clusterId, clusterIdErr := clusters.ParseClusterIDInsensitively(managedIdentityResourceId)
+				clusterId, clusterIdErr := commonids.ParseKustoClusterIDInsensitively(managedIdentityResourceId)
 				if clusterIdErr == nil {
 					managedIdentityResourceId = clusterId.ID()
 				} else {

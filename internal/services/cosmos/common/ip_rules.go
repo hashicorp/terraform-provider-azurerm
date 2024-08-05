@@ -6,12 +6,12 @@ package common
 import (
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2023-04-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 // CosmosDBIpRulesToIpRangeFilterThreePointOh todo Remove for 4.0
-func CosmosDBIpRulesToIpRangeFilterThreePointOh(ipRules *[]documentdb.IPAddressOrRange) string {
+func CosmosDBIpRulesToIpRangeFilterThreePointOh(ipRules *[]cosmosdb.IPAddressOrRange) string {
 	ipRangeFilter := make([]string, 0)
 	if ipRules != nil {
 		for _, ipRule := range *ipRules {
@@ -22,7 +22,7 @@ func CosmosDBIpRulesToIpRangeFilterThreePointOh(ipRules *[]documentdb.IPAddressO
 	return strings.Join(ipRangeFilter, ",")
 }
 
-func CosmosDBIpRulesToIpRangeFilter(ipRules *[]documentdb.IPAddressOrRange) []string {
+func CosmosDBIpRulesToIpRangeFilter(ipRules *[]cosmosdb.IPAddressOrRange) []string {
 	ipRangeFilter := make([]string, 0)
 	if ipRules != nil {
 		for _, ipRule := range *ipRules {
@@ -33,10 +33,10 @@ func CosmosDBIpRulesToIpRangeFilter(ipRules *[]documentdb.IPAddressOrRange) []st
 	return ipRangeFilter
 }
 
-func CosmosDBIpRangeFilterToIpRules(ipRangeFilter []string) *[]documentdb.IPAddressOrRange {
-	ipRules := make([]documentdb.IPAddressOrRange, 0)
+func CosmosDBIpRangeFilterToIpRules(ipRangeFilter []string) *[]cosmosdb.IPAddressOrRange {
+	ipRules := make([]cosmosdb.IPAddressOrRange, 0)
 	for _, ipRange := range ipRangeFilter {
-		ipRules = append(ipRules, documentdb.IPAddressOrRange{
+		ipRules = append(ipRules, cosmosdb.IPAddressOrRange{
 			IPAddressOrRange: utils.String(ipRange),
 		})
 	}
@@ -45,11 +45,11 @@ func CosmosDBIpRangeFilterToIpRules(ipRangeFilter []string) *[]documentdb.IPAddr
 }
 
 // CosmosDBIpRangeFilterToIpRulesThreePointOh todo Remove for 4.0
-func CosmosDBIpRangeFilterToIpRulesThreePointOh(ipRangeFilter string) *[]documentdb.IPAddressOrRange {
-	ipRules := make([]documentdb.IPAddressOrRange, 0)
+func CosmosDBIpRangeFilterToIpRulesThreePointOh(ipRangeFilter string) *[]cosmosdb.IPAddressOrRange {
+	ipRules := make([]cosmosdb.IPAddressOrRange, 0)
 	if len(ipRangeFilter) > 0 {
 		for _, ipRange := range strings.Split(ipRangeFilter, ",") {
-			ipRules = append(ipRules, documentdb.IPAddressOrRange{
+			ipRules = append(ipRules, cosmosdb.IPAddressOrRange{
 				IPAddressOrRange: utils.String(ipRange),
 			})
 		}

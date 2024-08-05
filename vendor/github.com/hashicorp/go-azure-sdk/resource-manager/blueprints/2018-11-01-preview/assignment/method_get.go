@@ -43,7 +43,10 @@ func (c AssignmentClient) Get(ctx context.Context, id ScopedBlueprintAssignmentI
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Assignment
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -48,7 +48,10 @@ func (c DataSourcesClient) CreateOrUpdate(ctx context.Context, id DataSourceId, 
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model DataSource
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

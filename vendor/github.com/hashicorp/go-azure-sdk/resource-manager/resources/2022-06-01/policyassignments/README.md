@@ -8,6 +8,7 @@ This readme covers example usages, but further information on [using this SDK ca
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-06-01/policyassignments"
 ```
 
@@ -130,7 +131,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := policyassignments.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 // alternatively `client.List(ctx, id, policyassignments.DefaultListOperationOptions())` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id, policyassignments.DefaultListOperationOptions())
@@ -147,7 +148,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := policyassignments.NewManagementGroupID("groupIdValue")
+id := commonids.NewManagementGroupID("groupIdValue")
 
 // alternatively `client.ListForManagementGroup(ctx, id, policyassignments.DefaultListForManagementGroupOperationOptions())` can be used to do batched pagination
 items, err := client.ListForManagementGroupComplete(ctx, id, policyassignments.DefaultListForManagementGroupOperationOptions())
@@ -164,7 +165,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := policyassignments.NewScopeID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
+id := commonids.NewScopeID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
 
 // alternatively `client.ListForResource(ctx, id, policyassignments.DefaultListForResourceOperationOptions())` can be used to do batched pagination
 items, err := client.ListForResourceComplete(ctx, id, policyassignments.DefaultListForResourceOperationOptions())
@@ -181,7 +182,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := policyassignments.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
+id := commonids.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
 // alternatively `client.ListForResourceGroup(ctx, id, policyassignments.DefaultListForResourceGroupOperationOptions())` can be used to do batched pagination
 items, err := client.ListForResourceGroupComplete(ctx, id, policyassignments.DefaultListForResourceGroupOperationOptions())

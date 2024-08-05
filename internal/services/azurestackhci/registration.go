@@ -10,8 +10,10 @@ import (
 
 type Registration struct{}
 
-var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
-var _ sdk.TypedServiceRegistrationWithAGitHubLabel = Registration{}
+var (
+	_ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+	_ sdk.TypedServiceRegistrationWithAGitHubLabel   = Registration{}
+)
 
 func (r Registration) AssociatedGitHubLabel() string {
 	return "service/azure-stack-hci"
@@ -51,5 +53,6 @@ func (r Registration) DataSources() []sdk.DataSource {
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		StackHCIExtensionResource{},
+		StackHCILogicalNetworkResource{},
 	}
 }

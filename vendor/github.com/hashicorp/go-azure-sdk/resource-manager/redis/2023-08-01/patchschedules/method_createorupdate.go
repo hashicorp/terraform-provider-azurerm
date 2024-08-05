@@ -49,7 +49,10 @@ func (c PatchSchedulesClient) CreateOrUpdate(ctx context.Context, id RediId, inp
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model RedisPatchSchedule
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

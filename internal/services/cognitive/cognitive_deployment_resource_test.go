@@ -99,6 +99,38 @@ func TestAccCognitiveDeployment_update(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.updateVersion(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("model.0.version").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.versionUpgradeOption(data, "OnceNewDefaultVersionAvailable"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("version_upgrade_option").HasValue("OnceNewDefaultVersionAvailable"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.versionUpgradeOption(data, "OnceCurrentVersionExpired"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("version_upgrade_option").HasValue("OnceCurrentVersionExpired"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateVersion(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("version_upgrade_option").HasValue("OnceNewDefaultVersionAvailable"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -119,7 +151,7 @@ func (r CognitiveDeploymentTestResource) Exists(ctx context.Context, clients *cl
 	return utils.Bool(resp.Model != nil), nil
 }
 
-func (r CognitiveDeploymentTestResource) template(data acceptance.TestData, kind string) string {
+func (r CognitiveDeploymentTestResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -133,29 +165,29 @@ resource "azurerm_cognitive_account" "test" {
   name                = "acctest-ca-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  kind                = "%s"
+  kind                = "OpenAI"
   sku_name            = "S0"
 }
-`, data.RandomInteger, data.Locations.Secondary, data.RandomInteger, kind)
+`, data.RandomInteger, data.Locations.Secondary, data.RandomInteger)
 }
 
 func (r CognitiveDeploymentTestResource) basic(data acceptance.TestData) string {
-	template := r.template(data, "OpenAI")
+	template := r.template(data)
 	return fmt.Sprintf(`
-
-
 %s
 
 resource "azurerm_cognitive_deployment" "test" {
   name                 = "acctest-cd-%d"
   cognitive_account_id = azurerm_cognitive_account.test.id
   model {
-    format  = "OpenAI"
-    name    = "text-embedding-ada-002"
-    version = "2"
+    format = "OpenAI"
+    name   = "text-embedding-ada-002"
   }
   scale {
     type = "Standard"
+  }
+  lifecycle {
+    ignore_changes = [model.0.version]
   }
 }
 `, template, data.RandomInteger)
@@ -182,7 +214,7 @@ resource "azurerm_cognitive_deployment" "import" {
 }
 
 func (r CognitiveDeploymentTestResource) complete(data acceptance.TestData) string {
-	template := r.template(data, "OpenAI")
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -205,12 +237,8 @@ resource "azurerm_cognitive_deployment" "test" {
 }
 
 func (r CognitiveDeploymentTestResource) update(data acceptance.TestData) string {
-	template := r.template(data, "OpenAI")
+	template := r.template(data)
 	return fmt.Sprintf(`
-
-
-
-
 %s
 
 resource "azurerm_cognitive_deployment" "test" {
@@ -228,4 +256,49 @@ resource "azurerm_cognitive_deployment" "test" {
   }
 }
 `, template, data.RandomInteger)
+}
+
+func (r CognitiveDeploymentTestResource) updateVersion(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cognitive_deployment" "test" {
+  name                 = "acctest-cd-%d"
+  cognitive_account_id = azurerm_cognitive_account.test.id
+  rai_policy_name      = "Microsoft.Default"
+  model {
+    format  = "OpenAI"
+    name    = "text-embedding-ada-002"
+    version = "1"
+  }
+  scale {
+    type     = "Standard"
+    capacity = 2
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r CognitiveDeploymentTestResource) versionUpgradeOption(data acceptance.TestData, versionUpgradeOption string) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cognitive_deployment" "test" {
+  name                   = "acctest-cd-%d"
+  cognitive_account_id   = azurerm_cognitive_account.test.id
+  rai_policy_name        = "Microsoft.Default"
+  version_upgrade_option = "%s"
+  model {
+    format  = "OpenAI"
+    name    = "text-embedding-ada-002"
+    version = "1"
+  }
+  scale {
+    type     = "Standard"
+    capacity = 2
+  }
+}
+`, template, data.RandomInteger, versionUpgradeOption)
 }

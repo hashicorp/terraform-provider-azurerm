@@ -43,7 +43,10 @@ func (c ViewsClient) Get(ctx context.Context, id ViewId) (result GetOperationRes
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model View
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

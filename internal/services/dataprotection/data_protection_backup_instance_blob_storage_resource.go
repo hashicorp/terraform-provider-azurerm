@@ -4,16 +4,18 @@
 package dataprotection
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2023-05-01/backupinstances"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2023-05-01/backuppolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backupinstances"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backuppolicies"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -70,7 +72,22 @@ func resourceDataProtectionBackupInstanceBlobStorage() *schema.Resource {
 				Required:     true,
 				ValidateFunc: backuppolicies.ValidateBackupPolicyID,
 			},
+
+			"storage_account_container_names": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+			},
 		},
+
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			// The `storage_account_container_names` can not be removed once specified.
+			pluginsdk.ForceNewIfChange("storage_account_container_names", func(ctx context.Context, old, new, _ interface{}) bool {
+				return len(old.([]interface{})) > 0 && len(new.([]interface{})) == 0
+			}),
+		),
 	}
 }
 
@@ -124,7 +141,17 @@ func resourceDataProtectionBackupInstanceBlobStorageCreateUpdate(d *schema.Resou
 		},
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+	if v, ok := d.GetOk("storage_account_container_names"); ok {
+		parameters.Properties.PolicyInfo.PolicyParameters = &backupinstances.PolicyParameters{
+			BackupDatasourceParametersList: &[]backupinstances.BackupDatasourceParameters{
+				backupinstances.BlobBackupDatasourceParameters{
+					ContainersList: pointer.From(utils.ExpandStringSlice(v.([]interface{}))),
+				},
+			},
+		}
+	}
+
+	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters, backupinstances.DefaultCreateOrUpdateOperationOptions()); err != nil {
 		return fmt.Errorf("creating/updating DataProtection BackupInstance (%q): %+v", id, err)
 	}
 
@@ -175,6 +202,15 @@ func resourceDataProtectionBackupInstanceBlobStorageRead(d *schema.ResourceData,
 			d.Set("storage_account_id", props.DataSourceInfo.ResourceID)
 			d.Set("location", props.DataSourceInfo.ResourceLocation)
 			d.Set("backup_policy_id", props.PolicyInfo.PolicyId)
+			if policyParas := props.PolicyInfo.PolicyParameters; policyParas != nil {
+				if dataStoreParas := policyParas.BackupDatasourceParametersList; dataStoreParas != nil {
+					if dsp := pointer.From(dataStoreParas); len(dsp) > 0 {
+						if parameter, ok := dsp[0].(backupinstances.BlobBackupDatasourceParameters); ok {
+							d.Set("storage_account_container_names", utils.FlattenStringSlice(&parameter.ContainersList))
+						}
+					}
+				}
+			}
 		}
 	}
 	return nil
@@ -190,7 +226,7 @@ func resourceDataProtectionBackupInstanceBlobStorageDelete(d *schema.ResourceDat
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, *id)
+	err = client.DeleteThenPoll(ctx, *id, backupinstances.DefaultDeleteOperationOptions())
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}

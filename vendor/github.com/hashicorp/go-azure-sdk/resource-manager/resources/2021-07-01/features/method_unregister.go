@@ -44,7 +44,10 @@ func (c FeaturesClient) Unregister(ctx context.Context, id FeatureId) (result Un
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model FeatureResult
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

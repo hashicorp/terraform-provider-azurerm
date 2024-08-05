@@ -44,7 +44,10 @@ func (c SignUpSettingsClient) Get(ctx context.Context, id ServiceId) (result Get
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model PortalSignupSettings
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -49,7 +49,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `tenant_id` - The Tenant ID for the AAD B2C tenant.
 
-~> **Note**: The `country_code` and `display_name` are not returned by this data source due to API limitations.
+~> **Note:** The `country_code` and `display_name` are not returned by this data source due to API limitations.
 
 ## Timeouts
 

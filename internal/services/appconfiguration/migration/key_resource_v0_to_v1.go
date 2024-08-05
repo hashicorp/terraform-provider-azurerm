@@ -82,7 +82,9 @@ func KeyResourceSchemaForV0AndV1() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeBool,
 		},
 		"tags": {
-			Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
 			Optional: true,
 			Type:     pluginsdk.TypeMap,
 		},

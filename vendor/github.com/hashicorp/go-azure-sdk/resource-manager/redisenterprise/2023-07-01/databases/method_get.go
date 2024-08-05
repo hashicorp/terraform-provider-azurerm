@@ -43,7 +43,10 @@ func (c DatabasesClient) Get(ctx context.Context, id DatabaseId) (result GetOper
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Database
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

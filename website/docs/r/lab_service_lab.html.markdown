@@ -10,6 +10,8 @@ description: |-
 
 Manages a Lab Service Lab.
 
+!> **Note:** This resource is being [deprecated by Azure](https://learn.microsoft.com/en-us/azure/lab-services/retirement-guide). This resource will be removed in version 4.0 of the provider.
+
 ## Example Usage
 
 ```hcl
@@ -59,6 +61,8 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Lab Service Lab should exist. Changing this forces a new resource to be created.
 
+* `connection_setting` - (Required) A `connection_setting` block as defined below.
+
 * `security` - (Required) A `security` block as defined below.
 
 * `title` - (Required) The title of the Lab Service Lab.
@@ -66,8 +70,6 @@ The following arguments are supported:
 * `virtual_machine` - (Required) A `virtual_machine` block as defined below.
 
 * `auto_shutdown` - (Optional) An `auto_shutdown` block as defined below.
-
-* `connection_setting` - (Optional) A `connection_setting` block as defined below.
 
 * `description` - (Optional) The description of the Lab Service Lab.
 

@@ -43,7 +43,10 @@ func (c QueuesClient) Get(ctx context.Context, id QueueId) (result GetOperationR
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model SBQueue
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

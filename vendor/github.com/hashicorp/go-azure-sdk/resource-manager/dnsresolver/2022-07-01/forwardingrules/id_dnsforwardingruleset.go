@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = DnsForwardingRulesetId{}
+func init() {
+	recaser.RegisterResourceId(&DnsForwardingRulesetId{})
+}
+
+var _ resourceids.ResourceId = &DnsForwardingRulesetId{}
 
 // DnsForwardingRulesetId is a struct representing the Resource ID for a Dns Forwarding Ruleset
 type DnsForwardingRulesetId struct {
@@ -30,7 +35,7 @@ func NewDnsForwardingRulesetID(subscriptionId string, resourceGroupName string, 
 
 // ParseDnsForwardingRulesetID parses 'input' into a DnsForwardingRulesetId
 func ParseDnsForwardingRulesetID(input string) (*DnsForwardingRulesetId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DnsForwardingRulesetId{})
+	parser := resourceids.NewParserFromResourceIdType(&DnsForwardingRulesetId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +52,7 @@ func ParseDnsForwardingRulesetID(input string) (*DnsForwardingRulesetId, error) 
 // ParseDnsForwardingRulesetIDInsensitively parses 'input' case-insensitively into a DnsForwardingRulesetId
 // note: this method should only be used for API response data and not user input
 func ParseDnsForwardingRulesetIDInsensitively(input string) (*DnsForwardingRulesetId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DnsForwardingRulesetId{})
+	parser := resourceids.NewParserFromResourceIdType(&DnsForwardingRulesetId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

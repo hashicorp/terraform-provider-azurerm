@@ -44,7 +44,10 @@ func (c DiskAccessesClient) GetPrivateLinkResources(ctx context.Context, id Disk
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model PrivateLinkResourceListResult
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

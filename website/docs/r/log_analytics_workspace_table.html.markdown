@@ -27,9 +27,10 @@ resource "azurerm_log_analytics_workspace" "example" {
   retention_in_days   = 30
 }
 resource "azurerm_log_analytics_workspace_table" "example" {
-  workspace_id      = azurerm_log_analytics_workspace.example.id
-  name              = "AppMetrics"
-  retention_in_days = 60
+  workspace_id            = azurerm_log_analytics_workspace.example.id
+  name                    = "AppMetrics"
+  retention_in_days       = 60
+  total_retention_in_days = 180
 }
 ```
 
@@ -41,9 +42,17 @@ The following arguments are supported:
 
 * `workspace_id` - (Required) The object ID of the Log Analytics Workspace that contains the table.
 
-* `retention_in_days` - (Required) The table's retention in days. Possible values are either 7 (Free Tier only) or range between 30 and 730.
+* `plan` - (Optional) Specify the system how to handle and charge the logs ingested to the table. Possible values are `Analytics` and `Basic`. Defaults to `Analytics`.
 
--> **Note:** retention_in_days will revert back to the value of azurerm_log_analytics_workspace retention_in_days when a azurerm_log_analytics_workspace_table is deleted.
+-> **Note:** The `name` of tables currently supported by the `Basic` plan can be found [here](https://learn.microsoft.com/en-us/azure/azure-monitor/logs/basic-logs-configure?tabs=portal-1#supported-tables).
+
+* `retention_in_days` - (Optional) The table's retention in days. Possible values are either 7 (Free Tier only) or range between 30 and 730.
+
+* `total_retention_in_days` - (Optional) The table's total retention in days. Possible values range between 30 and 4383.
+
+-> **Note:** `retention_in_days` and `total_retention_in_days` will revert back to the value of azurerm_log_analytics_workspace retention_in_days when a azurerm_log_analytics_workspace_table is deleted.
+
+-> **Note:** The `retention_in_days` cannot be specified when `plan` is `Basic` because the retention is fixed at eight days.
 
 ## Attributes Reference
 
@@ -55,11 +64,13 @@ The following attributes are exported:
 
 * `retention_in_days` - The table's data retention in days.
 
+* `total_retention_in_days` - The table's total data retention in days.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Log Analytics Workspace.
-* `update` - (Defaults to 30 minutes) Used when updating the Log Analytics Workspace.
+* `create` - (Defaults to 5 minutes) Used when creating the Log Analytics Workspace.
+* `update` - (Defaults to 5 minutes) Used when updating the Log Analytics Workspace.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Log Analytics Workspace.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Log Analytics Workspace.

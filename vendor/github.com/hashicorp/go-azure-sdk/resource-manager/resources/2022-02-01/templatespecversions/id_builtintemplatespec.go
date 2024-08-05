@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = BuiltInTemplateSpecId{}
+func init() {
+	recaser.RegisterResourceId(&BuiltInTemplateSpecId{})
+}
+
+var _ resourceids.ResourceId = &BuiltInTemplateSpecId{}
 
 // BuiltInTemplateSpecId is a struct representing the Resource ID for a Built In Template Spec
 type BuiltInTemplateSpecId struct {
@@ -26,7 +31,7 @@ func NewBuiltInTemplateSpecID(builtInTemplateSpecName string) BuiltInTemplateSpe
 
 // ParseBuiltInTemplateSpecID parses 'input' into a BuiltInTemplateSpecId
 func ParseBuiltInTemplateSpecID(input string) (*BuiltInTemplateSpecId, error) {
-	parser := resourceids.NewParserFromResourceIdType(BuiltInTemplateSpecId{})
+	parser := resourceids.NewParserFromResourceIdType(&BuiltInTemplateSpecId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -43,7 +48,7 @@ func ParseBuiltInTemplateSpecID(input string) (*BuiltInTemplateSpecId, error) {
 // ParseBuiltInTemplateSpecIDInsensitively parses 'input' case-insensitively into a BuiltInTemplateSpecId
 // note: this method should only be used for API response data and not user input
 func ParseBuiltInTemplateSpecIDInsensitively(input string) (*BuiltInTemplateSpecId, error) {
-	parser := resourceids.NewParserFromResourceIdType(BuiltInTemplateSpecId{})
+	parser := resourceids.NewParserFromResourceIdType(&BuiltInTemplateSpecId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

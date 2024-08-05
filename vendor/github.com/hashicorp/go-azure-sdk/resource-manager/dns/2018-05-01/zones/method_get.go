@@ -43,7 +43,10 @@ func (c ZonesClient) Get(ctx context.Context, id DnsZoneId) (result GetOperation
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Zone
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -54,8 +54,8 @@ func (c StorageAccountsClient) ListKeys(ctx context.Context, id commonids.Storag
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPost,
-		Path:          fmt.Sprintf("%s/listKeys", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/listKeys", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -73,7 +73,10 @@ func (c StorageAccountsClient) ListKeys(ctx context.Context, id commonids.Storag
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model StorageAccountListKeysResult
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

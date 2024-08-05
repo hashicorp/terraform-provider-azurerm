@@ -20,7 +20,20 @@ type ListKeysOperationResponse struct {
 }
 
 type ListKeysCompleteResult struct {
-	Items []SharedAccessSignatureAuthorizationRuleAccessRightsDescription
+	LatestHttpResponse *http.Response
+	Items              []SharedAccessSignatureAuthorizationRuleAccessRightsDescription
+}
+
+type ListKeysCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListKeysCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListKeys ...
@@ -31,6 +44,7 @@ func (c IotDpsResourceClient) ListKeys(ctx context.Context, id commonids.Provisi
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodPost,
+		Pager:      &ListKeysCustomPager{},
 		Path:       fmt.Sprintf("%s/listKeys", id.ID()),
 	}
 
@@ -72,6 +86,7 @@ func (c IotDpsResourceClient) ListKeysCompleteMatchingPredicate(ctx context.Cont
 
 	resp, err := c.ListKeys(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -84,7 +99,8 @@ func (c IotDpsResourceClient) ListKeysCompleteMatchingPredicate(ctx context.Cont
 	}
 
 	result = ListKeysCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

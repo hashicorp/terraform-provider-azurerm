@@ -20,6 +20,8 @@ type Client struct {
 	ManagedInstanceEncryptionProtectorClient         *sql.ManagedInstanceEncryptionProtectorsClient
 	ManagedInstanceFailoverGroupsClient              *sql.InstanceFailoverGroupsClient
 	ManagedInstanceKeysClient                        *sql.ManagedInstanceKeysClient
+
+	options *common.ClientOptions
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -69,5 +71,14 @@ func NewClient(o *common.ClientOptions) *Client {
 		ManagedInstancesShortTermRetentionPoliciesClient: &managedInstancesShortTermRetentionPoliciesClient,
 		ManagedInstanceVulnerabilityAssessmentsClient:    &managedInstanceVulnerabilityAssessmentsClient,
 		ManagedInstancesClient:                           &managedInstancesClient,
+
+		options: o,
 	}
+}
+
+func (c Client) ManagedInstancesClientForSubscription(subscriptionID string) *sql.ManagedInstancesClient {
+	// TODO: this method can be removed once this is moved to using `hashicorp/go-azure-sdk`
+	managedInstancesClient := sql.NewManagedInstancesClientWithBaseURI(c.options.ResourceManagerEndpoint, subscriptionID)
+	c.options.ConfigureClient(&managedInstancesClient.Client, c.options.ResourceManagerAuthorizer)
+	return &managedInstancesClient
 }

@@ -54,8 +54,8 @@ func (c AssignmentClient) Delete(ctx context.Context, id ScopedBlueprintAssignme
 			http.StatusNoContent,
 		},
 		HttpMethod:    http.MethodDelete,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -73,7 +73,10 @@ func (c AssignmentClient) Delete(ctx context.Context, id ScopedBlueprintAssignme
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Assignment
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

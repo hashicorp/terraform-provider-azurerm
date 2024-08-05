@@ -45,7 +45,10 @@ func (c TopicsClient) ExtensionTopicsGet(ctx context.Context, id commonids.Scope
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ExtensionTopic
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -20,7 +20,20 @@ type ListByServerOperationResponse struct {
 }
 
 type ListByServerCompleteResult struct {
-	Items []ServerConnectionPolicy
+	LatestHttpResponse *http.Response
+	Items              []ServerConnectionPolicy
+}
+
+type ListByServerCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByServerCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListByServer ...
@@ -31,6 +44,7 @@ func (c ServerConnectionPoliciesClient) ListByServer(ctx context.Context, id com
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByServerCustomPager{},
 		Path:       fmt.Sprintf("%s/connectionPolicies", id.ID()),
 	}
 
@@ -72,6 +86,7 @@ func (c ServerConnectionPoliciesClient) ListByServerCompleteMatchingPredicate(ct
 
 	resp, err := c.ListByServer(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -84,7 +99,8 @@ func (c ServerConnectionPoliciesClient) ListByServerCompleteMatchingPredicate(ct
 	}
 
 	result = ListByServerCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

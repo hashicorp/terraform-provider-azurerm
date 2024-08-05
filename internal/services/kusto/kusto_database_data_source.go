@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/databases"
@@ -66,7 +67,7 @@ func dataSourceKustoDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := databases.NewDatabaseID(subscriptionId, d.Get("resource_group_name").(string), d.Get("cluster_name").(string), d.Get("name").(string))
+	id := commonids.NewKustoDatabaseID(subscriptionId, d.Get("resource_group_name").(string), d.Get("cluster_name").(string), d.Get("name").(string))
 
 	resp, err := client.Get(ctx, id)
 	if err != nil {
@@ -88,9 +89,9 @@ func dataSourceKustoDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) er
 
 	d.SetId(id.ID())
 
-	d.Set("name", id.DatabaseName)
+	d.Set("name", id.KustoDatabaseName)
 	d.Set("resource_group_name", id.ResourceGroupName)
-	d.Set("cluster_name", id.ClusterName)
+	d.Set("cluster_name", id.KustoClusterName)
 	d.Set("location", location.NormalizeNilable(database.Location))
 
 	if props := database.Properties; props != nil {

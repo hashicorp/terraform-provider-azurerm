@@ -54,8 +54,8 @@ func (c FileSharesClient) Create(ctx context.Context, id ShareId, input FileShar
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPut,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -77,7 +77,10 @@ func (c FileSharesClient) Create(ctx context.Context, id ShareId, input FileShar
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model FileShare
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -54,8 +54,8 @@ func (c GatewayCertificateAuthorityClient) CreateOrUpdate(ctx context.Context, i
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPut,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -77,7 +77,10 @@ func (c GatewayCertificateAuthorityClient) CreateOrUpdate(ctx context.Context, i
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model GatewayCertificateAuthorityContract
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

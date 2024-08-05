@@ -71,11 +71,11 @@ A `filter` block supports the following:
 
 * `blob_types` - (Required) A set of blob types. Possible values are `blockBlob`, `appendBlob`, and `pageBlob`. The storage account with `is_hns_enabled` is `true` doesn't support `pageBlob`.
 
-~> **NOTE**: The `rules.*.schema_fields` for this rule has to include `BlobType` so that you can specify the `blob_types`.
+~> **NOTE:** The `rules.*.schema_fields` for this rule has to include `BlobType` so that you can specify the `blob_types`.
 
 * `include_blob_versions` - (Optional) Includes blob versions in blob inventory or not? Defaults to `false`.
 
-~> **NOTE**: The `rules.*.schema_fields` for this rule has to include `IsCurrentVersion` and `VersionId` so that you can specify the `include_blob_versions`.
+~> **NOTE:** The `rules.*.schema_fields` for this rule has to include `IsCurrentVersion` and `VersionId` so that you can specify the `include_blob_versions`.
 
 * `include_deleted` - (Optional) Includes deleted blobs in blob inventory or not? Defaults to `false`.
 
@@ -83,7 +83,7 @@ A `filter` block supports the following:
 
 * `include_snapshots` - (Optional) Includes blob snapshots in blob inventory or not? Defaults to `false`.
 
-~> **NOTE**: The `rules.*.schema_fields` for this rule has to include `Snapshot` so that you can specify the `include_snapshots`.
+~> **NOTE:** The `rules.*.schema_fields` for this rule has to include `Snapshot` so that you can specify the `include_snapshots`.
 
 * `prefix_match` - (Optional) A set of strings for blob prefixes to be matched. Maximum of 10 blob prefixes.
 
@@ -127,5 +127,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Storage Blob Inventory Policies can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_storage_blob_inventory_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Storage/storageAccounts/storageAccount1/inventoryPolicies/inventoryPolicy1
+terraform import azurerm_storage_blob_inventory_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Storage/storageAccounts/storageAccount1
 ```

@@ -84,10 +84,14 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 			http.StatusCreated,
 			http.StatusAccepted,
 			http.StatusNoContent,
+
+			// NOTE: 404 doesn't want to be a retry since we already retry on 404
+			http.StatusNotFound,
 		},
 		HttpMethod:    http.MethodGet,
 		OptionsObject: nil,
 		Path:          p.pollingUrl.Path,
+		RetryFunc:     client.RequestRetryAny(defaultRetryFunctions...),
 	}
 
 	// TODO: port over the `api-version` header
@@ -97,9 +101,6 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 		return nil, fmt.Errorf("building request for long-running-operation: %+v", err)
 	}
 	req.URL.RawQuery = p.pollingUrl.RawQuery
-
-	// Custom RetryFunc to inspect the operation payload and check the status
-	req.RetryFunc = client.RequestRetryAny(defaultRetryFunctions...)
 
 	result = &pollers.PollResult{
 		PollInterval: p.initialRetryDuration,
@@ -125,6 +126,13 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 			if sleep, err := strconv.ParseInt(s[0], 10, 64); err == nil {
 				result.PollInterval = time.Second * time.Duration(sleep)
 			}
+		}
+
+		// We've just created/changed this resource, so it _should_ exist but some APIs
+		// return a 404 initially - so we should wait for that to complete for non-Delete LROs
+		if result.HttpResponse.StatusCode == http.StatusNotFound {
+			result.Status = pollers.PollingStatusInProgress
+			return
 		}
 
 		// 202's don't necessarily return a body, so there's nothing to deserialize
@@ -154,57 +162,7 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 			return nil, fmt.Errorf("expected either `provisioningState` or `status` to be returned from the LRO API but both were empty")
 		}
 
-		statuses := map[status]pollers.PollingStatus{
-			statusCanceled:   pollers.PollingStatusCancelled,
-			statusCancelled:  pollers.PollingStatusCancelled,
-			statusFailed:     pollers.PollingStatusFailed,
-			statusInProgress: pollers.PollingStatusInProgress,
-			statusSucceeded:  pollers.PollingStatusSucceeded,
-
-			// whilst the standard set above should be sufficient, some APIs differ from the spec and should be documented below:
-			// Dashboard@2022-08-01 returns `Accepted` rather than `InProgress` during creation
-			"Accepted": pollers.PollingStatusInProgress,
-			// EventGrid@2022-06-15 returns `Active` rather than `InProgress` during creation
-			"Active": pollers.PollingStatusInProgress,
-			// NetAppVolumeReplication @ 2023-05-01 returns `AuthorizeReplication` during authorizing replication
-			"AuthorizeReplication": pollers.PollingStatusInProgress,
-			// NetAppVolumeReplication @ 2023-05-01 returns `BreakReplication` during breaking replication
-			"BreakReplication": pollers.PollingStatusInProgress,
-			// Mysql @ 2022-01-01 returns `CancelInProgress` during Update
-			"CancelInProgress": pollers.PollingStatusInProgress,
-			// CostManagement@2021-10-01 returns `Completed` rather than `Succeeded`: https://github.com/Azure/azure-sdk-for-go/issues/20342
-			"Completed": pollers.PollingStatusSucceeded,
-			// ContainerRegistry@2019-06-01-preview returns `Creating` rather than `InProgress` during creation
-			"Creating": pollers.PollingStatusInProgress,
-			// SignalR@2022-02-01 returns `Running` rather than `InProgress` during creation
-			"Running": pollers.PollingStatusInProgress,
-			// KubernetesConfiguration@2022-11-01 returns `Updating` rather than `InProgress` during update
-			"Updating": pollers.PollingStatusInProgress,
-			// StorageSync@2020-03-01 returns `validateInput`, `newPrivateDnsEntries`, `finishNewStorageSyncService` rather than `InProgress` during creation/update
-			// See: https://github.com/hashicorp/go-azure-sdk/issues/565
-			"validateInput":                    pollers.PollingStatusInProgress,
-			"newPrivateDnsEntries":             pollers.PollingStatusInProgress,
-			"newManagedIdentityCredentialStep": pollers.PollingStatusInProgress,
-			"finishNewStorageSyncService":      pollers.PollingStatusInProgress,
-			// StorageSync@2020-03-01 (CloudEndpoints) returns `newReplicaGroup` rather than `InProgress` during creation/update
-			// See: https://github.com/hashicorp/go-azure-sdk/issues/565
-			"newReplicaGroup": pollers.PollingStatusInProgress,
-			// SAPVirtualInstance @ 2023-04-01 returns `Preparing System Configuration` during Creation
-			"Preparing System Configuration": pollers.PollingStatusInProgress,
-			// AnalysisServices @ 2017-08-01 (Servers Suspend) returns `Pausing` during update
-			"Pausing": pollers.PollingStatusInProgress,
-			// AnalysisServices @ 2017-08-01 (Servers) returns `Provisioning` during Creation
-			"Provisioning": pollers.PollingStatusInProgress,
-			// Resources @ 2020-10-01 (DeploymentScripts) returns `ProvisioningResources` during Creation
-			"ProvisioningResources": pollers.PollingStatusInProgress,
-			// AnalysisServices @ 2017-08-01 (Servers Resume) returns `Resuming` during Update
-			"Resuming": pollers.PollingStatusInProgress,
-			// AnalysisServices @ 2017-08-01 (Servers Suspend) returns `Scaling` during Update
-			"Scaling": pollers.PollingStatusInProgress,
-			// HealthBot @ 2022-08-08 (HealthBots CreateOrUpdate) returns `Working` during Creation
-			"Working": pollers.PollingStatusInProgress,
-		}
-		for k, v := range statuses {
+		for k, v := range longRunningOperationCustomStatuses {
 			if strings.EqualFold(string(op.Properties.ProvisioningState), string(k)) {
 				result.Status = v
 				break
@@ -255,13 +213,15 @@ type operationResult struct {
 	// >  cannot parse " 01:58:30 +0000" as "T"
 	StartTime *string `json:"startTime"`
 
-	Properties struct {
-		// Some APIs (such as Storage) return the Resource Representation from the LRO API, as such we need to check provisioningState
-		ProvisioningState status `json:"provisioningState"`
-	} `json:"properties"`
+	Properties operationResultProperties `json:"properties"`
 
 	// others return Status, so we check that too
 	Status status `json:"status"`
+}
+
+type operationResultProperties struct {
+	// Some APIs (such as Storage) return the Resource Representation from the LRO API, as such we need to check provisioningState
+	ProvisioningState status `json:"provisioningState"`
 }
 
 type status string

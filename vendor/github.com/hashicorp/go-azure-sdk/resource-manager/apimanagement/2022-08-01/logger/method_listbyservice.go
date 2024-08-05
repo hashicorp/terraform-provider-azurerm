@@ -19,7 +19,8 @@ type ListByServiceOperationResponse struct {
 }
 
 type ListByServiceCompleteResult struct {
-	Items []LoggerContract
+	LatestHttpResponse *http.Response
+	Items              []LoggerContract
 }
 
 type ListByServiceOperationOptions struct {
@@ -57,6 +58,18 @@ func (o ListByServiceOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListByServiceCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByServiceCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByService ...
 func (c LoggerClient) ListByService(ctx context.Context, id ServiceId, options ListByServiceOperationOptions) (result ListByServiceOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -65,8 +78,9 @@ func (c LoggerClient) ListByService(ctx context.Context, id ServiceId, options L
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/loggers", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListByServiceCustomPager{},
+		Path:          fmt.Sprintf("%s/loggers", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -107,6 +121,7 @@ func (c LoggerClient) ListByServiceCompleteMatchingPredicate(ctx context.Context
 
 	resp, err := c.ListByService(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -119,7 +134,8 @@ func (c LoggerClient) ListByServiceCompleteMatchingPredicate(ctx context.Context
 	}
 
 	result = ListByServiceCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

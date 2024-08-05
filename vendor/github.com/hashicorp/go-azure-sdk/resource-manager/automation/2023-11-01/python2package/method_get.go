@@ -43,7 +43,10 @@ func (c Python2PackageClient) Get(ctx context.Context, id Python2PackageId) (res
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Module
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

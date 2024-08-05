@@ -48,7 +48,10 @@ func (c AuthorizationRulesEventHubsClient) EventHubsRegenerateKeys(ctx context.C
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model AccessKeys
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

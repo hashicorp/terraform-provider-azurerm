@@ -43,7 +43,10 @@ func (c TenantConfigurationClient) Get(ctx context.Context) (result GetOperation
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Configuration
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

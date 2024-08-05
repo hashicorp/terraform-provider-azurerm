@@ -49,7 +49,10 @@ func (c CognitiveServicesAccountsClient) CheckDomainAvailability(ctx context.Con
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model DomainAvailability
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

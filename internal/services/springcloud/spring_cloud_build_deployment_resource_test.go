@@ -206,8 +206,8 @@ func (SpringCloudBuildDeploymentResource) template(data acceptance.TestData) str
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
-    application_insights {
-      disable_generated_rule = true
+    resource_group {
+      prevent_deletion_if_contains_resources = false
     }
   }
 }

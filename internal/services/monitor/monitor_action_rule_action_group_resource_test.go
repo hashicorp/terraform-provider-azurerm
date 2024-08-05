@@ -8,17 +8,22 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2019-05-05-preview/actionrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type MonitorActionRuleActionGroupResource struct{}
 
 func TestAccMonitorActionRuleActionGroup_basic(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip(`This resource has been deprecated in favour of the 'azurerm_monitor_alert_processing_rule_action_group' resource and will be removed in v4.0 of the AzureRM Provider`)
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_monitor_action_rule_action_group", "test")
 	r := MonitorActionRuleActionGroupResource{}
 
@@ -34,6 +39,10 @@ func TestAccMonitorActionRuleActionGroup_basic(t *testing.T) {
 }
 
 func TestAccMonitorActionRuleActionGroup_requiresImport(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip(`This resource has been deprecated in favour of the 'azurerm_monitor_alert_processing_rule_action_group' resource and will be removed in v4.0 of the AzureRM Provider`)
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_monitor_action_rule_action_group", "test")
 	r := MonitorActionRuleActionGroupResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -48,6 +57,10 @@ func TestAccMonitorActionRuleActionGroup_requiresImport(t *testing.T) {
 }
 
 func TestAccMonitorActionRuleActionGroup_complete(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip(`This resource has been deprecated in favour of the 'azurerm_monitor_alert_processing_rule_action_group' resource and will be removed in v4.0 of the AzureRM Provider`)
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_monitor_action_rule_action_group", "test")
 	r := MonitorActionRuleActionGroupResource{}
 
@@ -63,6 +76,10 @@ func TestAccMonitorActionRuleActionGroup_complete(t *testing.T) {
 }
 
 func TestAccMonitorActionRuleActionGroup_update(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip(`This resource has been deprecated in favour of the 'azurerm_monitor_alert_processing_rule_action_group' resource and will be removed in v4.0 of the AzureRM Provider`)
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_monitor_action_rule_action_group", "test")
 	r := MonitorActionRuleActionGroupResource{}
 
@@ -92,17 +109,17 @@ func TestAccMonitorActionRuleActionGroup_update(t *testing.T) {
 }
 
 func (t MonitorActionRuleActionGroupResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ActionRuleID(state.ID)
+	id, err := actionrules.ParseActionRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Monitor.ActionRulesClient.GetByName(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Monitor.ActionRulesClient.GetByName(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading (%s): %+v", *id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r MonitorActionRuleActionGroupResource) basic(data acceptance.TestData) string {

@@ -6,16 +6,15 @@ package applicationinsights_test
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	apikeys "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2015-05-01/componentapikeysapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type AppInsightsAPIKey struct{}
@@ -137,17 +136,17 @@ func TestAccApplicationInsightsAPIKey_multiple_keys(t *testing.T) {
 }
 
 func (t AppInsightsAPIKey) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ApiKeyID(state.Attributes["id"])
+	id, err := apikeys.ParseApiKeyID(state.Attributes["id"])
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.AppInsights.APIKeysClient.Get(ctx, id.ResourceGroup, id.ComponentName, id.Name)
+	resp, err := clients.AppInsights.APIKeysClient.APIKeysGet(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Application Insights API Key '%s' does not exist", id)
+		return nil, fmt.Errorf("retrieving %s", id)
 	}
 
-	return utils.Bool(resp.StatusCode != http.StatusNotFound), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (AppInsightsAPIKey) basic(data acceptance.TestData, readPerms, writePerms string) string {

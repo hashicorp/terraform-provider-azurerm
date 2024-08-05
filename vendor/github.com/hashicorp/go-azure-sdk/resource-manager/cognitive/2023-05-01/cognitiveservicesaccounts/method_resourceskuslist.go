@@ -20,7 +20,20 @@ type ResourceSkusListOperationResponse struct {
 }
 
 type ResourceSkusListCompleteResult struct {
-	Items []ResourceSku
+	LatestHttpResponse *http.Response
+	Items              []ResourceSku
+}
+
+type ResourceSkusListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ResourceSkusListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ResourceSkusList ...
@@ -31,6 +44,7 @@ func (c CognitiveServicesAccountsClient) ResourceSkusList(ctx context.Context, i
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ResourceSkusListCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.CognitiveServices/skus", id.ID()),
 	}
 
@@ -72,6 +86,7 @@ func (c CognitiveServicesAccountsClient) ResourceSkusListCompleteMatchingPredica
 
 	resp, err := c.ResourceSkusList(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -84,7 +99,8 @@ func (c CognitiveServicesAccountsClient) ResourceSkusListCompleteMatchingPredica
 	}
 
 	result = ResourceSkusListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -4,10 +4,10 @@
 package appservice
 
 import (
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/web/2022-09-01/web"
 )
 
 type GithubActionConfiguration struct {
@@ -127,41 +127,41 @@ func githubActionConfigSchema() *pluginsdk.Schema {
 	}
 }
 
-func expandGithubActionConfig(input []GithubActionConfiguration, usesLinux bool) *web.GitHubActionConfiguration {
+func expandGithubActionConfig(input []GithubActionConfiguration, usesLinux bool) *webapps.GitHubActionConfiguration {
 	if len(input) == 0 {
 		return nil
 	}
 
 	ghActionConfig := input[0]
-	output := &web.GitHubActionConfiguration{
+	output := &webapps.GitHubActionConfiguration{
 		CodeConfiguration:      nil,
 		ContainerConfiguration: nil,
-		IsLinux:                utils.Bool(usesLinux),
-		GenerateWorkflowFile:   utils.Bool(ghActionConfig.GenerateWorkflowFile),
+		IsLinux:                pointer.To(usesLinux),
+		GenerateWorkflowFile:   pointer.To(ghActionConfig.GenerateWorkflowFile),
 	}
 
 	if len(ghActionConfig.CodeConfig) != 0 {
 		codeConfig := ghActionConfig.CodeConfig[0]
-		output.CodeConfiguration = &web.GitHubActionCodeConfiguration{
-			RuntimeStack:   utils.String(codeConfig.RuntimeStack),
-			RuntimeVersion: utils.String(codeConfig.RuntimeVersion),
+		output.CodeConfiguration = &webapps.GitHubActionCodeConfiguration{
+			RuntimeStack:   pointer.To(codeConfig.RuntimeStack),
+			RuntimeVersion: pointer.To(codeConfig.RuntimeVersion),
 		}
 	}
 
 	if len(ghActionConfig.ContainerConfig) != 0 {
 		containerConfig := ghActionConfig.ContainerConfig[0]
-		output.ContainerConfiguration = &web.GitHubActionContainerConfiguration{
-			ServerURL: utils.String(containerConfig.RegistryURL),
-			ImageName: utils.String(containerConfig.ImageName),
-			Username:  utils.String(containerConfig.RegistryUsername),
-			Password:  utils.String(containerConfig.RegistryPassword),
+		output.ContainerConfiguration = &webapps.GitHubActionContainerConfiguration{
+			ServerUrl: pointer.To(containerConfig.RegistryURL),
+			ImageName: pointer.To(containerConfig.ImageName),
+			Username:  pointer.To(containerConfig.RegistryUsername),
+			Password:  pointer.To(containerConfig.RegistryPassword),
 		}
 	}
 
 	return output
 }
 
-func flattenGitHubActionConfiguration(input *web.GitHubActionConfiguration) []GithubActionConfiguration {
+func flattenGitHubActionConfiguration(input *webapps.GitHubActionConfiguration) []GithubActionConfiguration {
 	output := make([]GithubActionConfiguration, 0)
 	if input == nil {
 		return output
@@ -182,18 +182,18 @@ func flattenGitHubActionConfiguration(input *web.GitHubActionConfiguration) []Gi
 
 	if codeConfig := input.CodeConfiguration; codeConfig != nil {
 		ghCodeConfig := []GitHubActionCodeConfig{{
-			RuntimeStack:   utils.NormalizeNilableString(codeConfig.RuntimeStack),
-			RuntimeVersion: utils.NormalizeNilableString(codeConfig.RuntimeVersion),
+			RuntimeStack:   pointer.From(codeConfig.RuntimeStack),
+			RuntimeVersion: pointer.From(codeConfig.RuntimeVersion),
 		}}
 		ghConfig.CodeConfig = ghCodeConfig
 	}
 
 	if containerConfig := input.ContainerConfiguration; containerConfig != nil {
 		ghContainerConfig := []GitHubActionContainerConfig{{
-			RegistryPassword: utils.NormalizeNilableString(containerConfig.Password),
-			RegistryUsername: utils.NormalizeNilableString(containerConfig.Username),
-			RegistryURL:      utils.NormalizeNilableString(containerConfig.ServerURL),
-			ImageName:        utils.NormalizeNilableString(containerConfig.ImageName),
+			RegistryPassword: pointer.From(containerConfig.Password),
+			RegistryUsername: pointer.From(containerConfig.Username),
+			RegistryURL:      pointer.From(containerConfig.ServerUrl),
+			ImageName:        pointer.From(containerConfig.ImageName),
 		}}
 		ghConfig.ContainerConfig = ghContainerConfig
 	}

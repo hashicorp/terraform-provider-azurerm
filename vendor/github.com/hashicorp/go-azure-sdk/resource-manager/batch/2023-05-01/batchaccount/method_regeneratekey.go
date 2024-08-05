@@ -48,7 +48,10 @@ func (c BatchAccountClient) RegenerateKey(ctx context.Context, id BatchAccountId
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model BatchAccountKeys
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

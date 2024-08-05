@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ProductApiId{}
+func init() {
+	recaser.RegisterResourceId(&ProductApiId{})
+}
+
+var _ resourceids.ResourceId = &ProductApiId{}
 
 // ProductApiId is a struct representing the Resource ID for a Product Api
 type ProductApiId struct {
@@ -34,7 +39,7 @@ func NewProductApiID(subscriptionId string, resourceGroupName string, serviceNam
 
 // ParseProductApiID parses 'input' into a ProductApiId
 func ParseProductApiID(input string) (*ProductApiId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ProductApiId{})
+	parser := resourceids.NewParserFromResourceIdType(&ProductApiId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -51,7 +56,7 @@ func ParseProductApiID(input string) (*ProductApiId, error) {
 // ParseProductApiIDInsensitively parses 'input' case-insensitively into a ProductApiId
 // note: this method should only be used for API response data and not user input
 func ParseProductApiIDInsensitively(input string) (*ProductApiId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ProductApiId{})
+	parser := resourceids.NewParserFromResourceIdType(&ProductApiId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

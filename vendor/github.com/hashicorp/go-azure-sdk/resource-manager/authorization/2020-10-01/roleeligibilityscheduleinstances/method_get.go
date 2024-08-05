@@ -43,7 +43,10 @@ func (c RoleEligibilityScheduleInstancesClient) Get(ctx context.Context, id Scop
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model RoleEligibilityScheduleInstance
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

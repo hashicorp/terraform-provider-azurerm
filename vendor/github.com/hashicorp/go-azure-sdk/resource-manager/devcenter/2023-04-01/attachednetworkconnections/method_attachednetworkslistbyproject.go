@@ -19,7 +19,8 @@ type AttachedNetworksListByProjectOperationResponse struct {
 }
 
 type AttachedNetworksListByProjectCompleteResult struct {
-	Items []AttachedNetworkConnection
+	LatestHttpResponse *http.Response
+	Items              []AttachedNetworkConnection
 }
 
 type AttachedNetworksListByProjectOperationOptions struct {
@@ -49,6 +50,18 @@ func (o AttachedNetworksListByProjectOperationOptions) ToQuery() *client.QueryPa
 	return &out
 }
 
+type AttachedNetworksListByProjectCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *AttachedNetworksListByProjectCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // AttachedNetworksListByProject ...
 func (c AttachedNetworkConnectionsClient) AttachedNetworksListByProject(ctx context.Context, id ProjectId, options AttachedNetworksListByProjectOperationOptions) (result AttachedNetworksListByProjectOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -57,8 +70,9 @@ func (c AttachedNetworkConnectionsClient) AttachedNetworksListByProject(ctx cont
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/attachednetworks", id.ID()),
 		OptionsObject: options,
+		Pager:         &AttachedNetworksListByProjectCustomPager{},
+		Path:          fmt.Sprintf("%s/attachednetworks", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -99,6 +113,7 @@ func (c AttachedNetworkConnectionsClient) AttachedNetworksListByProjectCompleteM
 
 	resp, err := c.AttachedNetworksListByProject(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -111,7 +126,8 @@ func (c AttachedNetworkConnectionsClient) AttachedNetworksListByProjectCompleteM
 	}
 
 	result = AttachedNetworksListByProjectCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

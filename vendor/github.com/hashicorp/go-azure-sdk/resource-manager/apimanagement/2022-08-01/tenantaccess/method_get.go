@@ -43,7 +43,10 @@ func (c TenantAccessClient) Get(ctx context.Context, id AccessId) (result GetOpe
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model AccessInformationContract
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

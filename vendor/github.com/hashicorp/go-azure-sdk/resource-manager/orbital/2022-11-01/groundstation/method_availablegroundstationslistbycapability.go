@@ -20,7 +20,8 @@ type AvailableGroundStationsListByCapabilityOperationResponse struct {
 }
 
 type AvailableGroundStationsListByCapabilityCompleteResult struct {
-	Items []AvailableGroundStation
+	LatestHttpResponse *http.Response
+	Items              []AvailableGroundStation
 }
 
 type AvailableGroundStationsListByCapabilityOperationOptions struct {
@@ -50,6 +51,18 @@ func (o AvailableGroundStationsListByCapabilityOperationOptions) ToQuery() *clie
 	return &out
 }
 
+type AvailableGroundStationsListByCapabilityCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *AvailableGroundStationsListByCapabilityCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // AvailableGroundStationsListByCapability ...
 func (c GroundStationClient) AvailableGroundStationsListByCapability(ctx context.Context, id commonids.SubscriptionId, options AvailableGroundStationsListByCapabilityOperationOptions) (result AvailableGroundStationsListByCapabilityOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -58,8 +71,9 @@ func (c GroundStationClient) AvailableGroundStationsListByCapability(ctx context
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/providers/Microsoft.Orbital/availableGroundStations", id.ID()),
 		OptionsObject: options,
+		Pager:         &AvailableGroundStationsListByCapabilityCustomPager{},
+		Path:          fmt.Sprintf("%s/providers/Microsoft.Orbital/availableGroundStations", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -100,6 +114,7 @@ func (c GroundStationClient) AvailableGroundStationsListByCapabilityCompleteMatc
 
 	resp, err := c.AvailableGroundStationsListByCapability(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -112,7 +127,8 @@ func (c GroundStationClient) AvailableGroundStationsListByCapabilityCompleteMatc
 	}
 
 	result = AvailableGroundStationsListByCapabilityCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

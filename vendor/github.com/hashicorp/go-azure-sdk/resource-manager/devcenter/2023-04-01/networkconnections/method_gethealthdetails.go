@@ -44,7 +44,10 @@ func (c NetworkConnectionsClient) GetHealthDetails(ctx context.Context, id Netwo
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model HealthCheckStatusDetails
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

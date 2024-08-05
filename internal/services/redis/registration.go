@@ -10,7 +10,10 @@ import (
 
 type Registration struct{}
 
-var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+var (
+	_ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+	_ sdk.TypedServiceRegistrationWithAGitHubLabel   = Registration{}
+)
 
 func (r Registration) AssociatedGitHubLabel() string {
 	return "service/redis"
@@ -41,5 +44,16 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_redis_cache":         resourceRedisCache(),
 		"azurerm_redis_firewall_rule": resourceRedisFirewallRule(),
 		"azurerm_redis_linked_server": resourceRedisLinkedServer(),
+	}
+}
+
+func (r Registration) DataSources() []sdk.DataSource {
+	return []sdk.DataSource{}
+}
+
+func (r Registration) Resources() []sdk.Resource {
+	return []sdk.Resource{
+		RedisCacheAccessPolicyAssignmentResource{},
+		RedisCacheAccessPolicyResource{},
 	}
 }

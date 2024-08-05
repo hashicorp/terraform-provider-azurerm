@@ -94,8 +94,8 @@ resource "azurerm_key_vault_access_policy" "databricks" {
   depends_on = [azurerm_databricks_workspace.example]
 
   key_vault_id = azurerm_key_vault.example.id
-  tenant_id    = azurerm_databricks_workspace.example.storage_account_identity.0.tenant_id
-  object_id    = azurerm_databricks_workspace.example.storage_account_identity.0.principal_id
+  tenant_id    = azurerm_databricks_workspace.example.storage_account_identity[0].tenant_id
+  object_id    = azurerm_databricks_workspace.example.storage_account_identity[0].principal_id
 
   key_permissions = [
     "Create",

@@ -43,7 +43,10 @@ func (c RedisClient) Get(ctx context.Context, id RediId) (result GetOperationRes
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model RedisResource
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

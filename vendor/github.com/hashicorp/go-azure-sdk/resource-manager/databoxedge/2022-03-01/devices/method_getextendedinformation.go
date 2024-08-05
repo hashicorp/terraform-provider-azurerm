@@ -44,7 +44,10 @@ func (c DevicesClient) GetExtendedInformation(ctx context.Context, id DataBoxEdg
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model DataBoxEdgeDeviceExtendedInfo
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

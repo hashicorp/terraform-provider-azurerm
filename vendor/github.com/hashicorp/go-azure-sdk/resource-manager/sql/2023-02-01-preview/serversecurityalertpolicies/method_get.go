@@ -45,7 +45,10 @@ func (c ServerSecurityAlertPoliciesClient) Get(ctx context.Context, id commonids
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ServerSecurityAlertPolicy
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

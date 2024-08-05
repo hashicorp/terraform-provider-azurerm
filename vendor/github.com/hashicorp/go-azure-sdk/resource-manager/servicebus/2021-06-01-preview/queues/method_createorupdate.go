@@ -47,7 +47,10 @@ func (c QueuesClient) CreateOrUpdate(ctx context.Context, id QueueId, input SBQu
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model SBQueue
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = PartnerTopicId{}
+func init() {
+	recaser.RegisterResourceId(&PartnerTopicId{})
+}
+
+var _ resourceids.ResourceId = &PartnerTopicId{}
 
 // PartnerTopicId is a struct representing the Resource ID for a Partner Topic
 type PartnerTopicId struct {
@@ -30,7 +35,7 @@ func NewPartnerTopicID(subscriptionId string, resourceGroupName string, partnerT
 
 // ParsePartnerTopicID parses 'input' into a PartnerTopicId
 func ParsePartnerTopicID(input string) (*PartnerTopicId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PartnerTopicId{})
+	parser := resourceids.NewParserFromResourceIdType(&PartnerTopicId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +52,7 @@ func ParsePartnerTopicID(input string) (*PartnerTopicId, error) {
 // ParsePartnerTopicIDInsensitively parses 'input' case-insensitively into a PartnerTopicId
 // note: this method should only be used for API response data and not user input
 func ParsePartnerTopicIDInsensitively(input string) (*PartnerTopicId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PartnerTopicId{})
+	parser := resourceids.NewParserFromResourceIdType(&PartnerTopicId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

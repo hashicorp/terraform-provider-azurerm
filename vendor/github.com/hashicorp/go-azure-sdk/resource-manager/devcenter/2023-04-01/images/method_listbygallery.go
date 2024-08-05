@@ -19,7 +19,8 @@ type ListByGalleryOperationResponse struct {
 }
 
 type ListByGalleryCompleteResult struct {
-	Items []Image
+	LatestHttpResponse *http.Response
+	Items              []Image
 }
 
 type ListByGalleryOperationOptions struct {
@@ -49,6 +50,18 @@ func (o ListByGalleryOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListByGalleryCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByGalleryCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByGallery ...
 func (c ImagesClient) ListByGallery(ctx context.Context, id GalleryId, options ListByGalleryOperationOptions) (result ListByGalleryOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -57,8 +70,9 @@ func (c ImagesClient) ListByGallery(ctx context.Context, id GalleryId, options L
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/images", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListByGalleryCustomPager{},
+		Path:          fmt.Sprintf("%s/images", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -99,6 +113,7 @@ func (c ImagesClient) ListByGalleryCompleteMatchingPredicate(ctx context.Context
 
 	resp, err := c.ListByGallery(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -111,7 +126,8 @@ func (c ImagesClient) ListByGalleryCompleteMatchingPredicate(ctx context.Context
 	}
 
 	result = ListByGalleryCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

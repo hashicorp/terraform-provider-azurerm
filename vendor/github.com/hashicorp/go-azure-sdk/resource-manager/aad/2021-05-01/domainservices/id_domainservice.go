@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = DomainServiceId{}
+func init() {
+	recaser.RegisterResourceId(&DomainServiceId{})
+}
+
+var _ resourceids.ResourceId = &DomainServiceId{}
 
 // DomainServiceId is a struct representing the Resource ID for a Domain Service
 type DomainServiceId struct {
@@ -30,7 +35,7 @@ func NewDomainServiceID(subscriptionId string, resourceGroupName string, domainS
 
 // ParseDomainServiceID parses 'input' into a DomainServiceId
 func ParseDomainServiceID(input string) (*DomainServiceId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DomainServiceId{})
+	parser := resourceids.NewParserFromResourceIdType(&DomainServiceId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +52,7 @@ func ParseDomainServiceID(input string) (*DomainServiceId, error) {
 // ParseDomainServiceIDInsensitively parses 'input' case-insensitively into a DomainServiceId
 // note: this method should only be used for API response data and not user input
 func ParseDomainServiceIDInsensitively(input string) (*DomainServiceId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DomainServiceId{})
+	parser := resourceids.NewParserFromResourceIdType(&DomainServiceId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

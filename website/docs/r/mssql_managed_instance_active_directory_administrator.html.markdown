@@ -60,7 +60,7 @@ resource "azuread_directory_role" "reader" {
 
 resource "azuread_directory_role_member" "example" {
   role_object_id   = azuread_directory_role.reader.object_id
-  member_object_id = azurerm_mssql_managed_instance.example.identity.0.principal_id
+  member_object_id = azurerm_mssql_managed_instance.example.identity[0].principal_id
 }
 
 resource "azuread_user" "admin" {

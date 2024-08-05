@@ -45,7 +45,10 @@ func (c QueueServicePropertiesClient) QueueServicesList(ctx context.Context, id 
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ListQueueServices
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

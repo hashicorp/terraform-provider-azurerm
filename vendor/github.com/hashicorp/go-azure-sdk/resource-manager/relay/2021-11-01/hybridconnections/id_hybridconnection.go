@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = HybridConnectionId{}
+func init() {
+	recaser.RegisterResourceId(&HybridConnectionId{})
+}
+
+var _ resourceids.ResourceId = &HybridConnectionId{}
 
 // HybridConnectionId is a struct representing the Resource ID for a Hybrid Connection
 type HybridConnectionId struct {
@@ -32,7 +37,7 @@ func NewHybridConnectionID(subscriptionId string, resourceGroupName string, name
 
 // ParseHybridConnectionID parses 'input' into a HybridConnectionId
 func ParseHybridConnectionID(input string) (*HybridConnectionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(HybridConnectionId{})
+	parser := resourceids.NewParserFromResourceIdType(&HybridConnectionId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +54,7 @@ func ParseHybridConnectionID(input string) (*HybridConnectionId, error) {
 // ParseHybridConnectionIDInsensitively parses 'input' case-insensitively into a HybridConnectionId
 // note: this method should only be used for API response data and not user input
 func ParseHybridConnectionIDInsensitively(input string) (*HybridConnectionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(HybridConnectionId{})
+	parser := resourceids.NewParserFromResourceIdType(&HybridConnectionId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

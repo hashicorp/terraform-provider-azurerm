@@ -211,6 +211,22 @@ func TestAccKeyVaultKey_updatedExternally(t *testing.T) {
 			Config: r.basicECUpdatedExternally(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				data.CheckWithClient(r.updateExpiryDate("2050-02-02T12:59:00Z")),
+			),
+			ExpectNonEmptyPlan: true,
+		},
+		{
+			Config: r.basicECUpdatedExternally(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				data.CheckWithClient(r.updateExpiryDate("2029-02-01T12:59:00Z")),
+			),
+			ExpectNonEmptyPlan: true,
+		},
+		{
+			Config: r.basicECUpdatedExternally(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{

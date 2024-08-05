@@ -11,16 +11,17 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/web/2022-09-01/web"
 )
 
 type LinuxFunctionAppDataSource struct{}
@@ -46,7 +47,7 @@ type LinuxFunctionAppDataSourceModel struct {
 	ClientCertMode                   string                               `tfschema:"client_certificate_mode"`
 	ClientCertExclusionPaths         string                               `tfschema:"client_certificate_exclusion_paths"`
 	ConnectionStrings                []helpers.ConnectionString           `tfschema:"connection_string"`
-	DailyMemoryTimeQuota             int                                  `tfschema:"daily_memory_time_quota"`
+	DailyMemoryTimeQuota             int64                                `tfschema:"daily_memory_time_quota"`
 	Enabled                          bool                                 `tfschema:"enabled"`
 	FunctionExtensionsVersion        string                               `tfschema:"functions_extension_version"`
 	ForceDisableContentShare         bool                                 `tfschema:"content_share_force_disabled"`
@@ -81,7 +82,7 @@ func (d LinuxFunctionAppDataSource) ResourceType() string {
 }
 
 func (d LinuxFunctionAppDataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.FunctionAppID
+	return commonids.ValidateFunctionAppID
 }
 
 func (d LinuxFunctionAppDataSource) Arguments() map[string]*pluginsdk.Schema {
@@ -290,162 +291,151 @@ func (d LinuxFunctionAppDataSource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			id := parse.NewFunctionAppID(subscriptionId, linuxFunctionApp.ResourceGroup, linuxFunctionApp.Name)
+			id := commonids.NewAppServiceID(subscriptionId, linuxFunctionApp.ResourceGroup, linuxFunctionApp.Name)
 
-			functionApp, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
+			functionApp, err := client.Get(ctx, id)
 			if err != nil {
-				if utils.ResponseWasNotFound(functionApp.Response) {
+				if response.WasNotFound(functionApp.HttpResponse) {
 					return fmt.Errorf("Linux %s not found", id)
 				}
 				return fmt.Errorf("reading Linux %s: %+v", id, err)
 			}
 
-			if functionApp.SiteProperties == nil {
-				return fmt.Errorf("reading properties of Linux %s", id)
-			}
-			props := *functionApp.SiteProperties
-
-			appSettingsResp, err := client.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
+			appSettingsResp, err := client.ListApplicationSettings(ctx, id)
 			if err != nil {
 				return fmt.Errorf("reading App Settings for Linux %s: %+v", id, err)
 			}
 
-			connectionStrings, err := client.ListConnectionStrings(ctx, id.ResourceGroup, id.SiteName)
+			connectionStrings, err := client.ListConnectionStrings(ctx, id)
 			if err != nil {
 				return fmt.Errorf("reading Connection String information for Linux %s: %+v", id, err)
 			}
 
-			stickySettings, err := client.ListSlotConfigurationNames(ctx, id.ResourceGroup, id.SiteName)
+			stickySettings, err := client.ListSlotConfigurationNames(ctx, id)
 			if err != nil {
 				return fmt.Errorf("reading Sticky Settings for Linux %s: %+v", id, err)
 			}
 
-			siteCredentialsFuture, err := client.ListPublishingCredentials(ctx, id.ResourceGroup, id.SiteName)
+			siteCredentials, err := helpers.ListPublishingCredentials(ctx, client, id)
 			if err != nil {
-				return fmt.Errorf("listing Site Publishing Credential information for Linux %s: %+v", id, err)
+				return fmt.Errorf("listing Site Publishing Credential information for %s: %+v", id, err)
 			}
 
-			if err := siteCredentialsFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for Site Publishing Credential information for Linux %s: %+v", id, err)
-			}
-			siteCredentials, err := siteCredentialsFuture.Result(*client)
-			if err != nil {
-				return fmt.Errorf("reading Site Publishing Credential information for Linux %s: %+v", id, err)
-			}
-
-			auth, err := client.GetAuthSettings(ctx, id.ResourceGroup, id.SiteName)
+			auth, err := client.GetAuthSettings(ctx, id)
 			if err != nil {
 				return fmt.Errorf("reading Auth Settings for Linux %s: %+v", id, err)
 			}
 
-			authV2, err := client.GetAuthSettingsV2(ctx, id.ResourceGroup, id.SiteName)
+			var authV2 webapps.SiteAuthSettingsV2
+			authV2Resp, err := client.GetAuthSettingsV2(ctx, id)
 			if err != nil {
 				return fmt.Errorf("reading authV2 settings for Linux %s: %+v", id, err)
 			}
+			authV2 = *authV2Resp.Model
 
-			backup, err := client.GetBackupConfiguration(ctx, id.ResourceGroup, id.SiteName)
+			backup, err := client.GetBackupConfiguration(ctx, id)
 			if err != nil {
-				if !utils.ResponseWasNotFound(backup.Response) {
+				if !response.WasNotFound(backup.HttpResponse) {
 					return fmt.Errorf("reading Backup Settings for Linux %s: %+v", id, err)
 				}
 			}
 
-			logs, err := client.GetDiagnosticLogsConfiguration(ctx, id.ResourceGroup, id.SiteName)
+			logs, err := client.GetDiagnosticLogsConfiguration(ctx, id)
 			if err != nil {
 				return fmt.Errorf("reading logs configuration for Linux %s: %+v", id, err)
 			}
 
-			state := LinuxFunctionAppDataSourceModel{
-				Name:                       id.SiteName,
-				ResourceGroup:              id.ResourceGroup,
-				Availability:               string(props.AvailabilityState),
-				ServicePlanId:              utils.NormalizeNilableString(props.ServerFarmID),
-				Location:                   location.NormalizeNilable(functionApp.Location),
-				Enabled:                    utils.NormaliseNilableBool(functionApp.Enabled),
-				ClientCertMode:             string(functionApp.ClientCertMode),
-				ClientCertExclusionPaths:   utils.NormalizeNilableString(functionApp.ClientCertExclusionPaths),
-				DailyMemoryTimeQuota:       int(utils.NormaliseNilableInt32(props.DailyMemoryTimeQuota)),
-				StickySettings:             helpers.FlattenStickySettings(stickySettings.SlotConfigNames),
-				Tags:                       tags.ToTypedObject(functionApp.Tags),
-				Kind:                       utils.NormalizeNilableString(functionApp.Kind),
-				CustomDomainVerificationId: utils.NormalizeNilableString(props.CustomDomainVerificationID),
-				DefaultHostname:            utils.NormalizeNilableString(functionApp.DefaultHostName),
-				Usage:                      string(props.UsageState),
-				PublicNetworkAccess:        !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled),
-			}
-
 			basicAuthFTP := true
-			if basicAuthFTPResp, err := client.GetFtpAllowed(ctx, id.ResourceGroup, id.SiteName); err != nil {
+			if basicAuthFTPResp, err := client.GetFtpAllowed(ctx, id); err != nil && basicAuthFTPResp.Model != nil {
 				return fmt.Errorf("retrieving state of FTP Basic Auth for %s: %+v", id, err)
-			} else if csmProps := basicAuthFTPResp.CsmPublishingCredentialsPoliciesEntityProperties; csmProps != nil {
-				basicAuthFTP = pointer.From(csmProps.Allow)
+			} else if csmProps := basicAuthFTPResp.Model.Properties; csmProps != nil {
+				basicAuthFTP = csmProps.Allow
 			}
 
 			basicAuthWebDeploy := true
-			if basicAuthWebDeployResp, err := client.GetScmAllowed(ctx, id.ResourceGroup, id.SiteName); err != nil {
+			if basicAuthWebDeployResp, err := client.GetScmAllowed(ctx, id); err != nil && basicAuthWebDeployResp.Model != nil {
 				return fmt.Errorf("retrieving state of WebDeploy Basic Auth for %s: %+v", id, err)
-			} else if csmProps := basicAuthWebDeployResp.CsmPublishingCredentialsPoliciesEntityProperties; csmProps != nil {
-				basicAuthWebDeploy = pointer.From(csmProps.Allow)
+			} else if csmProps := basicAuthWebDeployResp.Model.Properties; csmProps != nil {
+				basicAuthWebDeploy = csmProps.Allow
 			}
 
-			state.PublishingFTPBasicAuthEnabled = basicAuthFTP
-			state.PublishingDeployBasicAuthEnabled = basicAuthWebDeploy
-
-			if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
-				state.HostingEnvId = pointer.From(hostingEnv.ID)
+			state := LinuxFunctionAppDataSourceModel{
+				Name:                             id.SiteName,
+				ResourceGroup:                    id.ResourceGroupName,
+				PublishingFTPBasicAuthEnabled:    basicAuthFTP,
+				PublishingDeployBasicAuthEnabled: basicAuthWebDeploy,
+				ConnectionStrings:                helpers.FlattenConnectionStrings(connectionStrings.Model),
+				SiteCredentials:                  helpers.FlattenSiteCredentials(siteCredentials),
+				AuthSettings:                     helpers.FlattenAuthSettings(auth.Model),
+				AuthV2Settings:                   helpers.FlattenAuthV2Settings(authV2),
+				Backup:                           helpers.FlattenBackupConfig(backup.Model),
 			}
 
-			if v := props.OutboundIPAddresses; v != nil {
-				state.OutboundIPAddresses = *v
-				state.OutboundIPAddressList = strings.Split(*v, ",")
-			}
+			if model := functionApp.Model; model != nil {
+				state.Location = location.Normalize(model.Location)
+				state.Tags = pointer.From(model.Tags)
+				state.Kind = pointer.From(model.Kind)
 
-			if v := props.PossibleOutboundIPAddresses; v != nil {
-				state.PossibleOutboundIPAddresses = *v
-				state.PossibleOutboundIPAddressList = strings.Split(*v, ",")
-			}
+				if props := model.Properties; props != nil {
+					state.Availability = string(pointer.From(props.AvailabilityState))
+					state.ServicePlanId = pointer.From(props.ServerFarmId)
+					state.Enabled = pointer.From(props.Enabled)
+					state.ClientCertMode = string(pointer.From(props.ClientCertMode))
+					state.ClientCertExclusionPaths = pointer.From(props.ClientCertExclusionPaths)
+					state.DailyMemoryTimeQuota = pointer.From(props.DailyMemoryTimeQuota)
+					state.StickySettings = helpers.FlattenStickySettings(stickySettings.Model.Properties)
+					state.CustomDomainVerificationId = pointer.From(props.CustomDomainVerificationId)
+					state.DefaultHostname = pointer.From(props.DefaultHostName)
+					state.Usage = string(pointer.From(props.UsageState))
+					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
 
-			configResp, err := client.GetConfiguration(ctx, id.ResourceGroup, id.SiteName)
-			if err != nil {
-				return fmt.Errorf("making Read request on AzureRM Function App Configuration %q: %+v", id.SiteName, err)
-			}
+					if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
+						state.HostingEnvId = pointer.From(hostingEnv.Id)
+					}
 
-			siteConfig, err := helpers.FlattenSiteConfigLinuxFunctionApp(configResp.SiteConfig)
-			if err != nil {
-				return fmt.Errorf("reading Site Config for Linux %s: %+v", id, err)
-			}
-			state.SiteConfig = []helpers.SiteConfigLinuxFunctionApp{*siteConfig}
+					if v := props.OutboundIPAddresses; v != nil {
+						state.OutboundIPAddresses = *v
+						state.OutboundIPAddressList = strings.Split(*v, ",")
+					}
 
-			state.unpackLinuxFunctionAppSettings(appSettingsResp, metadata)
+					if v := props.PossibleOutboundIPAddresses; v != nil {
+						state.PossibleOutboundIPAddresses = *v
+						state.PossibleOutboundIPAddressList = strings.Split(*v, ",")
+					}
 
-			state.ConnectionStrings = helpers.FlattenConnectionStrings(connectionStrings)
+					state.HttpsOnly = pointer.From(props.HTTPSOnly)
+					state.ClientCertEnabled = pointer.From(props.ClientCertEnabled)
+					state.VirtualNetworkSubnetID = pointer.From(props.VirtualNetworkSubnetId)
+				}
 
-			state.SiteCredentials = helpers.FlattenSiteCredentials(siteCredentials)
+				configResp, err := client.GetConfiguration(ctx, id)
+				if err != nil || configResp.Model == nil {
+					return fmt.Errorf("making Read request on AzureRM Function App Configuration %q: %+v", id.SiteName, err)
+				}
 
-			state.AuthSettings = helpers.FlattenAuthSettings(auth)
+				siteConfig, err := helpers.FlattenSiteConfigLinuxFunctionApp(configResp.Model.Properties)
+				if err != nil {
+					return fmt.Errorf("reading Site Config for Linux %s: %+v", id, err)
+				}
+				state.SiteConfig = []helpers.SiteConfigLinuxFunctionApp{*siteConfig}
 
-			state.AuthV2Settings = helpers.FlattenAuthV2Settings(authV2)
+				state.unpackLinuxFunctionAppSettings(appSettingsResp.Model, metadata)
 
-			state.Backup = helpers.FlattenBackupConfig(backup)
+				state.SiteConfig[0].AppServiceLogs = helpers.FlattenFunctionAppAppServiceLogs(logs.Model)
 
-			state.SiteConfig[0].AppServiceLogs = helpers.FlattenFunctionAppAppServiceLogs(logs)
+				metadata.SetID(id)
 
-			state.HttpsOnly = utils.NormaliseNilableBool(functionApp.HTTPSOnly)
-			state.ClientCertEnabled = utils.NormaliseNilableBool(functionApp.ClientCertEnabled)
-			state.VirtualNetworkSubnetID = utils.NormalizeNilableString(functionApp.VirtualNetworkSubnetID)
+				if err := metadata.Encode(&state); err != nil {
+					return fmt.Errorf("encoding: %+v", err)
+				}
 
-			metadata.SetID(id)
-
-			if err := metadata.Encode(&state); err != nil {
-				return fmt.Errorf("encoding: %+v", err)
-			}
-
-			flattenedIdentity, err := flattenIdentity(functionApp.Identity)
-			if err != nil {
-				return fmt.Errorf("flattening `identity`: %+v", err)
-			}
-			if err := metadata.ResourceData.Set("identity", flattenedIdentity); err != nil {
-				return fmt.Errorf("setting `identity`: %+v", err)
+				flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
+				if err != nil {
+					return fmt.Errorf("flattening `identity`: %+v", err)
+				}
+				if err := metadata.ResourceData.Set("identity", flattenedIdentity); err != nil {
+					return fmt.Errorf("setting `identity`: %+v", err)
+				}
 			}
 
 			return nil
@@ -453,8 +443,8 @@ func (d LinuxFunctionAppDataSource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (m *LinuxFunctionAppDataSourceModel) unpackLinuxFunctionAppSettings(input web.StringDictionary, metadata sdk.ResourceMetaData) {
-	if input.Properties == nil {
+func (m *LinuxFunctionAppDataSourceModel) unpackLinuxFunctionAppSettings(input *webapps.StringDictionary, metadata sdk.ResourceMetaData) {
+	if input == nil || input.Properties == nil {
 		return
 	}
 
@@ -462,46 +452,46 @@ func (m *LinuxFunctionAppDataSourceModel) unpackLinuxFunctionAppSettings(input w
 	var dockerSettings helpers.ApplicationStackDocker
 	m.BuiltinLogging = false
 
-	for k, v := range input.Properties {
+	for k, v := range *input.Properties {
 		switch k {
 		case "FUNCTIONS_EXTENSION_VERSION":
-			m.FunctionExtensionsVersion = utils.NormalizeNilableString(v)
+			m.FunctionExtensionsVersion = v
 
 		case "WEBSITE_NODE_DEFAULT_VERSION": // Note - This is no longer used in Linux Apps
 		case "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING":
 			if _, ok := metadata.ResourceData.GetOk("app_settings.WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"); ok {
-				appSettings[k] = utils.NormalizeNilableString(v)
+				appSettings[k] = v
 			}
 		case "WEBSITE_CONTENTSHARE":
 			if _, ok := metadata.ResourceData.GetOk("app_settings.WEBSITE_CONTENTSHARE"); ok {
-				appSettings[k] = utils.NormalizeNilableString(v)
+				appSettings[k] = v
 			}
 		case "WEBSITE_HTTPLOGGING_RETENTION_DAYS":
 		case "FUNCTIONS_WORKER_RUNTIME":
 			if len(m.SiteConfig[0].ApplicationStack) > 0 {
-				m.SiteConfig[0].ApplicationStack[0].CustomHandler = strings.EqualFold(*v, "custom")
+				m.SiteConfig[0].ApplicationStack[0].CustomHandler = strings.EqualFold(v, "custom")
 			}
 
 		case "DOCKER_REGISTRY_SERVER_URL":
-			dockerSettings.RegistryURL = utils.NormalizeNilableString(v)
+			dockerSettings.RegistryURL = v
 
 		case "DOCKER_REGISTRY_SERVER_USERNAME":
-			dockerSettings.RegistryUsername = utils.NormalizeNilableString(v)
+			dockerSettings.RegistryUsername = v
 
 		case "DOCKER_REGISTRY_SERVER_PASSWORD":
-			dockerSettings.RegistryPassword = utils.NormalizeNilableString(v)
+			dockerSettings.RegistryPassword = v
 
 		// case "WEBSITES_ENABLE_APP_SERVICE_STORAGE": // TODO - Support this as a configurable bool, default `false` - Ref: https://docs.microsoft.com/en-us/azure/app-service/faq-app-service-linux#i-m-using-my-own-custom-container--i-want-the-platform-to-mount-an-smb-share-to-the---home---directory-
 
 		case "APPINSIGHTS_INSTRUMENTATIONKEY":
-			m.SiteConfig[0].AppInsightsInstrumentationKey = utils.NormalizeNilableString(v)
+			m.SiteConfig[0].AppInsightsInstrumentationKey = v
 
 		case "APPLICATIONINSIGHTS_CONNECTION_STRING":
-			m.SiteConfig[0].AppInsightsConnectionString = utils.NormalizeNilableString(v)
+			m.SiteConfig[0].AppInsightsConnectionString = v
 
 		case "AzureWebJobsStorage":
-			if v != nil && strings.HasPrefix(*v, "@Microsoft.KeyVault") {
-				trimmed := strings.TrimPrefix(strings.TrimSuffix(*v, ")"), "@Microsoft.KeyVault(")
+			if strings.HasPrefix(v, "@Microsoft.KeyVault") {
+				trimmed := strings.TrimPrefix(strings.TrimSuffix(v, ")"), "@Microsoft.KeyVault(")
 				m.StorageKeyVaultSecretID = trimmed
 			} else {
 				m.StorageAccountName, m.StorageAccountKey = helpers.ParseWebJobsStorageString(v)
@@ -511,11 +501,11 @@ func (m *LinuxFunctionAppDataSourceModel) unpackLinuxFunctionAppSettings(input w
 			m.BuiltinLogging = true
 
 		case "WEBSITE_HEALTHCHECK_MAXPINGFAILURES":
-			i, _ := strconv.Atoi(utils.NormalizeNilableString(v))
-			m.SiteConfig[0].HealthCheckEvictionTime = utils.NormaliseNilableInt(&i)
+			i, _ := strconv.Atoi(v)
+			m.SiteConfig[0].HealthCheckEvictionTime = int64(i)
 
 		default:
-			appSettings[k] = utils.NormalizeNilableString(v)
+			appSettings[k] = v
 		}
 	}
 

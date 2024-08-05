@@ -10,6 +10,8 @@ description: |-
 
 Manages an AlertingAction Scheduled Query Rules resource within Azure Monitor.
 
+-> **Warning** This resource is using an older AzureRM API version which is known to cause problems e.g. with custom webhook properties not included in triggered alerts. This resource is superseded by the [azurerm_monitor_scheduled_query_rules_alert_v2](./monitor_scheduled_query_rules_alert_v2.html.markdown) resource using newer API versions.
+
 ## Example Usage
 
 ```hcl
@@ -108,7 +110,7 @@ The following arguments are supported:
 * `name` - (Required) The name of the scheduled query rule. Changing this forces a new resource to be created.
 * `resource_group_name` - (Required) The name of the resource group in which to create the scheduled query rule instance. Changing this forces a new resource to be created.
 * `location` - (Required) Specifies the Azure Region where the resource should exist. Changing this forces a new resource to be created.
-* `data_source_id` - (Required) The resource URI over which log search query is to be run.
+* `data_source_id` - (Required) The resource URI over which log search query is to be run. Changing this forces a new resource to be created.
 * `frequency` - (Required) Frequency (in minutes) at which rule condition should be evaluated. Values must be between 5 and 1440 (inclusive).
 * `query` - (Required) Log search query.
 * `time_window` - (Required) Time window for which data needs to be fetched for query (must be greater than or equal to `frequency`). Values must be between 5 and 2880 (inclusive).

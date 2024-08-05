@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package util
 
 func Slice2Map(in []string) (out map[string]struct{}) {

@@ -146,6 +146,8 @@ redis_configuration {
 * `maxmemory_delta` - (Optional) The max-memory delta for this Redis instance. Defaults are shown below.
 * `maxmemory_policy` - (Optional) How Redis will select what to remove when `maxmemory` is reached. Defaults to `volatile-lru`.
 
+* `data_persistence_authentication_method` - (Optional) Preferred auth method to communicate to storage account used for data persistence. Possible values are `SAS` and `ManagedIdentity`. Defaults to `SAS`.
+
 * `maxfragmentationmemory_reserved` - (Optional) Value in megabytes reserved to accommodate for memory fragmentation. Defaults are shown below.
 
 * `rdb_backup_enabled` - (Optional) Is Backup Enabled? Only supported on Premium SKUs. Defaults to `false`.
@@ -163,7 +165,7 @@ redis_configuration {
 ```hcl
 resource "azurerm_redis_cache" "example" {
   # ...
-  ignore_changes = [redis_configuration.0.rdb_storage_connection_string]
+  ignore_changes = [redis_configuration[0].rdb_storage_connection_string]
 }
 ```
 
@@ -226,10 +228,10 @@ A `redis_configuration` block exports the following:
 
  The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 90 minutes) Used when creating the Redis Cache.
-* `update` - (Defaults to 90 minutes) Used when updating the Redis Cache.
+* `create` - (Defaults to 180 minutes) Used when creating the Redis Cache.
+* `update` - (Defaults to 180 minutes) Used when updating the Redis Cache.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Redis Cache.
-* `delete` - (Defaults to 90 minutes) Used when deleting the Redis Cache.
+* `delete` - (Defaults to 180 minutes) Used when deleting the Redis Cache.
 
 ## Import
 

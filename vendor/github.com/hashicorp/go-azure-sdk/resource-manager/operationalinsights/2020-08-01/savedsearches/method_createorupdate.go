@@ -47,7 +47,10 @@ func (c SavedSearchesClient) CreateOrUpdate(ctx context.Context, id SavedSearchI
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model SavedSearch
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

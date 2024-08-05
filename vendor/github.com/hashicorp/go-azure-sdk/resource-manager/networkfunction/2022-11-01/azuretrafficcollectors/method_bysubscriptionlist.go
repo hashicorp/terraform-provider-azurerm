@@ -20,7 +20,20 @@ type BySubscriptionListOperationResponse struct {
 }
 
 type BySubscriptionListCompleteResult struct {
-	Items []AzureTrafficCollector
+	LatestHttpResponse *http.Response
+	Items              []AzureTrafficCollector
+}
+
+type BySubscriptionListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *BySubscriptionListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // BySubscriptionList ...
@@ -31,6 +44,7 @@ func (c AzureTrafficCollectorsClient) BySubscriptionList(ctx context.Context, id
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &BySubscriptionListCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.NetworkFunction/azureTrafficCollectors", id.ID()),
 	}
 
@@ -72,6 +86,7 @@ func (c AzureTrafficCollectorsClient) BySubscriptionListCompleteMatchingPredicat
 
 	resp, err := c.BySubscriptionList(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -84,7 +99,8 @@ func (c AzureTrafficCollectorsClient) BySubscriptionListCompleteMatchingPredicat
 	}
 
 	result = BySubscriptionListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -20,7 +20,8 @@ type DedicatedHsmListByResourceGroupOperationResponse struct {
 }
 
 type DedicatedHsmListByResourceGroupCompleteResult struct {
-	Items []DedicatedHsm
+	LatestHttpResponse *http.Response
+	Items              []DedicatedHsm
 }
 
 type DedicatedHsmListByResourceGroupOperationOptions struct {
@@ -50,6 +51,18 @@ func (o DedicatedHsmListByResourceGroupOperationOptions) ToQuery() *client.Query
 	return &out
 }
 
+type DedicatedHsmListByResourceGroupCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *DedicatedHsmListByResourceGroupCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // DedicatedHsmListByResourceGroup ...
 func (c DedicatedHsmsClient) DedicatedHsmListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId, options DedicatedHsmListByResourceGroupOperationOptions) (result DedicatedHsmListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -58,8 +71,9 @@ func (c DedicatedHsmsClient) DedicatedHsmListByResourceGroup(ctx context.Context
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/providers/Microsoft.HardwareSecurityModules/dedicatedHSMs", id.ID()),
 		OptionsObject: options,
+		Pager:         &DedicatedHsmListByResourceGroupCustomPager{},
+		Path:          fmt.Sprintf("%s/providers/Microsoft.HardwareSecurityModules/dedicatedHSMs", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -100,6 +114,7 @@ func (c DedicatedHsmsClient) DedicatedHsmListByResourceGroupCompleteMatchingPred
 
 	resp, err := c.DedicatedHsmListByResourceGroup(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -112,7 +127,8 @@ func (c DedicatedHsmsClient) DedicatedHsmListByResourceGroupCompleteMatchingPred
 	}
 
 	result = DedicatedHsmListByResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

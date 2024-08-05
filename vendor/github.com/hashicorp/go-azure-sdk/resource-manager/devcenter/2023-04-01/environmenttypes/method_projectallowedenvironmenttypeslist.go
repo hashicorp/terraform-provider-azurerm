@@ -19,7 +19,8 @@ type ProjectAllowedEnvironmentTypesListOperationResponse struct {
 }
 
 type ProjectAllowedEnvironmentTypesListCompleteResult struct {
-	Items []AllowedEnvironmentType
+	LatestHttpResponse *http.Response
+	Items              []AllowedEnvironmentType
 }
 
 type ProjectAllowedEnvironmentTypesListOperationOptions struct {
@@ -49,6 +50,18 @@ func (o ProjectAllowedEnvironmentTypesListOperationOptions) ToQuery() *client.Qu
 	return &out
 }
 
+type ProjectAllowedEnvironmentTypesListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ProjectAllowedEnvironmentTypesListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ProjectAllowedEnvironmentTypesList ...
 func (c EnvironmentTypesClient) ProjectAllowedEnvironmentTypesList(ctx context.Context, id ProjectId, options ProjectAllowedEnvironmentTypesListOperationOptions) (result ProjectAllowedEnvironmentTypesListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -57,8 +70,9 @@ func (c EnvironmentTypesClient) ProjectAllowedEnvironmentTypesList(ctx context.C
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/allowedEnvironmentTypes", id.ID()),
 		OptionsObject: options,
+		Pager:         &ProjectAllowedEnvironmentTypesListCustomPager{},
+		Path:          fmt.Sprintf("%s/allowedEnvironmentTypes", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -99,6 +113,7 @@ func (c EnvironmentTypesClient) ProjectAllowedEnvironmentTypesListCompleteMatchi
 
 	resp, err := c.ProjectAllowedEnvironmentTypesList(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -111,7 +126,8 @@ func (c EnvironmentTypesClient) ProjectAllowedEnvironmentTypesListCompleteMatchi
 	}
 
 	result = ProjectAllowedEnvironmentTypesListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -48,7 +48,10 @@ func (c ApplicationsClient) ListTokens(ctx context.Context, id ApplicationId, in
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ManagedIdentityTokenResult
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

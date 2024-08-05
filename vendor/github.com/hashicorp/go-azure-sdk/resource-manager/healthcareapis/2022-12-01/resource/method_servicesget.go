@@ -43,7 +43,10 @@ func (c ResourceClient) ServicesGet(ctx context.Context, id ServiceId) (result S
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ServicesDescription
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

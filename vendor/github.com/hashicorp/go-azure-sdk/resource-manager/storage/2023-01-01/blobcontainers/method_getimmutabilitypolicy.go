@@ -54,8 +54,8 @@ func (c BlobContainersClient) GetImmutabilityPolicy(ctx context.Context, id comm
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/immutabilityPolicies/default", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/immutabilityPolicies/default", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -73,7 +73,10 @@ func (c BlobContainersClient) GetImmutabilityPolicy(ctx context.Context, id comm
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ImmutabilityPolicy
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

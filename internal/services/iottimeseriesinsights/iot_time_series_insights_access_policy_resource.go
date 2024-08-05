@@ -31,6 +31,8 @@ func resourceIoTTimeSeriesInsightsAccessPolicy() *pluginsdk.Resource {
 			return err
 		}),
 
+		DeprecationMessage: "Azure Time Series Insight will be retired on 2025-03-31. As a result the `azurerm_iot_time_series_insights_access_policy` resource has been deprecated and will be removed in v4.0 of the AzureRM Provider.",
+
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),

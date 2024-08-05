@@ -45,7 +45,10 @@ func (c ApiManagementServiceClient) GetDomainOwnershipIdentifier(ctx context.Con
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ApiManagementServiceGetDomainOwnershipIdentifierResult
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -44,7 +44,10 @@ func (c VirtualMachinesClient) ListApplicableSchedules(ctx context.Context, id V
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ApplicableSchedule
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

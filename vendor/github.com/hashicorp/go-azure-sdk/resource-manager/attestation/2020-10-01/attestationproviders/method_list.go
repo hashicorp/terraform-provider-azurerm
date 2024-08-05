@@ -45,7 +45,10 @@ func (c AttestationProvidersClient) List(ctx context.Context, id commonids.Subsc
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model AttestationProviderListResult
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

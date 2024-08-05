@@ -47,7 +47,10 @@ func (c SIMGroupClient) UpdateTags(ctx context.Context, id SimGroupId, input Tag
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model SimGroup
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

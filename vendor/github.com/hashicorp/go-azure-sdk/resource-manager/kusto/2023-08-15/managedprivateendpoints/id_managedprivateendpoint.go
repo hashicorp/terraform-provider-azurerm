@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ManagedPrivateEndpointId{}
+func init() {
+	recaser.RegisterResourceId(&ManagedPrivateEndpointId{})
+}
+
+var _ resourceids.ResourceId = &ManagedPrivateEndpointId{}
 
 // ManagedPrivateEndpointId is a struct representing the Resource ID for a Managed Private Endpoint
 type ManagedPrivateEndpointId struct {
@@ -32,7 +37,7 @@ func NewManagedPrivateEndpointID(subscriptionId string, resourceGroupName string
 
 // ParseManagedPrivateEndpointID parses 'input' into a ManagedPrivateEndpointId
 func ParseManagedPrivateEndpointID(input string) (*ManagedPrivateEndpointId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ManagedPrivateEndpointId{})
+	parser := resourceids.NewParserFromResourceIdType(&ManagedPrivateEndpointId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +54,7 @@ func ParseManagedPrivateEndpointID(input string) (*ManagedPrivateEndpointId, err
 // ParseManagedPrivateEndpointIDInsensitively parses 'input' case-insensitively into a ManagedPrivateEndpointId
 // note: this method should only be used for API response data and not user input
 func ParseManagedPrivateEndpointIDInsensitively(input string) (*ManagedPrivateEndpointId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ManagedPrivateEndpointId{})
+	parser := resourceids.NewParserFromResourceIdType(&ManagedPrivateEndpointId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

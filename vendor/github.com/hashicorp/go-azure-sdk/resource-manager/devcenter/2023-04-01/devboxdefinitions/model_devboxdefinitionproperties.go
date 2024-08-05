@@ -6,10 +6,10 @@ package devboxdefinitions
 type DevBoxDefinitionProperties struct {
 	ActiveImageReference        *ImageReference              `json:"activeImageReference,omitempty"`
 	HibernateSupport            *HibernateSupport            `json:"hibernateSupport,omitempty"`
-	ImageReference              ImageReference               `json:"imageReference"`
+	ImageReference              *ImageReference              `json:"imageReference,omitempty"`
 	ImageValidationErrorDetails *ImageValidationErrorDetails `json:"imageValidationErrorDetails,omitempty"`
 	ImageValidationStatus       *ImageValidationStatus       `json:"imageValidationStatus,omitempty"`
 	OsStorageType               *string                      `json:"osStorageType,omitempty"`
 	ProvisioningState           *ProvisioningState           `json:"provisioningState,omitempty"`
-	Sku                         Sku                          `json:"sku"`
+	Sku                         *Sku                         `json:"sku,omitempty"`
 }

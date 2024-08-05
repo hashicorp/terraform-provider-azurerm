@@ -162,13 +162,19 @@ func resourcePurviewAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	keys, err := client.ListKeys(ctx, *id)
-	if err != nil {
-		return fmt.Errorf("retrieving Keys for %s: %+v", *id, err)
-	}
+	if err == nil {
+		if model := keys.Model; model != nil {
+			d.Set("atlas_kafka_endpoint_primary_connection_string", model.AtlasKafkaPrimaryEndpoint)
+			d.Set("atlas_kafka_endpoint_secondary_connection_string", model.AtlasKafkaSecondaryEndpoint)
+		}
+	} else {
+		// if eventhubs have been disabled we will get a response was not found, so we can ignore that error
+		if !response.WasNotFound(keys.HttpResponse) {
+			return fmt.Errorf("retrieving Keys for %s: %+v", *id, err)
+		}
 
-	if model := keys.Model; model != nil {
-		d.Set("atlas_kafka_endpoint_primary_connection_string", model.AtlasKafkaPrimaryEndpoint)
-		d.Set("atlas_kafka_endpoint_secondary_connection_string", model.AtlasKafkaSecondaryEndpoint)
+		d.Set("atlas_kafka_endpoint_primary_connection_string", "")
+		d.Set("atlas_kafka_endpoint_secondary_connection_string", "")
 	}
 
 	return nil

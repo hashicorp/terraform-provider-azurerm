@@ -8,16 +8,15 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/loadbalancers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func resourceArmLoadBalancerOutboundRule() *pluginsdk.Resource {
@@ -27,13 +26,13 @@ func resourceArmLoadBalancerOutboundRule() *pluginsdk.Resource {
 		Update: resourceArmLoadBalancerOutboundRuleCreateUpdate,
 		Delete: resourceArmLoadBalancerOutboundRuleDelete,
 
-		Importer: loadBalancerSubResourceImporter(func(input string) (*parse.LoadBalancerId, error) {
-			id, err := parse.LoadBalancerOutboundRuleID(input)
+		Importer: loadBalancerSubResourceImporter(func(input string) (*loadbalancers.LoadBalancerId, error) {
+			id, err := loadbalancers.ParseOutboundRuleID(input)
 			if err != nil {
 				return nil, err
 			}
 
-			lbId := parse.NewLoadBalancerID(id.SubscriptionId, id.ResourceGroup, id.LoadBalancerName)
+			lbId := loadbalancers.NewLoadBalancerID(id.SubscriptionId, id.ResourceGroupName, id.LoadBalancerName)
 			return &lbId, nil
 		}),
 
@@ -56,7 +55,7 @@ func resourceArmLoadBalancerOutboundRule() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.LoadBalancerID,
+				ValidateFunc: loadbalancers.ValidateLoadBalancerID,
 			},
 
 			"frontend_ip_configuration": {
@@ -88,9 +87,9 @@ func resourceArmLoadBalancerOutboundRule() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(network.TransportProtocolAll),
-					string(network.TransportProtocolTCP),
-					string(network.TransportProtocolUDP),
+					string(loadbalancers.TransportProtocolAll),
+					string(loadbalancers.TransportProtocolTcp),
+					string(loadbalancers.TransportProtocolUdp),
 				}, false),
 			},
 
@@ -123,59 +122,60 @@ func resourceArmLoadBalancerOutboundRuleCreateUpdate(d *pluginsdk.ResourceData, 
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	loadBalancerId, err := parse.LoadBalancerID(d.Get("loadbalancer_id").(string))
+	loadBalancerId, err := loadbalancers.ParseLoadBalancerID(d.Get("loadbalancer_id").(string))
 	if err != nil {
 		return err
 	}
 	loadBalancerIDRaw := loadBalancerId.ID()
-	id := parse.NewLoadBalancerOutboundRuleID(subscriptionId, loadBalancerId.ResourceGroup, loadBalancerId.Name, d.Get("name").(string))
+	id := loadbalancers.NewOutboundRuleID(subscriptionId, loadBalancerId.ResourceGroupName, loadBalancerId.LoadBalancerName, d.Get("name").(string))
 	locks.ByID(loadBalancerIDRaw)
 	defer locks.UnlockByID(loadBalancerIDRaw)
 
-	loadBalancer, err := client.Get(ctx, loadBalancerId.ResourceGroup, loadBalancerId.Name, "")
+	plbId := loadbalancers.ProviderLoadBalancerId{SubscriptionId: id.SubscriptionId, ResourceGroupName: id.ResourceGroupName, LoadBalancerName: id.LoadBalancerName}
+	loadBalancer, err := client.Get(ctx, plbId, loadbalancers.GetOperationOptions{})
 	if err != nil {
-		if utils.ResponseWasNotFound(loadBalancer.Response) {
+		if response.WasNotFound(loadBalancer.HttpResponse) {
 			d.SetId("")
 			log.Printf("[INFO] Load Balancer %q not found. Removing from state", id.LoadBalancerName)
 			return nil
 		}
-		return fmt.Errorf("failed to retrieve Load Balancer %q (resource group %q) for Outbound Rule %q: %+v", id.LoadBalancerName, id.ResourceGroup, id.OutboundRuleName, err)
+		return fmt.Errorf("retrieving %s: %+v", *loadBalancerId, err)
 	}
 
-	newOutboundRule, err := expandAzureRmLoadBalancerOutboundRule(d, &loadBalancer)
-	if err != nil {
-		return fmt.Errorf("expanding Load Balancer Outbound Rule: %+v", err)
-	}
+	if model := loadBalancer.Model; model != nil {
+		newOutboundRule, err := expandAzureRmLoadBalancerOutboundRule(d, model)
+		if err != nil {
+			return fmt.Errorf("expanding Load Balancer Outbound Rule: %+v", err)
+		}
 
-	outboundRules := make([]network.OutboundRule, 0)
+		outboundRules := make([]loadbalancers.OutboundRule, 0)
 
-	if loadBalancer.LoadBalancerPropertiesFormat.OutboundRules != nil {
-		outboundRules = *loadBalancer.LoadBalancerPropertiesFormat.OutboundRules
-	}
-
-	existingOutboundRule, existingOutboundRuleIndex, exists := FindLoadBalancerOutboundRuleByName(&loadBalancer, id.OutboundRuleName)
-	if exists {
-		if id.OutboundRuleName == *existingOutboundRule.Name {
-			if d.IsNewResource() {
-				return tf.ImportAsExistsError("azurerm_lb_outbound_rule", *existingOutboundRule.ID)
+		if props := model.Properties; props != nil {
+			if props.OutboundRules != nil {
+				outboundRules = pointer.From(props.OutboundRules)
 			}
 
-			// this outbound rule is being updated/reapplied remove old copy from the slice
-			outboundRules = append(outboundRules[:existingOutboundRuleIndex], outboundRules[existingOutboundRuleIndex+1:]...)
+			existingOutboundRule, existingOutboundRuleIndex, exists := FindLoadBalancerOutboundRuleByName(model, id.OutboundRuleName)
+			if exists {
+				if id.OutboundRuleName == *existingOutboundRule.Name {
+					if d.IsNewResource() {
+						return tf.ImportAsExistsError("azurerm_lb_outbound_rule", *existingOutboundRule.Id)
+					}
+
+					// this outbound rule is being updated/reapplied remove old copy from the slice
+					outboundRules = append(outboundRules[:existingOutboundRuleIndex], outboundRules[existingOutboundRuleIndex+1:]...)
+				}
+			}
+
+			outboundRules = append(outboundRules, *newOutboundRule)
+
+			props.OutboundRules = &outboundRules
+
+			err := client.CreateOrUpdateThenPoll(ctx, plbId, *model)
+			if err != nil {
+				return fmt.Errorf("creating/updating %s: %+v", id, err)
+			}
 		}
-	}
-
-	outboundRules = append(outboundRules, *newOutboundRule)
-
-	loadBalancer.LoadBalancerPropertiesFormat.OutboundRules = &outboundRules
-
-	future, err := client.CreateOrUpdate(ctx, loadBalancerId.ResourceGroup, loadBalancerId.Name, loadBalancer)
-	if err != nil {
-		return fmt.Errorf("updating LoadBalancer %q (resource group %q) for Outbound Rule %q: %+v", id.LoadBalancerName, id.ResourceGroup, id.OutboundRuleName, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for update of Load Balancer %q (resource group %q) for Outbound Rule %q: %+v", id.LoadBalancerName, id.ResourceGroup, id.OutboundRuleName, err)
 	}
 
 	d.SetId(id.ID())
@@ -188,74 +188,72 @@ func resourceArmLoadBalancerOutboundRuleRead(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.LoadBalancerOutboundRuleID(d.Id())
+	id, err := loadbalancers.ParseOutboundRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	loadBalancer, err := client.Get(ctx, id.ResourceGroup, id.LoadBalancerName, "")
+	plbId := loadbalancers.ProviderLoadBalancerId{SubscriptionId: id.SubscriptionId, ResourceGroupName: id.ResourceGroupName, LoadBalancerName: id.LoadBalancerName}
+	loadBalancer, err := client.Get(ctx, plbId, loadbalancers.GetOperationOptions{})
 	if err != nil {
-		if utils.ResponseWasNotFound(loadBalancer.Response) {
+		if response.WasNotFound(loadBalancer.HttpResponse) {
 			d.SetId("")
 			log.Printf("[INFO] Load Balancer %q not found. Removing from state", id.LoadBalancerName)
 			return nil
 		}
-		return fmt.Errorf("failed to retrieve Load Balancer %q (resource group %q) for Outbound Rule %q: %+v", id.LoadBalancerName, id.ResourceGroup, id.OutboundRuleName, err)
+		return fmt.Errorf("retrieving %s: %+v", plbId, err)
 	}
 
-	config, _, exists := FindLoadBalancerOutboundRuleByName(&loadBalancer, id.OutboundRuleName)
-	if !exists {
-		d.SetId("")
-		log.Printf("[INFO] Load Balancer Outbound Rule %q not found. Removing from state", id.OutboundRuleName)
-		return nil
-	}
-
-	d.Set("name", config.Name)
-
-	if props := config.OutboundRulePropertiesFormat; props != nil {
-		allocatedOutboundPorts := 0
-		if props.AllocatedOutboundPorts != nil {
-			allocatedOutboundPorts = int(*props.AllocatedOutboundPorts)
+	if model := loadBalancer.Model; model != nil {
+		config, _, exists := FindLoadBalancerOutboundRuleByName(model, id.OutboundRuleName)
+		if !exists {
+			d.SetId("")
+			log.Printf("[INFO] Load Balancer Outbound Rule %q not found. Removing from state", id.OutboundRuleName)
+			return nil
 		}
-		d.Set("allocated_outbound_ports", allocatedOutboundPorts)
 
-		backendAddressPoolId := ""
-		if props.BackendAddressPool != nil && props.BackendAddressPool.ID != nil {
-			bapid, err := parse.LoadBalancerBackendAddressPoolIDInsensitively(*props.BackendAddressPool.ID)
-			if err != nil {
-				return err
+		d.Set("name", config.Name)
+
+		if props := config.Properties; props != nil {
+			allocatedOutboundPorts := 0
+			if props.AllocatedOutboundPorts != nil {
+				allocatedOutboundPorts = int(*props.AllocatedOutboundPorts)
 			}
+			d.Set("allocated_outbound_ports", allocatedOutboundPorts)
 
-			backendAddressPoolId = bapid.ID()
-		}
-		d.Set("backend_address_pool_id", backendAddressPoolId)
-		d.Set("enable_tcp_reset", props.EnableTCPReset)
-
-		frontendIpConfigurations := make([]interface{}, 0)
-		if configs := props.FrontendIPConfigurations; configs != nil {
-			for _, feConfig := range *configs {
-				if feConfig.ID == nil {
-					continue
-				}
-				feid, err := parse.LoadBalancerFrontendIpConfigurationIDInsensitively(*feConfig.ID)
+			backendAddressPoolId := ""
+			if props.BackendAddressPool.Id != nil {
+				bapid, err := loadbalancers.ParseLoadBalancerBackendAddressPoolIDInsensitively(*props.BackendAddressPool.Id)
 				if err != nil {
 					return err
 				}
 
-				frontendIpConfigurations = append(frontendIpConfigurations, map[string]interface{}{
-					"id":   feid.ID(),
-					"name": feid.FrontendIPConfigurationName,
-				})
+				backendAddressPoolId = bapid.ID()
 			}
-		}
-		d.Set("frontend_ip_configuration", frontendIpConfigurations)
+			d.Set("backend_address_pool_id", backendAddressPoolId)
+			d.Set("enable_tcp_reset", props.EnableTcpReset)
 
-		idleTimeoutInMinutes := 0
-		if props.IdleTimeoutInMinutes != nil {
-			idleTimeoutInMinutes = int(*props.IdleTimeoutInMinutes)
+			frontendIpConfigurations := make([]interface{}, 0)
+			if configs := props.FrontendIPConfigurations; configs != nil {
+				for _, feConfig := range configs {
+					if feConfig.Id == nil {
+						continue
+					}
+					feid, err := loadbalancers.ParseFrontendIPConfigurationIDInsensitively(*feConfig.Id)
+					if err != nil {
+						return err
+					}
+
+					frontendIpConfigurations = append(frontendIpConfigurations, map[string]interface{}{
+						"id":   feid.ID(),
+						"name": feid.FrontendIPConfigurationName,
+					})
+				}
+			}
+			d.Set("frontend_ip_configuration", frontendIpConfigurations)
+			d.Set("idle_timeout_in_minutes", int(pointer.From(props.IdleTimeoutInMinutes)))
+			d.Set("protocol", string(props.Protocol))
 		}
-		d.Set("idle_timeout_in_minutes", idleTimeoutInMinutes)
-		d.Set("protocol", string(props.Protocol))
 	}
 
 	return nil
@@ -266,54 +264,54 @@ func resourceArmLoadBalancerOutboundRuleDelete(d *pluginsdk.ResourceData, meta i
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.LoadBalancerOutboundRuleID(d.Id())
+	id, err := loadbalancers.ParseOutboundRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	loadBalancerId := parse.NewLoadBalancerID(id.SubscriptionId, id.ResourceGroup, id.LoadBalancerName)
+	loadBalancerId := loadbalancers.NewLoadBalancerID(id.SubscriptionId, id.ResourceGroupName, id.LoadBalancerName)
 	loadBalancerID := loadBalancerId.ID()
 	locks.ByID(loadBalancerID)
 	defer locks.UnlockByID(loadBalancerID)
 
-	loadBalancer, err := client.Get(ctx, loadBalancerId.ResourceGroup, loadBalancerId.Name, "")
+	plbId := loadbalancers.ProviderLoadBalancerId{SubscriptionId: id.SubscriptionId, ResourceGroupName: id.ResourceGroupName, LoadBalancerName: id.LoadBalancerName}
+	loadBalancer, err := client.Get(ctx, plbId, loadbalancers.GetOperationOptions{})
 	if err != nil {
-		if utils.ResponseWasNotFound(loadBalancer.Response) {
+		if response.WasNotFound(loadBalancer.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("failed to retrieve Load Balancer %q (resource group %q) for Outbound Rule %q: %+v", id.LoadBalancerName, id.ResourceGroup, id.OutboundRuleName, err)
+		return fmt.Errorf("retrieving %s: %+v", loadBalancerId, err)
 	}
 
-	_, index, exists := FindLoadBalancerOutboundRuleByName(&loadBalancer, id.OutboundRuleName)
-	if !exists {
-		return nil
+	if model := loadBalancer.Model; model != nil {
+		_, index, exists := FindLoadBalancerOutboundRuleByName(model, id.OutboundRuleName)
+		if !exists {
+			return nil
+		}
+
+		if props := model.Properties; props != nil {
+			outboundRules := *props.OutboundRules
+			outboundRules = append(outboundRules[:index], outboundRules[index+1:]...)
+			props.OutboundRules = &outboundRules
+
+			err := client.CreateOrUpdateThenPoll(ctx, plbId, *model)
+			if err != nil {
+				return fmt.Errorf("updating %s: %+v", *id, err)
+			}
+		}
 	}
-
-	outboundRules := *loadBalancer.LoadBalancerPropertiesFormat.OutboundRules
-	outboundRules = append(outboundRules[:index], outboundRules[index+1:]...)
-	loadBalancer.LoadBalancerPropertiesFormat.OutboundRules = &outboundRules
-
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.LoadBalancerName, loadBalancer)
-	if err != nil {
-		return fmt.Errorf("updating Load Balancer %q (Resource Group %q) for Outbound Rule %q: %+v", id.LoadBalancerName, id.ResourceGroup, id.OutboundRuleName, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for update of Load Balancer %q (Resource Group %q) for Outbound Rule %q: %+v", id.LoadBalancerName, id.ResourceGroup, id.OutboundRuleName, err)
-	}
-
 	return nil
 }
 
-func expandAzureRmLoadBalancerOutboundRule(d *pluginsdk.ResourceData, lb *network.LoadBalancer) (*network.OutboundRule, error) {
-	properties := network.OutboundRulePropertiesFormat{
-		Protocol:               network.LoadBalancerOutboundRuleProtocol(d.Get("protocol").(string)),
-		AllocatedOutboundPorts: utils.Int32(int32(d.Get("allocated_outbound_ports").(int))),
+func expandAzureRmLoadBalancerOutboundRule(d *pluginsdk.ResourceData, lb *loadbalancers.LoadBalancer) (*loadbalancers.OutboundRule, error) {
+	properties := loadbalancers.OutboundRulePropertiesFormat{
+		Protocol:               loadbalancers.LoadBalancerOutboundRuleProtocol(d.Get("protocol").(string)),
+		AllocatedOutboundPorts: pointer.To(int64(d.Get("allocated_outbound_ports").(int))),
 	}
 
 	feConfigs := d.Get("frontend_ip_configuration").([]interface{})
-	feConfigSubResources := make([]network.SubResource, 0)
+	feConfigSubResources := make([]loadbalancers.SubResource, 0)
 
 	for _, raw := range feConfigs {
 		v := raw.(map[string]interface{})
@@ -322,31 +320,31 @@ func expandAzureRmLoadBalancerOutboundRule(d *pluginsdk.ResourceData, lb *networ
 			return nil, fmt.Errorf("[ERROR] Cannot find FrontEnd IP Configuration with the name %s", v["name"])
 		}
 
-		feConfigSubResource := network.SubResource{
-			ID: rule.ID,
+		feConfigSubResource := loadbalancers.SubResource{
+			Id: rule.Id,
 		}
 
 		feConfigSubResources = append(feConfigSubResources, feConfigSubResource)
 	}
 
-	properties.FrontendIPConfigurations = &feConfigSubResources
+	properties.FrontendIPConfigurations = feConfigSubResources
 
 	if v := d.Get("backend_address_pool_id").(string); v != "" {
-		properties.BackendAddressPool = &network.SubResource{
-			ID: &v,
+		properties.BackendAddressPool = loadbalancers.SubResource{
+			Id: &v,
 		}
 	}
 
 	if v, ok := d.GetOk("idle_timeout_in_minutes"); ok {
-		properties.IdleTimeoutInMinutes = utils.Int32(int32(v.(int)))
+		properties.IdleTimeoutInMinutes = pointer.To(int64(v.(int)))
 	}
 
 	if v, ok := d.GetOk("enable_tcp_reset"); ok {
-		properties.EnableTCPReset = utils.Bool(v.(bool))
+		properties.EnableTcpReset = pointer.To(v.(bool))
 	}
 
-	return &network.OutboundRule{
-		Name:                         utils.String(d.Get("name").(string)),
-		OutboundRulePropertiesFormat: &properties,
+	return &loadbalancers.OutboundRule{
+		Name:       pointer.To(d.Get("name").(string)),
+		Properties: &properties,
 	}, nil
 }

@@ -18,6 +18,7 @@ type CreateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *StreamingEndpoint
 }
 
 type CreateOperationOptions struct {
@@ -56,8 +57,8 @@ func (c StreamingEndpointsClient) Create(ctx context.Context, id StreamingEndpoi
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPut,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

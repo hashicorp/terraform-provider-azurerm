@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2023-08-01/clusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/clusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -28,6 +28,27 @@ func TestAccStackHCICluster_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("cloud_id").IsNotEmpty(),
+				check.That(data.ResourceName).Key("service_endpoint").IsNotEmpty(),
+				check.That(data.ResourceName).Key("resource_provider_object_id").IsNotEmpty(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStackHCICluster_basicWithoutClientId(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stack_hci_cluster", "test")
+	r := StackHCIClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicWithoutClientId(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("cloud_id").IsNotEmpty(),
+				check.That(data.ResourceName).Key("service_endpoint").IsNotEmpty(),
+				check.That(data.ResourceName).Key("resource_provider_object_id").IsNotEmpty(),
 			),
 		},
 		data.ImportStep(),
@@ -46,6 +67,53 @@ func TestAccStackHCICluster_requiresImport(t *testing.T) {
 			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
+func TestAccStackHCICluster_systemAssignedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stack_hci_cluster", "test")
+	r := StackHCIClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.systemAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsNotEmpty(),
+				check.That(data.ResourceName).Key("identity.0.tenant_id").IsNotEmpty(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStackHCICluster_systemAssignedIdentityUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stack_hci_cluster", "test")
+	r := StackHCIClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.systemAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -128,6 +196,20 @@ func (r StackHCIClusterResource) Exists(ctx context.Context, client *clients.Cli
 	return utils.Bool(resp.Model != nil), nil
 }
 
+func (r StackHCIClusterResource) basicWithoutClientId(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_stack_hci_cluster" "test" {
+  name                = "acctest-StackHCICluster-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+}
+`, template, data.RandomInteger)
+}
+
 func (r StackHCIClusterResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
@@ -158,6 +240,24 @@ resource "azurerm_stack_hci_cluster" "import" {
 `, config)
 }
 
+func (r StackHCIClusterResource) systemAssignedIdentity(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_stack_hci_cluster" "test" {
+  name                = "acctest-StackHCICluster-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  client_id           = azuread_application.test.application_id
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, template, data.RandomInteger)
+}
+
 func (r StackHCIClusterResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
@@ -169,6 +269,9 @@ resource "azurerm_stack_hci_cluster" "test" {
   location            = azurerm_resource_group.test.location
   client_id           = azuread_application.test.application_id
   tenant_id           = data.azurerm_client_config.current.tenant_id
+  identity {
+    type = "SystemAssigned"
+  }
 
   tags = {
     ENV = "Test"

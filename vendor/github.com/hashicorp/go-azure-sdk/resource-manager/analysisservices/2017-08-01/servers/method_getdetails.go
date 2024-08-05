@@ -43,7 +43,10 @@ func (c ServersClient) GetDetails(ctx context.Context, id ServerId) (result GetD
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model AnalysisServicesServer
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

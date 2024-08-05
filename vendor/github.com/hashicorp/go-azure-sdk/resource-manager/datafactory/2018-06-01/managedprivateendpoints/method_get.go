@@ -53,8 +53,8 @@ func (c ManagedPrivateEndpointsClient) Get(ctx context.Context, id ManagedPrivat
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -72,7 +72,10 @@ func (c ManagedPrivateEndpointsClient) Get(ctx context.Context, id ManagedPrivat
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ManagedPrivateEndpointResource
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

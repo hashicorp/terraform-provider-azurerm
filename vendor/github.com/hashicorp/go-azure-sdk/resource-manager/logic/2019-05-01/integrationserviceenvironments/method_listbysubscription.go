@@ -20,7 +20,8 @@ type ListBySubscriptionOperationResponse struct {
 }
 
 type ListBySubscriptionCompleteResult struct {
-	Items []IntegrationServiceEnvironment
+	LatestHttpResponse *http.Response
+	Items              []IntegrationServiceEnvironment
 }
 
 type ListBySubscriptionOperationOptions struct {
@@ -50,6 +51,18 @@ func (o ListBySubscriptionOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListBySubscriptionCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListBySubscriptionCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListBySubscription ...
 func (c IntegrationServiceEnvironmentsClient) ListBySubscription(ctx context.Context, id commonids.SubscriptionId, options ListBySubscriptionOperationOptions) (result ListBySubscriptionOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -58,8 +71,9 @@ func (c IntegrationServiceEnvironmentsClient) ListBySubscription(ctx context.Con
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/providers/Microsoft.Logic/integrationServiceEnvironments", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListBySubscriptionCustomPager{},
+		Path:          fmt.Sprintf("%s/providers/Microsoft.Logic/integrationServiceEnvironments", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -100,6 +114,7 @@ func (c IntegrationServiceEnvironmentsClient) ListBySubscriptionCompleteMatching
 
 	resp, err := c.ListBySubscription(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -112,7 +127,8 @@ func (c IntegrationServiceEnvironmentsClient) ListBySubscriptionCompleteMatching
 	}
 
 	result = ListBySubscriptionCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

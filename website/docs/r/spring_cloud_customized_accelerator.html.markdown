@@ -79,7 +79,7 @@ A `git_repository` block supports the following:
 
 * `url` - (Required) Specifies Git repository URL for the accelerator.
 
-* `basic_auth` - (Optional) A `basic_auth` block as defined below. Conflicts with `git_repository.0.ssh_auth`. Changing this forces a new Spring Cloud Customized Accelerator to be created.
+* `basic_auth` - (Optional) A `basic_auth` block as defined below. Conflicts with `git_repository[0].ssh_auth`. Changing this forces a new Spring Cloud Customized Accelerator to be created.
 
 * `branch` - (Optional) Specifies the Git repository branch to be used.
 
@@ -91,7 +91,7 @@ A `git_repository` block supports the following:
 
 * `interval_in_seconds` - (Optional) Specifies the interval for checking for updates to Git or image repository. It should be greater than 10.
 
-* `ssh_auth` - (Optional) A `ssh_auth` block as defined below. Conflicts with `git_repository.0.basic_auth`. Changing this forces a new Spring Cloud Customized Accelerator to be created.
+* `ssh_auth` - (Optional) A `ssh_auth` block as defined below. Conflicts with `git_repository[0].basic_auth`. Changing this forces a new Spring Cloud Customized Accelerator to be created.
 
 * `path` - (Optional) Specifies the path under the git repository to be treated as the root directory of the accelerator or the fragment (depending on `accelerator_type`).
 

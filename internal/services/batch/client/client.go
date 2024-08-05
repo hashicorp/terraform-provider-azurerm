@@ -66,17 +66,16 @@ func (r *Client) JobClient(ctx context.Context, accountId batchaccount.BatchAcco
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", accountId, err)
 	}
-	if model := account.Model; model != nil {
-		if model.Properties == nil {
-			return nil, fmt.Errorf(`unexpected nil of "AccountProperties" of %s`, accountId)
-		}
-		if model.Properties.AccountEndpoint == nil {
-			return nil, fmt.Errorf(`unexpected nil of "AccountProperties.AccountEndpoint" of %s`, accountId)
-		}
+
+	endpoint := ""
+	if account.Model != nil && account.Model.Properties != nil {
+		endpoint = fmt.Sprintf("https://%s", *account.Model.Properties.AccountEndpoint)
+	}
+	if endpoint == "" {
+		return nil, fmt.Errorf("retrieving %s: `properties.AccountEndpoint` was empty", accountId)
 	}
 
 	// Copy the client since we'll manipulate its BatchURL
-	endpoint := "https://" + *account.Model.Properties.AccountEndpoint
 	c := batchDataplane.NewJobClient(endpoint)
 	c.BaseClient.Client.Authorizer = r.BatchManagementAuthorizer
 	return &c, nil

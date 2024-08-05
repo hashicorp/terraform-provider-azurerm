@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = VirtualMachineId{}
+var _ resourceids.ResourceId = &VirtualMachineId{}
 
 // VirtualMachineId is a struct representing the Resource ID for a Virtual Machine
 type VirtualMachineId struct {
@@ -30,25 +30,15 @@ func NewVirtualMachineID(subscriptionId string, resourceGroupName string, virtua
 
 // ParseVirtualMachineID parses 'input' into a VirtualMachineId
 func ParseVirtualMachineID(input string) (*VirtualMachineId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VirtualMachineId{})
+	parser := resourceids.NewParserFromResourceIdType(&VirtualMachineId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := VirtualMachineId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.VirtualMachineName, ok = parsed.Parsed["virtualMachineName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "virtualMachineName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +47,36 @@ func ParseVirtualMachineID(input string) (*VirtualMachineId, error) {
 // ParseVirtualMachineIDInsensitively parses 'input' case-insensitively into a VirtualMachineId
 // note: this method should only be used for API response data and not user input
 func ParseVirtualMachineIDInsensitively(input string) (*VirtualMachineId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VirtualMachineId{})
+	parser := resourceids.NewParserFromResourceIdType(&VirtualMachineId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := VirtualMachineId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.VirtualMachineName, ok = parsed.Parsed["virtualMachineName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "virtualMachineName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *VirtualMachineId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.VirtualMachineName, ok = input.Parsed["virtualMachineName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "virtualMachineName", input)
+	}
+
+	return nil
 }
 
 // ValidateVirtualMachineID checks that 'input' can be parsed as a Virtual Machine ID

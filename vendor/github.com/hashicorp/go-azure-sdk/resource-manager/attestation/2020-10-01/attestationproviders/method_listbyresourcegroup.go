@@ -45,7 +45,10 @@ func (c AttestationProvidersClient) ListByResourceGroup(ctx context.Context, id 
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model AttestationProviderListResult
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

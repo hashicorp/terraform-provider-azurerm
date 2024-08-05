@@ -8,19 +8,21 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/flowlogs"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/networkwatchers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/flowlogs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/networksecuritygroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/networkwatchers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -29,10 +31,10 @@ import (
 )
 
 func resourceNetworkWatcherFlowLog() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
-		Create: resourceNetworkWatcherFlowLogCreateUpdate,
+	resource := &pluginsdk.Resource{
+		Create: resourceNetworkWatcherFlowLogCreate,
 		Read:   resourceNetworkWatcherFlowLogRead,
-		Update: resourceNetworkWatcherFlowLogCreateUpdate,
+		Update: resourceNetworkWatcherFlowLogUpdate,
 		Delete: resourceNetworkWatcherFlowLogDelete,
 
 		SchemaVersion: 1,
@@ -74,7 +76,7 @@ func resourceNetworkWatcherFlowLog() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NetworkSecurityGroupID,
+				ValidateFunc: networksecuritygroups.ValidateNetworkSecurityGroupID,
 			},
 
 			"storage_account_id": {
@@ -152,7 +154,7 @@ func resourceNetworkWatcherFlowLog() *pluginsdk.Resource {
 			"version": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Computed:     true,
+				Default:      1,
 				ValidateFunc: validation.IntBetween(1, 2),
 			},
 
@@ -169,6 +171,17 @@ func resourceNetworkWatcherFlowLog() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["version"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validation.IntBetween(1, 2),
+		}
+	}
+
+	return resource
 }
 
 func azureRMSuppressFlowLogRetentionPolicyEnabledDiff(_, old, _ string, d *pluginsdk.ResourceData) bool {
@@ -183,34 +196,32 @@ func azureRMSuppressFlowLogRetentionPolicyDaysDiff(_, old, _ string, d *pluginsd
 	return old != "" && !d.Get("enabled").(bool)
 }
 
-func resourceNetworkWatcherFlowLogCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkWatcherFlowLogCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.FlowLogs
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := flowlogs.NewFlowLogID(subscriptionId, d.Get("resource_group_name").(string), d.Get("network_watcher_name").(string), d.Get("name").(string))
-	nsgId, err := parse.NetworkSecurityGroupID(d.Get("network_security_group_id").(string))
+	nsgId, err := networksecuritygroups.ParseNetworkSecurityGroupID(d.Get("network_security_group_id").(string))
 	if err != nil {
 		return err
 	}
 
-	if d.IsNewResource() {
-		// For newly created resources, the "name" is required, it is set as Optional and Computed is merely for the existing ones for the sake of backward compatibility.
-		if id.NetworkWatcherName == "" {
-			return fmt.Errorf("`name` is required for Network Watcher Flow Log")
-		}
+	// For newly created resources, the "name" is required, it is set as Optional and Computed is merely for the existing ones for the sake of backward compatibility.
+	if id.NetworkWatcherName == "" {
+		return fmt.Errorf("`name` is required for Network Watcher Flow Log")
+	}
 
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("failed checking for presence of existing %s: %+v", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_network_watcher_flow_log", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
+	}
+
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_network_watcher_flow_log", id.ID())
 	}
 
 	locks.ByID(nsgId.ID())
@@ -235,29 +246,93 @@ func resourceNetworkWatcherFlowLogCreateUpdate(d *pluginsdk.ResourceData, meta i
 		Properties: &flowlogs.FlowLogPropertiesFormat{
 			TargetResourceId: nsgId.ID(),
 			StorageId:        d.Get("storage_account_id").(string),
-			Enabled:          utils.Bool(d.Get("enabled").(bool)),
-			RetentionPolicy:  expandAzureRmNetworkWatcherFlowLogRetentionPolicy(d.Get("retention_policy").([]interface{})),
+			Enabled:          pointer.To(d.Get("enabled").(bool)),
+			RetentionPolicy:  expandNetworkWatcherFlowLogRetentionPolicy(d.Get("retention_policy").([]interface{})),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if _, ok := d.GetOk("traffic_analytics"); ok {
-		parameters.Properties.FlowAnalyticsConfiguration = expandAzureRmNetworkWatcherFlowLogTrafficAnalytics(d)
+		parameters.Properties.FlowAnalyticsConfiguration = expandNetworkWatcherFlowLogTrafficAnalytics(d)
 	}
 
 	if version, ok := d.GetOk("version"); ok {
 		format := &flowlogs.FlowLogFormatParameters{
-			Version: utils.Int64(int64(version.(int))),
+			Version: pointer.To(int64(version.(int))),
 		}
 
 		parameters.Properties.Format = format
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
-		return fmt.Errorf("creating %q: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+
+	return resourceNetworkWatcherFlowLogRead(d, meta)
+}
+
+func resourceNetworkWatcherFlowLogUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.FlowLogs
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := flowlogs.ParseFlowLogID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", id)
+	}
+
+	payload := existing.Model
+
+	nsgId, err := networksecuritygroups.ParseNetworkSecurityGroupID(d.Get("network_security_group_id").(string))
+	if err != nil {
+		return err
+	}
+	locks.ByID(nsgId.ID())
+	defer locks.UnlockByID(nsgId.ID())
+
+	if d.HasChange("storage_account_id") {
+		payload.Properties.StorageId = d.Get("storage_account_id").(string)
+	}
+
+	if d.HasChange("enabled") {
+		payload.Properties.Enabled = pointer.To(d.Get("enabled").(bool))
+	}
+
+	if d.HasChange("retention_policy") {
+		payload.Properties.RetentionPolicy = expandNetworkWatcherFlowLogRetentionPolicy(d.Get("retention_policy").([]interface{}))
+	}
+
+	if d.HasChange("traffic_analytics") {
+		payload.Properties.FlowAnalyticsConfiguration = expandNetworkWatcherFlowLogTrafficAnalytics(d)
+	}
+
+	if d.HasChange("version") {
+		if version, ok := d.GetOk("version"); ok && version != 0 {
+			payload.Properties.Format = &flowlogs.FlowLogFormatParameters{
+				Version: pointer.To(int64(d.Get("version").(int))),
+			}
+		} else {
+			payload.Properties.Format = &flowlogs.FlowLogFormatParameters{}
+		}
+	}
+
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
 
 	return resourceNetworkWatcherFlowLogRead(d, meta)
 }
@@ -292,7 +367,7 @@ func resourceNetworkWatcherFlowLogRead(d *pluginsdk.ResourceData, meta interface
 		d.Set("location", location.NormalizeNilable(model.Location))
 
 		if props := model.Properties; props != nil {
-			if err := d.Set("traffic_analytics", flattenAzureRmNetworkWatcherFlowLogTrafficAnalytics(props.FlowAnalyticsConfiguration)); err != nil {
+			if err := d.Set("traffic_analytics", flattenNetworkWatcherFlowLogTrafficAnalytics(props.FlowAnalyticsConfiguration)); err != nil {
 				return fmt.Errorf("setting `traffic_analytics`: %+v", err)
 			}
 
@@ -311,13 +386,13 @@ func resourceNetworkWatcherFlowLogRead(d *pluginsdk.ResourceData, meta interface
 			}
 
 			networkSecurityGroupId := ""
-			nsgId, err := parse.NetworkSecurityGroupIDInsensitively(props.TargetResourceId)
+			nsgId, err := networksecuritygroups.ParseNetworkSecurityGroupIDInsensitively(props.TargetResourceId)
 			if err == nil {
 				networkSecurityGroupId = nsgId.ID()
 			}
 			d.Set("network_security_group_id", networkSecurityGroupId)
 
-			if err := d.Set("retention_policy", flattenAzureRmNetworkWatcherFlowLogRetentionPolicy(props.RetentionPolicy)); err != nil {
+			if err := d.Set("retention_policy", flattenNetworkWatcherFlowLogRetentionPolicy(props.RetentionPolicy)); err != nil {
 				return fmt.Errorf("setting `retention_policy`: %+v", err)
 			}
 		}
@@ -346,7 +421,7 @@ func resourceNetworkWatcherFlowLogDelete(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("retreiving %s: `properties` or `properties.TargetResourceID` was nil", id)
 	}
 
-	networkSecurityGroupId, err := parse.NetworkSecurityGroupIDInsensitively(resp.Model.Properties.TargetResourceId)
+	networkSecurityGroupId, err := networksecuritygroups.ParseNetworkSecurityGroupIDInsensitively(resp.Model.Properties.TargetResourceId)
 	if err != nil {
 		return fmt.Errorf("parsing %q as a Network Security Group ID: %+v", resp.Model.Properties.TargetResourceId, err)
 	}
@@ -361,7 +436,7 @@ func resourceNetworkWatcherFlowLogDelete(d *pluginsdk.ResourceData, meta interfa
 	return nil
 }
 
-func expandAzureRmNetworkWatcherFlowLogRetentionPolicy(input []interface{}) *flowlogs.RetentionPolicyParameters {
+func expandNetworkWatcherFlowLogRetentionPolicy(input []interface{}) *flowlogs.RetentionPolicyParameters {
 	if len(input) < 1 || input[0] == nil {
 		return nil
 	}
@@ -371,12 +446,12 @@ func expandAzureRmNetworkWatcherFlowLogRetentionPolicy(input []interface{}) *flo
 	days := v["days"].(int)
 
 	return &flowlogs.RetentionPolicyParameters{
-		Enabled: utils.Bool(enabled),
-		Days:    utils.Int64(int64(days)),
+		Enabled: pointer.To(enabled),
+		Days:    pointer.To(int64(days)),
 	}
 }
 
-func flattenAzureRmNetworkWatcherFlowLogRetentionPolicy(input *flowlogs.RetentionPolicyParameters) []interface{} {
+func flattenNetworkWatcherFlowLogRetentionPolicy(input *flowlogs.RetentionPolicyParameters) []interface{} {
 	output := make([]interface{}, 0)
 
 	if input != nil {
@@ -397,7 +472,7 @@ func flattenAzureRmNetworkWatcherFlowLogRetentionPolicy(input *flowlogs.Retentio
 	return output
 }
 
-func flattenAzureRmNetworkWatcherFlowLogTrafficAnalytics(input *flowlogs.TrafficAnalyticsProperties) []interface{} {
+func flattenNetworkWatcherFlowLogTrafficAnalytics(input *flowlogs.TrafficAnalyticsProperties) []interface{} {
 	output := make([]interface{}, 0)
 	if input != nil {
 		if cfg := input.NetworkWatcherFlowAnalyticsConfiguration; cfg != nil {
@@ -435,7 +510,7 @@ func flattenAzureRmNetworkWatcherFlowLogTrafficAnalytics(input *flowlogs.Traffic
 	return output
 }
 
-func expandAzureRmNetworkWatcherFlowLogTrafficAnalytics(d *pluginsdk.ResourceData) *flowlogs.TrafficAnalyticsProperties {
+func expandNetworkWatcherFlowLogTrafficAnalytics(d *pluginsdk.ResourceData) *flowlogs.TrafficAnalyticsProperties {
 	vs := d.Get("traffic_analytics").([]interface{})
 
 	v := vs[0].(map[string]interface{})
@@ -447,11 +522,11 @@ func expandAzureRmNetworkWatcherFlowLogTrafficAnalytics(d *pluginsdk.ResourceDat
 
 	return &flowlogs.TrafficAnalyticsProperties{
 		NetworkWatcherFlowAnalyticsConfiguration: &flowlogs.TrafficAnalyticsConfigurationProperties{
-			Enabled:                  utils.Bool(enabled),
+			Enabled:                  pointer.To(enabled),
 			WorkspaceId:              utils.String(workspaceID),
 			WorkspaceRegion:          utils.String(workspaceRegion),
 			WorkspaceResourceId:      utils.String(workspaceResourceID),
-			TrafficAnalyticsInterval: utils.Int64(int64(interval)),
+			TrafficAnalyticsInterval: pointer.To(int64(interval)),
 		},
 	}
 }

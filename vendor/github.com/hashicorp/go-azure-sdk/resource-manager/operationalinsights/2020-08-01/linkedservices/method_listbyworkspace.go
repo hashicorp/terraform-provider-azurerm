@@ -44,7 +44,10 @@ func (c LinkedServicesClient) ListByWorkspace(ctx context.Context, id WorkspaceI
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model LinkedServiceListResult
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

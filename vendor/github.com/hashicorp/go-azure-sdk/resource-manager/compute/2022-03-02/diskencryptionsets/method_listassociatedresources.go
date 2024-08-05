@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
@@ -19,17 +20,31 @@ type ListAssociatedResourcesOperationResponse struct {
 }
 
 type ListAssociatedResourcesCompleteResult struct {
-	Items []string
+	LatestHttpResponse *http.Response
+	Items              []string
+}
+
+type ListAssociatedResourcesCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListAssociatedResourcesCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListAssociatedResources ...
-func (c DiskEncryptionSetsClient) ListAssociatedResources(ctx context.Context, id DiskEncryptionSetId) (result ListAssociatedResourcesOperationResponse, err error) {
+func (c DiskEncryptionSetsClient) ListAssociatedResources(ctx context.Context, id commonids.DiskEncryptionSetId) (result ListAssociatedResourcesOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListAssociatedResourcesCustomPager{},
 		Path:       fmt.Sprintf("%s/associatedResources", id.ID()),
 	}
 
@@ -61,11 +76,12 @@ func (c DiskEncryptionSetsClient) ListAssociatedResources(ctx context.Context, i
 }
 
 // ListAssociatedResourcesComplete retrieves all the results into a single object
-func (c DiskEncryptionSetsClient) ListAssociatedResourcesComplete(ctx context.Context, id DiskEncryptionSetId) (result ListAssociatedResourcesCompleteResult, err error) {
+func (c DiskEncryptionSetsClient) ListAssociatedResourcesComplete(ctx context.Context, id commonids.DiskEncryptionSetId) (result ListAssociatedResourcesCompleteResult, err error) {
 	items := make([]string, 0)
 
 	resp, err := c.ListAssociatedResources(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -76,7 +92,8 @@ func (c DiskEncryptionSetsClient) ListAssociatedResourcesComplete(ctx context.Co
 	}
 
 	result = ListAssociatedResourcesCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

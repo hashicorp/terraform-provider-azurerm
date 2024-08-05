@@ -53,8 +53,8 @@ func (c BackendClient) Update(ctx context.Context, id BackendId, input BackendUp
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPatch,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -76,7 +76,10 @@ func (c BackendClient) Update(ctx context.Context, id BackendId, input BackendUp
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model BackendContract
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

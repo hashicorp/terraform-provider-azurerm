@@ -20,7 +20,20 @@ type ListByDatabaseOperationResponse struct {
 }
 
 type ListByDatabaseCompleteResult struct {
-	Items []LogicalDatabaseTransparentDataEncryption
+	LatestHttpResponse *http.Response
+	Items              []LogicalDatabaseTransparentDataEncryption
+}
+
+type ListByDatabaseCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByDatabaseCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListByDatabase ...
@@ -31,6 +44,7 @@ func (c TransparentDataEncryptionsClient) ListByDatabase(ctx context.Context, id
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByDatabaseCustomPager{},
 		Path:       fmt.Sprintf("%s/transparentDataEncryption", id.ID()),
 	}
 
@@ -72,6 +86,7 @@ func (c TransparentDataEncryptionsClient) ListByDatabaseCompleteMatchingPredicat
 
 	resp, err := c.ListByDatabase(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -84,7 +99,8 @@ func (c TransparentDataEncryptionsClient) ListByDatabaseCompleteMatchingPredicat
 	}
 
 	result = ListByDatabaseCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

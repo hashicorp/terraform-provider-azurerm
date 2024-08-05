@@ -54,8 +54,8 @@ func (c RoleAssignmentsClient) Delete(ctx context.Context, id ScopedRoleAssignme
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodDelete,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -73,7 +73,10 @@ func (c RoleAssignmentsClient) Delete(ctx context.Context, id ScopedRoleAssignme
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model RoleAssignment
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

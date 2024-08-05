@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = NodeConfigurationId{}
+func init() {
+	recaser.RegisterResourceId(&NodeConfigurationId{})
+}
+
+var _ resourceids.ResourceId = &NodeConfigurationId{}
 
 // NodeConfigurationId is a struct representing the Resource ID for a Node Configuration
 type NodeConfigurationId struct {
@@ -32,7 +37,7 @@ func NewNodeConfigurationID(subscriptionId string, resourceGroupName string, aut
 
 // ParseNodeConfigurationID parses 'input' into a NodeConfigurationId
 func ParseNodeConfigurationID(input string) (*NodeConfigurationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(NodeConfigurationId{})
+	parser := resourceids.NewParserFromResourceIdType(&NodeConfigurationId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +54,7 @@ func ParseNodeConfigurationID(input string) (*NodeConfigurationId, error) {
 // ParseNodeConfigurationIDInsensitively parses 'input' case-insensitively into a NodeConfigurationId
 // note: this method should only be used for API response data and not user input
 func ParseNodeConfigurationIDInsensitively(input string) (*NodeConfigurationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(NodeConfigurationId{})
+	parser := resourceids.NewParserFromResourceIdType(&NodeConfigurationId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

@@ -43,7 +43,10 @@ func (c DevCentersClient) Get(ctx context.Context, id DevCenterId) (result GetOp
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model DevCenter
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

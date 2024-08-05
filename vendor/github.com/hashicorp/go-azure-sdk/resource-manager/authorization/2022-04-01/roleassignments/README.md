@@ -8,6 +8,7 @@ This readme covers example usages, but further information on [using this SDK ca
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-04-01/roleassignments"
 ```
 
@@ -45,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := roleassignments.NewScopeID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
+id := commonids.NewScopeID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
 
 payload := roleassignments.RoleAssignmentCreateParameters{
 	// ...
@@ -82,7 +83,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := roleassignments.NewScopeID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
+id := commonids.NewScopeID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
 
 read, err := client.DeleteById(ctx, id, roleassignments.DefaultDeleteByIdOperationOptions())
 if err != nil {
@@ -114,7 +115,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := roleassignments.NewScopeID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
+id := commonids.NewScopeID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
 
 read, err := client.GetById(ctx, id, roleassignments.DefaultGetByIdOperationOptions())
 if err != nil {
@@ -130,7 +131,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := roleassignments.NewScopeID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
+id := commonids.NewScopeID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
 
 // alternatively `client.ListForResource(ctx, id, roleassignments.DefaultListForResourceOperationOptions())` can be used to do batched pagination
 items, err := client.ListForResourceComplete(ctx, id, roleassignments.DefaultListForResourceOperationOptions())
@@ -147,7 +148,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := roleassignments.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
+id := commonids.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
 // alternatively `client.ListForResourceGroup(ctx, id, roleassignments.DefaultListForResourceGroupOperationOptions())` can be used to do batched pagination
 items, err := client.ListForResourceGroupComplete(ctx, id, roleassignments.DefaultListForResourceGroupOperationOptions())
@@ -164,7 +165,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := roleassignments.NewScopeID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
+id := commonids.NewScopeID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
 
 // alternatively `client.ListForScope(ctx, id, roleassignments.DefaultListForScopeOperationOptions())` can be used to do batched pagination
 items, err := client.ListForScopeComplete(ctx, id, roleassignments.DefaultListForScopeOperationOptions())
@@ -181,7 +182,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := roleassignments.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 // alternatively `client.ListForSubscription(ctx, id, roleassignments.DefaultListForSubscriptionOperationOptions())` can be used to do batched pagination
 items, err := client.ListForSubscriptionComplete(ctx, id, roleassignments.DefaultListForSubscriptionOperationOptions())

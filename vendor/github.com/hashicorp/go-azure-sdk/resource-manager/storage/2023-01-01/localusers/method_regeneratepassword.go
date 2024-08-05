@@ -44,7 +44,10 @@ func (c LocalUsersClient) RegeneratePassword(ctx context.Context, id LocalUserId
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model LocalUserRegeneratePasswordResult
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

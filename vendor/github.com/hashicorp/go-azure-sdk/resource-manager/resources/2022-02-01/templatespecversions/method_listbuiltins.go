@@ -19,7 +19,20 @@ type ListBuiltInsOperationResponse struct {
 }
 
 type ListBuiltInsCompleteResult struct {
-	Items []TemplateSpecVersion
+	LatestHttpResponse *http.Response
+	Items              []TemplateSpecVersion
+}
+
+type ListBuiltInsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListBuiltInsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListBuiltIns ...
@@ -30,6 +43,7 @@ func (c TemplateSpecVersionsClient) ListBuiltIns(ctx context.Context, id BuiltIn
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListBuiltInsCustomPager{},
 		Path:       fmt.Sprintf("%s/versions", id.ID()),
 	}
 
@@ -71,6 +85,7 @@ func (c TemplateSpecVersionsClient) ListBuiltInsCompleteMatchingPredicate(ctx co
 
 	resp, err := c.ListBuiltIns(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +98,8 @@ func (c TemplateSpecVersionsClient) ListBuiltInsCompleteMatchingPredicate(ctx co
 	}
 
 	result = ListBuiltInsCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

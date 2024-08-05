@@ -111,6 +111,8 @@ An `authentication_certificate` block exports the following:
 
 A `trusted_root_certificate` block exports the following:
 
+* `id` - The ID of the Trusted Root Certificate in use.
+
 * `name` - The Name of the Trusted Root Certificate in use.
 
 * `key_vault_secret_id` - The Secret ID of (base-64 encoded unencrypted pfx) `Secret` or `Certificate` object stored in Azure KeyVault.
@@ -453,7 +455,11 @@ A `url_path_map` block exports the following:
 
 A `trusted_client_certificate` block exports the following:
 
-* `name` - The name of the Trusted Client Certificate that is unique within this Application Gateway.
+* `id` - The ID of the Trusted Client Certificate in use.
+
+* `name` - The name of the Trusted Client Certificate in use.
+
+* `data` - The content of the Trusted Client Certificate in use.
 
 ---
 

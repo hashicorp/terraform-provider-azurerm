@@ -31,8 +31,8 @@ output "public_ip_prefix" {
 
 ## Attributes Reference
 
-* `name` - The name of the Public IP prefix resource.
-* `resource_group_name` - The name of the resource group in which to create the public IP.
+* `id` - The ID of the Public IP Prefix.
+* `ip_prefix` - The Public IP address range, in CIDR notation.
 * `location` - The supported Azure location where the resource exists.
 * `sku` - The SKU of the Public IP Prefix.
 * `prefix_length` - The number of bits of the prefix.

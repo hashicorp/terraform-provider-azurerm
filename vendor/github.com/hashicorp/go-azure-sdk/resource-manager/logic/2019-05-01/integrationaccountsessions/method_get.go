@@ -43,7 +43,10 @@ func (c IntegrationAccountSessionsClient) Get(ctx context.Context, id SessionId)
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model IntegrationAccountSession
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

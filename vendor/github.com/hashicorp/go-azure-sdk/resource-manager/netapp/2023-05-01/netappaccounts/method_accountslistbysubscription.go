@@ -20,7 +20,20 @@ type AccountsListBySubscriptionOperationResponse struct {
 }
 
 type AccountsListBySubscriptionCompleteResult struct {
-	Items []NetAppAccount
+	LatestHttpResponse *http.Response
+	Items              []NetAppAccount
+}
+
+type AccountsListBySubscriptionCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *AccountsListBySubscriptionCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // AccountsListBySubscription ...
@@ -31,6 +44,7 @@ func (c NetAppAccountsClient) AccountsListBySubscription(ctx context.Context, id
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &AccountsListBySubscriptionCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.NetApp/netAppAccounts", id.ID()),
 	}
 
@@ -72,6 +86,7 @@ func (c NetAppAccountsClient) AccountsListBySubscriptionCompleteMatchingPredicat
 
 	resp, err := c.AccountsListBySubscription(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -84,7 +99,8 @@ func (c NetAppAccountsClient) AccountsListBySubscriptionCompleteMatchingPredicat
 	}
 
 	result = AccountsListBySubscriptionCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -43,7 +43,10 @@ func (c ResourceManagementPrivateLinkClient) Get(ctx context.Context, id Resourc
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ResourceManagementPrivateLink
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

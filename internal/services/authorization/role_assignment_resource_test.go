@@ -328,7 +328,7 @@ data "azurerm_client_config" "test" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-role-assigment-%d"
+  name     = "acctestRG-role-assignment-%d"
   location = "%s"
 }
 

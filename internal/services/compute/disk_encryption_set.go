@@ -7,13 +7,14 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/diskencryptionsets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
 )
 
 // retrieveDiskEncryptionSetEncryptionType returns encryption type of the disk encryption set
 func retrieveDiskEncryptionSetEncryptionType(ctx context.Context, client *diskencryptionsets.DiskEncryptionSetsClient, diskEncryptionSetId string) (*disks.EncryptionType, error) {
-	id, err := diskencryptionsets.ParseDiskEncryptionSetID(diskEncryptionSetId)
+	id, err := commonids.ParseDiskEncryptionSetID(diskEncryptionSetId)
 	if err != nil {
 		return nil, err
 	}

@@ -10,11 +10,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2018-08-01/endpoints"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2018-08-01/profiles"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2022-04-01/endpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2022-04-01/profiles"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	azSchema "github.com/hashicorp/terraform-provider-azurerm/internal/tf/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -23,7 +24,7 @@ import (
 )
 
 func resourceExternalEndpoint() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceExternalEndpointCreate,
 		Read:   resourceExternalEndpointRead,
 		Update: resourceExternalEndpointUpdate,
@@ -72,7 +73,7 @@ func resourceExternalEndpoint() *pluginsdk.Resource {
 			"weight": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Computed:     true,
+				Default:      1,
 				ValidateFunc: validation.IntBetween(1, 1000),
 			},
 
@@ -80,6 +81,12 @@ func resourceExternalEndpoint() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
+			},
+
+			"always_serve_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 
 			"custom_header": {
@@ -104,7 +111,7 @@ func resourceExternalEndpoint() *pluginsdk.Resource {
 			"priority": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Computed:     true,
+				Default:      1,
 				ValidateFunc: validation.IntBetween(1, 1000),
 			},
 
@@ -148,6 +155,23 @@ func resourceExternalEndpoint() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["priority"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validation.IntBetween(1, 1000),
+		}
+		resource.Schema["weight"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validation.IntBetween(1, 1000),
+		}
+	}
+
+	return resource
 }
 
 func resourceExternalEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -182,11 +206,16 @@ func resourceExternalEndpointCreate(d *pluginsdk.ResourceData, meta interface{})
 		Name: utils.String(id.EndpointName),
 		Type: utils.String(fmt.Sprintf("Microsoft.Network/trafficManagerProfiles/%s", endpoints.EndpointTypeExternalEndpoints)),
 		Properties: &endpoints.EndpointProperties{
+			AlwaysServe:    pointer.To(endpoints.AlwaysServeDisabled),
 			CustomHeaders:  expandEndpointCustomHeaderConfig(d.Get("custom_header").([]interface{})),
 			EndpointStatus: &status,
 			Target:         utils.String(d.Get("target").(string)),
 			Subnets:        expandEndpointSubnetConfig(d.Get("subnet").([]interface{})),
 		},
+	}
+
+	if alwaysServe := d.Get("always_serve_enabled").(bool); alwaysServe {
+		params.Properties.AlwaysServe = pointer.To(endpoints.AlwaysServeEnabled)
 	}
 
 	if priority := d.Get("priority").(int); priority != 0 {
@@ -253,6 +282,12 @@ func resourceExternalEndpointRead(d *pluginsdk.ResourceData, meta interface{}) e
 			d.Set("endpoint_location", props.EndpointLocation)
 			d.Set("geo_mappings", props.GeoMapping)
 
+			if props.AlwaysServe != nil && *props.AlwaysServe == endpoints.AlwaysServeEnabled {
+				d.Set("always_serve_enabled", true)
+			} else {
+				d.Set("always_serve_enabled", false)
+			}
+
 			if err := d.Set("custom_header", flattenEndpointCustomHeaderConfig(props.CustomHeaders)); err != nil {
 				return fmt.Errorf("setting `custom_header`: %s", err)
 			}
@@ -294,6 +329,14 @@ func resourceExternalEndpointUpdate(d *pluginsdk.ResourceData, meta interface{})
 			status = endpoints.EndpointStatusDisabled
 		}
 		params.Properties.EndpointStatus = pointer.To(status)
+	}
+
+	if d.HasChange("always_serve_enabled") {
+		alwaysServe := endpoints.AlwaysServeDisabled
+		if d.Get("always_serve_enabled").(bool) {
+			alwaysServe = endpoints.AlwaysServeEnabled
+		}
+		params.Properties.AlwaysServe = pointer.To(alwaysServe)
 	}
 
 	if d.HasChange("custom_header") {

@@ -44,7 +44,10 @@ func (c ListKeysClient) KeysListByAutomationAccount(ctx context.Context, id Auto
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model KeyListResult
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

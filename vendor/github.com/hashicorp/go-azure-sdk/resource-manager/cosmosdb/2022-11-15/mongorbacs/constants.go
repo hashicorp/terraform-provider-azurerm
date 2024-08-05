@@ -6,13 +6,13 @@ package mongorbacs
 type MongoRoleDefinitionType int64
 
 const (
-	MongoRoleDefinitionTypeOne  MongoRoleDefinitionType = 1
-	MongoRoleDefinitionTypeZero MongoRoleDefinitionType = 0
+	MongoRoleDefinitionTypeBuiltInRole MongoRoleDefinitionType = 0
+	MongoRoleDefinitionTypeCustomRole  MongoRoleDefinitionType = 1
 )
 
 func PossibleValuesForMongoRoleDefinitionType() []int64 {
 	return []int64{
-		int64(MongoRoleDefinitionTypeOne),
-		int64(MongoRoleDefinitionTypeZero),
+		int64(MongoRoleDefinitionTypeBuiltInRole),
+		int64(MongoRoleDefinitionTypeCustomRole),
 	}
 }

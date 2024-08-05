@@ -8,10 +8,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -93,24 +94,24 @@ func TestWebAppAccActiveSlot_linuxUpdate(t *testing.T) {
 }
 
 func (r WebAppActiveSlotResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.WebAppID(state.ID)
+	id, err := commonids.ParseWebAppID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	slotId, err := parse.WebAppSlotID(state.Attributes["slot_id"])
+	slotId, err := webapps.ParseSlotID(state.Attributes["slot_id"])
 	if err != nil {
 		return nil, err
 	}
 
-	app, err := client.AppService.WebAppsClient.Get(ctx, id.ResourceGroup, id.SiteName)
+	app, err := client.AppService.WebAppsClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retreiving Function App %s for slot %s: %+v", id, slotId.SlotName, err)
 	}
-	if app.SiteProperties == nil || app.SiteProperties.SlotSwapStatus == nil || app.SiteProperties.SlotSwapStatus.SourceSlotName == nil {
+	if app.Model.Properties == nil || app.Model.Properties.SlotSwapStatus == nil || app.Model.Properties.SlotSwapStatus.SourceSlotName == nil {
 		return nil, fmt.Errorf("missing App Slot Properties for %s", id)
 	}
 
-	return utils.Bool(*app.SiteProperties.SlotSwapStatus.SourceSlotName == slotId.SlotName), nil
+	return utils.Bool(*app.Model.Properties.SlotSwapStatus.SourceSlotName == slotId.SlotName), nil
 }
 
 func (r WebAppActiveSlotResource) basicWindows(data acceptance.TestData) string {

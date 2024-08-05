@@ -13,8 +13,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/managedenvironments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2024-03-01/managedenvironments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/helpers"
@@ -36,6 +37,10 @@ type ContainerAppEnvironmentModel struct {
 	ZoneRedundant                           bool                           `tfschema:"zone_redundancy_enabled"`
 	Tags                                    map[string]interface{}         `tfschema:"tags"`
 	WorkloadProfiles                        []helpers.WorkloadProfileModel `tfschema:"workload_profile"`
+	InfrastructureResourceGroup             string                         `tfschema:"infrastructure_resource_group_name"`
+	Mtls                                    bool                           `tfschema:"mutual_tls_enabled"`
+
+	CustomDomainVerificationId string `tfschema:"custom_domain_verification_id"`
 
 	DefaultDomain         string `tfschema:"default_domain"`
 	DockerBridgeCidr      string `tfschema:"docker_bridge_cidr"`
@@ -45,6 +50,8 @@ type ContainerAppEnvironmentModel struct {
 }
 
 var _ sdk.ResourceWithUpdate = ContainerAppEnvironmentResource{}
+
+var _ sdk.ResourceWithCustomizeDiff = ContainerAppEnvironmentResource{}
 
 func (r ContainerAppEnvironmentResource) ModelObject() interface{} {
 	return &ContainerAppEnvironmentModel{}
@@ -89,6 +96,26 @@ func (r ContainerAppEnvironmentResource) Arguments() map[string]*pluginsdk.Schem
 			Description:  "The ID for the Log Analytics Workspace to link this Container Apps Managed Environment to.",
 		},
 
+		"infrastructure_resource_group_name": {
+			Type:                  pluginsdk.TypeString,
+			Optional:              true,
+			ForceNew:              true,
+			RequiredWith:          []string{"workload_profile"},
+			ValidateFunc:          resourcegroups.ValidateName,
+			DiffSuppressOnRefresh: true,
+			DiffSuppressFunc: func(k, oldValue, newValue string, d *pluginsdk.ResourceData) bool { // If this is omitted, and there is a non-consumption profile, then the service generates a value for the required manage resource group.
+				if profiles := d.Get("workload_profile").(*pluginsdk.Set).List(); len(profiles) > 0 && newValue == "" && newValue == oldValue {
+					for _, profile := range profiles {
+						if profile.(map[string]interface{})["workload_profile_type"].(string) != string(helpers.WorkloadProfileSkuConsumption) {
+							return false
+						}
+					}
+				}
+				return true
+			},
+			Description: "Name of the platform-managed resource group created for the Managed Environment to host infrastructure resources. **Note:** Only valid if a `workload_profile` is specified. If `infrastructure_subnet_id` is specified, this resource group will be created in the same subscription as `infrastructure_subnet_id`.",
+		},
+
 		"infrastructure_subnet_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -116,12 +143,25 @@ func (r ContainerAppEnvironmentResource) Arguments() map[string]*pluginsdk.Schem
 			RequiredWith: []string{"infrastructure_subnet_id"},
 		},
 
+		"mutual_tls_enabled": {
+			Description: "Should mutual transport layer security (mTLS) be enabled? Defaults to `false`. **Note:** This feature is in public preview. Enabling mTLS for your applications may increase response latency and reduce maximum throughput in high-load scenarios.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
+		},
+
 		"tags": commonschema.Tags(),
 	}
 }
 
 func (r ContainerAppEnvironmentResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
+		"custom_domain_verification_id": {
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Description: "The ID of the Custom Domain Verification for this Container App Environment.",
+		},
+
 		"default_domain": {
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
@@ -187,12 +227,26 @@ func (r ContainerAppEnvironmentResource) Create() sdk.ResourceFunc {
 				Properties: &managedenvironments.ManagedEnvironmentProperties{
 					VnetConfiguration: &managedenvironments.VnetConfiguration{},
 					ZoneRedundant:     pointer.To(containerAppEnvironment.ZoneRedundant),
+					PeerAuthentication: &managedenvironments.ManagedEnvironmentPropertiesPeerAuthentication{
+						Mtls: &managedenvironments.Mtls{
+							Enabled: pointer.To(containerAppEnvironment.Mtls),
+						},
+					},
+					PeerTrafficConfiguration: &managedenvironments.ManagedEnvironmentPropertiesPeerTrafficConfiguration{
+						Encryption: &managedenvironments.ManagedEnvironmentPropertiesPeerTrafficConfigurationEncryption{
+							Enabled: pointer.To(containerAppEnvironment.Mtls),
+						},
+					},
 				},
 				Tags: tags.Expand(containerAppEnvironment.Tags),
 			}
 
 			if containerAppEnvironment.DaprApplicationInsightsConnectionString != "" {
 				managedEnvironment.Properties.DaprAIConnectionString = pointer.To(containerAppEnvironment.DaprApplicationInsightsConnectionString)
+			}
+
+			if containerAppEnvironment.InfrastructureResourceGroup != "" {
+				managedEnvironment.Properties.InfrastructureResourceGroup = pointer.To(containerAppEnvironment.InfrastructureResourceGroup)
 			}
 
 			if containerAppEnvironment.LogAnalyticsWorkspaceId != "" {
@@ -267,6 +321,8 @@ func (r ContainerAppEnvironmentResource) Read() sdk.ResourceFunc {
 
 			var state ContainerAppEnvironmentModel
 
+			consumptionDefined := consumptionIsExplicitlyDefined(metadata)
+
 			if model := existing.Model; model != nil {
 				state.Name = id.ManagedEnvironmentName
 				state.ResourceGroup = id.ResourceGroupName
@@ -282,10 +338,13 @@ func (r ContainerAppEnvironmentResource) Read() sdk.ResourceFunc {
 						state.PlatformReservedDnsIP = pointer.From(vnet.PlatformReservedDnsIP)
 					}
 
+					state.CustomDomainVerificationId = pointer.From(props.CustomDomainConfiguration.CustomDomainVerificationId)
 					state.ZoneRedundant = pointer.From(props.ZoneRedundant)
 					state.StaticIP = pointer.From(props.StaticIP)
 					state.DefaultDomain = pointer.From(props.DefaultDomain)
-					state.WorkloadProfiles = helpers.FlattenWorkloadProfiles(props.WorkloadProfiles)
+					state.WorkloadProfiles = helpers.FlattenWorkloadProfiles(props.WorkloadProfiles, consumptionDefined)
+					state.InfrastructureResourceGroup = pointer.From(props.InfrastructureResourceGroup)
+					state.Mtls = pointer.From(props.PeerAuthentication.Mtls.Enabled)
 				}
 			}
 
@@ -331,6 +390,7 @@ func (r ContainerAppEnvironmentResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			logAnalyticsClient := metadata.Client.LogAnalytics.SharedKeyWorkspacesClient
 			client := metadata.Client.ContainerApps.ManagedEnvironmentClient
 			id, err := managedenvironments.ParseManagedEnvironmentID(metadata.ResourceData.Id())
 			if err != nil {
@@ -351,12 +411,105 @@ func (r ContainerAppEnvironmentResource) Update() sdk.ResourceFunc {
 				existing.Model.Tags = tags.Expand(state.Tags)
 			}
 
+			if metadata.ResourceData.HasChange("workload_profile") {
+				existing.Model.Properties.WorkloadProfiles = helpers.ExpandWorkloadProfiles(state.WorkloadProfiles)
+			}
+
+			if metadata.ResourceData.HasChange("mutual_tls_enabled") {
+				existing.Model.Properties.PeerAuthentication.Mtls.Enabled = pointer.To(state.Mtls)
+				existing.Model.Properties.PeerTrafficConfiguration.Encryption.Enabled = pointer.To(state.Mtls)
+			}
+
 			// (@jackofallops) This is not updatable and needs to be removed since the read does not return the sensitive Key field.
 			// Whilst not ideal, this means we don't need to try and retrieve it again just to send a no-op.
 			existing.Model.Properties.AppLogsConfiguration = nil
+			if metadata.ResourceData.Get("log_analytics_workspace_id") != "" {
+				logAnalyticsId, err := workspaces.ParseWorkspaceID(metadata.ResourceData.Get("log_analytics_workspace_id").(string))
+				if err != nil {
+					return err
+				}
+
+				workspace, err := logAnalyticsClient.Get(ctx, *logAnalyticsId)
+				if err != nil {
+					return fmt.Errorf("retrieving %s for %s: %+v", logAnalyticsId, id, err)
+				}
+
+				if workspace.Model == nil || workspace.Model.Properties == nil {
+					return fmt.Errorf("reading customer ID from %s", logAnalyticsId)
+				}
+
+				if workspace.Model.Properties.CustomerId == nil {
+					return fmt.Errorf("reading customer ID from %s, `customer_id` is nil", logAnalyticsId)
+				}
+
+				keys, err := logAnalyticsClient.SharedKeysGetSharedKeys(ctx, *logAnalyticsId)
+				if err != nil {
+					return fmt.Errorf("retrieving access keys to %s for %s: %+v", logAnalyticsId, id, err)
+				}
+				if keys.Model.PrimarySharedKey == nil {
+					return fmt.Errorf("reading shared key for %s in %s", logAnalyticsId, id)
+				}
+				existing.Model.Properties.AppLogsConfiguration = &managedenvironments.AppLogsConfiguration{
+					Destination: pointer.To("log-analytics"),
+					LogAnalyticsConfiguration: &managedenvironments.LogAnalyticsConfiguration{
+						CustomerId: workspace.Model.Properties.CustomerId,
+						SharedKey:  keys.Model.PrimarySharedKey,
+					},
+				}
+			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
+			}
+
+			return nil
+		},
+	}
+}
+
+func consumptionIsExplicitlyDefined(metadata sdk.ResourceMetaData) bool {
+	config := ContainerAppEnvironmentModel{}
+	if err := metadata.Decode(&config); err != nil {
+		return false
+	}
+	for _, v := range config.WorkloadProfiles {
+		if v.Name == string(helpers.WorkloadProfileSkuConsumption) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (r ContainerAppEnvironmentResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			if metadata.ResourceDiff == nil {
+				return nil
+			}
+
+			var env ContainerAppEnvironmentModel
+			if err := metadata.DecodeDiff(&env); err != nil {
+				return err
+			}
+
+			if metadata.ResourceDiff.HasChange("workload_profile") {
+				oldProfiles, newProfiles := metadata.ResourceDiff.GetChange("workload_profile")
+
+				oldProfileCount := oldProfiles.(*pluginsdk.Set).Len()
+				newProfileCount := newProfiles.(*pluginsdk.Set).Len()
+				if oldProfileCount > 0 && newProfileCount == 0 {
+					if err := metadata.ResourceDiff.ForceNew("workload_profile"); err != nil {
+						return err
+					}
+				}
+
+				if newProfileCount > 0 && oldProfileCount == 0 {
+					if err := metadata.ResourceDiff.ForceNew("workload_profile"); err != nil {
+						return err
+					}
+				}
 			}
 
 			return nil

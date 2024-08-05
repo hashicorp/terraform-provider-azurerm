@@ -207,7 +207,7 @@ func resourceSecurityCenterAutomation() *pluginsdk.Resource {
 				},
 			},
 
-			"tags": commonschema.TagsForceNew(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }

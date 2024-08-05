@@ -43,7 +43,10 @@ func (c FluidRelayServersClient) Get(ctx context.Context, id FluidRelayServerId)
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model FluidRelayServer
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

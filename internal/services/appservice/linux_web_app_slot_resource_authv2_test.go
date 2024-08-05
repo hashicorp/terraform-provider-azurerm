@@ -22,7 +22,7 @@ func TestAccLinuxWebAppSlot_withAuthV2AzureActiveDirectory(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -37,7 +37,7 @@ func TestAccLinuxWebAppSlot_withAuthV2AzureActiveDirectoryNoSecretName(t *testin
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -52,7 +52,7 @@ func TestAccLinuxWebAppSlot_withAuthV2Apple(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -67,7 +67,7 @@ func TestAccLinuxWebAppSlot_withAuthV2CustomOIDC(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -82,7 +82,7 @@ func TestAccLinuxWebAppSlot_withAuthV2Facebook(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -97,7 +97,7 @@ func TestAccLinuxWebAppSlot_withAuthV2Github(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -112,7 +112,7 @@ func TestAccLinuxWebAppSlot_withAuthV2Google(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -127,7 +127,7 @@ func TestAccLinuxWebAppSlot_withAuthV2Microsoft(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -142,7 +142,7 @@ func TestAccLinuxWebAppSlot_withAuthV2Twitter(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -157,7 +157,7 @@ func TestAccLinuxWebAppSlot_withAuthV2MultipleAuths(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -191,6 +191,7 @@ resource "azurerm_linux_web_app_slot" "test" {
       client_id                  = data.azurerm_client_config.current.client_id
       client_secret_setting_name = "%[3]s"
       tenant_auth_endpoint       = "https://sts.windows.net/%[5]s/v2.0"
+      allowed_applications       = ["WhoopsMissedThisOne"]
     }
     login {}
   }

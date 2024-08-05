@@ -24,7 +24,7 @@ type AlertRuleAnomalyDataSourceModel struct {
 	DisplayName                  string                                  `tfschema:"display_name"`
 	WorkspaceId                  string                                  `tfschema:"log_analytics_workspace_id"`
 	AnomalyVersion               string                                  `tfschema:"anomaly_version"`
-	AnomalySettingsVersion       int32                                   `tfschema:"anomaly_settings_version"`
+	AnomalySettingsVersion       int64                                   `tfschema:"anomaly_settings_version"`
 	Description                  string                                  `tfschema:"description"`
 	Enabled                      bool                                    `tfschema:"enabled"`
 	Frequency                    string                                  `tfschema:"frequency"`
@@ -218,7 +218,7 @@ func (a AlertRuleAnomalyDataSource) Read() sdk.ResourceFunc {
 				state.AnomalyVersion = *setting.AnomalyVersion
 			}
 			if setting.AnomalySettingsVersion != nil {
-				state.AnomalySettingsVersion = *setting.AnomalySettingsVersion
+				state.AnomalySettingsVersion = int64(*setting.AnomalySettingsVersion)
 			}
 			if setting.Description != nil {
 				state.Description = *setting.Description

@@ -43,7 +43,10 @@ func (c SpacecraftClient) Get(ctx context.Context, id SpacecraftId) (result GetO
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Spacecraft
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

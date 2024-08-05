@@ -53,8 +53,8 @@ func (c UserClient) Update(ctx context.Context, id UserId, input UserUpdateParam
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPatch,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -76,7 +76,10 @@ func (c UserClient) Update(ctx context.Context, id UserId, input UserUpdateParam
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model UserContract
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

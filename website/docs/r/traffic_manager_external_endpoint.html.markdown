@@ -43,10 +43,11 @@ resource "azurerm_traffic_manager_profile" "example" {
 }
 
 resource "azurerm_traffic_manager_external_endpoint" "example" {
-  name       = "example-endpoint"
-  profile_id = azurerm_traffic_manager_profile.example.id
-  weight     = 100
-  target     = "www.example.com"
+  name                 = "example-endpoint"
+  profile_id           = azurerm_traffic_manager_profile.example.id
+  always_serve_enabled = true
+  weight               = 100
+  target               = "www.example.com"
 }
 ```
 
@@ -65,6 +66,8 @@ The following arguments are supported:
 * `endpoint_location` - (Optional) Specifies the Azure location of the Endpoint, this must be specified for Profiles using the `Performance` routing method.
 
 ---
+
+* `always_serve_enabled` - (Optional) If Always Serve is enabled, probing for endpoint health will be disabled and endpoints will be included in the traffic routing method. Defaults to `false`.
 
 * `custom_header` - (Optional) One or more `custom_header` blocks as defined below.
 

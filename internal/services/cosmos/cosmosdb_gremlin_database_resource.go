@@ -160,7 +160,7 @@ func resourceCosmosGremlinDatabaseUpdate(d *pluginsdk.ResourceData, meta interfa
 			}
 		}
 
-		if err := throughputFuture.Poller.PollUntilDone(); err != nil {
+		if err := throughputFuture.Poller.PollUntilDone(ctx); err != nil {
 			return fmt.Errorf("waiting on ThroughputUpdate future for Cosmos Gremlin Database %q (Account: %q, Database %q): %+v", id.GremlinDatabaseName, id.DatabaseAccountName, id.GremlinDatabaseName, err)
 		}
 	}
@@ -236,15 +236,9 @@ func resourceCosmosGremlinDatabaseDelete(d *pluginsdk.ResourceData, meta interfa
 		return err
 	}
 
-	future, err := client.GremlinResourcesDeleteGremlinDatabase(ctx, *id)
+	err = client.GremlinResourcesDeleteGremlinDatabaseThenPoll(ctx, *id)
 	if err != nil {
-		if !response.WasNotFound(future.HttpResponse) {
-			return fmt.Errorf("deleting Cosmos Gremlin Database %q (Account: %q): %+v", id.GremlinDatabaseName, id.DatabaseAccountName, err)
-		}
-	}
-
-	if err := future.Poller.PollUntilDone(); err != nil {
-		return fmt.Errorf("waiting on delete future for Cosmos Gremlin Database %q (Account: %q): %+v", id.GremlinDatabaseName, id.DatabaseAccountName, err)
+		return fmt.Errorf("deleting Cosmos Gremlin Database %q (Account: %q): %+v", id.GremlinDatabaseName, id.DatabaseAccountName, err)
 	}
 
 	return nil

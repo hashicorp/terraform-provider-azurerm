@@ -47,7 +47,10 @@ func (c FileSharesClient) Update(ctx context.Context, id ShareId, input FileShar
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model FileShare
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

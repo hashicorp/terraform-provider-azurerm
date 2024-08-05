@@ -11,8 +11,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/databases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/transparentdataencryptions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -90,6 +92,23 @@ func dataSourceMsSqlDatabase() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"identity": commonschema.UserAssignedIdentityComputed(),
+
+			"transparent_data_encryption_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"transparent_data_encryption_key_vault_key_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"transparent_data_encryption_key_automatic_rotation_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
 			"tags": commonschema.TagsDataSource(),
 		},
 	}
@@ -97,6 +116,7 @@ func dataSourceMsSqlDatabase() *pluginsdk.Resource {
 
 func dataSourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.DatabasesClient
+	transparentEncryptionClient := meta.(*clients.Client).MSSQL.TransparentDataEncryptionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -130,6 +150,8 @@ func dataSourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) er
 			d.Set("read_replica_count", props.HighAvailabilityReplicaCount)
 			d.Set("sku_name", props.CurrentServiceObjectiveName)
 			d.Set("zone_redundant", props.ZoneRedundant)
+			d.Set("transparent_data_encryption_key_vault_key_id", props.EncryptionProtector)
+			d.Set("transparent_data_encryption_key_automatic_rotation_enabled", props.EncryptionProtectorAutoRotation)
 
 			maxSizeGb := int64(0)
 			if props.MaxSizeBytes != nil {
@@ -154,6 +176,25 @@ func dataSourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) er
 				storageAccountType = string(pointer.From(props.CurrentBackupStorageRedundancy))
 			}
 			d.Set("storage_account_type", storageAccountType)
+		}
+
+		identity, err := identity.FlattenUserAssignedMap(model.Identity)
+		if err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
+		}
+
+		if err := d.Set("identity", identity); err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
+		}
+
+		tde, err := transparentEncryptionClient.Get(ctx, databaseId)
+		if err != nil {
+			return fmt.Errorf("while retrieving Transparent Data Encryption state for %s: %+v", databaseId, err)
+		}
+		if model := tde.Model; model != nil {
+			if props := model.Properties; props != nil {
+				d.Set("transparent_data_encryption_enabled", props.State == transparentdataencryptions.TransparentDataEncryptionStateEnabled)
+			}
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {

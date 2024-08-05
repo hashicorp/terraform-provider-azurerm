@@ -53,8 +53,8 @@ func (c ReplicationFabricsClient) Get(ctx context.Context, id ReplicationFabricI
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -72,7 +72,10 @@ func (c ReplicationFabricsClient) Get(ctx context.Context, id ReplicationFabricI
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Fabric
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -436,6 +436,28 @@ func TestAccSearchService_apiAccessControlUpdate(t *testing.T) {
 	})
 }
 
+func TestAccSearchService_localAuthEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
+	r := SearchServiceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.localAuthEnabled(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.localAuthEnabled(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r SearchServiceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := services.ParseSearchServiceID(state.ID)
 	if err != nil {
@@ -722,4 +744,27 @@ resource "azurerm_search_service" "test" {
   authentication_failure_mode  = "%s"
 }
 `, template, data.RandomInteger, localAuthenticationEnabled, authenticationFailureMode)
+}
+
+func (r SearchServiceResource) localAuthEnabled(data acceptance.TestData, localAuthEnabled bool) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_search_service" "test" {
+  name                = "acctestsearchservice%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "standard"
+
+  replica_count                 = 1
+  partition_count               = 1
+  public_network_access_enabled = false
+  local_authentication_enabled  = %t
+}
+`, template, data.RandomInteger, localAuthEnabled)
 }

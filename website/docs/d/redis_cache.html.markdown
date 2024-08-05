@@ -90,6 +90,8 @@ A `redis_configuration` block exports the following:
 
 * `enable_authentication` - Specifies if authentication is enabled
 
+* `active_directory_authentication_enabled` - Specifies if Microsoft Entra (AAD) authentication is enabled.
+
 * `maxmemory_reserved` - The value in megabytes reserved for non-cache usage e.g. failover
 
 * `maxmemory_delta` - The max-memory delta for this Redis instance.

@@ -26,6 +26,7 @@ type MsSqlManagedInstanceDataSourceModel struct {
 	AdministratorLogin        string                              `tfschema:"administrator_login"`
 	Collation                 string                              `tfschema:"collation"`
 	CustomerManagedKeyId      string                              `tfschema:"customer_managed_key_id"`
+	DnsZone                   string                              `tfschema:"dns_zone"`
 	DnsZonePartnerId          string                              `tfschema:"dns_zone_partner_id"`
 	Fqdn                      string                              `tfschema:"fqdn"`
 	Identity                  []identity.SystemOrUserAssignedList `tfschema:"identity"`
@@ -38,11 +39,11 @@ type MsSqlManagedInstanceDataSourceModel struct {
 	ResourceGroupName         string                              `tfschema:"resource_group_name"`
 	SkuName                   string                              `tfschema:"sku_name"`
 	StorageAccountType        string                              `tfschema:"storage_account_type"`
-	StorageSizeInGb           int                                 `tfschema:"storage_size_in_gb"`
+	StorageSizeInGb           int64                               `tfschema:"storage_size_in_gb"`
 	SubnetId                  string                              `tfschema:"subnet_id"`
 	Tags                      map[string]string                   `tfschema:"tags"`
 	TimezoneId                string                              `tfschema:"timezone_id"`
-	VCores                    int                                 `tfschema:"vcores"`
+	VCores                    int64                               `tfschema:"vcores"`
 }
 
 var _ sdk.DataSource = MsSqlManagedInstanceDataSource{}
@@ -83,6 +84,11 @@ func (d MsSqlManagedInstanceDataSource) Attributes() map[string]*pluginsdk.Schem
 
 		"customer_managed_key_id": {
 			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"dns_zone": {
+			Type:     schema.TypeString,
 			Computed: true,
 		},
 
@@ -198,6 +204,9 @@ func (d MsSqlManagedInstanceDataSource) Read() sdk.ResourceFunc {
 				if props.Collation != nil {
 					model.Collation = *props.Collation
 				}
+				if props.DNSZone != nil {
+					model.DnsZone = *props.DNSZone
+				}
 				if props.KeyID != nil {
 					model.CustomerManagedKeyId = *props.KeyID
 				}
@@ -211,7 +220,7 @@ func (d MsSqlManagedInstanceDataSource) Read() sdk.ResourceFunc {
 					model.PublicDataEndpointEnabled = *props.PublicDataEndpointEnabled
 				}
 				if props.StorageSizeInGB != nil {
-					model.StorageSizeInGb = int(*props.StorageSizeInGB)
+					model.StorageSizeInGb = int64(*props.StorageSizeInGB)
 				}
 				if props.SubnetID != nil {
 					model.SubnetId = *props.SubnetID
@@ -220,7 +229,7 @@ func (d MsSqlManagedInstanceDataSource) Read() sdk.ResourceFunc {
 					model.TimezoneId = *props.TimezoneID
 				}
 				if props.VCores != nil {
-					model.VCores = int(*props.VCores)
+					model.VCores = int64(*props.VCores)
 				}
 			}
 

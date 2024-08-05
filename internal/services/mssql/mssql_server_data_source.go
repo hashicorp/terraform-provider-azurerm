@@ -62,6 +62,11 @@ func dataSourceMsSqlServer() *pluginsdk.Resource {
 				},
 			},
 
+			"transparent_data_encryption_key_vault_key_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"tags": commonschema.TagsDataSource(),
 		},
 	}
@@ -94,6 +99,7 @@ func dataSourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			d.Set("version", props.Version)
 			d.Set("administrator_login", props.AdministratorLogin)
 			d.Set("fully_qualified_domain_name", props.FullyQualifiedDomainName)
+			d.Set("transparent_data_encryption_key_vault_key_id", props.KeyId)
 		}
 
 		identity, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)

@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ReplicationPolicyId{}
+func init() {
+	recaser.RegisterResourceId(&ReplicationPolicyId{})
+}
+
+var _ resourceids.ResourceId = &ReplicationPolicyId{}
 
 // ReplicationPolicyId is a struct representing the Resource ID for a Replication Policy
 type ReplicationPolicyId struct {
@@ -32,7 +37,7 @@ func NewReplicationPolicyID(subscriptionId string, resourceGroupName string, vau
 
 // ParseReplicationPolicyID parses 'input' into a ReplicationPolicyId
 func ParseReplicationPolicyID(input string) (*ReplicationPolicyId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ReplicationPolicyId{})
+	parser := resourceids.NewParserFromResourceIdType(&ReplicationPolicyId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +54,7 @@ func ParseReplicationPolicyID(input string) (*ReplicationPolicyId, error) {
 // ParseReplicationPolicyIDInsensitively parses 'input' case-insensitively into a ReplicationPolicyId
 // note: this method should only be used for API response data and not user input
 func ParseReplicationPolicyIDInsensitively(input string) (*ReplicationPolicyId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ReplicationPolicyId{})
+	parser := resourceids.NewParserFromResourceIdType(&ReplicationPolicyId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

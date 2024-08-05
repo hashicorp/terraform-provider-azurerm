@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -118,7 +119,7 @@ func resourceNotificationHubNamespaceCreateUpdate(d *pluginsdk.ResourceData, met
 	namespaceType := namespaces.NamespaceType(d.Get("namespace_type").(string))
 	location := location.Normalize(d.Get("location").(string))
 	parameters := namespaces.NamespaceCreateOrUpdateParameters{
-		Location: location,
+		Location: pointer.To(location),
 		Sku: &namespaces.Sku{
 			Name: namespaces.SkuName(d.Get("sku_name").(string)),
 		},

@@ -15,7 +15,7 @@ Use this data source to access information about an existing DNS TXT Record with
 ## Example Usage
 
 ```hcl
-resource "azurerm_dns_txt_record" "example" {
+data "azurerm_dns_txt_record" "example" {
   name                = "test"
   zone_name           = "test-zone"
   resource_group_name = "test-rg"

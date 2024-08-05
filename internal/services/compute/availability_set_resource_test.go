@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/availabilitysets"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -144,7 +144,7 @@ func TestAccAvailabilitySet_unmanaged(t *testing.T) {
 }
 
 func (AvailabilitySetResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := availabilitysets.ParseAvailabilitySetID(state.ID)
+	id, err := commonids.ParseAvailabilitySetID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -158,7 +158,7 @@ func (AvailabilitySetResource) Exists(ctx context.Context, clients *clients.Clie
 }
 
 func (AvailabilitySetResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := availabilitysets.ParseAvailabilitySetID(state.ID)
+	id, err := commonids.ParseAvailabilitySetID(state.ID)
 	if err != nil {
 		return nil, err
 	}

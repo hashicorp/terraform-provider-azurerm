@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = SpatialAnchorsAccountId{}
+func init() {
+	recaser.RegisterResourceId(&SpatialAnchorsAccountId{})
+}
+
+var _ resourceids.ResourceId = &SpatialAnchorsAccountId{}
 
 // SpatialAnchorsAccountId is a struct representing the Resource ID for a Spatial Anchors Account
 type SpatialAnchorsAccountId struct {
@@ -30,7 +35,7 @@ func NewSpatialAnchorsAccountID(subscriptionId string, resourceGroupName string,
 
 // ParseSpatialAnchorsAccountID parses 'input' into a SpatialAnchorsAccountId
 func ParseSpatialAnchorsAccountID(input string) (*SpatialAnchorsAccountId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SpatialAnchorsAccountId{})
+	parser := resourceids.NewParserFromResourceIdType(&SpatialAnchorsAccountId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +52,7 @@ func ParseSpatialAnchorsAccountID(input string) (*SpatialAnchorsAccountId, error
 // ParseSpatialAnchorsAccountIDInsensitively parses 'input' case-insensitively into a SpatialAnchorsAccountId
 // note: this method should only be used for API response data and not user input
 func ParseSpatialAnchorsAccountIDInsensitively(input string) (*SpatialAnchorsAccountId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SpatialAnchorsAccountId{})
+	parser := resourceids.NewParserFromResourceIdType(&SpatialAnchorsAccountId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

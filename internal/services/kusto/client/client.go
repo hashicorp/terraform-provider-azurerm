@@ -4,6 +4,8 @@
 package client
 
 import (
+	"fmt"
+
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/attacheddatabaseconfigurations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/clusterprincipalassignments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/clusters"
@@ -26,38 +28,63 @@ type Client struct {
 	ScriptsClient                        *scripts.ScriptsClient
 }
 
-func NewClient(o *common.ClientOptions) *Client {
-	ClustersClient := clusters.NewClustersClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&ClustersClient.Client, o.ResourceManagerAuthorizer)
-
-	ClusterManagedPrivateEndpointClient := managedprivateendpoints.NewManagedPrivateEndpointsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&ClusterManagedPrivateEndpointClient.Client, o.ResourceManagerAuthorizer)
-
-	ClusterPrincipalAssignmentsClient := clusterprincipalassignments.NewClusterPrincipalAssignmentsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&ClusterPrincipalAssignmentsClient.Client, o.ResourceManagerAuthorizer)
-
-	DatabasesClient := databases.NewDatabasesClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&DatabasesClient.Client, o.ResourceManagerAuthorizer)
-
-	DatabasePrincipalAssignmentsClient := databaseprincipalassignments.NewDatabasePrincipalAssignmentsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&DatabasePrincipalAssignmentsClient.Client, o.ResourceManagerAuthorizer)
-
-	DataConnectionsClient := dataconnections.NewDataConnectionsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&DataConnectionsClient.Client, o.ResourceManagerAuthorizer)
-
-	AttachedDatabaseConfigurationsClient := attacheddatabaseconfigurations.NewAttachedDatabaseConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&AttachedDatabaseConfigurationsClient.Client, o.ResourceManagerAuthorizer)
-
-	ScriptsClient := scripts.NewScriptsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&ScriptsClient.Client, o.ResourceManagerAuthorizer)
-	return &Client{
-		AttachedDatabaseConfigurationsClient: &AttachedDatabaseConfigurationsClient,
-		ClustersClient:                       &ClustersClient,
-		ClusterManagedPrivateEndpointClient:  &ClusterManagedPrivateEndpointClient,
-		ClusterPrincipalAssignmentsClient:    &ClusterPrincipalAssignmentsClient,
-		DatabasesClient:                      &DatabasesClient,
-		DataConnectionsClient:                &DataConnectionsClient,
-		DatabasePrincipalAssignmentsClient:   &DatabasePrincipalAssignmentsClient,
-		ScriptsClient:                        &ScriptsClient,
+func NewClient(o *common.ClientOptions) (*Client, error) {
+	attachedDatabaseConfigurationsClient, err := attacheddatabaseconfigurations.NewAttachedDatabaseConfigurationsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building AttachedDatabaseConfigurations client: %+v", err)
 	}
+	o.Configure(attachedDatabaseConfigurationsClient.Client, o.Authorizers.ResourceManager)
+
+	clusterManagedPrivateEndpointClient, err := managedprivateendpoints.NewManagedPrivateEndpointsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building ManagedPrivateEndpoints client: %+v", err)
+	}
+	o.Configure(clusterManagedPrivateEndpointClient.Client, o.Authorizers.ResourceManager)
+
+	clusterPrincipalAssignmentsClient, err := clusterprincipalassignments.NewClusterPrincipalAssignmentsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building ClusterPrincipalAssignments client: %+v", err)
+	}
+	o.Configure(clusterPrincipalAssignmentsClient.Client, o.Authorizers.ResourceManager)
+
+	clustersClient, err := clusters.NewClustersClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Clusters client: %+v", err)
+	}
+	o.Configure(clustersClient.Client, o.Authorizers.ResourceManager)
+
+	databasePrincipalAssignmentsClient, err := databaseprincipalassignments.NewDatabasePrincipalAssignmentsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building DatabasePrincipalAssignments client: %+v", err)
+	}
+	o.Configure(databasePrincipalAssignmentsClient.Client, o.Authorizers.ResourceManager)
+
+	databasesClient, err := databases.NewDatabasesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Databases client: %+v", err)
+	}
+	o.Configure(databasesClient.Client, o.Authorizers.ResourceManager)
+
+	dataConnectionsClient, err := dataconnections.NewDataConnectionsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building DataConnections client: %+v", err)
+	}
+	o.Configure(dataConnectionsClient.Client, o.Authorizers.ResourceManager)
+
+	scriptsClient, err := scripts.NewScriptsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Scripts client: %+v", err)
+	}
+	o.Configure(scriptsClient.Client, o.Authorizers.ResourceManager)
+
+	return &Client{
+		AttachedDatabaseConfigurationsClient: attachedDatabaseConfigurationsClient,
+		ClustersClient:                       clustersClient,
+		ClusterManagedPrivateEndpointClient:  clusterManagedPrivateEndpointClient,
+		ClusterPrincipalAssignmentsClient:    clusterPrincipalAssignmentsClient,
+		DatabasesClient:                      databasesClient,
+		DataConnectionsClient:                dataConnectionsClient,
+		DatabasePrincipalAssignmentsClient:   databasePrincipalAssignmentsClient,
+		ScriptsClient:                        scriptsClient,
+	}, nil
 }

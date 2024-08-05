@@ -48,7 +48,10 @@ func (c CognitiveServicesAccountsClient) AccountsRegenerateKey(ctx context.Conte
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ApiKeys
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

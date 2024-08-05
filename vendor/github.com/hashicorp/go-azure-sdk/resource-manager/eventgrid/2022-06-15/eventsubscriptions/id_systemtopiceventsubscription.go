@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = SystemTopicEventSubscriptionId{}
+func init() {
+	recaser.RegisterResourceId(&SystemTopicEventSubscriptionId{})
+}
+
+var _ resourceids.ResourceId = &SystemTopicEventSubscriptionId{}
 
 // SystemTopicEventSubscriptionId is a struct representing the Resource ID for a System Topic Event Subscription
 type SystemTopicEventSubscriptionId struct {
@@ -32,7 +37,7 @@ func NewSystemTopicEventSubscriptionID(subscriptionId string, resourceGroupName 
 
 // ParseSystemTopicEventSubscriptionID parses 'input' into a SystemTopicEventSubscriptionId
 func ParseSystemTopicEventSubscriptionID(input string) (*SystemTopicEventSubscriptionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SystemTopicEventSubscriptionId{})
+	parser := resourceids.NewParserFromResourceIdType(&SystemTopicEventSubscriptionId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +54,7 @@ func ParseSystemTopicEventSubscriptionID(input string) (*SystemTopicEventSubscri
 // ParseSystemTopicEventSubscriptionIDInsensitively parses 'input' case-insensitively into a SystemTopicEventSubscriptionId
 // note: this method should only be used for API response data and not user input
 func ParseSystemTopicEventSubscriptionIDInsensitively(input string) (*SystemTopicEventSubscriptionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SystemTopicEventSubscriptionId{})
+	parser := resourceids.NewParserFromResourceIdType(&SystemTopicEventSubscriptionId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = TagDescriptionId{}
+func init() {
+	recaser.RegisterResourceId(&TagDescriptionId{})
+}
+
+var _ resourceids.ResourceId = &TagDescriptionId{}
 
 // TagDescriptionId is a struct representing the Resource ID for a Tag Description
 type TagDescriptionId struct {
@@ -34,7 +39,7 @@ func NewTagDescriptionID(subscriptionId string, resourceGroupName string, servic
 
 // ParseTagDescriptionID parses 'input' into a TagDescriptionId
 func ParseTagDescriptionID(input string) (*TagDescriptionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(TagDescriptionId{})
+	parser := resourceids.NewParserFromResourceIdType(&TagDescriptionId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -51,7 +56,7 @@ func ParseTagDescriptionID(input string) (*TagDescriptionId, error) {
 // ParseTagDescriptionIDInsensitively parses 'input' case-insensitively into a TagDescriptionId
 // note: this method should only be used for API response data and not user input
 func ParseTagDescriptionIDInsensitively(input string) (*TagDescriptionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(TagDescriptionId{})
+	parser := resourceids.NewParserFromResourceIdType(&TagDescriptionId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

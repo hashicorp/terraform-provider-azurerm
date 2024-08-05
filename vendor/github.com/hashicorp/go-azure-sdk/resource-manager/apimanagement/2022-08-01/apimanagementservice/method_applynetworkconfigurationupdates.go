@@ -18,6 +18,7 @@ type ApplyNetworkConfigurationUpdatesOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *ApiManagementServiceResource
 }
 
 // ApplyNetworkConfigurationUpdates ...

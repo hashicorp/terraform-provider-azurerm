@@ -58,8 +58,8 @@ func (c GalleriesClient) Get(ctx context.Context, id commonids.SharedImageGaller
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -77,7 +77,10 @@ func (c GalleriesClient) Get(ctx context.Context, id commonids.SharedImageGaller
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Gallery
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

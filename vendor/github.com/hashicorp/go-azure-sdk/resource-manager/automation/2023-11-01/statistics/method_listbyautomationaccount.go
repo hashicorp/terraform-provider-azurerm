@@ -53,8 +53,8 @@ func (c StatisticsClient) ListByAutomationAccount(ctx context.Context, id Automa
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/statistics", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/statistics", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -72,7 +72,10 @@ func (c StatisticsClient) ListByAutomationAccount(ctx context.Context, id Automa
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model StatisticsListResult
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

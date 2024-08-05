@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package check
 
 import (
@@ -91,6 +94,10 @@ func tryFixTimeouts(rt string, lines []string, diffs []TimeoutDiffItem) []string
 func (f *Fixer) TryFix() (err error) {
 	// read file as bytes
 	if len(f.Diff) == 0 {
+		return
+	}
+	if d, ok := f.Diff[0].(diffWithMessage); ok {
+		log.Printf("%s: %s", f.ResourceType, d.msg)
 		return
 	}
 	content, err := os.ReadFile(f.MDFile)

@@ -44,7 +44,10 @@ func (c TopicsClient) ListSharedAccessKeys(ctx context.Context, id TopicId) (res
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model TopicSharedAccessKeys
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -44,7 +44,10 @@ func (c LinkedStorageAccountsClient) ListByWorkspace(ctx context.Context, id Wor
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model LinkedStorageAccountsListResult
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

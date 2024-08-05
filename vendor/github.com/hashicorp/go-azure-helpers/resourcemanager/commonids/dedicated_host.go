@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = DedicatedHostId{}
+var _ resourceids.ResourceId = &DedicatedHostId{}
 
 // DedicatedHostId is a struct representing the Resource ID for a Dedicated Host
 type DedicatedHostId struct {
@@ -32,29 +32,15 @@ func NewDedicatedHostID(subscriptionId string, resourceGroupName string, hostGro
 
 // ParseDedicatedHostID parses 'input' into a DedicatedHostId
 func ParseDedicatedHostID(input string) (*DedicatedHostId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DedicatedHostId{})
+	parser := resourceids.NewParserFromResourceIdType(&DedicatedHostId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := DedicatedHostId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.HostGroupName, ok = parsed.Parsed["hostGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "hostGroupName", *parsed)
-	}
-
-	if id.HostName, ok = parsed.Parsed["hostName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "hostName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,29 +49,15 @@ func ParseDedicatedHostID(input string) (*DedicatedHostId, error) {
 // ParseDedicatedHostIDInsensitively parses 'input' case-insensitively into a DedicatedHostId
 // note: this method should only be used for API response data and not user input
 func ParseDedicatedHostIDInsensitively(input string) (*DedicatedHostId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DedicatedHostId{})
+	parser := resourceids.NewParserFromResourceIdType(&DedicatedHostId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := DedicatedHostId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.HostGroupName, ok = parsed.Parsed["hostGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "hostGroupName", *parsed)
-	}
-
-	if id.HostName, ok = parsed.Parsed["hostName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "hostName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -104,6 +76,28 @@ func ValidateDedicatedHostID(input interface{}, key string) (warnings []string, 
 	}
 
 	return
+}
+
+func (id *DedicatedHostId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.HostGroupName, ok = input.Parsed["hostGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "hostGroupName", input)
+	}
+
+	if id.HostName, ok = input.Parsed["hostName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "hostName", input)
+	}
+
+	return nil
 }
 
 // ID returns the formatted Dedicated Host ID

@@ -8,6 +8,7 @@ This readme covers example usages, but further information on [using this SDK ca
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2022-06-01-preview/scheduledactions"
 ```
 
@@ -44,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := scheduledactions.NewScopeID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
+id := commonids.NewScopeID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
 
 payload := scheduledactions.CheckNameAvailabilityRequest{
 	// ...
@@ -220,7 +221,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := scheduledactions.NewScopeID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
+id := commonids.NewScopeID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
 
 // alternatively `client.ListByScope(ctx, id, scheduledactions.DefaultListByScopeOperationOptions())` can be used to do batched pagination
 items, err := client.ListByScopeComplete(ctx, id, scheduledactions.DefaultListByScopeOperationOptions())

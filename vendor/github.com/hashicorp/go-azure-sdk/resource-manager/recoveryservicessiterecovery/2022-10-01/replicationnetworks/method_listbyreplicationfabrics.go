@@ -19,7 +19,20 @@ type ListByReplicationFabricsOperationResponse struct {
 }
 
 type ListByReplicationFabricsCompleteResult struct {
-	Items []Network
+	LatestHttpResponse *http.Response
+	Items              []Network
+}
+
+type ListByReplicationFabricsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByReplicationFabricsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListByReplicationFabrics ...
@@ -30,6 +43,7 @@ func (c ReplicationNetworksClient) ListByReplicationFabrics(ctx context.Context,
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByReplicationFabricsCustomPager{},
 		Path:       fmt.Sprintf("%s/replicationNetworks", id.ID()),
 	}
 
@@ -71,6 +85,7 @@ func (c ReplicationNetworksClient) ListByReplicationFabricsCompleteMatchingPredi
 
 	resp, err := c.ListByReplicationFabrics(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +98,8 @@ func (c ReplicationNetworksClient) ListByReplicationFabricsCompleteMatchingPredi
 	}
 
 	result = ListByReplicationFabricsCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

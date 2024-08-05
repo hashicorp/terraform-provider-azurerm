@@ -15,7 +15,12 @@ import (
 type ListOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *SoftwareUpdateConfigurationMachineRunListResult
+	Model        *[]SoftwareUpdateConfigurationMachineRun
+}
+
+type ListCompleteResult struct {
+	LatestHttpResponse *http.Response
+	Items              []SoftwareUpdateConfigurationMachineRun
 }
 
 type ListOperationOptions struct {
@@ -56,6 +61,18 @@ func (o ListOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // List ...
 func (c SoftwareUpdateConfigurationMachineRunClient) List(ctx context.Context, id AutomationAccountId, options ListOperationOptions) (result ListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -64,8 +81,9 @@ func (c SoftwareUpdateConfigurationMachineRunClient) List(ctx context.Context, i
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/softwareUpdateConfigurationMachineRuns", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListCustomPager{},
+		Path:          fmt.Sprintf("%s/softwareUpdateConfigurationMachineRuns", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -74,7 +92,7 @@ func (c SoftwareUpdateConfigurationMachineRunClient) List(ctx context.Context, i
 	}
 
 	var resp *client.Response
-	resp, err = req.Execute(ctx)
+	resp, err = req.ExecutePaged(ctx)
 	if resp != nil {
 		result.OData = resp.OData
 		result.HttpResponse = resp.Response
@@ -83,9 +101,44 @@ func (c SoftwareUpdateConfigurationMachineRunClient) List(ctx context.Context, i
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var values struct {
+		Values *[]SoftwareUpdateConfigurationMachineRun `json:"value"`
+	}
+	if err = resp.Unmarshal(&values); err != nil {
 		return
 	}
 
+	result.Model = values.Values
+
+	return
+}
+
+// ListComplete retrieves all the results into a single object
+func (c SoftwareUpdateConfigurationMachineRunClient) ListComplete(ctx context.Context, id AutomationAccountId, options ListOperationOptions) (ListCompleteResult, error) {
+	return c.ListCompleteMatchingPredicate(ctx, id, options, SoftwareUpdateConfigurationMachineRunOperationPredicate{})
+}
+
+// ListCompleteMatchingPredicate retrieves all the results and then applies the predicate
+func (c SoftwareUpdateConfigurationMachineRunClient) ListCompleteMatchingPredicate(ctx context.Context, id AutomationAccountId, options ListOperationOptions, predicate SoftwareUpdateConfigurationMachineRunOperationPredicate) (result ListCompleteResult, err error) {
+	items := make([]SoftwareUpdateConfigurationMachineRun, 0)
+
+	resp, err := c.List(ctx, id, options)
+	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
+		err = fmt.Errorf("loading results: %+v", err)
+		return
+	}
+	if resp.Model != nil {
+		for _, v := range *resp.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	result = ListCompleteResult{
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
+	}
 	return
 }

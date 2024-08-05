@@ -85,9 +85,21 @@ func ApiManagementApiPath(v interface{}, k string) (ws []string, es []error) {
 func ApiManagementBackendName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
-	// From https://docs.microsoft.com/en-us/rest/api/apimanagement/2018-01-01/backend/createorupdate#uri-parameters
+	// From https://learn.microsoft.com/en-us/rest/api/apimanagement/backend/create-or-update#uri-parameters
 	if matched := regexp.MustCompile(`(^[\w]+$)|(^[\w][\w\-]+[\w]$)`).Match([]byte(value)); !matched {
 		errors = append(errors, fmt.Errorf("%q may only contain alphanumeric characters and dashes up to 50 characters in length", k))
+	}
+
+	return warnings, errors
+}
+
+func ApiManagementNamedValueDisplayName(v interface{}, k string) (warnings []string, errors []error) {
+	value := v.(string)
+
+	// From the portal: `Name may contain only letters, digits, periods, dash, and underscore.`
+	// `The value must have a length of at most 256.`
+	if matched := regexp.MustCompile(`^[0-9a-zA-Z_.-]{1,256}$`).Match([]byte(value)); !matched {
+		errors = append(errors, fmt.Errorf("%q may only contain alphanumeric characters, periods, underscores and dashes", k))
 	}
 
 	return warnings, errors

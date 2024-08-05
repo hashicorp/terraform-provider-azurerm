@@ -53,8 +53,8 @@ func (c AdminKeysClient) Regenerate(ctx context.Context, id KeyKindId, options R
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPost,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -72,7 +72,10 @@ func (c AdminKeysClient) Regenerate(ctx context.Context, id KeyKindId, options R
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model AdminKeyResult
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

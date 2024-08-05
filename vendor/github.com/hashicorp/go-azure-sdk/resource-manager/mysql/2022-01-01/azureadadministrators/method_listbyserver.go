@@ -19,7 +19,20 @@ type ListByServerOperationResponse struct {
 }
 
 type ListByServerCompleteResult struct {
-	Items []AzureADAdministrator
+	LatestHttpResponse *http.Response
+	Items              []AzureADAdministrator
+}
+
+type ListByServerCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByServerCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListByServer ...
@@ -30,6 +43,7 @@ func (c AzureADAdministratorsClient) ListByServer(ctx context.Context, id Flexib
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByServerCustomPager{},
 		Path:       fmt.Sprintf("%s/administrators", id.ID()),
 	}
 
@@ -71,6 +85,7 @@ func (c AzureADAdministratorsClient) ListByServerCompleteMatchingPredicate(ctx c
 
 	resp, err := c.ListByServer(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +98,8 @@ func (c AzureADAdministratorsClient) ListByServerCompleteMatchingPredicate(ctx c
 	}
 
 	result = ListByServerCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

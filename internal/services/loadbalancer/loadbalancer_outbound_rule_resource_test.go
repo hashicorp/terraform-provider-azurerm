@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/loadbalancers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 type LoadBalancerOutboundRule struct{}
@@ -126,72 +126,72 @@ func TestAccAzureRMLoadBalancerOutboundRule_allocatedOutboundPorts(t *testing.T)
 }
 
 func (r LoadBalancerOutboundRule) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.LoadBalancerOutboundRuleID(state.ID)
+	id, err := loadbalancers.ParseOutboundRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	lb, err := client.LoadBalancers.LoadBalancersClient.Get(ctx, id.ResourceGroup, id.LoadBalancerName, "")
+	plbId := loadbalancers.ProviderLoadBalancerId{SubscriptionId: id.SubscriptionId, ResourceGroupName: id.ResourceGroupName, LoadBalancerName: id.LoadBalancerName}
+	lb, err := client.LoadBalancers.LoadBalancersClient.Get(ctx, plbId, loadbalancers.GetOperationOptions{})
 	if err != nil {
-		if utils.ResponseWasNotFound(lb.Response) {
-			return nil, fmt.Errorf("Load Balancer %q (resource group %q) not found for Outbound Rule %q", id.LoadBalancerName, id.ResourceGroup, id.OutboundRuleName)
+		if response.WasNotFound(lb.HttpResponse) {
+			return nil, fmt.Errorf("%s was not found", plbId)
 		}
-		return nil, fmt.Errorf("failed reading Load Balancer %q (resource group %q) for Outbound Rule %q", id.LoadBalancerName, id.ResourceGroup, id.OutboundRuleName)
+		return nil, fmt.Errorf("retrieving %s: %+v", plbId, err)
 	}
-	props := lb.LoadBalancerPropertiesFormat
-	if props == nil || props.OutboundRules == nil || len(*props.OutboundRules) == 0 {
-		return nil, fmt.Errorf("Outbound Rule %q not found in Load Balancer %q (resource group %q)", id.OutboundRuleName, id.LoadBalancerName, id.ResourceGroup)
+	props := lb.Model
+	if props == nil || props.Properties == nil || len(*props.Properties.OutboundRules) == 0 {
+		return nil, fmt.Errorf("Outbound Rule %q not found in Load Balancer %q (resource group %q)", id.OutboundRuleName, id.LoadBalancerName, id.ResourceGroupName)
 	}
 
 	found := false
-	for _, v := range *props.OutboundRules {
+	for _, v := range *props.Properties.OutboundRules {
 		if v.Name != nil && *v.Name == id.OutboundRuleName {
 			found = true
 		}
 	}
 	if !found {
-		return nil, fmt.Errorf("Outbound Rule %q not found in Load Balancer %q (resource group %q)", id.OutboundRuleName, id.LoadBalancerName, id.ResourceGroup)
+		return nil, fmt.Errorf("Outbound Rule %q not found in Load Balancer %q (resource group %q)", id.OutboundRuleName, id.LoadBalancerName, id.ResourceGroupName)
 	}
-	return utils.Bool(found), nil
+	return pointer.To(found), nil
 }
 
 func (r LoadBalancerOutboundRule) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.LoadBalancerOutboundRuleID(state.ID)
+	id, err := loadbalancers.ParseOutboundRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-
-	lb, err := client.LoadBalancers.LoadBalancersClient.Get(ctx, id.ResourceGroup, id.LoadBalancerName, "")
+	plbId := loadbalancers.ProviderLoadBalancerId{SubscriptionId: id.SubscriptionId, ResourceGroupName: id.ResourceGroupName, LoadBalancerName: id.LoadBalancerName}
+	lb, err := client.LoadBalancers.LoadBalancersClient.Get(ctx, plbId, loadbalancers.GetOperationOptions{})
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Load Balancer %q (Resource Group %q)", id.LoadBalancerName, id.ResourceGroup)
+		return nil, fmt.Errorf("retrieving %s: %+v", plbId, err)
 	}
-	if lb.LoadBalancerPropertiesFormat == nil {
+	if lb.Model == nil {
+		return nil, fmt.Errorf("`model` was nil")
+	}
+	if lb.Model.Properties == nil {
 		return nil, fmt.Errorf("`properties` was nil")
 	}
-	if lb.LoadBalancerPropertiesFormat.OutboundRules == nil {
+	if lb.Model.Properties.OutboundRules == nil {
 		return nil, fmt.Errorf("`properties.OutboundRules` was nil")
 	}
 
-	outboundRules := make([]network.OutboundRule, 0)
-	for _, outboundRule := range *lb.LoadBalancerPropertiesFormat.OutboundRules {
+	outboundRules := make([]loadbalancers.OutboundRule, 0)
+	for _, outboundRule := range *lb.Model.Properties.OutboundRules {
 		if outboundRule.Name == nil || *outboundRule.Name == id.OutboundRuleName {
 			continue
 		}
 
 		outboundRules = append(outboundRules, outboundRule)
 	}
-	lb.LoadBalancerPropertiesFormat.OutboundRules = &outboundRules
+	lb.Model.Properties.OutboundRules = &outboundRules
 
-	future, err := client.LoadBalancers.LoadBalancersClient.CreateOrUpdate(ctx, id.ResourceGroup, id.LoadBalancerName, lb)
+	err = client.LoadBalancers.LoadBalancersClient.CreateOrUpdateThenPoll(ctx, plbId, *lb.Model)
 	if err != nil {
-		return nil, fmt.Errorf("updating Load Balancer %q (Resource Group %q): %+v", id.LoadBalancerName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
-	if err := future.WaitForCompletionRef(ctx, client.LoadBalancers.LoadBalancersClient.Client); err != nil {
-		return nil, fmt.Errorf("waiting for update of Load Balancer %q (Resource Group %q): %+v", id.LoadBalancerName, id.ResourceGroup, err)
-	}
-
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r LoadBalancerOutboundRule) basic(data acceptance.TestData) string {

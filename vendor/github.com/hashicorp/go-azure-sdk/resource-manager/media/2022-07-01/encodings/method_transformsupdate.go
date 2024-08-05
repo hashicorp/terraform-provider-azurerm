@@ -47,7 +47,10 @@ func (c EncodingsClient) TransformsUpdate(ctx context.Context, id TransformId, i
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Transform
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

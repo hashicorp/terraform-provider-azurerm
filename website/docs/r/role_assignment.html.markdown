@@ -127,6 +127,50 @@ resource "azurerm_role_assignment" "example" {
 }
 ```
 
+## Example Usage (ABAC Condition)
+
+```hcl
+data "azurerm_subscription" "primary" {
+}
+
+data "azurerm_client_config" "example" {
+}
+
+data "azurerm_role_definition" "builtin" {
+  name = "Reader"
+}
+
+resource "azurerm_role_assignment" "example" {
+  role_definition_name = "Role Based Access Control Administrator"
+  scope                = data.azurerm_subscription.primary.id
+  principal_id         = data.azurerm_client_config.example.object_id
+  principal_type       = "ServicePrincipal"
+  description          = "Role Based Access Control Administrator role assignment with ABAC Condition."
+  condition_version    = "2.0"
+  condition            = <<-EOT
+(
+ (
+  !(ActionMatches{'Microsoft.Authorization/roleAssignments/write'})
+ )
+ OR
+ (
+  @Request[Microsoft.Authorization/roleAssignments:RoleDefinitionId] ForAnyOfAnyValues:GuidEquals {${basename(data.azurerm_role_definition.builtin.role_definition_id)}}
+ )
+)
+AND
+(
+ (
+  !(ActionMatches{'Microsoft.Authorization/roleAssignments/delete'})
+ )
+ OR
+ (
+  @Resource[Microsoft.Authorization/roleAssignments:RoleDefinitionId] ForAnyOfAnyValues:GuidEquals {${basename(data.azurerm_role_definition.builtin.role_definition_id)}}
+ )
+)
+EOT
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -143,6 +187,10 @@ The following arguments are supported:
 
 ~> **NOTE:** The Principal ID is also known as the Object ID (ie not the "Application ID" for applications).
 
+* `principal_type` - (Optional) The type of the `principal_id`. Possible values are `User`, `Group` and `ServicePrincipal`. Changing this forces a new resource to be created. It is necessary to explicitly set this attribute when creating role assignments if the principal creating the assignment is constrained by ABAC rules that filters on the PrincipalType attribute.
+
+~> **NOTE:** If one of `condition` or `condition_version` is set both fields must be present.
+
 * `condition` - (Optional) The condition that limits the resources that the role can be assigned to. Changing this forces a new resource to be created.
 
 * `condition_version` - (Optional) The version of the condition. Possible values are `1.0` or `2.0`. Changing this forces a new resource to be created.
@@ -152,7 +200,7 @@ The following arguments are supported:
 ~> **NOTE:** this field is only used in cross tenant scenario.
 
 * `description` - (Optional) The description for this Role Assignment. Changing this forces a new resource to be created.
-  
+
 * `skip_service_principal_aad_check` - (Optional) If the `principal_id` is a newly provisioned `Service Principal` set this value to `true` to skip the `Azure Active Directory` check which may fail due to replication lag. This argument is only valid if the `principal_id` is a `Service Principal` identity. Defaults to `false`.
 
 ~> **NOTE:** If it is not a `Service Principal` identity it will cause the role assignment to fail.
@@ -162,8 +210,6 @@ The following arguments are supported:
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The Role Assignment ID.
-
-* `principal_type` - The type of the `principal_id`, e.g. User, Group, Service Principal, Application, etc.
 
 ## Timeouts
 
@@ -185,8 +231,9 @@ terraform import azurerm_role_assignment.example /subscriptions/00000000-0000-00
 
 * for scope `Subscription`, the id format is `/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/roleAssignments/00000000-0000-0000-0000-000000000000`
 * for scope `Resource Group`, the id format is `/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Authorization/roleAssignments/00000000-0000-0000-0000-000000000000`
+* for scope referencing a Key Vault, the id format is `/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.KeyVault/vaults/vaultname/providers/Microsoft.Authorization/roleAssignments/00000000-0000-0000-0000-000000000000`
 
-~> **NOTE:** for cross tenant scenario, the format of `resource id` is composed of Azure resource ID and tenantId. for example:
+~> **NOTE:** for cross tenant scenarios, the format of `resource id` is composed of Azure resource ID and tenantId. for example:
 
 ```text
 /subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/roleAssignments/00000000-0000-0000-0000-000000000000|00000000-0000-0000-0000-000000000000

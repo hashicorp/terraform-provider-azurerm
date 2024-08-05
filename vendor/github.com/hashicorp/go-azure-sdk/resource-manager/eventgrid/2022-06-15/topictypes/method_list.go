@@ -43,7 +43,10 @@ func (c TopicTypesClient) List(ctx context.Context) (result ListOperationRespons
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model TopicTypesListResult
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

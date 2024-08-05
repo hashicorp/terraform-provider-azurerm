@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = DedicatedHSMId{}
+func init() {
+	recaser.RegisterResourceId(&DedicatedHSMId{})
+}
+
+var _ resourceids.ResourceId = &DedicatedHSMId{}
 
 // DedicatedHSMId is a struct representing the Resource ID for a Dedicated H S M
 type DedicatedHSMId struct {
@@ -30,7 +35,7 @@ func NewDedicatedHSMID(subscriptionId string, resourceGroupName string, dedicate
 
 // ParseDedicatedHSMID parses 'input' into a DedicatedHSMId
 func ParseDedicatedHSMID(input string) (*DedicatedHSMId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DedicatedHSMId{})
+	parser := resourceids.NewParserFromResourceIdType(&DedicatedHSMId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +52,7 @@ func ParseDedicatedHSMID(input string) (*DedicatedHSMId, error) {
 // ParseDedicatedHSMIDInsensitively parses 'input' case-insensitively into a DedicatedHSMId
 // note: this method should only be used for API response data and not user input
 func ParseDedicatedHSMIDInsensitively(input string) (*DedicatedHSMId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DedicatedHSMId{})
+	parser := resourceids.NewParserFromResourceIdType(&DedicatedHSMId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

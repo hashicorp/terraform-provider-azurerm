@@ -19,7 +19,20 @@ type ListByReplicationProtectionContainersOperationResponse struct {
 }
 
 type ListByReplicationProtectionContainersCompleteResult struct {
-	Items []ReplicationProtectedItem
+	LatestHttpResponse *http.Response
+	Items              []ReplicationProtectedItem
+}
+
+type ListByReplicationProtectionContainersCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByReplicationProtectionContainersCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListByReplicationProtectionContainers ...
@@ -30,6 +43,7 @@ func (c ReplicationProtectedItemsClient) ListByReplicationProtectionContainers(c
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByReplicationProtectionContainersCustomPager{},
 		Path:       fmt.Sprintf("%s/replicationProtectedItems", id.ID()),
 	}
 
@@ -71,6 +85,7 @@ func (c ReplicationProtectedItemsClient) ListByReplicationProtectionContainersCo
 
 	resp, err := c.ListByReplicationProtectionContainers(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +98,8 @@ func (c ReplicationProtectedItemsClient) ListByReplicationProtectionContainersCo
 	}
 
 	result = ListByReplicationProtectionContainersCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -53,8 +53,8 @@ func (c ProvidersClient) Get(ctx context.Context, id SubscriptionProviderId, opt
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -72,7 +72,10 @@ func (c ProvidersClient) Get(ctx context.Context, id SubscriptionProviderId, opt
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Provider
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -19,7 +19,20 @@ type ListByProjectOperationResponse struct {
 }
 
 type ListByProjectCompleteResult struct {
-	Items []Pool
+	LatestHttpResponse *http.Response
+	Items              []Pool
+}
+
+type ListByProjectCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByProjectCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListByProject ...
@@ -30,6 +43,7 @@ func (c PoolsClient) ListByProject(ctx context.Context, id ProjectId) (result Li
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByProjectCustomPager{},
 		Path:       fmt.Sprintf("%s/pools", id.ID()),
 	}
 
@@ -71,6 +85,7 @@ func (c PoolsClient) ListByProjectCompleteMatchingPredicate(ctx context.Context,
 
 	resp, err := c.ListByProject(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +98,8 @@ func (c PoolsClient) ListByProjectCompleteMatchingPredicate(ctx context.Context,
 	}
 
 	result = ListByProjectCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = InputId{}
+func init() {
+	recaser.RegisterResourceId(&InputId{})
+}
+
+var _ resourceids.ResourceId = &InputId{}
 
 // InputId is a struct representing the Resource ID for a Input
 type InputId struct {
@@ -32,7 +37,7 @@ func NewInputID(subscriptionId string, resourceGroupName string, streamingJobNam
 
 // ParseInputID parses 'input' into a InputId
 func ParseInputID(input string) (*InputId, error) {
-	parser := resourceids.NewParserFromResourceIdType(InputId{})
+	parser := resourceids.NewParserFromResourceIdType(&InputId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +54,7 @@ func ParseInputID(input string) (*InputId, error) {
 // ParseInputIDInsensitively parses 'input' case-insensitively into a InputId
 // note: this method should only be used for API response data and not user input
 func ParseInputIDInsensitively(input string) (*InputId, error) {
-	parser := resourceids.NewParserFromResourceIdType(InputId{})
+	parser := resourceids.NewParserFromResourceIdType(&InputId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

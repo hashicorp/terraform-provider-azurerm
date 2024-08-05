@@ -19,7 +19,8 @@ type EnvironmentTypesListByDevCenterOperationResponse struct {
 }
 
 type EnvironmentTypesListByDevCenterCompleteResult struct {
-	Items []EnvironmentType
+	LatestHttpResponse *http.Response
+	Items              []EnvironmentType
 }
 
 type EnvironmentTypesListByDevCenterOperationOptions struct {
@@ -49,6 +50,18 @@ func (o EnvironmentTypesListByDevCenterOperationOptions) ToQuery() *client.Query
 	return &out
 }
 
+type EnvironmentTypesListByDevCenterCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *EnvironmentTypesListByDevCenterCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // EnvironmentTypesListByDevCenter ...
 func (c EnvironmentTypesClient) EnvironmentTypesListByDevCenter(ctx context.Context, id DevCenterId, options EnvironmentTypesListByDevCenterOperationOptions) (result EnvironmentTypesListByDevCenterOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -57,8 +70,9 @@ func (c EnvironmentTypesClient) EnvironmentTypesListByDevCenter(ctx context.Cont
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/environmentTypes", id.ID()),
 		OptionsObject: options,
+		Pager:         &EnvironmentTypesListByDevCenterCustomPager{},
+		Path:          fmt.Sprintf("%s/environmentTypes", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -99,6 +113,7 @@ func (c EnvironmentTypesClient) EnvironmentTypesListByDevCenterCompleteMatchingP
 
 	resp, err := c.EnvironmentTypesListByDevCenter(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -111,7 +126,8 @@ func (c EnvironmentTypesClient) EnvironmentTypesListByDevCenterCompleteMatchingP
 	}
 
 	result = EnvironmentTypesListByDevCenterCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

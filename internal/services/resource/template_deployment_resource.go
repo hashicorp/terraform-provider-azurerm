@@ -43,7 +43,7 @@ func resourceTemplateDeployment() *pluginsdk.Resource {
 			0: migration.TemplateDeploymentV0ToV1{},
 		}),
 
-		DeprecationMessage: "The resource 'azurerm_template_deployment' has been superseded by the 'azurerm_resource_group_template_deployment' resource.",
+		DeprecationMessage: "The resource 'azurerm_template_deployment' has been superseded by the 'azurerm_resource_group_template_deployment' resource and will be removed in v4.0 of the AzureRM Provider.",
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {

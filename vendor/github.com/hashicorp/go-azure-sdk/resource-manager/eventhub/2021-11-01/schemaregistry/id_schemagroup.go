@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = SchemaGroupId{}
+func init() {
+	recaser.RegisterResourceId(&SchemaGroupId{})
+}
+
+var _ resourceids.ResourceId = &SchemaGroupId{}
 
 // SchemaGroupId is a struct representing the Resource ID for a Schema Group
 type SchemaGroupId struct {
@@ -32,7 +37,7 @@ func NewSchemaGroupID(subscriptionId string, resourceGroupName string, namespace
 
 // ParseSchemaGroupID parses 'input' into a SchemaGroupId
 func ParseSchemaGroupID(input string) (*SchemaGroupId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SchemaGroupId{})
+	parser := resourceids.NewParserFromResourceIdType(&SchemaGroupId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +54,7 @@ func ParseSchemaGroupID(input string) (*SchemaGroupId, error) {
 // ParseSchemaGroupIDInsensitively parses 'input' case-insensitively into a SchemaGroupId
 // note: this method should only be used for API response data and not user input
 func ParseSchemaGroupIDInsensitively(input string) (*SchemaGroupId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SchemaGroupId{})
+	parser := resourceids.NewParserFromResourceIdType(&SchemaGroupId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

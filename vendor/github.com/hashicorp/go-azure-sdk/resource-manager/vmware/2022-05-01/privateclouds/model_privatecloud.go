@@ -10,7 +10,7 @@ import (
 type PrivateCloud struct {
 	Id         *string                  `json:"id,omitempty"`
 	Identity   *identity.SystemAssigned `json:"identity,omitempty"`
-	Location   string                   `json:"location"`
+	Location   *string                  `json:"location,omitempty"`
 	Name       *string                  `json:"name,omitempty"`
 	Properties *PrivateCloudProperties  `json:"properties,omitempty"`
 	Sku        Sku                      `json:"sku"`

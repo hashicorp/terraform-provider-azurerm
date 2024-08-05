@@ -44,7 +44,10 @@ func (c PrivateEndpointConnectionsClient) List(ctx context.Context, id RediId) (
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model PrivateEndpointConnectionListResult
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

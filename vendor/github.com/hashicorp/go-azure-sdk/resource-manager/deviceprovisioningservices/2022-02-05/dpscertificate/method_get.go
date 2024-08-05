@@ -53,8 +53,8 @@ func (c DpsCertificateClient) Get(ctx context.Context, id CertificateId, options
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -72,7 +72,10 @@ func (c DpsCertificateClient) Get(ctx context.Context, id CertificateId, options
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model CertificateResponse
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

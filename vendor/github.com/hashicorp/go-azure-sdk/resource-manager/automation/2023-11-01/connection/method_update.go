@@ -47,7 +47,10 @@ func (c ConnectionClient) Update(ctx context.Context, id ConnectionId, input Con
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Connection
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

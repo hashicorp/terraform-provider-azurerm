@@ -48,7 +48,10 @@ func (c ScheduledActionsClient) CreateOrUpdate(ctx context.Context, id Scheduled
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ScheduledAction
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

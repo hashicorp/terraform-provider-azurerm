@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -20,6 +21,9 @@ import (
 type MariaDbVirtualNetworkRuleResource struct{}
 
 func TestAccMariaDbVirtualNetworkRule_basic(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("The `azurerm_mariadb_virtual_network_rule` resource is deprecated and will be removed in v4.0 of the AzureRM Provider.")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_virtual_network_rule", "test")
 	r := MariaDbVirtualNetworkRuleResource{}
 
@@ -34,6 +38,9 @@ func TestAccMariaDbVirtualNetworkRule_basic(t *testing.T) {
 }
 
 func TestAccMariaDbVirtualNetworkRule_requiresImport(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("The `azurerm_mariadb_virtual_network_rule` resource is deprecated and will be removed in v4.0 of the AzureRM Provider.")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_virtual_network_rule", "test")
 	r := MariaDbVirtualNetworkRuleResource{}
 
@@ -52,6 +59,9 @@ func TestAccMariaDbVirtualNetworkRule_requiresImport(t *testing.T) {
 }
 
 func TestAccMariaDbVirtualNetworkRule_switchSubnets(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("The `azurerm_mariadb_virtual_network_rule` resource is deprecated and will be removed in v4.0 of the AzureRM Provider.")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_virtual_network_rule", "test")
 	r := MariaDbVirtualNetworkRuleResource{}
 
@@ -78,6 +88,9 @@ func TestAccMariaDbVirtualNetworkRule_switchSubnets(t *testing.T) {
 }
 
 func TestAccMariaDbVirtualNetworkRule_multipleSubnets(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("The `azurerm_mariadb_virtual_network_rule` resource is deprecated and will be removed in v4.0 of the AzureRM Provider.")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_virtual_network_rule", "rule1")
 	r := MariaDbVirtualNetworkRuleResource{}
 

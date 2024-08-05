@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagepool/2021-08-01/diskpools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagepool/2021-08-01/iscsitargets"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -178,7 +178,7 @@ func (d DiskPoolIscsiTargetLunModel) Read() sdk.ResourceFunc {
 			for _, lun := range *resp.Model.Properties.Luns {
 				if lun.ManagedDiskAzureResourceId == id.ManagedDiskId.ID() {
 					diskPoolId := diskpools.NewDiskPoolID(iscsiTargetId.SubscriptionId, iscsiTargetId.ResourceGroupName, iscsiTargetId.DiskPoolName)
-					diskId, err := disks.ParseDiskIDInsensitively(lun.ManagedDiskAzureResourceId)
+					diskId, err := commonids.ParseManagedDiskIDInsensitively(lun.ManagedDiskAzureResourceId)
 					if err != nil {
 						return fmt.Errorf("invalid managed disk id in iscsi target response %q : %q", iscsiTargetId.ID(), lun.ManagedDiskAzureResourceId)
 					}

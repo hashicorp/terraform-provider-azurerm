@@ -22,7 +22,20 @@ type SpacecraftsListAvailableContactsOperationResponse struct {
 }
 
 type SpacecraftsListAvailableContactsCompleteResult struct {
-	Items []AvailableContacts
+	LatestHttpResponse *http.Response
+	Items              []AvailableContacts
+}
+
+type SpacecraftsListAvailableContactsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *SpacecraftsListAvailableContactsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // SpacecraftsListAvailableContacts ...
@@ -34,6 +47,7 @@ func (c ContactClient) SpacecraftsListAvailableContacts(ctx context.Context, id 
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodPost,
+		Pager:      &SpacecraftsListAvailableContactsCustomPager{},
 		Path:       fmt.Sprintf("%s/listAvailableContacts", id.ID()),
 	}
 
@@ -55,15 +69,6 @@ func (c ContactClient) SpacecraftsListAvailableContacts(ctx context.Context, id 
 	if err != nil {
 		return
 	}
-
-	var values struct {
-		Values *[]AvailableContacts `json:"value"`
-	}
-	if err = resp.Unmarshal(&values); err != nil {
-		return
-	}
-
-	result.Model = values.Values
 
 	result.Poller, err = resourcemanager.PollerFromResponse(resp, c.Client)
 	if err != nil {

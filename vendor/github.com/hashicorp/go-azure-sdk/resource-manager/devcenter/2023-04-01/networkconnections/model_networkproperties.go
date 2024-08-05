@@ -12,5 +12,5 @@ type NetworkProperties struct {
 	NetworkingResourceGroupName *string            `json:"networkingResourceGroupName,omitempty"`
 	OrganizationUnit            *string            `json:"organizationUnit,omitempty"`
 	ProvisioningState           *ProvisioningState `json:"provisioningState,omitempty"`
-	SubnetId                    string             `json:"subnetId"`
+	SubnetId                    *string            `json:"subnetId,omitempty"`
 }

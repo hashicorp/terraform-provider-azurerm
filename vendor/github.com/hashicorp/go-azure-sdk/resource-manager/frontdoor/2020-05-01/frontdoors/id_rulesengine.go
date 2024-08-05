@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = RulesEngineId{}
+func init() {
+	recaser.RegisterResourceId(&RulesEngineId{})
+}
+
+var _ resourceids.ResourceId = &RulesEngineId{}
 
 // RulesEngineId is a struct representing the Resource ID for a Rules Engine
 type RulesEngineId struct {
@@ -32,7 +37,7 @@ func NewRulesEngineID(subscriptionId string, resourceGroupName string, frontDoor
 
 // ParseRulesEngineID parses 'input' into a RulesEngineId
 func ParseRulesEngineID(input string) (*RulesEngineId, error) {
-	parser := resourceids.NewParserFromResourceIdType(RulesEngineId{})
+	parser := resourceids.NewParserFromResourceIdType(&RulesEngineId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +54,7 @@ func ParseRulesEngineID(input string) (*RulesEngineId, error) {
 // ParseRulesEngineIDInsensitively parses 'input' case-insensitively into a RulesEngineId
 // note: this method should only be used for API response data and not user input
 func ParseRulesEngineIDInsensitively(input string) (*RulesEngineId, error) {
-	parser := resourceids.NewParserFromResourceIdType(RulesEngineId{})
+	parser := resourceids.NewParserFromResourceIdType(&RulesEngineId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

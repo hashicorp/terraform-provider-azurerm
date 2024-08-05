@@ -19,7 +19,20 @@ type PoolsListOperationResponse struct {
 }
 
 type PoolsListCompleteResult struct {
-	Items []CapacityPool
+	LatestHttpResponse *http.Response
+	Items              []CapacityPool
+}
+
+type PoolsListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *PoolsListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // PoolsList ...
@@ -30,6 +43,7 @@ func (c CapacityPoolsClient) PoolsList(ctx context.Context, id NetAppAccountId) 
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &PoolsListCustomPager{},
 		Path:       fmt.Sprintf("%s/capacityPools", id.ID()),
 	}
 
@@ -71,6 +85,7 @@ func (c CapacityPoolsClient) PoolsListCompleteMatchingPredicate(ctx context.Cont
 
 	resp, err := c.PoolsList(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +98,8 @@ func (c CapacityPoolsClient) PoolsListCompleteMatchingPredicate(ctx context.Cont
 	}
 
 	result = PoolsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

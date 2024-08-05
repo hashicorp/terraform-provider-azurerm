@@ -53,8 +53,8 @@ func (c AdminKeysClient) Get(ctx context.Context, id SearchServiceId, options Ge
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPost,
-		Path:          fmt.Sprintf("%s/listAdminKeys", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/listAdminKeys", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -72,7 +72,10 @@ func (c AdminKeysClient) Get(ctx context.Context, id SearchServiceId, options Ge
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model AdminKeyResult
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

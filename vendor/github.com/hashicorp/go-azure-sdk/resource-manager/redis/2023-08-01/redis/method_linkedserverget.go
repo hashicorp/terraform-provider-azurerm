@@ -43,7 +43,10 @@ func (c RedisClient) LinkedServerGet(ctx context.Context, id LinkedServerId) (re
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model RedisLinkedServerWithProperties
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

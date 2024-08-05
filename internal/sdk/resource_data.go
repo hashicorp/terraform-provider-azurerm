@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package sdk
 
 // This file begins to define the abstraction layer for allowing the provider to be migrated from PluginSDK to the

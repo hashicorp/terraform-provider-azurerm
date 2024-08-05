@@ -34,6 +34,8 @@ func resourceIoTTimeSeriesInsightsEventSourceEventhub() *pluginsdk.Resource {
 			return err
 		}),
 
+		DeprecationMessage: "Azure Time Series Insight will be retired on 2025-03-31. As a result the `azurerm_iot_time_series_insights_event_source_eventhub` resource has been deprecated and will be removed in v4.0 of the AzureRM Provider.",
+
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -142,7 +144,7 @@ func resourceIoTTimeSeriesInsightsEventSourceEventhubCreateUpdate(d *pluginsdk.R
 			SharedAccessKey:       d.Get("shared_access_key").(string),
 			ConsumerGroupName:     d.Get("consumer_group_name").(string),
 			KeyName:               d.Get("shared_access_key_name").(string),
-			EventSourceResourceId: utils.String(d.Get("event_source_resource_id").(string)),
+			EventSourceResourceId: d.Get("event_source_resource_id").(string),
 			TimestampPropertyName: utils.String(d.Get("timestamp_property_name").(string)),
 		},
 	}

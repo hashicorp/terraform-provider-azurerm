@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = RunbookId{}
+func init() {
+	recaser.RegisterResourceId(&RunbookId{})
+}
+
+var _ resourceids.ResourceId = &RunbookId{}
 
 // RunbookId is a struct representing the Resource ID for a Runbook
 type RunbookId struct {
@@ -32,7 +37,7 @@ func NewRunbookID(subscriptionId string, resourceGroupName string, automationAcc
 
 // ParseRunbookID parses 'input' into a RunbookId
 func ParseRunbookID(input string) (*RunbookId, error) {
-	parser := resourceids.NewParserFromResourceIdType(RunbookId{})
+	parser := resourceids.NewParserFromResourceIdType(&RunbookId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +54,7 @@ func ParseRunbookID(input string) (*RunbookId, error) {
 // ParseRunbookIDInsensitively parses 'input' case-insensitively into a RunbookId
 // note: this method should only be used for API response data and not user input
 func ParseRunbookIDInsensitively(input string) (*RunbookId, error) {
-	parser := resourceids.NewParserFromResourceIdType(RunbookId{})
+	parser := resourceids.NewParserFromResourceIdType(&RunbookId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

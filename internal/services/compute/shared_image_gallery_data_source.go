@@ -97,19 +97,15 @@ func dataSourceSharedImageGalleryRead(d *pluginsdk.ResourceData, meta interface{
 		}
 	}
 
-	imagesResp, err := imagesClient.ListByGalleryComplete(ctx, id.ResourceGroupName, id.GalleryName)
+	imagesResp, err := imagesClient.ListByGalleryComplete(ctx, id)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	imageNames := make([]string, 0)
-	for imagesResp.NotDone() {
-		image := imagesResp.Value()
+	for _, image := range imagesResp.Items {
 		if image.Name != nil {
-			imageNames = append(imageNames, *imagesResp.Value().Name)
-		}
-		if err := imagesResp.NextWithContext(ctx); err != nil {
-			return fmt.Errorf("listing next page of shared images for %s: %+v", id, err)
+			imageNames = append(imageNames, *image.Name)
 		}
 	}
 

@@ -8,6 +8,7 @@ This readme covers example usages, but further information on [using this SDK ca
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/eventsubscriptions"
 ```
 
@@ -340,7 +341,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := eventsubscriptions.NewScopeID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
+id := commonids.NewScopeID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
 
 // alternatively `client.ListByResource(ctx, id, eventsubscriptions.DefaultListByResourceOperationOptions())` can be used to do batched pagination
 items, err := client.ListByResourceComplete(ctx, id, eventsubscriptions.DefaultListByResourceOperationOptions())
@@ -357,7 +358,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := eventsubscriptions.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
+id := commonids.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
 // alternatively `client.ListGlobalByResourceGroup(ctx, id, eventsubscriptions.DefaultListGlobalByResourceGroupOperationOptions())` can be used to do batched pagination
 items, err := client.ListGlobalByResourceGroupComplete(ctx, id, eventsubscriptions.DefaultListGlobalByResourceGroupOperationOptions())
@@ -391,7 +392,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := eventsubscriptions.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 // alternatively `client.ListGlobalBySubscription(ctx, id, eventsubscriptions.DefaultListGlobalBySubscriptionOperationOptions())` can be used to do batched pagination
 items, err := client.ListGlobalBySubscriptionComplete(ctx, id, eventsubscriptions.DefaultListGlobalBySubscriptionOperationOptions())

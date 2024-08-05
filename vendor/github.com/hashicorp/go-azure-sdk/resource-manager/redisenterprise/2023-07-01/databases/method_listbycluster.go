@@ -19,7 +19,20 @@ type ListByClusterOperationResponse struct {
 }
 
 type ListByClusterCompleteResult struct {
-	Items []Database
+	LatestHttpResponse *http.Response
+	Items              []Database
+}
+
+type ListByClusterCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByClusterCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListByCluster ...
@@ -30,6 +43,7 @@ func (c DatabasesClient) ListByCluster(ctx context.Context, id RedisEnterpriseId
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByClusterCustomPager{},
 		Path:       fmt.Sprintf("%s/databases", id.ID()),
 	}
 
@@ -71,6 +85,7 @@ func (c DatabasesClient) ListByClusterCompleteMatchingPredicate(ctx context.Cont
 
 	resp, err := c.ListByCluster(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +98,8 @@ func (c DatabasesClient) ListByClusterCompleteMatchingPredicate(ctx context.Cont
 	}
 
 	result = ListByClusterCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

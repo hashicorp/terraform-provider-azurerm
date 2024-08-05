@@ -15,7 +15,24 @@ import (
 type ListSkusOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *SkuList
+	Model        *[]Sku
+}
+
+type ListSkusCompleteResult struct {
+	LatestHttpResponse *http.Response
+	Items              []Sku
+}
+
+type ListSkusCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListSkusCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListSkus ...
@@ -26,6 +43,7 @@ func (c SignalRClient) ListSkus(ctx context.Context, id SignalRId) (result ListS
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListSkusCustomPager{},
 		Path:       fmt.Sprintf("%s/skus", id.ID()),
 	}
 
@@ -35,7 +53,7 @@ func (c SignalRClient) ListSkus(ctx context.Context, id SignalRId) (result ListS
 	}
 
 	var resp *client.Response
-	resp, err = req.Execute(ctx)
+	resp, err = req.ExecutePaged(ctx)
 	if resp != nil {
 		result.OData = resp.OData
 		result.HttpResponse = resp.Response
@@ -44,9 +62,44 @@ func (c SignalRClient) ListSkus(ctx context.Context, id SignalRId) (result ListS
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var values struct {
+		Values *[]Sku `json:"value"`
+	}
+	if err = resp.Unmarshal(&values); err != nil {
 		return
 	}
 
+	result.Model = values.Values
+
+	return
+}
+
+// ListSkusComplete retrieves all the results into a single object
+func (c SignalRClient) ListSkusComplete(ctx context.Context, id SignalRId) (ListSkusCompleteResult, error) {
+	return c.ListSkusCompleteMatchingPredicate(ctx, id, SkuOperationPredicate{})
+}
+
+// ListSkusCompleteMatchingPredicate retrieves all the results and then applies the predicate
+func (c SignalRClient) ListSkusCompleteMatchingPredicate(ctx context.Context, id SignalRId, predicate SkuOperationPredicate) (result ListSkusCompleteResult, err error) {
+	items := make([]Sku, 0)
+
+	resp, err := c.ListSkus(ctx, id)
+	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
+		err = fmt.Errorf("loading results: %+v", err)
+		return
+	}
+	if resp.Model != nil {
+		for _, v := range *resp.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	result = ListSkusCompleteResult{
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
+	}
 	return
 }

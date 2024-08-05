@@ -192,16 +192,6 @@ func (r DevCenterResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (r DevCenterResource) mapDevCenterResourceSchemaToDevCenterProperties(input DevCenterResourceSchema, output *devcenters.DevCenterProperties) error {
-
-	return nil
-}
-
-func (r DevCenterResource) mapDevCenterPropertiesToDevCenterResourceSchema(input devcenters.DevCenterProperties, output *DevCenterResourceSchema) error {
-	output.DevCenterUri = pointer.From(input.DevCenterUri)
-	return nil
-}
-
 func (r DevCenterResource) mapDevCenterResourceSchemaToDevCenter(input DevCenterResourceSchema, output *devcenters.DevCenter) error {
 
 	identity, err := identity.ExpandSystemAndUserAssignedMapFromModel(input.Identity)
@@ -241,5 +231,15 @@ func (r DevCenterResource) mapDevCenterToDevCenterResourceSchema(input devcenter
 		return fmt.Errorf("mapping SDK Field %q / Model %q to Schema: %+v", "DevCenterProperties", "Properties", err)
 	}
 
+	return nil
+}
+
+func (r DevCenterResource) mapDevCenterResourceSchemaToDevCenterProperties(input DevCenterResourceSchema, output *devcenters.DevCenterProperties) error {
+
+	return nil
+}
+
+func (r DevCenterResource) mapDevCenterPropertiesToDevCenterResourceSchema(input devcenters.DevCenterProperties, output *DevCenterResourceSchema) error {
+	output.DevCenterUri = pointer.From(input.DevCenterUri)
 	return nil
 }

@@ -79,22 +79,17 @@ The following arguments are supported:
 
 An `ip_configurations` block supports the following:
 
-* `private_ip_allocation_method` - (Optional) Private IP address allocation method. Allowed value is `Dynamic`. Defaults to `Dynamic`.
-
 * `subnet_id` - (Required) The subnet ID of the IP configuration.
 
+* `private_ip_address` - (Optional) Private IP address of the IP configuration.
+
+* `private_ip_allocation_method` - (Optional) Private IP address allocation method. Allowed value is `Dynamic` and `Static`. Defaults to `Dynamic`.
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Private DNS Resolver Inbound Endpoint.
-
----
-
-An `ip_configurations` block exports the following:
-
-* `private_ip_address` - Private IP address of the IP configuration.
 
 ## Timeouts
 

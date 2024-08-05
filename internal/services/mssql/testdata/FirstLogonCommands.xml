@@ -1,3 +1,8 @@
+<!--
+ Copyright (c) HashiCorp, Inc.
+ SPDX-License-Identifier: MPL-2.0
+-->
+
 <FirstLogonCommands>
     <SynchronousCommand>
         <CommandLine>cmd /c "mkdir C:\terraform"</CommandLine>

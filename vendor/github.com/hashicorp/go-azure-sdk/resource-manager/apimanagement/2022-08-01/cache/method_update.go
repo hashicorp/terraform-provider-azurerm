@@ -53,8 +53,8 @@ func (c CacheClient) Update(ctx context.Context, id CacheId, input CacheUpdatePa
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPatch,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -76,7 +76,10 @@ func (c CacheClient) Update(ctx context.Context, id CacheId, input CacheUpdatePa
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model CacheContract
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

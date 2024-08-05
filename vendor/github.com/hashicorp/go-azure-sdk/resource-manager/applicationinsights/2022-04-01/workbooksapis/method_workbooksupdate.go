@@ -54,8 +54,8 @@ func (c WorkbooksAPIsClient) WorkbooksUpdate(ctx context.Context, id WorkbookId,
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPatch,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -77,7 +77,10 @@ func (c WorkbooksAPIsClient) WorkbooksUpdate(ctx context.Context, id WorkbookId,
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Workbook
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

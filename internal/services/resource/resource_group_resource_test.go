@@ -8,13 +8,17 @@ import (
 	"fmt"
 	"regexp"
 	"testing"
+	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/virtualnetworks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/resourcegroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 type ResourceGroupResource struct{}
@@ -120,55 +124,73 @@ func TestAccResourceGroup_withNestedItemsAndFeatureFlag(t *testing.T) {
 }
 
 func (t ResourceGroupResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	resourceGroup := state.Attributes["name"]
-
-	groupsClient := client.Resource.GroupsClient
-	deleteFuture, err := groupsClient.Delete(ctx, resourceGroup, "Microsoft.Compute/virtualMachines,Microsoft.Compute/virtualMachineScaleSets")
+	// NOTE: Due to the Resource Group resource still using the old Azure SDK and sourcing the Resource Group ID
+	// from the Azure API, we need to support both `resourceGroups` and the legacy `resourcegroups` value here
+	// thus we parse this case-insensitively. This behaviour will be fixed in the future once the Resource is
+	// updated and a state migration is added to account for it, but this required additional coordination.
+	//
+	// If you're using this as a reference when building resources, please use the case-sensitive Resource ID
+	// parsing method instead.
+	id, err := commonids.ParseResourceGroupIDInsensitively(state.ID)
 	if err != nil {
-		return nil, fmt.Errorf("deleting Resource Group %q: %+v", resourceGroup, err)
+		return nil, err
 	}
 
-	err = deleteFuture.WaitForCompletionRef(ctx, groupsClient.Client)
-	if err != nil {
-		return nil, fmt.Errorf("waiting for deletion of Resource Group %q: %+v", resourceGroup, err)
+	opts := resourcegroups.DefaultDeleteOperationOptions()
+	opts.ForceDeletionTypes = pointer.To("Microsoft.Compute/virtualMachines,Microsoft.Compute/virtualMachineScaleSets")
+	if err := client.Resource.ResourceGroupsClient.DeleteThenPoll(ctx, *id, opts); err != nil {
+		return nil, fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return utils.Bool(true), nil
 }
 
 func (t ResourceGroupResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	name := state.Attributes["name"]
-
-	resp, err := client.Resource.GroupsClient.Get(ctx, name)
+	// NOTE: Due to the Resource Group resource still using the old Azure SDK and sourcing the Resource Group ID
+	// from the Azure API, we need to support both `resourceGroups` and the legacy `resourcegroups` value here
+	// thus we parse this case-insensitively. This behaviour will be fixed in the future once the Resource is
+	// updated and a state migration is added to account for it, but this required additional coordination.
+	//
+	// If you're using this as a reference when building resources, please use the case-sensitive Resource ID
+	// parsing method instead.
+	id, err := commonids.ParseResourceGroupIDInsensitively(state.ID)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Resource Group %q: %+v", name, err)
+		return nil, err
 	}
 
-	return utils.Bool(resp.Properties != nil), nil
+	resp, err := client.Resource.ResourceGroupsClient.Get(ctx, *id)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
+
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (t ResourceGroupResource) createNetworkOutsideTerraform(name string) func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
-		client := clients.Network.VnetClient
-		resourceGroup := state.Attributes["name"]
-		location := state.Attributes["location"]
-		params := network.VirtualNetwork{
-			Location: utils.String(location),
-			VirtualNetworkPropertiesFormat: &network.VirtualNetworkPropertiesFormat{
-				AddressSpace: &network.AddressSpace{
+		client := clients.Network.VirtualNetworks
+
+		id, err := commonids.ParseResourceGroupID(state.ID)
+		if err != nil {
+			return err
+		}
+
+		params := virtualnetworks.VirtualNetwork{
+			Location: pointer.To(state.Attributes["location"]),
+			Properties: &virtualnetworks.VirtualNetworkPropertiesFormat{
+				AddressSpace: &virtualnetworks.AddressSpace{
 					AddressPrefixes: &[]string{
 						"10.0.0.0/16",
 					},
 				},
 			},
 		}
-		future, err := client.CreateOrUpdate(ctx, resourceGroup, name, params)
-		if err != nil {
-			return fmt.Errorf("creating nested virtual network: %+v", err)
-		}
+		vnetId := commonids.NewVirtualNetworkID(id.SubscriptionId, id.ResourceGroupName, name)
 
-		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("waiting for the creation of nested virtual network: %+v", err)
+		ctx2, cancel := context.WithTimeout(ctx, 30*time.Minute)
+		defer cancel()
+		if err := client.CreateOrUpdateThenPoll(ctx2, vnetId, params); err != nil {
+			return fmt.Errorf("creating nested virtual network: %+v", err)
 		}
 
 		return nil

@@ -20,7 +20,20 @@ type TableListOperationResponse struct {
 }
 
 type TableListCompleteResult struct {
-	Items []Table
+	LatestHttpResponse *http.Response
+	Items              []Table
+}
+
+type TableListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *TableListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // TableList ...
@@ -31,6 +44,7 @@ func (c TableServiceClient) TableList(ctx context.Context, id commonids.StorageA
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &TableListCustomPager{},
 		Path:       fmt.Sprintf("%s/tableServices/default/tables", id.ID()),
 	}
 
@@ -72,6 +86,7 @@ func (c TableServiceClient) TableListCompleteMatchingPredicate(ctx context.Conte
 
 	resp, err := c.TableList(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -84,7 +99,8 @@ func (c TableServiceClient) TableListCompleteMatchingPredicate(ctx context.Conte
 	}
 
 	result = TableListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

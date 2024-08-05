@@ -19,7 +19,8 @@ type ListByHybridRunbookWorkerGroupOperationResponse struct {
 }
 
 type ListByHybridRunbookWorkerGroupCompleteResult struct {
-	Items []HybridRunbookWorker
+	LatestHttpResponse *http.Response
+	Items              []HybridRunbookWorker
 }
 
 type ListByHybridRunbookWorkerGroupOperationOptions struct {
@@ -49,6 +50,18 @@ func (o ListByHybridRunbookWorkerGroupOperationOptions) ToQuery() *client.QueryP
 	return &out
 }
 
+type ListByHybridRunbookWorkerGroupCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByHybridRunbookWorkerGroupCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByHybridRunbookWorkerGroup ...
 func (c HybridRunbookWorkerClient) ListByHybridRunbookWorkerGroup(ctx context.Context, id HybridRunbookWorkerGroupId, options ListByHybridRunbookWorkerGroupOperationOptions) (result ListByHybridRunbookWorkerGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -57,8 +70,9 @@ func (c HybridRunbookWorkerClient) ListByHybridRunbookWorkerGroup(ctx context.Co
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/hybridRunbookWorkers", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListByHybridRunbookWorkerGroupCustomPager{},
+		Path:          fmt.Sprintf("%s/hybridRunbookWorkers", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -99,6 +113,7 @@ func (c HybridRunbookWorkerClient) ListByHybridRunbookWorkerGroupCompleteMatchin
 
 	resp, err := c.ListByHybridRunbookWorkerGroup(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -111,7 +126,8 @@ func (c HybridRunbookWorkerClient) ListByHybridRunbookWorkerGroupCompleteMatchin
 	}
 
 	result = ListByHybridRunbookWorkerGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

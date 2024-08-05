@@ -19,7 +19,20 @@ type ListByVolumeGroupOperationResponse struct {
 }
 
 type ListByVolumeGroupCompleteResult struct {
-	Items []Volume
+	LatestHttpResponse *http.Response
+	Items              []Volume
+}
+
+type ListByVolumeGroupCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByVolumeGroupCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListByVolumeGroup ...
@@ -30,6 +43,7 @@ func (c VolumesClient) ListByVolumeGroup(ctx context.Context, id VolumeGroupId) 
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByVolumeGroupCustomPager{},
 		Path:       fmt.Sprintf("%s/volumes", id.ID()),
 	}
 
@@ -71,6 +85,7 @@ func (c VolumesClient) ListByVolumeGroupCompleteMatchingPredicate(ctx context.Co
 
 	resp, err := c.ListByVolumeGroup(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +98,8 @@ func (c VolumesClient) ListByVolumeGroupCompleteMatchingPredicate(ctx context.Co
 	}
 
 	result = ListByVolumeGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -43,7 +43,10 @@ func (c EncryptionScopesClient) Get(ctx context.Context, id EncryptionScopeId) (
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model EncryptionScope
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

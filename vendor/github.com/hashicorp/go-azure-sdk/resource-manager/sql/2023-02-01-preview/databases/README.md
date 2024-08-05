@@ -8,6 +8,7 @@ This readme covers example usages, but further information on [using this SDK ca
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/databases"
 ```
 
@@ -24,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := databases.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
+id := commonids.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
 
 payload := databases.Database{
 	// ...
@@ -41,7 +42,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := databases.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
+id := commonids.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +54,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := databases.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
+id := commonids.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
 
 payload := databases.ExportDatabaseDefinition{
 	// ...
@@ -70,7 +71,7 @@ if err := client.ExportThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := databases.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
+id := commonids.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
 
 if err := client.FailoverThenPoll(ctx, id, databases.DefaultFailoverOperationOptions()); err != nil {
 	// handle the error
@@ -82,7 +83,7 @@ if err := client.FailoverThenPoll(ctx, id, databases.DefaultFailoverOperationOpt
 
 ```go
 ctx := context.TODO()
-id := databases.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
+id := commonids.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
 
 read, err := client.Get(ctx, id, databases.DefaultGetOperationOptions())
 if err != nil {
@@ -98,7 +99,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := databases.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
+id := commonids.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
 
 payload := databases.ImportExistingDatabaseDefinition{
 	// ...
@@ -115,7 +116,7 @@ if err := client.ImportThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := databases.NewSqlElasticPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "elasticPoolValue")
+id := commonids.NewSqlElasticPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "elasticPoolValue")
 
 // alternatively `client.ListByElasticPool(ctx, id)` can be used to do batched pagination
 items, err := client.ListByElasticPoolComplete(ctx, id)
@@ -132,7 +133,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := databases.NewSqlServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue")
+id := commonids.NewSqlServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue")
 
 // alternatively `client.ListByServer(ctx, id)` can be used to do batched pagination
 items, err := client.ListByServerComplete(ctx, id)
@@ -149,7 +150,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := databases.NewSqlServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue")
+id := commonids.NewSqlServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue")
 
 // alternatively `client.ListInaccessibleByServer(ctx, id)` can be used to do batched pagination
 items, err := client.ListInaccessibleByServerComplete(ctx, id)
@@ -166,7 +167,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := databases.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
+id := commonids.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
 
 if err := client.PauseThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -178,7 +179,7 @@ if err := client.PauseThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := databases.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
+id := commonids.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
 
 payload := databases.ResourceMoveDefinition{
 	// ...
@@ -199,7 +200,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := databases.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
+id := commonids.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
 
 if err := client.ResumeThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -211,7 +212,7 @@ if err := client.ResumeThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := databases.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
+id := commonids.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
 
 payload := databases.DatabaseUpdate{
 	// ...
@@ -228,7 +229,7 @@ if err := client.UpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := databases.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
+id := commonids.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
 
 if err := client.UpgradeDataWarehouseThenPoll(ctx, id); err != nil {
 	// handle the error

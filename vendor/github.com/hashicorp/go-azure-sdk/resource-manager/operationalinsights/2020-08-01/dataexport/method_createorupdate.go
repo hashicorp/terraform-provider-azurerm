@@ -48,7 +48,10 @@ func (c DataExportClient) CreateOrUpdate(ctx context.Context, id DataExportId, i
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model DataExport
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

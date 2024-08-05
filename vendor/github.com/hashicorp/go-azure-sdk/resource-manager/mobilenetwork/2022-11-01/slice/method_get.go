@@ -43,7 +43,10 @@ func (c SliceClient) Get(ctx context.Context, id SliceId) (result GetOperationRe
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Slice
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

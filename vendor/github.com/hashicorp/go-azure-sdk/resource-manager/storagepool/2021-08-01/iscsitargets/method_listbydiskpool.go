@@ -19,7 +19,20 @@ type ListByDiskPoolOperationResponse struct {
 }
 
 type ListByDiskPoolCompleteResult struct {
-	Items []IscsiTarget
+	LatestHttpResponse *http.Response
+	Items              []IscsiTarget
+}
+
+type ListByDiskPoolCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByDiskPoolCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListByDiskPool ...
@@ -30,6 +43,7 @@ func (c IscsiTargetsClient) ListByDiskPool(ctx context.Context, id DiskPoolId) (
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByDiskPoolCustomPager{},
 		Path:       fmt.Sprintf("%s/iscsiTargets", id.ID()),
 	}
 
@@ -71,6 +85,7 @@ func (c IscsiTargetsClient) ListByDiskPoolCompleteMatchingPredicate(ctx context.
 
 	resp, err := c.ListByDiskPool(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +98,8 @@ func (c IscsiTargetsClient) ListByDiskPoolCompleteMatchingPredicate(ctx context.
 	}
 
 	result = ListByDiskPoolCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

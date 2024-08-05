@@ -43,7 +43,10 @@ func (c RedisClient) AccessPolicyGet(ctx context.Context, id AccessPolicyId) (re
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model RedisCacheAccessPolicy
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

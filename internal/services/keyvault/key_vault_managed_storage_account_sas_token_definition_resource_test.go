@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -119,6 +120,10 @@ func TestAccKeyVaultManagedStorageAccountSasTokenDefinition_recovery(t *testing.
 		},
 		{
 			// purge true here to make sure when we end the test there's no soft-deleted items left behind
+			PreConfig: func() {
+				// old instance dns cached may cause 404 not found error, so we sleep for a while to wait
+				time.Sleep(30 * time.Second)
+			},
 			Config: r.softDeleteRecovery(data, true, "2"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),

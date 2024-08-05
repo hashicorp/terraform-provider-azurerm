@@ -43,7 +43,10 @@ func (c AzureTrafficCollectorsClient) Get(ctx context.Context, id AzureTrafficCo
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model AzureTrafficCollector
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

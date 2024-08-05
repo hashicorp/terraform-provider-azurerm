@@ -192,6 +192,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     node_count             = 1
     vm_size                = "Standard_DS2_v2"
     enable_host_encryption = true
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -225,7 +228,7 @@ EOF
 histogram_quantile(0.99, sum(rate(jobs_duration_seconds_bucket{service="billing-processing"}[5m])) by (job_type))
 EOF
     for        = "PT5M"
-    severity   = 2
+    severity   = 0
     action {
       action_group_id = azurerm_monitor_action_group.test.id
     }
@@ -267,6 +270,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     node_count             = 1
     vm_size                = "Standard_DS2_v2"
     enable_host_encryption = true
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -285,6 +291,9 @@ resource "azurerm_kubernetes_cluster" "test2" {
     node_count             = 2
     vm_size                = "Standard_DS2_v2"
     enable_host_encryption = true
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {

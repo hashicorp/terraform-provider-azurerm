@@ -20,7 +20,20 @@ type AccountsListBySubscriptionOperationResponse struct {
 }
 
 type AccountsListBySubscriptionCompleteResult struct {
-	Items []AccountResource
+	LatestHttpResponse *http.Response
+	Items              []AccountResource
+}
+
+type AccountsListBySubscriptionCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *AccountsListBySubscriptionCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // AccountsListBySubscription ...
@@ -31,6 +44,7 @@ func (c GraphservicesprodsClient) AccountsListBySubscription(ctx context.Context
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &AccountsListBySubscriptionCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.GraphServices/accounts", id.ID()),
 	}
 
@@ -72,6 +86,7 @@ func (c GraphservicesprodsClient) AccountsListBySubscriptionCompleteMatchingPred
 
 	resp, err := c.AccountsListBySubscription(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -84,7 +99,8 @@ func (c GraphservicesprodsClient) AccountsListBySubscriptionCompleteMatchingPred
 	}
 
 	result = AccountsListBySubscriptionCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -130,7 +130,7 @@ resource "azurerm_mysql_flexible_server" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id, azurerm_user_assigned_identity.test2.id]
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Ternary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (r MySQLFlexibleServerAdministratorResource) basic(data acceptance.TestData) string {

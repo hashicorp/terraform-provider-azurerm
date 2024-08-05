@@ -35,6 +35,8 @@ const (
 	ServerMaintenanceWindowDisabled = "Disabled"
 )
 
+var mysqlFlexibleServerResourceName = "azurerm_mysql_flexible_server"
+
 func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceMysqlFlexibleServerCreate,
@@ -306,6 +308,12 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 
 			"tags": commonschema.Tags(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.ForceNewIfChange("storage.0.size_gb", func(ctx context.Context, old, new, meta interface{}) bool {
+				return new.(int) < old.(int)
+			}),
+		),
 	}
 }
 

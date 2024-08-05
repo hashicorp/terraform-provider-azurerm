@@ -16,6 +16,7 @@ var _ sdk.TypedServiceRegistrationWithAGitHubLabel = Registration{}
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
 		AutomationVariablesDataSource{},
+		AutomationRunbookDataSource{},
 	}
 }
 
@@ -28,6 +29,7 @@ func (r Registration) Resources() []sdk.Resource {
 		SourceControlResource{},
 		WatcherResource{},
 		Python3PackageResource{},
+		PowerShell72ModuleResource{},
 	}
 }
 

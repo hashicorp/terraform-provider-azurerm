@@ -43,7 +43,10 @@ func (c IotConnectorsClient) IotConnectorFhirDestinationGet(ctx context.Context,
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model IotFhirDestination
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -19,7 +19,20 @@ type ListByAutomationAccountOperationResponse struct {
 }
 
 type ListByAutomationAccountCompleteResult struct {
-	Items []Credential
+	LatestHttpResponse *http.Response
+	Items              []Credential
+}
+
+type ListByAutomationAccountCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByAutomationAccountCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListByAutomationAccount ...
@@ -30,6 +43,7 @@ func (c CredentialClient) ListByAutomationAccount(ctx context.Context, id Automa
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByAutomationAccountCustomPager{},
 		Path:       fmt.Sprintf("%s/credentials", id.ID()),
 	}
 
@@ -71,6 +85,7 @@ func (c CredentialClient) ListByAutomationAccountCompleteMatchingPredicate(ctx c
 
 	resp, err := c.ListByAutomationAccount(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +98,8 @@ func (c CredentialClient) ListByAutomationAccountCompleteMatchingPredicate(ctx c
 	}
 
 	result = ListByAutomationAccountCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

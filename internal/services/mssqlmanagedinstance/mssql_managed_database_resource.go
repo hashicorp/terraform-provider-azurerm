@@ -9,12 +9,16 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
+	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
+	miParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -23,14 +27,20 @@ type MsSqlManagedDatabaseModel struct {
 	Name                    string                    `tfschema:"name"`
 	ManagedInstanceId       string                    `tfschema:"managed_instance_id"`
 	LongTermRetentionPolicy []LongTermRetentionPolicy `tfschema:"long_term_retention_policy"`
-	ShortTermRetentionDays  int32                     `tfschema:"short_term_retention_days"`
+	ShortTermRetentionDays  int64                     `tfschema:"short_term_retention_days"`
+	PointInTimeRestore      []PointInTimeRestore      `tfschema:"point_in_time_restore"`
 }
 
 type LongTermRetentionPolicy struct {
 	WeeklyRetention  string `tfschema:"weekly_retention"`
 	MonthlyRetention string `tfschema:"monthly_retention"`
 	YearlyRetention  string `tfschema:"yearly_retention"`
-	WeekOfYear       int32  `tfschema:"week_of_year"`
+	WeekOfYear       int64  `tfschema:"week_of_year"`
+}
+
+type PointInTimeRestore struct {
+	RestorePointInTime string `tfschema:"restore_point_in_time"`
+	SourceDatabaseId   string `tfschema:"source_database_id"`
 }
 
 var _ sdk.Resource = MsSqlManagedDatabaseResource{}
@@ -73,6 +83,30 @@ func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			ValidateFunc: validation.IntBetween(1, 35),
 			Default:      7,
+		},
+
+		"point_in_time_restore": {
+			Type:     schema.TypeList,
+			Optional: true,
+			ForceNew: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"restore_point_in_time": {
+						Type:             pluginsdk.TypeString,
+						Required:         true,
+						ForceNew:         true,
+						DiffSuppressFunc: suppress.RFC3339Time,
+						ValidateFunc:     validation.IsRFC3339Time,
+					},
+					"source_database_id": {
+						Type:         schema.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.Any(validate.ManagedDatabaseID, validate.RestorableDatabaseID),
+					},
+				},
+			},
 		},
 	}
 }
@@ -119,7 +153,24 @@ func (r MsSqlManagedDatabaseResource) Create() sdk.ResourceFunc {
 			}
 
 			parameters := sql.ManagedDatabase{
-				Location: managedInstance.Location,
+				Location:                  managedInstance.Location,
+				ManagedDatabaseProperties: &sql.ManagedDatabaseProperties{},
+			}
+
+			if len(model.PointInTimeRestore) > 0 {
+				restorePointInTime := model.PointInTimeRestore[0]
+				parameters.CreateMode = sql.ManagedDatabaseCreateModePointInTimeRestore
+				t, _ := time.Parse(time.RFC3339, restorePointInTime.RestorePointInTime)
+				parameters.RestorePointInTime = &date.Time{
+					Time: t,
+				}
+
+				_, err := miParse.RestorableDroppedDatabaseID(restorePointInTime.SourceDatabaseId)
+				if err == nil {
+					parameters.RestorableDroppedDatabaseID = pointer.To(restorePointInTime.SourceDatabaseId)
+				} else {
+					parameters.SourceDatabaseID = pointer.To(restorePointInTime.SourceDatabaseId)
+				}
 			}
 
 			metadata.Logger.Infof("Creating %s", id)
@@ -154,7 +205,7 @@ func (r MsSqlManagedDatabaseResource) Create() sdk.ResourceFunc {
 
 				shortTermRetentionPolicy := sql.ManagedBackupShortTermRetentionPolicy{
 					ManagedBackupShortTermRetentionPolicyProperties: &sql.ManagedBackupShortTermRetentionPolicyProperties{
-						RetentionDays: pointer.To(model.ShortTermRetentionDays),
+						RetentionDays: pointer.To(int32(model.ShortTermRetentionDays)),
 					},
 				}
 				if _, err := shortTermRetentionClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ManagedInstanceName, id.DatabaseName, shortTermRetentionPolicy); err != nil {
@@ -212,7 +263,7 @@ func (r MsSqlManagedDatabaseResource) Update() sdk.ResourceFunc {
 
 				shortTermRetentionPolicy := sql.ManagedBackupShortTermRetentionPolicy{
 					ManagedBackupShortTermRetentionPolicyProperties: &sql.ManagedBackupShortTermRetentionPolicyProperties{
-						RetentionDays: pointer.To(model.ShortTermRetentionDays),
+						RetentionDays: pointer.To(int32(model.ShortTermRetentionDays)),
 					},
 				}
 				if _, err := shortTermRetentionClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ManagedInstanceName, id.DatabaseName, shortTermRetentionPolicy); err != nil {
@@ -271,7 +322,12 @@ func (r MsSqlManagedDatabaseResource) Read() sdk.ResourceFunc {
 			}
 
 			if shortTermRetentionResp.RetentionDays != nil {
-				model.ShortTermRetentionDays = *shortTermRetentionResp.RetentionDays
+				model.ShortTermRetentionDays = int64(*shortTermRetentionResp.RetentionDays)
+			}
+
+			d := metadata.ResourceData
+			if v, ok := d.GetOk("point_in_time_restore"); ok {
+				model.PointInTimeRestore = flattenManagedDatabasePointInTimeRestore(v)
 			}
 
 			return metadata.Encode(&model)
@@ -309,7 +365,7 @@ func expandLongTermRetentionPolicy(ltrPolicy []LongTermRetentionPolicy) sql.Base
 		WeeklyRetention:  &ltrPolicy[0].WeeklyRetention,
 		MonthlyRetention: &ltrPolicy[0].MonthlyRetention,
 		YearlyRetention:  &ltrPolicy[0].YearlyRetention,
-		WeekOfYear:       &ltrPolicy[0].WeekOfYear,
+		WeekOfYear:       pointer.To(int32(ltrPolicy[0].WeekOfYear)),
 	}
 }
 
@@ -339,8 +395,33 @@ func flattenLongTermRetentionPolicy(ltrPolicy sql.ManagedInstanceLongTermRetenti
 	}
 
 	if ltrPolicy.WeekOfYear != nil {
-		ltrModel.WeekOfYear = *ltrPolicy.WeekOfYear
+		ltrModel.WeekOfYear = int64(*ltrPolicy.WeekOfYear)
 	}
 
 	return []LongTermRetentionPolicy{ltrModel}
+}
+
+func flattenManagedDatabasePointInTimeRestore(input interface{}) []PointInTimeRestore {
+	output := make([]PointInTimeRestore, 0)
+
+	if input == nil {
+		return output
+	}
+
+	attrs := input.([]interface{})
+
+	for _, attr := range attrs {
+		if attr == nil {
+			return output
+		}
+
+		v := attr.(map[string]interface{})
+
+		output = append(output, PointInTimeRestore{
+			RestorePointInTime: v["restore_point_in_time"].(string),
+			SourceDatabaseId:   v["source_database_id"].(string),
+		})
+	}
+
+	return output
 }

@@ -45,7 +45,10 @@ func (c FileServiceClient) List(ctx context.Context, id commonids.StorageAccount
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model FileServiceItems
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

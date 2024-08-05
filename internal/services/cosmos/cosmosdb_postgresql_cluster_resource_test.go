@@ -29,6 +29,8 @@ func TestAccCosmosDbPostgreSQLCluster_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("servers.0.fqdn").IsNotEmpty(),
+				check.That(data.ResourceName).Key("servers.0.name").IsNotEmpty(),
 			),
 		},
 		data.ImportStep("administrator_login_password"),
@@ -201,8 +203,8 @@ resource "azurerm_cosmosdb_postgresql_cluster" "test" {
   node_server_edition           = "MemoryOptimized"
   sql_version                   = "14"
   preferred_primary_zone        = 1
-  node_storage_quota_in_mb      = 131072
-  node_vcores                   = 2
+  node_storage_quota_in_mb      = 524288
+  node_vcores                   = 4
   shards_on_coordinator_enabled = true
 
   tags = {
@@ -222,7 +224,7 @@ resource "azurerm_cosmosdb_postgresql_cluster" "test" {
   location            = azurerm_resource_group.test.location
 
   administrator_login_password    = "H@Sh1CoR4!"
-  coordinator_storage_quota_in_mb = 262144
+  coordinator_storage_quota_in_mb = 524288
   coordinator_vcore_count         = 4
   node_count                      = 2
 
@@ -241,7 +243,7 @@ resource "azurerm_cosmosdb_postgresql_cluster" "test" {
   node_server_edition           = "GeneralPurpose"
   sql_version                   = "16"
   preferred_primary_zone        = 2
-  node_storage_quota_in_mb      = 262144
+  node_storage_quota_in_mb      = 524288
   node_vcores                   = 4
   shards_on_coordinator_enabled = false
 

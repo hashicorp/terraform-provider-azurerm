@@ -19,7 +19,20 @@ type PowerShell72ModuleListByAutomationAccountOperationResponse struct {
 }
 
 type PowerShell72ModuleListByAutomationAccountCompleteResult struct {
-	Items []Module
+	LatestHttpResponse *http.Response
+	Items              []Module
+}
+
+type PowerShell72ModuleListByAutomationAccountCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *PowerShell72ModuleListByAutomationAccountCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // PowerShell72ModuleListByAutomationAccount ...
@@ -30,6 +43,7 @@ func (c ModuleClient) PowerShell72ModuleListByAutomationAccount(ctx context.Cont
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &PowerShell72ModuleListByAutomationAccountCustomPager{},
 		Path:       fmt.Sprintf("%s/powerShell72Modules", id.ID()),
 	}
 
@@ -71,6 +85,7 @@ func (c ModuleClient) PowerShell72ModuleListByAutomationAccountCompleteMatchingP
 
 	resp, err := c.PowerShell72ModuleListByAutomationAccount(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +98,8 @@ func (c ModuleClient) PowerShell72ModuleListByAutomationAccountCompleteMatchingP
 	}
 
 	result = PowerShell72ModuleListByAutomationAccountCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

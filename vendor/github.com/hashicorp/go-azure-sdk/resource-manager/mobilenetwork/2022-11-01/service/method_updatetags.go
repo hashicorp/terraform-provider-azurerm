@@ -47,7 +47,10 @@ func (c ServiceClient) UpdateTags(ctx context.Context, id ServiceId, input TagsO
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Service
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

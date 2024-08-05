@@ -37,7 +37,7 @@ func NewAppServiceEnvironmentsClientWithBaseURI(baseURI string, subscriptionID s
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the App Service Environment.
-func (client AppServiceEnvironmentsClient) ApproveOrRejectPrivateEndpointConnection(ctx context.Context, resourceGroupName string, name string, privateEndpointConnectionName string, privateEndpointWrapper PrivateLinkConnectionApprovalRequestResource) (result AppServiceEnvironmentsApproveOrRejectPrivateEndpointConnectionFuture, err error) {
+func (client AppServiceEnvironmentsClient) ApproveOrRejectPrivateEndpointConnection(ctx context.Context, resourceGroupName string, name string, privateEndpointConnectionName string, privateEndpointWrapper RemotePrivateEndpointConnectionARMResource) (result AppServiceEnvironmentsApproveOrRejectPrivateEndpointConnectionFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AppServiceEnvironmentsClient.ApproveOrRejectPrivateEndpointConnection")
 		defer func() {
@@ -72,7 +72,7 @@ func (client AppServiceEnvironmentsClient) ApproveOrRejectPrivateEndpointConnect
 }
 
 // ApproveOrRejectPrivateEndpointConnectionPreparer prepares the ApproveOrRejectPrivateEndpointConnection request.
-func (client AppServiceEnvironmentsClient) ApproveOrRejectPrivateEndpointConnectionPreparer(ctx context.Context, resourceGroupName string, name string, privateEndpointConnectionName string, privateEndpointWrapper PrivateLinkConnectionApprovalRequestResource) (*http.Request, error) {
+func (client AppServiceEnvironmentsClient) ApproveOrRejectPrivateEndpointConnectionPreparer(ctx context.Context, resourceGroupName string, name string, privateEndpointConnectionName string, privateEndpointWrapper RemotePrivateEndpointConnectionARMResource) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"name":                          autorest.Encode("path", name),
 		"privateEndpointConnectionName": autorest.Encode("path", privateEndpointConnectionName),

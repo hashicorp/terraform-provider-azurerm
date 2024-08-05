@@ -31,8 +31,13 @@ payload := configurations.ConfigurationListForBatchUpdate{
 }
 
 
-if err := client.BatchUpdateThenPoll(ctx, id, payload); err != nil {
+// alternatively `client.BatchUpdate(ctx, id, payload)` can be used to do batched pagination
+items, err := client.BatchUpdateComplete(ctx, id, payload)
+if err != nil {
 	// handle the error
+}
+for _, item := range items {
+	// do something
 }
 ```
 

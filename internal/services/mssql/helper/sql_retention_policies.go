@@ -35,6 +35,7 @@ func LongTermRetentionPolicySchema() *pluginsdk.Schema {
 					ValidateFunc: validate.ISO8601Duration,
 					AtLeastOneOf: atLeastOneOf,
 				},
+
 				// MonthlyRetention - The monthly retention policy for an LTR backup in an ISO 8601 format.
 				"monthly_retention": {
 					Type:         pluginsdk.TypeString,
@@ -43,6 +44,7 @@ func LongTermRetentionPolicySchema() *pluginsdk.Schema {
 					ValidateFunc: validate.ISO8601Duration,
 					AtLeastOneOf: atLeastOneOf,
 				},
+
 				// YearlyRetention - The yearly retention policy for an LTR backup in an ISO 8601 format.
 				"yearly_retention": {
 					Type:         pluginsdk.TypeString,
@@ -51,6 +53,7 @@ func LongTermRetentionPolicySchema() *pluginsdk.Schema {
 					ValidateFunc: validate.ISO8601Duration,
 					AtLeastOneOf: atLeastOneOf,
 				},
+
 				// WeekOfYear - The week of year to take the yearly backup in an ISO 8601 format.
 				"week_of_year": {
 					Type:         pluginsdk.TypeInt,
@@ -58,6 +61,12 @@ func LongTermRetentionPolicySchema() *pluginsdk.Schema {
 					Computed:     true,
 					ValidateFunc: validation.IntBetween(0, 52),
 					AtLeastOneOf: atLeastOneOf,
+				},
+
+				"immutable_backups_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  false,
 				},
 			},
 		},
@@ -107,10 +116,11 @@ func ExpandLongTermRetentionPolicy(input []interface{}) *longtermretentionpolici
 	policy := input[0].(map[string]interface{})
 
 	output := longtermretentionpolicies.LongTermRetentionPolicyProperties{
-		WeeklyRetention:  pointer.To("PT0S"),
-		MonthlyRetention: pointer.To("PT0S"),
-		YearlyRetention:  pointer.To("PT0S"),
-		WeekOfYear:       pointer.To(int64(1)),
+		WeeklyRetention:      pointer.To("PT0S"),
+		MonthlyRetention:     pointer.To("PT0S"),
+		YearlyRetention:      pointer.To("PT0S"),
+		WeekOfYear:           pointer.To(int64(1)),
+		MakeBackupsImmutable: pointer.To(false),
 	}
 
 	if v, ok := policy["weekly_retention"].(string); ok && v != "" {
@@ -127,6 +137,10 @@ func ExpandLongTermRetentionPolicy(input []interface{}) *longtermretentionpolici
 
 	if v, ok := policy["week_of_year"].(int); ok && v != 0 {
 		output.WeekOfYear = pointer.To(int64(v))
+	}
+
+	if v, ok := policy["immutable_backups_enabled"].(bool); ok {
+		output.MakeBackupsImmutable = pointer.To(v)
 	}
 
 	return pointer.To(output)
@@ -157,12 +171,18 @@ func FlattenLongTermRetentionPolicy(input *longtermretentionpolicies.LongTermRet
 		yearlyRetention = *input.Properties.YearlyRetention
 	}
 
+	immutableBackupsEnabled := false
+	if input.Properties.MakeBackupsImmutable != nil {
+		immutableBackupsEnabled = *input.Properties.MakeBackupsImmutable
+	}
+
 	return []interface{}{
 		map[string]interface{}{
-			"monthly_retention": monthlyRetention,
-			"weekly_retention":  weeklyRetention,
-			"week_of_year":      weekOfYear,
-			"yearly_retention":  yearlyRetention,
+			"monthly_retention":         monthlyRetention,
+			"weekly_retention":          weeklyRetention,
+			"week_of_year":              weekOfYear,
+			"yearly_retention":          yearlyRetention,
+			"immutable_backups_enabled": immutableBackupsEnabled,
 		},
 	}
 }

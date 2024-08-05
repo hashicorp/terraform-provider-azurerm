@@ -19,7 +19,20 @@ type ListByLocationOperationResponse struct {
 }
 
 type ListByLocationCompleteResult struct {
-	Items []Usage
+	LatestHttpResponse *http.Response
+	Items              []Usage
+}
+
+type ListByLocationCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByLocationCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListByLocation ...
@@ -30,6 +43,7 @@ func (c UsagesClient) ListByLocation(ctx context.Context, id LocationId) (result
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByLocationCustomPager{},
 		Path:       fmt.Sprintf("%s/usages", id.ID()),
 	}
 
@@ -71,6 +85,7 @@ func (c UsagesClient) ListByLocationCompleteMatchingPredicate(ctx context.Contex
 
 	resp, err := c.ListByLocation(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +98,8 @@ func (c UsagesClient) ListByLocationCompleteMatchingPredicate(ctx context.Contex
 	}
 
 	result = ListByLocationCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

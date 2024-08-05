@@ -43,7 +43,10 @@ func (c MonitorsClient) Get(ctx context.Context, id MonitorId) (result GetOperat
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model NewRelicMonitorResource
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

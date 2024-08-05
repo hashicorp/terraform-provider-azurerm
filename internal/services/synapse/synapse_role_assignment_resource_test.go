@@ -134,6 +134,7 @@ resource "azurerm_synapse_spark_pool" "test" {
   node_size_family     = "MemoryOptimized"
   node_size            = "Small"
   node_count           = 3
+  spark_version        = "3.4"
 }
 
 resource "azurerm_synapse_role_assignment" "test" {

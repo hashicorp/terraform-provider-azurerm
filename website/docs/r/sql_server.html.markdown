@@ -104,7 +104,7 @@ An `identity` block exports the following:
 
 * `tenant_id` - The Tenant ID for the Service Principal associated with the Identity of this SQL Server.
 
--> You can access the Principal ID via `${azurerm_mssql_server.example.identity.0.principal_id}` and the Tenant ID via `${azurerm_mssql_server.example.identity.0.tenant_id}`
+-> You can access the Principal ID via `${azurerm_mssql_server.example.identity[0].principal_id}` and the Tenant ID via `${azurerm_mssql_server.example.identity[0].tenant_id}`
 
 ### Timeouts
 

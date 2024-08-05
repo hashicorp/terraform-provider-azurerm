@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = DevCenterId{}
+func init() {
+	recaser.RegisterResourceId(&DevCenterId{})
+}
+
+var _ resourceids.ResourceId = &DevCenterId{}
 
 // DevCenterId is a struct representing the Resource ID for a Dev Center
 type DevCenterId struct {
@@ -30,7 +35,7 @@ func NewDevCenterID(subscriptionId string, resourceGroupName string, devCenterNa
 
 // ParseDevCenterID parses 'input' into a DevCenterId
 func ParseDevCenterID(input string) (*DevCenterId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DevCenterId{})
+	parser := resourceids.NewParserFromResourceIdType(&DevCenterId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +52,7 @@ func ParseDevCenterID(input string) (*DevCenterId, error) {
 // ParseDevCenterIDInsensitively parses 'input' case-insensitively into a DevCenterId
 // note: this method should only be used for API response data and not user input
 func ParseDevCenterIDInsensitively(input string) (*DevCenterId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DevCenterId{})
+	parser := resourceids.NewParserFromResourceIdType(&DevCenterId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
