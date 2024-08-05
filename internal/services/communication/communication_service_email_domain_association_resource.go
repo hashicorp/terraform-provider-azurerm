@@ -73,7 +73,7 @@ func (r CommunicationServiceEmailDomainAssociationResource) Create() sdk.Resourc
 
 			communicationServiceId, err := communicationservices.ParseCommunicationServiceID(model.CommunicationServiceId)
 			if err != nil {
-				return fmt.Errorf("parsing Communication Service ID: %w", err)
+				return err
 			}
 
 			eMailServiceDomainId, err := domains.ParseDomainID(model.EMailServiceDomainId)
