@@ -187,7 +187,7 @@ func (CommunicationServiceEmailDomainAssociationResource) Read() sdk.ResourceFun
 			}
 
 			if response.WasNotFound(existingCommunicationService.HttpResponse) {
-				return fmt.Errorf("Communication Service %q does not exsits", state.CommunicationServiceId)
+				return metadata.MarkAsGone(id)
 			}
 
 			if existingCommunicationService.Model == nil || existingCommunicationService.Model.Properties == nil {
