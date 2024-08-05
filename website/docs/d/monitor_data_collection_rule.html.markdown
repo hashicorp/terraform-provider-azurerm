@@ -239,7 +239,7 @@ A `performance_counter` block exports the following:
 
 * `name` - The name which should be used for this data source. This name should be unique across all data sources regardless of type within the Data Collection Rule.
 
-* `sampling_frequency_in_seconds` - The number of seconds between consecutive counter measurements (samples). The value should be integer between `1` and `300` inclusive.
+* `sampling_frequency_in_seconds` - The number of seconds between consecutive counter measurements (samples). The value should be integer between `1` and `1800` inclusive.
 
 * `streams` - Specifies a list of streams that this data source will be sent to. A stream indicates what schema will be used for this data and usually what table in Log Analytics the data will be sent to. Possible values include but not limited to `Microsoft-InsightsMetrics`,and `Microsoft-Perf`.
 

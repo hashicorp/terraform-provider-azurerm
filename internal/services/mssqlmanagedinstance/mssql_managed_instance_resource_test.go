@@ -1857,10 +1857,9 @@ resource "azurerm_network_security_rule" "deny_all_outbound_1" {
 }
 
 resource "azurerm_route_table" "test" {
-  name                          = "routetable1-%[1]d"
-  location                      = azurerm_resource_group.test.location
-  resource_group_name           = azurerm_resource_group.test.name
-  disable_bgp_route_propagation = false
+  name                = "routetable1-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   route {
     name           = "subnet-to-vnetlocal"
@@ -2092,10 +2091,9 @@ resource "azurerm_network_security_rule" "deny_all_outbound_2" {
 }
 
 resource "azurerm_route_table" "secondary" {
-  name                          = "routetable2-%[1]d"
-  location                      = azurerm_resource_group.secondary.location
-  resource_group_name           = azurerm_resource_group.secondary.name
-  disable_bgp_route_propagation = false
+  name                = "routetable2-%[1]d"
+  location            = azurerm_resource_group.secondary.location
+  resource_group_name = azurerm_resource_group.secondary.name
 
   route {
     name           = "subnet-to-vnetlocal"
@@ -2327,10 +2325,9 @@ resource "azurerm_network_security_rule" "deny_all_outbound_3" {
 }
 
 resource "azurerm_route_table" "secondary_2" {
-  name                          = "routetable3-%[1]d"
-  location                      = azurerm_resource_group.secondary_2.location
-  resource_group_name           = azurerm_resource_group.secondary_2.name
-  disable_bgp_route_propagation = false
+  name                = "routetable3-%[1]d"
+  location            = azurerm_resource_group.secondary_2.location
+  resource_group_name = azurerm_resource_group.secondary_2.name
 
   route {
     name           = "subnet-to-vnetlocal"

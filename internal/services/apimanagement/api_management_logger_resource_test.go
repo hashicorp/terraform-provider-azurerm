@@ -335,6 +335,8 @@ resource "azurerm_api_management_logger" "test" {
     name         = azurerm_eventhub.test.name
     endpoint_uri = "${azurerm_eventhub_namespace.test.name}.servicebus.windows.net"
   }
+
+  depends_on = [azurerm_role_assignment.test]
 }
 
 resource "azurerm_role_assignment" "test" {

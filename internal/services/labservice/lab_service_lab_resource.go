@@ -107,6 +107,10 @@ func (r LabServiceLabResource) ResourceType() string {
 	return "azurerm_lab_service_lab"
 }
 
+func (r LabServiceLabResource) DeprecationMessage() string {
+	return "The `azurerm_lab_service_lab` resource is deprecated and will be removed in v4.0 of the AzureRM Provider. See more details from https://learn.microsoft.com/en-us/azure/lab-services/retirement-guide"
+}
+
 func (r LabServiceLabResource) ModelObject() interface{} {
 	return &LabServiceLabModel{}
 }
