@@ -227,7 +227,7 @@ func resourceArcKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{
 			return fmt.Errorf("setting `identity`: %+v", err)
 		}
 
-		d.Set("kind", model.Kind)
+		d.Set("kind", string(pointer.From(model.Kind)))
 		d.Set("location", location.Normalize(model.Location))
 		props := model.Properties
 		d.Set("aad_profile", flattenArcKubernetesClusterAadProfile(props.AadProfile))
@@ -325,7 +325,7 @@ func flattenArcKubernetesClusterAadProfile(input *arckubernetes.AadProfile) []in
 
 	return []interface{}{
 		map[string]interface{}{
-			"azure_rbac_enabled":     bool(pointer.From(input.EnableAzureRBAC)),
+			"azure_rbac_enabled":     pointer.From(input.EnableAzureRBAC),
 			"admin_group_object_ids": utils.FlattenStringSlice(input.AdminGroupObjectIDs),
 			"tenant_id":              pointer.From(input.TenantID),
 		},
