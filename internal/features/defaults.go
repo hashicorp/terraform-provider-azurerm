@@ -17,10 +17,6 @@ func Default() UserFeatures {
 		ApplicationInsights: ApplicationInsightFeatures{
 			DisableGeneratedRule: false,
 		},
-		AzureStackHci: AzureStackHciFeatures{
-			DeleteArcBridgeOnDestroy:      false,
-			DeleteCustomLocationOnDestroy: false,
-		},
 		CognitiveAccount: CognitiveAccountFeatures{
 			PurgeSoftDeleteOnDestroy: true,
 		},
