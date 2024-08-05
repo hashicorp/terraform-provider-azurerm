@@ -178,7 +178,7 @@ func (CommunicationServiceEmailDomainAssociationResource) Read() sdk.ResourceFun
 			}
 
 			if response.WasNotFound(existingEMailServiceDomain.HttpResponse) {
-				return fmt.Errorf("EMail Service Domain %q does not exsits", state.EMailServiceDomainId)
+				return metadata.MarkAsGone(id)
 			}
 
 			existingCommunicationService, err := client.Get(ctx, *communicationServiceId)
