@@ -195,7 +195,7 @@ func (CommunicationServiceEmailDomainAssociationResource) Read() sdk.ResourceFun
 
 			domainList := existingCommunicationService.Model.Properties.LinkedDomains
 			if domainList == nil {
-				domainList = pointer.FromSliceOfStrings(make([]string, 0, 1))
+				return fmt.Errorf("checking for Domain Association %s for %s", *eMailServiceDomainId, *communicationServiceId)
 			}
 
 			if !slices.Contains(*domainList, eMailServiceDomainId.ID()) {
