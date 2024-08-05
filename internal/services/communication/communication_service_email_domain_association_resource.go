@@ -111,27 +111,26 @@ func (r CommunicationServiceEmailDomainAssociationResource) Create() sdk.Resourc
 			if existingCommunicationService.Model.Properties == nil {
 				return fmt.Errorf("properties for %s was nil", communicationServiceId)
 
-			domainList := existingCommunicationService.Model.Properties.LinkedDomains
-			if domainList == nil {
-				domainList = pointer.FromSliceOfStrings(make([]string, 0, 1))
+			domainList := make([]string, 0)
+			if existingDomainList := existingCommunicationService.Model.Properties.LinkedDomains; existingDomainList != nil {
+				domainList = pointer.From(existingDomainList)
 			}
-
-			id := commonids.NewCompositeResourceID(communicationServiceId, eMailServiceDomainId)
-			if slices.Contains(*domainList, eMailServiceDomainId.ID()) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
-			}
-
-			*domainList = append(*domainList, eMailServiceDomainId.ID())
-			existingCommunicationService.Model.Properties.LinkedDomains = domainList
+			
+			domainList = append(domainList, eMailServiceDomainId.ID())
 
 			input := communicationservices.CommunicationServiceResourceUpdate{
 				Properties: &communicationservices.CommunicationServiceUpdateProperties{
-					LinkedDomains: domainList,
+					LinkedDomains: pointer.To(domainList),
 				},
 			}
 
-			if _, err := client.Update(ctx, *communicationServiceId, input); err != nil {
+			if _, err = client.Update(ctx, *communicationServiceId, input); err != nil {
 				return fmt.Errorf("updating %s: %+v", *communicationServiceId, err)
+			}
+
+			id := commonids.NewCompositeResourceID(communicationServiceId, eMailServiceDomainId)
+			if slices.Contains(domainList, eMailServiceDomainId.ID()) {
+				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
 			metadata.SetID(id)
