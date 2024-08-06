@@ -218,7 +218,7 @@ data "azurerm_role_definition" "test" {
   name = "Owner"
 }
 
-data "azurerm_role_definition" "test" {
+data "azurerm_role_definition" "test2" {
   name = "Contributor"
 }
 
