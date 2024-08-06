@@ -11,8 +11,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstanceadministrators"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstanceazureadonlyauthentications"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/serverazureadadministrators"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/parse"
@@ -101,14 +101,11 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Create() sdk.R
 				return fmt.Errorf("parsing `managed_instance_id`: %v", err)
 			}
 
-			serverId := commonids.NewSqlServerID(managedInstanceId.SubscriptionId,
-				managedInstanceId.ResourceGroupName, managedInstanceId.ManagedInstanceName)
-
 			id := parse.NewManagedInstanceAzureActiveDirectoryAdministratorID(managedInstanceId.SubscriptionId,
-				managedInstanceId.ResourceGroupName, managedInstanceId.ManagedInstanceName, string(serverazureadadministrators.AdministratorTypeActiveDirectory))
+				managedInstanceId.ResourceGroupName, managedInstanceId.ManagedInstanceName, string(managedinstanceadministrators.ManagedInstanceAdministratorTypeActiveDirectory))
 
 			metadata.Logger.Infof("Import check for %s", id)
-			existing, err := client.Get(ctx, serverId)
+			existing, err := client.Get(ctx, *managedInstanceId)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
@@ -117,9 +114,9 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Create() sdk.R
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			parameters := serverazureadadministrators.ServerAzureADAdministrator{
-				Properties: &serverazureadadministrators.AdministratorProperties{
-					AdministratorType: serverazureadadministrators.AdministratorTypeActiveDirectory,
+			parameters := managedinstanceadministrators.ManagedInstanceAdministrator{
+				Properties: &managedinstanceadministrators.ManagedInstanceAdministratorProperties{
+					AdministratorType: managedinstanceadministrators.ManagedInstanceAdministratorTypeActiveDirectory,
 					Login:             model.LoginUsername,
 					Sid:               model.ObjectId,
 					TenantId:          &model.TenantId,
@@ -128,7 +125,7 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Create() sdk.R
 
 			metadata.Logger.Infof("Creating %s", id)
 
-			err = client.CreateOrUpdateThenPoll(ctx, serverId, parameters)
+			err = client.CreateOrUpdateThenPoll(ctx, *managedInstanceId, parameters)
 			if err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
@@ -163,17 +160,20 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Update() sdk.R
 				return err
 			}
 
-			serverId := commonids.NewSqlServerID(id.SubscriptionId, id.ResourceGroup, id.ManagedInstanceName)
-
 			metadata.Logger.Infof("Decoding state for %s", id)
 			var state MsSqlManagedInstanceActiveDirectoryAdministratorModel
 			if err := metadata.Decode(&state); err != nil {
 				return err
 			}
 
-			properties := serverazureadadministrators.ServerAzureADAdministrator{
-				Properties: &serverazureadadministrators.AdministratorProperties{
-					AdministratorType: serverazureadadministrators.AdministratorTypeActiveDirectory,
+			managedInstanceId, err := commonids.ParseSqlManagedInstanceID(state.ManagedInstanceId)
+			if err != nil {
+				return fmt.Errorf("parsing `managed_instance_id`: %v", err)
+			}
+
+			parameters := managedinstanceadministrators.ManagedInstanceAdministrator{
+				Properties: &managedinstanceadministrators.ManagedInstanceAdministratorProperties{
+					AdministratorType: managedinstanceadministrators.ManagedInstanceAdministratorTypeActiveDirectory,
 					Login:             state.LoginUsername,
 					Sid:               state.ObjectId,
 					TenantId:          &state.TenantId,
@@ -182,14 +182,9 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Update() sdk.R
 
 			metadata.Logger.Infof("Updating %s", id)
 
-			err = client.CreateOrUpdateThenPoll(ctx, serverId, properties)
+			err = client.CreateOrUpdateThenPoll(ctx, *managedInstanceId, parameters)
 			if err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
-			}
-
-			managedInstanceId, err := commonids.ParseSqlManagedInstanceID(state.ManagedInstanceId)
-			if err != nil {
-				return fmt.Errorf("parsing `managed_instance_id`: %v", err)
 			}
 
 			aadAuthOnlyProperties := managedinstanceazureadonlyauthentications.ManagedInstanceAzureADOnlyAuthentication{
@@ -215,7 +210,7 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Read() sdk.Res
 			client := metadata.Client.MSSQLManagedInstance.ManagedInstanceAdministratorsClient
 			aadAuthOnlyClient := metadata.Client.MSSQLManagedInstance.ManagedInstanceAzureADOnlyAuthenticationsClient
 
-			id, err := commonids.ParseSqlServerID(metadata.ResourceData.Id())
+			id, err := parse.ManagedInstanceAzureActiveDirectoryAdministratorID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -226,7 +221,12 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Read() sdk.Res
 				return err
 			}
 
-			result, err := client.Get(ctx, *id)
+			managedInstanceId, err := commonids.ParseSqlManagedInstanceID(state.ManagedInstanceId)
+			if err != nil {
+				return fmt.Errorf("parsing `managed_instance_id`: %v", err)
+			}
+
+			result, err := client.Get(ctx, *managedInstanceId)
 			if err != nil {
 				if response.WasNotFound(result.HttpResponse) {
 					return metadata.MarkAsGone(id)
@@ -234,10 +234,8 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Read() sdk.Res
 				return fmt.Errorf("retrieving %s: %v", id, err)
 			}
 
-			instanceId := commonids.NewSqlManagedInstanceID(id.SubscriptionId, id.ResourceGroupName, id.ServerName)
-
 			model := MsSqlManagedInstanceActiveDirectoryAdministratorModel{
-				ManagedInstanceId:         instanceId.ID(),
+				ManagedInstanceId:         managedInstanceId.ID(),
 				AzureADAuthenticationOnly: false,
 			}
 
@@ -251,7 +249,7 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Read() sdk.Res
 				}
 			}
 
-			aadAuthOnlyResult, err := aadAuthOnlyClient.Get(ctx, instanceId)
+			aadAuthOnlyResult, err := aadAuthOnlyClient.Get(ctx, *managedInstanceId)
 			if err != nil && !response.WasNotFound(result.HttpResponse) {
 				return fmt.Errorf("retrieving `azuread_authentication_only` for %s: %v", id, err)
 			}
@@ -273,7 +271,7 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Delete() sdk.R
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MSSQLManagedInstance.ManagedInstanceAdministratorsClient
 
-			id, err := commonids.ParseSqlServerID(metadata.ResourceData.Id())
+			id, err := commonids.ParseSqlManagedInstanceID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}

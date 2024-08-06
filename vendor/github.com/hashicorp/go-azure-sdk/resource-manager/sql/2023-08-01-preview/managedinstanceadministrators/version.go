@@ -1,4 +1,4 @@
-package serverazureadadministrators
+package managedinstanceadministrators
 
 import "fmt"
 
@@ -8,5 +8,5 @@ import "fmt"
 const defaultApiVersion = "2023-08-01-preview"
 
 func userAgent() string {
-	return fmt.Sprintf("hashicorp/go-azure-sdk/serverazureadadministrators/%s", defaultApiVersion)
+	return fmt.Sprintf("hashicorp/go-azure-sdk/managedinstanceadministrators/%s", defaultApiVersion)
 }
