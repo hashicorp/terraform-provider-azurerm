@@ -126,6 +126,10 @@ resource "azurerm_dev_center_project_environment_type" "test" {
   location              = azurerm_resource_group.test.location
   dev_center_project_id = azurerm_dev_center_project.test.id
   deployment_target_id  = "/subscriptions/${data.azurerm_client_config.current.subscription_id}"
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 `, r.template(data), data.RandomString)
 }
@@ -139,6 +143,10 @@ resource "azurerm_dev_center_project_environment_type" "import" {
   location              = azurerm_dev_center_project_environment_type.test.location
   dev_center_project_id = azurerm_dev_center_project_environment_type.test.dev_center_project_id
   deployment_target_id  = azurerm_dev_center_project_environment_type.test.deployment_target_id
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 `, r.basic(data))
 }
