@@ -239,18 +239,22 @@ func (r DevCenterProjectEnvironmentTypeResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			parameters := environmenttypes.ProjectEnvironmentTypeUpdate{
-				Properties: &environmenttypes.ProjectEnvironmentTypeUpdateProperties{
-					CreatorRoleAssignment: &environmenttypes.ProjectEnvironmentTypeUpdatePropertiesCreatorRoleAssignment{},
-				},
+			resp, err := client.ProjectEnvironmentTypesGet(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("retrieving %s: %+v", id, err)
+			}
+
+			properties := resp.Model
+			if properties == nil {
+				return fmt.Errorf("retrieving %s: model was nil", id)
 			}
 
 			if metadata.ResourceData.HasChange("creator_role_assignment_roles") {
-				parameters.Properties.CreatorRoleAssignment.Roles = expandDevCenterProjectEnvironmentTypeCreatorRoleAssignmentRoles(model.CreatorRoleAssignmentRoles)
+				properties.Properties.CreatorRoleAssignment.Roles = expandDevCenterProjectEnvironmentTypeCreatorRoleAssignmentRoles(model.CreatorRoleAssignmentRoles)
 			}
 
 			if metadata.ResourceData.HasChange("deployment_target_id") {
-				parameters.Properties.DeploymentTargetId = pointer.To(model.DeploymentTargetId)
+				properties.Properties.DeploymentTargetId = pointer.To(model.DeploymentTargetId)
 			}
 
 			if metadata.ResourceData.HasChange("identity") {
@@ -258,18 +262,18 @@ func (r DevCenterProjectEnvironmentTypeResource) Update() sdk.ResourceFunc {
 				if err != nil {
 					return err
 				}
-				parameters.Identity = identity
+				properties.Identity = identity
 			}
 
 			if metadata.ResourceData.HasChange("user_role_assignment") {
-				parameters.Properties.UserRoleAssignments = expandDevCenterProjectEnvironmentTypeUserRoleAssignment(model.UserRoleAssignment)
+				properties.Properties.UserRoleAssignments = expandDevCenterProjectEnvironmentTypeUserRoleAssignment(model.UserRoleAssignment)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
-				parameters.Tags = pointer.To(model.Tags)
+				properties.Tags = pointer.To(model.Tags)
 			}
 
-			if _, err := client.ProjectEnvironmentTypesUpdate(ctx, *id, parameters); err != nil {
+			if _, err := client.ProjectEnvironmentTypesCreateOrUpdate(ctx, *id, *properties); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
