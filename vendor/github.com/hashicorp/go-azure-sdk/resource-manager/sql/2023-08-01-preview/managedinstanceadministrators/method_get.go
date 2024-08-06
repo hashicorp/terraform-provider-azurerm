@@ -1,4 +1,4 @@
-package serverazureadadministrators
+package managedinstanceadministrators
 
 import (
 	"context"
@@ -16,11 +16,11 @@ import (
 type GetOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *ServerAzureADAdministrator
+	Model        *ManagedInstanceAdministrator
 }
 
 // Get ...
-func (c ServerAzureADAdministratorsClient) Get(ctx context.Context, id commonids.SqlServerId) (result GetOperationResponse, err error) {
+func (c ManagedInstanceAdministratorsClient) Get(ctx context.Context, id commonids.SqlManagedInstanceId) (result GetOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -45,7 +45,7 @@ func (c ServerAzureADAdministratorsClient) Get(ctx context.Context, id commonids
 		return
 	}
 
-	var model ServerAzureADAdministrator
+	var model ManagedInstanceAdministrator
 	result.Model = &model
 
 	if err = resp.Unmarshal(result.Model); err != nil {

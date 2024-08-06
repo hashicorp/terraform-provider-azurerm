@@ -51,9 +51,9 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Exists(ctx con
 		return nil, err
 	}
 
-	serverId := commonids.NewSqlServerID(id.SubscriptionId, id.ResourceGroup, id.ManagedInstanceName)
+	instanceId := commonids.NewSqlManagedInstanceID(id.SubscriptionId, id.ResourceGroup, id.ManagedInstanceName)
 
-	resp, err := client.MSSQLManagedInstance.ManagedInstanceAdministratorsClient.Get(ctx, serverId)
+	resp, err := client.MSSQLManagedInstance.ManagedInstanceAdministratorsClient.Get(ctx, instanceId)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil

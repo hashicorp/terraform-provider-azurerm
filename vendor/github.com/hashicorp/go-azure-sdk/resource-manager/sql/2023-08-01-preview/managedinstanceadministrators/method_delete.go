@@ -1,4 +1,4 @@
-package serverazureadadministrators
+package managedinstanceadministrators
 
 import (
 	"context"
@@ -22,12 +22,11 @@ type DeleteOperationResponse struct {
 }
 
 // Delete ...
-func (c ServerAzureADAdministratorsClient) Delete(ctx context.Context, id commonids.SqlServerId) (result DeleteOperationResponse, err error) {
+func (c ManagedInstanceAdministratorsClient) Delete(ctx context.Context, id commonids.SqlManagedInstanceId) (result DeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
-			http.StatusNoContent,
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodDelete,
@@ -58,7 +57,7 @@ func (c ServerAzureADAdministratorsClient) Delete(ctx context.Context, id common
 }
 
 // DeleteThenPoll performs Delete then polls until it's completed
-func (c ServerAzureADAdministratorsClient) DeleteThenPoll(ctx context.Context, id commonids.SqlServerId) error {
+func (c ManagedInstanceAdministratorsClient) DeleteThenPoll(ctx context.Context, id commonids.SqlManagedInstanceId) error {
 	result, err := c.Delete(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing Delete: %+v", err)

@@ -1,4 +1,4 @@
-package serverazureadadministrators
+package managedinstanceadministrators
 
 import (
 	"context"
@@ -13,22 +13,22 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type ListByServerOperationResponse struct {
+type ListByInstanceOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *[]ServerAzureADAdministrator
+	Model        *[]ManagedInstanceAdministrator
 }
 
-type ListByServerCompleteResult struct {
+type ListByInstanceCompleteResult struct {
 	LatestHttpResponse *http.Response
-	Items              []ServerAzureADAdministrator
+	Items              []ManagedInstanceAdministrator
 }
 
-type ListByServerCustomPager struct {
+type ListByInstanceCustomPager struct {
 	NextLink *odata.Link `json:"nextLink"`
 }
 
-func (p *ListByServerCustomPager) NextPageLink() *odata.Link {
+func (p *ListByInstanceCustomPager) NextPageLink() *odata.Link {
 	defer func() {
 		p.NextLink = nil
 	}()
@@ -36,15 +36,15 @@ func (p *ListByServerCustomPager) NextPageLink() *odata.Link {
 	return p.NextLink
 }
 
-// ListByServer ...
-func (c ServerAzureADAdministratorsClient) ListByServer(ctx context.Context, id commonids.SqlServerId) (result ListByServerOperationResponse, err error) {
+// ListByInstance ...
+func (c ManagedInstanceAdministratorsClient) ListByInstance(ctx context.Context, id commonids.SqlManagedInstanceId) (result ListByInstanceOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
-		Pager:      &ListByServerCustomPager{},
+		Pager:      &ListByInstanceCustomPager{},
 		Path:       fmt.Sprintf("%s/administrators", id.ID()),
 	}
 
@@ -64,7 +64,7 @@ func (c ServerAzureADAdministratorsClient) ListByServer(ctx context.Context, id 
 	}
 
 	var values struct {
-		Values *[]ServerAzureADAdministrator `json:"value"`
+		Values *[]ManagedInstanceAdministrator `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return
@@ -75,16 +75,16 @@ func (c ServerAzureADAdministratorsClient) ListByServer(ctx context.Context, id 
 	return
 }
 
-// ListByServerComplete retrieves all the results into a single object
-func (c ServerAzureADAdministratorsClient) ListByServerComplete(ctx context.Context, id commonids.SqlServerId) (ListByServerCompleteResult, error) {
-	return c.ListByServerCompleteMatchingPredicate(ctx, id, ServerAzureADAdministratorOperationPredicate{})
+// ListByInstanceComplete retrieves all the results into a single object
+func (c ManagedInstanceAdministratorsClient) ListByInstanceComplete(ctx context.Context, id commonids.SqlManagedInstanceId) (ListByInstanceCompleteResult, error) {
+	return c.ListByInstanceCompleteMatchingPredicate(ctx, id, ManagedInstanceAdministratorOperationPredicate{})
 }
 
-// ListByServerCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c ServerAzureADAdministratorsClient) ListByServerCompleteMatchingPredicate(ctx context.Context, id commonids.SqlServerId, predicate ServerAzureADAdministratorOperationPredicate) (result ListByServerCompleteResult, err error) {
-	items := make([]ServerAzureADAdministrator, 0)
+// ListByInstanceCompleteMatchingPredicate retrieves all the results and then applies the predicate
+func (c ManagedInstanceAdministratorsClient) ListByInstanceCompleteMatchingPredicate(ctx context.Context, id commonids.SqlManagedInstanceId, predicate ManagedInstanceAdministratorOperationPredicate) (result ListByInstanceCompleteResult, err error) {
+	items := make([]ManagedInstanceAdministrator, 0)
 
-	resp, err := c.ListByServer(ctx, id)
+	resp, err := c.ListByInstance(ctx, id)
 	if err != nil {
 		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
@@ -98,7 +98,7 @@ func (c ServerAzureADAdministratorsClient) ListByServerCompleteMatchingPredicate
 		}
 	}
 
-	result = ListByServerCompleteResult{
+	result = ListByInstanceCompleteResult{
 		LatestHttpResponse: resp.HttpResponse,
 		Items:              items,
 	}

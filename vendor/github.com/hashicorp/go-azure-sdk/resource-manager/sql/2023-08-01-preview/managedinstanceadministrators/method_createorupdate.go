@@ -1,4 +1,4 @@
-package serverazureadadministrators
+package managedinstanceadministrators
 
 import (
 	"context"
@@ -19,11 +19,11 @@ type CreateOrUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *ServerAzureADAdministrator
+	Model        *ManagedInstanceAdministrator
 }
 
 // CreateOrUpdate ...
-func (c ServerAzureADAdministratorsClient) CreateOrUpdate(ctx context.Context, id commonids.SqlServerId, input ServerAzureADAdministrator) (result CreateOrUpdateOperationResponse, err error) {
+func (c ManagedInstanceAdministratorsClient) CreateOrUpdate(ctx context.Context, id commonids.SqlManagedInstanceId, input ManagedInstanceAdministrator) (result CreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -63,7 +63,7 @@ func (c ServerAzureADAdministratorsClient) CreateOrUpdate(ctx context.Context, i
 }
 
 // CreateOrUpdateThenPoll performs CreateOrUpdate then polls until it's completed
-func (c ServerAzureADAdministratorsClient) CreateOrUpdateThenPoll(ctx context.Context, id commonids.SqlServerId, input ServerAzureADAdministrator) error {
+func (c ManagedInstanceAdministratorsClient) CreateOrUpdateThenPoll(ctx context.Context, id commonids.SqlManagedInstanceId, input ManagedInstanceAdministrator) error {
 	result, err := c.CreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing CreateOrUpdate: %+v", err)

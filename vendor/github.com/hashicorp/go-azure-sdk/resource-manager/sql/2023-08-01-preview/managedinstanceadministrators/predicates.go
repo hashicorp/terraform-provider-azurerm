@@ -1,15 +1,15 @@
-package serverazureadadministrators
+package managedinstanceadministrators
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type ServerAzureADAdministratorOperationPredicate struct {
+type ManagedInstanceAdministratorOperationPredicate struct {
 	Id   *string
 	Name *string
 	Type *string
 }
 
-func (p ServerAzureADAdministratorOperationPredicate) Matches(input ServerAzureADAdministrator) bool {
+func (p ManagedInstanceAdministratorOperationPredicate) Matches(input ManagedInstanceAdministrator) bool {
 
 	if p.Id != nil && (input.Id == nil || *p.Id != *input.Id) {
 		return false

@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/instancefailovergroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedbackupshorttermretentionpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/manageddatabases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstanceadministrators"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstanceazureadonlyauthentications"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstanceencryptionprotectors"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstancekeys"
@@ -17,7 +18,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstances"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstancevulnerabilityassessments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedserversecurityalertpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/serverazureadadministrators"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -28,7 +28,7 @@ type Client struct {
 	ManagedInstancesShortTermRetentionPoliciesClient *managedbackupshorttermretentionpolicies.ManagedBackupShortTermRetentionPoliciesClient
 	ManagedInstanceVulnerabilityAssessmentsClient    *managedinstancevulnerabilityassessments.ManagedInstanceVulnerabilityAssessmentsClient
 	ManagedInstanceServerSecurityAlertPoliciesClient *managedserversecurityalertpolicies.ManagedServerSecurityAlertPoliciesClient
-	ManagedInstanceAdministratorsClient              *serverazureadadministrators.ServerAzureADAdministratorsClient
+	ManagedInstanceAdministratorsClient              *managedinstanceadministrators.ManagedInstanceAdministratorsClient
 	ManagedInstanceAzureADOnlyAuthenticationsClient  *managedinstanceazureadonlyauthentications.ManagedInstanceAzureADOnlyAuthenticationsClient
 	ManagedInstanceEncryptionProtectorClient         *managedinstanceencryptionprotectors.ManagedInstanceEncryptionProtectorsClient
 	ManagedInstanceFailoverGroupsClient              *instancefailovergroups.InstanceFailoverGroupsClient
@@ -63,7 +63,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(managedInstancesShortTermRetentionPoliciesClient.Client, o.Authorizers.ResourceManager)
 
-	managedInstancesAdministratorsClient, err := serverazureadadministrators.NewServerAzureADAdministratorsClientWithBaseURI(o.Environment.ResourceManager)
+	managedInstancesAdministratorsClient, err := managedinstanceadministrators.NewManagedInstanceAdministratorsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Managed Instance Administrators Client: %+v", err)
 	}
