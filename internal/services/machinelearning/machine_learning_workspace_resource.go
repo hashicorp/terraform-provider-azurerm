@@ -500,6 +500,7 @@ func resourceMachineLearningWorkspaceUpdate(d *pluginsdk.ResourceData, meta inte
 				}
 			}
 		}
+		payload.Properties.ServerlessComputeSettings = serverlessCompute
 	}
 
 	if d.HasChange("tags") {
