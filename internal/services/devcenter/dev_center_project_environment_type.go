@@ -97,7 +97,7 @@ func (r DevCenterProjectEnvironmentTypeResource) Arguments() map[string]*plugins
 					},
 
 					"roles": {
-						Type:     pluginsdk.TypeList,
+						Type:     pluginsdk.TypeSet,
 						Required: true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
