@@ -280,7 +280,6 @@ func resourceSentinelAutomationRuleCreateOrUpdate(d *pluginsdk.ResourceData, met
 				IsEnabled:    d.Get("enabled").(bool),
 				TriggersOn:   automationrules.TriggersOn(d.Get("triggers_on").(string)),
 				TriggersWhen: automationrules.TriggersWhen(d.Get("triggers_when").(string)),
-				Conditions:   expandAutomationRuleConditions(d.Get("condition").([]interface{})),
 			},
 			Actions: actions,
 		},
