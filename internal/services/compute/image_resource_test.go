@@ -527,12 +527,11 @@ resource "azurerm_image" "test" {
   %s
 
   os_disk {
-    os_type      = "Linux"
-    os_state     = "Generalized"
-    blob_uri     = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
-    size_gb      = 30
-    caching      = "None"
-    storage_type = "StandardSSD_LRS"
+    os_type  = "Linux"
+    os_state = "Generalized"
+    blob_uri = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
+    size_gb  = 30
+    caching  = "None"
   }
 
   tags = {
@@ -554,12 +553,11 @@ resource "azurerm_image" "import" {
   resource_group_name = azurerm_image.test.resource_group_name
 
   os_disk {
-    os_type      = "Linux"
-    os_state     = "Generalized"
-    blob_uri     = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
-    size_gb      = 30
-    caching      = "None"
-    storage_type = "StandardSSD_LRS"
+    os_type  = "Linux"
+    os_state = "Generalized"
+    blob_uri = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
+    size_gb  = 30
+    caching  = "None"
   }
 
   tags = {
@@ -581,12 +579,11 @@ resource "azurerm_image" "testdestination" {
   resource_group_name = azurerm_resource_group.test.name
 
   os_disk {
-    os_type      = "Linux"
-    os_state     = "Generalized"
-    blob_uri     = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
-    size_gb      = 30
-    caching      = "None"
-    storage_type = "StandardSSD_LRS"
+    os_type  = "Linux"
+    os_state = "Generalized"
+    blob_uri = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
+    size_gb  = 30
+    caching  = "None"
   }
 
   tags = {
@@ -721,12 +718,11 @@ resource "azurerm_image" "testdestination" {
   resource_group_name = azurerm_resource_group.test.name
 
   os_disk {
-    os_type      = "Linux"
-    os_state     = "Generalized"
-    blob_uri     = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
-    size_gb      = 30
-    caching      = "None"
-    storage_type = "StandardSSD_LRS"
+    os_type  = "Linux"
+    os_state = "Generalized"
+    blob_uri = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
+    size_gb  = 30
+    caching  = "None"
   }
 
   tags = {
@@ -877,7 +873,6 @@ resource "azurerm_image" "test" {
     size_gb                = 30
     caching                = "None"
     disk_encryption_set_id = azurerm_disk_encryption_set.test.id
-    storage_type           = "StandardSSD_LRS"
   }
 
   tags = {
