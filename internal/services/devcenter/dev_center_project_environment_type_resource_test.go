@@ -237,7 +237,7 @@ resource "azurerm_dev_center_project_environment_type" "test" {
 
   user_role_assignment {
     user_id = azurerm_user_assigned_identity.test.principal_id
-    roles   = [split("/", data.azurerm_role_definition.test.id)[length(split("/", data.azurerm_role_definition.test.id)) - 1]]
+    roles   = [split("/", data.azurerm_role_definition.test.id)[length(split("/", data.azurerm_role_definition.test.id)) - 1], split("/", data.azurerm_role_definition.test2.id)[length(split("/", data.azurerm_role_definition.test2.id)) - 1]]
   }
 
   user_role_assignment {

@@ -77,7 +77,7 @@ func (r DevCenterProjectEnvironmentTypeResource) Arguments() map[string]*plugins
 		"identity": commonschema.SystemAssignedUserAssignedIdentityRequired(),
 
 		"creator_role_assignment_roles": {
-			Type:     pluginsdk.TypeList,
+			Type:     pluginsdk.TypeSet,
 			Optional: true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
