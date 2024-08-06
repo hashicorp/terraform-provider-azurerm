@@ -68,8 +68,7 @@ resource "azurerm_storage_table" "test" {
 }
 
 resource "azurerm_storage_table_entity" "test" {
-  storage_account_name = azurerm_storage_account.test.name
-  table_name           = azurerm_storage_table.test.name
+  storage_table_id = azurerm_storage_table.test.id
 
   partition_key = "testpartition"
   row_key       = "testrow"
@@ -81,8 +80,7 @@ resource "azurerm_storage_table_entity" "test" {
 }
 
 resource "azurerm_storage_table_entity" "test2" {
-  storage_account_name = azurerm_storage_account.test.name
-  table_name           = azurerm_storage_table.test.name
+  storage_table_id = azurerm_storage_table.test.id
 
   partition_key = "testpartition"
   row_key       = "testrow2"
@@ -94,8 +92,7 @@ resource "azurerm_storage_table_entity" "test2" {
 }
 
 resource "azurerm_storage_table_entity" "testselector" {
-  storage_account_name = azurerm_storage_account.test.name
-  table_name           = azurerm_storage_table.test.name
+  storage_table_id = azurerm_storage_table.test.id
 
   partition_key = "testselectorpartition"
   row_key       = "testrow"
