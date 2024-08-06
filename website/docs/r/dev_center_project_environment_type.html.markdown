@@ -31,7 +31,7 @@ resource "azurerm_dev_center" "example" {
 }
 
 resource "azurerm_dev_center_environment_type" "example" {
-  name          = "example-dcet"
+  name          = "example-et"
   dev_center_id = azurerm_dev_center.example.id
 }
 
@@ -44,15 +44,15 @@ resource "azurerm_dev_center_project" "example" {
   depends_on = [azurerm_dev_center_environment_type.example]
 }
 
-data "azurerm_role_definition" "builtin" {
-  name = "Owner"
-}
-
 resource "azurerm_dev_center_project_environment_type" "example" {
-  name                  = "example-dcpet"
+  name                  = "example-et"
   location              = azurerm_resource_group.example.location
   dev_center_project_id = azurerm_dev_center_project.example.id
   deployment_target_id  = "/subscriptions/${data.azurerm_client_config.current.subscription_id}"
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 ```
 
@@ -68,11 +68,11 @@ The following arguments are supported:
 
 * `deployment_target_id` - (Required) The ID of the subscription that the environment type will be mapped to. The environment's resources will be deployed into this subscription.
 
+* `identity` - (Required) An `identity` block as defined below.
+
 * `creator_role_assignment_roles` - (Optional) A list of roles to assign to the environment creator.
 
 * `user_role_assignment` - (Optional) A `user_role_assignment` block as defined below.
-
-* `identity` - (Optional) An `identity` block as defined below.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Dev Center Project Environment Type.
 

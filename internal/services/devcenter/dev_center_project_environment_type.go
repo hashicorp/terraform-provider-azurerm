@@ -74,6 +74,8 @@ func (r DevCenterProjectEnvironmentTypeResource) Arguments() map[string]*plugins
 			ValidateFunc: commonids.ValidateSubscriptionID,
 		},
 
+		"identity": commonschema.SystemAssignedUserAssignedIdentityRequired(),
+
 		"creator_role_assignment_roles": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -82,8 +84,6 @@ func (r DevCenterProjectEnvironmentTypeResource) Arguments() map[string]*plugins
 				ValidateFunc: validation.IsUUID,
 			},
 		},
-
-		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"user_role_assignment": {
 			Type:     pluginsdk.TypeList,
