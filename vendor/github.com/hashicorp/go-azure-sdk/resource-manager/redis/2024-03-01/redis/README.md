@@ -1,7 +1,7 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-08-01/redis` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-03-01/redis` Documentation
 
-The `redis` SDK allows for interaction with the Azure Resource Manager Service `redis` (API Version `2023-08-01`).
+The `redis` SDK allows for interaction with the Azure Resource Manager Service `redis` (API Version `2024-03-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -9,7 +9,7 @@ This readme covers example usages, but further information on [using this SDK ca
 
 ```go
 import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-import "github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-08-01/redis"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-03-01/redis"
 ```
 
 
