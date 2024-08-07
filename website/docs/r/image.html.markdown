@@ -55,7 +55,6 @@ The `os_disk` block supports the following:
 * `caching` - (Optional) Specifies the caching mode as `ReadWrite`, `ReadOnly`, or `None`. The default is `None`.
 * `size_gb` - (Optional) Specifies the size of the image to be created. Changing this forces a new resource to be created.
 * `disk_encryption_set_id` - (Optional) The ID of the Disk Encryption Set which should be used to encrypt this image. Changing this forces a new resource to be created.
-* `storage_type` - (Optional) The type of storage disk to use. See [Azure API Docs](https://learn.microsoft.com/en-us/rest/api/compute/images/create-or-update?view=rest-compute-2024-03-02&tabs=HTTP#storageaccounttypes) for valid values.
 
 ---
 
