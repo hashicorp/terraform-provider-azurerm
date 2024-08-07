@@ -270,6 +270,7 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Delete() sdk.R
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MSSQLManagedInstance.ManagedInstanceAdministratorsClient
+			aadAuthOnlyClient := metadata.Client.MSSQLManagedInstance.ManagedInstanceAzureADOnlyAuthenticationsClient
 
 			id, err := parse.ManagedInstanceAzureActiveDirectoryAdministratorID(metadata.ResourceData.Id())
 			if err != nil {
@@ -277,6 +278,11 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Delete() sdk.R
 			}
 
 			managedInstanceId := commonids.NewSqlManagedInstanceID(id.SubscriptionId, id.ResourceGroup, id.ManagedInstanceName)
+
+			err = aadAuthOnlyClient.DeleteThenPoll(ctx, managedInstanceId)
+			if err != nil {
+				return fmt.Errorf("setting `azuread_authentication_only` for %s: %+v", managedInstanceId, err)
+			}
 
 			err = client.DeleteThenPoll(ctx, managedInstanceId)
 			if err != nil {
