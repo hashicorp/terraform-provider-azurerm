@@ -271,12 +271,14 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Delete() sdk.R
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MSSQLManagedInstance.ManagedInstanceAdministratorsClient
 
-			id, err := commonids.ParseSqlManagedInstanceID(metadata.ResourceData.Id())
+			id, err := parse.ManagedInstanceAzureActiveDirectoryAdministratorID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			err = client.DeleteThenPoll(ctx, *id)
+			managedInstanceId := commonids.NewSqlManagedInstanceID(id.SubscriptionId, id.ResourceGroup, id.ManagedInstanceName)
+
+			err = client.DeleteThenPoll(ctx, managedInstanceId)
 			if err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
