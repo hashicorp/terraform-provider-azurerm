@@ -32,6 +32,7 @@ type ContainerAppEnvironmentModel struct {
 	Location                                string                         `tfschema:"location"`
 	DaprApplicationInsightsConnectionString string                         `tfschema:"dapr_application_insights_connection_string"`
 	LogAnalyticsWorkspaceId                 string                         `tfschema:"log_analytics_workspace_id"`
+	LogsDestination                         string                         `tfschema:"logs_destination"`
 	InfrastructureSubnetId                  string                         `tfschema:"infrastructure_subnet_id"`
 	InternalLoadBalancerEnabled             bool                           `tfschema:"internal_load_balancer_enabled"`
 	ZoneRedundant                           bool                           `tfschema:"zone_redundancy_enabled"`
@@ -91,9 +92,16 @@ func (r ContainerAppEnvironmentResource) Arguments() map[string]*pluginsdk.Schem
 		"log_analytics_workspace_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ForceNew:     true,
 			ValidateFunc: workspaces.ValidateWorkspaceID,
 			Description:  "The ID for the Log Analytics Workspace to link this Container Apps Managed Environment to.",
+		},
+
+		"logs_destination": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validation.StringInSlice([]string{"log-analytics", "azure-monitor"}, false),
+			Description:  "The destination for the application logs. Possible values are `log-analytics` or `azure-monitor`.",
 		},
 
 		"infrastructure_resource_group_name": {
@@ -249,6 +257,12 @@ func (r ContainerAppEnvironmentResource) Create() sdk.ResourceFunc {
 				managedEnvironment.Properties.InfrastructureResourceGroup = pointer.To(containerAppEnvironment.InfrastructureResourceGroup)
 			}
 
+			if containerAppEnvironment.LogsDestination != "" && containerAppEnvironment.LogsDestination != "log-analytics" {
+				managedEnvironment.Properties.AppLogsConfiguration = &managedenvironments.AppLogsConfiguration{
+					Destination: pointer.To(containerAppEnvironment.LogsDestination),
+				}
+			}
+
 			if containerAppEnvironment.LogAnalyticsWorkspaceId != "" {
 				logAnalyticsId, err := workspaces.ParseWorkspaceID(containerAppEnvironment.LogAnalyticsWorkspaceId)
 				if err != nil {
@@ -336,6 +350,10 @@ func (r ContainerAppEnvironmentResource) Read() sdk.ResourceFunc {
 						state.DockerBridgeCidr = pointer.From(vnet.DockerBridgeCidr)
 						state.PlatformReservedCidr = pointer.From(vnet.PlatformReservedCidr)
 						state.PlatformReservedDnsIP = pointer.From(vnet.PlatformReservedDnsIP)
+					}
+
+					if appLogsConfig := props.AppLogsConfiguration; appLogsConfig != nil {
+						state.LogsDestination = *appLogsConfig.Destination
 					}
 
 					state.CustomDomainVerificationId = pointer.From(props.CustomDomainConfiguration.CustomDomainVerificationId)
@@ -510,6 +528,14 @@ func (r ContainerAppEnvironmentResource) CustomizeDiff() sdk.ResourceFunc {
 						return err
 					}
 				}
+			}
+
+			if env.LogsDestination == "log-analytics" && env.LogAnalyticsWorkspaceId == "" {
+				return fmt.Errorf("`log_analytics_workspace_id` must be set when `logs_destination` is set to `log-analytics`")
+			}
+
+			if env.LogAnalyticsWorkspaceId != "" && env.LogsDestination != "" && env.LogsDestination != "log-analytics" {
+				return fmt.Errorf("`log_analytics_workspace_id` can only be set when `logs_destination` is set to `log-analytics`")
 			}
 
 			return nil
