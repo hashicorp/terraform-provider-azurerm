@@ -65,7 +65,6 @@ The `data_disk` block supports the following:
 * `blob_uri` - (Optional) Specifies the URI in Azure storage of the blob that you want to use to create the image.
 * `caching` - (Optional) Specifies the caching mode as `ReadWrite`, `ReadOnly`, or `None`. Defaults to `None`.
 * `size_gb` - (Optional) Specifies the size of the image to be created. The target size can't be smaller than the source size.
-* `storage_type` - (Optional) The type of storage disk to use. See [Azure API Docs](https://learn.microsoft.com/en-us/rest/api/compute/images/create-or-update?view=rest-compute-2024-03-02&tabs=HTTP#storageaccounttypes) for valid values.
 
 ## Attributes Reference
 
