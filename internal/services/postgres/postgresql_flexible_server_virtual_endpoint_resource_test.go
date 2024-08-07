@@ -95,12 +95,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-psql-virtualendpoint-rg-%[1]d"
+  name     = "acctest-ve-rg-%[1]d"
   location = "%[2]s"
 }
 
 resource "azurerm_postgresql_flexible_server" "test" {
-  name                          = "acctest-psql-virtualendpoint-primary-%[1]d"
+  name                          = "acctest-ve-primary-%[1]d"
   resource_group_name           = azurerm_resource_group.test.name
   location                      = azurerm_resource_group.test.location
   version                       = "16"
@@ -114,7 +114,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
 }
 
 resource "azurerm_postgresql_flexible_server" "test_replica" {
-  name                          = "acctest-psql-virtualendpoint-replica-%[1]d"
+  name                          = "acctest-ve-replica-%[1]d"
   resource_group_name           = azurerm_postgresql_flexible_server.test.resource_group_name
   location                      = azurerm_postgresql_flexible_server.test.location
   create_mode                   = "Replica"
@@ -127,7 +127,7 @@ resource "azurerm_postgresql_flexible_server" "test_replica" {
 }
 
 resource "azurerm_postgresql_flexible_server_virtual_endpoint" "test" {
-  name              = "acctest-psqlvirtualendpoint-endpoint-%[1]d"
+  name              = "acctest-ve-%[1]d"
   source_server_id  = azurerm_postgresql_flexible_server.test.id
   replica_server_id = azurerm_postgresql_flexible_server.test_replica.id
   type              = "ReadWrite"
@@ -142,12 +142,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-psql-virtualendpoint-rg-%[1]d"
+  name     = "acctest-ve-rg-%[1]d"
   location = "%[2]s"
 }
 
 resource "azurerm_postgresql_flexible_server" "test" {
-  name                          = "acctest-psql-virtualendpoint-primary-%[1]d"
+  name                          = "acctest-ve-primary-%[1]d"
   resource_group_name           = azurerm_resource_group.test.name
   location                      = azurerm_resource_group.test.location
   version                       = "16"
@@ -185,17 +185,17 @@ resource "azurerm_postgresql_flexible_server" "test_replica_1" {
   storage_mb                    = azurerm_postgresql_flexible_server.test.storage_mb
   storage_tier                  = azurerm_postgresql_flexible_server.test.storage_tier
 
-  ## this prevents a race condition that can occur in the test
+  ## this prevents a race condition that can occur when 2 replicas are created simultaneously
   depends_on = [azurerm_postgresql_flexible_server.test_replica_0]
 }
 
 resource "azurerm_postgresql_flexible_server_virtual_endpoint" "test" {
-  name              = "acctest-psqlvirtualendpoint-endpoint-%[1]d"
+  name              = "acctest-ve-%[1]d"
   source_server_id  = azurerm_postgresql_flexible_server.test.id
   replica_server_id = %[3]s
   type              = "ReadWrite"
 
-  ## this prevents a race condition that can occur in the test
+  ## this prevents a race condition that can occur if the virtual endpoint is created while a replica is still initializing
   depends_on = [azurerm_postgresql_flexible_server.test_replica_0, azurerm_postgresql_flexible_server.test_replica_1]
 }
 `, data.RandomInteger, "eastus", replicaId) // force region due to SKU constraints
