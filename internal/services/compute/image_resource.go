@@ -144,6 +144,14 @@ func resourceImage() *pluginsdk.Resource {
 							ForceNew:     true,
 							ValidateFunc: validate.DiskEncryptionSetID,
 						},
+
+						"storage_type": {
+							Type:         pluginsdk.TypeString,
+							Description:  "The type of storage disk",
+							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringInSlice(images.PossibleValuesForStorageAccountTypes(), false),
+						},
 					},
 				},
 			},
@@ -188,6 +196,14 @@ func resourceImage() *pluginsdk.Resource {
 							Optional:     true,
 							Computed:     true,
 							ValidateFunc: validation.NoZeroValues,
+						},
+
+						"storage_type": {
+							Type:         pluginsdk.TypeString,
+							Description:  "The type of storage disk",
+							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringInSlice(images.PossibleValuesForStorageAccountTypes(), false),
 						},
 					},
 				},
@@ -453,7 +469,8 @@ func flattenImageOSDisk(input *images.ImageStorageProfile) []interface{} {
 			if set := v.DiskEncryptionSet; set != nil && set.Id != nil {
 				diskEncryptionSetId = *set.Id
 			}
-			output = append(output, map[string]interface{}{
+
+			properties := map[string]interface{}{
 				"blob_uri":               blobUri,
 				"caching":                caching,
 				"managed_disk_id":        managedDiskId,
@@ -461,13 +478,13 @@ func flattenImageOSDisk(input *images.ImageStorageProfile) []interface{} {
 				"os_state":               string(v.OsState),
 				"size_gb":                diskSizeGB,
 				"disk_encryption_set_id": diskEncryptionSetId,
-			})
+			}
 
 			if v.StorageAccountType != nil && features.FourPointOhBeta() {
-				output = append(output, map[string]interface{}{
-					"storage_type": string(*v.StorageAccountType),
-				})
+				properties["storage_type"] = string(*v.StorageAccountType)
 			}
+
+			output = append(output, properties)
 		}
 	}
 
@@ -497,19 +514,19 @@ func flattenImageDataDisks(input *images.ImageStorageProfile) []interface{} {
 					managedDiskId = *disk.ManagedDisk.Id
 				}
 
-				output = append(output, map[string]interface{}{
+				properties := map[string]interface{}{
 					"blob_uri":        blobUri,
 					"caching":         caching,
 					"lun":             int(disk.Lun),
 					"managed_disk_id": managedDiskId,
 					"size_gb":         diskSizeGb,
-				})
+				}
 
 				if disk.StorageAccountType != nil && features.FourPointOhBeta() {
-					output = append(output, map[string]interface{}{
-						"storage_type": string(*disk.StorageAccountType),
-					})
+					properties["storage_type"] = string(*disk.StorageAccountType)
 				}
+
+				output = append(output, properties)
 			}
 		}
 	}
