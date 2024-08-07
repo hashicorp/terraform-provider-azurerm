@@ -964,6 +964,8 @@ resource "azurerm_subnet" "main_subnet" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.0.0/23"]
   service_endpoints    = ["Microsoft.Storage", "Microsoft.ContainerRegistry"]
+
+  private_link_service_network_policies_enabled = false
 }
 
 resource "azurerm_subnet" "worker_subnet" {
