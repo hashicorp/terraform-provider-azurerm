@@ -24,7 +24,7 @@ func StorageSettingSchema() *pluginsdk.Schema {
 				},
 				"default_file_path": {
 					Type:         pluginsdk.TypeString,
-					Required:     true,
+					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},

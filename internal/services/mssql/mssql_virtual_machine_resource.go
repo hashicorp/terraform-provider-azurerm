@@ -1279,10 +1279,15 @@ func expandSqlVirtualMachineDataStorageSettings(input []interface{}) *sqlvirtual
 	}
 	dataStorageSettings := input[0].(map[string]interface{})
 
-	return &sqlvirtualmachines.SQLStorageSettings{
-		Luns:            expandSqlVirtualMachineStorageSettingsLuns(dataStorageSettings["luns"].([]interface{})),
-		DefaultFilePath: utils.String(dataStorageSettings["default_file_path"].(string)),
+	storageSettings := sqlvirtualmachines.SQLStorageSettings{
+		Luns: expandSqlVirtualMachineStorageSettingsLuns(dataStorageSettings["luns"].([]interface{})),
 	}
+
+	if dataStorageSettings["default_file_path"].(string) != "" {
+		storageSettings.DefaultFilePath = utils.String(dataStorageSettings["default_file_path"].(string))
+	}
+
+	return &storageSettings
 }
 
 func expandSqlVirtualMachineStorageSettingsLuns(input []interface{}) *[]int64 {
