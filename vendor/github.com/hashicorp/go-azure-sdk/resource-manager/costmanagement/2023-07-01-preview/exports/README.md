@@ -1,7 +1,7 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2021-10-01/exports` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2023-07-01-preview/exports` Documentation
 
-The `exports` SDK allows for interaction with the Azure Resource Manager Service `costmanagement` (API Version `2021-10-01`).
+The `exports` SDK allows for interaction with the Azure Resource Manager Service `costmanagement` (API Version `2023-07-01-preview`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -9,7 +9,7 @@ This readme covers example usages, but further information on [using this SDK ca
 
 ```go
 import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-import "github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2021-10-01/exports"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2023-07-01-preview/exports"
 ```
 
 
@@ -64,7 +64,12 @@ if model := read.Model; model != nil {
 ctx := context.TODO()
 id := exports.NewScopedExportID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "exportValue")
 
-read, err := client.Execute(ctx, id)
+payload := exports.ExportRunRequest{
+	// ...
+}
+
+
+read, err := client.Execute(ctx, id, payload)
 if err != nil {
 	// handle the error
 }
