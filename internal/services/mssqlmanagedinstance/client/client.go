@@ -4,7 +4,10 @@
 package client
 
 import (
+	"fmt"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
+	schedule "github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/startstopmanagedinstanceschedules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -20,11 +23,12 @@ type Client struct {
 	ManagedInstanceEncryptionProtectorClient         *sql.ManagedInstanceEncryptionProtectorsClient
 	ManagedInstanceFailoverGroupsClient              *sql.InstanceFailoverGroupsClient
 	ManagedInstanceKeysClient                        *sql.ManagedInstanceKeysClient
+	ManagedInstanceStartStopSchedulesClient          *schedule.StartStopManagedInstanceSchedulesClient
 
 	options *common.ClientOptions
 }
 
-func NewClient(o *common.ClientOptions) *Client {
+func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	managedDatabasesClient := sql.NewManagedDatabasesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&managedDatabasesClient.Client, o.ResourceManagerAuthorizer)
@@ -59,6 +63,12 @@ func NewClient(o *common.ClientOptions) *Client {
 	managedInstanceServerSecurityAlertPoliciesClient := sql.NewManagedServerSecurityAlertPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&managedInstanceServerSecurityAlertPoliciesClient.Client, o.ResourceManagerAuthorizer)
 
+	managedInstanceStartStopSchedulesClient, err := schedule.NewStartStopManagedInstanceSchedulesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Managed Instance Start Stop Schedules Client: %+v", err)
+	}
+	o.Configure(managedInstanceStartStopSchedulesClient.Client, o.Authorizers.ResourceManager)
+
 	return &Client{
 		ManagedDatabasesClient:                           &managedDatabasesClient,
 		ManagedInstanceAdministratorsClient:              &managedInstancesAdministratorsClient,
@@ -71,9 +81,10 @@ func NewClient(o *common.ClientOptions) *Client {
 		ManagedInstancesShortTermRetentionPoliciesClient: &managedInstancesShortTermRetentionPoliciesClient,
 		ManagedInstanceVulnerabilityAssessmentsClient:    &managedInstanceVulnerabilityAssessmentsClient,
 		ManagedInstancesClient:                           &managedInstancesClient,
+		ManagedInstanceStartStopSchedulesClient:          managedInstanceStartStopSchedulesClient,
 
 		options: o,
-	}
+	}, nil
 }
 
 func (c Client) ManagedInstancesClientForSubscription(subscriptionID string) *sql.ManagedInstancesClient {
