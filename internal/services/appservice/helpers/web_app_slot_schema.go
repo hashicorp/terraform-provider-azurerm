@@ -688,7 +688,6 @@ func (s *SiteConfigLinuxWebAppSlot) ExpandForUpdate(metadata sdk.ResourceMetaDat
 	expanded := *existing
 
 	expanded.AcrUseManagedIdentityCreds = pointer.To(s.UseManagedIdentityACR)
-	expanded.AutoHealEnabled = pointer.To(false)
 	expanded.HTTP20Enabled = pointer.To(s.Http2Enabled)
 	expanded.LocalMySqlEnabled = pointer.To(s.LocalMysql)
 	expanded.RemoteDebuggingEnabled = pointer.To(s.RemoteDebugging)
