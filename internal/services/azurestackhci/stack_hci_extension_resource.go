@@ -320,21 +320,31 @@ func (r StackHCIExtensionResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("protected_settings") {
-				expandedSetting, err := pluginsdk.ExpandJsonFromString(config.ProtectedSettings)
-				if err != nil {
-					return fmt.Errorf("expanding `protected_settings`: %+v", err)
-				}
+				if config.ProtectedSettings != "" {
+					expandedSetting, err := pluginsdk.ExpandJsonFromString(config.ProtectedSettings)
+					if err != nil {
+						return fmt.Errorf("expanding `protected_settings`: %+v", err)
+					}
 
-				updateModel.Properties.ExtensionParameters.ProtectedSettings = pointer.To(interface{}(expandedSetting))
+					updateModel.Properties.ExtensionParameters.ProtectedSettings = pointer.To(interface{}(expandedSetting))
+				} else {
+					var emptyInterface interface{}
+					updateModel.Properties.ExtensionParameters.Settings = pointer.To(emptyInterface)
+				}
 			}
 
 			if metadata.ResourceData.HasChange("settings") {
-				expandedSetting, err := pluginsdk.ExpandJsonFromString(config.Settings)
-				if err != nil {
-					return fmt.Errorf("expanding `setting`: %+v", err)
-				}
+				if config.Settings != "" {
+					expandedSetting, err := pluginsdk.ExpandJsonFromString(config.Settings)
+					if err != nil {
+						return fmt.Errorf("expanding `setting`: %+v", err)
+					}
 
-				updateModel.Properties.ExtensionParameters.Settings = pointer.To(interface{}(expandedSetting))
+					updateModel.Properties.ExtensionParameters.Settings = pointer.To(interface{}(expandedSetting))
+				} else {
+					var emptyInterface interface{}
+					updateModel.Properties.ExtensionParameters.Settings = pointer.To(emptyInterface)
+				}
 			}
 
 			if metadata.ResourceData.HasChange("type_handler_version") {
