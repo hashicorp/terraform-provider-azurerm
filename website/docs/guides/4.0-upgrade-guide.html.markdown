@@ -1021,6 +1021,12 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 * The deprecated property `live_trace_enabled` has been removed in favour of the `live_trace` property.
 * The property `cors` is no longer `Computed`. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
 
+### `azurerm_storage_account` 
+
+* The deprecated property `enable_https_traffic_only` has been removed in favour of the `https_traffic_only_enabled` property.
+* The property `large_file_share_enabled` is no longer defaulted to `true` as that value varies based on the value of `account_kind`
+* The property `cross_tenant_replication_enabled` now defaults to `false`
+
 ### `azurerm_storage_share_directory`
 
 * The deprecated property `share_name` has been removed in favour of the `storage_share_id` property.

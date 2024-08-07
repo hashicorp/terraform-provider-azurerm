@@ -209,11 +209,17 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				},
 			},
 
-			"cross_tenant_replication_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  true,
-			},
+			"cross_tenant_replication_enabled": func() *pluginsdk.Schema {
+				s := &pluginsdk.Schema{
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  false,
+				}
+				if !features.FourPointOhBeta() {
+					s.Default = true
+				}
+				return s
+			}(),
 
 			"custom_domain": {
 				Type:     pluginsdk.TypeList,
