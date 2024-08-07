@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -25,6 +24,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+)
+
+const (
+	StorageAccountTypeGRS  = "GRS"
+	StorageAccountTypeLRS  = "LRS"
+	StorageAccountTypeZRS  = "ZRS"
+	StorageAccountTypeGZRS = "GZRS"
 )
 
 type MsSqlManagedInstanceModel struct {
@@ -218,12 +224,12 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			ForceNew: true,
-			Default:  string(sql.StorageAccountTypeGRS),
+			Default:  StorageAccountTypeGRS,
 			ValidateFunc: validation.StringInSlice([]string{
-				string(sql.StorageAccountTypeGRS),
-				string(sql.StorageAccountTypeLRS),
-				string(sql.StorageAccountTypeZRS),
-				"GZRS", // manually adding until resource is ported to go-azure-sdk and we can upgrade to a newer API version
+				StorageAccountTypeGRS,
+				StorageAccountTypeLRS,
+				StorageAccountTypeZRS,
+				StorageAccountTypeGZRS,
 			}, false),
 		},
 
@@ -518,7 +524,7 @@ func (r MsSqlManagedInstanceResource) Delete() sdk.ResourceFunc {
 
 			err = client.DeleteThenPoll(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("deleting %s: %+v", id, err)
+				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
 			return nil
@@ -617,11 +623,11 @@ func (r MsSqlManagedInstanceResource) normalizeSku(sku string) string {
 // GZRS -> GeoZone
 func storageAccTypeToBackupStorageRedundancy(storageAccountType string) managedinstances.BackupStorageRedundancy {
 	switch storageAccountType {
-	case string(sql.StorageAccountTypeZRS):
+	case StorageAccountTypeZRS:
 		return managedinstances.BackupStorageRedundancyZone
-	case string(sql.StorageAccountTypeLRS):
+	case StorageAccountTypeLRS:
 		return managedinstances.BackupStorageRedundancyLocal
-	case "GZRS":
+	case StorageAccountTypeGZRS:
 		return managedinstances.BackupStorageRedundancyGeoZone
 	}
 	return managedinstances.BackupStorageRedundancyGeo
@@ -630,11 +636,11 @@ func storageAccTypeToBackupStorageRedundancy(storageAccountType string) managedi
 func backupStorageRedundancyToStorageAccType(backupStorageRedundancy managedinstances.BackupStorageRedundancy) string {
 	switch backupStorageRedundancy {
 	case managedinstances.BackupStorageRedundancyZone:
-		return string(sql.StorageAccountTypeZRS)
+		return StorageAccountTypeZRS
 	case managedinstances.BackupStorageRedundancyLocal:
-		return string(sql.StorageAccountTypeLRS)
+		return StorageAccountTypeLRS
 	case managedinstances.BackupStorageRedundancyGeoZone:
-		return "GZRS"
+		return StorageAccountTypeGZRS
 	}
-	return string(sql.StorageAccountTypeGRS)
+	return StorageAccountTypeGRS
 }

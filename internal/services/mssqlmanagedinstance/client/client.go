@@ -77,7 +77,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	managedInstanceEncryptionProtectorsClient, err := managedinstanceencryptionprotectors.NewManagedInstanceEncryptionProtectorsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, fmt.Errorf("building Managed Instance Failover Groups Client: %+v", err)
+		return nil, fmt.Errorf("building Managed Instance Encryption Protectors Client: %+v", err)
 	}
 	o.Configure(managedInstanceEncryptionProtectorsClient.Client, o.Authorizers.ResourceManager)
 

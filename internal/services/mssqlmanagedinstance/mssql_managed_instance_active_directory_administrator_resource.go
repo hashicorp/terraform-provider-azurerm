@@ -98,7 +98,7 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Create() sdk.R
 
 			managedInstanceId, err := commonids.ParseSqlManagedInstanceID(model.ManagedInstanceId)
 			if err != nil {
-				return fmt.Errorf("parsing `managed_instance_id`: %v", err)
+				return err
 			}
 
 			id := parse.NewManagedInstanceAzureActiveDirectoryAdministratorID(managedInstanceId.SubscriptionId,
@@ -168,7 +168,7 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Update() sdk.R
 
 			managedInstanceId, err := commonids.ParseSqlManagedInstanceID(state.ManagedInstanceId)
 			if err != nil {
-				return fmt.Errorf("parsing `managed_instance_id`: %v", err)
+				return err
 			}
 
 			parameters := managedinstanceadministrators.ManagedInstanceAdministrator{
@@ -223,7 +223,7 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Read() sdk.Res
 
 			managedInstanceId, err := commonids.ParseSqlManagedInstanceID(state.ManagedInstanceId)
 			if err != nil {
-				return fmt.Errorf("parsing `managed_instance_id`: %v", err)
+				return err
 			}
 
 			result, err := client.Get(ctx, *managedInstanceId)
@@ -278,7 +278,7 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Delete() sdk.R
 
 			err = client.DeleteThenPoll(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("deleting %s: %+v", id, err)
+				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
 			return nil
