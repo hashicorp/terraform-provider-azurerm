@@ -217,6 +217,7 @@ func (r CustomLocationResource) Read() sdk.ResourceFunc {
 					Namespace:           pointer.From(props.Namespace),
 				}
 
+				// API always returns an empty `authentication` block even it's not specified. Tracing the bug: https://github.com/Azure/azure-rest-api-specs/issues/30101
 				if props.Authentication != nil && props.Authentication.Type != nil && props.Authentication.Value != nil {
 					state.Authentication = []AuthModel{
 						{
@@ -269,28 +270,35 @@ func (r CustomLocationResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding %+v", err)
 			}
 
-			customLocationProps := customlocations.CustomLocationProperties{}
+			existing, err := client.Get(ctx, *id)
+			if err != nil {
+				return err
+			}
+
+			model := existing.Model
+
+			if model.Properties == nil {
+				return fmt.Errorf("retreiving properties for %s for update: %+v", *id, err)
+			}
 			d := metadata.ResourceData
 
 			if d.HasChanges("authentication") {
 				if len(state.Authentication) > 0 {
 					auth := state.Authentication[0]
-					customLocationProps.Authentication = &customlocations.CustomLocationPropertiesAuthentication{
+					model.Properties.Authentication = &customlocations.CustomLocationPropertiesAuthentication{
 						Type:  pointer.To(auth.Type),
 						Value: pointer.To(auth.Value),
 					}
 				}
+			} else {
+				model.Properties.Authentication = nil
 			}
 
 			if d.HasChange("cluster_extension_ids") {
-				customLocationProps.ClusterExtensionIds = pointer.To(state.ClusterExtensionIds)
+				model.Properties.ClusterExtensionIds = pointer.To(state.ClusterExtensionIds)
 			}
 
-			props := customlocations.PatchableCustomLocations{
-				Properties: pointer.To(customLocationProps),
-			}
-
-			if _, err := client.Update(ctx, *id, props); err != nil {
+			if _, err := client.CreateOrUpdate(ctx, *id, *model); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 			return nil
