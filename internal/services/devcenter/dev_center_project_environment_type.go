@@ -246,7 +246,7 @@ func (r DevCenterProjectEnvironmentTypeResource) Update() sdk.ResourceFunc {
 
 			properties := resp.Model
 			if properties == nil {
-				return fmt.Errorf("retrieving %s: model was nil", id)
+				return fmt.Errorf("retrieving %s: `model` was nil", id)
 			}
 
 			if metadata.ResourceData.HasChange("creator_role_assignment_roles") {

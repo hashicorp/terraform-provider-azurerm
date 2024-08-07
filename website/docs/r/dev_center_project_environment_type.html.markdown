@@ -92,7 +92,7 @@ A `user_role_assignment` block supports the following:
 
 * `user_id` - (Required) The user object ID that is assigned roles.
 
-* `roles` - (Required) A list of roles to assign to the parent user.
+* `roles` - (Required) A list of roles to assign to the `user_id`.
 
 ## Attributes Reference
 
