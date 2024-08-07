@@ -197,18 +197,9 @@ func resourceImage() *pluginsdk.Resource {
 		},
 	}
 
-	if features.FourPointOhBeta() {
-		storageTypeProperty := &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Description:  "The type of storage disk",
-			Optional:     true,
-			ForceNew:     true,
-			Default:      string(images.StorageAccountTypesStandardLRS),
-			ValidateFunc: validation.StringInSlice(images.PossibleValuesForStorageAccountTypes(), false),
-		}
-
-		resource.Schema["os_disk"].Elem.(*pluginsdk.Resource).Schema["storage_type"] = storageTypeProperty
-		resource.Schema["data_disk"].Elem.(*pluginsdk.Resource).Schema["storage_type"] = storageTypeProperty
+	if !features.FourPointOhBeta() {
+		delete(resource.Schema["os_disk"].Elem.(*pluginsdk.Resource).Schema, "storage_type")
+		delete(resource.Schema["data_disk"].Elem.(*pluginsdk.Resource).Schema, "storage_type")
 	}
 
 	return resource
