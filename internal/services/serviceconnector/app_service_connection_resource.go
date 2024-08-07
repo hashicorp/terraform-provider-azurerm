@@ -294,9 +294,7 @@ func (r AppServiceConnectorResource) Read() sdk.ResourceFunc {
 					state.SecretStore = flattenSecretStore(*props.SecretStore)
 				}
 
-				if props.Scope != nil {
-					state.Scope = pointer.From(props.Scope)
-				}
+				state.Scope = pointer.From(props.Scope)
 
 				if props.ConfigurationInfo != nil {
 					state.ConfigurationInfo = flattenConfigurationInfo(pointer.From(props.ConfigurationInfo))
