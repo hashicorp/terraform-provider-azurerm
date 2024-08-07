@@ -192,6 +192,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     node_count             = 1
     vm_size                = "Standard_DS2_v2"
     enable_host_encryption = true
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -267,6 +270,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     node_count             = 1
     vm_size                = "Standard_DS2_v2"
     enable_host_encryption = true
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -285,6 +291,9 @@ resource "azurerm_kubernetes_cluster" "test2" {
     node_count             = 2
     vm_size                = "Standard_DS2_v2"
     enable_host_encryption = true
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
