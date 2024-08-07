@@ -5,6 +5,7 @@ package sqlvirtualmachines
 
 type ServerConfigurationsManagementSettings struct {
 	AdditionalFeaturesServerConfigurations *AdditionalFeaturesServerConfigurations `json:"additionalFeaturesServerConfigurations,omitempty"`
+	AzureAdAuthenticationSettings          *AADAuthenticationSettings              `json:"azureAdAuthenticationSettings,omitempty"`
 	SqlConnectivityUpdateSettings          *SqlConnectivityUpdateSettings          `json:"sqlConnectivityUpdateSettings,omitempty"`
 	SqlInstanceSettings                    *SQLInstanceSettings                    `json:"sqlInstanceSettings,omitempty"`
 	SqlStorageUpdateSettings               *SqlStorageUpdateSettings               `json:"sqlStorageUpdateSettings,omitempty"`

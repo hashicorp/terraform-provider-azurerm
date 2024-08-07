@@ -14,22 +14,21 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type StartAssessmentOperationResponse struct {
+type RedeployOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
 }
 
-// StartAssessment ...
-func (c SqlVirtualMachinesClient) StartAssessment(ctx context.Context, id SqlVirtualMachineId) (result StartAssessmentOperationResponse, err error) {
+// Redeploy ...
+func (c SqlVirtualMachinesClient) Redeploy(ctx context.Context, id SqlVirtualMachineId) (result RedeployOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
-			http.StatusOK,
 		},
 		HttpMethod: http.MethodPost,
-		Path:       fmt.Sprintf("%s/startAssessment", id.ID()),
+		Path:       fmt.Sprintf("%s/redeploy", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -55,15 +54,15 @@ func (c SqlVirtualMachinesClient) StartAssessment(ctx context.Context, id SqlVir
 	return
 }
 
-// StartAssessmentThenPoll performs StartAssessment then polls until it's completed
-func (c SqlVirtualMachinesClient) StartAssessmentThenPoll(ctx context.Context, id SqlVirtualMachineId) error {
-	result, err := c.StartAssessment(ctx, id)
+// RedeployThenPoll performs Redeploy then polls until it's completed
+func (c SqlVirtualMachinesClient) RedeployThenPoll(ctx context.Context, id SqlVirtualMachineId) error {
+	result, err := c.Redeploy(ctx, id)
 	if err != nil {
-		return fmt.Errorf("performing StartAssessment: %+v", err)
+		return fmt.Errorf("performing Redeploy: %+v", err)
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
-		return fmt.Errorf("polling after StartAssessment: %+v", err)
+		return fmt.Errorf("polling after Redeploy: %+v", err)
 	}
 
 	return nil

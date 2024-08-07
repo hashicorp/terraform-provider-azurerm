@@ -13,4 +13,5 @@ type SQLTempDbSettings struct {
 	Luns              *[]int64 `json:"luns,omitempty"`
 	PersistFolder     *bool    `json:"persistFolder,omitempty"`
 	PersistFolderPath *string  `json:"persistFolderPath,omitempty"`
+	UseStoragePool    *bool    `json:"useStoragePool,omitempty"`
 }

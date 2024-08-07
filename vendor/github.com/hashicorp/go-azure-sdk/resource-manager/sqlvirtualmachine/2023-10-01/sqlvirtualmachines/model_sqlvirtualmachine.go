@@ -1,7 +1,6 @@
 package sqlvirtualmachines
 
 import (
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/systemdata"
 )
 
@@ -10,7 +9,7 @@ import (
 
 type SqlVirtualMachine struct {
 	Id         *string                      `json:"id,omitempty"`
-	Identity   *identity.SystemAssigned     `json:"identity,omitempty"`
+	Identity   *ResourceIdentity            `json:"identity,omitempty"`
 	Location   string                       `json:"location"`
 	Name       *string                      `json:"name,omitempty"`
 	Properties *SqlVirtualMachineProperties `json:"properties,omitempty"`
