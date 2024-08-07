@@ -1,7 +1,7 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2022-02-01/sqlvirtualmachines` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2023-10-01/sqlvirtualmachines` Documentation
 
-The `sqlvirtualmachines` SDK allows for interaction with the Azure Resource Manager Service `sqlvirtualmachine` (API Version `2022-02-01`).
+The `sqlvirtualmachines` SDK allows for interaction with the Azure Resource Manager Service `sqlvirtualmachine` (API Version `2023-10-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -9,7 +9,7 @@ This readme covers example usages, but further information on [using this SDK ca
 
 ```go
 import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-import "github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2022-02-01/sqlvirtualmachines"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2023-10-01/sqlvirtualmachines"
 ```
 
 
@@ -45,6 +45,23 @@ ctx := context.TODO()
 id := sqlvirtualmachines.NewSqlVirtualMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "sqlVirtualMachineValue")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
+	// handle the error
+}
+```
+
+
+### Example Usage: `SqlVirtualMachinesClient.FetchDCAssessment`
+
+```go
+ctx := context.TODO()
+id := sqlvirtualmachines.NewSqlVirtualMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "sqlVirtualMachineValue")
+
+payload := sqlvirtualmachines.DiskConfigAssessmentRequest{
+	// ...
+}
+
+
+if err := client.FetchDCAssessmentThenPoll(ctx, id, payload); err != nil {
 	// handle the error
 }
 ```

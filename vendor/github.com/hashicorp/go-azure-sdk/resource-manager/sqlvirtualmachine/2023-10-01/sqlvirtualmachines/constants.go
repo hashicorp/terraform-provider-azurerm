@@ -9,6 +9,91 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
+type AdditionalOsPatch string
+
+const (
+	AdditionalOsPatchWSUS AdditionalOsPatch = "WSUS"
+	AdditionalOsPatchWU   AdditionalOsPatch = "WU"
+	AdditionalOsPatchWUMU AdditionalOsPatch = "WUMU"
+)
+
+func PossibleValuesForAdditionalOsPatch() []string {
+	return []string{
+		string(AdditionalOsPatchWSUS),
+		string(AdditionalOsPatchWU),
+		string(AdditionalOsPatchWUMU),
+	}
+}
+
+func (s *AdditionalOsPatch) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseAdditionalOsPatch(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseAdditionalOsPatch(input string) (*AdditionalOsPatch, error) {
+	vals := map[string]AdditionalOsPatch{
+		"wsus": AdditionalOsPatchWSUS,
+		"wu":   AdditionalOsPatchWU,
+		"wumu": AdditionalOsPatchWUMU,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := AdditionalOsPatch(input)
+	return &out, nil
+}
+
+type AdditionalVMPatch string
+
+const (
+	AdditionalVMPatchMicrosoftUpdate AdditionalVMPatch = "MicrosoftUpdate"
+	AdditionalVMPatchNotSet          AdditionalVMPatch = "NotSet"
+)
+
+func PossibleValuesForAdditionalVMPatch() []string {
+	return []string{
+		string(AdditionalVMPatchMicrosoftUpdate),
+		string(AdditionalVMPatchNotSet),
+	}
+}
+
+func (s *AdditionalVMPatch) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseAdditionalVMPatch(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseAdditionalVMPatch(input string) (*AdditionalVMPatch, error) {
+	vals := map[string]AdditionalVMPatch{
+		"microsoftupdate": AdditionalVMPatchMicrosoftUpdate,
+		"notset":          AdditionalVMPatchNotSet,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := AdditionalVMPatch(input)
+	return &out, nil
+}
+
 type AssessmentDayOfWeek string
 
 const (
@@ -350,6 +435,135 @@ func parseFullBackupFrequencyType(input string) (*FullBackupFrequencyType, error
 	return &out, nil
 }
 
+type IdentityType string
+
+const (
+	IdentityTypeNone                       IdentityType = "None"
+	IdentityTypeSystemAssigned             IdentityType = "SystemAssigned"
+	IdentityTypeSystemAssignedUserAssigned IdentityType = "SystemAssigned,UserAssigned"
+	IdentityTypeUserAssigned               IdentityType = "UserAssigned"
+)
+
+func PossibleValuesForIdentityType() []string {
+	return []string{
+		string(IdentityTypeNone),
+		string(IdentityTypeSystemAssigned),
+		string(IdentityTypeSystemAssignedUserAssigned),
+		string(IdentityTypeUserAssigned),
+	}
+}
+
+func (s *IdentityType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseIdentityType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseIdentityType(input string) (*IdentityType, error) {
+	vals := map[string]IdentityType{
+		"none":                        IdentityTypeNone,
+		"systemassigned":              IdentityTypeSystemAssigned,
+		"systemassigned,userassigned": IdentityTypeSystemAssignedUserAssigned,
+		"userassigned":                IdentityTypeUserAssigned,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := IdentityType(input)
+	return &out, nil
+}
+
+type LeastPrivilegeMode string
+
+const (
+	LeastPrivilegeModeEnabled LeastPrivilegeMode = "Enabled"
+	LeastPrivilegeModeNotSet  LeastPrivilegeMode = "NotSet"
+)
+
+func PossibleValuesForLeastPrivilegeMode() []string {
+	return []string{
+		string(LeastPrivilegeModeEnabled),
+		string(LeastPrivilegeModeNotSet),
+	}
+}
+
+func (s *LeastPrivilegeMode) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseLeastPrivilegeMode(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseLeastPrivilegeMode(input string) (*LeastPrivilegeMode, error) {
+	vals := map[string]LeastPrivilegeMode{
+		"enabled": LeastPrivilegeModeEnabled,
+		"notset":  LeastPrivilegeModeNotSet,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := LeastPrivilegeMode(input)
+	return &out, nil
+}
+
+type OsType string
+
+const (
+	OsTypeLinux   OsType = "Linux"
+	OsTypeWindows OsType = "Windows"
+)
+
+func PossibleValuesForOsType() []string {
+	return []string{
+		string(OsTypeLinux),
+		string(OsTypeWindows),
+	}
+}
+
+func (s *OsType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseOsType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseOsType(input string) (*OsType, error) {
+	vals := map[string]OsType{
+		"linux":   OsTypeLinux,
+		"windows": OsTypeWindows,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := OsType(input)
+	return &out, nil
+}
+
 type SqlImageSku string
 
 const (
@@ -573,5 +787,87 @@ func parseStorageWorkloadType(input string) (*StorageWorkloadType, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := StorageWorkloadType(input)
+	return &out, nil
+}
+
+type TroubleshootingScenario string
+
+const (
+	TroubleshootingScenarioUnhealthyReplica TroubleshootingScenario = "UnhealthyReplica"
+)
+
+func PossibleValuesForTroubleshootingScenario() []string {
+	return []string{
+		string(TroubleshootingScenarioUnhealthyReplica),
+	}
+}
+
+func (s *TroubleshootingScenario) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseTroubleshootingScenario(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseTroubleshootingScenario(input string) (*TroubleshootingScenario, error) {
+	vals := map[string]TroubleshootingScenario{
+		"unhealthyreplica": TroubleshootingScenarioUnhealthyReplica,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := TroubleshootingScenario(input)
+	return &out, nil
+}
+
+type VMIdentityType string
+
+const (
+	VMIdentityTypeNone           VMIdentityType = "None"
+	VMIdentityTypeSystemAssigned VMIdentityType = "SystemAssigned"
+	VMIdentityTypeUserAssigned   VMIdentityType = "UserAssigned"
+)
+
+func PossibleValuesForVMIdentityType() []string {
+	return []string{
+		string(VMIdentityTypeNone),
+		string(VMIdentityTypeSystemAssigned),
+		string(VMIdentityTypeUserAssigned),
+	}
+}
+
+func (s *VMIdentityType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseVMIdentityType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseVMIdentityType(input string) (*VMIdentityType, error) {
+	vals := map[string]VMIdentityType{
+		"none":           VMIdentityTypeNone,
+		"systemassigned": VMIdentityTypeSystemAssigned,
+		"userassigned":   VMIdentityTypeUserAssigned,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := VMIdentityType(input)
 	return &out, nil
 }
