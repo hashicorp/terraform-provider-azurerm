@@ -345,6 +345,7 @@ resource "azurerm_monitor_activity_log_alert" "test" {
   name                = "acctestActivityLogAlert-%d"
   resource_group_name = azurerm_resource_group.test.name
   scopes              = [azurerm_resource_group.test.id]
+  location            = "global"
 
   criteria {
     category = "Recommendation"
@@ -361,6 +362,7 @@ resource "azurerm_monitor_activity_log_alert" "import" {
   name                = azurerm_monitor_activity_log_alert.test.name
   resource_group_name = azurerm_monitor_activity_log_alert.test.resource_group_name
   scopes              = [azurerm_resource_group.test.id]
+  location            = azurerm_monitor_activity_log_alert.test.location
 
   criteria {
     category = "Recommendation"
@@ -398,6 +400,7 @@ resource "azurerm_monitor_activity_log_alert" "test" {
   name                = "acctestActivityLogAlert-%d"
   resource_group_name = azurerm_resource_group.test.name
   scopes              = [azurerm_resource_group.test.id]
+  location            = "global"
 
   criteria {
     operation_name = "Microsoft.Storage/storageAccounts/write"
@@ -447,6 +450,7 @@ resource "azurerm_monitor_activity_log_alert" "test" {
   name                = "acctestActivityLogAlert-%d"
   resource_group_name = azurerm_resource_group.test.name
   scopes              = [azurerm_resource_group.test.id]
+  location            = "global"
 
   criteria {
     operation_name = "Microsoft.Storage/storageAccounts/write"
@@ -507,6 +511,7 @@ resource "azurerm_monitor_activity_log_alert" "test" {
   name                = "acctestActivityLogAlert-%d"
   resource_group_name = azurerm_resource_group.test.name
   scopes              = [azurerm_resource_group.test.id]
+  location            = "global"
 
   criteria {
     operation_name = "Microsoft.Storage/storageAccounts/write"
@@ -570,6 +575,7 @@ resource "azurerm_monitor_activity_log_alert" "test" {
   resource_group_name = azurerm_resource_group.test.name
   enabled             = true
   description         = "This is just a test acceptance."
+  location            = "global"
 
   scopes = [
     azurerm_resource_group.test.id,
@@ -652,6 +658,7 @@ resource "azurerm_monitor_activity_log_alert" "test" {
   resource_group_name = azurerm_resource_group.test.name
   enabled             = true
   description         = "This is just a test acceptance."
+  location            = "global"
 
   scopes = [
     data.azurerm_subscription.current.id,
@@ -709,6 +716,7 @@ resource "azurerm_monitor_activity_log_alert" "test" {
   resource_group_name = azurerm_resource_group.test.name
   enabled             = true
   description         = "This is just a test acceptance."
+  location            = "global"
 
   scopes = [
     azurerm_resource_group.test.id,
@@ -779,6 +787,7 @@ resource "azurerm_monitor_activity_log_alert" "test" {
   resource_group_name = azurerm_resource_group.test.name
   enabled             = true
   description         = "This is just a test acceptance."
+  location            = "global"
 
   scopes = [
     data.azurerm_subscription.current.id
@@ -848,6 +857,7 @@ resource "azurerm_monitor_activity_log_alert" "test" {
   resource_group_name = azurerm_resource_group.test.name
   enabled             = true
   description         = "This is just a test acceptance."
+  location            = "global"
 
   scopes = [
     data.azurerm_subscription.current.id
@@ -927,6 +937,7 @@ resource "azurerm_monitor_activity_log_alert" "test" {
   resource_group_name = azurerm_resource_group.test.name
   enabled             = true
   description         = "This is just a test acceptance."
+  location            = "global"
 
   scopes = [
     data.azurerm_subscription.current.id
@@ -988,6 +999,7 @@ resource "azurerm_monitor_activity_log_alert" "test" {
   resource_group_name = azurerm_resource_group.test.name
   enabled             = true
   description         = "This is just a test acceptance."
+  location            = "global"
 
   scopes = [
     azurerm_resource_group.test.id,
@@ -1055,6 +1067,7 @@ resource "azurerm_monitor_activity_log_alert" "test" {
   resource_group_name = azurerm_resource_group.test.name
   enabled             = true
   description         = "This is just a test acceptance."
+  location            = "global"
 
   scopes = [
     azurerm_resource_group.test.id,
@@ -1132,6 +1145,7 @@ resource "azurerm_monitor_activity_log_alert" "test" {
   resource_group_name = azurerm_resource_group.test.name
   enabled             = true
   description         = "This is just a test acceptance."
+  location            = "global"
 
   scopes = [
     azurerm_resource_group.test.id,

@@ -111,8 +111,10 @@ func resourceKustoCluster() *pluginsdk.Resource {
 			},
 
 			"trusted_external_tenants": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
+				Type:       pluginsdk.TypeList,
+				Optional:   true,
+				Computed:   true,
+				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.Any(validation.IsUUID, validation.StringIsEmpty, validation.StringInSlice([]string{"*"}, false)),
@@ -165,13 +167,6 @@ func resourceKustoCluster() *pluginsdk.Resource {
 						},
 					},
 				},
-			},
-
-			"engine": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Deprecated:   "This property has been deprecated as it will no longer be supported by the API. It will be removed in a future version of the provider.",
-				ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForEngineType(), false),
 			},
 
 			"uri": {
@@ -258,16 +253,6 @@ func resourceKustoCluster() *pluginsdk.Resource {
 				},
 			},
 		}
-		resource.Schema["trusted_external_tenants"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeList,
-			Optional:   true,
-			Computed:   true,
-			ConfigMode: pluginsdk.SchemaConfigModeAttr,
-			Elem: &pluginsdk.Schema{
-				Type:         pluginsdk.TypeString,
-				ValidateFunc: validation.Any(validation.IsUUID, validation.StringIsEmpty, validation.StringInSlice([]string{"*"}, false)),
-			},
-		}
 	} else {
 		resource.Schema["language_extensions"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeSet,
@@ -276,6 +261,12 @@ func resourceKustoCluster() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringInSlice([]string{"R", "PYTHON", "PYTHON_3.10.8"}, false),
 			},
+		}
+		resource.Schema["engine"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Deprecated:   "This property has been deprecated as it will no longer be supported by the API. It will be removed in v4.0 of the AzureRM Provider.",
+			ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForEngineType(), false),
 		}
 	}
 

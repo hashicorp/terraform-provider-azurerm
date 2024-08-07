@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/sdk/auth"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/meta"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/version"
 )
@@ -47,7 +46,6 @@ type ClientOptions struct {
 	DisableCorrelationRequestID bool
 
 	DisableTerraformPartnerID bool
-	SkipProviderReg           bool
 	StorageUseAzureAD         bool
 
 	ResourceManagerEndpoint string
@@ -58,6 +56,9 @@ type ClientOptions struct {
 	ManagedHSMAuthorizer      autorest.Authorizer
 	ResourceManagerAuthorizer autorest.Authorizer
 	SynapseAuthorizer         autorest.Authorizer
+
+	// TODO: Remove when all go-autorest clients are gone
+	SkipProviderReg bool
 }
 
 // Configure set up a resourcemanager.Client using an auth.Authorizer from hashicorp/go-azure-sdk
@@ -94,7 +95,7 @@ func (o ClientOptions) ConfigureClient(c *autorest.Client, authorizer autorest.A
 }
 
 func userAgent(userAgent, tfVersion, partnerID string, disableTerraformPartnerID bool) string {
-	tfUserAgent := fmt.Sprintf("HashiCorp Terraform/%s (+https://www.terraform.io) Terraform Plugin SDK/%s", tfVersion, meta.SDKVersionString())
+	tfUserAgent := fmt.Sprintf("HashiCorp Terraform/%s (+https://www.terraform.io)", tfVersion)
 
 	providerUserAgent := fmt.Sprintf("%s terraform-provider-azurerm/%s", tfUserAgent, version.ProviderVersion)
 	if features.FourPointOhBeta() {

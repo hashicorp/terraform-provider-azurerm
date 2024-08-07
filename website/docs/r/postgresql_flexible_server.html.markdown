@@ -91,7 +91,7 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the PostgreSQL Flexible Server should exist. Changing this forces a new PostgreSQL Flexible Server to be created.
 
-* `administrator_login` - (Optional) The Administrator login for the PostgreSQL Flexible Server. Required when `create_mode` is `Default` and `authentication.password_auth_enabled` is `true`. 
+* `administrator_login` - (Optional) The Administrator login for the PostgreSQL Flexible Server. Required when `create_mode` is `Default` and `authentication.password_auth_enabled` is `true`.
 
 -> **Note:** Once `administrator_login` is specified, changing this forces a new PostgreSQL Flexible Server to be created.
 
@@ -208,6 +208,8 @@ A `maintenance_window` block supports the following:
 * `start_hour` - (Optional) The start hour for maintenance window. Defaults to `0`.
 
 * `start_minute` - (Optional) The start minute for maintenance window. Defaults to `0`.
+
+-> **NOTE** The specified `maintenance_window` is always defined in UTC time. When unspecified, the maintenance window falls back to the default [system-managed](https://learn.microsoft.com/en-us/azure/postgresql/flexible-server/how-to-maintenance-portal#specify-maintenance-schedule-options).
 
 ---
 

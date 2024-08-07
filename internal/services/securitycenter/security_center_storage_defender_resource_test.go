@@ -127,6 +127,20 @@ func TestAccSecurityCenterStorageDefender_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccSecurityCenterStorageDefender_eventGrid(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_security_center_storage_defender", "test")
+	r := SecurityCenterStorageDefenderResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.eventGrid(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r SecurityCenterStorageDefenderResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -190,4 +204,23 @@ resource "azurerm_security_center_storage_defender" "import" {
   storage_account_id = azurerm_security_center_storage_defender.test.id
 }
 `, r.basic(data))
+}
+
+func (r SecurityCenterStorageDefenderResource) eventGrid(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_eventgrid_topic" "test" {
+  name                = "acctestEVGT-storage-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_security_center_storage_defender" "test" {
+  storage_account_id                     = azurerm_storage_account.test.id
+  override_subscription_settings_enabled = true
+  malware_scanning_on_upload_enabled     = true
+  scan_results_event_grid_topic_id       = azurerm_eventgrid_topic.test.id
+}
+`, r.template(data), data.RandomInteger)
 }

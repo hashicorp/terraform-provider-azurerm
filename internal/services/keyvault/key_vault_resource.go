@@ -37,7 +37,7 @@ import (
 var keyVaultResourceName = "azurerm_key_vault"
 
 func resourceKeyVault() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceKeyVaultCreate,
 		Read:   resourceKeyVaultRead,
 		Update: resourceKeyVaultUpdate,
@@ -89,8 +89,7 @@ func resourceKeyVault() *pluginsdk.Resource {
 			},
 
 			"access_policy": {
-				Type: pluginsdk.TypeList,
-				// TODO 5.0 Remove Computed and ConfigModeAttr and recommend adding this block to ignore_changes
+				Type:       pluginsdk.TypeList,
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Optional:   true,
 				Computed:   true,
@@ -243,6 +242,8 @@ func resourceKeyVault() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	return resource
 }
 
 func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {

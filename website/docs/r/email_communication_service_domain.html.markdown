@@ -25,9 +25,8 @@ resource "azurerm_email_communication_service" "example" {
 }
 
 resource "azurerm_email_communication_service_domain" "example" {
-  name                = "AzureManagedDomain"
-  resource_group_name = azurerm_resource_group.example.name
-  email_service_id    = azurerm_email_communication_service.example.id
+  name             = "AzureManagedDomain"
+  email_service_id = azurerm_email_communication_service.example.id
 
   domain_management = "AzureManaged"
 }
@@ -38,8 +37,6 @@ resource "azurerm_email_communication_service_domain" "example" {
 The following arguments are supported:
 
 * `name` - (Required) The name of the Email Communication Service resource. If `domain_management` is `AzureManaged`, the name must be `AzureManagedDomain`. Changing this forces a new Email Communication Service to be created.
-
-* `resource_group_name` - (Required) The name of the Resource Group where the Email Communication Service of the Domain exists. Changing this forces a new Email Communication Service to be created.
 
 * `email_service_id` - (Required) The resource ID of the Email Communication Service where the Domain belongs to. Changing this forces a new Email Communication Service to be created.
 

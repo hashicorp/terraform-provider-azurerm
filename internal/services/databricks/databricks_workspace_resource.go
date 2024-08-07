@@ -36,7 +36,7 @@ import (
 )
 
 func resourceDatabricksWorkspace() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceDatabricksWorkspaceCreateUpdate,
 		Read:   resourceDatabricksWorkspaceRead,
 		Update: resourceDatabricksWorkspaceCreateUpdate,
@@ -186,7 +186,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 						"no_public_ip": {
 							Type:         pluginsdk.TypeBool,
 							Optional:     true,
-							Computed:     true,
+							Default:      true,
 							AtLeastOneOf: workspaceCustomParametersString(),
 						},
 
@@ -243,10 +243,8 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 							AtLeastOneOf: workspaceCustomParametersString(),
 						},
 
-						// Per Service Team: This field is actually changeable so the ForceNew is no longer required, however we agreed to not change the current behavior for consistency purposes
 						"storage_account_sku_name": {
 							Type:         pluginsdk.TypeString,
-							ForceNew:     true,
 							Optional:     true,
 							Computed:     true,
 							AtLeastOneOf: workspaceCustomParametersString(),
@@ -381,6 +379,19 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 			return nil
 		}),
 	}
+
+	if !features.FourPointOhBeta() {
+		// NOTE: Leaving this as O+C as the 2024-05-01 API breaking change was accidentally introduced in PR #25919
+		// and released in v3.104.0 of the provider...
+		resource.Schema["custom_parameters"].Elem.(*pluginsdk.Resource).Schema["no_public_ip"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeBool,
+			Optional:     true,
+			Computed:     true,
+			AtLeastOneOf: workspaceCustomParametersString(),
+		}
+	}
+
+	return resource
 }
 
 func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {

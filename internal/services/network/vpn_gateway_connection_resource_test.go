@@ -469,43 +469,63 @@ func (r VPNGatewayConnectionResource) natRuleIds(data acceptance.TestData) strin
 %s
 
 resource "azurerm_vpn_gateway_nat_rule" "test" {
-  name                            = "acctest-vpngwnatrule-%[2]d"
-  resource_group_name             = azurerm_resource_group.test.name
-  vpn_gateway_id                  = azurerm_vpn_gateway.test.id
-  external_address_space_mappings = ["192.168.21.0/26"]
-  internal_address_space_mappings = ["10.4.0.0/26"]
-  mode                            = "EgressSnat"
-  type                            = "Static"
+  name           = "acctest-vpngwnatrule-%[2]d"
+  vpn_gateway_id = azurerm_vpn_gateway.test.id
+  external_mapping {
+    address_space = "192.168.21.0/26"
+  }
+
+  internal_mapping {
+    address_space = "10.4.0.0/26"
+  }
+
+  mode = "EgressSnat"
+  type = "Static"
 }
 
 resource "azurerm_vpn_gateway_nat_rule" "test2" {
-  name                            = "acctest-vpngwnatrule2-%[2]d"
-  resource_group_name             = azurerm_resource_group.test.name
-  vpn_gateway_id                  = azurerm_vpn_gateway.test.id
-  external_address_space_mappings = ["192.168.22.0/26"]
-  internal_address_space_mappings = ["10.5.0.0/26"]
-  mode                            = "IngressSnat"
-  type                            = "Static"
+  name           = "acctest-vpngwnatrule2-%[2]d"
+  vpn_gateway_id = azurerm_vpn_gateway.test.id
+  external_mapping {
+    address_space = "192.168.22.0/26"
+  }
+
+  internal_mapping {
+    address_space = "10.5.0.0/26"
+  }
+
+  mode = "IngressSnat"
+  type = "Static"
 }
 
 resource "azurerm_vpn_gateway_nat_rule" "test3" {
-  name                            = "acctest-vpngwnatrule3-%[2]d"
-  resource_group_name             = azurerm_resource_group.test.name
-  vpn_gateway_id                  = azurerm_vpn_gateway.test.id
-  external_address_space_mappings = ["192.168.23.0/26"]
-  internal_address_space_mappings = ["10.6.0.0/26"]
-  mode                            = "EgressSnat"
-  type                            = "Static"
+  name           = "acctest-vpngwnatrule3-%[2]d"
+  vpn_gateway_id = azurerm_vpn_gateway.test.id
+  external_mapping {
+    address_space = "192.168.23.0/26"
+  }
+
+  internal_mapping {
+    address_space = "10.6.0.0/26"
+  }
+
+  mode = "EgressSnat"
+  type = "Static"
 }
 
 resource "azurerm_vpn_gateway_nat_rule" "test4" {
-  name                            = "acctest-vpngwnatrule4-%[2]d"
-  resource_group_name             = azurerm_resource_group.test.name
-  vpn_gateway_id                  = azurerm_vpn_gateway.test.id
-  external_address_space_mappings = ["192.168.24.0/26"]
-  internal_address_space_mappings = ["10.7.0.0/26"]
-  mode                            = "IngressSnat"
-  type                            = "Static"
+  name           = "acctest-vpngwnatrule4-%[2]d"
+  vpn_gateway_id = azurerm_vpn_gateway.test.id
+  external_mapping {
+    address_space = "192.168.24.0/26"
+  }
+
+  internal_mapping {
+    address_space = "10.7.0.0/26"
+  }
+
+  mode = "IngressSnat"
+  type = "Static"
 }
 
 resource "azurerm_vpn_gateway_connection" "test" {
@@ -537,23 +557,33 @@ func (r VPNGatewayConnectionResource) updateNatRuleIds(data acceptance.TestData)
 %s
 
 resource "azurerm_vpn_gateway_nat_rule" "test" {
-  name                            = "acctest-vpngwnatrule-%[2]d"
-  resource_group_name             = azurerm_resource_group.test.name
-  vpn_gateway_id                  = azurerm_vpn_gateway.test.id
-  external_address_space_mappings = ["192.168.21.0/26"]
-  internal_address_space_mappings = ["10.4.0.0/26"]
-  mode                            = "EgressSnat"
-  type                            = "Static"
+  name           = "acctest-vpngwnatrule-%[2]d"
+  vpn_gateway_id = azurerm_vpn_gateway.test.id
+  external_mapping {
+    address_space = "192.168.21.0/26"
+  }
+
+  internal_mapping {
+    address_space = "10.4.0.0/26"
+  }
+
+  mode = "EgressSnat"
+  type = "Static"
 }
 
 resource "azurerm_vpn_gateway_nat_rule" "test2" {
-  name                            = "acctest-vpngwnatrule2-%[2]d"
-  resource_group_name             = azurerm_resource_group.test.name
-  vpn_gateway_id                  = azurerm_vpn_gateway.test.id
-  external_address_space_mappings = ["192.168.22.0/26"]
-  internal_address_space_mappings = ["10.5.0.0/26"]
-  mode                            = "IngressSnat"
-  type                            = "Static"
+  name           = "acctest-vpngwnatrule2-%[2]d"
+  vpn_gateway_id = azurerm_vpn_gateway.test.id
+  external_mapping {
+    address_space = "192.168.22.0/26"
+  }
+
+  internal_mapping {
+    address_space = "10.5.0.0/26"
+  }
+
+  mode = "IngressSnat"
+  type = "Static"
 }
 
 resource "azurerm_vpn_gateway_connection" "test" {

@@ -128,11 +128,16 @@ func (r VPNGatewayNatRuleResource) basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_vpn_gateway_nat_rule" "test" {
-  name                            = "acctest-vpnnatrule-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  vpn_gateway_id                  = azurerm_vpn_gateway.test.id
-  external_address_space_mappings = ["192.168.21.0/26"]
-  internal_address_space_mappings = ["10.4.0.0/26"]
+  name           = "acctest-vpnnatrule-%d"
+  vpn_gateway_id = azurerm_vpn_gateway.test.id
+  external_mapping {
+    address_space = "192.168.21.0/26"
+  }
+
+  internal_mapping {
+    address_space = "10.4.0.0/26"
+  }
+
 }
 `, r.template(data), data.RandomInteger)
 	}
@@ -141,9 +146,8 @@ resource "azurerm_vpn_gateway_nat_rule" "test" {
 %s
 
 resource "azurerm_vpn_gateway_nat_rule" "test" {
-  name                = "acctest-vpnnatrule-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  vpn_gateway_id      = azurerm_vpn_gateway.test.id
+  name           = "acctest-vpnnatrule-%d"
+  vpn_gateway_id = azurerm_vpn_gateway.test.id
 
   external_mapping {
     address_space = "192.168.21.0/26"
@@ -162,14 +166,19 @@ func (r VPNGatewayNatRuleResource) complete(data acceptance.TestData) string {
 %s
 
 resource "azurerm_vpn_gateway_nat_rule" "test" {
-  name                            = "acctest-vpnnatrule-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  vpn_gateway_id                  = azurerm_vpn_gateway.test.id
-  external_address_space_mappings = ["192.168.21.0/26"]
-  internal_address_space_mappings = ["10.4.0.0/26"]
-  mode                            = "EgressSnat"
-  type                            = "Dynamic"
-  ip_configuration_id             = "Instance0"
+  name           = "acctest-vpnnatrule-%d"
+  vpn_gateway_id = azurerm_vpn_gateway.test.id
+  external_mapping {
+    address_space = "192.168.21.0/26"
+  }
+
+  internal_mapping {
+    address_space = "10.4.0.0/26"
+  }
+
+  mode                = "EgressSnat"
+  type                = "Dynamic"
+  ip_configuration_id = "Instance0"
 }
 `, r.template(data), data.RandomInteger)
 	}
@@ -179,7 +188,6 @@ resource "azurerm_vpn_gateway_nat_rule" "test" {
 
 resource "azurerm_vpn_gateway_nat_rule" "test" {
   name                = "acctest-vpnnatrule-%d"
-  resource_group_name = azurerm_resource_group.test.name
   vpn_gateway_id      = azurerm_vpn_gateway.test.id
   mode                = "EgressSnat"
   type                = "Dynamic"
@@ -202,14 +210,19 @@ func (r VPNGatewayNatRuleResource) update(data acceptance.TestData) string {
 %s
 
 resource "azurerm_vpn_gateway_nat_rule" "test" {
-  name                            = "acctest-vpnnatrule-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  vpn_gateway_id                  = azurerm_vpn_gateway.test.id
-  external_address_space_mappings = ["192.168.22.0/26"]
-  internal_address_space_mappings = ["10.5.0.0/26"]
-  mode                            = "EgressSnat"
-  type                            = "Dynamic"
-  ip_configuration_id             = "Instance1"
+  name           = "acctest-vpnnatrule-%d"
+  vpn_gateway_id = azurerm_vpn_gateway.test.id
+  external_mapping {
+    address_space = "192.168.22.0/26"
+  }
+
+  internal_mapping {
+    address_space = "10.5.0.0/26"
+  }
+
+  mode                = "EgressSnat"
+  type                = "Dynamic"
+  ip_configuration_id = "Instance1"
 }
 `, r.template(data), data.RandomInteger)
 	}
@@ -219,7 +232,6 @@ resource "azurerm_vpn_gateway_nat_rule" "test" {
 
 resource "azurerm_vpn_gateway_nat_rule" "test" {
   name                = "acctest-vpnnatrule-%d"
-  resource_group_name = azurerm_resource_group.test.name
   vpn_gateway_id      = azurerm_vpn_gateway.test.id
   mode                = "EgressSnat"
   type                = "Dynamic"
@@ -242,13 +254,12 @@ func (r VPNGatewayNatRuleResource) requiresImport(data acceptance.TestData) stri
 %s
 
 resource "azurerm_vpn_gateway_nat_rule" "import" {
-  name                            = azurerm_vpn_gateway_nat_rule.test.name
-  resource_group_name             = azurerm_vpn_gateway_nat_rule.test.resource_group_name
-  vpn_gateway_id                  = azurerm_vpn_gateway_nat_rule.test.vpn_gateway_id
-  external_address_space_mappings = azurerm_vpn_gateway_nat_rule.test.external_address_space_mappings
-  internal_address_space_mappings = azurerm_vpn_gateway_nat_rule.test.internal_address_space_mappings
-  mode                            = azurerm_vpn_gateway_nat_rule.test.mode
-  type                            = azurerm_vpn_gateway_nat_rule.test.type
+  name             = azurerm_vpn_gateway_nat_rule.test.name
+  vpn_gateway_id   = azurerm_vpn_gateway_nat_rule.test.vpn_gateway_id
+  external_mapping = azurerm_vpn_gateway_nat_rule.test.external_address_space_mappings
+  internal_mapping = azurerm_vpn_gateway_nat_rule.test.internal_address_space_mappings
+  mode             = azurerm_vpn_gateway_nat_rule.test.mode
+  type             = azurerm_vpn_gateway_nat_rule.test.type
 }
 `, r.basic(data))
 	}
@@ -257,11 +268,10 @@ resource "azurerm_vpn_gateway_nat_rule" "import" {
 %s
 
 resource "azurerm_vpn_gateway_nat_rule" "import" {
-  name                = azurerm_vpn_gateway_nat_rule.test.name
-  resource_group_name = azurerm_vpn_gateway_nat_rule.test.resource_group_name
-  vpn_gateway_id      = azurerm_vpn_gateway_nat_rule.test.vpn_gateway_id
-  mode                = azurerm_vpn_gateway_nat_rule.test.mode
-  type                = azurerm_vpn_gateway_nat_rule.test.type
+  name           = azurerm_vpn_gateway_nat_rule.test.name
+  vpn_gateway_id = azurerm_vpn_gateway_nat_rule.test.vpn_gateway_id
+  mode           = azurerm_vpn_gateway_nat_rule.test.mode
+  type           = azurerm_vpn_gateway_nat_rule.test.type
 
   external_mapping {
     address_space = "192.168.21.0/26"
@@ -279,9 +289,8 @@ func (r VPNGatewayNatRuleResource) externalMappingAndInternalMapping(data accept
 %s
 
 resource "azurerm_vpn_gateway_nat_rule" "test" {
-  name                = "acctest-vpnnatrule-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  vpn_gateway_id      = azurerm_vpn_gateway.test.id
+  name           = "acctest-vpnnatrule-%d"
+  vpn_gateway_id = azurerm_vpn_gateway.test.id
 
   external_mapping {
     address_space = "%s"

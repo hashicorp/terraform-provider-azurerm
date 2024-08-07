@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -20,6 +21,9 @@ import (
 type MariaDbServerResource struct{}
 
 func TestAccMariaDbServer_basicTenTwo(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("The `azurerm_mariadb_server` resource is deprecated and will be removed in v4.0 of the AzureRM Provider.")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
 	r := MariaDbServerResource{}
 	version := "10.2"
@@ -37,6 +41,9 @@ func TestAccMariaDbServer_basicTenTwo(t *testing.T) {
 }
 
 func TestAccMariaDbServer_basicTenThree(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("The `azurerm_mariadb_server` resource is deprecated and will be removed in v4.0 of the AzureRM Provider.")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
 	r := MariaDbServerResource{}
 	version := "10.3"
@@ -54,6 +61,9 @@ func TestAccMariaDbServer_basicTenThree(t *testing.T) {
 }
 
 func TestAccMariaDbServer_autogrowOnly(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("The `azurerm_mariadb_server` resource is deprecated and will be removed in v4.0 of the AzureRM Provider.")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
 	r := MariaDbServerResource{}
 	version := "10.3"
@@ -70,6 +80,9 @@ func TestAccMariaDbServer_autogrowOnly(t *testing.T) {
 }
 
 func TestAccMariaDbServer_requiresImport(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("The `azurerm_mariadb_server` resource is deprecated and will be removed in v4.0 of the AzureRM Provider.")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
 	r := MariaDbServerResource{}
 
@@ -85,6 +98,9 @@ func TestAccMariaDbServer_requiresImport(t *testing.T) {
 }
 
 func TestAccMariaDbServer_complete(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("The `azurerm_mariadb_server` resource is deprecated and will be removed in v4.0 of the AzureRM Provider.")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
 	r := MariaDbServerResource{}
 
@@ -100,6 +116,9 @@ func TestAccMariaDbServer_complete(t *testing.T) {
 }
 
 func TestAccMariaDbServer_update(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("The `azurerm_mariadb_server` resource is deprecated and will be removed in v4.0 of the AzureRM Provider.")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
 	r := MariaDbServerResource{}
 	version := "10.3"
@@ -130,6 +149,9 @@ func TestAccMariaDbServer_update(t *testing.T) {
 }
 
 func TestAccMariaDbServer_updateSKU(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("The `azurerm_mariadb_server` resource is deprecated and will be removed in v4.0 of the AzureRM Provider.")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
 	r := MariaDbServerResource{}
 
@@ -152,6 +174,9 @@ func TestAccMariaDbServer_updateSKU(t *testing.T) {
 }
 
 func TestAccMariaDbServer_createReplica(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("The `azurerm_mariadb_server` resource is deprecated and will be removed in v4.0 of the AzureRM Provider.")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
 	r := MariaDbServerResource{}
 	version := "10.3"
@@ -176,6 +201,9 @@ func TestAccMariaDbServer_createReplica(t *testing.T) {
 }
 
 func TestAccMariaDbServer_createPointInTimeRestore(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("The `azurerm_mariadb_server` resource is deprecated and will be removed in v4.0 of the AzureRM Provider.")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
 	r := MariaDbServerResource{}
 	restoreTime := time.Now().Add(11 * time.Minute)
