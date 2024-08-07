@@ -168,12 +168,12 @@ func (EmailDomainAssociationResource) Read() sdk.ResourceFunc {
 
 			communicationServiceId, err := communicationservices.ParseCommunicationServiceID(state.CommunicationServiceId)
 			if err != nil {
-				return fmt.Errorf("parsing Communication Service ID: %w", err)
+				return err
 			}
 
 			eMailServiceDomainId, err := domains.ParseDomainID(state.EMailServiceDomainId)
 			if err != nil {
-				return fmt.Errorf("parsing EMail Service Domain ID: %w", err)
+				return err
 			}
 
 			locks.ByName(communicationServiceId.CommunicationServiceName, "azurerm_communication_service")
