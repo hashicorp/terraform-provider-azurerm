@@ -9,10 +9,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
@@ -77,14 +78,14 @@ func TestAccMsSqlManagedDatabase_pointInTimeRestore(t *testing.T) {
 }
 
 func (r MsSqlManagedDatabase) Exists(ctx context.Context, client *clients.Client, state *acceptance.InstanceState) (*bool, error) {
-	id, err := parse.ManagedDatabaseID(state.ID)
+	id, err := commonids.ParseManagedInstanceDatabaseID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.MSSQLManagedInstance.ManagedDatabasesClient.Get(ctx, id.ResourceGroup, id.ManagedInstanceName, id.DatabaseName)
+	resp, err := client.MSSQLManagedInstance.ManagedDatabasesClient.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving SQL Managed Database %q: %+v", id.ID(), err)
