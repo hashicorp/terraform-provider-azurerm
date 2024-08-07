@@ -405,7 +405,7 @@ func flattenExportDefinition(input *exports.ExportDefinition) []interface{} {
 		"type":       queryType,
 	}
 
-	if input.DataSet != nil && input.DataSet.Configuration != nil {
+	if input.DataSet != nil && input.DataSet.Configuration != nil && input.DataSet.Configuration.DataVersion != nil {
 		result["data_version"] = pointer.From(input.DataSet.Configuration.DataVersion)
 	}
 
