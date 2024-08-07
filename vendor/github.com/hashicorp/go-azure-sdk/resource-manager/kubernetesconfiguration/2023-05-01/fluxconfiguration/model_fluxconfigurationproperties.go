@@ -19,6 +19,7 @@ type FluxConfigurationProperties struct {
 	Kustomizations                 *map[string]KustomizationDefinition `json:"kustomizations,omitempty"`
 	Namespace                      *string                             `json:"namespace,omitempty"`
 	ProvisioningState              *ProvisioningState                  `json:"provisioningState,omitempty"`
+	ReconciliationWaitDuration     *string                             `json:"reconciliationWaitDuration,omitempty"`
 	RepositoryPublicKey            *string                             `json:"repositoryPublicKey,omitempty"`
 	Scope                          *ScopeType                          `json:"scope,omitempty"`
 	SourceKind                     *SourceKindType                     `json:"sourceKind,omitempty"`
@@ -27,6 +28,7 @@ type FluxConfigurationProperties struct {
 	StatusUpdatedAt                *string                             `json:"statusUpdatedAt,omitempty"`
 	Statuses                       *[]ObjectStatusDefinition           `json:"statuses,omitempty"`
 	Suspend                        *bool                               `json:"suspend,omitempty"`
+	WaitForReconciliation          *bool                               `json:"waitForReconciliation,omitempty"`
 }
 
 func (o *FluxConfigurationProperties) GetSourceUpdatedAtAsTime() (*time.Time, error) {
