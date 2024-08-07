@@ -57,6 +57,8 @@ resource "azurerm_postgresql_flexible_server_virtual_endpoint" "example" {
 }
 ```
 
+-> **Note:** If creating multiple replicas, an error can occur if virtual endpoints are created before all replicas have been completed. To avoid this error, use a `depends_on` property on `azurerm_postgresql_flexible_server_virtual_endpoint` that references all Postgres Flexible Server Replicas.
+
 ## Argument Reference
 
 The following arguments are supported:
