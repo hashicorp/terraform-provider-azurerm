@@ -228,6 +228,9 @@ func testStepNewImportState(ctx context.Context, t testing.T, helper *plugintest
 					break
 				}
 			}
+
+			// return fmt.Errorf("OldR: %+v\n\n", oldR.Primary.Attributes)
+
 			if oldR == nil || oldR.Primary == nil {
 				t.Fatalf(
 					"Failed state verification, resource with ID %s not found",
@@ -261,6 +264,8 @@ func testStepNewImportState(ctx context.Context, t testing.T, helper *plugintest
 				}
 				expected[k] = v
 			}
+
+			// return fmt.Errorf("Actual: %+v\n\nExpected: %+v\n\n", actual, expected)
 
 			// Remove fields we're ignoring
 			for _, v := range step.ImportStateVerifyIgnore {

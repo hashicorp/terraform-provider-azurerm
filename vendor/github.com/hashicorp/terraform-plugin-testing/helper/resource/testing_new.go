@@ -286,45 +286,6 @@ func runNewTest(ctx context.Context, t testing.T, c TestCase, helper *plugintest
 			}
 		}
 
-		if step.ImportState {
-			logging.HelperResourceTrace(ctx, "TestStep is ImportState mode")
-
-			err := testStepNewImportState(ctx, t, helper, wd, step, appliedCfg, providers, stepIndex)
-			if step.ExpectError != nil {
-				logging.HelperResourceDebug(ctx, "Checking TestStep ExpectError")
-				if err == nil {
-					logging.HelperResourceError(ctx,
-						"Error running import: expected an error but got none",
-					)
-					t.Fatalf("Step %d/%d error running import: expected an error but got none", stepNumber, len(c.Steps))
-				}
-				if !step.ExpectError.MatchString(err.Error()) {
-					logging.HelperResourceError(ctx,
-						fmt.Sprintf("Error running import: expected an error with pattern (%s)", step.ExpectError.String()),
-						map[string]interface{}{logging.KeyError: err},
-					)
-					t.Fatalf("Step %d/%d error running import, expected an error with pattern (%s), no match on: %s", stepNumber, len(c.Steps), step.ExpectError.String(), err)
-				}
-			} else {
-				if err != nil && c.ErrorCheck != nil {
-					logging.HelperResourceDebug(ctx, "Calling TestCase ErrorCheck")
-					err = c.ErrorCheck(err)
-					logging.HelperResourceDebug(ctx, "Called TestCase ErrorCheck")
-				}
-				if err != nil {
-					logging.HelperResourceError(ctx,
-						"Error running import",
-						map[string]interface{}{logging.KeyError: err},
-					)
-					t.Fatalf("Step %d/%d error running import: %s", stepNumber, len(c.Steps), err)
-				}
-			}
-
-			logging.HelperResourceDebug(ctx, "Finished TestStep")
-
-			continue
-		}
-
 		if step.RefreshState {
 			logging.HelperResourceTrace(ctx, "TestStep is RefreshState mode")
 
@@ -356,6 +317,45 @@ func runNewTest(ctx context.Context, t testing.T, c TestCase, helper *plugintest
 						map[string]interface{}{logging.KeyError: err},
 					)
 					t.Fatalf("Step %d/%d error running refresh: %s", stepNumber, len(c.Steps), err)
+				}
+			}
+
+			logging.HelperResourceDebug(ctx, "Finished TestStep")
+
+			continue
+		}
+		
+		if step.ImportState {
+			logging.HelperResourceTrace(ctx, "TestStep is ImportState mode")
+
+			err := testStepNewImportState(ctx, t, helper, wd, step, appliedCfg, providers, stepIndex)
+			if step.ExpectError != nil {
+				logging.HelperResourceDebug(ctx, "Checking TestStep ExpectError")
+				if err == nil {
+					logging.HelperResourceError(ctx,
+						"Error running import: expected an error but got none",
+					)
+					t.Fatalf("Step %d/%d error running import: expected an error but got none", stepNumber, len(c.Steps))
+				}
+				if !step.ExpectError.MatchString(err.Error()) {
+					logging.HelperResourceError(ctx,
+						fmt.Sprintf("Error running import: expected an error with pattern (%s)", step.ExpectError.String()),
+						map[string]interface{}{logging.KeyError: err},
+					)
+					t.Fatalf("Step %d/%d error running import, expected an error with pattern (%s), no match on: %s", stepNumber, len(c.Steps), step.ExpectError.String(), err)
+				}
+			} else {
+				if err != nil && c.ErrorCheck != nil {
+					logging.HelperResourceDebug(ctx, "Calling TestCase ErrorCheck")
+					err = c.ErrorCheck(err)
+					logging.HelperResourceDebug(ctx, "Called TestCase ErrorCheck")
+				}
+				if err != nil {
+					logging.HelperResourceError(ctx,
+						"Error running import",
+						map[string]interface{}{logging.KeyError: err},
+					)
+					t.Fatalf("Step %d/%d error running import: %s", stepNumber, len(c.Steps), err)
 				}
 			}
 
