@@ -81,11 +81,14 @@ func (r StackHCIExtensionResource) Arguments() map[string]*schema.Schema {
 		"auto_upgrade_minor_version_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
+			Default:  true,
+			ForceNew: true,
 		},
 
 		"automatic_upgrade_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
+			Default:  true,
 		},
 
 		"protected_settings": {
@@ -216,16 +219,18 @@ func (r StackHCIExtensionResource) Read() sdk.ResourceFunc {
 			existing, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("%s was not found", id)
+					return metadata.MarkAsGone(*id)
 				}
 				return fmt.Errorf("reading %s: %+v", id, err)
 			}
 
 			// protected_settingss is not returned in the response, so we read it from the state
-			var extension StackHCIExtensionResourceModel
-			if err := metadata.Decode(&extension); err != nil {
+			var extension, config StackHCIExtensionResourceModel
+
+			if err := metadata.Decode(&config); err != nil {
 				return err
 			}
+			extension.ProtectedSettings = config.ProtectedSettings
 
 			if model := existing.Model; model != nil {
 				extension.Name = id.ExtensionName
@@ -299,16 +304,19 @@ func (r StackHCIExtensionResource) Update() sdk.ResourceFunc {
 			}
 
 			model := resp.Model
+
 			if model == nil || model.Properties == nil || model.Properties.ExtensionParameters == nil {
-				return fmt.Errorf("retrieving %s: `model` was nil", id)
+				return fmt.Errorf("retrieving %s: `model` was nil", *id)
 			}
 
-			if metadata.ResourceData.HasChange("auto_upgrade_minor_version_enabled") {
-				model.Properties.ExtensionParameters.AutoUpgradeMinorVersion = pointer.To(config.AutoUpgradeMinorVersionEnabled)
+			updateModel := extensions.ExtensionPatch{
+				Properties: &extensions.ExtensionPatchProperties{
+					ExtensionParameters: &extensions.ExtensionPatchParameters{},
+				},
 			}
 
 			if metadata.ResourceData.HasChange("automatic_upgrade_enabled") {
-				model.Properties.ExtensionParameters.EnableAutomaticUpgrade = pointer.To(config.AutomaticUpgradeEnabled)
+				updateModel.Properties.ExtensionParameters.EnableAutomaticUpgrade = pointer.To(config.AutomaticUpgradeEnabled)
 			}
 
 			if metadata.ResourceData.HasChange("protected_settings") {
@@ -317,7 +325,7 @@ func (r StackHCIExtensionResource) Update() sdk.ResourceFunc {
 					return fmt.Errorf("expanding `protected_settings`: %+v", err)
 				}
 
-				model.Properties.ExtensionParameters.ProtectedSettings = pointer.To(interface{}(expandedSetting))
+				updateModel.Properties.ExtensionParameters.ProtectedSettings = pointer.To(interface{}(expandedSetting))
 			}
 
 			if metadata.ResourceData.HasChange("settings") {
@@ -326,14 +334,14 @@ func (r StackHCIExtensionResource) Update() sdk.ResourceFunc {
 					return fmt.Errorf("expanding `setting`: %+v", err)
 				}
 
-				model.Properties.ExtensionParameters.Settings = pointer.To(interface{}(expandedSetting))
+				updateModel.Properties.ExtensionParameters.Settings = pointer.To(interface{}(expandedSetting))
 			}
 
 			if metadata.ResourceData.HasChange("type_handler_version") {
-				model.Properties.ExtensionParameters.TypeHandlerVersion = pointer.To(config.TypeHandlerVersion)
+				updateModel.Properties.ExtensionParameters.TypeHandlerVersion = pointer.To(config.TypeHandlerVersion)
 			}
 
-			if err := client.CreateThenPoll(ctx, *id, *model); err != nil {
+			if err := client.UpdateThenPoll(ctx, *id, updateModel); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 

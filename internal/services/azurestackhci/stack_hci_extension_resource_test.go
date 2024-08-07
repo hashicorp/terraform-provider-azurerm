@@ -136,18 +136,6 @@ resource "azurerm_stack_hci_extension" "test" {
   arc_setting_id = %[3]q
   publisher      = "Microsoft.EnterpriseCloud.Monitoring"
   type           = "MicrosoftMonitoringAgent"
-
-  protected_settings = <<PROTECTED_SETTINGS
-{
-	"workspaceKey": "${azurerm_log_analytics_workspace.test.primary_shared_key}"
-}
-PROTECTED_SETTINGS
-
-  settings = <<SETTINGS
-{
-	"workspaceId": "${azurerm_log_analytics_workspace.test.workspace_id}"
-}
-SETTINGS
 }
 `, r.template(data), data.RandomString, os.Getenv(arcSettingIdEnv))
 }
