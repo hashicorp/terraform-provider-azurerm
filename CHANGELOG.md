@@ -7,6 +7,10 @@ ENHANCEMENTS:
 * `azurerm_web_application_firewall_policy`: `excluded_rule_set.0.type` supports `Microsoft_BotManagerRuleSet` [GH-26903]
 * `redis` - updating to use version `2024-03-01` [GH-26932]
 
+BUG FIXES:
+
+* `azurerm_storage_share_file` - fix a bug when encoding the MD5 hash for the `content_md5` property [GH-25715]
+
 ## 3.114.0 (August 01, 2024)
 
 UPGRADE NOTES:
