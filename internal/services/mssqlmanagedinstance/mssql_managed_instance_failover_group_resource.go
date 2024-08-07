@@ -156,7 +156,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Create() sdk.ResourceFunc {
 
 			managedInstanceId, err := commonids.ParseSqlManagedInstanceID(model.ManagedInstanceId)
 			if err != nil {
-				return fmt.Errorf("parsing `managed_instance_id`: %v", err)
+				return err
 			}
 
 			id := instancefailovergroups.NewInstanceFailoverGroupID(managedInstanceId.SubscriptionId,
@@ -248,7 +248,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Update() sdk.ResourceFunc {
 
 			managedInstanceId, err := commonids.ParseSqlManagedInstanceID(state.ManagedInstanceId)
 			if err != nil {
-				return fmt.Errorf("parsing `managed_instance_id`: %v", err)
+				return err
 			}
 
 			partnerId, err := parse.ManagedInstanceID(state.PartnerManagedInstanceId)
@@ -405,7 +405,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Delete() sdk.ResourceFunc {
 
 			err = client.DeleteThenPoll(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("deleting %s: %+v", id, err)
+				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
 			return nil

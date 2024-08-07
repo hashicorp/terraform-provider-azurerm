@@ -133,7 +133,7 @@ func (r MsSqlManagedDatabaseResource) Create() sdk.ResourceFunc {
 
 			managedInstanceId, err := commonids.ParseSqlManagedInstanceID(model.ManagedInstanceId)
 			if err != nil {
-				return fmt.Errorf("parsing `managed_instance_id`: %v", err)
+				return err
 			}
 
 			id := commonids.NewSqlManagedInstanceDatabaseID(managedInstanceId.SubscriptionId,
@@ -225,7 +225,7 @@ func (r MsSqlManagedDatabaseResource) Update() sdk.ResourceFunc {
 
 			managedInstanceId, err := commonids.ParseSqlManagedInstanceID(model.ManagedInstanceId)
 			if err != nil {
-				return fmt.Errorf("parsing `managed_instance_id`: %v", err)
+				return err
 			}
 
 			id := commonids.NewSqlManagedInstanceDatabaseID(managedInstanceId.SubscriptionId,
@@ -337,7 +337,7 @@ func (r MsSqlManagedDatabaseResource) Delete() sdk.ResourceFunc {
 
 			err = client.DeleteThenPoll(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("deleting %s: %+v", id, err)
+				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
 			return nil
@@ -346,6 +346,10 @@ func (r MsSqlManagedDatabaseResource) Delete() sdk.ResourceFunc {
 }
 
 func expandLongTermRetentionPolicy(ltrPolicy []LongTermRetentionPolicy) managedinstancelongtermretentionpolicies.ManagedInstanceLongTermRetentionPolicyProperties {
+	if ltrPolicy == nil || len(ltrPolicy) == 0 {
+		return managedinstancelongtermretentionpolicies.ManagedInstanceLongTermRetentionPolicyProperties{}
+	}
+
 	return managedinstancelongtermretentionpolicies.ManagedInstanceLongTermRetentionPolicyProperties{
 		WeeklyRetention:  &ltrPolicy[0].WeeklyRetention,
 		MonthlyRetention: &ltrPolicy[0].MonthlyRetention,
@@ -360,10 +364,7 @@ func flattenLongTermRetentionPolicy(ltrPolicy managedinstancelongtermretentionpo
 		WeeklyRetention:  pointer.From(ltrPolicy.WeeklyRetention),
 		MonthlyRetention: pointer.From(ltrPolicy.MonthlyRetention),
 		YearlyRetention:  pointer.From(ltrPolicy.YearlyRetention),
-	}
-
-	if ltrPolicy.WeekOfYear != nil {
-		ltrModel.WeekOfYear = *ltrPolicy.WeekOfYear
+		WeekOfYear:       pointer.From(ltrPolicy.WeekOfYear),
 	}
 
 	return []LongTermRetentionPolicy{ltrModel}
