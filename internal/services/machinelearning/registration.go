@@ -57,5 +57,7 @@ func (r Registration) Resources() []sdk.Resource {
 		MachineLearningDataStoreBlobStorage{},
 		MachineLearningDataStoreDataLakeGen2{},
 		MachineLearningDataStoreFileShare{},
+		MachineLearningWorkspaceHubResource{},
+		MachineLearningWorkspaceProjectResource{},
 	}
 }
