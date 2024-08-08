@@ -816,14 +816,14 @@ func (StackHCIDeploymentSettingResource) Delete() sdk.ResourceFunc {
 			applianceName := fmt.Sprintf("%s-arcbridge", id.ClusterName)
 			applianceId := appliances.NewApplianceID(id.SubscriptionId, id.ResourceGroupName, applianceName)
 
-			log.Printf("[DEBUG] Deleting Arc Resource Bridge Appliance %s generated during deployment", applianceId.ID())
+			log.Printf("[DEBUG] Deleting Arc Resource Bridge Appliance generated during deployment: %s", applianceId.ID())
 
 			applianceClient := metadata.Client.ArcResourceBridge.AppliancesClient
 			if err := applianceClient.DeleteThenPoll(ctx, applianceId); err != nil {
-				return fmt.Errorf("deleting %s: %+v", applianceId, err)
+				return fmt.Errorf("deleting Arc Resource Bridge Appliance generated during deployment: deleting %s: %+v", applianceId, err)
 			}
 
-			log.Printf("[DEBUG] Deleting Custom Location and Storage Containers generated during deployment")
+			log.Printf("[DEBUG] Deleting Custom Location and Stack HCI Storage Paths generated during deployment")
 
 			var customLocationName string
 			if resp.Model != nil && resp.Model.Properties != nil &&
@@ -835,33 +835,34 @@ func (StackHCIDeploymentSettingResource) Delete() sdk.ResourceFunc {
 			if customLocationName != "" {
 				customLocationId := customlocations.NewCustomLocationID(id.SubscriptionId, id.ResourceGroupName, customLocationName)
 
-				log.Printf("[DEBUG] Deleting Storage Containers under Custom Location %s", customLocationId.ID())
+				// we need to delete the Storage Paths before the Custom Location, otherwise the Custom Location cannot be deleted if there is any Resource in it
+				log.Printf("[DEBUG] Deleting Stack HCI Storage Paths under Custom Location %s", customLocationId.ID())
 
 				storageContainerClient := metadata.Client.AzureStackHCI.StorageContainers
 				resourceGroupId := commonids.NewResourceGroupID(id.SubscriptionId, id.ResourceGroupName)
 				storageContainers, err := storageContainerClient.ListComplete(ctx, resourceGroupId)
 				if err != nil {
-					return fmt.Errorf("retrieving Stack HCI Storage Containers under %s: %+v", resourceGroupId.ID(), err)
+					return fmt.Errorf("deleting Stack HCI Storage Paths generated during deployment: retrieving Storage Path under %s: %+v", resourceGroupId, err)
 				}
 
-				// match Storage Containers under the Custom Location
+				// match Storage Paths under the Custom Location, the generated Storage Path name should match below pattern
 				storageContainerNamePattern := regexp.MustCompile(`UserStorage[0-9]+-[a-z0-9]{32}`)
 				for _, v := range storageContainers.Items {
 					if v.Id != nil && v.ExtendedLocation != nil && v.ExtendedLocation.Name != nil && strings.EqualFold(*v.ExtendedLocation.Name, customLocationId.ID()) && v.Name != nil && storageContainerNamePattern.Match([]byte(*v.Name)) {
 						storageContainerId, err := storagecontainers.ParseStorageContainerIDInsensitively(*v.Id)
 						if err != nil {
-							return err
+							return fmt.Errorf("parsing the Stack HCI Storage Path ID generated during deployment: %+v", err)
 						}
 
 						if err := storageContainerClient.DeleteThenPoll(ctx, *storageContainerId); err != nil {
-							return err
+							return fmt.Errorf("deleting the Stack HCI Storage Path generated during deployment: deleting %s: %+v", storageContainerId, err)
 						}
 					}
 				}
 
 				customLocationsClient := metadata.Client.ExtendedLocation.CustomLocations
 				if err := customLocationsClient.DeleteThenPoll(ctx, customLocationId); err != nil {
-					return fmt.Errorf("deleting %s: %+v", customLocationId, err)
+					return fmt.Errorf("deleting the Custom Location generated during deployment: deleting %s: %+v", customLocationId, err)
 				}
 			}
 
