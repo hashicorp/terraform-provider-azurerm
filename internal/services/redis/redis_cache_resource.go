@@ -148,10 +148,6 @@ func resourceRedisCache() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 						},
-						"disable_access_keys_authentication": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-						},
 						"maxclients": {
 							Type:     pluginsdk.TypeInt,
 							Computed: true,
@@ -367,6 +363,11 @@ func resourceRedisCache() *pluginsdk.Resource {
 					}
 					return false
 				},
+			},
+
+			"disable_access_keys_authentication": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
 			},
 
 			"tags": commonschema.Tags(),
