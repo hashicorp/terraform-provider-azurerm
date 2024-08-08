@@ -267,7 +267,11 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 					}
 				} else {
 					if approvalStagesRaw, ok := settings["approvalStages"]; ok {
-						approvalStages = approvalStagesRaw.([]map[string]interface{})
+						for _, stage := range approvalStagesRaw.([]interface{}) {
+							if v, ok := stage.(map[string]interface{}); ok {
+								approvalStages = append(approvalStages, v)
+							}
+						}
 					}
 				}
 			}
