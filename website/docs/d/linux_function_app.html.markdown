@@ -115,6 +115,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `webdeploy_publish_basic_authentication_enabled` - Are the default WebDeploy Basic Authentication publishing credentials enabled.
 
+* `website_content_over_vnet` - Is function app scale enabled when the linked storage account is restricted to a virtual network? Defaults to `false`.
+
+!> **Note:** This property will replace the `WEBSITE_CONTENTOVERVNET` in `app_setting`. `website_content_over_vnet` is the recommended one despite both settings work currently.
+
 ---
 
 An `active_directory` block exports the following:

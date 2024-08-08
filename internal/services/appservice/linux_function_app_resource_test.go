@@ -191,6 +191,42 @@ func TestAccLinuxFunctionApp_basicElasticPremiumPlan(t *testing.T) {
 	})
 }
 
+func TestAccLinuxFunctionApp_websiteContentOverVnetUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
+	r := LinuxFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.websiteContentOverVnet(data, SkuElasticPremiumPlan, "1", false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("app_settings.WEBSITE_CONTENTSHARE", "app_settings.%", "site_credential.0.password"),
+		{
+			Config: r.websiteContentOverVnet(data, SkuElasticPremiumPlan, "1", true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("app_settings.WEBSITE_CONTENTSHARE", "app_settings.%", "site_credential.0.password"),
+		{
+			Config: r.websiteContentOverVnet(data, SkuElasticPremiumPlan, "0", true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("app_settings.WEBSITE_CONTENTSHARE", "app_settings.%", "site_credential.0.password"),
+		{
+			Config: r.websiteContentOverVnet(data, SkuElasticPremiumPlan, "0", false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("app_settings.WEBSITE_CONTENTSHARE", "app_settings.%", "site_credential.0.password"),
+	})
+}
+
 func TestAccLinuxFunctionApp_basicPremiumAppServicePlan(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
 	r := LinuxFunctionAppResource{}
@@ -1803,6 +1839,45 @@ resource "azurerm_linux_function_app" "test" {
   site_config {}
 }
 `, r.template(data, planSku), data.RandomInteger)
+}
+
+// nolint: unparam
+func (r LinuxFunctionAppResource) websiteContentOverVnet(data acceptance.TestData, planSku string, websiteContentAppSetting string, websiteContentSiteConfig bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_storage_share" "test" {
+  name                 = "shareforfa"
+  storage_account_name = azurerm_storage_account.test.name
+  quota                = 5
+}
+
+resource "azurerm_linux_function_app" "test" {
+  name                = "acctest-LFA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  app_settings = {
+    WEBSITE_CONTENTOVERVNET = "%s"
+    WEBSITE_CONTENTSHARE    = "shareforfa"
+  }
+
+  site_config {}
+  website_content_over_vnet = %t
+
+  lifecycle {
+    ignore_changes = [webdeploy_publish_basic_authentication_enabled, ftp_publish_basic_authentication_enabled]
+  }
+}
+`, r.template(data, planSku), data.RandomInteger, websiteContentAppSetting, websiteContentSiteConfig)
 }
 
 func (r LinuxFunctionAppResource) withCors(data acceptance.TestData, planSku string) string {

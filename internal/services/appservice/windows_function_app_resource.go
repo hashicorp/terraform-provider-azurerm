@@ -69,6 +69,7 @@ type WindowsFunctionAppModel struct {
 	ZipDeployFile                    string                                 `tfschema:"zip_deploy_file"`
 	PublishingDeployBasicAuthEnabled bool                                   `tfschema:"webdeploy_publish_basic_authentication_enabled"`
 	PublishingFTPBasicAuthEnabled    bool                                   `tfschema:"ftp_publish_basic_authentication_enabled"`
+	VnetContentShareEnabled          bool                                   `tfschema:"website_content_over_vnet"`
 
 	// Computed
 	CustomDomainVerificationId    string   `tfschema:"custom_domain_verification_id"`
@@ -303,6 +304,13 @@ func (r WindowsFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 			Description:  "The local path and filename of the Zip packaged application to deploy to this Windows Function App. **Note:** Using this value requires `WEBSITE_RUN_FROM_PACKAGE=1` to be set on the App in `app_settings`.",
 		},
+
+		"website_content_over_vnet": {
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Should the app scale enabled when storage account restricted to a virtual network? Defaults to `false`.",
+		},
 	}
 }
 
@@ -485,13 +493,14 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 				if !functionApp.StorageUsesMSI {
 					suffix := uuid.New().String()[0:4]
 					_, contentOverVnetEnabled := functionApp.AppSettings["WEBSITE_CONTENTOVERVNET"]
+					contentOverVnetEnabledSiteSetting := functionApp.VnetContentShareEnabled
 					_, contentSharePresent := functionApp.AppSettings["WEBSITE_CONTENTSHARE"]
 					if _, contentShareConnectionStringPresent := functionApp.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"]; !contentShareConnectionStringPresent {
 						functionApp.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"] = storageString
 					}
 
 					if !contentSharePresent {
-						if contentOverVnetEnabled {
+						if contentOverVnetEnabled || contentOverVnetEnabledSiteSetting {
 							return fmt.Errorf("the app_setting WEBSITE_CONTENTSHARE must be specified and set to a valid share when WEBSITE_CONTENTOVERVNET is specified")
 						}
 						functionApp.AppSettings["WEBSITE_CONTENTSHARE"] = fmt.Sprintf("%s-%s", strings.ToLower(functionApp.Name), suffix)
@@ -516,14 +525,15 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 				Kind:     pointer.To("functionapp"),
 				Identity: expandedIdentity,
 				Properties: &webapps.SiteProperties{
-					ServerFarmId:         pointer.To(functionApp.ServicePlanId),
-					Enabled:              pointer.To(functionApp.Enabled),
-					HTTPSOnly:            pointer.To(functionApp.HttpsOnly),
-					SiteConfig:           siteConfig,
-					ClientCertEnabled:    pointer.To(functionApp.ClientCertEnabled),
-					ClientCertMode:       pointer.To(webapps.ClientCertMode(functionApp.ClientCertMode)),
-					DailyMemoryTimeQuota: pointer.To(functionApp.DailyMemoryTimeQuota),
-					VnetRouteAllEnabled:  siteConfig.VnetRouteAllEnabled,
+					ServerFarmId:            pointer.To(functionApp.ServicePlanId),
+					Enabled:                 pointer.To(functionApp.Enabled),
+					HTTPSOnly:               pointer.To(functionApp.HttpsOnly),
+					SiteConfig:              siteConfig,
+					ClientCertEnabled:       pointer.To(functionApp.ClientCertEnabled),
+					ClientCertMode:          pointer.To(webapps.ClientCertMode(functionApp.ClientCertMode)),
+					DailyMemoryTimeQuota:    pointer.To(functionApp.DailyMemoryTimeQuota),
+					VnetRouteAllEnabled:     siteConfig.VnetRouteAllEnabled,
+					VnetContentShareEnabled: pointer.To(functionApp.VnetContentShareEnabled),
 				},
 			}
 
@@ -751,6 +761,7 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 					state.CustomDomainVerificationId = pointer.From(props.CustomDomainVerificationId)
 					state.DefaultHostname = pointer.From(props.DefaultHostName)
 					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
+					state.VnetContentShareEnabled = pointer.From(props.VnetContentShareEnabled)
 
 					servicePlanId, err := commonids.ParseAppServicePlanIDInsensitively(pointer.From(props.ServerFarmId))
 					if err != nil {
@@ -1007,13 +1018,14 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 				if !state.StorageUsesMSI {
 					suffix := uuid.New().String()[0:4]
 					_, contentOverVnetEnabled := state.AppSettings["WEBSITE_CONTENTOVERVNET"]
+					contentOverVnetEnabledSiteSetting := state.VnetContentShareEnabled
 					_, contentSharePresent := state.AppSettings["WEBSITE_CONTENTSHARE"]
 					if _, contentShareConnectionStringPresent := state.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"]; !contentShareConnectionStringPresent {
 						state.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"] = storageString
 					}
 
 					if !contentSharePresent {
-						if contentOverVnetEnabled {
+						if contentOverVnetEnabled || contentOverVnetEnabledSiteSetting {
 							return fmt.Errorf("the value of WEBSITE_CONTENTSHARE must be set to a predefined share when the storage account is restricted to a virtual network")
 						}
 						state.AppSettings["WEBSITE_CONTENTSHARE"] = fmt.Sprintf("%s-%s", strings.ToLower(state.Name), suffix)
@@ -1058,6 +1070,10 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 				// (@jackofallops) - Values appear to need to be set in both SiteProperties and SiteConfig for now? https://github.com/Azure/azure-rest-api-specs/issues/24681
 				model.Properties.PublicNetworkAccess = pointer.To(pna)
 				model.Properties.SiteConfig.PublicNetworkAccess = model.Properties.PublicNetworkAccess
+			}
+
+			if metadata.ResourceData.HasChange("website_content_over_vnet") {
+				model.Properties.VnetContentShareEnabled = pointer.To(state.VnetContentShareEnabled)
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, model); err != nil {
