@@ -221,12 +221,9 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Read() sdk.Res
 				return err
 			}
 
-			managedInstanceId, err := commonids.ParseSqlManagedInstanceID(state.ManagedInstanceId)
-			if err != nil {
-				return err
-			}
+			managedInstanceId := commonids.NewSqlManagedInstanceID(id.SubscriptionId, id.ResourceGroup, id.ManagedInstanceName)
 
-			result, err := client.Get(ctx, *managedInstanceId)
+			result, err := client.Get(ctx, managedInstanceId)
 			if err != nil {
 				if response.WasNotFound(result.HttpResponse) {
 					return metadata.MarkAsGone(id)
@@ -249,7 +246,7 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Read() sdk.Res
 				}
 			}
 
-			aadAuthOnlyResult, err := aadAuthOnlyClient.Get(ctx, *managedInstanceId)
+			aadAuthOnlyResult, err := aadAuthOnlyClient.Get(ctx, managedInstanceId)
 			if err != nil && !response.WasNotFound(result.HttpResponse) {
 				return fmt.Errorf("retrieving `azuread_authentication_only` for %s: %v", id, err)
 			}
@@ -281,7 +278,7 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Delete() sdk.R
 
 			err = aadAuthOnlyClient.DeleteThenPoll(ctx, managedInstanceId)
 			if err != nil {
-				return fmt.Errorf("setting `azuread_authentication_only` for %s: %+v", managedInstanceId, err)
+				return fmt.Errorf("removing `azuread_authentication_only` for %s: %+v", managedInstanceId, err)
 			}
 
 			err = client.DeleteThenPoll(ctx, managedInstanceId)
