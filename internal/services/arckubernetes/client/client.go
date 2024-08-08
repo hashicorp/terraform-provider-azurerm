@@ -6,6 +6,7 @@ package client
 import (
 	"fmt"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridazurekubernetesservice/2024-01-01/provisionedclusterinstances"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridkubernetes/2024-01-01/connectedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2022-11-01/extensions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2022-11-01/fluxconfiguration"
@@ -13,9 +14,10 @@ import (
 )
 
 type Client struct {
-	ArcKubernetesClient     *connectedclusters.ConnectedClustersClient
-	ExtensionsClient        *extensions.ExtensionsClient
-	FluxConfigurationClient *fluxconfiguration.FluxConfigurationClient
+	ArcKubernetesClient               *connectedclusters.ConnectedClustersClient
+	ExtensionsClient                  *extensions.ExtensionsClient
+	FluxConfigurationClient           *fluxconfiguration.FluxConfigurationClient
+	ProvisionedClusterInstancesClient *provisionedclusterinstances.ProvisionedClusterInstancesClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -37,9 +39,16 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(fluxConfigurationClient.Client, o.Authorizers.ResourceManager)
 
+	provisionedClusterInstancesClientClient, err := provisionedclusterinstances.NewProvisionedClusterInstancesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building ProvisionedClusterInstancesClient client: %+v", err)
+	}
+	o.Configure(provisionedClusterInstancesClientClient.Client, o.Authorizers.ResourceManager)
+
 	return &Client{
-		ArcKubernetesClient:     arcKubernetesClient,
-		ExtensionsClient:        extensionsClient,
-		FluxConfigurationClient: fluxConfigurationClient,
+		ArcKubernetesClient:               arcKubernetesClient,
+		ExtensionsClient:                  extensionsClient,
+		FluxConfigurationClient:           fluxConfigurationClient,
+		ProvisionedClusterInstancesClient: provisionedClusterInstancesClientClient,
 	}, nil
 }
