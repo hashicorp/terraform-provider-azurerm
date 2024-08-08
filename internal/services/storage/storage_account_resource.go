@@ -1730,6 +1730,14 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		if err != nil {
 			return fmt.Errorf("expanding `customer_managed_key`: %+v", err)
 		}
+
+		// When updating CMK the existing value for `RequireInfrastructureEncryption` gets overwritten which results in
+		// an error from the API so we set this back into encryption after it's been overwritten by this update
+		existingEnc := existing.Model.Properties.Encryption
+		if existingEnc != nil && existingEnc.RequireInfrastructureEncryption != nil {
+			encryption.RequireInfrastructureEncryption = existingEnc.RequireInfrastructureEncryption
+		}
+
 		props.Encryption = encryption
 	}
 	if d.HasChange("shared_access_key_enabled") {
