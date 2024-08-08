@@ -56,12 +56,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 
 					"type": {
 						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ForceNew: true,
-						Default:  string(managedclusters.AgentPoolTypeVirtualMachineScaleSets),
-						ValidateFunc: validation.StringInSlice([]string{
-							string(managedclusters.AgentPoolTypeVirtualMachineScaleSets),
-						}, false),
+						Computed: true,
 					},
 
 					"vm_size": {
@@ -291,10 +286,15 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 				}
 
 				if !features.FourPointOhBeta() {
-					s["type"].ValidateFunc = validation.StringInSlice([]string{
-						string(managedclusters.AgentPoolTypeAvailabilitySet),
-						string(managedclusters.AgentPoolTypeVirtualMachineScaleSets),
-					}, false)
+					s["type"] = &pluginsdk.Schema{
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ForceNew: true,
+						Default:  string(managedclusters.AgentPoolTypeVirtualMachineScaleSets),
+						ValidateFunc: validation.StringInSlice([]string{
+							string(managedclusters.AgentPoolTypeVirtualMachineScaleSets),
+						}, false),
+					}
 
 					s["os_sku"].ValidateFunc = validation.StringInSlice([]string{
 						string(agentpools.OSSKUAzureLinux),
@@ -1266,7 +1266,7 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 		NodeLabels:             nodeLabels,
 		NodeTaints:             nodeTaints,
 		Tags:                   tags.Expand(t),
-		Type:                   pointer.To(managedclusters.AgentPoolType(raw["type"].(string))),
+		Type:                   pointer.To(managedclusters.AgentPoolTypeVirtualMachineScaleSets),
 		VMSize:                 utils.String(raw["vm_size"].(string)),
 
 		// at this time the default node pool has to be Linux or the AKS cluster fails to provision with:
