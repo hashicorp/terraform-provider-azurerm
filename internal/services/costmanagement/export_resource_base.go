@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2021-10-01/exports"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2023-07-01-preview/exports"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -27,6 +27,13 @@ func (br costManagementExportBaseResource) arguments(fields map[string]*pluginsd
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  true,
+		},
+
+		"partition_data_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+			ForceNew: true,
 		},
 
 		"recurrence_type": {
@@ -104,6 +111,12 @@ func (br costManagementExportBaseResource) arguments(fields map[string]*pluginsd
 							"TheLast7Days",
 						}, false),
 					},
+
+					"data_version": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
 				},
 			},
 		},
@@ -174,6 +187,8 @@ func (br costManagementExportBaseResource) readFunc(scopeFieldName string) sdk.R
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
+					metadata.ResourceData.Set("partition_data_enabled", pointer.From(props.PartitionData))
+
 					if schedule := props.Schedule; schedule != nil {
 						if recurrencePeriod := schedule.RecurrencePeriod; recurrencePeriod != nil {
 							metadata.ResourceData.Set("recurrence_period_start_date", recurrencePeriod.From)
@@ -272,6 +287,7 @@ func createOrUpdateCostManagementExport(ctx context.Context, client *exports.Exp
 	props := exports.Export{
 		ETag: etag,
 		Properties: &exports.ExportProperties{
+			PartitionData: pointer.To(metadata.ResourceData.Get("partition_data_enabled").(bool)),
 			Schedule: &exports.ExportSchedule{
 				Recurrence: &recurrenceType,
 				RecurrencePeriod: &exports.ExportRecurrencePeriod{
@@ -321,7 +337,18 @@ func expandExportDefinition(input []interface{}) *exports.ExportDefinition {
 	}
 
 	attrs := input[0].(map[string]interface{})
+	var dataset *exports.ExportDataset
+
+	if v, ok := attrs["data_version"]; ok {
+		dataset = &exports.ExportDataset{
+			Configuration: &exports.ExportDatasetConfiguration{
+				DataVersion: pointer.To(v.(string)),
+			},
+		}
+	}
+
 	definitionInfo := &exports.ExportDefinition{
+		DataSet:   dataset,
 		Type:      exports.ExportType(attrs["type"].(string)),
 		Timeframe: exports.TimeframeType(attrs["time_frame"].(string)),
 	}
@@ -373,10 +400,14 @@ func flattenExportDefinition(input *exports.ExportDefinition) []interface{} {
 		queryType = string(input.Type)
 	}
 
-	return []interface{}{
-		map[string]interface{}{
-			"time_frame": string(input.Timeframe),
-			"type":       queryType,
-		},
+	result := map[string]interface{}{
+		"time_frame": string(input.Timeframe),
+		"type":       queryType,
 	}
+
+	if input.DataSet != nil && input.DataSet.Configuration != nil && input.DataSet.Configuration.DataVersion != nil {
+		result["data_version"] = pointer.From(input.DataSet.Configuration.DataVersion)
+	}
+
+	return []interface{}{result}
 }

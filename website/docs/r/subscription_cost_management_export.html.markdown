@@ -37,6 +37,7 @@ resource "azurerm_storage_container" "example" {
 resource "azurerm_subscription_cost_management_export" "example" {
   name                         = "example"
   subscription_id              = data.azurerm_subscription.example.id
+  partition_data_enabled       = true
   recurrence_type              = "Monthly"
   recurrence_period_start_date = "2020-08-18T00:00:00Z"
   recurrence_period_end_date   = "2020-09-18T00:00:00Z"
@@ -47,8 +48,9 @@ resource "azurerm_subscription_cost_management_export" "example" {
   }
 
   export_data_options {
-    type       = "Usage"
-    time_frame = "WeekToDate"
+    data_version = "2021-10-01"
+    type         = "Usage"
+    time_frame   = "WeekToDate"
   }
 }
 ```
@@ -60,6 +62,8 @@ The following arguments are supported:
 * `name` - (Required) Specifies the name of the Cost Management Export. Changing this forces a new resource to be created.
 
 * `subscription_id` - (Required) The id of the subscription on which to create an export. Changing this forces a new resource to be created.
+
+* `partition_data_enabled` - (Optional) Whether data will be partitioned into smaller files to facilitate consumption. Changing this forces a new resource to be created. Defaults to `false`.
 
 * `recurrence_type` - (Required) How often the requested information will be exported. Valid values include `Annually`, `Daily`, `Monthly`, `Weekly`.
 
@@ -86,6 +90,8 @@ A `export_data_storage_location` block supports the following:
 ---
 
 A `export_data_options` block supports the following:
+
+* `data_version` - (Optional) The dataset version to use for the export. The list of valid dataset versions can be viewed [here](https://learn.microsoft.com/en-us/azure/cost-management-billing/dataset-schema/schema-index).
 
 * `type` - (Required) The type of the query. Possible values are `ActualCost`, `AmortizedCost` and `Usage`.
 

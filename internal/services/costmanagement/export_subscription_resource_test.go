@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2021-10-01/exports"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2023-07-01-preview/exports"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -26,6 +26,21 @@ func TestAccSubscriptionCostManagementExport_basic(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSubscriptionCostManagementExport_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subscription_cost_management_export", "test")
+	r := SubscriptionCostManagementExport{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -135,12 +150,64 @@ resource "azurerm_subscription_cost_management_export" "test" {
 
   export_data_storage_location {
     container_id     = azurerm_storage_container.test.resource_manager_id
-    root_folder_path = "/root"
+    root_folder_path = "root"
   }
 
   export_data_options {
-    type       = "Usage"
-    time_frame = "TheLastMonth"
+    type            = "Usage"
+    time_frame      = "TheLastMonth"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger, start, end)
+}
+
+func (SubscriptionCostManagementExport) complete(data acceptance.TestData) string {
+	start := time.Now().AddDate(0, 0, 1).Format("2006-01-02")
+	end := time.Now().AddDate(0, 0, 2).Format("2006-01-02")
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_subscription" "test" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cm-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_container" "test" {
+  name                 = "acctestcontainer%s"
+  storage_account_name = azurerm_storage_account.test.name
+}
+
+resource "azurerm_subscription_cost_management_export" "test" {
+  name                         = "accs%d"
+  subscription_id              = data.azurerm_subscription.test.id
+  recurrence_type              = "Monthly"
+  recurrence_period_start_date = "%sT00:00:00Z"
+  recurrence_period_end_date   = "%sT00:00:00Z"
+  partition_data_enabled       = true
+
+  export_data_storage_location {
+    container_id     = azurerm_storage_container.test.resource_manager_id
+    root_folder_path = "root"
+  }
+
+  export_data_options {
+    type         = "Usage"
+    time_frame   = "TheLastMonth"
+    data_version = "2021-10-01"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger, start, end)
@@ -185,12 +252,12 @@ resource "azurerm_subscription_cost_management_export" "test" {
 
   export_data_storage_location {
     container_id     = azurerm_storage_container.test.resource_manager_id
-    root_folder_path = "/root/updated"
+    root_folder_path = "root/updated"
   }
 
   export_data_options {
-    type       = "Usage"
-    time_frame = "WeekToDate"
+    type         = "Usage"
+    time_frame   = "WeekToDate"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger, start, end)
@@ -210,12 +277,12 @@ resource "azurerm_subscription_cost_management_export" "import" {
 
   export_data_storage_location {
     container_id     = azurerm_storage_container.test.resource_manager_id
-    root_folder_path = "/root"
+    root_folder_path = "root"
   }
 
   export_data_options {
-    type       = "Usage"
-    time_frame = "TheLastMonth"
+    type         = "Usage"
+    time_frame   = "TheLastMonth"
   }
 }
 `, template)
