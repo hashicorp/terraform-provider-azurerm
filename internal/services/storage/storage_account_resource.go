@@ -1730,6 +1730,18 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		if err != nil {
 			return fmt.Errorf("expanding `customer_managed_key`: %+v", err)
 		}
+
+		infrastructureEncryption := d.Get("infrastructure_encryption_enabled").(bool)
+
+		if infrastructureEncryption {
+			validPremiumConfiguration := accountTier == storageaccounts.SkuTierPremium && (accountKind == storageaccounts.KindBlockBlobStorage) || accountKind == storageaccounts.KindFileStorage
+			validV2Configuration := accountKind == storageaccounts.KindStorageVTwo
+			if !(validPremiumConfiguration || validV2Configuration) {
+				return fmt.Errorf("`infrastructure_encryption_enabled` can only be used with account kind `StorageV2`, or account tier `Premium` and account kind is one of `BlockBlobStorage` or `FileStorage`")
+			}
+			encryption.RequireInfrastructureEncryption = &infrastructureEncryption
+		}
+
 		props.Encryption = encryption
 	}
 	if d.HasChange("shared_access_key_enabled") {
