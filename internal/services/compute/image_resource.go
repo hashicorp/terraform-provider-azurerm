@@ -148,7 +148,7 @@ func resourceImage() *pluginsdk.Resource {
 						"storage_type": {
 							Type:         pluginsdk.TypeString,
 							Description:  "The type of storage disk",
-							Optional:     true,
+							Required:     true,
 							ForceNew:     true,
 							ValidateFunc: validation.StringInSlice(images.PossibleValuesForStorageAccountTypes(), false),
 						},
