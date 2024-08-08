@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -20,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceArcKubernetesCluster() *pluginsdk.Resource {
@@ -56,14 +58,57 @@ func resourceArcKubernetesCluster() *pluginsdk.Resource {
 
 			"agent_public_key_certificate": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: azValidate.Base64EncodedString,
+				// agentPublicKeyCertificate input must be empty for Connected Cluster of Kind: Provisioned Cluster
+				ConflictsWith: []string{"kind"},
 			},
 
 			"identity": commonschema.SystemAssignedIdentityRequiredForceNew(),
 
 			"location": commonschema.Location(),
+
+			"kind": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				ForceNew:      true,
+				ConflictsWith: []string{"agent_public_key_certificate"},
+				ValidateFunc: validation.StringInSlice([]string{
+					string(arckubernetes.ConnectedClusterKindProvisionedCluster),
+				}, false),
+			},
+
+			"aad_profile": {
+				Type:         pluginsdk.TypeList,
+				Optional:     true,
+				MaxItems:     1,
+				RequiredWith: []string{"kind"},
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"admin_group_object_ids": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.IsUUID,
+							},
+						},
+
+						"azure_rbac_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+
+						"tenant_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.IsUUID,
+						},
+					},
+				},
+			},
 
 			"agent_version": {
 				Type:     pluginsdk.TypeString,
@@ -139,6 +184,14 @@ func resourceArcKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interfac
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
+	if kindVal := d.Get("kind").(string); kindVal != "" {
+		props.Kind = pointer.To(arckubernetes.ConnectedClusterKind(kindVal))
+	}
+
+	if aadProfileVal := d.Get("aad_profile").([]interface{}); len(aadProfileVal) != 0 {
+		props.Properties.AadProfile = expandArcKubernetesClusterAadProfile(aadProfileVal)
+	}
+
 	if err := client.ConnectedClusterCreateThenPoll(ctx, id, props); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
@@ -174,8 +227,10 @@ func resourceArcKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{
 			return fmt.Errorf("setting `identity`: %+v", err)
 		}
 
+		d.Set("kind", string(pointer.From(model.Kind)))
 		d.Set("location", location.Normalize(model.Location))
 		props := model.Properties
+		d.Set("aad_profile", flattenArcKubernetesClusterAadProfile(props.AadProfile))
 		d.Set("agent_public_key_certificate", props.AgentPublicKeyCertificate)
 		d.Set("agent_version", props.AgentVersion)
 		d.Set("distribution", props.Distribution)
@@ -203,12 +258,23 @@ func resourceArcKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interfac
 		return err
 	}
 
-	props := arckubernetes.ConnectedClusterPatch{
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	resp, err := client.ConnectedClusterGet(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if _, err := client.ConnectedClusterUpdate(ctx, *id, props); err != nil {
-		return fmt.Errorf("updating %s: %+v", *id, err)
+	payload := resp.Model
+
+	if d.HasChange("aad_profile") {
+		payload.Properties.AadProfile = expandArcKubernetesClusterAadProfile(d.Get("aad_profile").([]interface{}))
+	}
+
+	if d.HasChange("tags") {
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if err := client.ConnectedClusterCreateThenPoll(ctx, *id, *payload); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	return resourceArcKubernetesClusterRead(d, meta)
@@ -229,4 +295,39 @@ func resourceArcKubernetesClusterDelete(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	return nil
+}
+
+func expandArcKubernetesClusterAadProfile(input []interface{}) *arckubernetes.AadProfile {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+	output := arckubernetes.AadProfile{
+		EnableAzureRBAC: pointer.To(v["azure_rbac_enabled"].(bool)),
+	}
+
+	if tenantIdVal := v["tenant_id"].(string); tenantIdVal != "" {
+		output.TenantID = pointer.To(tenantIdVal)
+	}
+
+	if groupVal := v["admin_group_object_ids"].([]interface{}); len(groupVal) != 0 {
+		output.AdminGroupObjectIDs = utils.ExpandStringSlice(groupVal)
+	}
+
+	return &output
+}
+
+func flattenArcKubernetesClusterAadProfile(input *arckubernetes.AadProfile) []interface{} {
+	if input == nil || (input.EnableAzureRBAC == nil && input.AdminGroupObjectIDs == nil && input.TenantID == nil) {
+		return make([]interface{}, 0)
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"azure_rbac_enabled":     pointer.From(input.EnableAzureRBAC),
+			"admin_group_object_ids": utils.FlattenStringSlice(input.AdminGroupObjectIDs),
+			"tenant_id":              pointer.From(input.TenantID),
+		},
+	}
 }
