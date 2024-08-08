@@ -476,8 +476,12 @@ func flattenImageOSDisk(input *images.ImageStorageProfile) []interface{} {
 				"disk_encryption_set_id": diskEncryptionSetId,
 			}
 
-			if v.StorageAccountType != nil && features.FourPointOhBeta() {
-				properties["storage_type"] = string(*v.StorageAccountType)
+			if features.FourPointOhBeta() {
+				storageType := ""
+				if v.StorageAccountType != nil {
+					storageType = string(*v.StorageAccountType)
+				}
+				properties["storage_type"] = storageType
 			}
 
 			output = append(output, properties)
