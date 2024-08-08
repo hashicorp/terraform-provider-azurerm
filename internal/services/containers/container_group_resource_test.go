@@ -1931,7 +1931,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hf"
-    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
+    image  = "mcr.microsoft.com/azurelinux/2.0/image/minimal-os:latest"
     cpu    = "1"
     memory = "1.5"
 
