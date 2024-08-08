@@ -397,9 +397,7 @@ func expandImageOSDisk(input []interface{}) *images.ImageOSDisk {
 		}
 
 		if features.FourPointOhBeta() {
-			if storageAccountType := config["storage_type"].(string); storageAccountType != "" {
-				out.StorageAccountType = pointer.To(images.StorageAccountTypes(storageAccountType))
-			}
+			out.StorageAccountType = pointer.To(images.StorageAccountTypes(storageAccountType))
 		}
 		return out
 	}
