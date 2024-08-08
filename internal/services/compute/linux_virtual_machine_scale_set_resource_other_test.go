@@ -476,6 +476,37 @@ func TestAccLinuxVirtualMachineScaleSet_otherScaleIn(t *testing.T) {
 	})
 }
 
+func TestAccLinuxVirtualMachineScaleSet_otherOsImageNotification(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.otherOsImageNotification(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("os_image_notification.#").HasValue("1"),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
+			Config: r.otherOsImageNotification(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
+			Config: r.otherOsImageNotification(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("os_image_notification.#").HasValue("1"),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
 func TestAccLinuxVirtualMachineScaleSet_otherTerminationNotification(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
@@ -2292,6 +2323,55 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 }
 `, r.template(data), data.RandomInteger, enabled)
+}
+
+func (r LinuxVirtualMachineScaleSetResource) otherOsImageNotification(data acceptance.TestData, enabled bool) string {
+	osImageNotificationConfig := ""
+	if enabled {
+		osImageNotificationConfig = "os_image_notification {}"
+	}
+
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_linux_virtual_machine_scale_set" "test" {
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  disable_password_authentication = false
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
+    version   = "latest"
+  }
+
+  os_disk {
+    disk_size_gb         = 30
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  %s
+}
+`, r.template(data), data.RandomInteger, osImageNotificationConfig)
 }
 
 func (r LinuxVirtualMachineScaleSetResource) otherTerminationNotification(data acceptance.TestData, enabled bool) string {
