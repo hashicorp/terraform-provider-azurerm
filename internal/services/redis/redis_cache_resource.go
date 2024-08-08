@@ -365,7 +365,7 @@ func resourceRedisCache() *pluginsdk.Resource {
 				},
 			},
 
-			"disable_access_keys_authentication": {
+			"access_keys_authentication_disabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 			},
@@ -558,6 +558,11 @@ func resourceRedisCacheCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		parameters.Properties.SubnetId = utils.String(v.(string))
 	}
 
+	if v, ok := d.GetOk("access_keys_authentication_disabled"); ok {
+		disableAccessKeyAuthentication := v.(bool)
+		parameters.Properties.DisableAccessKeyAuthentication = &disableAccessKeyAuthentication
+	}
+
 	if v, ok := d.GetOk("zones"); ok {
 		zones := zones.ExpandUntyped(v.(*schema.Set).List())
 		if len(zones) > 0 {
@@ -674,6 +679,13 @@ func resourceRedisCacheUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 			return fmt.Errorf("parsing Redis Configuration: %+v", err)
 		}
 		parameters.Properties.RedisConfiguration = redisConfiguration
+	}
+
+	if v, ok := d.GetOk("access_keys_authentication_disabled"); ok {
+		if d.HasChange("access_keys_authentication_disabled") {
+			disableAccessKeyAuthentication := v.(bool)
+			parameters.Properties.DisableAccessKeyAuthentication = &disableAccessKeyAuthentication
+		}
 	}
 
 	if _, err := client.Update(ctx, *id, parameters); err != nil {
@@ -841,6 +853,8 @@ func resourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		d.Set("secondary_connection_string", getRedisConnectionString(*props.HostName, *props.SslPort, *keysResp.Model.SecondaryKey, true))
 		d.Set("primary_access_key", keysResp.Model.PrimaryKey)
 		d.Set("secondary_access_key", keysResp.Model.SecondaryKey)
+
+		d.Set("access_keys_authentication_disabled", props.DisableAccessKeyAuthentication)
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return fmt.Errorf("setting `tags`: %+v", err)
