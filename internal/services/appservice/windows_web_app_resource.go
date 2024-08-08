@@ -385,10 +385,8 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 				pna = helpers.PublicNetworkAccessDisabled
 			}
 
-			// (@jackofallops) - Values appear to need to be set in both SiteProperties and SiteConfig for now? https://github.com/Azure/azure-rest-api-specs/issues/24681
 			siteEnvelope.Properties.PublicNetworkAccess = pointer.To(pna)
-			siteEnvelope.Properties.SiteConfig.PublicNetworkAccess = siteEnvelope.Properties.PublicNetworkAccess
-
+			
 			if webApp.KeyVaultReferenceIdentityID != "" {
 				siteEnvelope.Properties.KeyVaultReferenceIdentity = pointer.To(webApp.KeyVaultReferenceIdentityID)
 			}
@@ -896,9 +894,7 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 					pna = helpers.PublicNetworkAccessDisabled
 				}
 
-				// (@jackofallops) - Values appear to need to be set in both SiteProperties and SiteConfig for now? https://github.com/Azure/azure-rest-api-specs/issues/24681
 				model.Properties.PublicNetworkAccess = pointer.To(pna)
-				model.Properties.SiteConfig.PublicNetworkAccess = model.Properties.PublicNetworkAccess
 			}
 
 			if err = client.CreateOrUpdateThenPoll(ctx, *id, model); err != nil {
