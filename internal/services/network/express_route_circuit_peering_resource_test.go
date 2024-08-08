@@ -462,6 +462,7 @@ resource "azurerm_express_route_circuit_peering" "test" {
 
   microsoft_peering_config {
     advertised_public_prefixes = ["123.3.0.0/24"]
+    advertised_communities     = ["12076:52005", "12076:52006"]
   }
 
   ipv6 {
@@ -473,6 +474,7 @@ resource "azurerm_express_route_circuit_peering" "test" {
       advertised_public_prefixes = ["2002:db01::/126"]
       customer_asn               = 64511
       routing_registry_name      = "ARIN"
+      advertised_communities     = ["12076:52005", "12076:52006"]
     }
   }
 }
@@ -626,6 +628,7 @@ resource "azurerm_express_route_circuit_peering" "test" {
 
   microsoft_peering_config {
     advertised_public_prefixes = ["123.1.0.0/24"]
+    advertised_communities     = ["12076:52005", "12076:52006"]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
