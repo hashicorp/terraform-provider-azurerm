@@ -518,8 +518,12 @@ func flattenImageDataDisks(input *images.ImageStorageProfile) []interface{} {
 					"size_gb":         diskSizeGb,
 				}
 
-				if disk.StorageAccountType != nil && features.FourPointOhBeta() {
-					properties["storage_type"] = string(*disk.StorageAccountType)
+				if features.FourPointOhBeta() {
+					storageType := ""
+					if disk.StorageAccountType != nil {
+						storageType = string(*disk.StorageAccountType)
+					}
+					properties["storage_type"] = storageType
 				}
 
 				output = append(output, properties)
