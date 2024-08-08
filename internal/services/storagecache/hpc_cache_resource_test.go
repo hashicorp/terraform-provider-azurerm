@@ -183,6 +183,10 @@ func TestAccHPCCache_defaultAccessPolicy(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		// todo framework: `default_access_policy` + sdkv2 is causing issues with ImportStateVerify
+		{
+			RefreshState: true,
+		},
 		data.ImportStep(),
 		{
 			Config: r.defaultAccessPolicyComplete(data),
@@ -190,12 +194,20 @@ func TestAccHPCCache_defaultAccessPolicy(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		// todo framework: `default_access_policy` + sdkv2 is causing issues with ImportStateVerify
+		{
+			RefreshState: true,
+		},
 		data.ImportStep(),
 		{
 			Config: r.defaultAccessPolicyBasic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
+		},
+		// todo framework: `default_access_policy` + sdkv2 is causing issues with ImportStateVerify
+		{
+			RefreshState: true,
 		},
 		data.ImportStep(),
 	})
