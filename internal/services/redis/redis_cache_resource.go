@@ -365,6 +365,11 @@ func resourceRedisCache() *pluginsdk.Resource {
 				},
 			},
 
+			"access_keys_authentication_disabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
+
 			"tags": commonschema.Tags(),
 		},
 
@@ -375,6 +380,12 @@ func resourceRedisCache() *pluginsdk.Resource {
 					return skuWeight[old.(string)] > skuWeight[new.(string)]
 				}
 				return false
+			}),
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+				return validate.ValidateAccessKeysAuth(
+					diff.Get("access_keys_authentication_disabled").(bool),
+					diff.Get("redis_configuration.0.active_directory_authentication_enabled").(bool),
+				)
 			}),
 		),
 	}
@@ -499,7 +510,8 @@ func resourceRedisCacheCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	parameters := redis.RedisCreateParameters{
 		Location: location.Normalize(d.Get("location").(string)),
 		Properties: redis.RedisCreateProperties{
-			EnableNonSslPort: pointer.To(enableNonSslPort.(bool)),
+			DisableAccessKeyAuthentication: pointer.To(d.Get("access_keys_authentication_disabled").(bool)),
+			EnableNonSslPort:               pointer.To(enableNonSslPort.(bool)),
 			Sku: redis.Sku{
 				Capacity: int64(d.Get("capacity").(int)),
 				Family:   redis.SkuFamily(d.Get("family").(string)),
@@ -613,8 +625,9 @@ func resourceRedisCacheUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 
 	parameters := redis.RedisUpdateParameters{
 		Properties: &redis.RedisUpdateProperties{
-			MinimumTlsVersion: pointer.To(redis.TlsVersion(d.Get("minimum_tls_version").(string))),
-			EnableNonSslPort:  pointer.To(enableNonSslPort.(bool)),
+			DisableAccessKeyAuthentication: pointer.To(d.Get("access_keys_authentication_disabled").(bool)),
+			MinimumTlsVersion:              pointer.To(redis.TlsVersion(d.Get("minimum_tls_version").(string))),
+			EnableNonSslPort:               pointer.To(enableNonSslPort.(bool)),
 			Sku: &redis.Sku{
 				Capacity: int64(d.Get("capacity").(int)),
 				Family:   redis.SkuFamily(d.Get("family").(string)),
@@ -836,6 +849,8 @@ func resourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		d.Set("secondary_connection_string", getRedisConnectionString(*props.HostName, *props.SslPort, *keysResp.Model.SecondaryKey, true))
 		d.Set("primary_access_key", keysResp.Model.PrimaryKey)
 		d.Set("secondary_access_key", keysResp.Model.SecondaryKey)
+
+		d.Set("access_keys_authentication_disabled", props.DisableAccessKeyAuthentication)
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return fmt.Errorf("setting `tags`: %+v", err)

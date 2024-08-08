@@ -59,6 +59,8 @@ The following arguments are supported:
 
 ---
 
+* `access_keys_authentication_disabled` - (Optional) Disable access key authentication. Microsoft Entra (AAD) authentication (`active_directory_authentication_enabled`) must be enabled to disable this. Defaults to `false`.
+
 * `enable_non_ssl_port` - (Optional) Enable the non-SSL port (6379) - disabled by default.
 
 * `identity` - (Optional) An `identity` block as defined below.
