@@ -14,12 +14,16 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type IoTTimeSeriesInsightsStandardEnvironmentResource struct{}
 
 func TestAccIoTTimeSeriesInsightsStandardEnvironment_basic(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("skipping as removed in 4.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_iot_time_series_insights_standard_environment", "test")
 	r := IoTTimeSeriesInsightsStandardEnvironmentResource{}
 
@@ -35,6 +39,9 @@ func TestAccIoTTimeSeriesInsightsStandardEnvironment_basic(t *testing.T) {
 }
 
 func TestAccIoTTimeSeriesInsightsStandardEnvironment_update(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("skipping as removed in 4.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_iot_time_series_insights_standard_environment", "test")
 	r := IoTTimeSeriesInsightsStandardEnvironmentResource{}
 
@@ -64,6 +71,9 @@ func TestAccIoTTimeSeriesInsightsStandardEnvironment_update(t *testing.T) {
 }
 
 func TestAccIoTTimeSeriesInsightsStandardEnvironment_complete(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("skipping as removed in 4.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_iot_time_series_insights_standard_environment", "test")
 	r := IoTTimeSeriesInsightsStandardEnvironmentResource{}
 

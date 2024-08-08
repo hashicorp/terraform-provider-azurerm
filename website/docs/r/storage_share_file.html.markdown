@@ -59,6 +59,8 @@ The following arguments are supported:
 
 * `content_md5` - (Optional) The MD5 sum of the file contents. Changing this forces a new resource to be created.
 
+~> **NOTE:** This property is intended to be used with the Terraform internal [filemd5](https://www.terraform.io/docs/configuration/functions/filemd5.html) and [md5](https://www.terraform.io/docs/configuration/functions/md5.html) functions when `source` is defined.
+
 * `content_encoding` - (Optional) Specifies which content encodings have been applied to the file.
 
 * `content_disposition` - (Optional) Sets the file’s Content-Disposition header.
