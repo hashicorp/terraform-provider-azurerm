@@ -198,8 +198,6 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
 			pluginsdk.CustomizeDiffShim(msSqlMinimumTLSVersionDiff),
-
-			pluginsdk.CustomizeDiffShim(msSqlPasswordChangeWhenAADAuthOnly),
 		),
 	}
 }
@@ -319,6 +317,11 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
+	aadOnlyAuthenticationsEnabled := expandMsSqlServerAADOnlyAuthentications(d.Get("azuread_administrator").([]interface{}))
+	if _, ok := d.GetOk("administrator_login_password"); ok && aadOnlyAuthenticationsEnabled && d.HasChange("administrator_login_password") {
+		return fmt.Errorf("`administrator_login_password` cannot be changed when `azuread_administrator.0.azuread_authentication_only = true`")
+	}
+
 	id, err := commonids.ParseSqlServerID(d.Id())
 	if err != nil {
 		return err
@@ -327,64 +330,6 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	existing, err := client.Get(ctx, *id, servers.DefaultGetOperationOptions())
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
-	}
-
-	if payload := existing.Model; payload != nil {
-		if d.HasChange("tags") {
-			payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
-		}
-
-		if d.HasChange("identity") {
-			expanded, err := identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]interface{}))
-			if err != nil {
-				return fmt.Errorf("expanding `identity`: %+v", err)
-			}
-			payload.Identity = expanded
-		}
-
-		if d.HasChange("transparent_data_encryption_key_vault_key_id") {
-			keyVaultKeyId := d.Get(("transparent_data_encryption_key_vault_key_id")).(string)
-
-			keyId, err := keyVaultParser.ParseNestedItemID(keyVaultKeyId)
-			if err != nil {
-				return fmt.Errorf("unable to parse key: %q: %+v", keyVaultKeyId, err)
-			}
-
-			if keyId.NestedItemType == keyVaultParser.NestedItemTypeKey {
-				payload.Properties.KeyId = pointer.To(keyId.ID())
-			} else {
-				return fmt.Errorf("key vault key id must be a reference to a key, got %s", keyId.NestedItemType)
-			}
-		}
-
-		if primaryUserAssignedIdentityID, ok := d.GetOk("primary_user_assigned_identity_id"); ok {
-			payload.Properties.PrimaryUserAssignedIdentityId = pointer.To(primaryUserAssignedIdentityID.(string))
-		}
-
-		payload.Properties.PublicNetworkAccess = pointer.To(servers.ServerPublicNetworkAccessFlagDisabled)
-		payload.Properties.RestrictOutboundNetworkAccess = pointer.To(servers.ServerNetworkAccessFlagDisabled)
-
-		if v := d.Get("public_network_access_enabled"); v.(bool) {
-			payload.Properties.PublicNetworkAccess = pointer.To(servers.ServerPublicNetworkAccessFlagEnabled)
-		}
-
-		if v := d.Get("outbound_network_restriction_enabled"); v.(bool) {
-			payload.Properties.RestrictOutboundNetworkAccess = pointer.To(servers.ServerNetworkAccessFlagEnabled)
-		}
-
-		if d.HasChange("administrator_login_password") {
-			adminPassword := d.Get("administrator_login_password").(string)
-			payload.Properties.AdministratorLoginPassword = pointer.To(adminPassword)
-		}
-
-		if d.HasChange("minimum_tls_version") {
-			payload.Properties.MinimalTlsVersion = pointer.To(d.Get("minimum_tls_version").(string))
-		}
-
-		err := client.CreateOrUpdateThenPoll(ctx, *id, *payload)
-		if err != nil {
-			return fmt.Errorf("updating %s: %+v", id, err)
-		}
 	}
 
 	if d.HasChange("azuread_administrator") {
@@ -443,18 +388,80 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 				return fmt.Errorf("deleting Azure Active Directory Administrator %s: %+v", id, err)
 			}
 		}
+
+		if aadOnlyAuthenticationsEnabled {
+			aadOnlyAuthenticationsProps := serverazureadonlyauthentications.ServerAzureADOnlyAuthentication{
+				Properties: &serverazureadonlyauthentications.AzureADOnlyAuthProperties{
+					AzureADOnlyAuthentication: aadOnlyAuthenticationsEnabled,
+				},
+			}
+
+			err := aadOnlyAuthenticationsClient.CreateOrUpdateThenPoll(ctx, *id, aadOnlyAuthenticationsProps)
+			if err != nil {
+				return fmt.Errorf("updating Azure Active Directory Only Authentication for %s: %+v", id, err)
+			}
+		}
 	}
 
-	if aadOnlyAuthentictionsEnabled := expandMsSqlServerAADOnlyAuthentictions(d.Get("azuread_administrator").([]interface{})); d.HasChange("azuread_administrator") && aadOnlyAuthentictionsEnabled {
-		aadOnlyAuthentictionsProps := serverazureadonlyauthentications.ServerAzureADOnlyAuthentication{
-			Properties: &serverazureadonlyauthentications.AzureADOnlyAuthProperties{
-				AzureADOnlyAuthentication: aadOnlyAuthentictionsEnabled,
-			},
+	if payload := existing.Model; payload != nil {
+		if d.HasChange("tags") {
+			payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 		}
 
-		err := aadOnlyAuthenticationsClient.CreateOrUpdateThenPoll(ctx, *id, aadOnlyAuthentictionsProps)
+		if d.HasChange("identity") {
+			expanded, err := identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+			if err != nil {
+				return fmt.Errorf("expanding `identity`: %+v", err)
+			}
+			payload.Identity = expanded
+		}
+
+		if d.HasChange("transparent_data_encryption_key_vault_key_id") {
+			keyVaultKeyId := d.Get(("transparent_data_encryption_key_vault_key_id")).(string)
+
+			keyId, err := keyVaultParser.ParseNestedItemID(keyVaultKeyId)
+			if err != nil {
+				return fmt.Errorf("unable to parse key: %q: %+v", keyVaultKeyId, err)
+			}
+
+			if keyId.NestedItemType == keyVaultParser.NestedItemTypeKey {
+				payload.Properties.KeyId = pointer.To(keyId.ID())
+			} else {
+				return fmt.Errorf("key vault key id must be a reference to a key, got %s", keyId.NestedItemType)
+			}
+		}
+
+		if primaryUserAssignedIdentityID, ok := d.GetOk("primary_user_assigned_identity_id"); ok {
+			payload.Properties.PrimaryUserAssignedIdentityId = pointer.To(primaryUserAssignedIdentityID.(string))
+		}
+
+		payload.Properties.PublicNetworkAccess = pointer.To(servers.ServerPublicNetworkAccessFlagDisabled)
+		payload.Properties.RestrictOutboundNetworkAccess = pointer.To(servers.ServerNetworkAccessFlagDisabled)
+
+		if v := d.Get("public_network_access_enabled"); v.(bool) {
+			payload.Properties.PublicNetworkAccess = pointer.To(servers.ServerPublicNetworkAccessFlagEnabled)
+		}
+
+		if v := d.Get("outbound_network_restriction_enabled"); v.(bool) {
+			payload.Properties.RestrictOutboundNetworkAccess = pointer.To(servers.ServerNetworkAccessFlagEnabled)
+		}
+
+		if d.HasChange("administrator_login_password") {
+			adminPassword := d.Get("administrator_login_password").(string)
+			payload.Properties.AdministratorLoginPassword = pointer.To(adminPassword)
+		}
+
+		if d.HasChange("minimum_tls_version") {
+			payload.Properties.MinimalTlsVersion = pointer.To(d.Get("minimum_tls_version").(string))
+		}
+
+		if d.HasChange("azuread_administrator") {
+			payload.Properties.Administrators = expandMsSqlServerAdministrators(d.Get("azuread_administrator").([]interface{}))
+		}
+
+		err := client.CreateOrUpdateThenPoll(ctx, *id, *payload)
 		if err != nil {
-			return fmt.Errorf("updating Azure Active Directory Only Authentication for %s: %+v", id, err)
+			return fmt.Errorf("updating %s: %+v", id, err)
 		}
 	}
 
@@ -585,7 +592,7 @@ func resourceMsSqlServerDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func expandMsSqlServerAADOnlyAuthentictions(input []interface{}) bool {
+func expandMsSqlServerAADOnlyAuthentications(input []interface{}) bool {
 	if len(input) == 0 || input[0] == nil {
 		return false
 	}
@@ -698,14 +705,6 @@ func msSqlMinimumTLSVersionDiff(ctx context.Context, d *pluginsdk.ResourceDiff, 
 	// todo remove `old != "None"` when https://github.com/Azure/azure-rest-api-specs/issues/24348 is addressed
 	if old != "" && old != "None" && old != "Disabled" && new == "Disabled" {
 		err = fmt.Errorf("`minimum_tls_version` cannot be removed once set, please set a valid value for this property")
-	}
-	return
-}
-
-func msSqlPasswordChangeWhenAADAuthOnly(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) (err error) {
-	old, _ := d.GetChange("azuread_administrator.0.azuread_authentication_only")
-	if old.(bool) && d.HasChange("administrator_login_password") {
-		err = fmt.Errorf("`administrator_login_password` cannot be changed once `azuread_administrator.0.azuread_authentication_only = true`")
 	}
 	return
 }
