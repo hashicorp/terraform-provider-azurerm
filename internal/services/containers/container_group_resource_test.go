@@ -1931,7 +1931,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hf"
-    image  = "mcr.microsoft.com/azurelinux/2.0/image/minimal-os:latest"
+    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu    = "1"
     memory = "1.5"
 
@@ -1975,7 +1975,7 @@ resource "azurerm_container_group" "test" {
     liveness_probe {
       http_get {
         path   = "/"
-        port   = 443
+        port   = 80
         scheme = "http"
         http_headers = {
           h1 = "v1"
