@@ -1173,6 +1173,10 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 
 * The deprecated properties `storage_account_name` and `table_name` have been removed in favour of the `storage_table_id` property.
 
+### `azurerm_storage_table_entities`
+
+* The deprecated properties `storage_account_name` and `table_name` have been removed in favour of the `storage_table_id` property.
+
 ### `azurerm_subnet`
 
 * The deprecated property `private_endpoint_network_policies_enabled` has been removed in favour of the `private_endpoint_network_policies` property.

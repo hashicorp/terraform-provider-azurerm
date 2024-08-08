@@ -112,9 +112,8 @@ func (d StorageTableEntitiesDataSource) basicWithDataSource(data acceptance.Test
 %s
 
 data "azurerm_storage_table_entities" "test" {
-  table_name           = azurerm_storage_table_entity.test.table_name
-  storage_account_name = azurerm_storage_table_entity.test.storage_account_name
-  filter               = "PartitionKey eq 'testpartition'"
+  storage_table_id = azurerm_storage_table.test.id
+  filter           = "PartitionKey eq 'testpartition'"
 
   depends_on = [
     azurerm_storage_table_entity.test,
@@ -130,10 +129,9 @@ func (d StorageTableEntitiesDataSource) basicWithDataSourceAndSelector(data acce
 %s
 
 data "azurerm_storage_table_entities" "test" {
-  table_name           = azurerm_storage_table_entity.test.table_name
-  storage_account_name = azurerm_storage_table_entity.test.storage_account_name
-  filter               = "PartitionKey eq 'testselectorpartition'"
-  select               = ["testselector"]
+  storage_table_id = azurerm_storage_table.test.id
+  filter           = "PartitionKey eq 'testselectorpartition'"
+  select           = ["testselector"]
 
   depends_on = [
     azurerm_storage_table_entity.test,
