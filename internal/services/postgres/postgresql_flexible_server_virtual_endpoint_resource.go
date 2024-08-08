@@ -79,7 +79,7 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Arguments() map[string]
 
 func (r PostgresqlFlexibleServerVirtualEndpointResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 5 * time.Minute,
+		Timeout: 10 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			var virtualEndpoint PostgresqlFlexibleServerVirtualEndpointModel
 
