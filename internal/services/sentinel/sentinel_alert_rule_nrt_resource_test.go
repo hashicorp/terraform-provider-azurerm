@@ -167,6 +167,10 @@ AzureActivity |
   where ActivityStatus == "Succeeded" |
   make-series dcount(ResourceId) default=0 on EventSubmissionTimestamp in range(ago(7d), now(), 1d) by Caller
 QUERY
+
+  event_grouping {
+    aggregation_method = "SingleAlert"
+  }
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -231,6 +235,9 @@ resource "azurerm_sentinel_alert_rule_nrt" "test" {
     OperatingSystemType = "OSType"
   }
 
+  event_grouping {
+    aggregation_method = "SingleAlert"
+  }
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -250,6 +257,9 @@ resource "azurerm_sentinel_alert_rule_nrt" "test" {
     OperatingSystemType = "OSType"
   }
 
+  event_grouping {
+    aggregation_method = "SingleAlert"
+  }
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -264,6 +274,10 @@ resource "azurerm_sentinel_alert_rule_nrt" "import" {
   display_name               = azurerm_sentinel_alert_rule_nrt.test.display_name
   severity                   = azurerm_sentinel_alert_rule_nrt.test.severity
   query                      = azurerm_sentinel_alert_rule_nrt.test.query
+
+  event_grouping {
+    aggregation_method = "azurerm_sentinel_alert_rule_nrt.test.event_grouping.0.aggregation_method"
+  }
 }
 `, r.basic(data))
 }
@@ -284,6 +298,10 @@ resource "azurerm_sentinel_alert_rule_nrt" "test" {
   severity                   = "Low"
   alert_rule_template_guid   = data.azurerm_sentinel_alert_rule_template.test.name
   query                      = "Heartbeat"
+
+  event_grouping {
+    aggregation_method = "SingleAlert"
+  }
 }
 `, r.template(data), data.RandomInteger)
 }

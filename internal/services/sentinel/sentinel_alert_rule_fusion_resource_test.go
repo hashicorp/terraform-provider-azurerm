@@ -34,7 +34,7 @@ func TestAccSentinelAlertRuleFusion_basic(t *testing.T) {
 	})
 }
 
-func TestAccSentinelAlertRuleFusion_disable(t *testing.T) {
+func TestAccSentinelAlertRuleFusion_enable(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_fusion", "test")
 	r := SentinelAlertRuleFusionResource{}
 
@@ -47,7 +47,7 @@ func TestAccSentinelAlertRuleFusion_disable(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.disabled(data),
+			Config: r.enabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -134,23 +134,8 @@ func (r SentinelAlertRuleFusionResource) basic(data acceptance.TestData) string 
 data "azurerm_sentinel_alert_rule_template" "test" {
   display_name               = "Advanced Multistage Attack Detection"
   log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
-}
 
-resource "azurerm_sentinel_alert_rule_fusion" "test" {
-  name                       = "acctest-SentinelAlertRule-Fusion-%d"
-  log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
-  alert_rule_template_guid   = data.azurerm_sentinel_alert_rule_template.test.name
-}
-`, r.template(data), data.RandomInteger)
-}
-
-func (r SentinelAlertRuleFusionResource) disabled(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-data "azurerm_sentinel_alert_rule_template" "test" {
-  display_name               = "Advanced Multistage Attack Detection"
-  log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
+  depends_on = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
 }
 
 resource "azurerm_sentinel_alert_rule_fusion" "test" {
@@ -162,6 +147,26 @@ resource "azurerm_sentinel_alert_rule_fusion" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
+func (r SentinelAlertRuleFusionResource) enabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_sentinel_alert_rule_template" "test" {
+  display_name               = "Advanced Multistage Attack Detection"
+  log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
+
+  depends_on = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
+}
+
+resource "azurerm_sentinel_alert_rule_fusion" "test" {
+  name                       = "acctest-SentinelAlertRule-Fusion-%d"
+  log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
+  alert_rule_template_guid   = data.azurerm_sentinel_alert_rule_template.test.name
+  enabled                    = true
+}
+`, r.template(data), data.RandomInteger)
+}
+
 func (r SentinelAlertRuleFusionResource) sourceSetting(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 %[1]s
@@ -169,6 +174,8 @@ func (r SentinelAlertRuleFusionResource) sourceSetting(data acceptance.TestData,
 data "azurerm_sentinel_alert_rule_template" "test" {
   display_name               = "Advanced Multistage Attack Detection"
   log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
+
+  depends_on = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
 }
 
 resource "azurerm_sentinel_alert_rule_fusion" "test" {
@@ -245,6 +252,7 @@ resource "azurerm_sentinel_alert_rule_fusion" "import" {
   name                       = azurerm_sentinel_alert_rule_fusion.test.name
   log_analytics_workspace_id = azurerm_sentinel_alert_rule_fusion.test.log_analytics_workspace_id
   alert_rule_template_guid   = azurerm_sentinel_alert_rule_fusion.test.alert_rule_template_guid
+  enabled                    = azurerm_sentinel_alert_rule_fusion.test.enabled
 }
 `, r.basic(data))
 }
@@ -278,6 +286,10 @@ resource "azurerm_log_analytics_solution" "test" {
     publisher = "Microsoft"
     product   = "OMSGallery/SecurityInsights"
   }
+}
+
+resource "azurerm_sentinel_log_analytics_workspace_onboarding" "test" {
+  workspace_id = azurerm_log_analytics_workspace.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

@@ -166,14 +166,14 @@ func dataSourceSentinelAlertRuleTemplateRead(d *pluginsdk.ResourceData, meta int
 		nameToLog = name
 		resp, err = getAlertRuleTemplateByName(ctx, client, workspaceID, name)
 		if err != nil {
-			return fmt.Errorf("an Alert Rule Template named %q was not found", name)
+			return fmt.Errorf("finding Alert Rule Template named %q: %+v", name, err)
 		}
 	} else {
 		nameToLog = displayName
 		var realName *string
 		resp, realName, err = getAlertRuleTemplateByDisplayName(ctx, client, workspaceID, displayName)
 		if err != nil {
-			return fmt.Errorf("an Alert Rule Template with the Display Name %q was not found", displayName)
+			return fmt.Errorf("finding Alert Rule Template with the Display Name %q: %+v", displayName, err)
 		}
 		name = *realName
 	}
