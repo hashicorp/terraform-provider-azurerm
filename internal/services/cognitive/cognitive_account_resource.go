@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2023-05-01/cognitiveservicesaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2023-10-01-preview/cognitiveservicesaccounts"
 	search "github.com/hashicorp/go-azure-sdk/resource-manager/search/2022-09-01/services"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -201,6 +201,16 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 				RequiredWith: []string{"custom_subdomain_name"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
+						"bypass": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Computed: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(cognitiveservicesaccounts.ByPassSelectionAzureServices),
+								string(cognitiveservicesaccounts.ByPassSelectionNone),
+							}, false),
+							Default: string(cognitiveservicesaccounts.ByPassSelectionAzureServices),
+						},
 						"default_action": {
 							Type:     pluginsdk.TypeString,
 							Required: true,
@@ -669,6 +679,7 @@ func expandCognitiveAccountNetworkAcls(d *pluginsdk.ResourceData) (*cognitiveser
 
 	v := input[0].(map[string]interface{})
 
+	bypass := cognitiveservicesaccounts.ByPassSelection(v["bypass"].(string))
 	defaultAction := cognitiveservicesaccounts.NetworkRuleAction(v["default_action"].(string))
 
 	ipRulesRaw := v["ip_rules"].(*pluginsdk.Set)
@@ -695,6 +706,7 @@ func expandCognitiveAccountNetworkAcls(d *pluginsdk.ResourceData) (*cognitiveser
 	}
 
 	ruleSet := cognitiveservicesaccounts.NetworkRuleSet{
+		Bypass:              &bypass,
 		DefaultAction:       &defaultAction,
 		IPRules:             &ipRules,
 		VirtualNetworkRules: &networkRules,
@@ -801,6 +813,7 @@ func flattenCognitiveAccountNetworkAcls(input *cognitiveservicesaccounts.Network
 	}
 
 	return []interface{}{map[string]interface{}{
+		"bypass":                input.Bypass,
 		"default_action":        input.DefaultAction,
 		"ip_rules":              pluginsdk.NewSet(pluginsdk.HashString, ipRules),
 		"virtual_network_rules": virtualNetworkRules,

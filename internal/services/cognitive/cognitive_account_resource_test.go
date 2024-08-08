@@ -9,7 +9,7 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2023-05-01/cognitiveservicesaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2023-10-01-preview/cognitiveservicesaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -898,6 +898,7 @@ resource "azurerm_cognitive_account" "test" {
   custom_subdomain_name = "acctestcogacc-%d"
 
   network_acls {
+    bypass         = "None"
     default_action = "Deny"
     virtual_network_rules {
       subnet_id = azurerm_subnet.test_a.id
@@ -922,6 +923,7 @@ resource "azurerm_cognitive_account" "test" {
   custom_subdomain_name = "acctestcogacc-%d"
 
   network_acls {
+    bypass         = "AzureServices"
     default_action = "Allow"
     ip_rules       = ["123.0.0.101"]
     virtual_network_rules {
@@ -948,6 +950,7 @@ resource "azurerm_cognitive_account" "test" {
   custom_subdomain_name = "acctestcogacc-%d"
 
   network_acls {
+    bypass         = "None"
     default_action = "Deny"
     virtual_network_rules {
       subnet_id = azurerm_subnet.test_a.id
@@ -974,6 +977,7 @@ resource "azurerm_cognitive_account" "test" {
   custom_subdomain_name = "acctestcogacc-%d"
 
   network_acls {
+    bypass         = "AzureServices"
     default_action = "Allow"
     ip_rules       = ["123.0.0.101"]
     virtual_network_rules {

@@ -14,5 +14,6 @@ type Deployment struct {
 	Properties *DeploymentProperties  `json:"properties,omitempty"`
 	Sku        *Sku                   `json:"sku,omitempty"`
 	SystemData *systemdata.SystemData `json:"systemData,omitempty"`
+	Tags       *map[string]string     `json:"tags,omitempty"`
 	Type       *string                `json:"type,omitempty"`
 }

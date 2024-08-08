@@ -98,6 +98,8 @@ The following arguments are supported:
 
 A `network_acls` block supports the following:
 
+* `bypass` - (Optional) Specifies whether traffic is bypassed for AzureServices. Valid options are `AzureServices` or `None`. Defaults to `AzureServices`.
+
 * `default_action` - (Required) The Default Action to use when no rules match from `ip_rules` / `virtual_network_rules`. Possible values are `Allow` and `Deny`.
 
 * `ip_rules` - (Optional) One or more IP Addresses, or CIDR Blocks which should be able to access the Cognitive Account.
