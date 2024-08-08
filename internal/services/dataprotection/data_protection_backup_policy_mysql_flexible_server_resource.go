@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type BackupPolicyMySQLFlexibleServerModel struct {
@@ -392,7 +391,7 @@ func expandBackupPolicyMySQLFlexibleServerAzureRetentionRules(input []BackupPoli
 	for _, item := range input {
 		results = append(results, backuppolicies.AzureRetentionRule{
 			Name:       item.Name,
-			IsDefault:  utils.Bool(false),
+			IsDefault:  pointer.To(false),
 			Lifecycles: expandBackupPolicyMySQLFlexibleServerLifeCycle(item.LifeCycle),
 		})
 	}
@@ -403,7 +402,7 @@ func expandBackupPolicyMySQLFlexibleServerAzureRetentionRules(input []BackupPoli
 func expandBackupPolicyMySQLFlexibleServerDefaultAzureRetentionRule(input []BackupPolicyMySQLFlexibleServerDefaultRetentionRule) backuppolicies.BasePolicyRule {
 	result := backuppolicies.AzureRetentionRule{
 		Name:      "Default",
-		IsDefault: utils.Bool(true),
+		IsDefault: pointer.To(true),
 	}
 
 	if len(input) > 0 {
@@ -441,7 +440,7 @@ func expandBackupPolicyMySQLFlexibleServerTaggingCriteria(input []BackupPolicyMy
 			IsDefault:       true,
 			TaggingPriority: 99,
 			TagInfo: backuppolicies.RetentionTag{
-				Id:      utils.String("Default_"),
+				Id:      pointer.To("Default_"),
 				TagName: "Default",
 			},
 		},
@@ -453,7 +452,7 @@ func expandBackupPolicyMySQLFlexibleServerTaggingCriteria(input []BackupPolicyMy
 			Criteria:        expandBackupPolicyMySQLFlexibleServerCriteria(item.Criteria),
 			TaggingPriority: item.Priority,
 			TagInfo: backuppolicies.RetentionTag{
-				Id:      utils.String(item.Name + "_"),
+				Id:      pointer.To(item.Name + "_"),
 				TagName: item.Name,
 			},
 		}
@@ -658,36 +657,29 @@ func flattenBackupPolicyMySQLFlexibleServerBackupCriteria(input *[]backuppolicie
 				absoluteCriteria = string((pointer.From(criteria.AbsoluteCriteria))[0])
 			}
 
-			var daysOfWeek []string
+			daysOfWeek := make([]string, 0)
 			if criteria.DaysOfTheWeek != nil {
-				daysOfWeek = make([]string, 0)
-
 				for _, item := range pointer.From(criteria.DaysOfTheWeek) {
 					daysOfWeek = append(daysOfWeek, (string)(item))
 				}
 			}
 
-			var monthsOfYear []string
+			monthsOfYear := make([]string, 0)
 			if criteria.MonthsOfYear != nil {
-				monthsOfYear = make([]string, 0)
-
 				for _, item := range pointer.From(criteria.MonthsOfYear) {
 					monthsOfYear = append(monthsOfYear, (string)(item))
 				}
 			}
 
-			var weeksOfMonth []string
+			weeksOfMonth := make([]string, 0)
 			if criteria.WeeksOfTheMonth != nil {
-				weeksOfMonth = make([]string, 0)
-
 				for _, item := range pointer.From(criteria.WeeksOfTheMonth) {
 					weeksOfMonth = append(weeksOfMonth, (string)(item))
 				}
 			}
 
-			var scheduleTimes []string
+			scheduleTimes := make([]string, 0)
 			if criteria.ScheduleTimes != nil {
-				scheduleTimes = make([]string, 0)
 				scheduleTimes = append(scheduleTimes, pointer.From(criteria.ScheduleTimes)...)
 			}
 
