@@ -15,6 +15,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_container_group` - retrieve and set `storage_account_key` in the payload when updating the resource [GH-26640]
+* `azurerm_key_vault_managed_hardware_security_module_role_assignment` - fixed a crash in error messages [GH-26972]
 * `azurerm_kubernetes_cluster` - allow an empty list for `dns_zone_ids` in the `web_app_routing` block [GH-26747]
 * `azurerm_storage_share_file` - fix a bug when encoding the MD5 hash for the `content_md5` property [GH-25715]
 
