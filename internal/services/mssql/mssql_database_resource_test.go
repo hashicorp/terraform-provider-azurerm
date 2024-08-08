@@ -5,6 +5,7 @@ package mssql_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
 	"testing"
@@ -17,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	mssqlValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -32,6 +34,21 @@ func TestAccMsSqlDatabase_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("enclave_type").IsEmpty(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMsSqlDatabase_free(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	r := MsSqlDatabaseResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicWithSku(t, data, "Free"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -1018,6 +1035,22 @@ resource "azurerm_mssql_database" "test" {
   server_id = azurerm_mssql_server.test.id
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r MsSqlDatabaseResource) basicWithSku(t *testing.T, data acceptance.TestData, sku string) string {
+	if _, err := mssqlValidate.DatabaseSkuName()(sku, ""); err != nil {
+		t.Errorf("%s", errors.Join(err...).Error())
+	}
+
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_database" "test" {
+  name      = "acctest-db-%[2]d"
+  server_id = azurerm_mssql_server.test.id
+  sku_name  = "%s"
+}
+`, r.template(data), data.RandomInteger, sku)
 }
 
 func (r MsSqlDatabaseResource) requiresImport(data acceptance.TestData) string {
