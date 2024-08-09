@@ -1650,6 +1650,7 @@ resource "azurerm_redis_cache" "test" {
   access_keys_authentication_disabled = %t
 
   redis_configuration {
+    active_directory_authentication_enabled = true
   }
 }`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enabled)
 }
