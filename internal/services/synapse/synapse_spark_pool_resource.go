@@ -367,7 +367,9 @@ func resourceSynapseSparkPoolRead(d *pluginsdk.ResourceData, meta interface{}) e
 		d.Set("min_executors", minExector)
 		d.Set("max_executors", maxExecutor)
 
-		d.Set("node_count", props.NodeCount)
+		if props.AutoScale == nil || props.AutoScale.Enabled == nil || !*props.AutoScale.Enabled {
+			d.Set("node_count", props.NodeCount)
+		}
 		d.Set("node_size", props.NodeSize)
 		d.Set("node_size_family", string(props.NodeSizeFamily))
 		d.Set("session_level_packages_enabled", props.SessionLevelPackagesEnabled)
