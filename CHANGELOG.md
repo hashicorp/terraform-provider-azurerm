@@ -1,3 +1,9 @@
+## 3.116.0 (Unreleased)
+
+BUG FIXES:
+
+* `azurerm_machine_learning_workspace` - `serverless_compute` cannot be updated [GH-26940]
+
 ## 3.115.0 (August 09, 2024)
 
 ENHANCEMENTS:
