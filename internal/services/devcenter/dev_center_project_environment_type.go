@@ -310,10 +310,6 @@ func expandDevCenterProjectEnvironmentTypeCreatorRoleAssignmentRoles(input []str
 	result := map[string]environmenttypes.EnvironmentRole{}
 
 	for _, v := range input {
-		if _, exists := result[v]; exists {
-			fmt.Println("creator role assignment role is duplicate in the list")
-		}
-
 		result[v] = environmenttypes.EnvironmentRole{}
 	}
 
@@ -348,10 +344,6 @@ func expandDevCenterProjectEnvironmentTypeUserRoleAssignmentRoles(input []string
 	result := map[string]environmenttypes.EnvironmentRole{}
 
 	for _, v := range input {
-		if _, exists := result[v]; exists {
-			fmt.Println("user role assignment role is duplicate in the list")
-		}
-
 		result[v] = environmenttypes.EnvironmentRole{}
 	}
 
