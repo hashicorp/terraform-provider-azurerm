@@ -10,11 +10,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-05-01/managementgroups" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/managementgroups/2020-05-01/managementgroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -109,23 +110,28 @@ resource "azurerm_management_group_subscription_association" "import" {
 }
 
 func (r ManagementGroupSubscriptionAssociation) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ManagementGroupSubscriptionAssociationID(state.ID)
+	id, err := managementgroups.ParseSubscriptionID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.ManagementGroups.GroupsClient.Get(ctx, id.ManagementGroup, "children", utils.Bool(false), "", "no-cache")
+	resp, err := client.ManagementGroups.GroupsClient.Get(ctx, commonids.NewManagementGroupID(id.GroupId), managementgroups.GetOperationOptions{
+		CacheControl: pointer.FromString("no-cache"),
+		Expand:       pointer.To(managementgroups.ExpandChildren),
+		Recurse:      pointer.FromBool(false),
+	})
+
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Management Group to check for Subscription Association: %+v", err)
 	}
 
-	if resp.Properties == nil || resp.Properties.Children == nil {
+	if resp.Model == nil || resp.Model.Properties == nil || resp.Model.Properties.Children == nil {
 		return utils.Bool(false), nil
 	}
 
 	present := false
-	for _, v := range *resp.Children {
-		if v.Type == managementgroups.Type1Subscriptions && v.Name != nil && strings.EqualFold(*v.Name, id.SubscriptionId) {
+	for _, v := range *resp.Model.Properties.Children {
+		if v.Type != nil && *v.Type == managementgroups.ManagementGroupChildTypeSubscriptions && v.Name != nil && strings.EqualFold(*v.Name, id.SubscriptionId) {
 			present = true
 		}
 	}

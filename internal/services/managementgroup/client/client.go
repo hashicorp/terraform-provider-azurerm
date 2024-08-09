@@ -4,24 +4,24 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-05-01/managementgroups" // nolint: staticcheck
+	"fmt"
+
+	"github.com/hashicorp/go-azure-sdk/resource-manager/managementgroups/2020-05-01/managementgroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-	GroupsClient       *managementgroups.Client
-	SubscriptionClient *managementgroups.SubscriptionsClient
+	GroupsClient *managementgroups.ManagementGroupsClient
 }
 
-func NewClient(o *common.ClientOptions) *Client {
-	GroupsClient := managementgroups.NewClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&GroupsClient.Client, o.ResourceManagerAuthorizer)
-
-	SubscriptionClient := managementgroups.NewSubscriptionsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&SubscriptionClient.Client, o.ResourceManagerAuthorizer)
+func NewClient(o *common.ClientOptions) (*Client, error) {
+	groupsClient, err := managementgroups.NewManagementGroupsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building managementgroups client: %+v", err)
+	}
+	o.Configure(groupsClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
-		GroupsClient:       &GroupsClient,
-		SubscriptionClient: &SubscriptionClient,
-	}
+		GroupsClient: groupsClient,
+	}, nil
 }

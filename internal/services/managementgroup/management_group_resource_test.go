@@ -9,10 +9,12 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/managementgroups/2020-05-01/managementgroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -184,17 +186,20 @@ func TestAccManagementGroup_withSubscriptions(t *testing.T) {
 }
 
 func (ManagementGroupResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ManagementGroupID(state.ID)
+	id, err := commonids.ParseManagementGroupID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-
-	resp, err := clients.ManagementGroups.GroupsClient.Get(ctx, id.Name, "children", utils.Bool(true), "", "no-cache")
+	resp, err := clients.ManagementGroups.GroupsClient.Get(ctx, *id, managementgroups.GetOperationOptions{
+		CacheControl: pointer.FromString("no-cache"),
+		Expand:       pointer.To(managementgroups.ExpandChildren),
+		Recurse:      pointer.FromBool(false),
+	})
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Management Group %s: %v", id.Name, err)
+		return nil, fmt.Errorf("retrieving Management Group %s: %v", id.GroupId, err)
 	}
 
-	return utils.Bool(resp.Properties != nil), nil
+	return utils.Bool(resp.Model.Properties != nil), nil
 }
 
 func (r ManagementGroupResource) basic() string {
