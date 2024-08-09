@@ -561,6 +561,38 @@ func TestAccRedisCache_SkuDowngrade(t *testing.T) {
 	})
 }
 
+func TestAccRedisCache_AccessKeysAuthenticationEnabledDisabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
+	r := RedisCacheResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.accessKeysAuthentication(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("access_keys_authentication_disabled").HasValue("false"),
+			),
+			ExpectNonEmptyPlan: true,
+		},
+		{
+			Config: r.accessKeysAuthentication(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("access_keys_authentication_disabled").HasValue("true"),
+			),
+			ExpectNonEmptyPlan: true,
+		},
+		{
+			Config: r.accessKeysAuthentication(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("access_keys_authentication_disabled").HasValue("false"),
+			),
+			ExpectNonEmptyPlan: true,
+		},
+	})
+}
+
 func (t RedisCacheResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := redis.ParseRediID(state.ID)
 	if err != nil {
@@ -1593,4 +1625,31 @@ resource "azurerm_redis_cache" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (RedisCacheResource) accessKeysAuthentication(data acceptance.TestData, enabled bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_redis_cache" "test" {
+  name                                = "acctestRedis-%d"
+  location                            = azurerm_resource_group.test.location
+  resource_group_name                 = azurerm_resource_group.test.name
+  capacity                            = 1
+  family                              = "C"
+  sku_name                            = "Basic"
+  non_ssl_port_enabled                = false
+  minimum_tls_version                 = "1.2"
+  access_keys_authentication_disabled = %t
+
+  redis_configuration {
+  }
+}`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enabled)
 }
