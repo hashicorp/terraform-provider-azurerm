@@ -239,6 +239,11 @@ service/event-hubs:
   - any-glob-to-any-file:
     - internal/services/eventhub/**/*
 
+service/extended-location:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/extendedlocation/**/*
+
 service/firewall:
 - changed-files:
   - any-glob-to-any-file:
