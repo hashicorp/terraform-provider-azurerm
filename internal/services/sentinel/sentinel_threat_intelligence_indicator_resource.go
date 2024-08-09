@@ -688,11 +688,11 @@ func (r ThreatIntelligenceIndicator) Read() sdk.ResourceFunc {
 			}
 
 			state := IndicatorModel{
-				Name:        *model.Name,
-				CreatedOn:   *model.Created,
+				Name:        pointer.From(model.Name),
+				CreatedOn:   pointer.From(model.Created),
 				WorkspaceId: workspaceId.ID(),
-				PatternType: *model.PatternType,
-				Revoked:     *model.Revoked,
+				PatternType: pointer.From(model.PatternType),
+				Revoked:     pointer.From(model.Revoked),
 			}
 
 			patternValue, err := flattenIndicatorPattern(*model.Pattern)
