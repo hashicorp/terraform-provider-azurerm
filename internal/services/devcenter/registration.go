@@ -36,6 +36,7 @@ func (r Registration) Resources() []sdk.Resource {
 		DevCenterDevBoxDefinitionResource{},
 		DevCenterEnvironmentTypeResource{},
 		DevCenterNetworkConnectionResource{},
+		DevCenterProjectEnvironmentTypeResource{},
 	}
 	return append(resources, r.autoRegistration.Resources()...)
 }
