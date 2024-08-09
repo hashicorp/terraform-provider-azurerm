@@ -6,11 +6,14 @@ ENHANCEMENTS:
 * `healthcare` - updating to use version `2024-03-31` [GH-26699]
 * `redis` - updating to use version `2024-03-01` [GH-26932]
 * `azurerm_cosmosdb_account` - avoid infinite diff to `default_identity_type` for legacy resources where an empty string is returned by the RP [GH-26525]
+* `azurerm_linux_virtual_machine_scale_set` - add support for the `action` property in the `automatic_instance_repair` block [GH-26227]
 * `azurerm_log_analytics_saved_search` - update the regex for the `function_parameters` property to support more paramters [GH-26701]
 * `azurerm_monitor_data_collection_rule` - update `performance_counter.x.sampling_frequency_in_seconds` range `1` to `1800` [GH-26898]
+* `azurerm_orchestrated_virtual_machine_scale_set` - add support for the `action` property in the `automatic_instance_repair` block [GH-26227]
 * `azurerm_security_center_storage_defender` - add support for the property `scan_results_event_grid_topic_id` [GH-26599]
 * `azurerm_storage_account` - add support for the property `default_share_level_permission` in the `azure_files_authentication` block [GH-26924]
-* `azurerm_web_application_firewall_policy`: `excluded_rule_set.0.type` supports `Microsoft_BotManagerRuleSet` [GH-26903]
+* `azurerm_web_application_firewall_policy` - `excluded_rule_set.0.type` supports `Microsoft_BotManagerRuleSet` [GH-26903]
+* `azurerm_windows_virtual_machine_scale_set` - add support for the `action` property in the `automatic_instance_repair` block [GH-26227]
 
 BUG FIXES:
 
