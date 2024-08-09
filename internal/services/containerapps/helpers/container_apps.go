@@ -1734,6 +1734,7 @@ type ContainerAppReadinessProbe struct {
 	Port             int64        `tfschema:"port"`
 	Path             string       `tfschema:"path"`
 	Headers          []HttpHeader `tfschema:"header"`
+	InitialDelay     int64        `tfschema:"initial_delay"`
 	Interval         int64        `tfschema:"interval_seconds"`
 	Timeout          int64        `tfschema:"timeout"`
 	FailureThreshold int64        `tfschema:"failure_count_threshold"`
@@ -1799,6 +1800,14 @@ func ContainerAppReadinessProbeSchema() *pluginsdk.Schema {
 					},
 				},
 
+				"initial_delay": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					Default:      0,
+					ValidateFunc: validation.IntBetween(0, 60),
+					Description:  "The number of seconds elapsed after the container has started before liveness or readiness probes are initiated. Possible values are between `0` and `60`. Defaults to `0` seconds.",
+				},
+
 				"interval_seconds": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
@@ -1819,8 +1828,8 @@ func ContainerAppReadinessProbeSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      3,
-					ValidateFunc: validation.IntBetween(1, 10),
-					Description:  "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `10`. Defaults to `3`.",
+					ValidateFunc: validation.IntBetween(1, 30),
+					Description:  "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `30`. Defaults to `3`.",
 				},
 
 				"success_count_threshold": {
@@ -1885,6 +1894,12 @@ func ContainerAppReadinessProbeSchemaComputed() *pluginsdk.Schema {
 					},
 				},
 
+				"initial_delay": {
+					Type:        pluginsdk.TypeInt,
+					Computed:    true,
+					Description: "The number of seconds elapsed after the container has started before liveness or readiness probes are initiated. Possible values are between `0` and `60`. Defaults to `0` seconds.",
+				},
+
 				"interval_seconds": {
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
@@ -1900,7 +1915,7 @@ func ContainerAppReadinessProbeSchemaComputed() *pluginsdk.Schema {
 				"failure_count_threshold": {
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
-					Description: "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `10`. Defaults to `3`.",
+					Description: "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `30`. Defaults to `3`.",
 				},
 
 				"success_count_threshold": {
@@ -1916,11 +1931,12 @@ func ContainerAppReadinessProbeSchemaComputed() *pluginsdk.Schema {
 func expandContainerAppReadinessProbe(input ContainerAppReadinessProbe) containerapps.ContainerAppProbe {
 	probeType := containerapps.TypeReadiness
 	result := containerapps.ContainerAppProbe{
-		Type:             &probeType,
-		PeriodSeconds:    pointer.To(input.Interval),
-		TimeoutSeconds:   pointer.To(input.Timeout),
-		FailureThreshold: pointer.To(input.FailureThreshold),
-		SuccessThreshold: pointer.To(input.SuccessThreshold),
+		Type:                &probeType,
+		InitialDelaySeconds: pointer.To(input.InitialDelay),
+		PeriodSeconds:       pointer.To(input.Interval),
+		TimeoutSeconds:      pointer.To(input.Timeout),
+		FailureThreshold:    pointer.To(input.FailureThreshold),
+		SuccessThreshold:    pointer.To(input.SuccessThreshold),
 	}
 
 	switch p := strings.ToUpper(input.Transport); p {
@@ -1957,6 +1973,7 @@ func expandContainerAppReadinessProbe(input ContainerAppReadinessProbe) containe
 func flattenContainerAppReadinessProbe(input containerapps.ContainerAppProbe) []ContainerAppReadinessProbe {
 	result := make([]ContainerAppReadinessProbe, 0)
 	probe := ContainerAppReadinessProbe{
+		InitialDelay:     pointer.From(input.InitialDelaySeconds),
 		Interval:         pointer.From(input.PeriodSeconds),
 		Timeout:          pointer.From(input.TimeoutSeconds),
 		FailureThreshold: pointer.From(input.FailureThreshold),
@@ -2004,6 +2021,7 @@ type ContainerAppLivenessProbe struct {
 	Interval               int64        `tfschema:"interval_seconds"`
 	Timeout                int64        `tfschema:"timeout"`
 	FailureThreshold       int64        `tfschema:"failure_count_threshold"`
+	SuccessThreshold       int64        `tfschema:"success_count_threshold"`
 	TerminationGracePeriod int64        `tfschema:"termination_grace_period_seconds"`
 }
 
@@ -2070,8 +2088,8 @@ func ContainerAppLivenessProbeSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      1,
-					ValidateFunc: validation.IntBetween(1, 60),
-					Description:  "The time in seconds to wait after the container has started before the probe is started.",
+					ValidateFunc: validation.IntBetween(0, 60),
+					Description:  "The number of seconds elapsed after the container has started before liveness or readiness probes are initiated. Possible values are between `0` and `60`. Defaults to `1` seconds.",
 				},
 
 				"interval_seconds": {
@@ -2094,8 +2112,16 @@ func ContainerAppLivenessProbeSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      3,
-					ValidateFunc: validation.IntBetween(1, 10),
-					Description:  "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `10`. Defaults to `3`.",
+					ValidateFunc: validation.IntBetween(1, 30),
+					Description:  "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `30`. Defaults to `3`.",
+				},
+
+				"success_count_threshold": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					Default:      1,
+					ValidateFunc: validation.IntBetween(1, 1),
+					Description:  "The minimum consecutive successes for the probe to be considered healthy after having failed. Defaults to `1`. Must be `1` for liveness and startup Probes. Minimum value is `1`.",
 				},
 
 				"termination_grace_period_seconds": {
@@ -2161,7 +2187,7 @@ func ContainerAppLivenessProbeSchemaComputed() *pluginsdk.Schema {
 				"initial_delay": {
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
-					Description: "The time in seconds to wait after the container has started before the probe is started.",
+					Description: "The number of seconds elapsed after the container has started before liveness or readiness probes are initiated. Possible values are between `0` and `60`. Defaults to `1` seconds.",
 				},
 
 				"interval_seconds": {
@@ -2179,7 +2205,13 @@ func ContainerAppLivenessProbeSchemaComputed() *pluginsdk.Schema {
 				"failure_count_threshold": {
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
-					Description: "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `10`. Defaults to `3`.",
+					Description: "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `30`. Defaults to `3`.",
+				},
+
+				"success_count_threshold": {
+					Type:        pluginsdk.TypeInt,
+					Computed:    true,
+					Description: "The minimum consecutive successes for the probe to be considered healthy after having failed. Defaults to `1`. Must be `1` for liveness and startup Probes. Minimum value is `1`.",
 				},
 
 				"termination_grace_period_seconds": {
@@ -2200,6 +2232,7 @@ func expandContainerAppLivenessProbe(input ContainerAppLivenessProbe) containera
 		PeriodSeconds:       pointer.To(input.Interval),
 		TimeoutSeconds:      pointer.To(input.Timeout),
 		FailureThreshold:    pointer.To(input.FailureThreshold),
+		SuccessThreshold:    pointer.To(input.SuccessThreshold),
 	}
 
 	switch p := strings.ToUpper(input.Transport); p {
@@ -2240,6 +2273,7 @@ func flattenContainerAppLivenessProbe(input containerapps.ContainerAppProbe) []C
 		Interval:               pointer.From(input.PeriodSeconds),
 		Timeout:                pointer.From(input.TimeoutSeconds),
 		FailureThreshold:       pointer.From(input.FailureThreshold),
+		SuccessThreshold:       pointer.From(input.SuccessThreshold),
 		TerminationGracePeriod: pointer.From(input.TerminationGracePeriodSeconds),
 	}
 	if httpGet := input.HTTPGet; httpGet != nil {
@@ -2279,9 +2313,11 @@ type ContainerAppStartupProbe struct {
 	Port                   int64        `tfschema:"port"`
 	Path                   string       `tfschema:"path"`
 	Headers                []HttpHeader `tfschema:"header"`
+	InitialDelay           int64        `tfschema:"initial_delay"`
 	Interval               int64        `tfschema:"interval_seconds"`
 	Timeout                int64        `tfschema:"timeout"`
 	FailureThreshold       int64        `tfschema:"failure_count_threshold"`
+	SuccessThreshold       int64        `tfschema:"success_count_threshold"`
 	TerminationGracePeriod int64        `tfschema:"termination_grace_period_seconds"`
 }
 
@@ -2344,6 +2380,14 @@ func ContainerAppStartupProbeSchema() *pluginsdk.Schema {
 					},
 				},
 
+				"initial_delay": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					Default:      0,
+					ValidateFunc: validation.IntBetween(0, 60),
+					Description:  "The number of seconds elapsed after the container has started before liveness or readiness probes are initiated. Possible values are between `0` and `60`. Defaults to `0` seconds.",
+				},
+
 				"interval_seconds": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
@@ -2364,8 +2408,16 @@ func ContainerAppStartupProbeSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      3,
-					ValidateFunc: validation.IntBetween(1, 10),
-					Description:  "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `10`. Defaults to `3`.",
+					ValidateFunc: validation.IntBetween(1, 30),
+					Description:  "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `30`. Defaults to `3`.",
+				},
+
+				"success_count_threshold": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					Default:      1,
+					ValidateFunc: validation.IntBetween(1, 1),
+					Description:  "The minimum consecutive successes for the probe to be considered healthy after having failed. Defaults to 1. Must be 1 for liveness and startup Probes. Minimum value is 1.",
 				},
 
 				"termination_grace_period_seconds": {
@@ -2424,6 +2476,12 @@ func ContainerAppStartupProbeSchemaComputed() *pluginsdk.Schema {
 					},
 				},
 
+				"initial_delay": {
+					Type:        pluginsdk.TypeInt,
+					Computed:    true,
+					Description: "The number of seconds elapsed after the container has started before liveness or readiness probes are initiated. Possible values are between `0` and `60`. Defaults to `0` seconds.",
+				},
+
 				"interval_seconds": {
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
@@ -2439,7 +2497,13 @@ func ContainerAppStartupProbeSchemaComputed() *pluginsdk.Schema {
 				"failure_count_threshold": {
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
-					Description: "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `10`. Defaults to `3`.",
+					Description: "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `30`. Defaults to `3`.",
+				},
+
+				"success_count_threshold": {
+					Type:        pluginsdk.TypeInt,
+					Computed:    true,
+					Description: "The minimum consecutive successes for the probe to be considered healthy after having failed. Defaults to 1. Must be 1 for liveness and startup Probes. Minimum value is 1.",
 				},
 
 				"termination_grace_period_seconds": {
@@ -2455,10 +2519,12 @@ func ContainerAppStartupProbeSchemaComputed() *pluginsdk.Schema {
 func expandContainerAppStartupProbe(input ContainerAppStartupProbe) containerapps.ContainerAppProbe {
 	probeType := containerapps.TypeStartup
 	result := containerapps.ContainerAppProbe{
-		Type:             &probeType,
-		PeriodSeconds:    pointer.To(input.Interval),
-		TimeoutSeconds:   pointer.To(input.Timeout),
-		FailureThreshold: pointer.To(input.FailureThreshold),
+		Type:                &probeType,
+		InitialDelaySeconds: pointer.To(input.InitialDelay),
+		PeriodSeconds:       pointer.To(input.Interval),
+		TimeoutSeconds:      pointer.To(input.Timeout),
+		FailureThreshold:    pointer.To(input.FailureThreshold),
+		SuccessThreshold:    pointer.To(input.SuccessThreshold),
 	}
 
 	switch p := strings.ToUpper(input.Transport); p {
@@ -2495,9 +2561,11 @@ func expandContainerAppStartupProbe(input ContainerAppStartupProbe) containerapp
 func flattenContainerAppStartupProbe(input containerapps.ContainerAppProbe) []ContainerAppStartupProbe {
 	result := make([]ContainerAppStartupProbe, 0)
 	probe := ContainerAppStartupProbe{
+		InitialDelay:           pointer.From(input.InitialDelaySeconds),
 		Interval:               pointer.From(input.PeriodSeconds),
 		Timeout:                pointer.From(input.TimeoutSeconds),
 		FailureThreshold:       pointer.From(input.FailureThreshold),
+		SuccessThreshold:       pointer.From(input.SuccessThreshold),
 		TerminationGracePeriod: pointer.From(input.TerminationGracePeriodSeconds),
 	}
 
