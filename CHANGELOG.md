@@ -1,26 +1,26 @@
-## 3.115.0 (Unreleased)
+## 3.115.0 (August 09, 2024)
 
 ENHANCEMENTS:
 
-* `cosmosdb` - updating to use version `2024-05-15` [GH-26758]
-* `healthcare` - updating to use version `2024-03-31` [GH-26699]
-* `redis` - updating to use version `2024-03-01` [GH-26932]
-* `azurerm_cosmosdb_account` - avoid infinite diff to `default_identity_type` for legacy resources where an empty string is returned by the RP [GH-26525]
-* `azurerm_linux_virtual_machine_scale_set` - add support for the `action` property in the `automatic_instance_repair` block [GH-26227]
-* `azurerm_log_analytics_saved_search` - update the regex for the `function_parameters` property to support more paramters [GH-26701]
-* `azurerm_monitor_data_collection_rule` - update `performance_counter.x.sampling_frequency_in_seconds` range `1` to `1800` [GH-26898]
-* `azurerm_orchestrated_virtual_machine_scale_set` - add support for the `action` property in the `automatic_instance_repair` block [GH-26227]
-* `azurerm_security_center_storage_defender` - add support for the property `scan_results_event_grid_topic_id` [GH-26599]
-* `azurerm_storage_account` - add support for the property `default_share_level_permission` in the `azure_files_authentication` block [GH-26924]
-* `azurerm_web_application_firewall_policy` - `excluded_rule_set.0.type` supports `Microsoft_BotManagerRuleSet` [GH-26903]
-* `azurerm_windows_virtual_machine_scale_set` - add support for the `action` property in the `automatic_instance_repair` block [GH-26227]
+* `cosmosdb` - updating to use version `2024-05-15` ([#26758](https://github.com/hashicorp/terraform-provider-azurerm/issues/26758))
+* `healthcare` - updating to use version `2024-03-31` ([#26699](https://github.com/hashicorp/terraform-provider-azurerm/issues/26699))
+* `redis` - updating to use version `2024-03-01` ([#26932](https://github.com/hashicorp/terraform-provider-azurerm/issues/26932))
+* `azurerm_cosmosdb_account` - avoid infinite diff to `default_identity_type` for legacy resources where an empty string is returned by the RP ([#26525](https://github.com/hashicorp/terraform-provider-azurerm/issues/26525))
+* `azurerm_linux_virtual_machine_scale_set` - add support for the `action` property in the `automatic_instance_repair` block ([#26227](https://github.com/hashicorp/terraform-provider-azurerm/issues/26227))
+* `azurerm_log_analytics_saved_search` - update the regex for the `function_parameters` property to support more paramters ([#26701](https://github.com/hashicorp/terraform-provider-azurerm/issues/26701))
+* `azurerm_monitor_data_collection_rule` - update `performance_counter.x.sampling_frequency_in_seconds` range `1` to `1800` ([#26898](https://github.com/hashicorp/terraform-provider-azurerm/issues/26898))
+* `azurerm_orchestrated_virtual_machine_scale_set` - add support for the `action` property in the `automatic_instance_repair` block ([#26227](https://github.com/hashicorp/terraform-provider-azurerm/issues/26227))
+* `azurerm_security_center_storage_defender` - add support for the property `scan_results_event_grid_topic_id` ([#26599](https://github.com/hashicorp/terraform-provider-azurerm/issues/26599))
+* `azurerm_storage_account` - add support for the property `default_share_level_permission` in the `azure_files_authentication` block ([#26924](https://github.com/hashicorp/terraform-provider-azurerm/issues/26924))
+* `azurerm_web_application_firewall_policy` - `excluded_rule_set.0.type` supports `Microsoft_BotManagerRuleSet` ([#26903](https://github.com/hashicorp/terraform-provider-azurerm/issues/26903))
+* `azurerm_windows_virtual_machine_scale_set` - add support for the `action` property in the `automatic_instance_repair` block ([#26227](https://github.com/hashicorp/terraform-provider-azurerm/issues/26227))
 
 BUG FIXES:
 
-* `azurerm_container_group` - retrieve and set `storage_account_key` in the payload when updating the resource [GH-26640]
-* `azurerm_key_vault_managed_hardware_security_module_role_assignment` - fixed a crash in error messages [GH-26972]
-* `azurerm_kubernetes_cluster` - allow an empty list for `dns_zone_ids` in the `web_app_routing` block [GH-26747]
-* `azurerm_storage_share_file` - fix a bug when encoding the MD5 hash for the `content_md5` property [GH-25715]
+* `azurerm_container_group` - retrieve and set `storage_account_key` in the payload when updating the resource ([#26640](https://github.com/hashicorp/terraform-provider-azurerm/issues/26640))
+* `azurerm_key_vault_managed_hardware_security_module_role_assignment` - fixed a crash in error messages ([#26972](https://github.com/hashicorp/terraform-provider-azurerm/issues/26972))
+* `azurerm_kubernetes_cluster` - allow an empty list for `dns_zone_ids` in the `web_app_routing` block ([#26747](https://github.com/hashicorp/terraform-provider-azurerm/issues/26747))
+* `azurerm_storage_share_file` - fix a bug when encoding the MD5 hash for the `content_md5` property ([#25715](https://github.com/hashicorp/terraform-provider-azurerm/issues/25715))
 
 ## 3.114.0 (August 01, 2024)
 
