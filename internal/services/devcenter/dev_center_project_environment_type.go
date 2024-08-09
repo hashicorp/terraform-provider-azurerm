@@ -333,6 +333,10 @@ func expandDevCenterProjectEnvironmentTypeUserRoleAssignment(input []DevCenterPr
 	result := map[string]environmenttypes.UserRoleAssignment{}
 
 	for _, v := range input {
+		if _, exists := result[v.UserId]; exists {
+			return nil, fmt.Errorf("`user_id` is duplicate")
+		}
+		
 		result[v.UserId] = environmenttypes.UserRoleAssignment{
 			Roles: expandDevCenterProjectEnvironmentTypeUserRoleAssignmentRoles(v.Roles),
 		}
