@@ -368,7 +368,6 @@ func resourceRedisCache() *pluginsdk.Resource {
 			"access_keys_authentication_disabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default:  false,
 			},
 
 			"tags": commonschema.Tags(),
