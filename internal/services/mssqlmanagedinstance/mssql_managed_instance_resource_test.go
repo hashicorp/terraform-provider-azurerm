@@ -1238,6 +1238,14 @@ func (r MsSqlManagedInstanceResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
+provider "azurerm" {
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
 resource "azurerm_mssql_managed_instance" "test" {
   name                = "acctestsqlserver%[2]d"
   resource_group_name = azurerm_resource_group.test.name
@@ -1268,6 +1276,14 @@ resource "azurerm_mssql_managed_instance" "test" {
 func (r MsSqlManagedInstanceResource) premium(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
+
+provider "azurerm" {
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
 
 resource "azurerm_mssql_managed_instance" "test" {
   name                = "acctestsqlserver%[2]d"
@@ -1300,6 +1316,14 @@ func (r MsSqlManagedInstanceResource) storageType(data acceptance.TestData, stor
 	return fmt.Sprintf(`
 %[1]s
 
+provider "azurerm" {
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
 resource "azurerm_mssql_managed_instance" "test" {
   name                = "acctestsqlserver%[2]d"
   resource_group_name = azurerm_resource_group.test.name
@@ -1331,6 +1355,14 @@ resource "azurerm_mssql_managed_instance" "test" {
 func (r MsSqlManagedInstanceResource) identity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
+
+provider "azurerm" {
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
 
 resource "azurerm_mssql_managed_instance" "test" {
   name                = "acctestsqlserver%[2]d"
@@ -1367,6 +1399,14 @@ func (r MsSqlManagedInstanceResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
+provider "azurerm" {
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
 resource "azurerm_mssql_managed_instance" "test" {
   name                = "acctestsqlserver%[2]d"
   resource_group_name = azurerm_resource_group.test.name
@@ -1401,6 +1441,14 @@ resource "azurerm_mssql_managed_instance" "test" {
 func (r MsSqlManagedInstanceResource) multiple(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
+
+provider "azurerm" {
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
 
 resource "azurerm_mssql_managed_instance" "test" {
   name                = "acctestsqlserver%[2]d"
