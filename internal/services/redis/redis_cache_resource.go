@@ -381,6 +381,7 @@ func resourceRedisCache() *pluginsdk.Resource {
 				}
 				return false
 			}),
+			// add validation for https://learn.microsoft.com/en-us/azure/azure-cache-for-redis/cache-azure-active-directory-for-authentication
 		),
 	}
 

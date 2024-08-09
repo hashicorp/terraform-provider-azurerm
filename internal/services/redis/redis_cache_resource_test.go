@@ -572,24 +572,24 @@ func TestAccRedisCache_AccessKeysAuthenticationEnabledDisabled(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("access_keys_authentication_disabled").HasValue("false"),
 			),
-			ExpectNonEmptyPlan: true,
 		},
+		data.ImportStep(),
 		{
 			Config: r.accessKeysAuthentication(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("access_keys_authentication_disabled").HasValue("true"),
 			),
-			ExpectNonEmptyPlan: true,
 		},
+		data.ImportStep(),
 		{
 			Config: r.accessKeysAuthentication(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("access_keys_authentication_disabled").HasValue("false"),
 			),
-			ExpectNonEmptyPlan: true,
 		},
+		data.ImportStep(),
 	})
 }
 
