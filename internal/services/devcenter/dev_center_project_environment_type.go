@@ -86,7 +86,7 @@ func (r DevCenterProjectEnvironmentTypeResource) Arguments() map[string]*plugins
 		},
 
 		"user_role_assignment": {
-			Type:     pluginsdk.TypeList,
+			Type:     pluginsdk.TypeSet,
 			Optional: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -333,10 +333,6 @@ func expandDevCenterProjectEnvironmentTypeUserRoleAssignment(input []DevCenterPr
 	result := map[string]environmenttypes.UserRoleAssignment{}
 
 	for _, v := range input {
-		if _, exists := result[v.UserId]; exists {
-			return nil, fmt.Errorf("`user_id` is duplicate")
-		}
-
 		result[v.UserId] = environmenttypes.UserRoleAssignment{
 			Roles: expandDevCenterProjectEnvironmentTypeUserRoleAssignmentRoles(v.Roles),
 		}
