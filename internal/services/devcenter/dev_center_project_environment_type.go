@@ -157,12 +157,17 @@ func (r DevCenterProjectEnvironmentTypeResource) Create() sdk.ResourceFunc {
 					CreatorRoleAssignment: &environmenttypes.ProjectEnvironmentTypeUpdatePropertiesCreatorRoleAssignment{
 						Roles: expandDevCenterProjectEnvironmentTypeCreatorRoleAssignmentRoles(model.CreatorRoleAssignmentRoles),
 					},
-					UserRoleAssignments: expandDevCenterProjectEnvironmentTypeUserRoleAssignment(model.UserRoleAssignment),
-					Status:              pointer.To(environmenttypes.EnvironmentTypeEnableStatusEnabled),
+					Status: pointer.To(environmenttypes.EnvironmentTypeEnableStatusEnabled),
 				},
 				Identity: identity,
 				Tags:     pointer.To(model.Tags),
 			}
+
+			userRoleAssignment, err := expandDevCenterProjectEnvironmentTypeUserRoleAssignment(model.UserRoleAssignment)
+			if err != nil {
+				return err
+			}
+			parameters.Properties.UserRoleAssignments = userRoleAssignment
 
 			if _, err := client.ProjectEnvironmentTypesCreateOrUpdate(ctx, id, parameters); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
@@ -266,7 +271,11 @@ func (r DevCenterProjectEnvironmentTypeResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("user_role_assignment") {
-				properties.Properties.UserRoleAssignments = expandDevCenterProjectEnvironmentTypeUserRoleAssignment(model.UserRoleAssignment)
+				userRoleAssignment, err := expandDevCenterProjectEnvironmentTypeUserRoleAssignment(model.UserRoleAssignment)
+				if err != nil {
+					return err
+				}
+				properties.Properties.UserRoleAssignments = userRoleAssignment
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -316,16 +325,16 @@ func expandDevCenterProjectEnvironmentTypeCreatorRoleAssignmentRoles(input []str
 	return &result
 }
 
-func expandDevCenterProjectEnvironmentTypeUserRoleAssignment(input []DevCenterProjectEnvironmentTypeUserRoleAssignment) *map[string]environmenttypes.UserRoleAssignment {
+func expandDevCenterProjectEnvironmentTypeUserRoleAssignment(input []DevCenterProjectEnvironmentTypeUserRoleAssignment) (*map[string]environmenttypes.UserRoleAssignment, error) {
 	if len(input) == 0 {
-		return nil
+		return nil, nil
 	}
 
 	result := map[string]environmenttypes.UserRoleAssignment{}
 
 	for _, v := range input {
 		if _, exists := result[v.UserId]; exists {
-			fmt.Println("the user Id is duplicate in the list")
+			return nil, fmt.Errorf("`user_id` is duplicate")
 		}
 
 		result[v.UserId] = environmenttypes.UserRoleAssignment{
@@ -333,7 +342,7 @@ func expandDevCenterProjectEnvironmentTypeUserRoleAssignment(input []DevCenterPr
 		}
 	}
 
-	return &result
+	return &result, nil
 }
 
 func expandDevCenterProjectEnvironmentTypeUserRoleAssignmentRoles(input []string) *map[string]environmenttypes.EnvironmentRole {
