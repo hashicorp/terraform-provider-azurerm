@@ -86,7 +86,6 @@ func dataSourceVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 	id := virtualmachines.NewVirtualMachineID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	//resp, err := client.Get(ctx, id, virtualmachines.DefaultGetOperationOptions())
 	options := virtualmachines.DefaultGetOperationOptions()
 	options.Expand = pointer.To(virtualmachines.InstanceViewTypesInstanceView)
 	resp, err := client.Get(ctx, id, options)
