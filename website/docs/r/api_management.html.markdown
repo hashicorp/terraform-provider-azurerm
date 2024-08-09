@@ -1,7 +1,7 @@
 ---
-subcategory: "API Management"
-layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_api_management"
+subcategory: 'API Management'
+layout: 'azurerm'
+page_title: 'Azure Resource Manager: azurerm_api_management'
 description: |-
   Manages an API Management Service.
 ---
@@ -41,17 +41,17 @@ resource "azurerm_api_management" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the API Management Service. Changing this forces a new resource to be created.
+- `name` - (Required) The name of the API Management Service. Changing this forces a new resource to be created.
 
-* `location` - (Required) The Azure location where the API Management Service exists. Changing this forces a new resource to be created.
+- `location` - (Required) The Azure location where the API Management Service exists. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the Resource Group in which the API Management Service should be exist. Changing this forces a new resource to be created.
+- `resource_group_name` - (Required) The name of the Resource Group in which the API Management Service should be exist. Changing this forces a new resource to be created.
 
-* `publisher_name` - (Required) The name of publisher/company.
+- `publisher_name` - (Required) The name of publisher/company.
 
-* `publisher_email` - (Required) The email of publisher/company.
+- `publisher_email` - (Required) The email of publisher/company.
 
-* `sku_name` - (Required) `sku_name` is a string consisting of two parts separated by an underscore(\_). The first part is the `name`, valid values include: `Consumption`, `Developer`, `Basic`, `Standard` and `Premium`. The second part is the `capacity` (e.g. the number of deployed units of the `sku`), which must be a positive `integer` (e.g. `Developer_1`).
+- `sku_name` - (Required) `sku_name` is a string consisting of two parts separated by an underscore(\_). The first part is the `name`, valid values include: `Consumption`, `Developer`, `Basic`, `BasicV2`, `Standard`, `StandardV2` and `Premium`. The second part is the `capacity` (e.g. the number of deployed units of the `sku`), which must be a positive `integer` (e.g. `Developer_1`).
 
 ~> **NOTE:** Premium SKU's are limited to a default maximum of 12 (i.e. `Premium_12`), this can, however, be increased via support request.
 
@@ -59,115 +59,115 @@ The following arguments are supported:
 
 ---
 
-* `additional_location` - (Optional) One or more `additional_location` blocks as defined below.
+- `additional_location` - (Optional) One or more `additional_location` blocks as defined below.
 
-* `certificate` - (Optional) One or more `certificate` blocks (up to 10) as defined below.
+- `certificate` - (Optional) One or more `certificate` blocks (up to 10) as defined below.
 
-* `client_certificate_enabled` - (Optional) Enforce a client certificate to be presented on each request to the gateway? This is only supported when SKU type is `Consumption`.
+- `client_certificate_enabled` - (Optional) Enforce a client certificate to be presented on each request to the gateway? This is only supported when SKU type is `Consumption`.
 
-* `delegation` - (Optional) A `delegation` block as defined below.
+- `delegation` - (Optional) A `delegation` block as defined below.
 
-* `gateway_disabled` - (Optional) Disable the gateway in main region? This is only supported when `additional_location` is set.
+- `gateway_disabled` - (Optional) Disable the gateway in main region? This is only supported when `additional_location` is set.
 
-* `min_api_version` - (Optional) The version which the control plane API calls to API Management service are limited with version equal to or newer than.
+- `min_api_version` - (Optional) The version which the control plane API calls to API Management service are limited with version equal to or newer than.
 
-* `zones` - (Optional) Specifies a list of Availability Zones in which this API Management service should be located.
+- `zones` - (Optional) Specifies a list of Availability Zones in which this API Management service should be located.
 
 ~> **NOTE:** Availability zones are only supported in the Premium tier.
 
-* `identity` - (Optional) An `identity` block as defined below.
+- `identity` - (Optional) An `identity` block as defined below.
 
-* `hostname_configuration` - (Optional) A `hostname_configuration` block as defined below.
+- `hostname_configuration` - (Optional) A `hostname_configuration` block as defined below.
 
-* `notification_sender_email` - (Optional) Email address from which the notification will be sent.
+- `notification_sender_email` - (Optional) Email address from which the notification will be sent.
 
-* `protocols` - (Optional) A `protocols` block as defined below.
+- `protocols` - (Optional) A `protocols` block as defined below.
 
-* `security` - (Optional) A `security` block as defined below.
+- `security` - (Optional) A `security` block as defined below.
 
-* `sign_in` - (Optional) A `sign_in` block as defined below.
+- `sign_in` - (Optional) A `sign_in` block as defined below. It can't be defined for `BasicV2` and `StandardV2` SKUs.
 
-* `sign_up` - (Optional) A `sign_up` block as defined below.
+- `sign_up` - (Optional) A `sign_up` block as defined below. It can't be defined for `BasicV2` and `StandardV2` SKUs.
 
-* `tenant_access` - (Optional) A `tenant_access` block as defined below.
+- `tenant_access` - (Optional) A `tenant_access` block as defined below.
 
-* `public_ip_address_id` - (Optional) ID of a standard SKU IPv4 Public IP.
+- `public_ip_address_id` - (Optional) ID of a standard SKU IPv4 Public IP.
 
 ~> **NOTE:** Custom public IPs are only supported on the `Premium` and `Developer` tiers when deployed in a virtual network.
 
-* `public_network_access_enabled` - (Optional) Is public access to the service allowed? Defaults to `true`.
+- `public_network_access_enabled` - (Optional) Is public access to the service allowed? Defaults to `true`.
 
 ~> **NOTE:** This option is applicable only to the Management plane, not the API gateway or Developer portal. It is required to be `true` on the creation.
 
-* `virtual_network_type` - (Optional) The type of virtual network you want to use, valid values include: `None`, `External`, `Internal`. Defaults to `None`.
+- `virtual_network_type` - (Optional) The type of virtual network you want to use, valid values include: `None`, `External`, `Internal`. Defaults to `None`.
 
 > **NOTE:** Please ensure that in the subnet, inbound port 3443 is open when `virtual_network_type` is `Internal` or `External`. And please ensure other necessary ports are open according to [api management network configuration](https://learn.microsoft.com/azure/api-management/virtual-network-reference).
 
-* `virtual_network_configuration` - (Optional) A `virtual_network_configuration` block as defined below. Required when `virtual_network_type` is `External` or `Internal`.
+- `virtual_network_configuration` - (Optional) A `virtual_network_configuration` block as defined below. Required when `virtual_network_type` is `External` or `Internal`.
 
-* `tags` - (Optional) A mapping of tags assigned to the resource.
+- `tags` - (Optional) A mapping of tags assigned to the resource.
 
 ---
 
 A `additional_location` block supports the following:
 
-* `location` - (Required) The name of the Azure Region in which the API Management Service should be expanded to.
+- `location` - (Required) The name of the Azure Region in which the API Management Service should be expanded to.
 
-* `capacity` - (Optional) The number of compute units in this region. Defaults to the capacity of the main region.
+- `capacity` - (Optional) The number of compute units in this region. Defaults to the capacity of the main region.
 
-* `zones` - (Optional) A list of availability zones.
+- `zones` - (Optional) A list of availability zones.
 
-* `public_ip_address_id` - (Optional) ID of a standard SKU IPv4 Public IP.
+- `public_ip_address_id` - (Optional) ID of a standard SKU IPv4 Public IP.
 
 ~> **NOTE:** Availability zones and custom public IPs are only supported in the Premium tier.
 
-* `virtual_network_configuration` - (Optional) A `virtual_network_configuration` block as defined below. Required when `virtual_network_type` is `External` or `Internal`.
+- `virtual_network_configuration` - (Optional) A `virtual_network_configuration` block as defined below. Required when `virtual_network_type` is `External` or `Internal`.
 
-* `gateway_disabled` - (Optional) Only valid for an Api Management service deployed in multiple locations. This can be used to disable the gateway in this additional location.
+- `gateway_disabled` - (Optional) Only valid for an Api Management service deployed in multiple locations. This can be used to disable the gateway in this additional location.
 
 ---
 
 A `certificate` block supports the following:
 
-* `encoded_certificate` - (Required) The Base64 Encoded PFX or Base64 Encoded X.509 Certificate.
+- `encoded_certificate` - (Required) The Base64 Encoded PFX or Base64 Encoded X.509 Certificate.
 
-* `store_name` - (Required) The name of the Certificate Store where this certificate should be stored. Possible values are `CertificateAuthority` and `Root`.
+- `store_name` - (Required) The name of the Certificate Store where this certificate should be stored. Possible values are `CertificateAuthority` and `Root`.
 
-* `certificate_password` - (Optional) The password for the certificate.
+- `certificate_password` - (Optional) The password for the certificate.
 
 ---
 
 A `delegation` block supports the following:
 
-* `subscriptions_enabled` - (Optional) Should subscription requests be delegated to an external url? Defaults to `false`.
+- `subscriptions_enabled` - (Optional) Should subscription requests be delegated to an external url? Defaults to `false`.
 
-* `user_registration_enabled` - (Optional) Should user registration requests be delegated to an external url? Defaults to `false`.
+- `user_registration_enabled` - (Optional) Should user registration requests be delegated to an external url? Defaults to `false`.
 
-* `url` - (Optional) The delegation URL.
+- `url` - (Optional) The delegation URL.
 
-* `validation_key` - (Optional) A base64-encoded validation key to validate, that a request is coming from Azure API Management.
+- `validation_key` - (Optional) A base64-encoded validation key to validate, that a request is coming from Azure API Management.
 
 ---
 
 A `hostname_configuration` block supports the following:
 
-* `management` - (Optional) One or more `management` blocks as documented below.
+- `management` - (Optional) One or more `management` blocks as documented below.
 
-* `portal` - (Optional) One or more `portal` blocks as documented below.
+- `portal` - (Optional) One or more `portal` blocks as documented below.
 
-* `developer_portal` - (Optional) One or more `developer_portal` blocks as documented below.
+- `developer_portal` - (Optional) One or more `developer_portal` blocks as documented below.
 
-* `proxy` - (Optional) One or more `proxy` blocks as documented below.
+- `proxy` - (Optional) One or more `proxy` blocks as documented below.
 
-* `scm` - (Optional) One or more `scm` blocks as documented below.
+- `scm` - (Optional) One or more `scm` blocks as documented below.
 
 ---
 
 An `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this API Management Service. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
+- `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this API Management Service. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
 
-* `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this API Management Service.
+- `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this API Management Service.
 
 ~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
@@ -175,21 +175,21 @@ An `identity` block supports the following:
 
 A `management`, `portal`, `developer_portal` and `scm` block supports the following:
 
-* `host_name` - (Required) The Hostname to use for the Management API.
+- `host_name` - (Required) The Hostname to use for the Management API.
 
-* `key_vault_id` - (Optional) The ID of the Key Vault Secret containing the SSL Certificate, which must be should be of the type `application/x-pkcs12`.
+- `key_vault_id` - (Optional) The ID of the Key Vault Secret containing the SSL Certificate, which must be should be of the type `application/x-pkcs12`.
 
 -> **NOTE:** Setting this field requires the `identity` block to be specified, since this identity is used for to retrieve the Key Vault Certificate. Possible values are versioned or versionless secret ID. Auto-updating the Certificate from the Key Vault requires the Secret version isn't specified.
 
-* `certificate` - (Optional) The Base64 Encoded Certificate.
+- `certificate` - (Optional) The Base64 Encoded Certificate.
 
-* `certificate_password` - (Optional) The password associated with the certificate provided above.
+- `certificate_password` - (Optional) The password associated with the certificate provided above.
 
 -> **NOTE:** Either `key_vault_id` or `certificate` and `certificate_password` must be specified.
 
-* `negotiate_client_certificate` - (Optional) Should Client Certificate Negotiation be enabled for this Hostname? Defaults to `false`.
+- `negotiate_client_certificate` - (Optional) Should Client Certificate Negotiation be enabled for this Hostname? Defaults to `false`.
 
-* `ssl_keyvault_identity_client_id` - (Optional) System or User Assigned Managed identity clientId as generated by Azure AD, which has `GET` access to the keyVault containing the SSL certificate.
+- `ssl_keyvault_identity_client_id` - (Optional) System or User Assigned Managed identity clientId as generated by Azure AD, which has `GET` access to the keyVault containing the SSL certificate.
 
 -> **NOTE:** If a User Assigned Managed identity is specified for `ssl_keyvault_identity_client_id` then this identity must be associated to the `azurerm_api_management` within an `identity` block.
 
@@ -197,99 +197,99 @@ A `management`, `portal`, `developer_portal` and `scm` block supports the follow
 
 A `proxy` block supports the following:
 
-* `default_ssl_binding` - (Optional) Is the certificate associated with this Hostname the Default SSL Certificate? This is used when an SNI header isn't specified by a client. Defaults to `false`.
+- `default_ssl_binding` - (Optional) Is the certificate associated with this Hostname the Default SSL Certificate? This is used when an SNI header isn't specified by a client. Defaults to `false`.
 
-* `host_name` - (Required) The Hostname to use for the Management API.
+- `host_name` - (Required) The Hostname to use for the Management API.
 
-* `key_vault_id` - (Optional) The ID of the Key Vault Secret containing the SSL Certificate, which must be should be of the type `application/x-pkcs12`.
+- `key_vault_id` - (Optional) The ID of the Key Vault Secret containing the SSL Certificate, which must be should be of the type `application/x-pkcs12`.
 
 -> **NOTE:** Setting this field requires the `identity` block to be specified, since this identity is used for to retrieve the Key Vault Certificate. Auto-updating the Certificate from the Key Vault requires the Secret version isn't specified.
 
-* `certificate` - (Optional) The Base64 Encoded Certificate.
+- `certificate` - (Optional) The Base64 Encoded Certificate.
 
-* `certificate_password` - (Optional) The password associated with the certificate provided above.
+- `certificate_password` - (Optional) The password associated with the certificate provided above.
 
 -> **NOTE:** Either `key_vault_id` or `certificate` and `certificate_password` must be specified.
 
-* `negotiate_client_certificate` - (Optional) Should Client Certificate Negotiation be enabled for this Hostname? Defaults to `false`.
+- `negotiate_client_certificate` - (Optional) Should Client Certificate Negotiation be enabled for this Hostname? Defaults to `false`.
 
-* `ssl_keyvault_identity_client_id` - (Optional) The Managed Identity Client ID to use to access the Key Vault. This Identity must be specified in the `identity` block to be used.
+- `ssl_keyvault_identity_client_id` - (Optional) The Managed Identity Client ID to use to access the Key Vault. This Identity must be specified in the `identity` block to be used.
 
 ---
 
 A `protocols` block supports the following:
 
-* `enable_http2` - (Optional) Should HTTP/2 be supported by the API Management Service? Defaults to `false`.
+- `enable_http2` - (Optional) Should HTTP/2 be supported by the API Management Service? Defaults to `false`.
 
 ---
 
 A `security` block supports the following:
 
-* `enable_backend_ssl30` - (Optional) Should SSL 3.0 be enabled on the backend of the gateway? Defaults to `false`.
+- `enable_backend_ssl30` - (Optional) Should SSL 3.0 be enabled on the backend of the gateway? Defaults to `false`.
 
 -> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Ssl30` field
 
-* `enable_backend_tls10` - (Optional) Should TLS 1.0 be enabled on the backend of the gateway? Defaults to `false`.
+- `enable_backend_tls10` - (Optional) Should TLS 1.0 be enabled on the backend of the gateway? Defaults to `false`.
 
 -> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls10` field
 
-* `enable_backend_tls11` - (Optional) Should TLS 1.1 be enabled on the backend of the gateway? Defaults to `false`.
+- `enable_backend_tls11` - (Optional) Should TLS 1.1 be enabled on the backend of the gateway? Defaults to `false`.
 
 -> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls11` field
 
-* `enable_frontend_ssl30` - (Optional) Should SSL 3.0 be enabled on the frontend of the gateway? Defaults to `false`.
+- `enable_frontend_ssl30` - (Optional) Should SSL 3.0 be enabled on the frontend of the gateway? Defaults to `false`.
 
 -> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Ssl30` field
 
-* `enable_frontend_tls10` - (Optional) Should TLS 1.0 be enabled on the frontend of the gateway? Defaults to `false`.
+- `enable_frontend_tls10` - (Optional) Should TLS 1.0 be enabled on the frontend of the gateway? Defaults to `false`.
 
 -> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls10` field
 
-* `enable_frontend_tls11` - (Optional) Should TLS 1.1 be enabled on the frontend of the gateway? Defaults to `false`.
+- `enable_frontend_tls11` - (Optional) Should TLS 1.1 be enabled on the frontend of the gateway? Defaults to `false`.
 
 -> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls11` field
 
-* `tls_ecdhe_ecdsa_with_aes128_cbc_sha_ciphers_enabled` - (Optional) Should the `TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA` cipher be enabled? Defaults to `false`.
+- `tls_ecdhe_ecdsa_with_aes128_cbc_sha_ciphers_enabled` - (Optional) Should the `TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA` cipher be enabled? Defaults to `false`.
 
 -> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA` field
 
-* `tls_ecdhe_ecdsa_with_aes256_cbc_sha_ciphers_enabled` - (Optional) Should the `TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA` cipher be enabled? Defaults to `false`.
+- `tls_ecdhe_ecdsa_with_aes256_cbc_sha_ciphers_enabled` - (Optional) Should the `TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA` cipher be enabled? Defaults to `false`.
 
 -> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA` field
 
-* `tls_ecdhe_rsa_with_aes128_cbc_sha_ciphers_enabled` - (Optional) Should the `TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA` cipher be enabled? Defaults to `false`.
+- `tls_ecdhe_rsa_with_aes128_cbc_sha_ciphers_enabled` - (Optional) Should the `TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA` cipher be enabled? Defaults to `false`.
 
 -> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA` field
 
-* `tls_ecdhe_rsa_with_aes256_cbc_sha_ciphers_enabled` - (Optional) Should the `TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA` cipher be enabled? Defaults to `false`.
+- `tls_ecdhe_rsa_with_aes256_cbc_sha_ciphers_enabled` - (Optional) Should the `TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA` cipher be enabled? Defaults to `false`.
 
 -> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA` field
 
-* `tls_rsa_with_aes128_cbc_sha256_ciphers_enabled` - (Optional) Should the `TLS_RSA_WITH_AES_128_CBC_SHA256` cipher be enabled? Defaults to `false`.
+- `tls_rsa_with_aes128_cbc_sha256_ciphers_enabled` - (Optional) Should the `TLS_RSA_WITH_AES_128_CBC_SHA256` cipher be enabled? Defaults to `false`.
 
 -> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_128_CBC_SHA256` field
 
-* `tls_rsa_with_aes128_cbc_sha_ciphers_enabled` - (Optional) Should the `TLS_RSA_WITH_AES_128_CBC_SHA` cipher be enabled? Defaults to `false`.
+- `tls_rsa_with_aes128_cbc_sha_ciphers_enabled` - (Optional) Should the `TLS_RSA_WITH_AES_128_CBC_SHA` cipher be enabled? Defaults to `false`.
 
 -> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_128_CBC_SHA` field
 
-* `tls_rsa_with_aes128_gcm_sha256_ciphers_enabled` - (Optional) Should the `TLS_RSA_WITH_AES_128_GCM_SHA256` cipher be enabled? Defaults to `false`.
+- `tls_rsa_with_aes128_gcm_sha256_ciphers_enabled` - (Optional) Should the `TLS_RSA_WITH_AES_128_GCM_SHA256` cipher be enabled? Defaults to `false`.
 
 -> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_128_GCM_SHA256` field
 
-* `tls_rsa_with_aes256_gcm_sha384_ciphers_enabled` - (Optional) Should the `TLS_RSA_WITH_AES_256_GCM_SHA384` cipher be enabled? Defaults to `false`.
+- `tls_rsa_with_aes256_gcm_sha384_ciphers_enabled` - (Optional) Should the `TLS_RSA_WITH_AES_256_GCM_SHA384` cipher be enabled? Defaults to `false`.
 
 -> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_256_GCM_SHA384` field
 
-* `tls_rsa_with_aes256_cbc_sha256_ciphers_enabled` - (Optional) Should the `TLS_RSA_WITH_AES_256_CBC_SHA256` cipher be enabled? Defaults to `false`.
+- `tls_rsa_with_aes256_cbc_sha256_ciphers_enabled` - (Optional) Should the `TLS_RSA_WITH_AES_256_CBC_SHA256` cipher be enabled? Defaults to `false`.
 
 -> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_256_CBC_SHA256` field
 
-* `tls_rsa_with_aes256_cbc_sha_ciphers_enabled` - (Optional) Should the `TLS_RSA_WITH_AES_256_CBC_SHA` cipher be enabled? Defaults to `false`.
+- `tls_rsa_with_aes256_cbc_sha_ciphers_enabled` - (Optional) Should the `TLS_RSA_WITH_AES_256_CBC_SHA` cipher be enabled? Defaults to `false`.
 
 -> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_256_CBC_SHA` field
 
-* `triple_des_ciphers_enabled` - (Optional) Should the `TLS_RSA_WITH_3DES_EDE_CBC_SHA` cipher be enabled for alL TLS versions (1.0, 1.1 and 1.2)? 
+- `triple_des_ciphers_enabled` - (Optional) Should the `TLS_RSA_WITH_3DES_EDE_CBC_SHA` cipher be enabled for alL TLS versions (1.0, 1.1 and 1.2)?
 
 -> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TripleDes168` field
 
@@ -297,128 +297,128 @@ A `security` block supports the following:
 
 A `sign_in` block supports the following:
 
-* `enabled` - (Required) Should anonymous users be redirected to the sign in page?
+- `enabled` - (Required) Should anonymous users be redirected to the sign in page?
 
 ---
 
 A `sign_up` block supports the following:
 
-* `enabled` - (Required) Can users sign up on the development portal?
+- `enabled` - (Required) Can users sign up on the development portal?
 
-* `terms_of_service` - (Required) A `terms_of_service` block as defined below.
+- `terms_of_service` - (Required) A `terms_of_service` block as defined below.
 
 ---
 
 A `tenant_access` block supports the following:
 
-* `enabled` - (Required) Should the access to the management API be enabled?
+- `enabled` - (Required) Should the access to the management API be enabled?
 
 ---
 
 A `virtual_network_configuration` block supports the following:
 
-* `subnet_id` - (Required) The id of the subnet that will be used for the API Management.
+- `subnet_id` - (Required) The id of the subnet that will be used for the API Management.
 
 ---
 
 A `terms_of_service` block supports the following:
 
-* `consent_required` - (Required) Should the user be asked for consent during sign up?
+- `consent_required` - (Required) Should the user be asked for consent during sign up?
 
-* `enabled` - (Required) Should Terms of Service be displayed during sign up?.
+- `enabled` - (Required) Should Terms of Service be displayed during sign up?.
 
-* `text` - (Optional) The Terms of Service which users are required to agree to in order to sign up.
+- `text` - (Optional) The Terms of Service which users are required to agree to in order to sign up.
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the API Management Service.
+- `id` - The ID of the API Management Service.
 
-* `additional_location` - Zero or more `additional_location` blocks as documented below.
+- `additional_location` - Zero or more `additional_location` blocks as documented below.
 
-* `gateway_url` - The URL of the Gateway for the API Management Service.
+- `gateway_url` - The URL of the Gateway for the API Management Service.
 
-* `gateway_regional_url` - The Region URL for the Gateway of the API Management Service.
+- `gateway_regional_url` - The Region URL for the Gateway of the API Management Service.
 
-* `identity` - An `identity` block as defined below.
+- `identity` - An `identity` block as defined below.
 
-* `hostname_configuration` - A `hostname_configuration` block as defined below.
+- `hostname_configuration` - A `hostname_configuration` block as defined below.
 
-* `management_api_url` - The URL for the Management API associated with this API Management service.
+- `management_api_url` - The URL for the Management API associated with this API Management service.
 
-* `portal_url` - The URL for the Publisher Portal associated with this API Management service.
+- `portal_url` - The URL for the Publisher Portal associated with this API Management service.
 
-* `developer_portal_url` - The URL for the Developer Portal associated with this API Management service.
+- `developer_portal_url` - The URL for the Developer Portal associated with this API Management service.
 
-* `public_ip_addresses` - The Public IP addresses of the API Management Service.
+- `public_ip_addresses` - The Public IP addresses of the API Management Service.
 
-* `private_ip_addresses` - The Private IP addresses of the API Management Service.
+- `private_ip_addresses` - The Private IP addresses of the API Management Service.
 
-* `scm_url` - The URL for the SCM (Source Code Management) Endpoint associated with this API Management service.
+- `scm_url` - The URL for the SCM (Source Code Management) Endpoint associated with this API Management service.
 
-* `tenant_access` - The `tenant_access` block as documented below.
+- `tenant_access` - The `tenant_access` block as documented below.
 
 ---
 
 An `additional_location` block exports the following:
 
-* `gateway_regional_url` - The URL of the Regional Gateway for the API Management Service in the specified region.
+- `gateway_regional_url` - The URL of the Regional Gateway for the API Management Service in the specified region.
 
-* `public_ip_addresses` - Public Static Load Balanced IP addresses of the API Management service in the additional location. Available only for Basic, Standard and Premium SKU.
+- `public_ip_addresses` - Public Static Load Balanced IP addresses of the API Management service in the additional location. Available only for Basic, Standard and Premium SKU.
 
-* `private_ip_addresses` - The Private IP addresses of the API Management Service. Available only when the API Manager instance is using Virtual Network mode.
+- `private_ip_addresses` - The Private IP addresses of the API Management Service. Available only when the API Manager instance is using Virtual Network mode.
 
 ---
 
 An `identity` block exports the following:
 
-* `principal_id` - The Principal ID associated with this Managed Service Identity.
+- `principal_id` - The Principal ID associated with this Managed Service Identity.
 
-* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
+- `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
 ---
 
 A `tenant_access` block exports the following:
 
-* `tenant_id` - The identifier for the tenant access information contract.
+- `tenant_id` - The identifier for the tenant access information contract.
 
-* `primary_key` - Primary access key for the tenant access information contract.
+- `primary_key` - Primary access key for the tenant access information contract.
 
-* `secondary_key` - Secondary access key for the tenant access information contract.
+- `secondary_key` - Secondary access key for the tenant access information contract.
 
 ---
 
 The `certificate` block exports the following:
 
-* `expiry` - The expiration date of the certificate in RFC3339 format: `2000-01-02T03:04:05Z`.
+- `expiry` - The expiration date of the certificate in RFC3339 format: `2000-01-02T03:04:05Z`.
 
-* `thumbprint` - The thumbprint of the certificate.
+- `thumbprint` - The thumbprint of the certificate.
 
-* `subject` - The subject of the certificate.
+- `subject` - The subject of the certificate.
 
 ---
 
 The `hostname_configuration` block exports the following:
 
-* `proxy` - A `proxy` block as defined below.
+- `proxy` - A `proxy` block as defined below.
 
 ---
 
 The `proxy` block exports the following:
 
-* `certificate_source` - The source of the certificate.
+- `certificate_source` - The source of the certificate.
 
-* `certificate_status` - The status of the certificate.
+- `certificate_status` - The status of the certificate.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 3 hours) Used when creating the API Management Service.
-* `update` - (Defaults to 3 hours) Used when updating the API Management Service.
-* `read` - (Defaults to 5 minutes) Used when retrieving the API Management Service.
-* `delete` - (Defaults to 3 hours) Used when deleting the API Management Service.
+- `create` - (Defaults to 3 hours) Used when creating the API Management Service.
+- `update` - (Defaults to 3 hours) Used when updating the API Management Service.
+- `read` - (Defaults to 5 minutes) Used when retrieving the API Management Service.
+- `delete` - (Defaults to 3 hours) Used when deleting the API Management Service.
 
 ## Import
 

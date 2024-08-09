@@ -32,6 +32,16 @@ func TestApimSkuName(t *testing.T) {
 			valid: true,
 		},
 		{
+			name:  "BasicV2_3",
+			input: "BasicV2_3",
+			valid: true,
+		},
+		{
+			name:  "BasicV2_12",
+			input: "BasicV2_12",
+			valid: false,
+		},
+		{
 			name:  "Developer_1",
 			input: "Developer_1",
 			valid: true,
@@ -60,6 +70,16 @@ func TestApimSkuName(t *testing.T) {
 			name:  "Premium_7",
 			input: "Premium_7",
 			valid: true,
+		},
+		{
+			name:  "StandardV2_7",
+			input: "StandardV2_7",
+			valid: true,
+		},
+		{
+			name:  "standardV2_2",
+			input: "standardV2_2",
+			valid: false,
 		},
 		{
 			name:  "Standard_7",

@@ -11,9 +11,9 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/api"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apimanagementservice"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/product"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/api"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/apimanagementservice"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/product"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/testclient"
@@ -75,6 +75,21 @@ func TestAccApiManagement_skuUpgradeDowngrade(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccApiManagement_standardV2(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
+	r := ApiManagementResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.standardV2Sku(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1246,6 +1261,29 @@ resource "azurerm_api_management" "test" {
   publisher_email     = "pub1@email.com"
 
   sku_name = "Standard_1"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ApiManagementResource) standardV2Sku(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+
+  sku_name = "StandardV2_1"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
