@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/notificationhubs/2017-04-01/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/notificationhubs/2023-09-01/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -90,8 +90,8 @@ func resourceArmDataSourceNotificationHubNamespaceRead(d *pluginsdk.ResourceData
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		d.Set("location", location.NormalizeNilable(model.Location))
-		sku := flattenNotificationHubDataSourceNamespacesSku(model.Sku)
+		d.Set("location", location.NormalizeNilable(&model.Location))
+		sku := flattenNotificationHubDataSourceNamespacesSku(&model.Sku)
 		if err := d.Set("sku", sku); err != nil {
 			return fmt.Errorf("setting `sku`: %+v", err)
 		}

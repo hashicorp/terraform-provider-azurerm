@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/notificationhubs/2017-04-01/notificationhubs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/notificationhubs/2023-09-01/hubs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -178,12 +178,12 @@ func TestAccNotificationHubAuthorizationRule_updated(t *testing.T) {
 }
 
 func (NotificationHubAuthorizationRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := notificationhubs.ParseNotificationHubAuthorizationRuleID(state.ID)
+	id, err := hubs.ParseNotificationHubAuthorizationRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.NotificationHubs.HubsClient.GetAuthorizationRule(ctx, *id)
+	resp, err := clients.NotificationHubs.HubsClient.NotificationHubsGetAuthorizationRule(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}

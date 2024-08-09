@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/notificationhubs/2017-04-01/notificationhubs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/notificationhubs/2023-09-01/hubs"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub/migration"
@@ -41,7 +41,7 @@ func resourceNotificationHub() *pluginsdk.Resource {
 		Delete: resourceNotificationHubDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := notificationhubs.ParseNotificationHubID(id)
+			_, err := hubs.ParseNotificationHubID(id)
 			return err
 		}),
 
@@ -160,9 +160,9 @@ func resourceNotificationHubCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := notificationhubs.NewNotificationHubID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("name").(string))
+	id := hubs.NewNotificationHubID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
+		existing, err := client.NotificationHubsGet(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -174,16 +174,16 @@ func resourceNotificationHubCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	parameters := notificationhubs.NotificationHubCreateOrUpdateParameters{
-		Location: utils.String(location.Normalize(d.Get("location").(string))),
-		Properties: notificationhubs.NotificationHubProperties{
+	parameters := hubs.NotificationHubResource{
+		Location: location.Normalize(d.Get("location").(string)),
+		Properties: &hubs.NotificationHubProperties{
 			ApnsCredential: expandNotificationHubsAPNSCredentials(d.Get("apns_credential").([]interface{})),
 			GcmCredential:  expandNotificationHubsGCMCredentials(d.Get("gcm_credential").([]interface{})),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
+	if _, err := client.NotificationHubsCreateOrUpdate(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -209,9 +209,9 @@ func resourceNotificationHubCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	return resourceNotificationHubRead(d, meta)
 }
 
-func notificationHubStateRefreshFunc(ctx context.Context, client *notificationhubs.NotificationHubsClient, id notificationhubs.NotificationHubId) pluginsdk.StateRefreshFunc {
+func notificationHubStateRefreshFunc(ctx context.Context, client *hubs.HubsClient, id hubs.NotificationHubId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, id)
+		res, err := client.NotificationHubsGet(ctx, id)
 		statusCode := "dropped connection"
 		if res.HttpResponse != nil {
 			statusCode = strconv.Itoa(res.HttpResponse.StatusCode)
@@ -234,12 +234,12 @@ func resourceNotificationHubRead(d *pluginsdk.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := notificationhubs.ParseNotificationHubID(d.Id())
+	id, err := hubs.ParseNotificationHubID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, *id)
+	resp, err := client.NotificationHubsGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] %s was not found - removing from state", *id)
@@ -250,7 +250,7 @@ func resourceNotificationHubRead(d *pluginsdk.ResourceData, meta interface{}) er
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	credentials, err := client.GetPnsCredentials(ctx, *id)
+	credentials, err := client.NotificationHubsGetPnsCredentials(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("retrieving credentials for %s: %+v", *id, err)
 	}
@@ -273,7 +273,7 @@ func resourceNotificationHubRead(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	if model := resp.Model; model != nil {
-		d.Set("location", location.NormalizeNilable(model.Location))
+		d.Set("location", location.NormalizeNilable(&model.Location))
 
 		return d.Set("tags", tags.Flatten(model.Tags))
 	}
@@ -286,12 +286,12 @@ func resourceNotificationHubDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := notificationhubs.ParseNotificationHubID(d.Id())
+	id, err := hubs.ParseNotificationHubID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Delete(ctx, *id)
+	resp, err := client.NotificationHubsDelete(ctx, *id)
 	if err != nil {
 		if !response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("deleting %s: %+v", *id, err)
@@ -301,7 +301,7 @@ func resourceNotificationHubDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	return nil
 }
 
-func expandNotificationHubsAPNSCredentials(inputs []interface{}) *notificationhubs.ApnsCredential {
+func expandNotificationHubsAPNSCredentials(inputs []interface{}) *hubs.ApnsCredential {
 	if len(inputs) == 0 {
 		return nil
 	}
@@ -319,11 +319,11 @@ func expandNotificationHubsAPNSCredentials(inputs []interface{}) *notificationhu
 	}
 	endpoint := applicationEndpoints[applicationMode]
 
-	credentials := notificationhubs.ApnsCredential{
-		Properties: &notificationhubs.ApnsCredentialProperties{
+	credentials := hubs.ApnsCredential{
+		Properties: hubs.ApnsCredentialProperties{
 			AppId:    utils.String(teamId),
 			AppName:  utils.String(bundleId),
-			Endpoint: utils.String(endpoint),
+			Endpoint: endpoint,
 			KeyId:    utils.String(keyId),
 			Token:    utils.String(token),
 		},
@@ -331,69 +331,61 @@ func expandNotificationHubsAPNSCredentials(inputs []interface{}) *notificationhu
 	return &credentials
 }
 
-func flattenNotificationHubsAPNSCredentials(input *notificationhubs.ApnsCredential) []interface{} {
+func flattenNotificationHubsAPNSCredentials(input *hubs.ApnsCredential) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
 
 	output := make(map[string]interface{})
 
-	if props := input.Properties; props != nil {
-		if bundleId := props.AppName; bundleId != nil {
-			output["bundle_id"] = *bundleId
-		}
+	if bundleId := input.Properties.AppName; bundleId != nil {
+		output["bundle_id"] = *bundleId
+	}
 
-		if endpoint := props.Endpoint; endpoint != nil {
-			applicationEndpoints := map[string]string{
-				apnsProductionEndpoint: apnsProductionName,
-				apnsSandboxEndpoint:    apnsSandboxName,
-			}
-			applicationMode := applicationEndpoints[*endpoint]
-			output["application_mode"] = applicationMode
-		}
+	applicationEndpoints := map[string]string{
+		apnsProductionEndpoint: apnsProductionName,
+		apnsSandboxEndpoint:    apnsSandboxName,
+	}
+	applicationMode := applicationEndpoints[input.Properties.Endpoint]
+	output["application_mode"] = applicationMode
 
-		if keyId := props.KeyId; keyId != nil {
-			output["key_id"] = *keyId
-		}
+	if keyId := input.Properties.KeyId; keyId != nil {
+		output["key_id"] = *keyId
+	}
 
-		if teamId := props.AppId; teamId != nil {
-			output["team_id"] = *teamId
-		}
+	if teamId := input.Properties.AppId; teamId != nil {
+		output["team_id"] = *teamId
+	}
 
-		if token := props.Token; token != nil {
-			output["token"] = *token
-		}
+	if token := input.Properties.Token; token != nil {
+		output["token"] = *token
 	}
 
 	return []interface{}{output}
 }
 
-func expandNotificationHubsGCMCredentials(inputs []interface{}) *notificationhubs.GcmCredential {
+func expandNotificationHubsGCMCredentials(inputs []interface{}) *hubs.GcmCredential {
 	if len(inputs) == 0 {
 		return nil
 	}
 
 	input := inputs[0].(map[string]interface{})
 	apiKey := input["api_key"].(string)
-	credentials := notificationhubs.GcmCredential{
-		Properties: &notificationhubs.GcmCredentialProperties{
-			GoogleApiKey: utils.String(apiKey),
+	credentials := hubs.GcmCredential{
+		Properties: hubs.GcmCredentialProperties{
+			GoogleApiKey: apiKey,
 		},
 	}
 	return &credentials
 }
 
-func flattenNotificationHubsGCMCredentials(input *notificationhubs.GcmCredential) []interface{} {
+func flattenNotificationHubsGCMCredentials(input *hubs.GcmCredential) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
 
 	output := make(map[string]interface{})
-	if props := input.Properties; props != nil {
-		if apiKey := props.GoogleApiKey; apiKey != nil {
-			output["api_key"] = *apiKey
-		}
-	}
+	output["api_key"] = input.Properties.GoogleApiKey
 
 	return []interface{}{output}
 }
