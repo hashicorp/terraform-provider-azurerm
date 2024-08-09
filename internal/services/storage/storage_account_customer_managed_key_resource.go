@@ -175,7 +175,7 @@ func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceD
 			}
 		}
 		if !softDeleteEnabled || !purgeProtectionEnabled {
-			return fmt.Errorf("Key Vault %q (Resource Group %q) must be configured for both Purge Protection and Soft Delete", keyVaultID.VaultName, keyVaultID.ResourceGroupName)
+			return fmt.Errorf("key vault %q (Resource Group %q) must be configured for both Purge Protection and Soft Delete", keyVaultID.VaultName, keyVaultID.ResourceGroupName)
 		}
 
 		keyVaultBaseURL, err := keyVaultsClient.BaseUriForKeyVault(ctx, *keyVaultID)
@@ -196,7 +196,7 @@ func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceD
 			keyVersion = ""
 			keyVaultURI = keyId.BaseUri()
 		} else {
-			return fmt.Errorf("Failed to parse '%s' as HSM key ID", managedHSMKeyId)
+			return fmt.Errorf("failed to parse '%s' as HSM key ID", managedHSMKeyId)
 		}
 	}
 

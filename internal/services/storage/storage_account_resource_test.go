@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -754,6 +755,10 @@ func TestAccStorageAccount_blobProperties_kindStorageNotSupportLastAccessTimeEna
 }
 
 func TestAccStorageAccount_queueProperties(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skipf("Skipped as `queue_properties` have been moved to the `azurerm_storage_account_queue_properties` resource in v4.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
 
@@ -1717,6 +1722,10 @@ func TestAccStorageAccount_StorageV1_queuePropertiesLRS(t *testing.T) {
 }
 
 func TestAccStorageAccount_StorageV1_queuePropertiesGRS(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skipf("Skipped as `queue_properties` have been moved to the `azurerm_storage_account_queue_properties` resource in v4.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
 
@@ -3016,6 +3025,7 @@ resource "azurerm_storage_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
+// TODO: Remove in 4.0
 func (r StorageAccountResource) queueProperties(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3068,6 +3078,7 @@ resource "azurerm_storage_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
+// TODO: Remove in 4.0
 func (r StorageAccountResource) queuePropertiesUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3128,6 +3139,7 @@ resource "azurerm_storage_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
+// TODO: Remove in 4.0
 func (r StorageAccountResource) queuePropertiesLoggingOnly(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3160,6 +3172,7 @@ resource "azurerm_storage_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
+// TODO: Remove in 4.0
 func (r StorageAccountResource) queuePropertiesMinuteMetricsOnly(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
