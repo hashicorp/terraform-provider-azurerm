@@ -737,6 +737,7 @@ func resourceMsSqlVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		// TODO expand for update only and update separately
 		//	payload.Properties.StorageConfigurationSettings
 		payload.Properties.StorageConfigurationSettings = expandSqlVirtualMachineStorageConfigurationSettings(d.Get("storage_configuration").([]interface{}))
+		payload.Properties.ServerConfigurationsManagementSettings.SqlWorkloadTypeUpdateSettings = nil
 	}
 
 	if d.HasChange("tags") {
