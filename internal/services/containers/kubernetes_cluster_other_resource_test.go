@@ -22,6 +22,9 @@ import (
 )
 
 func TestAccKubernetesCluster_basicAvailabilitySet(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("AvailabilitySet not supported as an option for default_node_pool in 4.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 

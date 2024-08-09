@@ -60,7 +60,6 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						ForceNew: true,
 						Default:  string(managedclusters.AgentPoolTypeVirtualMachineScaleSets),
 						ValidateFunc: validation.StringInSlice([]string{
-							string(managedclusters.AgentPoolTypeAvailabilitySet),
 							string(managedclusters.AgentPoolTypeVirtualMachineScaleSets),
 						}, false),
 					},
@@ -292,6 +291,11 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 				}
 
 				if !features.FourPointOhBeta() {
+					s["type"].ValidateFunc = validation.StringInSlice([]string{
+						string(managedclusters.AgentPoolTypeAvailabilitySet),
+						string(managedclusters.AgentPoolTypeVirtualMachineScaleSets),
+					}, false)
+
 					s["os_sku"].ValidateFunc = validation.StringInSlice([]string{
 						string(agentpools.OSSKUAzureLinux),
 						string(agentpools.OSSKUCBLMariner),
