@@ -887,6 +887,7 @@ func TestAccStorageAccount_replicationTypeGZRS(t *testing.T) {
 }
 
 func TestAccStorageAccount_largeFileShare(t *testing.T) {
+	// Note: this test causes a ForceNew when disabling large file shares
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
 
@@ -4121,7 +4122,6 @@ resource "azurerm_storage_account" "test" {
   account_tier                      = "Premium"
   account_replication_type          = "LRS"
   infrastructure_encryption_enabled = true
-  large_file_share_enabled          = true # defaulted on the API side
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
@@ -4611,7 +4611,6 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Premium"
   account_kind             = "FileStorage"
   account_replication_type = "ZRS"
-  large_file_share_enabled = true # defaulted in the API when FileStorage & Premium
 
   share_properties {
     smb {
