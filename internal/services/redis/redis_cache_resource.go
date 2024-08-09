@@ -368,6 +368,7 @@ func resourceRedisCache() *pluginsdk.Resource {
 			"access_keys_authentication_disabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
+				Default:  false,
 			},
 
 			"tags": commonschema.Tags(),
@@ -504,7 +505,8 @@ func resourceRedisCacheCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	parameters := redis.RedisCreateParameters{
 		Location: location.Normalize(d.Get("location").(string)),
 		Properties: redis.RedisCreateProperties{
-			EnableNonSslPort: pointer.To(enableNonSslPort.(bool)),
+			DisableAccessKeyAuthentication: pointer.To(d.Get("access_keys_authentication_disabled").(bool)),
+			EnableNonSslPort:               pointer.To(enableNonSslPort.(bool)),
 			Sku: redis.Sku{
 				Capacity: int64(d.Get("capacity").(int)),
 				Family:   redis.SkuFamily(d.Get("family").(string)),
@@ -556,11 +558,6 @@ func resourceRedisCacheCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		defer locks.UnlockByName(parsed.SubnetName, network.SubnetResourceName)
 
 		parameters.Properties.SubnetId = utils.String(v.(string))
-	}
-
-	if v, ok := d.GetOk("access_keys_authentication_disabled"); ok {
-		disableAccessKeyAuthentication := v.(bool)
-		parameters.Properties.DisableAccessKeyAuthentication = &disableAccessKeyAuthentication
 	}
 
 	if v, ok := d.GetOk("zones"); ok {
@@ -623,8 +620,9 @@ func resourceRedisCacheUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 
 	parameters := redis.RedisUpdateParameters{
 		Properties: &redis.RedisUpdateProperties{
-			MinimumTlsVersion: pointer.To(redis.TlsVersion(d.Get("minimum_tls_version").(string))),
-			EnableNonSslPort:  pointer.To(enableNonSslPort.(bool)),
+			DisableAccessKeyAuthentication: pointer.To(d.Get("access_keys_authentication_disabled").(bool)),
+			MinimumTlsVersion:              pointer.To(redis.TlsVersion(d.Get("minimum_tls_version").(string))),
+			EnableNonSslPort:               pointer.To(enableNonSslPort.(bool)),
 			Sku: &redis.Sku{
 				Capacity: int64(d.Get("capacity").(int)),
 				Family:   redis.SkuFamily(d.Get("family").(string)),
@@ -679,13 +677,6 @@ func resourceRedisCacheUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 			return fmt.Errorf("parsing Redis Configuration: %+v", err)
 		}
 		parameters.Properties.RedisConfiguration = redisConfiguration
-	}
-
-	if v, ok := d.GetOk("access_keys_authentication_disabled"); ok {
-		if d.HasChange("access_keys_authentication_disabled") {
-			disableAccessKeyAuthentication := v.(bool)
-			parameters.Properties.DisableAccessKeyAuthentication = &disableAccessKeyAuthentication
-		}
 	}
 
 	if _, err := client.Update(ctx, *id, parameters); err != nil {
