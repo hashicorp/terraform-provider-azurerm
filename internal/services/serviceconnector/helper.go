@@ -6,6 +6,7 @@ package serviceconnector
 import (
 	"fmt"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicelinker/2024-04-01/servicelinker"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -27,6 +28,19 @@ type AuthInfoModel struct {
 
 type SecretStoreModel struct {
 	KeyVaultId string `tfschema:"key_vault_id"`
+}
+
+type ConfigurationInfo struct {
+	Action             string               `tfschema:"action"`
+	ConfigurationStore []ConfigurationStore `tfschema:"configuration_store"`
+}
+
+type ConfigurationStore struct {
+	AppConfigurationId string `tfschema:"app_configuration_id"`
+}
+
+type PublicNetworkSolution struct {
+	Action string `tfschema:"action"`
 }
 
 func secretStoreSchema() *pluginsdk.Schema {
@@ -243,6 +257,82 @@ func expandServiceConnectorAuthInfo(input []AuthInfoModel) (servicelinker.AuthIn
 	}
 
 	return nil, fmt.Errorf("unsupported authentication type %q", authType)
+}
+
+func expandConfigurationInfo(input []ConfigurationInfo) *servicelinker.ConfigurationInfo {
+	if len(input) == 0 {
+		return nil
+	}
+	v := input[0]
+	action := servicelinker.ActionType(v.Action)
+	configurationStore := expandConfigurationStore(v.ConfigurationStore)
+
+	return &servicelinker.ConfigurationInfo{
+		Action:             pointer.To(action),
+		ConfigurationStore: configurationStore,
+	}
+}
+
+func expandConfigurationStore(input []ConfigurationStore) *servicelinker.ConfigurationStore {
+	if len(input) == 0 {
+		return nil
+	}
+	v := input[0]
+
+	appConfigurationId := v.AppConfigurationId
+	return &servicelinker.ConfigurationStore{
+		AppConfigurationId: utils.String(appConfigurationId),
+	}
+}
+
+func expandPublicNetworkSolution(input []PublicNetworkSolution) *servicelinker.PublicNetworkSolution {
+	if len(input) == 0 {
+		return nil
+	}
+	v := input[0]
+
+	action := v.Action
+	return &servicelinker.PublicNetworkSolution{
+		Action: pointer.To(servicelinker.ActionType(action)),
+	}
+}
+
+func flattenConfigurationInfo(input servicelinker.ConfigurationInfo) []ConfigurationInfo {
+	var action string
+	var configurationStore []ConfigurationStore
+
+	if input.Action != nil {
+		action = string(*input.Action)
+	}
+
+	if input.ConfigurationStore != nil {
+		configurationStore = []ConfigurationStore{
+			{
+				AppConfigurationId: pointer.From(input.ConfigurationStore.AppConfigurationId),
+			},
+		}
+	}
+
+	return []ConfigurationInfo{
+		{
+			Action:             action,
+			ConfigurationStore: configurationStore,
+		},
+	}
+}
+
+func flattenPublicNetworkSolution(input servicelinker.PublicNetworkSolution) []PublicNetworkSolution {
+	var action string
+
+	if input.Action != nil {
+		action = string(*input.Action)
+	}
+
+	return []PublicNetworkSolution{
+		{
+			Action: action,
+		},
+	}
 }
 
 func flattenServiceConnectorAuthInfo(input servicelinker.AuthInfoBase, pwd string) []AuthInfoModel {
