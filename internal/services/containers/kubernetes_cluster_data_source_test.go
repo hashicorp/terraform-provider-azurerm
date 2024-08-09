@@ -555,6 +555,9 @@ func TestAccDataSourceKubernetesCluster_microsoftDefender(t *testing.T) {
 }
 
 func TestAccDataSourceKubernetesCluster_customCaTrustCerts(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("Skipping this test in 4.0 beta as it is not supported")
+	}
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
 
