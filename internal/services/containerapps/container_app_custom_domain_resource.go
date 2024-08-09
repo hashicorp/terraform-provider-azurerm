@@ -28,10 +28,11 @@ type ContainerAppCustomDomainResource struct{}
 var _ sdk.Resource = ContainerAppCustomDomainResource{}
 
 type ContainerAppCustomDomainResourceModel struct {
-	Name           string `tfschema:"name"`
-	ContainerAppId string `tfschema:"container_app_id"`
-	CertificateId  string `tfschema:"container_app_environment_certificate_id"`
-	BindingType    string `tfschema:"certificate_binding_type"`
+	Name                 string `tfschema:"name"`
+	ContainerAppId       string `tfschema:"container_app_id"`
+	CertificateId        string `tfschema:"container_app_environment_certificate_id"`
+	BindingType          string `tfschema:"certificate_binding_type"`
+	ManagedCertificateId string `tfschema:"container_app_environment_managed_certificate_id"`
 }
 
 func (a ContainerAppCustomDomainResource) Arguments() map[string]*pluginsdk.Schema {
@@ -70,7 +71,12 @@ func (a ContainerAppCustomDomainResource) Arguments() map[string]*pluginsdk.Sche
 }
 
 func (a ContainerAppCustomDomainResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{}
+	return map[string]*pluginsdk.Schema{
+		"container_app_environment_managed_certificate_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+	}
 }
 
 func (a ContainerAppCustomDomainResource) ModelObject() interface{} {
@@ -211,11 +217,20 @@ func (a ContainerAppCustomDomainResource) Read() sdk.ResourceFunc {
 						state.Name = id.CustomDomainName
 						state.ContainerAppId = containerAppId.ID()
 						if pointer.From(v.CertificateId) != "" {
-							certId, err := managedenvironments.ParseCertificateIDInsensitively(pointer.From(v.CertificateId))
-							if err != nil {
-								return err
+							// The `v.CertificateId` returned from API has two possible values. when using an Azure created Managed Certificate,
+							// its format is "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.App/managedEnvironments/%s/managedCertificates/%s",
+							// another format is "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.App/managedEnvironments/%s/certificates/%s",
+							// both cases are handled here to avoid parsing error.
+							certId, err1 := managedenvironments.ParseCertificateIDInsensitively(pointer.From(v.CertificateId))
+							if err1 != nil {
+								managedCertId, err2 := managedenvironments.ParseManagedCertificateID(pointer.From(v.CertificateId))
+								if err2 != nil {
+									return err1
+								}
+								state.ManagedCertificateId = managedCertId.ID()
+							} else {
+								state.CertificateId = certId.ID()
 							}
-							state.CertificateId = certId.ID()
 						}
 
 						state.BindingType = string(pointer.From(v.BindingType))
@@ -243,14 +258,6 @@ func (a ContainerAppCustomDomainResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			// attempt to lock the cert if we have the ID
-			if certIdRaw := metadata.ResourceData.Get("container_app_environment_certificate_id").(string); certIdRaw != "" {
-				if certId, err := managedenvironments.ParseCertificateID(certIdRaw); err == nil {
-					locks.ByID(certId.ID())
-					defer locks.UnlockByID(certId.ID())
-				}
-			}
-
 			containerAppId := containerapps.NewContainerAppID(id.SubscriptionId, id.ResourceGroupName, id.ContainerAppName)
 
 			containerApp, err := client.Get(ctx, containerAppId)
@@ -270,6 +277,13 @@ func (a ContainerAppCustomDomainResource) Delete() sdk.ResourceFunc {
 				for _, v := range *customDomains {
 					if !strings.EqualFold(v.Name, id.CustomDomainName) {
 						updatedCustomDomains = append(updatedCustomDomains, v)
+					} else {
+						// attempt to lock the cert if we have the ID
+						certificateId := pointer.From(v.CertificateId)
+						if certificateId != "" {
+							locks.ByID(certificateId)
+							defer locks.UnlockByID(certificateId)
+						}
 					}
 				}
 			}
