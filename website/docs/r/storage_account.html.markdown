@@ -375,6 +375,8 @@ A `azure_files_authentication` block supports the following:
 
 * `active_directory` - (Optional) A `active_directory` block as defined below. Required when `directory_type` is `AD`.
 
+* `default_share_level_permission` - (Optional) Specifies the default share level permissions applied to all users. Possible values are `StorageFileDataSmbShareReader`, `StorageFileDataSmbShareContributor`, `StorageFileDataSmbShareElevatedContributor`, or `None`.
+
 ---
 
 A `active_directory` block supports the following:
