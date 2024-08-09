@@ -77,6 +77,13 @@ func (r ManagementGroupConsumptionBudget) Arguments() map[string]*pluginsdk.Sche
 						}, false),
 					},
 
+					"locale": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true, // TODO: make this required in 4.0
+						ValidateFunc: validation.StringInSlice(budgets.PossibleValuesForCultureCode(), false),
+					},
+
 					"contact_emails": {
 						Type:     pluginsdk.TypeList,
 						Required: true,

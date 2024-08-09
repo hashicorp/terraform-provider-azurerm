@@ -213,12 +213,13 @@ resource "azurerm_consumption_budget_resource_group" "test" {
 
   // Remove filter
 
-  // Changed threshold and operator
+  // Changed threshold and operator and locale
   notification {
     enabled        = true
     threshold      = 95.0
     operator       = "GreaterThan"
     threshold_type = "Forecasted"
+    locale         = "en-us"
 
     contact_emails = [
       "foo@example.com",
