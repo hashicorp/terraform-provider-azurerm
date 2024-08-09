@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2021-08-01-preview/webhooks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-06-01-preview/webhooks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -629,7 +629,7 @@ func (t ContainerRegistryWebhookResource) Exists(ctx context.Context, clients *c
 		return nil, err
 	}
 
-	resp, err := clients.Containers.ContainerRegistryClient_v2021_08_01_preview.WebHooks.Get(ctx, *id)
+	resp, err := clients.Containers.ContainerRegistryClient_v2023_06_01_preview.WebHooks.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}

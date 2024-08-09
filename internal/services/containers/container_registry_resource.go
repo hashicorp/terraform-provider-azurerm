@@ -18,9 +18,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2021-08-01-preview/operation"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2021-08-01-preview/registries"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2021-08-01-preview/replications"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-06-01-preview/operation"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-06-01-preview/registries"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-06-01-preview/replications"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -164,8 +164,8 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 }
 
 func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Containers.ContainerRegistryClient_v2021_08_01_preview.Registries
-	operationClient := meta.(*clients.Client).Containers.ContainerRegistryClient_v2021_08_01_preview.Operation
+	client := meta.(*clients.Client).Containers.ContainerRegistryClient_v2023_06_01_preview.Registries
+	operationClient := meta.(*clients.Client).Containers.ContainerRegistryClient_v2023_06_01_preview.Operation
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -297,7 +297,7 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 }
 
 func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Containers.ContainerRegistryClient_v2021_08_01_preview.Registries
+	client := meta.(*clients.Client).Containers.ContainerRegistryClient_v2023_06_01_preview.Registries
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -487,7 +487,7 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 }
 
 func applyContainerRegistrySku(d *pluginsdk.ResourceData, meta interface{}, sku string, id registries.RegistryId) error {
-	client := meta.(*clients.Client).Containers.ContainerRegistryClient_v2021_08_01_preview.Registries
+	client := meta.(*clients.Client).Containers.ContainerRegistryClient_v2023_06_01_preview.Registries
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -506,7 +506,7 @@ func applyContainerRegistrySku(d *pluginsdk.ResourceData, meta interface{}, sku 
 }
 
 func applyGeoReplicationLocations(ctx context.Context, meta interface{}, registryId registries.RegistryId, oldGeoReplications []replications.Replication, newGeoReplications []replications.Replication) error {
-	replicationClient := meta.(*clients.Client).Containers.ContainerRegistryClient_v2021_08_01_preview.Replications
+	replicationClient := meta.(*clients.Client).Containers.ContainerRegistryClient_v2023_06_01_preview.Replications
 	log.Printf("[INFO] preparing to apply geo-replications for Container Registry.")
 
 	oldReplications := map[string]replications.Replication{}
@@ -635,8 +635,8 @@ func applyGeoReplicationLocations(ctx context.Context, meta interface{}, registr
 }
 
 func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Containers.ContainerRegistryClient_v2021_08_01_preview.Registries
-	replicationClient := meta.(*clients.Client).Containers.ContainerRegistryClient_v2021_08_01_preview.Replications
+	client := meta.(*clients.Client).Containers.ContainerRegistryClient_v2023_06_01_preview.Registries
+	replicationClient := meta.(*clients.Client).Containers.ContainerRegistryClient_v2023_06_01_preview.Replications
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -781,7 +781,7 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 }
 
 func resourceContainerRegistryDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Containers.ContainerRegistryClient_v2021_08_01_preview.Registries
+	client := meta.(*clients.Client).Containers.ContainerRegistryClient_v2023_06_01_preview.Registries
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -813,25 +813,6 @@ func expandNetworkRuleSet(profiles []interface{}) *registries.NetworkRuleSet {
 			Value:  config["ip_range"].(string),
 		}
 		ipRules = append(ipRules, newIpRule)
-	}
-
-	if !features.FourPointOhBeta() {
-		networkRuleConfigs := profile["virtual_network"].(*pluginsdk.Set).List()
-		virtualNetworkRules := make([]registries.VirtualNetworkRule, 0)
-		for _, networkRuleInterface := range networkRuleConfigs {
-			config := networkRuleInterface.(map[string]interface{})
-			newVirtualNetworkRule := registries.VirtualNetworkRule{
-				Action: pointer.To(registries.Action(config["action"].(string))),
-				Id:     config["subnet_id"].(string),
-			}
-			virtualNetworkRules = append(virtualNetworkRules, newVirtualNetworkRule)
-		}
-
-		return &registries.NetworkRuleSet{
-			DefaultAction:       registries.DefaultAction(profile["default_action"].(string)),
-			IPRules:             &ipRules,
-			VirtualNetworkRules: &virtualNetworkRules,
-		}
 	}
 
 	return &registries.NetworkRuleSet{
@@ -1009,20 +990,6 @@ func flattenNetworkRuleSet(networkRuleSet *registries.NetworkRuleSet) []interfac
 	}
 
 	values["ip_rule"] = ipRules
-
-	if !features.FourPointOhBeta() {
-		virtualNetworkRules := make([]interface{}, 0)
-		if networkRuleSet.VirtualNetworkRules != nil {
-			for _, virtualNetworkRule := range *networkRuleSet.VirtualNetworkRules {
-				value := make(map[string]interface{})
-				value["action"] = string(*virtualNetworkRule.Action)
-
-				value["subnet_id"] = virtualNetworkRule.Id
-				virtualNetworkRules = append(virtualNetworkRules, value)
-			}
-		}
-		values["virtual_network"] = virtualNetworkRules
-	}
 
 	return []interface{}{values}
 }
@@ -1369,29 +1336,6 @@ func resourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validate.CIDR,
-								},
-							},
-						},
-					},
-
-					"virtual_network": {
-						Deprecated: "The property `virtual_network` is deprecated since this is used exclusively for service endpoints which are being deprecated. Users are expected to use Private Endpoints instead. This property will be removed in v4.0 of the AzureRM Provider.",
-						Type:       pluginsdk.TypeSet,
-						Optional:   true,
-						ConfigMode: pluginsdk.SchemaConfigModeAttr,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"action": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
-									ValidateFunc: validation.StringInSlice([]string{
-										string(registries.ActionAllow),
-									}, false),
-								},
-								"subnet_id": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: commonids.ValidateSubnetID,
 								},
 							},
 						},

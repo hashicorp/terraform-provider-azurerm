@@ -10,9 +10,9 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2021-08-01-preview/connectedregistries"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2021-08-01-preview/registries"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2021-08-01-preview/tokens"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-06-01-preview/connectedregistries"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-06-01-preview/registries"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-06-01-preview/tokens"
 	tfvalidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
@@ -200,7 +200,7 @@ func (r ContainerConnectedRegistryResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Containers.ContainerRegistryClient_v2021_08_01_preview.ConnectedRegistries
+			client := metadata.Client.Containers.ContainerRegistryClient_v2023_06_01_preview.ConnectedRegistries
 
 			var model ContainerConnectedRegistryModel
 			if err := metadata.Decode(&model); err != nil {
@@ -275,7 +275,7 @@ func (r ContainerConnectedRegistryResource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Containers.ContainerRegistryClient_v2021_08_01_preview.ConnectedRegistries
+			client := metadata.Client.Containers.ContainerRegistryClient_v2023_06_01_preview.ConnectedRegistries
 			id, err := connectedregistries.ParseConnectedRegistryID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
@@ -374,7 +374,7 @@ func (r ContainerConnectedRegistryResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Containers.ContainerRegistryClient_v2021_08_01_preview.ConnectedRegistries
+			client := metadata.Client.Containers.ContainerRegistryClient_v2023_06_01_preview.ConnectedRegistries
 
 			id, err := connectedregistries.ParseConnectedRegistryID(metadata.ResourceData.Id())
 			if err != nil {
@@ -404,7 +404,7 @@ func (r ContainerConnectedRegistryResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			client := metadata.Client.Containers.ContainerRegistryClient_v2021_08_01_preview.ConnectedRegistries
+			client := metadata.Client.Containers.ContainerRegistryClient_v2023_06_01_preview.ConnectedRegistries
 
 			existing, err := client.Get(ctx, *id)
 			if err != nil {

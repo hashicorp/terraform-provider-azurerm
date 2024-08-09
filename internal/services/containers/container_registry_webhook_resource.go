@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2021-08-01-preview/webhooks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-06-01-preview/webhooks"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/migration"
@@ -118,7 +118,7 @@ func resourceContainerRegistryWebhook() *pluginsdk.Resource {
 }
 
 func resourceContainerRegistryWebhookCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Containers.ContainerRegistryClient_v2021_08_01_preview.WebHooks
+	client := meta.(*clients.Client).Containers.ContainerRegistryClient_v2023_06_01_preview.WebHooks
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -155,7 +155,7 @@ func resourceContainerRegistryWebhookCreate(d *pluginsdk.ResourceData, meta inte
 }
 
 func resourceContainerRegistryWebhookUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Containers.ContainerRegistryClient_v2021_08_01_preview.WebHooks
+	client := meta.(*clients.Client).Containers.ContainerRegistryClient_v2023_06_01_preview.WebHooks
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -179,7 +179,7 @@ func resourceContainerRegistryWebhookUpdate(d *pluginsdk.ResourceData, meta inte
 }
 
 func resourceContainerRegistryWebhookRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Containers.ContainerRegistryClient_v2021_08_01_preview.WebHooks
+	client := meta.(*clients.Client).Containers.ContainerRegistryClient_v2023_06_01_preview.WebHooks
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -253,7 +253,7 @@ func resourceContainerRegistryWebhookRead(d *pluginsdk.ResourceData, meta interf
 }
 
 func resourceContainerRegistryWebhookDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Containers.ContainerRegistryClient_v2021_08_01_preview.WebHooks
+	client := meta.(*clients.Client).Containers.ContainerRegistryClient_v2023_06_01_preview.WebHooks
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
