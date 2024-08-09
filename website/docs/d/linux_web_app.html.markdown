@@ -569,8 +569,6 @@ A `site_config` block exports the following:
 
 * `application_stack` - A `application_stack` block as defined above.
 
-* `auto_heal_enabled` - Are Auto heal rules be enabled.
-
 * `auto_heal_setting` - A `auto_heal_setting` block as defined above.
 
 * `auto_swap_slot_name` - The Linux Web App Slot Name to automatically swap to when deployment to that slot is successfully completed.
