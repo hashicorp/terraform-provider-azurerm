@@ -476,11 +476,8 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 			return err
 		}
 
-		locks.ByName(subnetID.VirtualNetworkName, network.VirtualNetworkResourceName)
-		defer locks.UnlockByName(subnetID.VirtualNetworkName, network.VirtualNetworkResourceName)
-
-		locks.ByName(subnetID.SubnetName, network.SubnetResourceName)
-		defer locks.UnlockByName(subnetID.SubnetName, network.SubnetResourceName)
+		locks.ByID(subnetID.ID())
+		defer locks.UnlockByID(subnetID.ID())
 	}
 
 	id := agentpools.NewAgentPoolID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.ManagedClusterName, d.Get("name").(string))
