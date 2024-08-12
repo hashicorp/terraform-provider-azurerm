@@ -31,8 +31,8 @@ func (d DBServersDataSource) basic(data acceptance.TestData) string {
 %s
 
 data "azurerm_oracledatabase_db_servers" "test" {
-	resource_group_name = "PowerShellTestRg"
-	cloud_exadata_infrastructure_name = "OFake_PowerShellTestExaInfra"
+	resource_group_name = azurerm_resource_group.test.name
+	cloud_exadata_infrastructure_name = azurerm_oracledatabase_exadata_infrastructure.test.name
 }
 `, d.template(data))
 }
@@ -40,11 +40,6 @@ data "azurerm_oracledatabase_db_servers" "test" {
 func (d DBServersDataSource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
-provider "azurerm" {
-	features {}
-}
-
-data "azurerm_client_config" "current" {}
 
 `, ExadataInfraResource{}.basic(data))
 }
