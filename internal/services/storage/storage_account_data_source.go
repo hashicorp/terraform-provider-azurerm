@@ -173,6 +173,46 @@ func dataSourceStorageAccount() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"primary_queue_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"primary_queue_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"primary_queue_microsoft_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"primary_queue_microsoft_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_queue_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_queue_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_queue_microsoft_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_queue_microsoft_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"primary_table_endpoint": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -499,60 +539,9 @@ func dataSourceStorageAccount() *pluginsdk.Resource {
 	}
 
 	if !features.FourPointOhBeta() {
-		// TODO 4.0: change this from enable_* to *_enabled
 		resource.Schema["enable_https_traffic_only"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Computed:      true,
-			Deprecated:    "the `enable_https_traffic_only` field has been deprecated in favour of `https_traffic_only_enabled` in v4.0 of the provider.",
-			ConflictsWith: []string{"https_traffic_only_enabled"},
-		}
-
-		resource.Schema["primary_queue_endpoint"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeString,
-			Computed:   true,
-			Deprecated: "`primary_queue_endpoint` will be moved to the `azurerm_storage_account_queue_properties` data source in v4.0 of the provider.",
-		}
-
-		resource.Schema["primary_queue_host"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeString,
-			Computed:   true,
-			Deprecated: "`primary_queue_host` will be moved to the `azurerm_storage_account_queue_properties` data source in v4.0 of the provider.",
-		}
-
-		resource.Schema["primary_queue_microsoft_endpoint"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeString,
-			Computed:   true,
-			Deprecated: "`primary_queue_microsoft_endpoint` will be moved to the `azurerm_storage_account_queue_properties` data source in v4.0 of the provider.",
-		}
-
-		resource.Schema["primary_queue_microsoft_host"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeString,
-			Computed:   true,
-			Deprecated: "`primary_queue_microsoft_host` will be moved to the `azurerm_storage_account_queue_properties` data source in v4.0 of the provider.",
-		}
-
-		resource.Schema["secondary_queue_endpoint"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeString,
-			Computed:   true,
-			Deprecated: "`secondary_queue_endpoint` will be moved to the `azurerm_storage_account_queue_properties` data source in v4.0 of the provider.",
-		}
-
-		resource.Schema["secondary_queue_host"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeString,
-			Computed:   true,
-			Deprecated: "`secondary_queue_host` will be moved to the `azurerm_storage_account_queue_properties` data source in v4.0 of the provider.",
-		}
-
-		resource.Schema["secondary_queue_microsoft_endpoint"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeString,
-			Computed:   true,
-			Deprecated: "`secondary_queue_microsoft_endpoint` will be moved to the `azurerm_storage_account_queue_properties` data source in v4.0 of the provider.",
-		}
-
-		resource.Schema["secondary_queue_microsoft_host"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeString,
-			Computed:   true,
-			Deprecated: "`secondary_queue_microsoft_host` will be moved to the `azurerm_storage_account_queue_properties` data source in v4.0 of the provider.",
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
 		}
 	}
 
@@ -690,15 +679,6 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 	endpoints := flattenAccountEndpoints(primaryEndpoints, secondaryEndpoints, routingPreference)
 	if err := endpoints.set(d); err != nil {
 		return err
-	}
-
-	// Only set the Queue Endpoints in v3.x since in v4.0 these properties will be
-	// moved to the 'azurerm_storage_account_queue_properties' data source...
-	if !features.FourPointOhBeta() {
-		queueEndpoints := flattenAccountQueueEndpoints(primaryEndpoints, secondaryEndpoints, routingPreference)
-		if err := queueEndpoints.set(d); err != nil {
-			return err
-		}
 	}
 
 	storageAccountKeys := make([]storageaccounts.StorageAccountKey, 0)

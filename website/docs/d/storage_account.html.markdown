@@ -90,7 +90,6 @@ output "storage_account_tier" {
 
 * `secondary_blob_microsoft_host` - The microsoft routing hostname with port if applicable for blob storage in the secondary location.
 
-<!-- TODO: [START] Remove in 4.0 -->
 * `primary_queue_endpoint` - The endpoint URL for queue storage in the primary location.
 
 * `primary_queue_host` - The hostname with port if applicable for queue storage in the primary location.
@@ -106,7 +105,6 @@ output "storage_account_tier" {
 * `secondary_queue_microsoft_endpoint` - The microsoft routing endpoint URL for queue storage in the secondary location.
 
 * `secondary_queue_microsoft_host` - The microsoft routing hostname with port if applicable for queue storage in the secondary location.
-<!-- TODO: [END] Remove in 4.0 -->
 
 * `primary_table_endpoint` - The endpoint URL for table storage in the primary location.
 

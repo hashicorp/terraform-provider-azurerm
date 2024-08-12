@@ -499,7 +499,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `secondary_blob_microsoft_host` - The microsoft routing hostname with port if applicable for blob storage in the secondary location.
 
-<!-- TODO: [START] Remove in v4.0 -->
 * `primary_queue_endpoint` - The endpoint URL for queue storage in the primary location.
 
 * `primary_queue_host` - The hostname with port if applicable for queue storage in the primary location.
@@ -515,7 +514,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `secondary_queue_microsoft_endpoint` - The microsoft routing endpoint URL for queue storage in the secondary location.
 
 * `secondary_queue_microsoft_host` - The microsoft routing hostname with port if applicable for queue storage in the secondary location.
-<!-- TODO: [END] Remove in v4.0 -->
 
 * `primary_table_endpoint` - The endpoint URL for table storage in the primary location.
 

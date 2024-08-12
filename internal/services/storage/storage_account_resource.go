@@ -1276,6 +1276,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 					},
 				},
 			},
+		}
 
 		resource.Schema["https_traffic_only_enabled"].Computed = true
 		resource.Schema["https_traffic_only_enabled"].Default = nil
@@ -2241,15 +2242,6 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 	endpoints := flattenAccountEndpoints(primaryEndpoints, secondaryEndpoints, routingPreference)
 	if err := endpoints.set(d); err != nil {
 		return err
-	}
-
-	// Only set the Queue Endpoints in v3.x since in v4.0 these properties will be
-	// moved to the 'azurerm_storage_account_queue_properties' resource...
-	if !features.FourPointOhBeta() {
-		queueEndpoints := flattenAccountQueueEndpoints(primaryEndpoints, secondaryEndpoints, routingPreference)
-		if err := queueEndpoints.set(d); err != nil {
-			return err
-		}
 	}
 
 	storageAccountKeys := make([]storageaccounts.StorageAccountKey, 0)
