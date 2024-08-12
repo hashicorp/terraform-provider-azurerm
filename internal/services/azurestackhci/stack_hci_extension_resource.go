@@ -221,7 +221,7 @@ func (r StackHCIExtensionResource) Read() sdk.ResourceFunc {
 				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(*id)
 				}
-				return fmt.Errorf("reading %s: %+v", id, err)
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
 			// protected_settingss is not returned in the response, so we read it from the state
