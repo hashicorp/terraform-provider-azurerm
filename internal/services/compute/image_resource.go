@@ -198,6 +198,13 @@ func resourceImage() *pluginsdk.Resource {
 							ValidateFunc: validation.NoZeroValues,
 						},
 
+						"disk_encryption_set_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: validate.DiskEncryptionSetID,
+						},
+
 						"storage_type": {
 							Type:         pluginsdk.TypeString,
 							Description:  "The type of storage disk",
@@ -430,6 +437,12 @@ func expandImageDataDisks(disks []interface{}) *[]images.ImageDataDisk {
 			item.ManagedDisk = managedDisk
 		}
 
+		if id := config["disk_encryption_set_id"].(string); id != "" {
+			item.DiskEncryptionSet = &images.SubResource{
+				Id: utils.String(id),
+			}
+		}
+
 		if features.FourPointOhBeta() {
 			item.StorageAccountType = pointer.To(images.StorageAccountTypes(config["storage_type"].(string)))
 		}
@@ -513,13 +526,18 @@ func flattenImageDataDisks(input *images.ImageStorageProfile) []interface{} {
 				if disk.ManagedDisk != nil && disk.ManagedDisk.Id != nil {
 					managedDiskId = *disk.ManagedDisk.Id
 				}
+				diskEncryptionSetId := ""
+				if set := disk.DiskEncryptionSet; set != nil && set.Id != nil {
+					diskEncryptionSetId = *set.Id
+				}
 
 				properties := map[string]interface{}{
-					"blob_uri":        blobUri,
-					"caching":         caching,
-					"lun":             int(disk.Lun),
-					"managed_disk_id": managedDiskId,
-					"size_gb":         diskSizeGb,
+					"blob_uri":               blobUri,
+					"caching":                caching,
+					"lun":                    int(disk.Lun),
+					"managed_disk_id":        managedDiskId,
+					"size_gb":                diskSizeGb,
+					"disk_encryption_set_id": diskEncryptionSetId,
 				}
 
 				if features.FourPointOhBeta() {
