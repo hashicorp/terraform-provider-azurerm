@@ -782,6 +782,46 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"primary_queue_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"primary_queue_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"primary_queue_microsoft_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"primary_queue_microsoft_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_queue_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_queue_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_queue_microsoft_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_queue_microsoft_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"primary_table_endpoint": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -1208,54 +1248,6 @@ func resourceStorageAccount() *pluginsdk.Resource {
 			},
 		}
 
-		resource.Schema["primary_queue_endpoint"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeString,
-			Computed:   true,
-			Deprecated: "`primary_queue_endpoint` will be moved to the `azurerm_storage_account_queue_properties` resource in v4.0 of the provider.",
-		}
-
-		resource.Schema["primary_queue_host"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeString,
-			Computed:   true,
-			Deprecated: "`primary_queue_host` will be moved to the `azurerm_storage_account_queue_properties` resource in v4.0 of the provider.",
-		}
-
-		resource.Schema["primary_queue_microsoft_endpoint"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeString,
-			Computed:   true,
-			Deprecated: "`primary_queue_microsoft_endpoint` will be moved to the `azurerm_storage_account_queue_properties` resource in v4.0 of the provider.",
-		}
-
-		resource.Schema["primary_queue_microsoft_host"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeString,
-			Computed:   true,
-			Deprecated: "`primary_queue_microsoft_host` will be moved to the `azurerm_storage_account_queue_properties` resource in v4.0 of the provider.",
-		}
-
-		resource.Schema["secondary_queue_endpoint"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeString,
-			Computed:   true,
-			Deprecated: "`secondary_queue_endpoint` will be moved to the `azurerm_storage_account_queue_properties` resource in v4.0 of the provider.",
-		}
-
-		resource.Schema["secondary_queue_host"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeString,
-			Computed:   true,
-			Deprecated: "`secondary_queue_host` will be moved to the `azurerm_storage_account_queue_properties` resource in v4.0 of the provider.",
-		}
-
-		resource.Schema["secondary_queue_microsoft_endpoint"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeString,
-			Computed:   true,
-			Deprecated: "`secondary_queue_microsoft_endpoint` will be moved to the `azurerm_storage_account_queue_properties` resource in v4.0 of the provider.",
-		}
-
-		resource.Schema["secondary_queue_microsoft_host"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeString,
-			Computed:   true,
-			Deprecated: "`secondary_queue_microsoft_host` will be moved to the `azurerm_storage_account_queue_properties` resource in v4.0 of the provider.",
-		}
-
 		// lintignore:XS003
 		resource.Schema["static_website"] = &pluginsdk.Schema{
 			Type:       pluginsdk.TypeList,
@@ -1434,7 +1426,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	// nolint staticcheck
 	if v, ok := d.GetOkExists("large_file_share_enabled"); ok {
-		// @tombuildsstuff: we can't set this to `false` because the API returns:
+		// @tombuildsstuff: we cannot set this to `false` because the API returns:
 		//
 		// performing Create: unexpected status 400 (400 Bad Request) with error: InvalidRequestPropertyValue: The
 		// value 'Disabled' is not allowed for property largeFileSharesState. For more information, see -
@@ -1519,7 +1511,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	if val, ok := d.GetOk("blob_properties"); ok {
 		if !supportLevel.supportBlob {
-			return fmt.Errorf("`blob_properties` aren't supported for account kind %q in sku tier %q", accountKind, accountTier)
+			return fmt.Errorf("`blob_properties` are not supported for account kind %q in sku tier %q", accountKind, accountTier)
 		}
 
 		blobProperties, err := expandAccountBlobServiceProperties(accountKind, val.([]interface{}))
@@ -1530,13 +1522,13 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		// See: https://learn.microsoft.com/en-us/azure/storage/blobs/versioning-overview#:~:text=Storage%20accounts%20with%20a%20hierarchical%20namespace%20enabled%20for%20use%20with%20Azure%20Data%20Lake%20Storage%20Gen2%20are%20not%20currently%20supported.
 		isVersioningEnabled := pointer.From(blobProperties.Properties.IsVersioningEnabled)
 		if isVersioningEnabled && isHnsEnabled {
-			return fmt.Errorf("`versioning_enabled` can't be true when `is_hns_enabled` is true")
+			return fmt.Errorf("`versioning_enabled` cannot be true when `is_hns_enabled` is true")
 		}
 
 		if !isVersioningEnabled {
 			if blobProperties.Properties.RestorePolicy != nil && blobProperties.Properties.RestorePolicy.Enabled {
 				// Otherwise, API returns: "Conflicting feature 'restorePolicy' is enabled. Please disable it and retry."
-				return fmt.Errorf("`blob_properties.restore_policy` can't be set when `versioning_enabled` is false")
+				return fmt.Errorf("`blob_properties.restore_policy` cannot be set when `versioning_enabled` is false")
 			}
 
 			immutableStorageWithVersioningEnabled := false
@@ -1550,7 +1542,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			if immutableStorageWithVersioningEnabled {
 				// Otherwise, API returns: "Conflicting feature 'Account level WORM' is enabled. Please disable it and retry."
 				// See: https://learn.microsoft.com/en-us/azure/storage/blobs/immutable-policy-configure-version-scope?tabs=azure-portal#prerequisites
-				return fmt.Errorf("`immutability_policy` can't be set when `versioning_enabled` is false")
+				return fmt.Errorf("`immutability_policy` cannot be set when `versioning_enabled` is false")
 			}
 		}
 
@@ -1561,7 +1553,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 				// Otherwise, API returns: "Required feature Global Dns is disabled"
 				// This is confirmed with the SRP team, where they said:
 				// > restorePolicy feature is incompatible with partitioned DNS
-				return fmt.Errorf("`blob_properties.restore_policy` can't be set when `dns_endpoint_type` is set to `%s`", storageaccounts.DnsEndpointTypeAzureDnsZone)
+				return fmt.Errorf("`blob_properties.restore_policy` cannot be set when `dns_endpoint_type` is set to `%s`", storageaccounts.DnsEndpointTypeAzureDnsZone)
 			}
 		}
 
@@ -1572,34 +1564,13 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	if !features.FourPointOhBeta() {
 		if _, ok := d.GetOk("queue_properties"); ok {
-			// if !supportLevel.supportQueue {
-			// 	return fmt.Errorf("`queue_properties` aren't supported for account kind %q in sku tier %q", accountKind, accountTier)
-			// }
-
-			// if dataPlaneEnabled {
-			// 	queueClient, err := storageClient.QueuesDataPlaneClient(ctx, *dataPlaneAccount, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
-			// 	if err != nil {
-			// 		return fmt.Errorf("building Queues Client: %s", err)
-			// 	}
-
-			// 	queueProperties, err := expandAccountQueueProperties(val.([]interface{}))
-			// 	if err != nil {
-			// 		return fmt.Errorf("expanding `queue_properties`: %+v", err)
-			// 	}
-
-			// 	if err = queueClient.UpdateServiceProperties(ctx, *queueProperties); err != nil {
-			// 		return fmt.Errorf("updating Queue Properties: %+v", err)
-			// 	}
-			// } else {
-			// 	log.Print("[DEBUG] [CREATE] Dataplane has been disabled skipped setting `queue_properties`")
-			// }
 			return fmt.Errorf("the `queue_properties` code block is no longer supported for new storage accounts, please use the `azurerm_storage_account_queue_properties` resource instead")
 		}
 	}
 
 	if val, ok := d.GetOk("share_properties"); ok {
 		if !supportLevel.supportShare {
-			return fmt.Errorf("`share_properties` aren't supported for account kind %q in sku tier %q", accountKind, accountTier)
+			return fmt.Errorf("`share_properties` are not supported for account kind %q in sku tier %q", accountKind, accountTier)
 		}
 
 		sharePayload := expandAccountShareProperties(val.([]interface{}))
@@ -1624,25 +1595,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	if !features.FourPointOhBeta() {
 		if _, ok := d.GetOk("static_website"); ok {
-			// if !supportLevel.supportStaticWebsite {
-			// 	return fmt.Errorf("`static_website` aren't supported for account kind %q in sku tier %q", accountKind, accountTier)
-			// }
-
-			// if dataPlaneEnabled {
-			// 	accountsClient, err := storageClient.AccountsDataPlaneClient(ctx, *dataPlaneAccount, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
-			// 	if err != nil {
-			// 		return fmt.Errorf("building Accounts Data Plane Client: %s", err)
-			// 	}
-
-			// 	staticWebsiteProps := expandAccountStaticWebsiteProperties(val.([]interface{}))
-
-			// 	if _, err = accountsClient.SetServiceProperties(ctx, id.StorageAccountName, staticWebsiteProps); err != nil {
-			// 		return fmt.Errorf("updating `static_website`: %+v", err)
-			// 	}
-			// } else {
-			// 	log.Print("[DEBUG] [CREATE] Dataplane has been disabled skipped setting `static_website`")
-			// }
-			return fmt.Errorf("the `static_website` field is no longer supported for new storage accounts,please use the `azurerm_storage_account_static_website` resource instead")
+			return fmt.Errorf("the `static_website` field is no longer supported for new storage accounts, please use the `azurerm_storage_account_static_website` resource instead")
 		}
 	}
 
@@ -1783,6 +1736,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	if d.HasChange("https_traffic_only_enabled") {
 		props.SupportsHTTPSTrafficOnly = pointer.To(d.Get("https_traffic_only_enabled").(bool))
 	}
+
 	if !features.FourPointOhBeta() {
 		if d.HasChange("enable_https_traffic_only") {
 			props.SupportsHTTPSTrafficOnly = pointer.To(d.Get("enable_https_traffic_only").(bool))
@@ -1801,15 +1755,19 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 		props.LargeFileSharesState = pointer.To(storageaccounts.LargeFileSharesStateEnabled)
 	}
+
 	if d.HasChange("local_user_enabled") {
 		props.IsLocalUserEnabled = pointer.To(d.Get("local_user_enabled").(bool))
 	}
+
 	if d.HasChange("min_tls_version") {
 		props.MinimumTlsVersion = pointer.To(storageaccounts.MinimumTlsVersion(d.Get("min_tls_version").(string)))
 	}
+
 	if d.HasChange("network_rules") {
 		props.NetworkAcls = expandAccountNetworkRules(d.Get("network_rules").([]interface{}), tenantId)
 	}
+
 	if d.HasChange("public_network_access_enabled") {
 		publicNetworkAccess := storageaccounts.PublicNetworkAccessDisabled
 		if d.Get("public_network_access_enabled").(bool) {
@@ -1817,13 +1775,16 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 		props.PublicNetworkAccess = pointer.To(publicNetworkAccess)
 	}
+
 	if d.HasChange("routing") {
 		props.RoutingPreference = expandAccountRoutingPreference(d.Get("routing").([]interface{}))
 	}
+
 	if d.HasChange("sas_policy") {
 		// TODO: Currently, there is no way to represent a `null` value in the payload - instead it will be omitted, `sas_policy` can not be disabled once enabled.
 		props.SasPolicy = expandAccountSASPolicy(d.Get("sas_policy").([]interface{}))
 	}
+
 	if d.HasChange("sftp_enabled") {
 		props.IsSftpEnabled = pointer.To(d.Get("sftp_enabled").(bool))
 	}
@@ -1842,15 +1803,18 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	if d.HasChange("account_kind") {
 		payload.Kind = accountKind
 	}
+
 	if d.HasChange("account_replication_type") {
 		// storageType is derived from "account_replication_type" and "account_tier" (force-new)
 		payload.Sku = storageaccounts.Sku{
 			Name: storageaccounts.SkuName(storageType),
 		}
 	}
+
 	if d.HasChange("identity") {
 		payload.Identity = expandedIdentity
 	}
+
 	if d.HasChange("tags") {
 		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
@@ -1872,6 +1836,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 					},
 				},
 			}
+
 			if _, err := client.Update(ctx, *id, dsNone); err != nil {
 				return fmt.Errorf("updating `azure_files_authentication` for %s: %+v", *id, err)
 			}
@@ -1897,7 +1862,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	if d.HasChange("blob_properties") {
 		if !supportLevel.supportBlob {
-			return fmt.Errorf("`blob_properties` aren't supported for account kind %q in sku tier %q", accountKind, accountTier)
+			return fmt.Errorf("`blob_properties` are not supported for account kind %q in sku tier %q", accountKind, accountTier)
 		}
 
 		blobProperties, err := expandAccountBlobServiceProperties(accountKind, d.Get("blob_properties").([]interface{}))
@@ -1906,7 +1871,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 
 		if blobProperties.Properties.IsVersioningEnabled != nil && *blobProperties.Properties.IsVersioningEnabled && d.Get("is_hns_enabled").(bool) {
-			return fmt.Errorf("`versioning_enabled` can't be true when `is_hns_enabled` is true")
+			return fmt.Errorf("`versioning_enabled` cannot be true when `is_hns_enabled` is true")
 		}
 
 		// Disable restore_policy first. Disabling restore_policy and while setting delete_retention_policy.allow_permanent_delete to true cause error.
@@ -1918,6 +1883,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 					RestorePolicy: expandAccountBlobPropertiesRestorePolicy(v.([]interface{})),
 				},
 			}
+
 			if _, err := storageClient.ResourceManager.BlobService.SetServiceProperties(ctx, *id, blobPayload); err != nil {
 				return fmt.Errorf("updating Azure Storage Account blob restore policy %q: %+v", id.StorageAccountName, err)
 			}
@@ -1928,7 +1894,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 				// Otherwise, API returns: "Required feature Global Dns is disabled"
 				// This is confirmed with the SRP team, where they said:
 				// > restorePolicy feature is incompatible with partitioned DNS
-				return fmt.Errorf("`blob_properties.restore_policy` can't be set when `dns_endpoint_type` is set to `%s`", storageaccounts.DnsEndpointTypeAzureDnsZone)
+				return fmt.Errorf("`blob_properties.restore_policy` cannot be set when `dns_endpoint_type` is set to `%s`", storageaccounts.DnsEndpointTypeAzureDnsZone)
 			}
 		}
 
@@ -1940,7 +1906,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	if !features.FourPointOhBeta() {
 		if d.HasChange("queue_properties") {
 			if !supportLevel.supportQueue {
-				return fmt.Errorf("`queue_properties` aren't supported for account kind %q in sku tier %q", accountKind, accountTier)
+				return fmt.Errorf("`queue_properties` are not supported for account kind %q in sku tier %q", accountKind, accountTier)
 			}
 
 			if dataPlaneEnabled {
@@ -1973,7 +1939,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	if d.HasChange("share_properties") {
 		if !supportLevel.supportShare {
-			return fmt.Errorf("`share_properties` aren't supported for account kind %q in sku tier %q", accountKind, accountTier)
+			return fmt.Errorf("`share_properties` are not supported for account kind %q in sku tier %q", accountKind, accountTier)
 		}
 
 		sharePayload := expandAccountShareProperties(d.Get("share_properties").([]interface{}))
@@ -1997,7 +1963,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	if !features.FourPointOhBeta() {
 		if d.HasChange("static_website") {
 			if !supportLevel.supportStaticWebsite {
-				return fmt.Errorf("`static_website` aren't supported for account kind %q in sku tier %q", accountKind, accountTier)
+				return fmt.Errorf("`static_website` are not supported for account kind %q in sku tier %q", accountKind, accountTier)
 			}
 
 			if dataPlaneEnabled {
