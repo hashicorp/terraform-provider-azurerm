@@ -697,6 +697,10 @@ resource "azurerm_automation_runbook" "test" {
   publish_content_link {
     uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/c4935ffb69246a6058eb24f54640f53f69d3ac9f/101-automation-runbook-getvms/Runbooks/Get-AzureVMTutorial.ps1"
   }
+
+  lifecycle {
+    ignore_changes = [content]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -1075,6 +1079,10 @@ resource "azurerm_automation_runbook" "test" {
 
   publish_content_link {
     uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/c4935ffb69246a6058eb24f54640f53f69d3ac9f/101-automation-runbook-getvms/Runbooks/Get-AzureVMTutorial.ps1"
+  }
+
+  lifecycle {
+    ignore_changes = [content]
   }
 }
 
