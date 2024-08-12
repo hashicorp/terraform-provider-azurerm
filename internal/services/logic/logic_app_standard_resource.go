@@ -871,6 +871,7 @@ func schemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
 						"v4.0",
 						"v5.0",
 						"v6.0",
+						"v8.0",
 					}, false),
 				},
 
