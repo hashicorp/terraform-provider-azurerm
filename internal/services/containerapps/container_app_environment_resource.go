@@ -104,14 +104,14 @@ func (r ContainerAppEnvironmentResource) Arguments() map[string]*pluginsdk.Schem
 			ValidateFunc:          resourcegroups.ValidateName,
 			DiffSuppressOnRefresh: true,
 			DiffSuppressFunc: func(k, oldValue, newValue string, d *pluginsdk.ResourceData) bool { // If this is omitted, and there is a non-consumption profile, then the service generates a value for the required manage resource group.
-				if profiles := d.Get("workload_profile").(*pluginsdk.Set).List(); len(profiles) > 0 && newValue == "" && newValue == oldValue {
+				if profiles := d.Get("workload_profile").(*pluginsdk.Set).List(); len(profiles) > 0 && newValue == "" {
 					for _, profile := range profiles {
 						if profile.(map[string]interface{})["workload_profile_type"].(string) != string(helpers.WorkloadProfileSkuConsumption) {
-							return false
+							return true
 						}
 					}
 				}
-				return true
+				return false
 			},
 			Description: "Name of the platform-managed resource group created for the Managed Environment to host infrastructure resources. **Note:** Only valid if a `workload_profile` is specified. If `infrastructure_subnet_id` is specified, this resource group will be created in the same subscription as `infrastructure_subnet_id`.",
 		},
