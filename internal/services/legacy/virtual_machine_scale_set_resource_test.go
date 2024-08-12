@@ -3546,7 +3546,7 @@ resource "azurerm_application_gateway" "test" {
     # backend_http_settings_id = computed
     backend_http_settings_name = "backend-http-1"
 
-    priority                   = 10
+    priority = 10
   }
 
   tags = {
@@ -4984,14 +4984,14 @@ resource "azurerm_public_ip" "test" {
   resource_group_name     = azurerm_resource_group.test.name
   allocation_method       = "Dynamic"
   idle_timeout_in_minutes = 4
-  sku = "Basic"
+  sku                     = "Basic"
 }
 
 resource "azurerm_lb" "test" {
   name                = "acctestlb-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku = "Basic"
+  sku                 = "Basic"
 
   frontend_ip_configuration {
     name                 = "PublicIPAddress"
@@ -5129,14 +5129,14 @@ resource "azurerm_public_ip" "test" {
   resource_group_name     = azurerm_resource_group.test.name
   allocation_method       = "Dynamic"
   idle_timeout_in_minutes = 4
-  sku = "Basic"
+  sku                     = "Basic"
 }
 
 resource "azurerm_lb" "test" {
   name                = "acctestlb-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku = "Basic"
+  sku                 = "Basic"
 
   frontend_ip_configuration {
     name                 = "PublicIPAddress"
