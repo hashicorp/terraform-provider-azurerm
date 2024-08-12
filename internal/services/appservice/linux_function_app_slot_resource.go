@@ -74,7 +74,7 @@ type LinuxFunctionAppSlotModel struct {
 	SiteCredentials                  []helpers.SiteCredential                   `tfschema:"site_credential"`
 	StorageAccounts                  []helpers.StorageAccount                   `tfschema:"storage_account"`
 	Identity                         []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
-	// VnetImagePullEnabled             bool                                       `tfschema:"vnet_image_pull_enabled"` // TODO 4.0 not supported on Consumption plans
+	VnetImagePullEnabled             bool                                       `tfschema:"vnet_image_pull_enabled,addedInNextMajorVersion"`
 }
 
 var _ sdk.ResourceWithUpdate = LinuxFunctionAppSlotResource{}
@@ -439,8 +439,8 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 					availabilityRequest.Name = fmt.Sprintf("%s.%s", functionAppSlot.Name, nameSuffix)
 					availabilityRequest.IsFqdn = pointer.To(true)
 					if features.FourPointOhBeta() {
-						if !metadata.ResourceData.Get("vnet_image_pull_enabled").(bool) {
-							return fmt.Errorf("`vnet_image_pull_enabled` cannot be disabled for app running in an app service environment.")
+						if !functionAppSlot.VnetImagePullEnabled {
+							return fmt.Errorf("`vnet_image_pull_enabled` cannot be disabled for app running in an app service environment")
 						}
 					}
 				}
@@ -537,7 +537,7 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 			}
 
 			if features.FourPointOhBeta() {
-				siteEnvelope.Properties.VnetImagePullEnabled = pointer.To(metadata.ResourceData.Get("vnet_image_pull_enabled").(bool))
+				siteEnvelope.Properties.VnetImagePullEnabled = pointer.To(functionAppSlot.VnetImagePullEnabled)
 			}
 
 			pan := helpers.PublicNetworkAccessEnabled
@@ -758,7 +758,7 @@ func (r LinuxFunctionAppSlotResource) Read() sdk.ResourceFunc {
 					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
 
 					if features.FourPointOhBeta() {
-						metadata.ResourceData.Set("vnet_image_pull_enabled", pointer.From(props.VnetImagePullEnabled))
+						state.VnetImagePullEnabled = pointer.From(props.VnetImagePullEnabled)
 					}
 					if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
 						state.HostingEnvId = pointer.From(hostingEnv.Id)
@@ -948,7 +948,7 @@ func (r LinuxFunctionAppSlotResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("vnet_image_pull_enabled") && features.FourPointOhBeta() {
-				model.Properties.VnetImagePullEnabled = pointer.To(metadata.ResourceData.Get("vnet_image_pull_enabled").(bool))
+				model.Properties.VnetImagePullEnabled = pointer.To(state.VnetImagePullEnabled)
 			}
 
 			storageString := state.StorageAccountName
@@ -1238,7 +1238,7 @@ func (r LinuxFunctionAppSlotResource) CustomizeDiff() sdk.ResourceFunc {
 				}
 				if functionAppModel := functionApp.Model; functionAppModel != nil && functionAppModel.Properties != nil {
 					if ase := functionAppModel.Properties.HostingEnvironmentProfile; ase != nil && ase.Id != nil && *(ase.Id) != "" && !newValue.(bool) {
-						return fmt.Errorf("`vnet_image_pull_enabled` cannot be disabled for app slot running in an app service environment.")
+						return fmt.Errorf("`vnet_image_pull_enabled` cannot be disabled for app slot running in an app service environment")
 					}
 				}
 			}

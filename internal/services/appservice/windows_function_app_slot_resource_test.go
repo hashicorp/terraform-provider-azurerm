@@ -3163,7 +3163,6 @@ resource "azurerm_windows_function_app_slot" "test" {
 `, r.template(data, planSku), data.RandomInteger, data.RandomInteger)
 }
 
-// TODO 4.0 enable the vnet_image_pull_enabled property for app running in ase env
 func (r WindowsFunctionAppSlotResource) withASEV3(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
@@ -3185,7 +3184,7 @@ resource "azurerm_windows_function_app" "test" {
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
-  // vnet_image_pull_enabled = true
+  vnet_image_pull_enabled = true
   site_config {
     vnet_route_all_enabled = true
   }
@@ -3197,7 +3196,7 @@ resource "azurerm_windows_function_app_slot" "test" {
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
-  // vnet_image_pull_enabled = true
+  vnet_image_pull_enabled = true
   site_config {
     vnet_route_all_enabled = true
   }

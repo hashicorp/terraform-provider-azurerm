@@ -71,8 +71,7 @@ type LinuxFunctionAppModel struct {
 	PublishingDeployBasicAuthEnabled bool                                       `tfschema:"webdeploy_publish_basic_authentication_enabled"`
 	PublishingFTPBasicAuthEnabled    bool                                       `tfschema:"ftp_publish_basic_authentication_enabled"`
 	Identity                         []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
-
-	// VnetImagePullEnabled             bool                                       `tfschema:"vnet_image_pull_enabled"` // TODO 4.0 not supported on Consumption plans
+	VnetImagePullEnabled             bool                                       `tfschema:"vnet_image_pull_enabled,addedInNextMajorVersion"`
 
 	// Computed
 	CustomDomainVerificationId    string   `tfschema:"custom_domain_verification_id"`
@@ -438,8 +437,8 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 					availabilityRequest.Name = fmt.Sprintf("%s.%s", functionApp.Name, nameSuffix)
 					availabilityRequest.IsFqdn = pointer.To(true)
 					if features.FourPointOhBeta() {
-						if !metadata.ResourceData.Get("vnet_image_pull_enabled").(bool) {
-							return fmt.Errorf("`vnet_image_pull_enabled` cannot be disabled for app running in an app service environment.")
+						if !functionApp.VnetImagePullEnabled {
+							return fmt.Errorf("`vnet_image_pull_enabled` cannot be disabled for app running in an app service environment")
 						}
 					}
 				}
@@ -543,7 +542,7 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 				},
 			}
 			if features.FourPointOhBeta() {
-				siteEnvelope.Properties.VnetImagePullEnabled = pointer.To(metadata.ResourceData.Get("vnet_image_pull_enabled").(bool))
+				siteEnvelope.Properties.VnetImagePullEnabled = pointer.To(functionApp.VnetImagePullEnabled)
 			}
 
 			pna := helpers.PublicNetworkAccessEnabled
@@ -786,7 +785,7 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
 
 					if features.FourPointOhBeta() {
-						metadata.ResourceData.Set("vnet_image_pull_enabled", pointer.From(props.VnetImagePullEnabled))
+						state.VnetImagePullEnabled = pointer.From(props.VnetImagePullEnabled)
 					}
 					servicePlanId, err := commonids.ParseAppServicePlanIDInsensitively(*props.ServerFarmId)
 					if err != nil {
@@ -954,7 +953,7 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("vnet_image_pull_enabled") && features.FourPointOhBeta() {
-				model.Properties.VnetImagePullEnabled = pointer.To(metadata.ResourceData.Get("vnet_image_pull_enabled").(bool))
+				model.Properties.VnetImagePullEnabled = pointer.To(state.VnetImagePullEnabled)
 			}
 
 			if metadata.ResourceData.HasChange("client_certificate_enabled") {
@@ -1257,9 +1256,16 @@ func (r LinuxFunctionAppResource) CustomizeDiff() sdk.ResourceFunc {
 				if aspModel := asp.Model; aspModel != nil {
 					if aspModel.Properties != nil && aspModel.Properties.HostingEnvironmentProfile != nil &&
 						aspModel.Properties.HostingEnvironmentProfile.Id != nil && *(aspModel.Properties.HostingEnvironmentProfile.Id) != "" && !newValue.(bool) {
-						return fmt.Errorf("`vnet_image_pull_enabled` cannot be disabled for app running in an app service environment.")
+						return fmt.Errorf("`vnet_image_pull_enabled` cannot be disabled for app running in an app service environment")
+					}
+					if sku := aspModel.Sku; sku != nil {
+						if helpers.PlanIsConsumption(sku.Name) && newValue.(bool) {
+							return fmt.Errorf("`vnet_image_pull_enabled` cannot be enabled on consumption plans")
+						}
+
 					}
 				}
+
 			}
 			if rd.HasChange("service_plan_id") {
 				currentPlanIdRaw, newPlanIdRaw := rd.GetChange("service_plan_id")
