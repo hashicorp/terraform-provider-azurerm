@@ -79,6 +79,13 @@ func TestAccDNSResolverInboundEndpoint_update(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.forceNew(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -209,9 +216,49 @@ resource "azurerm_private_dns_resolver_inbound_endpoint" "test" {
 }
 
 func (r DNSResolverInboundEndpointResource) update(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
-			%s
+	%s
+
+resource "azurerm_private_dns_resolver_inbound_endpoint" "test" {
+  name                    = "acctest-drie-%d"
+  private_dns_resolver_id = azurerm_private_dns_resolver.test.id
+  location                = azurerm_private_dns_resolver.test.location
+  ip_configurations {
+    subnet_id = azurerm_subnet.test.id
+  }
+  tags = {
+    key = "updated value"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r DNSResolverInboundEndpointResource) forceNew(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctest-rg-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctest-vnet-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  address_space       = ["10.0.0.0/16"]
+}
+
+resource "azurerm_private_dns_resolver" "test" {
+  name                = "acctest-dr-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  virtual_network_id  = azurerm_virtual_network.test.id
+}
+
 resource "azurerm_subnet" "test1" {
   name                 = "inbounddns1"
   resource_group_name  = azurerm_resource_group.test.name
@@ -228,17 +275,17 @@ resource "azurerm_subnet" "test1" {
 }
 
 resource "azurerm_private_dns_resolver_inbound_endpoint" "test" {
-  name                    = "acctest-drie-%d"
+  name                    = "acctest-drie-%[1]d"
   private_dns_resolver_id = azurerm_private_dns_resolver.test.id
   location                = azurerm_private_dns_resolver.test.location
   ip_configurations {
-    subnet_id = azurerm_subnet.test.id
+    subnet_id = azurerm_subnet.test1.id
   }
   tags = {
     key = "updated value"
   }
 }
-`, template, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r DNSResolverInboundEndpointResource) static(data acceptance.TestData) string {
