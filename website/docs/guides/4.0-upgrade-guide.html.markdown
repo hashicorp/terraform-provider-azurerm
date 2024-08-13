@@ -70,7 +70,7 @@ Below is an overview of the changes coming 4.0. Each topic is covered in more de
 * [Improved Resource Provider Registration](#improved-resource-provider-registration)
 * [Provider Functions](#provider-functions)
 * [Additional Properties for Subnets in the Virtual Network Resource](#additional-properties-for-subnets-in-the-virtual-network-resource)
-* [AKS migration to stable API](#aks-migration-to-stable-api)
+* [Azure Kubernetes Service (AKS) migration to stable API](#aks-migration-to-stable-api)
 * [Removed Resources](#removed-resources)
 * [Removed Data Sources](#removed-data-sources)
 * [Breaking Changes in Resources](#behaviour-changes-and-removed-properties-in-resources)
