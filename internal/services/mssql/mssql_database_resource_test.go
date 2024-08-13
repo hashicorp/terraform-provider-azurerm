@@ -1266,10 +1266,9 @@ func (r MsSqlDatabaseResource) gpServerlessWithNullLicenseType(data acceptance.T
 %[1]s
 
 resource "azurerm_mssql_database" "test" {
-  name         = "acctest-db-%[2]d"
-  server_id    = azurerm_mssql_server.test.id
-  sku_name     = "GP_S_Gen5_2"
-  license_type = null
+  name      = "acctest-db-%[2]d"
+  server_id = azurerm_mssql_server.test.id
+  sku_name  = "GP_S_Gen5_2"
 }
 `, r.template(data), data.RandomInteger)
 }
