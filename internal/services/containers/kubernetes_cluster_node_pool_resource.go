@@ -983,15 +983,21 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 	if model := resp.Model; model != nil && model.Properties != nil {
 		props := model.Properties
 		d.Set("zones", zones.FlattenUntyped(props.AvailabilityZones))
-		if features.FourPointOh() {
+
+		switch {
+		case features.FourPointOh():
 			d.Set("auto_scaling_enabled", props.EnableAutoScaling)
 			d.Set("node_public_ip_enabled", props.EnableNodePublicIP)
 			d.Set("host_encryption_enabled", props.EnableEncryptionAtHost)
-		} else {
+		case features.FourPointOhBeta():
 			d.Set("enable_auto_scaling", props.EnableAutoScaling)
 			d.Set("enable_node_public_ip", props.EnableNodePublicIP)
 			d.Set("enable_host_encryption", props.EnableEncryptionAtHost)
+		default:
 			d.Set("custom_ca_trust_enabled", props.EnableCustomCATrust)
+			d.Set("enable_auto_scaling", props.EnableAutoScaling)
+			d.Set("enable_node_public_ip", props.EnableNodePublicIP)
+			d.Set("enable_host_encryption", props.EnableEncryptionAtHost)
 		}
 		d.Set("fips_enabled", props.EnableFIPS)
 		d.Set("ultra_ssd_enabled", props.EnableUltraSSD)
