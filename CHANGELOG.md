@@ -10,7 +10,11 @@ ENHANCEMENTS:
 
 * `notificationhub` - updating to use version `2023-09-01` [GH-26528]
 * `azurerm_cosmosdb_account` - add support for the property `burst_capacity_enabled` [GH-26986]
+* `azurerm_linux_function_app` - add support for `vnet_image_pull_enabled` property in 4.0 [GH-27001]
+* `azurerm_linux_function_app_slot` - add support for `vnet_image_pull_enabled` property in 4.0 [GH-27001]
 * `azurerm_logic_app_standard` - add support for `v8.0` in `site_config.dotnet_framework_version` [GH-26983]
+* `azurerm_windows_function_app` - add support for `vnet_image_pull_enabled` property in 4.0 [GH-27001]
+* `azurerm_windows_function_app_slot` - add support for `vnet_image_pull_enabled` property in 4.0 [GH-27001]
 
 BUG FIXES:
 
