@@ -1572,6 +1572,10 @@ func TestAccLinuxFunctionApp_storageAccountKeyVaultSecretVersionless(t *testing.
 
 // TODO 4.0 remove post 4.0
 func TestAccLinuxFunctionAppASEv3_basic(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("skipped as test not valid in 4.0 mode")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
 	r := LinuxFunctionAppResource{}
 
@@ -4717,6 +4721,8 @@ resource "azurerm_linux_function_app" "test" {
   site_config {
     vnet_route_all_enabled = true
   }
+
+  vnet_image_pull_enabled = true // Must be true for ASE deployed apps
 }
 `, ServicePlanResource{}.aseV3Linux(data), data.RandomString, data.RandomInteger)
 }
