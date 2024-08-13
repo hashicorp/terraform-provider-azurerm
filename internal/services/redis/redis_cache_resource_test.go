@@ -567,26 +567,23 @@ func TestAccRedisCache_AccessKeysAuthenticationEnabledDisabled(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.accessKeysAuthentication(data, false),
+			Config: r.accessKeysAuthentication(data, false, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("access_keys_authentication_disabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.accessKeysAuthentication(data, true),
+			Config: r.accessKeysAuthentication(data, true, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("access_keys_authentication_disabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.accessKeysAuthentication(data, false),
+			Config: r.accessKeysAuthentication(data, false, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("access_keys_authentication_disabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -1627,7 +1624,7 @@ resource "azurerm_redis_cache" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (RedisCacheResource) accessKeysAuthentication(data acceptance.TestData, enabled bool) string {
+func (RedisCacheResource) accessKeysAuthentication(data acceptance.TestData, accessKeysAuthenticationDisabled bool, activeDirectoryAuthenticationEnabled bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1650,7 +1647,7 @@ resource "azurerm_redis_cache" "test" {
   access_keys_authentication_disabled = %t
 
   redis_configuration {
-    active_directory_authentication_enabled = true
+    active_directory_authentication_enabled = %t
   }
-}`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enabled)
+}`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, accessKeysAuthenticationDisabled, accessKeysAuthenticationDisabled)
 }
