@@ -3,6 +3,7 @@
 FEATURES:
 
 * New Resource: `azurerm_communication_service_email_domain_association` [GH-26432]
+* New Resource: `azurerm_extended_location_custom_location` [GH-24267]
 * New Resource: `azurerm_postgresql_flexible_server_virtual_endpoint` [GH-26708]
 
 ENHANCEMENTS:
