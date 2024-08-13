@@ -264,7 +264,7 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Read() sdk.Res
 
 func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 120 * time.Minute,
+		Timeout: 180 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MSSQLManagedInstance.ManagedInstanceAdministratorsClient
 			aadAuthOnlyClient := metadata.Client.MSSQLManagedInstance.ManagedInstanceAzureADOnlyAuthenticationsClient

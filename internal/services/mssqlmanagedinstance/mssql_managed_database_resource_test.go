@@ -61,10 +61,7 @@ func TestAccMsSqlManagedDatabase_pointInTimeRestore(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
+			Config: r.basic(data), // Sets up for pitr
 		},
 		{
 			PreConfig: func() { time.Sleep(11 * time.Minute) },

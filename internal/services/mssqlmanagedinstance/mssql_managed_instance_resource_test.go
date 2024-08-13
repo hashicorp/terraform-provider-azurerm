@@ -1026,7 +1026,7 @@ func TestAccMsSqlManagedInstance_update(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.basicZRS(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1040,7 +1040,7 @@ func TestAccMsSqlManagedInstance_update(t *testing.T) {
 		},
 		data.ImportStep("administrator_login_password"),
 		{
-			Config: r.basic(data),
+			Config: r.basicZRS(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1294,6 +1294,50 @@ resource "azurerm_mssql_managed_instance" "test" {
 `, r.template(data, data.Locations.Primary), data.RandomInteger)
 }
 
+func (r MsSqlManagedInstanceResource) basicZRS(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+provider "azurerm" {
+  features {
+    resource_group {
+      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
+      prevent_deletion_if_contains_resources has been added here to allow the test resources to be
+       deleted until this can be properly investigated
+      */
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
+resource "azurerm_mssql_managed_instance" "test" {
+  name                = "acctestsqlserver%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  license_type         = "BasePrice"
+  sku_name             = "GP_Gen5"
+  storage_account_type = ZRS
+  storage_size_in_gb   = 32
+  subnet_id            = azurerm_subnet.test.id
+  vcores               = 4
+
+  administrator_login          = "missadministrator"
+  administrator_login_password = "NCC-1701-D"
+
+  depends_on = [
+    azurerm_subnet_network_security_group_association.test,
+    azurerm_subnet_route_table_association.test,
+  ]
+
+  tags = {
+    environment = "staging"
+    database    = "test"
+  }
+}
+`, r.template(data, data.Locations.Primary), data.RandomInteger)
+}
+
 func (r MsSqlManagedInstanceResource) premium(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
@@ -1454,6 +1498,7 @@ resource "azurerm_mssql_managed_instance" "test" {
   proxy_override               = "Proxy"
   public_data_endpoint_enabled = true
   sku_name                     = "GP_Gen5"
+  storage_account_type         = ZRS
   storage_size_in_gb           = 64
   subnet_id                    = azurerm_subnet.test.id
   timezone_id                  = "Pacific Standard Time"
