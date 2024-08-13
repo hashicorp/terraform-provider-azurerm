@@ -734,13 +734,13 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 			Deprecated: "This property is deprecated and will be removed in v4.0 of the AzureRM Provider in favour of the `node_public_ip_enabled` property.",
 		}
 		resource.Schema["storage_profile"].Elem.(*pluginsdk.Resource).Schema["disk_driver_version"] = &pluginsdk.Schema{
-			Deprecated: "This feature is a preview feature and will be removed in version 4.0 of the AzureRM Provider.",
+			Deprecated: "This property is not available in the stable API and will be removed in v4.0 of the Azure Provider. Please see https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/4.0-upgrade-guide#aks-migration-to-stable-api for more details.",
 			Type:       pluginsdk.TypeString,
 			Computed:   true,
 		}
 
 		resource.Schema["custom_ca_trust_certificates_base64"] = &pluginsdk.Schema{
-			Deprecated: "This feature is a preview feature and will be removed in version 4.0 of the AzureRM Provider.",
+			Deprecated: "This property is not available in the stable API and will be removed in v4.0 of the Azure Provider. Please see https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/4.0-upgrade-guide#aks-migration-to-stable-api for more details.",
 			Type:       pluginsdk.TypeList,
 			Computed:   true,
 			Elem: &pluginsdk.Schema{

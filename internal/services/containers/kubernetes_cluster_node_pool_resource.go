@@ -403,7 +403,7 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 
 	if !features.FourPointOhBeta() {
 		s["message_of_the_day"] = &pluginsdk.Schema{
-			Deprecated:   "This feature is a preview feature and will be removed in version 4.0 of the AzureRM Provider.",
+			Deprecated:   "This property is not available in the stable API and will be removed in v4.0 of the Azure Provider. Please see https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/4.0-upgrade-guide#aks-migration-to-stable-api for more details.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -411,7 +411,7 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		}
 
 		s["custom_ca_trust_enabled"] = &pluginsdk.Schema{
-			Deprecated: "This feature is a preview feature and will be removed in version 4.0 of the AzureRM Provider.",
+			Deprecated: "This property is not available in the stable API and will be removed in v4.0 of the Azure Provider. Please see https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/4.0-upgrade-guide#aks-migration-to-stable-api for more details.",
 			Type:       pluginsdk.TypeBool,
 			Optional:   true,
 		}

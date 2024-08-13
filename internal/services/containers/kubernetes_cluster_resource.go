@@ -1505,18 +1505,18 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			ConflictsWith: []string{"api_server_access_profile.0.authorized_ip_ranges"},
 		}
 		resource.Schema["api_server_access_profile"].Elem.(*pluginsdk.Resource).Schema["vnet_integration_enabled"] = &pluginsdk.Schema{
-			Deprecated: "This feature is a preview feature and will be removed in version 4.0 of the AzureRM Provider.",
+			Deprecated: "This property is not available in the stable API and will be removed in v4.0 of the Azure Provider. Please see https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/4.0-upgrade-guide#aks-migration-to-stable-api for more details.",
 			Type:       pluginsdk.TypeBool,
 			Optional:   true,
 		}
 		resource.Schema["api_server_access_profile"].Elem.(*pluginsdk.Resource).Schema["subnet_id"] = &pluginsdk.Schema{
-			Deprecated:   "This feature is a preview feature and will be removed in version 4.0 of the AzureRM Provider.",
+			Deprecated:   "This property is not available in the stable API and will be removed in v4.0 of the Azure Provider. Please see https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/4.0-upgrade-guide#aks-migration-to-stable-api for more details.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: commonids.ValidateSubnetID,
 		}
 		resource.Schema["custom_ca_trust_certificates_base64"] = &pluginsdk.Schema{
-			Deprecated: "This feature is a preview feature and will be removed in version 4.0 of the AzureRM Provider.",
+			Deprecated: "This property is not available in the stable API and will be removed in v4.0 of the Azure Provider. Please see https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/4.0-upgrade-guide#aks-migration-to-stable-api for more details.",
 			Type:       pluginsdk.TypeList,
 			Optional:   true,
 			MaxItems:   10,
@@ -1526,7 +1526,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			},
 		}
 		resource.Schema["storage_profile"].Elem.(*pluginsdk.Resource).Schema["disk_driver_version"] = &pluginsdk.Schema{
-			Deprecated: "This feature is a preview feature and will be removed in version 4.0 of the AzureRM Provider.",
+			Deprecated: "This property is not available in the stable API and will be removed in v4.0 of the Azure Provider. Please see https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/4.0-upgrade-guide#aks-migration-to-stable-api for more details.",
 			Type:       pluginsdk.TypeString,
 			Optional:   true,
 			Default:    "v1",
