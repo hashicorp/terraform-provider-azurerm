@@ -31,6 +31,7 @@ func LongTermRetentionPolicySchema() *pluginsdk.Schema {
 				"weekly_retention": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
+					Default:      "PT0S",
 					ValidateFunc: validate.ISO8601Duration,
 					AtLeastOneOf: atLeastOneOf,
 				},
@@ -39,6 +40,7 @@ func LongTermRetentionPolicySchema() *pluginsdk.Schema {
 				"monthly_retention": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
+					Default:      "PT0S",
 					ValidateFunc: validate.ISO8601Duration,
 					AtLeastOneOf: atLeastOneOf,
 				},
@@ -47,6 +49,7 @@ func LongTermRetentionPolicySchema() *pluginsdk.Schema {
 				"yearly_retention": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
+					Default:      "PT0S",
 					ValidateFunc: validate.ISO8601Duration,
 					AtLeastOneOf: atLeastOneOf,
 				},

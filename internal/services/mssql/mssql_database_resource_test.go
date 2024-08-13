@@ -1839,10 +1839,6 @@ resource "azurerm_mssql_database" "test" {
     yearly_retention = "P1Y"
     week_of_year     = 2
   }
-
-  lifecycle {
-    ignore_changes = [long_term_retention_policy.0.monthly_retention]
-  }
 }
 `, r.template(data), data.RandomIntOfLength(15), data.RandomInteger)
 }
@@ -1872,10 +1868,6 @@ resource "azurerm_mssql_database" "test" {
   server_id = azurerm_mssql_server.test.id
   long_term_retention_policy {
     weekly_retention = "P10D"
-  }
-
-  lifecycle {
-    ignore_changes = [long_term_retention_policy.0.monthly_retention, long_term_retention_policy.0.yearly_retention]
   }
 }
 `, r.template(data), data.RandomIntOfLength(15), data.RandomInteger)
