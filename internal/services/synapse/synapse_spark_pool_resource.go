@@ -112,6 +112,7 @@ func resourceSynapseSparkPool() *pluginsdk.Resource {
 			"node_count": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
+				Computed:     true,
 				ValidateFunc: validation.IntBetween(3, 200),
 				ExactlyOneOf: []string{"node_count", "auto_scale"},
 			},
