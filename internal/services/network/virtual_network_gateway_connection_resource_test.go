@@ -67,7 +67,7 @@ func TestAccVirtualNetworkGatewayConnection_siteToSiteWithoutSharedKey(t *testin
 }
 
 func TestAccVirtualNetworkGatewayConnection_expressRoute(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection ", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test")
 	r := VirtualNetworkGatewayConnectionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
