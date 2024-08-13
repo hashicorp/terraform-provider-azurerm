@@ -1252,7 +1252,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 		resource.Schema["static_website"] = &pluginsdk.Schema{
 			Type:       pluginsdk.TypeList,
 			Optional:   true,
-			Deprecated: "As the `static_website` field requires reaching out to the dataplane, to better support private endpoints and storage accounts with public network access disabled, new storage accounts will be required to use the `azurerm_storage_account_static_website` resource instead of the exposed `static_website` field in the storage account resource itself.",
+			Deprecated: "As the `static_website` field requires reaching out to the dataplane, to better support private endpoints and storage accounts with public network access disabled, new storage accounts will be required to use the `azurerm_storage_account_static_website_properties` resource instead of the exposed `static_website` field in the storage account resource itself.",
 			MaxItems:   1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -1319,7 +1319,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 
 		if _, ok := d.GetOk("static_website"); ok {
-			return fmt.Errorf("the `static_website` field is no longer supported for new storage accounts, please use the `azurerm_storage_account_static_website` resource instead")
+			return fmt.Errorf("the `static_website` field is no longer supported for new storage accounts, please use the `azurerm_storage_account_static_website_properties` resource instead")
 		}
 	}
 
