@@ -586,7 +586,6 @@ resource "azurerm_virtual_network_gateway_connection" "test" {
   express_route_circuit_id   = azurerm_express_route_circuit.test.id
   authorization_key          = azurerm_express_route_circuit_authorization.test.authorization_key
   routing_weight             = "0"
-  shared_key                 = "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -696,7 +695,6 @@ resource "azurerm_virtual_network_gateway_connection" "test" {
   routing_weight                 = "0"
   express_route_gateway_bypass   = true
   private_link_fast_path_enabled = true
-  shared_key                     = "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -1876,7 +1874,7 @@ resource "azurerm_virtual_network_gateway_nat_rule" "test" {
 }
 
 resource "azurerm_virtual_network_gateway_nat_rule" "test4" {
-  name                       = "acctestvnetgwegressnatrule-%d"
+  name                       = "acctestvnetgwegressnatrule4-%d"
   resource_group_name        = azurerm_resource_group.test.name
   virtual_network_gateway_id = data.azurerm_virtual_network_gateway.test.id
   mode                       = "EgressSnat"
@@ -2025,7 +2023,7 @@ resource "azurerm_virtual_network_gateway_nat_rule" "test" {
 }
 
 resource "azurerm_virtual_network_gateway_nat_rule" "test4" {
-  name                       = "acctestvnetgwegressnatrule-%d"
+  name                       = "acctestvnetgwegressnatrule4-%d"
   resource_group_name        = azurerm_resource_group.test.name
   virtual_network_gateway_id = data.azurerm_virtual_network_gateway.test.id
   mode                       = "EgressSnat"
@@ -2042,7 +2040,7 @@ resource "azurerm_virtual_network_gateway_nat_rule" "test4" {
 }
 
 resource "azurerm_virtual_network_gateway_nat_rule" "test2" {
-  name                       = "acctestvnetgwingressnatrule-%d"
+  name                       = "acctestvnetgwingressnatrule2-%d"
   resource_group_name        = azurerm_resource_group.test.name
   virtual_network_gateway_id = data.azurerm_virtual_network_gateway.test.id
   mode                       = "IngressSnat"
@@ -2059,7 +2057,7 @@ resource "azurerm_virtual_network_gateway_nat_rule" "test2" {
 }
 
 resource "azurerm_virtual_network_gateway_nat_rule" "test3" {
-  name                       = "acctestvnetgwingressnatrule-%d"
+  name                       = "acctestvnetgwingressnatrule3-%d"
   resource_group_name        = azurerm_resource_group.test.name
   virtual_network_gateway_id = data.azurerm_virtual_network_gateway.test.id
   mode                       = "IngressSnat"
