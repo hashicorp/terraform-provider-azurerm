@@ -257,6 +257,8 @@ In order to provide a more reliable experience when using the Azure Provider Mic
 
 * The property `message_of_the_day` has been removed from the `azurerm_kubernetes_cluster` and `azurerm_kubernetes_cluster_node_pool` resources.
 
+If you wish to use these or any other AKS preview features and accept the risk that comes with using preview features, the [AzAPI Provider](https://registry.terraform.io/providers/Azure/azapi/latest/docs) can be used the access these. Please note that changes made by AzAPI to a resource managed by the Azure Provider can have unexpected behavioral outcomes in the resource and terraform configuration consequences, such as diffs or resources being marked for recreation.
+
 ## Removed Resources
 
 ### `azurerm_app_service_environment` 
