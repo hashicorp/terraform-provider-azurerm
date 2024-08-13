@@ -346,7 +346,7 @@ func (r MsSqlManagedDatabaseResource) Delete() sdk.ResourceFunc {
 }
 
 func expandLongTermRetentionPolicy(ltrPolicy []LongTermRetentionPolicy) managedinstancelongtermretentionpolicies.ManagedInstanceLongTermRetentionPolicyProperties {
-	if ltrPolicy == nil || len(ltrPolicy) == 0 {
+	if len(ltrPolicy) == 0 {
 		return managedinstancelongtermretentionpolicies.ManagedInstanceLongTermRetentionPolicyProperties{}
 	}
 
