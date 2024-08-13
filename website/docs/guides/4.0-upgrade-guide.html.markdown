@@ -934,6 +934,7 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 ### `azurerm_nginx_deployment`
 
 * The deprecated block `configuration` has been removed in favour of the `azurerm_nginx_configuration` resource.
+* The property `capacity` no longer has a default value of 20. `sku`s that support scaling now require either `capacity` or `auto_scale_profiles`.
 
 ### `azurerm_orchestrated_virtual_machine_scale_set`
 
