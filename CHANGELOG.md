@@ -1,5 +1,8 @@
 ## 3.116.0 (Unreleased)
 
+FEATURES:
+* New Resource: `azurerm_communication_service_email_domain_association` [GH-26432]
+
 BUG FIXES:
 
 * `azurerm_machine_learning_workspace` - `serverless_compute` can now be updated [GH-26940]
