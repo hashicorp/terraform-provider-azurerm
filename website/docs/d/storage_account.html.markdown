@@ -243,6 +243,8 @@ output "storage_account_tier" {
 
 * `active_directory` - An `active_directory` block as documented below.
 
+* `default_share_level_permission` - The default share level permissions applied to all users.
+
 ---
 
 `active_directory` supports the following:

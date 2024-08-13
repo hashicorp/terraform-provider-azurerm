@@ -134,7 +134,7 @@ func (metadata virtualMachineScaleSetUpdateMetaData) upgradeInstancesForManualUp
 		props := item.Properties
 		if props != nil && item.InstanceId != nil {
 			latestModel := props.LatestModelApplied
-			if latestModel != nil || !*latestModel {
+			if !*latestModel {
 				instanceIdsToRoll = append(instanceIdsToRoll, *item.InstanceId)
 			}
 		}

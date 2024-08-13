@@ -660,7 +660,7 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 								"sampling_frequency_in_seconds": {
 									Type:         pluginsdk.TypeInt,
 									Required:     true,
-									ValidateFunc: validation.IntBetween(1, 300),
+									ValidateFunc: validation.IntBetween(1, 1800),
 								},
 								"streams": {
 									Type:     pluginsdk.TypeList,

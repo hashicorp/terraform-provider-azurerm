@@ -77,27 +77,28 @@ func resourceAutomationSchedule() *pluginsdk.Resource {
 				}, false),
 			},
 
-			// ignored when frequency is `OneTime`
 			"interval": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				Computed:     true, // defaults to 1 if frequency is not OneTime
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				// NOTE: O+C this is set to `1` unless `frequency` is `OneTime` (in which case this property is ignored) o+c can remain since this can be updated without issue
+				Computed:     true,
 				ValidateFunc: validation.IntBetween(1, 100),
 			},
 
 			"start_time": {
-				Type:             pluginsdk.TypeString,
-				Optional:         true,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// NOTE: O+C We set this to now + 7 minutes if omitted so this should remain Computed
 				Computed:         true,
 				DiffSuppressFunc: suppress.RFC3339MinuteTime,
 				ValidateFunc:     validation.IsRFC3339Time,
-				// defaults to now + 7 minutes in create function if not set
 			},
 
 			"expiry_time": {
-				Type:             pluginsdk.TypeString,
-				Optional:         true,
-				Computed:         true, // same as start time when OneTime, ridiculous value when recurring: "9999-12-31T15:59:00-08:00"
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// NOTE: O+C when frequency is OneTime this has ridiculous value when recurring: "9999-12-31T15:59:00-08:00" which can remain as it can be updated without issue
+				Computed:         true,
 				DiffSuppressFunc: suppress.RFC3339MinuteTime,
 				ValidateFunc:     validation.IsRFC3339Time,
 			},

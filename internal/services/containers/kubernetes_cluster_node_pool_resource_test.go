@@ -121,6 +121,9 @@ func TestAccKubernetesClusterNodePool_capacityReservationGroup(t *testing.T) {
 }
 
 func TestAccKubernetesClusterNodePool_errorForAvailabilitySet(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("AvailabilitySet not supported as an option for default_node_pool in 4.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
 
