@@ -935,13 +935,13 @@ data "azuread_service_principal" "redhatopenshift" {
 }
 
 resource "azurerm_role_assignment" "role_network1" {
-  scope                = azurerm_virtual_network.test.id
+  scope                = azurerm_resource_group.test.id
   role_definition_name = "Network Contributor"
   principal_id         = azuread_service_principal.test.object_id
 }
 
 resource "azurerm_role_assignment" "role_network2" {
-  scope                = azurerm_virtual_network.test.id
+  scope                = azurerm_resource_group.test.id
   role_definition_name = "Network Contributor"
   principal_id         = data.azuread_service_principal.redhatopenshift.object_id
 }
