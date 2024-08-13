@@ -1313,6 +1313,16 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	accountTier := storageaccounts.SkuTier(d.Get("account_tier").(string))
 	replicationType := d.Get("account_replication_type").(string)
 
+	if !features.FourPointOhBeta() {
+		if _, ok := d.GetOk("queue_properties"); ok {
+			return fmt.Errorf("the `queue_properties` code block is no longer supported for new storage accounts, please use the `azurerm_storage_account_queue_properties` resource instead")
+		}
+
+		if _, ok := d.GetOk("static_website"); ok {
+			return fmt.Errorf("the `static_website` field is no longer supported for new storage accounts, please use the `azurerm_storage_account_static_website` resource instead")
+		}
+	}
+
 	publicNetworkAccess := storageaccounts.PublicNetworkAccessDisabled
 	if d.Get("public_network_access_enabled").(bool) {
 		publicNetworkAccess = storageaccounts.PublicNetworkAccessEnabled
@@ -1392,6 +1402,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		keys := sortedKeysFromSlice(storageKindsSupportHns)
 		return fmt.Errorf("`access_tier` is only available for accounts of kind set to one of: %+v", strings.Join(keys, " / "))
 	}
+
 	if skuTierSupported {
 		if !accessTierSetInConfig {
 			// default to "Hot"
@@ -1483,9 +1494,11 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
+
 	if account.Model == nil {
 		return fmt.Errorf("retrieving %s: `model` was nil", id)
 	}
+
 	if err := storageClient.AddToCache(id, *account.Model); err != nil {
 		return fmt.Errorf("populating cache for %s: %+v", id, err)
 	}
@@ -1562,12 +1575,6 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	if !features.FourPointOhBeta() {
-		if _, ok := d.GetOk("queue_properties"); ok {
-			return fmt.Errorf("the `queue_properties` code block is no longer supported for new storage accounts, please use the `azurerm_storage_account_queue_properties` resource instead")
-		}
-	}
-
 	if val, ok := d.GetOk("share_properties"); ok {
 		if !supportLevel.supportShare {
 			return fmt.Errorf("`share_properties` are not supported for account kind %q in sku tier %q", accountKind, accountTier)
@@ -1590,12 +1597,6 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 		if _, err = storageClient.ResourceManager.FileService.SetServiceProperties(ctx, id, sharePayload); err != nil {
 			return fmt.Errorf("updating `share_properties`: %+v", err)
-		}
-	}
-
-	if !features.FourPointOhBeta() {
-		if _, ok := d.GetOk("static_website"); ok {
-			return fmt.Errorf("the `static_website` field is no longer supported for new storage accounts, please use the `azurerm_storage_account_static_website` resource instead")
 		}
 	}
 
