@@ -9,7 +9,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/logicalnetworks"
@@ -61,19 +61,23 @@ func (ArcKubernetesProvisionedClusterInstanceResource) ModelObject() interface{}
 }
 
 type ArcKubernetesProvisionedClusterInstanceResourceModel struct {
-	Name              string                                        `tfschema:"name"`
-	ResourceGroupName string                                        `tfschema:"resource_group_name"`
-	Location          string                                        `tfschema:"location"`
-	CustomLocationId  string                                        `tfschema:"custom_location_id"`
-	AgentPoolProfile  []ProvisionedClusterInstanceAgentPoolProfile  `tfschema:"agent_pool_profile"`
-	AutoScalerProfile []ProvisionedClusterInstanceAutoScalerProfile `tfschema:"auto_scaler_profile"`
-	VirtualSwitchName string                                        `tfschema:"virtual_switch_name"`
-	Tags              map[string]interface{}                        `tfschema:"tags"`
+	AgentPoolProfile     []ProvisionedClusterInstanceAgentPoolProfile     `tfschema:"agent_pool_profile"`
+	AutoScalerProfile    []ProvisionedClusterInstanceAutoScalerProfile    `tfschema:"auto_scaler_profile"`
+	CloudProviderProfile []ProvisionedClusterInstanceCloudProviderProfile `tfschema:"cloud_provider_profile"`
+	ConnectedClusterID   string                                           `tfschema:"connected_cluster_id"`
+	ControlPlane         []ProvisionedClusterInstanceControlPlane         `tfschema:"control_plane"`
+	CustomLocationId     string                                           `tfschema:"custom_location_id"`
+	KubernetesVersion    string                                           `tfschema:"kubernetes_version"`
+	LinuxProfile         []ProvisionedClusterInstanceLinuxProfile         `tfschema:"linux_profile"`
+	LicenseProfile       []ProvisionedClusterInstanceLicenseProfile       `tfschema:"license_profile"`
+	NetworkProfile       []ProvisionedClusterInstanceNetworkProfile       `tfschema:"network_profile"`
+	StorageProfile       []ProvisionedClusterInstanceStorageProfile       `tfschema:"storage_profile"`
+	VnetSubnetIds        []string                                         `tfschema:"vnet_subnet_ids"`
 }
 
 type ProvisionedClusterInstanceAgentPoolProfile struct {
-	Count              string                 `tfschema:"count"`
-	AutoScalingEnabled string                 `tfschema:"auto_scaling_enabled"`
+	AutoScalingEnabled bool                   `tfschema:"auto_scaling_enabled"`
+	Count              int64                  `tfschema:"count"`
 	MaxCount           int64                  `tfschema:"max_count"`
 	MaxPods            int64                  `tfschema:"max_pods"`
 	MinCount           int64                  `tfschema:"min_count"`
@@ -86,30 +90,74 @@ type ProvisionedClusterInstanceAgentPoolProfile struct {
 }
 
 type ProvisionedClusterInstanceAutoScalerProfile struct {
-	Balan
+	BalanceSimilarNodeGroups      string `tfschema:"balance_similar_node_groups"`
+	Expander                      string `tfschema:"expander"`
+	MaxEmptyBulkDelete            string `tfschema:"max_empty_bulk_delete"`
+	MaxGracefulTerminationSec     string `tfschema:"max_graceful_termination_sec"`
+	MaxNodeProvisionTime          string `tfschema:"max_node_provision_time"`
+	MaxTotalUnreadyPercentage     string `tfschema:"max_total_unready_percentage"`
+	NewPodScaleUpDelay            string `tfschema:"new_pod_scale_up_delay"`
+	OkTotalUnreadyCount           string `tfschema:"ok_total_unready_count"`
+	ScanInterval                  string `tfschema:"scan_interval"`
+	ScaleDownDelayAfterAdd        string `tfschema:"scale_down_delay_after_add"`
+	ScaleDownDelayAfterDelete     string `tfschema:"scale_down_delay_after_delete"`
+	ScaleDownDelayAfterFailure    string `tfschema:"scale_down_delay_after_failure"`
+	ScaleDownUnneededTime         string `tfschema:"scale_down_unneeded_time"`
+	ScaleDownUnreadyTime          string `tfschema:"scale_down_unready_time"`
+	ScaleDownUtilizationThreshold string `tfschema:"scale_down_utilization_threshold"`
+	SkipNodesWithLocalStorage     string `tfschema:"skip_nodes_with_local_storage"`
+	SkipNodesWithSystemPods       string `tfschema:"skip_nodes_with_system_pods"`
 }
 
-type StackHCIRouteModel struct {
-	Name             string `tfschema:"name"`
-	AddressPrefix    string `tfschema:"address_prefix"`
-	NextHopIpAddress string `tfschema:"next_hop_ip_address"`
+type ProvisionedClusterInstanceCloudProviderProfile struct {
+	InfraNetworkProfile []ProvisionedClusterInstanceInfraNetworkProfile `tfschema:"infra_network_profile"`
+}
+
+type ProvisionedClusterInstanceInfraNetworkProfile struct {
+	VnetSubnetId []string `tfschema:"vnet_subnet_id"`
+}
+
+type ProvisionedClusterInstanceControlPlane struct {
+	Count  int64  `tfschema:"count"`
+	HostIp string `tfschema:"host_ip"`
+	VmSize string `tfschema:"vm_size"`
+}
+
+type ProvisionedClusterInstanceLinuxProfile struct {
+	SshKey []ProvisionedClusterInstanceSshKey `tfschema:"ssh_key"`
+}
+
+type ProvisionedClusterInstanceSshKey struct {
+	KeyData string `tfschema:"key_data"`
+}
+
+type ProvisionedClusterInstanceLicenseProfile struct {
+	AzureHybridBenefit string `tfschema:"azure_hybrid_benefit"`
+}
+
+type ProvisionedClusterInstanceNetworkProfile struct {
+	LoadBalancerProfile []ProvisionedClusterInstanceLoadBalancerProfile `tfschema:"load_balancer_profile"`
+	NetworkPolicy       string                                          `tfschema:"network_policy"`
+	PodCidr             string                                          `tfschema:"pod_cidr"`
+}
+
+type ProvisionedClusterInstanceLoadBalancerProfile struct {
+	Count int64 `tfschema:"count"`
+}
+
+type ProvisionedClusterInstanceStorageProfile struct {
+	SmbCsiDriverEnabled bool `tfschema:"smb_csi_driver_enabled"`
+	NfsCsiDriverEnabled bool `tfschema:"nfs_csi_driver_enabled"`
 }
 
 func (ArcKubernetesProvisionedClusterInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringMatch(
-				regexp.MustCompile(`^[a-zA-Z0-9][\-\.\_a-zA-Z0-9]{0,62}[a-zA-Z0-9]$`),
-				"name must be between 2 and 64 characters and can only contain alphanumberic characters, hyphen, dot and underline",
-			),
+		"connected_cluster_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: connectedclusters.ValidateConnectedClusterID,
 		},
-
-		"resource_group_name": commonschema.ResourceGroupName(),
-
-		"location": commonschema.Location(),
 
 		"custom_location_id": {
 			Type:         pluginsdk.TypeString,
@@ -220,8 +268,6 @@ func (ArcKubernetesProvisionedClusterInstanceResource) Arguments() map[string]*p
 				},
 			},
 		},
-
-		"tags": commonschema.Tags(),
 	}
 }
 
@@ -233,17 +279,21 @@ func (r ArcKubernetesProvisionedClusterInstanceResource) Create() sdk.ResourceFu
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.AzureStackHCI.LogicalNetworks
+			client := metadata.Client.ArcKubernetes.ProvisionedClusterInstancesClient
 
 			var config ArcKubernetesProvisionedClusterInstanceResourceModel
 			if err := metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			subscriptionId := metadata.Client.Account.SubscriptionId
-			id := logicalnetworks.NewLogicalNetworkID(subscriptionId, config.ResourceGroupName, config.Name)
+			id, err := connectedclusters.ParseConnectedClusterID(config.ConnectedClusterID)
+			if err != nil {
+				return err
+			}
 
-			existing, err := client.Get(ctx, id)
+			scopeId := commonids.NewScopeID(id.ID())
+
+			existing, err := client.ProvisionedClusterInstancesGet(ctx, scopeId)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
@@ -251,18 +301,15 @@ func (r ArcKubernetesProvisionedClusterInstanceResource) Create() sdk.ResourceFu
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			payload := provisionedclusterinstances.ID{
-				Name:     pointer.To(config.Name),
-				Location: location.Normalize(config.Location),
-				Tags:     tags.Expand(config.Tags),
-				ExtendedLocation: &logicalnetworks.ExtendedLocation{
+			payload := provisionedclusterinstances.ProvisionedCluster{
+				ExtendedLocation: &provisionedclusterinstances.ExtendedLocation{
 					Name: pointer.To(config.CustomLocationId),
-					Type: pointer.To(logicalnetworks.ExtendedLocationTypesCustomLocation),
+					Type: pointer.To(provisionedclusterinstances.ExtendedLocationTypesCustomLocation),
 				},
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
-				return fmt.Errorf("performing create %s: %+v", id, err)
+			if err := client.ProvisionedClusterInstancesCreateOrUpdateThenPoll(ctx, scopeId, payload); err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
