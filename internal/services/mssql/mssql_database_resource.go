@@ -651,7 +651,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	// Determine whether the SKU is for SQL Data Warehouse
 	isDwSku := strings.HasPrefix(strings.ToLower(skuName), "dw")
 
-	if strings.HasPrefix(skuName, "GP_S_") && d.Get("license_type").(string) != "" {
+	if strings.HasPrefix(skuName, "GP_S_") && !pluginsdk.IsExplicitlyNullInConfig(d, "license_type") {
 		return fmt.Errorf("serverless databases do not support license type")
 	}
 
