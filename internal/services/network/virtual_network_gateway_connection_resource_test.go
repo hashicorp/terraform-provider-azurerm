@@ -297,6 +297,28 @@ func TestAccVirtualNetworkGatewayConnection_natRuleIds(t *testing.T) {
 	})
 }
 
+func TestAccVirtualNetworkGatewayConnection_ingressNatRules(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test")
+	r := VirtualNetworkGatewayConnectionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withoutIngressNatRules(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withIngressNatRules(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t VirtualNetworkGatewayConnectionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := virtualnetworkgatewayconnections.ParseConnectionID(state.ID)
 	if err != nil {
