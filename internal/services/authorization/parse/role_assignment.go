@@ -146,6 +146,15 @@ func RoleAssignmentID(input string) (*RoleAssignmentId, error) {
 		}
 		roleAssignmentId.Name = idParts[1]
 		roleAssignmentId.ManagementGroup = strings.TrimPrefix(idParts[0], "/providers/Microsoft.Management/managementGroups/")
+	case strings.HasPrefix(input, "/providers/Microsoft.Authorization/"):
+		idParts := strings.Split(input, "/providers/Microsoft.Authorization/roleAssignments/")
+		if len(idParts) != 2 {
+			return nil, fmt.Errorf("could not parse Role Assignment ID %q for Authorization", input)
+		}
+		if idParts[1] == "" {
+			return nil, fmt.Errorf("ID was missing a value for the roleAssignments element")
+		}
+		roleAssignmentId.Name = idParts[1]
 	default:
 		return nil, fmt.Errorf("could not parse Role Assignment ID %q", input)
 	}

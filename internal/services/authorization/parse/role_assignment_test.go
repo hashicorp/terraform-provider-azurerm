@@ -233,6 +233,20 @@ func TestRoleAssignmentID(t *testing.T) {
 				TenantId:         "34567812-3456-7653-6742-345678901234",
 			},
 		},
+		{
+			// valid Role Assignment value at the Authorization scope
+			Input: "/providers/Microsoft.Authorization/roleAssignments/115ee65a-a72f-4ade-bc87-21fc046e54e6",
+			Expected: &RoleAssignmentId{
+				SubscriptionID:      "",
+				ResourceGroup:       "",
+				ManagementGroup:     "",
+				ResourceScope:       "",
+				ResourceProvider:    "",
+				Name:                "115ee65a-a72f-4ade-bc87-21fc046e54e6",
+				TenantId:            "",
+				IsSubscriptionLevel: false,
+			},
+		},
 	}
 
 	for _, v := range testData {
