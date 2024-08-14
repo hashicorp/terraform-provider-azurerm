@@ -1876,7 +1876,7 @@ resource "azurerm_virtual_network_gateway_nat_rule" "test" {
 }
 
 resource "azurerm_virtual_network_gateway_nat_rule" "test4" {
-  name                       = "acctestvnetgwegressnatrule-%d"
+  name                       = "acctestvnetgwegressnatrule4-%d"
   resource_group_name        = azurerm_resource_group.test.name
   virtual_network_gateway_id = data.azurerm_virtual_network_gateway.test.id
   mode                       = "EgressSnat"
@@ -2025,7 +2025,7 @@ resource "azurerm_virtual_network_gateway_nat_rule" "test" {
 }
 
 resource "azurerm_virtual_network_gateway_nat_rule" "test4" {
-  name                       = "acctestvnetgwegressnatrule-%d"
+  name                       = "acctestvnetgwegressnatrule4-%d"
   resource_group_name        = azurerm_resource_group.test.name
   virtual_network_gateway_id = data.azurerm_virtual_network_gateway.test.id
   mode                       = "EgressSnat"
@@ -2042,7 +2042,7 @@ resource "azurerm_virtual_network_gateway_nat_rule" "test4" {
 }
 
 resource "azurerm_virtual_network_gateway_nat_rule" "test2" {
-  name                       = "acctestvnetgwingressnatrule-%d"
+  name                       = "acctestvnetgwingressnatrule2-%d"
   resource_group_name        = azurerm_resource_group.test.name
   virtual_network_gateway_id = data.azurerm_virtual_network_gateway.test.id
   mode                       = "IngressSnat"
@@ -2059,7 +2059,7 @@ resource "azurerm_virtual_network_gateway_nat_rule" "test2" {
 }
 
 resource "azurerm_virtual_network_gateway_nat_rule" "test3" {
-  name                       = "acctestvnetgwingressnatrule-%d"
+  name                       = "acctestvnetgwingressnatrule3-%d"
   resource_group_name        = azurerm_resource_group.test.name
   virtual_network_gateway_id = data.azurerm_virtual_network_gateway.test.id
   mode                       = "IngressSnat"
