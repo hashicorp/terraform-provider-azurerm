@@ -249,17 +249,20 @@ func (r DevCenterProjectEnvironmentTypeResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			properties := resp.Model
-			if properties == nil {
+			if resp.Model == nil {
 				return fmt.Errorf("retrieving %s: `model` was nil", id)
 			}
+			if resp.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: `properties` was nil", id)
+			}
+			payload := resp.Model
 
 			if metadata.ResourceData.HasChange("creator_role_assignment_roles") {
-				properties.Properties.CreatorRoleAssignment.Roles = expandDevCenterProjectEnvironmentTypeCreatorRoleAssignmentRoles(model.CreatorRoleAssignmentRoles)
+				payload.Properties.CreatorRoleAssignment.Roles = expandDevCenterProjectEnvironmentTypeCreatorRoleAssignmentRoles(model.CreatorRoleAssignmentRoles)
 			}
 
 			if metadata.ResourceData.HasChange("deployment_target_id") {
-				properties.Properties.DeploymentTargetId = pointer.To(model.DeploymentTargetId)
+				payload.Properties.DeploymentTargetId = pointer.To(model.DeploymentTargetId)
 			}
 
 			if metadata.ResourceData.HasChange("identity") {
@@ -267,7 +270,7 @@ func (r DevCenterProjectEnvironmentTypeResource) Update() sdk.ResourceFunc {
 				if err != nil {
 					return err
 				}
-				properties.Identity = identity
+				payload.Identity = identity
 			}
 
 			if metadata.ResourceData.HasChange("user_role_assignment") {
@@ -275,14 +278,14 @@ func (r DevCenterProjectEnvironmentTypeResource) Update() sdk.ResourceFunc {
 				if err != nil {
 					return err
 				}
-				properties.Properties.UserRoleAssignments = userRoleAssignment
+				payload.Properties.UserRoleAssignments = userRoleAssignment
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
-				properties.Tags = pointer.To(model.Tags)
+				payload.Tags = pointer.To(model.Tags)
 			}
 
-			if _, err := client.ProjectEnvironmentTypesCreateOrUpdate(ctx, *id, *properties); err != nil {
+			if _, err := client.ProjectEnvironmentTypesCreateOrUpdate(ctx, *id, *payload); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 

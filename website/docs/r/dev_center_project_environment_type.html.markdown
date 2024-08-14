@@ -66,7 +66,7 @@ The following arguments are supported:
 
 * `dev_center_project_id` - (Required) The ID of the associated Dev Center Project. Changing this forces a new resource to be created.
 
-* `deployment_target_id` - (Required) The ID of the subscription that the environment type will be mapped to. The environment's resources will be deployed into this subscription.
+* `deployment_target_id` - (Required) The ID of the subscription that the Environment Type will be mapped to. The environment's resources will be deployed into this subscription.
 
 * `identity` - (Required) An `identity` block as defined below.
 
