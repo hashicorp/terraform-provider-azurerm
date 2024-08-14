@@ -1238,6 +1238,18 @@ func (r MsSqlManagedInstanceResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
+provider "azurerm" {
+  features {
+    resource_group {
+      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
+      prevent_deletion_if_contains_resources has been added here to allow the test resources to be
+       deleted until this can be properly investigated
+      */
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
 resource "azurerm_mssql_managed_instance" "test" {
   name                = "acctestsqlserver%[2]d"
   resource_group_name = azurerm_resource_group.test.name
@@ -1268,6 +1280,18 @@ resource "azurerm_mssql_managed_instance" "test" {
 func (r MsSqlManagedInstanceResource) premium(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
+
+provider "azurerm" {
+  features {
+    resource_group {
+      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
+      prevent_deletion_if_contains_resources has been added here to allow the test resources to be
+       deleted until this can be properly investigated
+      */
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
 
 resource "azurerm_mssql_managed_instance" "test" {
   name                = "acctestsqlserver%[2]d"
@@ -1300,6 +1324,18 @@ func (r MsSqlManagedInstanceResource) storageType(data acceptance.TestData, stor
 	return fmt.Sprintf(`
 %[1]s
 
+provider "azurerm" {
+  features {
+    resource_group {
+      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
+      prevent_deletion_if_contains_resources has been added here to allow the test resources to be
+       deleted until this can be properly investigated
+      */
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
 resource "azurerm_mssql_managed_instance" "test" {
   name                = "acctestsqlserver%[2]d"
   resource_group_name = azurerm_resource_group.test.name
@@ -1331,6 +1367,18 @@ resource "azurerm_mssql_managed_instance" "test" {
 func (r MsSqlManagedInstanceResource) identity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
+
+provider "azurerm" {
+  features {
+    resource_group {
+      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
+      prevent_deletion_if_contains_resources has been added here to allow the test resources to be
+       deleted until this can be properly investigated
+      */
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
 
 resource "azurerm_mssql_managed_instance" "test" {
   name                = "acctestsqlserver%[2]d"
@@ -1367,6 +1415,18 @@ func (r MsSqlManagedInstanceResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
+provider "azurerm" {
+  features {
+    resource_group {
+      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
+      prevent_deletion_if_contains_resources has been added here to allow the test resources to be
+       deleted until this can be properly investigated
+      */
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
 resource "azurerm_mssql_managed_instance" "test" {
   name                = "acctestsqlserver%[2]d"
   resource_group_name = azurerm_resource_group.test.name
@@ -1401,6 +1461,18 @@ resource "azurerm_mssql_managed_instance" "test" {
 func (r MsSqlManagedInstanceResource) multiple(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
+
+provider "azurerm" {
+  features {
+    resource_group {
+      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
+      prevent_deletion_if_contains_resources has been added here to allow the test resources to be
+       deleted until this can be properly investigated
+      */
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
 
 resource "azurerm_mssql_managed_instance" "test" {
   name                = "acctestsqlserver%[2]d"
@@ -2357,6 +2429,19 @@ resource "azurerm_subnet_route_table_association" "secondary_2" {
 func (r MsSqlManagedInstanceResource) withMaintenanceConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
+
+provider "azurerm" {
+  features {
+    resource_group {
+      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service, 
+      prevent_deletion_if_contains_resources has been added here to allow the test resources to be 
+       deleted until this can be properly investigated
+      */
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
 
 resource "azurerm_mssql_managed_instance" "test" {
   name                = "acctestsqlserver%[2]d"

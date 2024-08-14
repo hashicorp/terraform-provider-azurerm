@@ -70,7 +70,7 @@ Below is an overview of the changes coming 4.0. Each topic is covered in more de
 * [Improved Resource Provider Registration](#improved-resource-provider-registration)
 * [Provider Functions](#provider-functions)
 * [Additional Properties for Subnets in the Virtual Network Resource](#additional-properties-for-subnets-in-the-virtual-network-resource)
-* [Better consistency in emptying or removing Lists and Blocks](#better-consistency-in-emptying-or-removing-lists-and-blocks)
+* [Azure Kubernetes Service (AKS) migration to stable API](#aks-migration-to-stable-api)
 * [Removed Resources](#removed-resources)
 * [Removed Data Sources](#removed-data-sources)
 * [Breaking Changes in Resources](#behaviour-changes-and-removed-properties-in-resources)
@@ -226,6 +226,38 @@ In addition to the new properties `address_prefix` has been replaced by `address
 
 When upgrading to 4.0, users may receive a warning that the resource needs to be replaced, this should however just be an update in-place.
 
+## AKS migration to stable API
+
+AKS API versions fall into two categories: stable and preview. The stable APIs represent features and functionality that the AKS team has made Generally Available and customers can rely on to be supported, have a service-level agreement and are fully maintained. Although the preview APIs may contain the latest and greatest features and functionality, they will contain preview features which are available on a self-service, opt-in basis. These previews are provided "as is" and "as available" and with limited warranty, they're excluded from the service-level agreements and are only partially covered by customer support on a best-effort basis. As such, the AKS Service Team have communicated that these features **aren't meant for production use**. For more information see the following support articles:
+
+- [AKS support policies](https://learn.microsoft.com/en-us/azure/aks/support-policies)
+- [Azure Support FAQ](https://learn.microsoft.com/en-us/azure/aks/faq)
+
+In order to provide a more reliable experience when using the Azure Provider, Microsoft has requested that the AKS resource only use a stable API version. Starting in version 4.0 of the AzureRM provider, Microsoft and HashiCorp have agreed to switch to the AKS stable APIs. This means that some preview features that are exposed in 3.x will no longer be available in 4.x. The following properties will no longer be available in 4.x:
+
+### Custom CA Trust
+
+* The property `custom_ca_trust_enabled` has been removed from the `azurerm_kubernetes_cluster` and `azurerm_kubernetes_cluster_node_pool` resources.
+* The property `custom_ca_trust_certificates_base64` has been removed from the `azurerm_kubernetes_cluster` resource and data source.
+
+### VNet Integration
+
+* The property `api_server_access_profile.vnet_integration_enabled` has been removed from the `azurerm_kubernetes_cluster` resource.
+* The property `api_server_access_profile.subnet_id` has been removed from the `azurerm_kubernetes_cluster` resource.
+
+### Workload Runtime KataMshvVMIsolation
+
+* The property `workload_runtime` will no longer accept `KataMshvVMIsolation` as a valid value in the `azurerm_kubernetes_cluster` and `azurerm_kubernetes_cluster_node_pool` resources.
+
+### Disk Driver Version
+
+* The property `storage_profile.disk_driver_version` has been removed from the `azurerm_kubernetes_cluster` resource and data source.
+
+### Message Of The Day
+
+* The property `message_of_the_day` has been removed from the `azurerm_kubernetes_cluster` and `azurerm_kubernetes_cluster_node_pool` resources.
+
+If you wish to use these or any other AKS preview features and accept the risk that comes with using preview features, the [AzAPI Provider](https://registry.terraform.io/providers/Azure/azapi/latest/docs) can be used to access these features. Please note that changes made by AzAPI to a resource managed by the Azure Provider can have unexpected behavioral outcomes in the resource, as well as Terraform configuration consequences, such as diffs or resources being marked for recreation.
 
 ## Removed Resources
 
@@ -749,6 +781,7 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 * The property `default_node_pool.enable_auto_scaling` has been renamed to `default_node_pool.auto_scaling_enabled`.
 * The property `default_node_pool.enable_node_public_ip` has been renamed to `default_node_pool.node_public_ip_enabled`.
 * The property `default_node_pool.enable_host_encryption` has been renamed to `default_node_pool.host_encryption_enabled`.
+* The property `default_node_pool.type` no longer accepts the value `AvailabilitySet`.
 * The property `image_cleaner_interval_hours` now defaults to `0` and will only be set if `image_cleaner_enabled` has been set to `true`.
 * The property `network_profile.load_balancer_profile.outbound_ip_prefix_ids` is no longer `Computed`. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
 * The property `network_profile.load_balancer_profile.outbound_ip_address_ids` is no longer `Computed`. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
@@ -1176,6 +1209,10 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 * The deprecated properties `storage_account_name` and `share_name` have been removed in favour of the `storage_share_id` property.
 
 ### `azurerm_storage_table_entity`
+
+* The deprecated properties `storage_account_name` and `table_name` have been removed in favour of the `storage_table_id` property.
+
+### `azurerm_storage_table_entities`
 
 * The deprecated properties `storage_account_name` and `table_name` have been removed in favour of the `storage_table_id` property.
 

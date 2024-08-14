@@ -174,6 +174,28 @@ func TestAccMsSqlDatabase_gpServerless(t *testing.T) {
 	})
 }
 
+func TestAccMsSqlDatabase_updateLicenseType(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	r := MsSqlDatabaseResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.gpWithLicenseType(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.gpServerlessWithNullLicenseType(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("license_type"),
+	})
+}
+
 func TestAccMsSqlDatabase_bc(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
 	r := MsSqlDatabaseResource{}
@@ -1222,6 +1244,31 @@ resource "azurerm_mssql_database" "test" {
   auto_pause_delay_in_minutes = 90
   min_capacity                = 1.25
   sku_name                    = "GP_S_Gen5_2"
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r MsSqlDatabaseResource) gpWithLicenseType(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_database" "test" {
+  name         = "acctest-db-%[2]d"
+  server_id    = azurerm_mssql_server.test.id
+  sku_name     = "GP_Gen5_2"
+  license_type = "LicenseIncluded"
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r MsSqlDatabaseResource) gpServerlessWithNullLicenseType(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_database" "test" {
+  name      = "acctest-db-%[2]d"
+  server_id = azurerm_mssql_server.test.id
+  sku_name  = "GP_S_Gen5_2"
 }
 `, r.template(data), data.RandomInteger)
 }
