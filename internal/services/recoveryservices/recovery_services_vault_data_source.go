@@ -77,7 +77,7 @@ func (r SiteRecoveryRecoveryVaultDataSource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			id := vaults.NewVaultID(subscriptionId, recoveryServiceVault.RecoveryGroupName, recoveryServiceVault.Name)
+			id := vaults.NewVaultID(subscriptionId, recoveryServiceVault.ResourceGroupName, recoveryServiceVault.Name)
 			resp, err := client.Get(ctx, id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
@@ -86,23 +86,23 @@ func (r SiteRecoveryRecoveryVaultDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			model := resp.Model
+			if model := resp.Model; model != nil {
+				flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMapToModel(model.Identity)
 
-			flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMapToModel(model.Identity)
+				if err != nil {
+					return fmt.Errorf("flattening `identity`: %+v", err)
+				}
 
-			if err != nil {
-				return fmt.Errorf("flattening `identity`: %+v", err)
+				skuName := ""
+				if model.Sku != nil {
+					skuName = string(model.Sku.Name)
+				}
+
+				recoveryServiceVault.Sku = skuName
+				recoveryServiceVault.Location = location.Normalize(model.Location)
+				recoveryServiceVault.Tags = pointer.From(model.Tags)
+				recoveryServiceVault.Identity = pointer.From(flattenedIdentity)
 			}
-
-			skuName := ""
-			if model.Sku != nil {
-				skuName = string(model.Sku.Name)
-			}
-
-			recoveryServiceVault.Sku = skuName
-			recoveryServiceVault.Location = location.Normalize(model.Location)
-			recoveryServiceVault.Tags = pointer.From(model.Tags)
-			recoveryServiceVault.Identity = pointer.From(flattenedIdentity)
 
 			metadata.SetID(id)
 
