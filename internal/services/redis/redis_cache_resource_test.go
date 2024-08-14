@@ -1649,5 +1649,5 @@ resource "azurerm_redis_cache" "test" {
   redis_configuration {
     active_directory_authentication_enabled = %t
   }
-}`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, accessKeysAuthenticationDisabled, accessKeysAuthenticationDisabled)
+}`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, accessKeysAuthenticationDisabled, activeDirectoryAuthenticationEnabled)
 }
