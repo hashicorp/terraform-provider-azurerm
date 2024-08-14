@@ -195,8 +195,8 @@ func resourceExpressRouteConnectionCreate(d *pluginsdk.ResourceData, meta interf
 		},
 	}
 
-	privateLinkFatPath := d.GetRawConfig().AsValueMap()["private_link_fast_path_enabled"]
-	if !privateLinkFatPath.IsNull() {
+	privateLinkFastPath := d.GetRawConfig().AsValueMap()["private_link_fast_path_enabled"]
+	if !privateLinkFastPath.IsNull() {
 		if d.Get("private_link_fast_path_enabled").(bool) && !d.Get("express_route_gateway_bypass_enabled").(bool) {
 			return fmt.Errorf("`express_route_gateway_bypass_enabled` must be enabled when `private_link_fast_path_enabled` is set to `true`")
 		}
@@ -295,8 +295,8 @@ func resourceExpressRouteConnectionUpdate(d *pluginsdk.ResourceData, meta interf
 		},
 	}
 
-	privateLinkFatPath := d.GetRawConfig().AsValueMap()["private_link_fast_path_enabled"]
-	if !privateLinkFatPath.IsNull() {
+	privateLinkFastPath := d.GetRawConfig().AsValueMap()["private_link_fast_path_enabled"]
+	if !privateLinkFastPath.IsNull() {
 		if d.Get("private_link_fast_path_enabled").(bool) && !d.Get("express_route_gateway_bypass_enabled").(bool) {
 			return fmt.Errorf("`express_route_gateway_bypass_enabled` must be enabled when `private_link_fast_path_enabled` is set to `true`")
 		}
