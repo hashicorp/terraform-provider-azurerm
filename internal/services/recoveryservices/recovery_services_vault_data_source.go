@@ -24,7 +24,7 @@ var _ sdk.DataSource = SiteRecoveryRecoveryVaultDataSource{}
 type SiteRecoveryRecoveryVaultDataSource struct{}
 type SiteRecoveryRecoveryVaultDataSourceModel struct {
 	Name              string                                     `tfschema:"name"`
-	RecoveryGroupName string                                     `tfschema:"resource_group_name"`
+	ResourceGroupName string                                     `tfschema:"resource_group_name"`
 	Location          string                                     `tfschema:"location"`
 	Identity          []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 	Sku               string                                     `tfschema:"sku"`
