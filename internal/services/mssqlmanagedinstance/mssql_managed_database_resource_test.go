@@ -65,7 +65,8 @@ func TestAccMsSqlManagedDatabase_pointInTimeRestore(t *testing.T) {
 		},
 		{
 			PreConfig: func() { time.Sleep(11 * time.Minute) },
-			Config:    r.pointInTimeRestore(data, time.Now().UTC().Format(time.RFC3339)),
+			// Valid point in time range from 7 days early to now and not before source server creation time
+			Config: r.pointInTimeRestore(data, time.Now().Add(-15*time.Minute).UTC().Format(time.RFC3339)),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
