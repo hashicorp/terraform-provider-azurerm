@@ -393,6 +393,7 @@ resource "azurerm_machine_learning_workspace_hub" "test" {
   container_registry_id   = azurerm_container_registry.test.id
   public_network_access   = "Disabled"
   friendly_name           = "test-workspace"
+  description             = "description"
 
   identity {
     type = "SystemAssigned"
@@ -467,6 +468,7 @@ resource "azurerm_machine_learning_workspace_hub" "test" {
   container_registry_id   = azurerm_container_registry.test.id
   public_network_access   = "Disabled"
   friendly_name           = "test-workspace-updated"
+  description             = "description-update"
 
   identity {
     type = "SystemAssigned"

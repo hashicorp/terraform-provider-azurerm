@@ -37,6 +37,7 @@ type machineLearningWorkspaceHubModel struct {
 	PublicNetworkAccess         string                                     `tfschema:"public_network_access"`
 	WorkspaceId                 string                                     `tfschema:"workspace_id"`
 	FriendlyName                string                                     `tfschema:"friendly_name"`
+	Description                 string                                     `tfschema:"description"`
 	PrimaryUserAssignedIdentity string                                     `tfschema:"primary_user_assigned_identity"`
 	Identity                    []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 	Encryption                  []encryptionModel                          `tfschema:"encryption"`
@@ -77,6 +78,11 @@ func (r MachineLearningWorkspaceHubResource) Arguments() map[string]*pluginsdk.S
 		"location": commonschema.Location(),
 
 		"resource_group_name": commonschema.ResourceGroupName(),
+
+		"description": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+		},
 
 		"key_vault_id": {
 			Type:         pluginsdk.TypeString,
@@ -218,6 +224,10 @@ func (r MachineLearningWorkspaceHubResource) Create() sdk.ResourceFunc {
 				},
 			}
 
+			if model.Description != "" {
+				hub.Properties.Description = &model.Description
+			}
+
 			if model.ApplicationInsightsID != "" {
 				hub.Properties.ApplicationInsights = &model.ApplicationInsightsID
 			}
@@ -281,6 +291,12 @@ func (r MachineLearningWorkspaceHubResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("friendly_name") {
 				payload.Properties.FriendlyName = &model.FriendlyName
+			}
+
+			if metadata.ResourceData.HasChange("description") {
+				if model.Description != "" {
+					payload.Properties.Description = &model.Description
+				}
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -372,6 +388,10 @@ func (r MachineLearningWorkspaceHubResource) Read() sdk.ResourceFunc {
 
 				if model.Properties.WorkspaceId != nil {
 					state.WorkspaceId = *model.Properties.WorkspaceId
+				}
+
+				if model.Properties.Description != nil {
+					state.Description = *model.Properties.Description
 				}
 
 				flattenedIdentity, err := identity.FlattenLegacySystemAndUserAssignedMapToModel(model.Identity)

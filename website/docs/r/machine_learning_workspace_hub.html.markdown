@@ -7,7 +7,7 @@ description: |-
 ---
 # azurerm_machine_learning_workspace_hub
 
-Manages an Azure Machine Learning Workspace Hub 
+Manages an Azure Machine Learning Workspace Hub. Use this resource to provide shared connectivity, compute and quota for a group of project workspaces.
 
 ## Example Usage
 
@@ -358,6 +358,8 @@ The following arguments are supported:
 * `application_insights_id` - (Optional) The ID of the Application Insights associated with this Machine Learning Workspace Hub. Changing this forces a new resource to be created.
 
 * `container_registry_id` - (Optional) The ID of the container registry associated with this Machine Learning Workspace Hub. Changing this forces a new resource to be created.
+
+* `description` - (Optional) The description of this Machine Learning Workspace Hub.
 
 * `public_network_access` - (Optional) Enable public access when this Machine Learning Workspace Hub is behind VNet. Possible values are `Enabled`, `Disabled`. Defaults to `Enabled`.
 
