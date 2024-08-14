@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/notificationhubs/2017-04-01/notificationhubs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/notificationhubs/2023-09-01/hubs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -96,8 +96,8 @@ func dataSourceNotificationHubRead(d *pluginsdk.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := notificationhubs.NewNotificationHubID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("name").(string))
-	resp, err := client.Get(ctx, id)
+	id := hubs.NewNotificationHubID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("name").(string))
+	resp, err := client.NotificationHubsGet(ctx, id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
@@ -106,7 +106,7 @@ func dataSourceNotificationHubRead(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	credentials, err := client.GetPnsCredentials(ctx, id)
+	credentials, err := client.NotificationHubsGetPnsCredentials(ctx, id)
 	if err != nil {
 		return fmt.Errorf("retrieving credentials for %s: %+v", id, err)
 	}
@@ -132,7 +132,7 @@ func dataSourceNotificationHubRead(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	if model := resp.Model; model != nil {
-		d.Set("location", location.NormalizeNilable(model.Location))
+		d.Set("location", location.NormalizeNilable(&model.Location))
 
 		return d.Set("tags", tags.Flatten(model.Tags))
 	}
@@ -140,54 +140,46 @@ func dataSourceNotificationHubRead(d *pluginsdk.ResourceData, meta interface{}) 
 	return nil
 }
 
-func flattenNotificationHubsDataSourceAPNSCredentials(input *notificationhubs.ApnsCredential) []interface{} {
+func flattenNotificationHubsDataSourceAPNSCredentials(input *hubs.ApnsCredential) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
 
 	output := make(map[string]interface{})
 
-	if props := input.Properties; props != nil {
-		if bundleId := props.AppName; bundleId != nil {
-			output["bundle_id"] = *bundleId
-		}
+	if bundleId := input.Properties.AppName; bundleId != nil {
+		output["bundle_id"] = *bundleId
+	}
 
-		if endpoint := props.Endpoint; endpoint != nil {
-			applicationEndpoints := map[string]string{
-				"https://api.push.apple.com:443/3/device":             "Production",
-				"https://api.development.push.apple.com:443/3/device": "Sandbox",
-			}
-			applicationMode := applicationEndpoints[*endpoint]
-			output["application_mode"] = applicationMode
-		}
+	applicationEndpoints := map[string]string{
+		"https://api.push.apple.com:443/3/device":             "Production",
+		"https://api.development.push.apple.com:443/3/device": "Sandbox",
+	}
+	applicationMode := applicationEndpoints[input.Properties.Endpoint]
+	output["application_mode"] = applicationMode
 
-		if keyId := props.KeyId; keyId != nil {
-			output["key_id"] = *keyId
-		}
+	if keyId := input.Properties.KeyId; keyId != nil {
+		output["key_id"] = *keyId
+	}
 
-		if teamId := props.AppId; teamId != nil {
-			output["team_id"] = *teamId
-		}
+	if teamId := input.Properties.AppId; teamId != nil {
+		output["team_id"] = *teamId
+	}
 
-		if token := props.Token; token != nil {
-			output["token"] = *token
-		}
+	if token := input.Properties.Token; token != nil {
+		output["token"] = *token
 	}
 
 	return []interface{}{output}
 }
 
-func flattenNotificationHubsDataSourceGCMCredentials(input *notificationhubs.GcmCredential) []interface{} {
+func flattenNotificationHubsDataSourceGCMCredentials(input *hubs.GcmCredential) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
 
 	output := make(map[string]interface{})
-	if props := input.Properties; props != nil {
-		if apiKey := props.GoogleApiKey; apiKey != nil {
-			output["api_key"] = *apiKey
-		}
-	}
+	output["api_key"] = input.Properties.GoogleApiKey
 
 	return []interface{}{output}
 }

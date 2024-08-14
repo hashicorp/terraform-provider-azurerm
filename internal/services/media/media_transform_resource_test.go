@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -19,6 +20,9 @@ import (
 type MediaTransformResource struct{}
 
 func TestAccMediaTransform_basic(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("The `azurerm_media_transform` resource is deprecated and will be removed in v4.0 of the AzureRM Provider.")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_media_transform", "test")
 	r := MediaTransformResource{}
 
@@ -35,6 +39,9 @@ func TestAccMediaTransform_basic(t *testing.T) {
 }
 
 func TestAccMediaTransform_requiresImport(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("The `azurerm_media_transform` resource is deprecated and will be removed in v4.0 of the AzureRM Provider.")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_media_transform", "test")
 	r := MediaTransformResource{}
 
@@ -51,6 +58,9 @@ func TestAccMediaTransform_requiresImport(t *testing.T) {
 }
 
 func TestAccMediaTransform_complete(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("The `azurerm_media_transform` resource is deprecated and will be removed in v4.0 of the AzureRM Provider.")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_media_transform", "test")
 	r := MediaTransformResource{}
 
@@ -68,6 +78,9 @@ func TestAccMediaTransform_complete(t *testing.T) {
 }
 
 func TestAccMediaTransform_update(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("The `azurerm_media_transform` resource is deprecated and will be removed in v4.0 of the AzureRM Provider.")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_media_transform", "test")
 	r := MediaTransformResource{}
 

@@ -456,6 +456,10 @@ resource "azurerm_network_connection_monitor" "test" {
   }
 
   depends_on = [azurerm_virtual_machine_extension.src]
+
+  lifecycle {
+    ignore_changes = [output_workspace_resource_ids]
+  }
 }
 `, r.baseConfig(data), data.RandomInteger)
 }
@@ -658,6 +662,10 @@ resource "azurerm_network_connection_monitor" "test" {
   }
 
   depends_on = [azurerm_virtual_machine_extension.src]
+
+  lifecycle {
+    ignore_changes = [output_workspace_resource_ids]
+  }
 }
 `, r.baseConfig(data), data.RandomInteger)
 }
@@ -698,6 +706,10 @@ resource "azurerm_network_connection_monitor" "test" {
   }
 
   depends_on = [azurerm_virtual_machine_extension.src]
+
+  lifecycle {
+    ignore_changes = [output_workspace_resource_ids]
+  }
 }
 `, r.baseWithDestConfig(data), data.RandomInteger)
 }
@@ -739,6 +751,10 @@ resource "azurerm_network_connection_monitor" "test" {
   }
 
   depends_on = [azurerm_virtual_machine_extension.src]
+
+  lifecycle {
+    ignore_changes = [output_workspace_resource_ids]
+  }
 }
 `, r.baseWithDestConfig(data), data.RandomInteger)
 }
@@ -794,6 +810,10 @@ resource "azurerm_network_connection_monitor" "test" {
   }
 
   depends_on = [azurerm_virtual_machine_extension.src]
+
+  lifecycle {
+    ignore_changes = [output_workspace_resource_ids]
+  }
 }
 `, r.baseWithDestConfig(data), data.RandomInteger)
 }
@@ -829,6 +849,10 @@ resource "azurerm_network_connection_monitor" "test" {
   }
 
   depends_on = [azurerm_virtual_machine_extension.src]
+
+  lifecycle {
+    ignore_changes = [output_workspace_resource_ids]
+  }
 }
 `, r.baseConfig(data), data.RandomInteger)
 }
@@ -869,6 +893,10 @@ resource "azurerm_network_connection_monitor" "test" {
   }
 
   depends_on = [azurerm_virtual_machine_extension.src]
+
+  lifecycle {
+    ignore_changes = [output_workspace_resource_ids]
+  }
 }
 `, r.baseConfig(data), data.RandomInteger)
 }
@@ -909,6 +937,10 @@ resource "azurerm_network_connection_monitor" "import" {
   }
 
   depends_on = [azurerm_virtual_machine_extension.src]
+
+  lifecycle {
+    ignore_changes = [output_workspace_resource_ids]
+  }
 }
 `, r.basicAddressConfig(data))
 }
@@ -958,6 +990,10 @@ resource "azurerm_network_connection_monitor" "test" {
   }
 
   depends_on = [azurerm_virtual_machine_extension.src]
+
+  lifecycle {
+    ignore_changes = [output_workspace_resource_ids]
+  }
 }
 `, r.baseWithDestConfig(data), data.RandomInteger)
 }
@@ -998,6 +1034,10 @@ resource "azurerm_network_connection_monitor" "test" {
   }
 
   depends_on = [azurerm_virtual_machine_extension.src]
+
+  lifecycle {
+    ignore_changes = [output_workspace_resource_ids]
+  }
 }
 `, r.baseConfig(data), data.RandomInteger)
 }
@@ -1042,6 +1082,10 @@ resource "azurerm_network_connection_monitor" "test" {
   }
 
   depends_on = [azurerm_virtual_machine_extension.src]
+
+  lifecycle {
+    ignore_changes = [output_workspace_resource_ids]
+  }
 }
 `, r.baseConfig(data), data.RandomInteger)
 }
@@ -1093,6 +1137,10 @@ resource "azurerm_network_connection_monitor" "test" {
   }
 
   depends_on = [azurerm_virtual_machine_extension.src]
+
+  lifecycle {
+    ignore_changes = [output_workspace_resource_ids]
+  }
 }
 `, r.baseConfig(data), data.RandomInteger, data.RandomInteger)
 }

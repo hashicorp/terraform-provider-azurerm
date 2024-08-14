@@ -917,8 +917,9 @@ resource "azurerm_public_ip" "test" {
   name                = "acctpip-${local.number}"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
   domain_name_label   = local.domain_name_label
+  sku                 = "Basic"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger, data.RandomInteger)
 }

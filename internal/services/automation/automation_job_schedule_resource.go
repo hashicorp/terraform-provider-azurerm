@@ -20,6 +20,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/schedule"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -90,9 +91,11 @@ func resourceAutomationJobSchedule() *pluginsdk.Resource {
 			},
 
 			"job_schedule_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// NOTE: O+C this can remain as this can change if the runbook is updated but cannot be updated by the user
 				Computed:     true,
+				ForceNew:     features.FourPointOhBeta(),
 				ValidateFunc: validation.IsUUID,
 			},
 

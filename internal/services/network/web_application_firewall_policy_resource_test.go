@@ -381,6 +381,28 @@ func TestAccWebApplicationFirewallPolicy_updateCustomRules(t *testing.T) {
 	})
 }
 
+func TestAccWebApplicationFirewallPolicy_BotManager(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_web_application_firewall_policy", "test")
+	r := WebApplicationFirewallResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.botManager(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateBotManager(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t WebApplicationFirewallResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := webapplicationfirewallpolicies.ParseApplicationGatewayWebApplicationFirewallPolicyID(state.ID)
 	if err != nil {
@@ -415,7 +437,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
   managed_rules {
     managed_rule_set {
       type    = "OWASP"
-      version = "3.1"
+      version = "3.2"
     }
   }
 
@@ -633,9 +655,10 @@ resource "azurerm_web_application_firewall_policy" "test" {
   }
 
   policy_settings {
-    enabled                          = true
-    mode                             = "Prevention"
-    request_body_inspect_limit_in_kb = 1000
+    enabled                                   = true
+    mode                                      = "Prevention"
+    request_body_inspect_limit_in_kb          = 1000
+    js_challenge_cookie_expiration_in_minutes = 60
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -717,9 +740,10 @@ resource "azurerm_web_application_firewall_policy" "test" {
   }
 
   policy_settings {
-    enabled                          = true
-    mode                             = "Prevention"
-    request_body_inspect_limit_in_kb = 1234
+    enabled                                   = true
+    mode                                      = "Prevention"
+    request_body_inspect_limit_in_kb          = 1234
+    js_challenge_cookie_expiration_in_minutes = 1440
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -861,7 +885,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
   managed_rules {
     managed_rule_set {
       type    = "OWASP"
-      version = "3.1"
+      version = "3.2"
 
       rule_group_override {
         disabled_rules = [
@@ -1811,6 +1835,122 @@ resource "azurerm_web_application_firewall_policy" "test" {
   policy_settings {
     enabled = true
     mode    = "Detection"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (WebApplicationFirewallResource) botManager(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_web_application_firewall_policy" "test" {
+  name                = "acctestwafpolicy-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  tags = {
+    env = "test"
+  }
+
+  managed_rules {
+    managed_rule_set {
+      type    = "OWASP"
+      version = "3.2"
+    }
+
+    managed_rule_set {
+      type    = "Microsoft_BotManagerRuleSet"
+      version = "1.0"
+    }
+
+    exclusion {
+      match_variable          = "RequestHeaderNames"
+      selector                = "x-shared-secret"
+      selector_match_operator = "Equals"
+
+      excluded_rule_set {
+        type    = "Microsoft_BotManagerRuleSet"
+        version = "1.0"
+        rule_group {
+          rule_group_name = "UnknownBots"
+          excluded_rules = [
+            "300100",
+            "300200",
+          ]
+        }
+      }
+    }
+  }
+
+  policy_settings {
+    enabled = true
+    mode    = "Prevention"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (WebApplicationFirewallResource) updateBotManager(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_web_application_firewall_policy" "test" {
+  name                = "acctestwafpolicy-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  tags = {
+    env = "test"
+  }
+
+
+  managed_rules {
+    managed_rule_set {
+      type    = "OWASP"
+      version = "3.2"
+    }
+
+    managed_rule_set {
+      type    = "Microsoft_BotManagerRuleSet"
+      version = "1.0"
+    }
+
+    exclusion {
+      match_variable          = "RequestHeaderNames"
+      selector                = "x-shared-secret"
+      selector_match_operator = "Equals"
+
+      excluded_rule_set {
+        type    = "Microsoft_BotManagerRuleSet"
+        version = "1.0"
+        rule_group {
+          rule_group_name = "GoodBots"
+          excluded_rules = [
+            "200200",
+          ]
+        }
+      }
+    }
+  }
+
+  policy_settings {
+    enabled = true
+    mode    = "Prevention"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)

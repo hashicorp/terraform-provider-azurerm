@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -19,6 +20,9 @@ import (
 type MySQLServerKeyResource struct{}
 
 func TestAccMySQLServerKey_basic(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skipf("Skipping since `azurerm_mysql_server_key` is deprecated and will be removed in 4.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server_key", "test")
 	r := MySQLServerKeyResource{}
 
@@ -33,6 +37,9 @@ func TestAccMySQLServerKey_basic(t *testing.T) {
 }
 
 func TestAccMySQLServerKey_updateKey(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skipf("Skipping since `azurerm_mysql_server_key` is deprecated and will be removed in 4.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server_key", "test")
 	r := MySQLServerKeyResource{}
 
@@ -55,6 +62,9 @@ func TestAccMySQLServerKey_updateKey(t *testing.T) {
 }
 
 func TestAccMySQLServerKey_requiresImport(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skipf("Skipping since `azurerm_mysql_server_key` is deprecated and will be removed in 4.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server_key", "test")
 	r := MySQLServerKeyResource{}
 
