@@ -409,14 +409,14 @@ resource "azurerm_subnet" "aadds_secondary" {
   name                 = "acctestSubnet-aadds-secondary-%[4]d"
   resource_group_name  = azurerm_resource_group.test_secondary.name
   virtual_network_name = azurerm_virtual_network.test_secondary.name
-  address_prefixes     = [cidrsubnet(tolist(azurerm_virtual_network.test.address_space)[0], 8, 0)]
+  address_prefixes     = [cidrsubnet(tolist(azurerm_virtual_network.test_secondary.address_space)[0], 8, 0)]
 }
 
 resource "azurerm_subnet" "workload_secondary" {
   name                 = "acctestSubnet-workload-secondary-%[4]d"
   resource_group_name  = azurerm_resource_group.test_secondary.name
   virtual_network_name = azurerm_virtual_network.test_secondary.name
-  address_prefixes     = [cidrsubnet(tolist(azurerm_virtual_network.test.address_space)[0], 8, 1)]
+  address_prefixes     = [cidrsubnet(tolist(azurerm_virtual_network.test_secondary.address_space)[0], 8, 1)]
 }
 
 resource "azurerm_network_security_group" "aadds_secondary" {
