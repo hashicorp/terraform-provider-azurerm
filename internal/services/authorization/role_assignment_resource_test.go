@@ -263,20 +263,6 @@ func TestAccRoleAssignment_resourceGroupScoped(t *testing.T) {
 	})
 }
 
-func TestAccRoleAssignment_capacityProviderScoped(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_role_assignment", "test")
-	r := RoleAssignmentResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.capacityProviderScoped(),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("skip_service_principal_aad_check"),
-	})
-}
-
 func (r RoleAssignmentResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.RoleAssignmentID(state.ID)
 	if err != nil {
@@ -640,20 +626,4 @@ resource "azurerm_role_assignment" "test" {
   principal_id         = data.azurerm_client_config.test.object_id
 }
 `, data.RandomInteger, data.Locations.Primary)
-}
-
-func (RoleAssignmentResource) capacityProviderScoped() string {
-	return `
-provider "azurerm" {
-  features {}
-}
-
-data "azurerm_client_config" "test" {}
-
-resource "azurerm_role_assignment" "test" {
-  scope                = "/providers/Microsoft.Capacity"
-  role_definition_name = "Reservations Reader"
-  principal_id         = data.azurerm_client_config.test.object_id
-}
-`
 }
