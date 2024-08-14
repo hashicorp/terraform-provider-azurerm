@@ -198,15 +198,28 @@ func resourceStorageAccount() *pluginsdk.Resource {
 								},
 							},
 						},
+
+						"default_share_level_permission": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      string(storageaccounts.DefaultSharePermissionNone),
+							ValidateFunc: validation.StringInSlice(storageaccounts.PossibleValuesForDefaultSharePermission(), false),
+						},
 					},
 				},
 			},
 
-			"cross_tenant_replication_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  true,
-			},
+			"cross_tenant_replication_enabled": func() *pluginsdk.Schema {
+				s := &pluginsdk.Schema{
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  false,
+				}
+				if !features.FourPointOhBeta() {
+					s.Default = true
+				}
+				return s
+			}(),
 
 			"custom_domain": {
 				Type:     pluginsdk.TypeList,
@@ -2589,6 +2602,7 @@ func expandAccountAzureFilesAuthentication(input []interface{}) (*storageaccount
 		}
 
 		output.ActiveDirectoryProperties = ad
+		output.DefaultSharePermission = pointer.To(storageaccounts.DefaultSharePermission(v["default_share_level_permission"].(string)))
 	}
 
 	return &output, nil
@@ -2601,8 +2615,9 @@ func flattenAccountAzureFilesAuthentication(input *storageaccounts.AzureFilesIde
 
 	return []interface{}{
 		map[string]interface{}{
-			"active_directory": flattenAccountActiveDirectoryProperties(input.ActiveDirectoryProperties),
-			"directory_type":   input.DirectoryServiceOptions,
+			"active_directory":               flattenAccountActiveDirectoryProperties(input.ActiveDirectoryProperties),
+			"directory_type":                 input.DirectoryServiceOptions,
+			"default_share_level_permission": input.DefaultSharePermission,
 		},
 	}
 }

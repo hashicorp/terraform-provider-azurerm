@@ -152,8 +152,9 @@ func resourceAutomationRunbook() *pluginsdk.Resource {
 			},
 
 			"content": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// NOTE: O+C the API returns some defaults for this if `publish_content_link` is specified
 				Computed:     true,
 				AtLeastOneOf: []string{"content", "publish_content_link", "draft"},
 				ValidateFunc: validation.StringIsNotEmpty,

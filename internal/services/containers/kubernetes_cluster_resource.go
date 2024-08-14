@@ -437,7 +437,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						"dns_zone_ids": {
 							Type:     pluginsdk.TypeList,
 							Required: true,
-							MinItems: 1,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 								ValidateFunc: validation.Any(
@@ -1595,7 +1594,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			Type:          pluginsdk.TypeSet,
 			Optional:      true,
 			Computed:      true,
-			ConfigMode:    pluginsdk.SchemaConfigModeAttr,
 			ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.managed_outbound_ip_count", "network_profile.0.load_balancer_profile.0.outbound_ip_address_ids"},
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
@@ -1606,7 +1604,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			Type:          pluginsdk.TypeSet,
 			Optional:      true,
 			Computed:      true,
-			ConfigMode:    pluginsdk.SchemaConfigModeAttr,
 			ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.managed_outbound_ip_count", "network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids"},
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
@@ -1744,7 +1741,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 		resource.Schema["web_app_routing"].Elem.(*pluginsdk.Resource).Schema["dns_zone_ids"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			MinItems: 1,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 				ValidateFunc: validation.Any(
