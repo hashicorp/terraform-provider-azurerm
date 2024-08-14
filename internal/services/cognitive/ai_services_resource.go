@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2023-05-01/cognitiveservicesaccounts"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -323,8 +322,8 @@ func (AzureAIServicesResource) Create() sdk.ResourceFunc {
 			defer locks.UnlockMultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
 
 			props := cognitiveservicesaccounts.Account{
-				Kind:     utils.String("AIServices"),
-				Location: utils.String(azure.NormalizeLocation(model.Location)),
+				Kind:     pointer.To("AIServices"),
+				Location: pointer.To(location.Normalize(model.Location)),
 				Sku: &cognitiveservicesaccounts.Sku{
 					Name: model.SkuName,
 				},
@@ -349,20 +348,16 @@ func (AzureAIServicesResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
-			customMangedKey, err := expandAzureAIServicesCustomerManagedKey(model.CustomerManagedKey)
+			// creating with KV HSM takes more time than expected, at least hours in most cases and eventually terminated by service
+			customerManagedKey, err := expandAzureAIServicesCustomerManagedKey(model.CustomerManagedKey)
 			if err != nil {
 				return fmt.Errorf("expanding `customer_managed_key`: %+v", err)
 			}
 
-			if customMangedKey != nil {
-				props.Properties.Encryption = customMangedKey
-				futureUpdate, err := client.AccountsUpdate(ctx, id, props)
-				if err != nil {
+			if customerManagedKey != nil {
+				props.Properties.Encryption = customerManagedKey
+				if err := client.AccountsUpdateThenPoll(ctx, id, props); err != nil {
 					return fmt.Errorf("updating %s: %+v", id, err)
-				}
-
-				if err := futureUpdate.Poller.PollUntilDone(ctx); err != nil {
-					return fmt.Errorf("waiting for updating of %s: %+v", id, err)
 				}
 			}
 
@@ -547,13 +542,8 @@ func (AzureAIServicesResource) Update() sdk.ResourceFunc {
 				props.Identity = expandIdentity
 			}
 
-			future, err := client.AccountsUpdate(ctx, *id, *props)
-			if err != nil {
+			if err := client.AccountsUpdateThenPoll(ctx, *id, *props); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
-			}
-
-			if err := future.Poller.PollUntilDone(ctx); err != nil {
-				return fmt.Errorf("waiting for updating of %s: %+v", id, err)
 			}
 
 			return nil
