@@ -337,7 +337,6 @@ This Azure Service will be retired on 2025-03-31, as a result this deprecated re
 
 This Azure Service is being retired on 2024-08-31 and the provisioning of new instances has been blocked since 2022-11-01, as a result this deprecated resource has been removed from the Azure Provider.
 
-
 ### `azurerm_lab_service_lab`
 
 This Azure Service is being retired on 2027-06-28, as a result this deprecated resource has been removed from the Azure Provider.
