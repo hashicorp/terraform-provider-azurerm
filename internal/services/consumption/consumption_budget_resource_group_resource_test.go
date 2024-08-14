@@ -371,11 +371,9 @@ resource "azurerm_consumption_budget_resource_group" "test" {
   name              = "acctestconsumptionbudgetresourcegroup-%d"
   resource_group_id = azurerm_resource_group.test.id
 
-  // Changed the amount from 1000 to 2000
   amount     = 2000
   time_grain = "Monthly"
 
-  // Removed end_date
   time_period {
     start_date = "%s"
   }
@@ -396,7 +394,6 @@ resource "azurerm_consumption_budget_resource_group" "test" {
       ]
     }
 
-    // Added tag: zip
     tag {
       name = "zip"
       values = [
@@ -404,8 +401,6 @@ resource "azurerm_consumption_budget_resource_group" "test" {
         "zop",
       ]
     }
-
-    // Removed not block
   }
 
   notification {
@@ -417,7 +412,6 @@ resource "azurerm_consumption_budget_resource_group" "test" {
     threshold_type = "Forecasted"
 
     contact_emails = [
-      // Added baz@example.com
       "baz@example.com",
       "foo@example.com",
       "bar@example.com",
@@ -426,22 +420,18 @@ resource "azurerm_consumption_budget_resource_group" "test" {
     contact_groups = [
       azurerm_monitor_action_group.test.id,
     ]
-    // Removed contact_roles
   }
 
   notification {
-    // Set enabled to true
     enabled   = true
     threshold = 100.0
-    // Changed from EqualTo to GreaterThanOrEqualTo 
-    operator = "GreaterThanOrEqualTo"
+    operator  = "GreaterThanOrEqualTo"
 
     contact_emails = [
       "foo@example.com",
       "bar@example.com",
     ]
 
-    // Added contact_groups
     contact_groups = [
       azurerm_monitor_action_group.test.id,
     ]

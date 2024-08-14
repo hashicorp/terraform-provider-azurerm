@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/notificationhubs/2017-04-01/notificationhubs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/notificationhubs/2023-09-01/hubs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -82,12 +82,12 @@ func TestAccNotificationHub_requiresImport(t *testing.T) {
 }
 
 func (NotificationHubResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := notificationhubs.ParseNotificationHubID(state.ID)
+	id, err := hubs.ParseNotificationHubID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.NotificationHubs.HubsClient.Get(ctx, *id)
+	resp, err := clients.NotificationHubs.HubsClient.NotificationHubsGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
 	}

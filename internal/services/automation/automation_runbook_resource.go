@@ -152,14 +152,49 @@ func resourceAutomationRunbook() *pluginsdk.Resource {
 			},
 
 			"content": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// NOTE: O+C the API returns some defaults for this if `publish_content_link` is specified
 				Computed:     true,
 				AtLeastOneOf: []string{"content", "publish_content_link", "draft"},
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"job_schedule": helper.JobScheduleSchema(),
+			"job_schedule": {
+				Type:       pluginsdk.TypeSet,
+				Optional:   true,
+				Computed:   true,
+				ConfigMode: pluginsdk.SchemaConfigModeAttr,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"schedule_name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validate.ScheduleName(),
+						},
+
+						"parameters": {
+							Type:     pluginsdk.TypeMap,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+							ValidateFunc: validate.ParameterNames,
+						},
+
+						"run_on": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+						},
+
+						"job_schedule_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+				Set: helper.ResourceAutomationJobScheduleHash,
+			},
 
 			"publish_content_link": contentLinkSchema(false),
 

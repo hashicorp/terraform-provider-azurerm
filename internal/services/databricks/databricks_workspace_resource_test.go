@@ -1196,6 +1196,7 @@ resource "azurerm_databricks_workspace" "test" {
   sku                 = "%[3]s"
 
   custom_parameters {
+    no_public_ip                  = false
     machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
   }
 }
@@ -1268,7 +1269,7 @@ resource "azurerm_subnet" "privatelink" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.3.0/24"]
 
-  enforce_private_link_endpoint_network_policies = true
+  private_endpoint_network_policies = "Enabled"
 }
 
 resource "azurerm_network_security_group" "nsg" {
@@ -2017,7 +2018,7 @@ resource "azurerm_subnet" "privatelink" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.3.0/24"]
 
-  enforce_private_link_endpoint_network_policies = true
+  private_endpoint_network_policies = "Enabled"
 }
 
 resource "azurerm_network_security_group" "nsg" {

@@ -341,7 +341,6 @@ func resourceRedisEnterpriseDatabaseRead(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	d.Set("name", id.DatabaseName)
-	d.Set("resource_group_name", id.ResourceGroupName)
 	clusterId := redisenterprise.NewRedisEnterpriseID(id.SubscriptionId, id.ResourceGroupName, id.RedisEnterpriseName)
 	d.Set("cluster_id", clusterId.ID())
 

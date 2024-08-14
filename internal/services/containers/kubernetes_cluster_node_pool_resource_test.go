@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -120,6 +121,9 @@ func TestAccKubernetesClusterNodePool_capacityReservationGroup(t *testing.T) {
 }
 
 func TestAccKubernetesClusterNodePool_errorForAvailabilitySet(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("AvailabilitySet not supported as an option for default_node_pool in 4.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
 
@@ -812,6 +816,9 @@ func TestAccKubernetesClusterNodePool_osSkuAzureLinux(t *testing.T) {
 }
 
 func TestAccKubernetesClusterNodePool_osSkuCBLMariner(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("CBLMariner is an invalid `os_sku` in 4.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
 
@@ -827,6 +834,10 @@ func TestAccKubernetesClusterNodePool_osSkuCBLMariner(t *testing.T) {
 }
 
 func TestAccKubernetesClusterNodePool_osSkuMariner(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("Mariner is an invalid `os_sku` in 4.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
 

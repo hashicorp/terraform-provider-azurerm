@@ -16,6 +16,7 @@ import (
 	certificates "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/certificateobjectlocalrulestack"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/localrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/localrulestacks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/schema"
@@ -62,7 +63,7 @@ func (r LocalRuleStackRule) ResourceType() string {
 }
 
 func (r LocalRuleStackRule) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	schema := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -146,25 +147,6 @@ func (r LocalRuleStackRule) Arguments() map[string]*pluginsdk.Schema {
 			Default:  false,
 		},
 
-		"protocol": {
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			Default:       protocolApplicationDefault,
-			ValidateFunc:  validate.ProtocolWithPort,
-			ConflictsWith: []string{"protocol_ports"},
-		},
-
-		"protocol_ports": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MinItems: 1,
-			Elem: &pluginsdk.Schema{
-				Type:         pluginsdk.TypeString,
-				ValidateFunc: validate.ProtocolWithPort,
-			},
-			ConflictsWith: []string{"protocol"},
-		},
-
 		"enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
@@ -175,6 +157,56 @@ func (r LocalRuleStackRule) Arguments() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
+
+	if !features.FourPointOhBeta() {
+		schema["protocol"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  protocolApplicationDefault,
+			ValidateFunc: validation.Any(
+				validate.ProtocolWithPort,
+				validation.StringInSlice([]string{protocolApplicationDefault}, false),
+			),
+			ConflictsWith: []string{"protocol_ports"},
+			// if `protocol_ports` is set, the default value should not be used
+			DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
+				return len(d.Get("protocol_ports").([]interface{})) > 0 && old == "" && new == protocolApplicationDefault
+			},
+		}
+
+		schema["protocol_ports"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MinItems: 1,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validate.ProtocolWithPort,
+			},
+			ConflictsWith: []string{"protocol"},
+		}
+	} else {
+		schema["protocol"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ValidateFunc: validation.Any(
+				validate.ProtocolWithPort,
+				validation.StringInSlice([]string{protocolApplicationDefault}, false),
+			),
+			ExactlyOneOf: []string{"protocol", "protocol_ports"},
+		}
+
+		schema["protocol_ports"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MinItems: 1,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validate.ProtocolWithPort,
+			},
+			ExactlyOneOf: []string{"protocol", "protocol_ports"},
+		}
+	}
+	return schema
 }
 
 func (r LocalRuleStackRule) Attributes() map[string]*pluginsdk.Schema {
@@ -341,11 +373,7 @@ func (r LocalRuleStackRule) Read() sdk.ResourceFunc {
 				}
 				state.NegateDestination = boolEnumAsBoolRule(props.NegateDestination)
 				state.NegateSource = boolEnumAsBoolRule(props.NegateSource)
-				if v := pointer.From(props.Protocol); v != "" && !strings.EqualFold(v, protocolApplicationDefault) {
-					state.Protocol = v
-				} else {
-					state.Protocol = protocolApplicationDefault
-				}
+				state.Protocol = pointer.From(props.Protocol)
 				state.ProtocolPorts = pointer.From(props.ProtocolPortList)
 				state.RuleEnabled = stateEnumAsBool(props.RuleState)
 				state.Source = schema.FlattenSource(props.Source, *id)
