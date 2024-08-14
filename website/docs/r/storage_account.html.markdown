@@ -86,11 +86,11 @@ The following arguments are supported:
 
 * `account_kind` - (Optional) Defines the Kind of account. Valid options are `BlobStorage`, `BlockBlobStorage`, `FileStorage`, `Storage` and `StorageV2`. Defaults to `StorageV2`.
 
--> **NOTE:** Changing the `account_kind` value from `Storage` to `StorageV2` will not trigger a force new on the storage account, it will only upgrade the existing storage account from `Storage` to `StorageV2` keeping the existing storage account in place.
+-> **Note:** Changing the `account_kind` value from `Storage` to `StorageV2` will not trigger a force new on the storage account, it will only upgrade the existing storage account from `Storage` to `StorageV2` keeping the existing storage account in place.
 
 * `account_tier` - (Required) Defines the Tier to use for this storage account. Valid options are `Standard` and `Premium`. For `BlockBlobStorage` and `FileStorage` accounts only `Premium` is valid. Changing this forces a new resource to be created.
 
--> **NOTE:** Blobs with a tier of `Premium` are of account kind `StorageV2`.
+-> **Note:** Blobs with a tier of `Premium` are of account kind `StorageV2`.
 
 * `account_replication_type` - (Required) Defines the type of replication to use for this storage account. Valid options are `LRS`, `GRS`, `RAGRS`, `ZRS`, `GZRS` and `RAGZRS`. Changing this forces a new resource to be created when types `LRS`, `GRS` and `RAGRS` are changed to `ZRS`, `GZRS` or `RAGZRS` and vice versa.
 
@@ -100,15 +100,15 @@ The following arguments are supported:
 
 * `edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Storage Account should exist. Changing this forces a new Storage Account to be created.
 
-* `enable_https_traffic_only` - (Optional) Boolean flag which forces HTTPS if enabled, see [here](https://docs.microsoft.com/azure/storage/storage-require-secure-transfer/) for more information. Defaults to `true`.
+* `https_traffic_only_enabled` - (Optional) Boolean flag which forces HTTPS if enabled, see [here](https://docs.microsoft.com/azure/storage/storage-require-secure-transfer/) for more information. Defaults to `true`.
 
 * `min_tls_version` - (Optional) The minimum supported TLS version for the storage account. Possible values are `TLS1_0`, `TLS1_1`, and `TLS1_2`. Defaults to `TLS1_2` for new storage accounts.
 
--> **NOTE:** At this time `min_tls_version` is only supported in the Public Cloud, China Cloud, and US Government Cloud.
+-> **Note:** At this time `min_tls_version` is only supported in the Public Cloud, China Cloud, and US Government Cloud.
 
 * `allow_nested_items_to_be_public` - (Optional) Allow or disallow nested items within this Account to opt into being public. Defaults to `true`.
 
--> **NOTE:** At this time `allow_nested_items_to_be_public` is only supported in the Public Cloud, China Cloud, and US Government Cloud.
+-> **Note:** At this time `allow_nested_items_to_be_public` is only supported in the Public Cloud, China Cloud, and US Government Cloud.
 
 * `shared_access_key_enabled` - (Optional) Indicates whether the storage account permits requests to be authorized with the account access key via Shared Key. If false, then all requests, including shared access signatures, must be authorized with Azure Active Directory (Azure AD). Defaults to `true`.
 
@@ -120,15 +120,17 @@ The following arguments are supported:
 
 * `is_hns_enabled` - (Optional) Is Hierarchical Namespace enabled? This can be used with Azure Data Lake Storage Gen 2 ([see here for more information](https://docs.microsoft.com/azure/storage/blobs/data-lake-storage-quickstart-create-account/)). Changing this forces a new resource to be created.
 
--> **NOTE:** This can only be `true` when `account_tier` is `Standard` or when `account_tier` is `Premium` *and* `account_kind` is `BlockBlobStorage`
+-> **Note:** This can only be `true` when `account_tier` is `Standard` or when `account_tier` is `Premium` *and* `account_kind` is `BlockBlobStorage`
 
 * `nfsv3_enabled` - (Optional) Is NFSv3 protocol enabled? Changing this forces a new resource to be created. Defaults to `false`.
 
--> **NOTE:** This can only be `true` when `account_tier` is `Standard` and `account_kind` is `StorageV2`, or `account_tier` is `Premium` and `account_kind` is `BlockBlobStorage`. Additionally, the `is_hns_enabled` is `true` and `account_replication_type` must be `LRS` or `RAGRS`.
+-> **Note:** This can only be `true` when `account_tier` is `Standard` and `account_kind` is `StorageV2`, or `account_tier` is `Premium` and `account_kind` is `BlockBlobStorage`. Additionally, the `is_hns_enabled` is `true` and `account_replication_type` must be `LRS` or `RAGRS`.
 
 * `custom_domain` - (Optional) A `custom_domain` block as documented below.
 
 * `customer_managed_key` - (Optional) A `customer_managed_key` block as documented below.
+
+~> **Note:** It's possible to define a Customer Managed Key both within either the `customer_managed_key` block or by using the [`azurerm_storage_account_customer_managed_key`](storage_account_customer_managed_key.html) resource. However, it's not possible to use both methods to manage a Customer Managed Key for a Storage Account, since these will conflict. When using the `azurerm_storage_account_customer_managed_key` resource, you will need to use `ignore_changes` on the `customer_managed_key` block.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
@@ -136,19 +138,21 @@ The following arguments are supported:
 
 * `queue_properties` - (Optional) A `queue_properties` block as defined below.
 
-~> **NOTE:** `queue_properties` can only be configured when `account_tier` is set to `Standard` and `account_kind` is set to either `Storage` or `StorageV2`.
+~> **Note:** `queue_properties` can only be configured when `account_tier` is set to `Standard` and `account_kind` is set to either `Storage` or `StorageV2`.
 
 * `static_website` - (Optional) A `static_website` block as defined below.
 
-~> **NOTE:** `static_website` can only be set when the `account_kind` is set to `StorageV2` or `BlockBlobStorage`.
+~> **Note:** `static_website` can only be set when the `account_kind` is set to `StorageV2` or `BlockBlobStorage`.
 
 * `share_properties` - (Optional) A `share_properties` block as defined below.
 
-~> **NOTE:** `share_properties` can only be configured when either `account_tier` is `Standard` and `account_kind` is either `Storage` or `StorageV2` - or when `account_tier` is `Premium` and `account_kind` is `FileStorage`.
+~> **Note:** `share_properties` can only be configured when either `account_tier` is `Standard` and `account_kind` is either `Storage` or `StorageV2` - or when `account_tier` is `Premium` and `account_kind` is `FileStorage`.
 
 * `network_rules` - (Optional) A `network_rules` block as documented below.
 
-* `large_file_share_enabled` - (Optional) Is Large File Share Enabled?
+* `large_file_share_enabled` - (Optional) Are Large File Shares Enabled? Defaults to `false`.
+
+-> **Note:** Large File Shares are enabled by default when using an `account_kind` of `FileStorage`.
 
 * `local_user_enabled` - (Optional) Is Local User Enabled? Defaults to `true`.
 
@@ -157,13 +161,14 @@ The following arguments are supported:
 * `routing` - (Optional) A `routing` block as defined below.
 
 * `queue_encryption_key_type` - (Optional) The encryption type of the queue service. Possible values are `Service` and `Account`. Changing this forces a new resource to be created. Default value is `Service`.
+
 * `table_encryption_key_type` - (Optional) The encryption type of the table service. Possible values are `Service` and `Account`. Changing this forces a new resource to be created. Default value is `Service`.
 
-~> **NOTE:** For the `queue_encryption_key_type` and `table_encryption_key_type`, the `Account` key type is only allowed when the `account_kind` is set to `StorageV2`
+~> **Note:** For the `queue_encryption_key_type` and `table_encryption_key_type`, the `Account` key type is only allowed when the `account_kind` is set to `StorageV2`
 
 * `infrastructure_encryption_enabled` - (Optional) Is infrastructure encryption enabled? Changing this forces a new resource to be created. Defaults to `false`.
 
--> **NOTE:** This can only be `true` when `account_kind` is `StorageV2` or when `account_tier` is `Premium` *and* `account_kind` is one of `BlockBlobStorage` or `FileStorage`.
+-> **Note:** This can only be `true` when `account_kind` is `StorageV2` or when `account_tier` is `Premium` *and* `account_kind` is one of `BlockBlobStorage` or `FileStorage`.
 
 * `immutability_policy` - (Optional) An `immutability_policy` block as defined below. Changing this forces a new resource to be created.
 
@@ -173,11 +178,11 @@ The following arguments are supported:
 
 * `sftp_enabled` - (Optional) Boolean, enable SFTP for the storage account
 
--> **NOTE:** SFTP support requires `is_hns_enabled` set to `true`. [More information on SFTP support can be found here](https://learn.microsoft.com/azure/storage/blobs/secure-file-transfer-protocol-support). Defaults to `false`
+-> **Note:** SFTP support requires `is_hns_enabled` set to `true`. [More information on SFTP support can be found here](https://learn.microsoft.com/azure/storage/blobs/secure-file-transfer-protocol-support). Defaults to `false`
 
 * `dns_endpoint_type` - (Optional) Specifies which DNS endpoint type to use. Possible values are `Standard` and `AzureDnsZone`. Defaults to `Standard`. Changing this forces a new resource to be created.
 
--> **NOTE:** Azure DNS zone support requires `PartitionedDns` feature to be enabled. To enable this feature for your subscription, use the following command: `az feature register --namespace "Microsoft.Storage" --name "PartitionedDns"`.
+-> **Note:** Azure DNS zone support requires `PartitionedDns` feature to be enabled. To enable this feature for your subscription, use the following command: `az feature register --namespace "Microsoft.Storage" --name "PartitionedDns"`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -191,27 +196,27 @@ A `blob_properties` block supports the following:
 
 * `restore_policy` - (Optional) A `restore_policy` block as defined below. This must be used together with `delete_retention_policy` set, `versioning_enabled` and `change_feed_enabled` set to `true`.
 
--> **NOTE:** This field cannot be configured when `kind` is set to `Storage` (V1).
+-> **Note:** This field cannot be configured when `kind` is set to `Storage` (V1).
 
--> **NOTE:** `restore_policy` can not be configured when `dns_endpoint_type` is `AzureDnsZone`.
+-> **Note:** `restore_policy` can not be configured when `dns_endpoint_type` is `AzureDnsZone`.
 
 * `versioning_enabled` - (Optional) Is versioning enabled? Default to `false`.
 
--> **NOTE:** This field cannot be configured when `kind` is set to `Storage` (V1).
+-> **Note:** This field cannot be configured when `kind` is set to `Storage` (V1).
 
 * `change_feed_enabled` - (Optional) Is the blob service properties for change feed events enabled? Default to `false`.
 
--> **NOTE:** This field cannot be configured when `kind` is set to `Storage` (V1).
+-> **Note:** This field cannot be configured when `kind` is set to `Storage` (V1).
 
 * `change_feed_retention_in_days` - (Optional) The duration of change feed events retention in days. The possible values are between 1 and 146000 days (400 years). Setting this to null (or omit this in the configuration file) indicates an infinite retention of the change feed.
 
--> **NOTE:** This field cannot be configured when `kind` is set to `Storage` (V1).
+-> **Note:** This field cannot be configured when `kind` is set to `Storage` (V1).
 
 * `default_service_version` - (Optional) The API Version which should be used by default for requests to the Data Plane API if an incoming request doesn't specify an API Version.
 
 * `last_access_time_enabled` - (Optional) Is the last access time based tracking enabled? Default to `false`.
 
--> **NOTE:** This field cannot be configured when `kind` is set to `Storage` (V1).
+-> **Note:** This field cannot be configured when `kind` is set to `Storage` (V1).
 
 * `container_delete_retention_policy` - (Optional) A `container_delete_retention_policy` block as defined below.
 
@@ -248,7 +253,7 @@ A `customer_managed_key` block supports the following:
 
 * `user_assigned_identity_id` - (Required) The ID of a user assigned identity.
 
-~> **NOTE:** `customer_managed_key` can only be set when the `account_kind` is set to `StorageV2` or `account_tier` set to `Premium`, and the identity type is `UserAssigned`.
+~> **Note:** `customer_managed_key` can only be set when the `account_kind` is set to `StorageV2` or `account_tier` set to `Premium`, and the identity type is `UserAssigned`.
 
 ---
 
@@ -258,7 +263,7 @@ A `delete_retention_policy` block supports the following:
 
 * `permanent_delete_enabled` - (Optional) Indicates whether permanent deletion of the soft deleted blob versions and snapshots is allowed. Defaults to `false`.
 
-~> **NOTE:** `permanent_delete_enabled` cannot be set to true if a `restore_policy` block is defined.
+~> **Note:** `permanent_delete_enabled` cannot be set to true if a `restore_policy` block is defined.
 
 ---
 
@@ -292,7 +297,7 @@ An `identity` block supports the following:
 
 * `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Storage Account.
 
-~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+~> **Note:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ~> The assigned `principal_id` and `tenant_id` can be retrieved after the identity `type` has been set to `SystemAssigned`  and Storage Account has been created. More details are available below.
 
@@ -300,7 +305,7 @@ An `identity` block supports the following:
 
 An `immutability_policy` block supports the following:
 
-~> **NOTE:** This argument specifies the default account-level immutability policy which is inherited and applied to objects that do not possess an explicit immutability policy at the object level. The object-level immutability policy has higher precedence than the container-level immutability policy, which has a higher precedence than the account-level immutability policy.
+~> **Note:** This argument specifies the default account-level immutability policy which is inherited and applied to objects that do not possess an explicit immutability policy at the object level. The object-level immutability policy has higher precedence than the container-level immutability policy, which has a higher precedence than the account-level immutability policy.
 
 * `allow_protected_append_writes` - (Required) When enabled, new blocks can be written to an append blob while maintaining immutability protection and compliance. Only new blocks can be added and any existing blocks cannot be modified or deleted.
 
@@ -348,7 +353,7 @@ A `network_rules` block supports the following:
 
 ~> **Note:** If specifying `network_rules`, one of either `ip_rules` or `virtual_network_subnet_ids` must be specified and `default_action` must be set to `Deny`.
 
-~> **NOTE:** Network Rules can be defined either directly on the `azurerm_storage_account` resource, or using the `azurerm_storage_account_network_rules` resource - but the two cannot be used together. If both are used against the same Storage Account, spurious changes will occur. When managing Network Rules using this resource, to change from a `default_action` of `Deny` to `Allow` requires defining, rather than removing, the block.
+~> **Note:** Network Rules can be defined either directly on the `azurerm_storage_account` resource, or using the `azurerm_storage_account_network_rules` resource - but the two cannot be used together. If both are used against the same Storage Account, spurious changes will occur. When managing Network Rules using this resource, to change from a `default_action` of `Deny` to `Allow` requires defining, rather than removing, the block.
 
 ~> **Note:** The prefix of `ip_rules` must be between 0 and 30 and only supports public IP addresses.
 
@@ -369,6 +374,8 @@ A `azure_files_authentication` block supports the following:
 * `directory_type` - (Required) Specifies the directory service used. Possible values are `AADDS`, `AD` and `AADKERB`.
 
 * `active_directory` - (Optional) A `active_directory` block as defined below. Required when `directory_type` is `AD`.
+
+* `default_share_level_permission` - (Optional) Specifies the default share level permissions applied to all users. Possible values are `StorageFileDataSmbShareReader`, `StorageFileDataSmbShareContributor`, `StorageFileDataSmbShareElevatedContributor`, or `None`.
 
 ---
 
@@ -606,7 +613,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `secondary_blob_connection_string` - The connection string associated with the secondary blob location.
 
-~> **NOTE:** If there's a write-lock on the Storage Account, or the account doesn't have permission then these fields will have an empty value [due to a bug in the Azure API](https://github.com/Azure/azure-rest-api-specs/issues/6363)
+~> **Note:** If there's a write-lock on the Storage Account, or the account doesn't have permission then these fields will have an empty value [due to a bug in the Azure API](https://github.com/Azure/azure-rest-api-specs/issues/6363)
 
 * `identity` - An `identity` block as defined below.
 

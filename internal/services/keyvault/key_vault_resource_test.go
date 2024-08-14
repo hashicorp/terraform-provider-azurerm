@@ -430,29 +430,6 @@ func TestAccKeyVault_purgeProtectionAttemptToDisable(t *testing.T) {
 	})
 }
 
-func TestAccKeyVault_deletePolicy(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_key_vault", "test")
-	r := KeyVaultResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.noPolicy(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("access_policy.#").HasValue("0"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func (KeyVaultResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseKeyVaultID(state.ID)
 	if err != nil {
@@ -1133,33 +1110,6 @@ resource "azurerm_key_vault" "test" {
   sku_name                   = "standard"
   soft_delete_retention_days = 7
   purge_protection_enabled   = true
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func (KeyVaultResource) noPolicy(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-data "azurerm_client_config" "current" {
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_key_vault" "test" {
-  name                       = "vault%d"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  tenant_id                  = data.azurerm_client_config.current.tenant_id
-  sku_name                   = "standard"
-  soft_delete_retention_days = 7
-
-  access_policy = []
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

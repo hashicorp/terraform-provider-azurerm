@@ -183,7 +183,6 @@ resource "azurerm_automation_runbook" "test" {
   )
   "Hello, " + $Output + "!"
 EOF
-
 }
 
 resource "azurerm_automation_schedule" "test" {

@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -20,6 +21,9 @@ import (
 type MySQLVirtualNetworkRuleResource struct{}
 
 func TestAccMySQLVirtualNetworkRule_basic(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skipf("Skipping since `azurerm_mysql_virtual_network_rule` is deprecated and will be removed in 4.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_mysql_virtual_network_rule", "test")
 	r := MySQLVirtualNetworkRuleResource{}
 
@@ -34,6 +38,9 @@ func TestAccMySQLVirtualNetworkRule_basic(t *testing.T) {
 }
 
 func TestAccMySQLVirtualNetworkRule_badsubnet(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skipf("Skipping since `azurerm_mysql_virtual_network_rule` is deprecated and will be removed in 4.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_mysql_virtual_network_rule", "test")
 	r := MySQLVirtualNetworkRuleResource{}
 
@@ -49,6 +56,9 @@ func TestAccMySQLVirtualNetworkRule_badsubnet(t *testing.T) {
 }
 
 func TestAccMySQLVirtualNetworkRule_requiresImport(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skipf("Skipping since `azurerm_mysql_virtual_network_rule` is deprecated and will be removed in 4.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_mysql_virtual_network_rule", "test")
 	r := MySQLVirtualNetworkRuleResource{}
 
@@ -67,6 +77,9 @@ func TestAccMySQLVirtualNetworkRule_requiresImport(t *testing.T) {
 }
 
 func TestAccMySQLVirtualNetworkRule_switchSubnets(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skipf("Skipping since `azurerm_mysql_virtual_network_rule` is deprecated and will be removed in 4.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_mysql_virtual_network_rule", "test")
 	r := MySQLVirtualNetworkRuleResource{}
 
@@ -93,6 +106,9 @@ func TestAccMySQLVirtualNetworkRule_switchSubnets(t *testing.T) {
 }
 
 func TestAccMySQLVirtualNetworkRule_disappears(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skipf("Skipping since `azurerm_mysql_virtual_network_rule` is deprecated and will be removed in 4.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_mysql_virtual_network_rule", "test")
 	r := MySQLVirtualNetworkRuleResource{}
 
@@ -105,6 +121,9 @@ func TestAccMySQLVirtualNetworkRule_disappears(t *testing.T) {
 }
 
 func TestAccMySQLVirtualNetworkRule_multipleSubnets(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skipf("Skipping since `azurerm_mysql_virtual_network_rule` is deprecated and will be removed in 4.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_mysql_virtual_network_rule", "rule1")
 	r := MySQLVirtualNetworkRuleResource{}
 

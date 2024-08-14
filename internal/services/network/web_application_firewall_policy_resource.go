@@ -338,6 +338,7 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 																	string(webapplicationfirewallpolicies.ActionTypeAllow),
 																	string(webapplicationfirewallpolicies.ActionTypeAnomalyScoring),
 																	string(webapplicationfirewallpolicies.ActionTypeBlock),
+																	string(webapplicationfirewallpolicies.ActionTypeJSChallenge),
 																	string(webapplicationfirewallpolicies.ActionTypeLog),
 																}, false),
 															},
@@ -401,6 +402,13 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 							Optional:     true,
 							Default:      128,
 							ValidateFunc: validation.IntAtLeast(0),
+						},
+
+						"js_challenge_cookie_expiration_in_minutes": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							Default:      30,
+							ValidateFunc: validation.IntBetween(5, 1440),
 						},
 
 						"log_scrubbing": {
@@ -716,13 +724,14 @@ func expandWebApplicationFirewallPolicyPolicySettings(input []interface{}) *weba
 	fileUploadLimitInMb := v["file_upload_limit_in_mb"].(int)
 
 	result := webapplicationfirewallpolicies.PolicySettings{
-		State:                       pointer.To(enabled),
-		Mode:                        pointer.To(webapplicationfirewallpolicies.WebApplicationFirewallMode(mode)),
-		RequestBodyCheck:            pointer.To(requestBodyCheck),
-		MaxRequestBodySizeInKb:      pointer.To(int64(maxRequestBodySizeInKb)),
-		FileUploadLimitInMb:         pointer.To(int64(fileUploadLimitInMb)),
-		LogScrubbing:                expandWebApplicationFirewallPolicyLogScrubbing(v["log_scrubbing"].([]interface{})),
-		RequestBodyInspectLimitInKB: pointer.To(int64(v["request_body_inspect_limit_in_kb"].(int))),
+		State:                             pointer.To(enabled),
+		Mode:                              pointer.To(webapplicationfirewallpolicies.WebApplicationFirewallMode(mode)),
+		RequestBodyCheck:                  pointer.To(requestBodyCheck),
+		MaxRequestBodySizeInKb:            pointer.To(int64(maxRequestBodySizeInKb)),
+		FileUploadLimitInMb:               pointer.To(int64(fileUploadLimitInMb)),
+		LogScrubbing:                      expandWebApplicationFirewallPolicyLogScrubbing(v["log_scrubbing"].([]interface{})),
+		RequestBodyInspectLimitInKB:       pointer.To(int64(v["request_body_inspect_limit_in_kb"].(int))),
+		JsChallengeCookieExpirationInMins: pointer.To(int64(v["js_challenge_cookie_expiration_in_minutes"].(int))),
 	}
 
 	return &result
@@ -1074,6 +1083,7 @@ func flattenWebApplicationFirewallPolicyPolicySettings(input *webapplicationfire
 	result["file_upload_limit_in_mb"] = int(pointer.From(input.FileUploadLimitInMb))
 	result["log_scrubbing"] = flattenWebApplicationFirewallPolicyLogScrubbing(input.LogScrubbing)
 	result["request_body_inspect_limit_in_kb"] = pointer.From(input.RequestBodyInspectLimitInKB)
+	result["js_challenge_cookie_expiration_in_minutes"] = pointer.From(input.JsChallengeCookieExpirationInMins)
 
 	return []interface{}{result}
 }

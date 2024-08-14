@@ -358,24 +358,9 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 		virtualMachineProfile.OsProfile.WindowsConfiguration.TimeZone = pointer.To(v.(string))
 	}
 
-	scaleInPolicy := &virtualmachinescalesets.ScaleInPolicy{
-		Rules:         &[]virtualmachinescalesets.VirtualMachineScaleSetScaleInRules{virtualmachinescalesets.VirtualMachineScaleSetScaleInRules(string(virtualmachinescalesets.VirtualMachineScaleSetScaleInRulesDefault))},
-		ForceDeletion: pointer.To(false),
-	}
-
 	if !features.FourPointOhBeta() {
-		if v, ok := d.GetOk("scale_in_policy"); ok {
-			scaleInPolicy.Rules = &[]virtualmachinescalesets.VirtualMachineScaleSetScaleInRules{virtualmachinescalesets.VirtualMachineScaleSetScaleInRules(v.(string))}
-		}
-
 		if v, ok := d.GetOk("terminate_notification"); ok {
 			virtualMachineProfile.ScheduledEventsProfile = ExpandVirtualMachineScaleSetScheduledEventsProfile(v.([]interface{}))
-		}
-	}
-
-	if v, ok := d.GetOk("scale_in"); ok {
-		if v := ExpandVirtualMachineScaleSetScaleInPolicy(v.([]interface{})); v != nil {
-			scaleInPolicy = v
 		}
 	}
 
@@ -389,6 +374,10 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 
 	automaticRepairsPolicyRaw := d.Get("automatic_instance_repair").([]interface{})
 	automaticRepairsPolicy := ExpandVirtualMachineScaleSetAutomaticRepairsPolicy(automaticRepairsPolicyRaw)
+
+	if automaticRepairsPolicy != nil && healthProbeId == "" && !hasHealthExtension {
+		return fmt.Errorf("`automatic_instance_repair` can only be set if there is an application Health extension or a `health_probe_id` defined")
+	}
 
 	props := virtualmachinescalesets.VirtualMachineScaleSet{
 		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
@@ -415,8 +404,26 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 			// standard VMSS resource, since virtualMachineProfile is now supported
 			// in both VMSS and Orchestrated VMSS...
 			OrchestrationMode: pointer.To(virtualmachinescalesets.OrchestrationModeUniform),
-			ScaleInPolicy:     scaleInPolicy,
 		},
+	}
+
+	if !features.FourPointOhBeta() {
+		scaleInPolicy := &virtualmachinescalesets.ScaleInPolicy{
+			Rules:         &[]virtualmachinescalesets.VirtualMachineScaleSetScaleInRules{virtualmachinescalesets.VirtualMachineScaleSetScaleInRules(string(virtualmachinescalesets.VirtualMachineScaleSetScaleInRulesDefault))},
+			ForceDeletion: pointer.To(false),
+		}
+
+		if v, ok := d.GetOk("scale_in_policy"); ok {
+			scaleInPolicy.Rules = &[]virtualmachinescalesets.VirtualMachineScaleSetScaleInRules{virtualmachinescalesets.VirtualMachineScaleSetScaleInRules(v.(string))}
+		}
+
+		props.Properties.ScaleInPolicy = scaleInPolicy
+
+	}
+	if v, ok := d.GetOk("scale_in"); ok {
+		if v := ExpandVirtualMachineScaleSetScaleInPolicy(v.([]interface{})); v != nil {
+			props.Properties.ScaleInPolicy = v
+		}
 	}
 
 	if v, ok := d.GetOk("host_group_id"); ok {
@@ -751,6 +758,26 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 	if d.HasChange("automatic_instance_repair") {
 		automaticRepairsPolicyRaw := d.Get("automatic_instance_repair").([]interface{})
 		automaticRepairsPolicy := ExpandVirtualMachineScaleSetAutomaticRepairsPolicy(automaticRepairsPolicyRaw)
+
+		if automaticRepairsPolicy != nil {
+			// we need to know if the VMSS has a health extension or not
+			hasHealthExtension := false
+
+			if v, ok := d.GetOk("extension"); ok {
+				var err error
+				_, hasHealthExtension, err = expandOrchestratedVirtualMachineScaleSetExtensions(v.(*pluginsdk.Set).List())
+				if err != nil {
+					return err
+				}
+			}
+
+			_, hasHealthProbeId := d.GetOk("health_probe_id")
+
+			if !hasHealthProbeId && !hasHealthExtension {
+				return fmt.Errorf("`automatic_instance_repair` can only be set if there is an application Health extension or a `health_probe_id` defined")
+			}
+		}
+
 		updateProps.AutomaticRepairsPolicy = automaticRepairsPolicy
 	}
 

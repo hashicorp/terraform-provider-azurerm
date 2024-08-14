@@ -511,7 +511,7 @@ func (k FeatureResource) Update() sdk.ResourceFunc {
 					Parameters: PercentageFilterParameters{Value: model.PercentageFilter},
 				})
 				filterChanged = true
-			} else {
+			} else if percentageFilter.Name != "" {
 				filters = append(filters, percentageFilter)
 			}
 

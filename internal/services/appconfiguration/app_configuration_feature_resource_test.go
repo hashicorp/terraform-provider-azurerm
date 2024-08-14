@@ -224,6 +224,27 @@ func TestAccAppConfigurationFeature_enabledUpdate(t *testing.T) {
 	})
 }
 
+func TestAccAppConfigurationFeature_basicAddTargetingFilter(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_configuration_feature", "test")
+	r := AppConfigurationFeatureResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicNoFilters(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicTargetingFilter(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t AppConfigurationFeatureResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	nestedItemId, err := parse.ParseNestedItemID(state.ID)
 	if err != nil {
@@ -476,6 +497,27 @@ resource "azurerm_app_configuration_feature" "test" {
   name                   = "acctest-ackey-%[2]d"
   label                  = "acctest-ackeylabel-%[2]d"
   enabled                = true
+}
+`, t.template(data), data.RandomInteger)
+}
+
+func (t AppConfigurationFeatureResource) basicTargetingFilter(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_app_configuration_feature" "test" {
+  configuration_store_id = azurerm_app_configuration.test.id
+  description            = "test description"
+  name                   = "acctest-ackey-%[2]d"
+  label                  = "acctest-ackeylabel-%[2]d"
+  enabled                = true
+
+  targeting_filter {
+    default_rollout_percentage = 39
+    users = [
+      "random", "user"
+    ]
+  }
 }
 `, t.template(data), data.RandomInteger)
 }

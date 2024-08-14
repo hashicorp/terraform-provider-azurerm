@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/storage"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -17,12 +18,16 @@ import (
 const (
 	connStringAccountKeyKey  = "AccountKey"
 	connStringAccountNameKey = "AccountName"
-	sasSignedVersion         = "2017-07-29"
 )
 
 // This is an ACCOUNT SAS : https://docs.microsoft.com/en-us/rest/api/storageservices/Constructing-an-Account-SAS
 // not Service SAS
 func dataSourceStorageAccountSharedAccessSignature() *pluginsdk.Resource {
+	var sasSignedVersion = "2017-07-29"
+	if features.FourPointOhBeta() {
+		// TODO: Update the document as well
+		sasSignedVersion = "2022-11-02"
+	}
 	return &pluginsdk.Resource{
 		Read: dataSourceStorageAccountSasRead,
 
