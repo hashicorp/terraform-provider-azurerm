@@ -81,7 +81,7 @@ func (r SiteRecoveryRecoveryVaultDataSource) Read() sdk.ResourceFunc {
 			resp, err := client.Get(ctx, id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
-					return fmt.Errorf("recovery service vault %s not found", id.ID())
+					return fmt.Errorf("%s was not found", id)
 				}
 				return fmt.Errorf("retreiving %s: %+v", id, err)
 			}
