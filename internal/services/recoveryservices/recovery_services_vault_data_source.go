@@ -83,7 +83,7 @@ func (r SiteRecoveryRecoveryVaultDataSource) Read() sdk.ResourceFunc {
 				if response.WasNotFound(resp.HttpResponse) {
 					return fmt.Errorf("%s was not found", id)
 				}
-				return fmt.Errorf("retreiving %s: %+v", id, err)
+				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
 			model := resp.Model
