@@ -25,9 +25,7 @@ data "azurerm_storage_table_entity" "example" {
 
 The following arguments are supported:
 
-* `table_name` - The name of the Table.
-
-* `storage_account_name` - The name of the Storage Account where the Table exists.
+* `storage_table_id` - (Required) The Storage Table ID where the entity exists.
 
 * `partition_key` - The key for the partition where the entity will be retrieved.
 

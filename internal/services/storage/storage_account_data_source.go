@@ -525,6 +525,10 @@ func dataSourceStorageAccount() *pluginsdk.Resource {
 								},
 							},
 						},
+						"default_share_level_permission": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},
