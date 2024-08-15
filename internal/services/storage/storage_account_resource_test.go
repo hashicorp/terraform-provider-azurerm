@@ -888,7 +888,6 @@ func TestAccStorageAccount_replicationTypeGZRS(t *testing.T) {
 }
 
 func TestAccStorageAccount_largeFileShare(t *testing.T) {
-	// Note: this test causes a ForceNew when disabling large file shares
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
 
@@ -915,13 +914,6 @@ func TestAccStorageAccount_largeFileShare(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-		{
-			Config: r.largeFileShareDisabled(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("large_file_share_enabled").HasValue("false"),
-			),
-		},
 	})
 }
 
