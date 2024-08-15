@@ -37,6 +37,7 @@ BUG FIXES:
 * `azurerm_nginx_deployment` - omit `capacity` when creating deployments with a basic plan [GH-26223]
 * `azurerm_role_management_policy` - prevent panic when updating `activation_rules.approval_stage` [GH-26800]
 * `azurerm_sentinel_threat_intelligence_indicator` - prevent panic when importing this resource [GH-26976]
+* `azurerm_servicebus_namespace` - fix panic reading encryption with versionless ids [GH-27060]
 * `azurerm_synapse_spark_pool` - prevent plan diff due to API behaviour by setting `node_count` as Computed [GH-26953]
 * `azurerm_virtual_network_gateway_connection` - fix issue where `ingress_nat_rule_ids` was updating the egress rules on updates [GH-27022]
 
