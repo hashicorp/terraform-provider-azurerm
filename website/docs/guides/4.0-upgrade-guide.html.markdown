@@ -792,7 +792,6 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 
 ### `azurerm_kubernetes_cluster_node_pool`
 
-* The deprecated property `node_taints` has been removed.
 * The property `enable_auto_scaling` has been renamed to `auto_scaling_enabled`.
 * The property `enable_node_public_ip` has been renamed to `node_public_ip_enabled`.
 * The property `enable_host_encryption` has been renamed to `host_encryption_enabled`.
