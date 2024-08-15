@@ -195,7 +195,7 @@ func dataSourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interf
 	}
 
 	var connInfo *connectionInfo
-	var vmModel virtualmachines.VirtualMachine
+	var vmModel *virtualmachines.VirtualMachine
 	for _, item := range result.Items {
 		if item.InstanceId != nil {
 			vmId := networkinterfaces.NewVirtualMachineID(subscriptionId, id.ResourceGroupName, id.VirtualMachineScaleSetName, *item.InstanceId)
@@ -213,7 +213,7 @@ func dataSourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interf
 				}
 				connInfoRaw := retrieveConnectionInformation(ctx, networkInterfacesClient, publicIPAddressesClient, vm.Model.Properties)
 				connInfo = &connInfoRaw
-				vmModel = *vm.Model
+				vmModel = vm.Model
 			} else {
 				connInfo, err = getVirtualMachineScaleSetVMConnectionInfo(ctx, nics.Items, id.ResourceGroupName, id.VirtualMachineScaleSetName, *item.InstanceId, vmssPublicIpAddressesClient)
 				if err != nil {
@@ -221,7 +221,7 @@ func dataSourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interf
 				}
 			}
 
-			flattenedInstances := flattenVirtualMachineScaleSetVM(item, connInfo, &vmModel, orchestrationMode)
+			flattenedInstances := flattenVirtualMachineScaleSetVM(item, connInfo, vmModel, orchestrationMode)
 			instances = append(instances, flattenedInstances)
 		}
 	}
@@ -301,7 +301,7 @@ func flattenVirtualMachineScaleSetVM(input virtualmachinescalesetvms.VirtualMach
 	output["name"] = *input.Name
 	output["instance_id"] = *input.InstanceId
 
-	if mode == "Flexible" {
+	if mode == "Flexible" && vm != nil {
 		if props := vm.Properties; props != nil {
 			if props.VMId != nil {
 				output["virtual_machine_id"] = *props.VMId
