@@ -138,7 +138,7 @@ func (r AppServiceConnectorResource) Arguments() map[string]*schema.Schema {
 				Schema: map[string]*schema.Schema{
 					"action": {
 						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Required: true,
 						ValidateFunc: validation.StringInSlice([]string{
 							string(servicelinker.ActionTypeOptOut),
 							string(servicelinker.ActionTypeEnable),
