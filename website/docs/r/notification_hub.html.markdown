@@ -80,9 +80,9 @@ A `browser_credential` block contains:
 
 * `subject` - (Required) The subject name of web push.
 
-* `vapid_private_key` - (Required) The VAPID private key.
+* `vapid_private_key` - (Required) The Voluntary Application Server Identification (VAPID) private key.
 
-* `vapid_public_key` - (Required) The VAPID public key.
+* `vapid_public_key` - (Required) The Voluntary Application Server Identification (VAPID) public key.
 
 ---
 
