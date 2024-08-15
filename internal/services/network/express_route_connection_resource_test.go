@@ -148,7 +148,6 @@ resource "azurerm_express_route_connection" "test" {
   routing_weight                       = 2
   authorization_key                    = "90f8db47-e25b-4b65-a68b-7743ced2a16b"
   enable_internet_security             = true
-  private_link_fast_path_enabled       = true
   express_route_gateway_bypass_enabled = true
 
   routing {
@@ -220,7 +219,6 @@ resource "azurerm_express_route_connection" "test" {
   routing_weight                       = 2
   authorization_key                    = "90f8db47-e25b-4b65-a68b-7743ced2a16b"
   enable_internet_security             = true
-  private_link_fast_path_enabled       = true
   express_route_gateway_bypass_enabled = true
 
   routing {

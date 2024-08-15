@@ -325,6 +325,14 @@ provider "azurerm" {
       purge_soft_delete_on_destroy       = false
       purge_soft_deleted_keys_on_destroy = false
     }
+
+    resource_group {
+      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service, 
+      prevent_deletion_if_contains_resources has been added here to allow the test resources to be 
+       deleted until this can be properly investigated
+      */
+      prevent_deletion_if_contains_resources = false
+    }
   }
 }
 
@@ -362,6 +370,8 @@ resource "azurerm_mssql_managed_instance" "test" {
 }
 
 
+
+
 `, db.template(data, data.Locations.Primary), data.RandomInteger)
 }
 
@@ -374,6 +384,13 @@ provider "azurerm" {
     key_vault {
       purge_soft_delete_on_destroy       = false
       purge_soft_deleted_keys_on_destroy = false
+    }
+    resource_group {
+      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
+      prevent_deletion_if_contains_resources has been added here to allow the test resources to be
+       deleted until this can be properly investigated
+      */
+      prevent_deletion_if_contains_resources = false
     }
   }
 }
@@ -419,6 +436,12 @@ resource "azurerm_mssql_managed_instance" "test" {
     database    = "test"
   }
 }
+
+
+
+
+
+
 
 
 `, db.template(data, data.Locations.Primary), data.RandomInteger)

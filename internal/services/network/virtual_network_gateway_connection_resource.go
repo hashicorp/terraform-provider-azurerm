@@ -623,7 +623,7 @@ func resourceVirtualNetworkGatewayConnectionUpdate(d *pluginsdk.ResourceData, me
 	}
 
 	if d.HasChange("ingress_nat_rule_ids") {
-		payload.Properties.EgressNatRules = expandVirtualNetworkGatewayConnectionNatRuleIds(d.Get("ingress_nat_rule_ids").(*pluginsdk.Set).List())
+		payload.Properties.IngressNatRules = expandVirtualNetworkGatewayConnectionNatRuleIds(d.Get("ingress_nat_rule_ids").(*pluginsdk.Set).List())
 	}
 
 	if d.HasChange("local_network_gateway_id") {
