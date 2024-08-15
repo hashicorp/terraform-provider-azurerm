@@ -136,7 +136,7 @@ A `configuration` block supports the following:
 
 * A `public_network_solution` block supports the following:
 
-* `action` - (Optional) Indicates public network solution. Possible values are `enable` and `optOut`.
+* `action` - (Required) Indicates public network solution. Possible values are `enable` and `optOut`.
 
 ---
 
