@@ -22,6 +22,7 @@ BUG FIXES:
 * Data Source: `azurerm_search_service` - expose the `tags` property [GH-26978]
 * `azurerm_api_management_api_schema` - correctly unmarshal `definition` and `components` [GH-26531]
 * `azurerm_cdn_frontdoor_secret` - fix issue where `expiration_date` was being set into the parent block [GH-26982]
+* `azurerm_container_app_environment` - fix diff suppress on `infrastructure_resource_group_name` [GH-27007]
 * `azurerm_machine_learning_workspace` - `serverless_compute` can now be updated [GH-26940]
 * `azurerm_mssql_database` - fix issue where the database cannot be upgraded to use serverless due to the behaviour of the `license_type` field [GH-26850]
 * `azurerm_nginx_deployment` - omit `capacity` when creating deployments with a basic plan [GH-26223]
