@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/logicalnetworks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/extendedlocation/2021-08-15/customlocations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridazurekubernetesservice/2024-01-01/provisionedclusterinstances"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridazurekubernetesservice/2024-01-01/virtualnetworks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridkubernetes/2024-01-01/connectedclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -65,14 +66,13 @@ type ArcKubernetesProvisionedClusterInstanceResourceModel struct {
 	AutoScalerProfile    []ProvisionedClusterInstanceAutoScalerProfile    `tfschema:"auto_scaler_profile"`
 	CloudProviderProfile []ProvisionedClusterInstanceCloudProviderProfile `tfschema:"cloud_provider_profile"`
 	ConnectedClusterID   string                                           `tfschema:"connected_cluster_id"`
-	ControlPlane         []ProvisionedClusterInstanceControlPlane         `tfschema:"control_plane"`
+	ControlPlaneProfile  []ProvisionedClusterInstanceControlPlaneProfile  `tfschema:"control_plane_profile"`
 	CustomLocationId     string                                           `tfschema:"custom_location_id"`
 	KubernetesVersion    string                                           `tfschema:"kubernetes_version"`
 	LinuxProfile         []ProvisionedClusterInstanceLinuxProfile         `tfschema:"linux_profile"`
 	LicenseProfile       []ProvisionedClusterInstanceLicenseProfile       `tfschema:"license_profile"`
 	NetworkProfile       []ProvisionedClusterInstanceNetworkProfile       `tfschema:"network_profile"`
 	StorageProfile       []ProvisionedClusterInstanceStorageProfile       `tfschema:"storage_profile"`
-	VnetSubnetIds        []string                                         `tfschema:"vnet_subnet_ids"`
 }
 
 type ProvisionedClusterInstanceAgentPoolProfile struct {
@@ -82,8 +82,8 @@ type ProvisionedClusterInstanceAgentPoolProfile struct {
 	MaxPods            int64                  `tfschema:"max_pods"`
 	MinCount           int64                  `tfschema:"min_count"`
 	Name               string                 `tfschema:"name"`
-	NodeLabel          map[string]interface{} `tfschema:"node_label"`
-	NodeTaint          []string               `tfschema:"node_taint"`
+	NodeLabels         map[string]interface{} `tfschema:"node_labels"`
+	NodeTaints         []string               `tfschema:"node_taints"`
 	OsSku              string                 `tfschema:"os_sku"`
 	OsType             string                 `tfschema:"os_type"`
 	VmSize             string                 `tfschema:"vm_size"`
@@ -114,10 +114,10 @@ type ProvisionedClusterInstanceCloudProviderProfile struct {
 }
 
 type ProvisionedClusterInstanceInfraNetworkProfile struct {
-	VnetSubnetId []string `tfschema:"vnet_subnet_id"`
+	VnetSubnetIds []string `tfschema:"vnet_subnet_ids"`
 }
 
-type ProvisionedClusterInstanceControlPlane struct {
+type ProvisionedClusterInstanceControlPlaneProfile struct {
 	Count  int64  `tfschema:"count"`
 	HostIp string `tfschema:"host_ip"`
 	VmSize string `tfschema:"vm_size"`
@@ -166,104 +166,376 @@ func (ArcKubernetesProvisionedClusterInstanceResource) Arguments() map[string]*p
 			ValidateFunc: customlocations.ValidateCustomLocationID,
 		},
 
-		"virtual_switch_name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
-		"dns_servers": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			ForceNew: true,
-			Elem: &pluginsdk.Schema{
-				Type:         pluginsdk.TypeString,
-				ValidateFunc: validation.IsIPv4Address,
-			},
-		},
-
-		"subnet": {
+		"auto_scaler_profile": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
 			ForceNew: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"ip_allocation_method": {
+					"balance_similar_node_groups": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
-						ValidateFunc: validation.StringInSlice(logicalnetworks.PossibleValuesForIPAllocationMethodEnum(), false),
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
+					"expander": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ForceNew: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(provisionedclusterinstances.ExpanderLeastNegativewaste),
+							string(provisionedclusterinstances.ExpanderMostNegativepods),
+							string(provisionedclusterinstances.ExpanderPriority),
+							string(provisionedclusterinstances.ExpanderRandom),
+						}, false),
+					},
+					"max_empty_bulk_delete": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"max_graceful_termination_sec": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"max_node_provision_time": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"max_total_unready_percentage": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"new_pod_scale_up_delay": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"ok_total_unready_count": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"scan_interval": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"scale_down_delay_after_add": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"scale_down_delay_after_delete": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"scale_down_delay_after_failure": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"scale_down_unneeded_time": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"scale_down_unready_time": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"scale_down_utilization_threshold": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"skip_nodes_with_local_storage": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"skip_nodes_with_system_pods": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+				},
+			},
+		},
 
-					"address_prefix": {
+		"agent_pool_profile": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			ForceNew: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ForceNew: true,
+						ValidateFunc: validation.StringMatch(
+							regexp.MustCompile(`^[a-z][a-z0-9]{2,11}$`),
+							"`name` must start with lower cases characters and can only contains 3-12 lowercase alphanumberic characters"),
+					},
+					"vm_size": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"auto_scaling_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						ForceNew: true,
+						Default:  false,
+					},
+					"count": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						ValidateFunc: validation.IntAtLeast(1),
+						Default:      1,
+					},
+					"max_count": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.IntAtLeast(1),
+					},
+					"max_pods": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.IntAtLeast(1),
+					},
+					"min_count": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.IntAtLeast(1),
+					},
+					"node_labels": {
+						Type:     pluginsdk.TypeMap,
+						ForceNew: true,
+						Optional: true,
+					},
+					"node_taints": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						ForceNew: true,
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validation.IsIPv4Address,
+						},
+					},
+					"os_sku": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(provisionedclusterinstances.OSSKUCBLMariner),
+							string(provisionedclusterinstances.OSSKUWindowsTwoZeroOneNine),
+							string(provisionedclusterinstances.OSSKUWindowsTwoZeroTwoTwo),
+						}, false),
+					},
+					"os_type": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Default:  string(provisionedclusterinstances.OsTypeLinux),
+						ForceNew: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(provisionedclusterinstances.OsTypeLinux),
+							string(provisionedclusterinstances.OsTypeWindows),
+						}, false),
+					},
+				},
+			},
+		},
+
+		"cloud_provider_profile": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			ForceNew: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"infra_network_profile": {
+						Type:     pluginsdk.TypeList,
+						Required: true,
+						ForceNew: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"vnet_subnet_ids": {
+									Required: true,
+									MinItems: 1,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
+										ValidateFunc: validation.Any(
+											logicalnetworks.ValidateLogicalNetworkID,
+											virtualnetworks.ValidateVirtualNetworkID,
+										),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+
+		"control_plane_profile": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			ForceNew: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"host_ip": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.IsIPv4Address,
+					},
+					"vm_size": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"count": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						Default:      1,
+						ValidateFunc: validation.IntAtLeast(1),
+					},
+				},
+			},
+		},
+
+		"kubernetes_version": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"linux_profile": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			ForceNew: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"ssh_key": {
+						Type:     pluginsdk.TypeList,
+						Required: true,
+						MinItems: 1,
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+			},
+		},
+
+		"license_profile": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			ForceNew: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"azure_hybrid_benefit": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Default:  string(provisionedclusterinstances.AzureHybridBenefitNotApplicable),
+						ValidateFunc: validation.StringInSlice([]string{
+							string(provisionedclusterinstances.AzureHybridBenefitNotApplicable),
+							string(provisionedclusterinstances.AzureHybridBenefitFalse),
+							string(provisionedclusterinstances.AzureHybridBenefitTrue),
+						}, false),
+					},
+				},
+			},
+		},
+
+		"network_profile": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			ForceNew: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"network_policy": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ForceNew: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(provisionedclusterinstances.NetworkPolicyCalico),
+						}, false),
+					},
+					"pod_cidr": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
 						ValidateFunc: validation.IsCIDR,
 					},
-
-					"ip_pool": {
+					"load_balancer_profile": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
 						ForceNew: true,
+						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
-								"start": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ForceNew:     true,
-									ValidateFunc: validation.IsIPv4Address,
-								},
-								"end": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ForceNew:     true,
-									ValidateFunc: validation.IsIPv4Address,
+								"count": {
+									Type:         pluginsdk.TypeInt,
+									Optional:     true,
+									Default:      0,
+									ValidateFunc: validation.IntAtLeast(1),
 								},
 							},
 						},
 					},
+				},
+			},
+		},
 
-					"route": {
-						Type:     pluginsdk.TypeList,
+		"storage_profile": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			ForceNew: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"smb_csi_driver_enabled": {
+						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						ForceNew: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"name": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
-									ForceNew: true,
-									ValidateFunc: validation.StringMatch(
-										regexp.MustCompile(`^[a-zA-Z0-9][\-\.\_a-zA-Z0-9]{0,78}[a-zA-Z0-9]$`),
-										"name must be between 2 and 80 characters and can only contain alphanumberic characters, hyphen, dot and underline",
-									),
-								},
-
-								"address_prefix": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ForceNew:     true,
-									ValidateFunc: validation.IsCIDR,
-								},
-
-								"next_hop_ip_address": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ForceNew:     true,
-									ValidateFunc: validation.IsIPv4Address,
-								},
-							},
-						},
+						Default:  true,
 					},
-
-					"vlan_id": {
-						Type:         pluginsdk.TypeInt,
-						Optional:     true,
-						ForceNew:     true,
-						ValidateFunc: validation.IntAtLeast(0),
+					"nfs_csi_driver_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						ForceNew: true,
+						Default:  true,
 					},
 				},
 			},
