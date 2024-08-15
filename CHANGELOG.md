@@ -33,6 +33,7 @@ BUG FIXES:
 * `azurerm_express_route_connection` - prevent sending `private_link_fast_path_enabled` in the payload if it hasn't been explicitly set [GH-26928]
 * `azurerm_machine_learning_workspace` - `serverless_compute` can now be updated [GH-26940]
 * `azurerm_mssql_database` - fix issue where the database cannot be upgraded to use serverless due to the behaviour of the `license_type` field [GH-26850]
+* `azurerm_mssql_database` - prevent error when creating `Free` edition by setting `long_term_retention_policy` and `short_term_retention_policy` as empty [GH-26894]
 * `azurerm_nginx_deployment` - omit `capacity` when creating deployments with a basic plan [GH-26223]
 * `azurerm_role_management_policy` - prevent panic when updating `activation_rules.approval_stage` [GH-26800]
 * `azurerm_sentinel_threat_intelligence_indicator` - prevent panic when importing this resource [GH-26976]
