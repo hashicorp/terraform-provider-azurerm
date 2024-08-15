@@ -62,6 +62,9 @@ func Default() UserFeatures {
 			RollInstancesWhenRequired: true,
 			ScaleToZeroOnDelete:       true,
 		},
+		Storage: StorageFeatures{
+			DataPlaneAccessOnCreateEnabled: true,
+		},
 		Subscription: SubscriptionFeatures{
 			PreventCancellationOnDestroy: false,
 		},

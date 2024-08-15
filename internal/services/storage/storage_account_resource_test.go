@@ -48,7 +48,21 @@ func TestAccStorageAccount_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("account_replication_type").HasValue("GRS"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.environment").HasValue("staging"),
-				check.That(data.ResourceName).Key("cross_tenant_replication_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageAccount_basicNoDataPlane(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicDataPlaneDisabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -603,6 +617,21 @@ func TestAccStorageAccount_networkRulesDeleted(t *testing.T) {
 	})
 }
 
+func TestAccStorageAccount_privateLink(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.networkRulesPrivateLinkAccess(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccStorageAccount_privateLinkAccess(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
@@ -757,7 +786,7 @@ func TestAccStorageAccount_blobProperties_kindStorageNotSupportLastAccessTimeEna
 
 func TestAccStorageAccount_queueProperties(t *testing.T) {
 	if features.FourPointOhBeta() {
-		t.Skipf("Skipped as `queue_properties` have been moved to the `azurerm_storage_account_queue_properties` resource in v4.0")
+		t.Skip("this test is not valid in 4.0 mode due to a removed property, skipping")
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
@@ -792,6 +821,22 @@ func TestAccStorageAccount_queueProperties(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccStorageAccount_staticWebsiteEnabledNoPublicAccess(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("this test is not valid in 4.0 mode due to a removed property, skipping")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.staticWebsiteEnabledNoPublicAccess(data),
+			ExpectError: regexp.MustCompile("static_website cannot be set on create when the data_plane_access_on_create_enabled feature is set to false"),
+		},
 	})
 }
 
@@ -1723,10 +1768,6 @@ func TestAccStorageAccount_StorageV1_queuePropertiesLRS(t *testing.T) {
 }
 
 func TestAccStorageAccount_StorageV1_queuePropertiesGRS(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skipf("Skipped as `queue_properties` have been moved to the `azurerm_storage_account_queue_properties` resource in v4.0")
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
 
@@ -1831,6 +1872,36 @@ func (r StorageAccountResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    environment = "production"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageAccountResource) basicDataPlaneDisabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    storage {
+      data_plane_access_on_create_enabled = false
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -3026,7 +3097,6 @@ resource "azurerm_storage_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-// TODO: Remove in 4.0
 func (r StorageAccountResource) queueProperties(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3079,7 +3149,6 @@ resource "azurerm_storage_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-// TODO: Remove in 4.0
 func (r StorageAccountResource) queuePropertiesUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3140,7 +3209,6 @@ resource "azurerm_storage_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-// TODO: Remove in 4.0
 func (r StorageAccountResource) queuePropertiesLoggingOnly(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3173,7 +3241,6 @@ resource "azurerm_storage_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-// TODO: Remove in 4.0
 func (r StorageAccountResource) queuePropertiesMinuteMetricsOnly(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3223,6 +3290,37 @@ resource "azurerm_storage_account" "test" {
   account_kind             = "StorageV2"
   account_tier             = "Standard"
   account_replication_type = "LRS"
+
+  static_website {}
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageAccountResource) staticWebsiteEnabledNoPublicAccess(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    storage {
+      data_plane_access_on_create_enabled = false
+    }
+  }
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                 = azurerm_resource_group.test.location
+  account_kind             = "StorageV2"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  public_network_access_enabled = false
 
   static_website {}
 }
@@ -3490,6 +3588,7 @@ resource "azurerm_storage_account" "test" {
       forest_name         = "adtest.com"
       netbios_domain_name = "adtest.com"
     }
+    default_share_level_permission = "StorageFileDataSmbShareReader"
   }
 
   tags = {
@@ -3527,6 +3626,7 @@ resource "azurerm_storage_account" "test" {
       forest_name         = "adtest2.com"
       netbios_domain_name = "adtest2.com"
     }
+    default_share_level_permission = "StorageFileDataSmbShareContributor"
   }
 
   tags = {
@@ -3555,7 +3655,8 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
 
   azure_files_authentication {
-    directory_type = "AADKERB"
+    directory_type                 = "AADKERB"
+    default_share_level_permission = "StorageFileDataSmbShareElevatedContributor"
   }
 
   tags = {

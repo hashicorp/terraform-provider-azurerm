@@ -409,6 +409,19 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 			f.ManagedDisk.ExpandWithoutDowntime = true
 		}
 
+		if !features.Storage.IsNull() && !features.Storage.IsUnknown() {
+			var feature []Storage
+			d := features.Storage.ElementsAs(ctx, &feature, true)
+			diags.Append(d...)
+			if diags.HasError() {
+				return
+			}
+			f.Storage.DataPlaneAccessOnCreateEnabled = true
+			if !feature[0].DataPlaneAccessOnCreateEnabled.IsNull() && !feature[0].DataPlaneAccessOnCreateEnabled.IsUnknown() {
+				f.Storage.DataPlaneAccessOnCreateEnabled = feature[0].DataPlaneAccessOnCreateEnabled.ValueBool()
+			}
+		}
+
 		if !features.Subscription.IsNull() && !features.Subscription.IsUnknown() {
 			var feature []Subscription
 			d := features.Subscription.ElementsAs(ctx, &feature, true)

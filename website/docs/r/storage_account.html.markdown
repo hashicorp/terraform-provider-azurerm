@@ -74,6 +74,37 @@ resource "azurerm_storage_account" "example" {
 }
 ```
 
+## Example Usage with data_plane_access_on_create_enabled Features Flag
+
+```hcl
+provider "azurerm" {
+  features {
+    storage {
+      data_plane_access_on_create_enabled = false
+    }
+  }
+}
+
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+resource "azurerm_storage_account" "example" {
+  name                     = "storageaccountname"
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
+
+  public_network_access_enabled = false
+
+  tags = {
+    environment = "staging"
+  }
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -97,8 +128,6 @@ The following arguments are supported:
 * `cross_tenant_replication_enabled` - (Optional) Should cross Tenant replication be enabled? Defaults to `true`.
 
 * `access_tier` - (Optional) Defines the access tier for `BlobStorage`, `FileStorage` and `StorageV2` accounts. Valid options are `Hot` and `Cool`, defaults to `Hot`.
-
-* `data_plane_enabled` - (Optional) Specifies if the dataplane should be called. Possible values include `true` or `false`. Defaults to `true`.
 
 * `edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Storage Account should exist. Changing this forces a new Storage Account to be created.
 
