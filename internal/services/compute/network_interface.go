@@ -38,20 +38,18 @@ func retrieveConnectionInformation(ctx context.Context, nicsClient *networkinter
 	privateIPAddresses := make([]string, 0)
 	publicIPAddresses := make([]string, 0)
 
-	if input != nil && input.NetworkProfile != nil && input.NetworkProfile.NetworkInterfaces != nil {
-		for _, v := range *input.NetworkProfile.NetworkInterfaces {
-			if v.Id == nil {
-				continue
-			}
-
-			nic := retrieveIPAddressesForNIC(ctx, nicsClient, pipsClient, *v.Id)
-			if nic == nil {
-				continue
-			}
-
-			privateIPAddresses = append(privateIPAddresses, nic.privateIPAddresses...)
-			publicIPAddresses = append(publicIPAddresses, nic.publicIPAddresses...)
+	for _, v := range *input.NetworkProfile.NetworkInterfaces {
+		if v.Id == nil {
+			continue
 		}
+
+		nic := retrieveIPAddressesForNIC(ctx, nicsClient, pipsClient, *v.Id)
+		if nic == nil {
+			continue
+		}
+
+		privateIPAddresses = append(privateIPAddresses, nic.privateIPAddresses...)
+		publicIPAddresses = append(publicIPAddresses, nic.publicIPAddresses...)
 	}
 
 	primaryPrivateAddress := ""

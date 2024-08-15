@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/images"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -25,7 +26,7 @@ import (
 )
 
 func resourceImage() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceImageCreateUpdate,
 		Read:   resourceImageRead,
 		Update: resourceImageCreateUpdate,
@@ -143,6 +144,14 @@ func resourceImage() *pluginsdk.Resource {
 							ForceNew:     true,
 							ValidateFunc: validate.DiskEncryptionSetID,
 						},
+
+						"storage_type": {
+							Type:         pluginsdk.TypeString,
+							Description:  "The type of storage disk",
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringInSlice(images.PossibleValuesForStorageAccountTypes(), false),
+						},
 					},
 				},
 			},
@@ -188,6 +197,14 @@ func resourceImage() *pluginsdk.Resource {
 							Computed:     true,
 							ValidateFunc: validation.NoZeroValues,
 						},
+
+						"storage_type": {
+							Type:         pluginsdk.TypeString,
+							Description:  "The type of storage disk",
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringInSlice(images.PossibleValuesForStorageAccountTypes(), false),
+						},
 					},
 				},
 			},
@@ -195,6 +212,13 @@ func resourceImage() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		delete(resource.Schema["os_disk"].Elem.(*pluginsdk.Resource).Schema, "storage_type")
+		delete(resource.Schema["data_disk"].Elem.(*pluginsdk.Resource).Schema, "storage_type")
+	}
+
+	return resource
 }
 
 func resourceImageCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -372,6 +396,9 @@ func expandImageOSDisk(input []interface{}) *images.ImageOSDisk {
 			}
 		}
 
+		if features.FourPointOhBeta() {
+			out.StorageAccountType = pointer.To(images.StorageAccountTypes(config["storage_type"].(string)))
+		}
 		return out
 	}
 
@@ -401,6 +428,10 @@ func expandImageDataDisks(disks []interface{}) *[]images.ImageDataDisk {
 				Id: &managedDiskID,
 			}
 			item.ManagedDisk = managedDisk
+		}
+
+		if features.FourPointOhBeta() {
+			item.StorageAccountType = pointer.To(images.StorageAccountTypes(config["storage_type"].(string)))
 		}
 
 		output = append(output, item)
@@ -434,7 +465,8 @@ func flattenImageOSDisk(input *images.ImageStorageProfile) []interface{} {
 			if set := v.DiskEncryptionSet; set != nil && set.Id != nil {
 				diskEncryptionSetId = *set.Id
 			}
-			output = append(output, map[string]interface{}{
+
+			properties := map[string]interface{}{
 				"blob_uri":               blobUri,
 				"caching":                caching,
 				"managed_disk_id":        managedDiskId,
@@ -442,7 +474,17 @@ func flattenImageOSDisk(input *images.ImageStorageProfile) []interface{} {
 				"os_state":               string(v.OsState),
 				"size_gb":                diskSizeGB,
 				"disk_encryption_set_id": diskEncryptionSetId,
-			})
+			}
+
+			if features.FourPointOhBeta() {
+				storageType := ""
+				if v.StorageAccountType != nil {
+					storageType = string(*v.StorageAccountType)
+				}
+				properties["storage_type"] = storageType
+			}
+
+			output = append(output, properties)
 		}
 	}
 
@@ -471,13 +513,24 @@ func flattenImageDataDisks(input *images.ImageStorageProfile) []interface{} {
 				if disk.ManagedDisk != nil && disk.ManagedDisk.Id != nil {
 					managedDiskId = *disk.ManagedDisk.Id
 				}
-				output = append(output, map[string]interface{}{
+
+				properties := map[string]interface{}{
 					"blob_uri":        blobUri,
 					"caching":         caching,
 					"lun":             int(disk.Lun),
 					"managed_disk_id": managedDiskId,
 					"size_gb":         diskSizeGb,
-				})
+				}
+
+				if features.FourPointOhBeta() {
+					storageType := ""
+					if disk.StorageAccountType != nil {
+						storageType = string(*disk.StorageAccountType)
+					}
+					properties["storage_type"] = storageType
+				}
+
+				output = append(output, properties)
 			}
 		}
 	}

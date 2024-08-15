@@ -45,7 +45,7 @@ func (r LinuxVirtualMachineScaleSetResource) template(data acceptance.TestData) 
 %s
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-vmss-%d"
   location = "%s"
 }
 
@@ -70,7 +70,7 @@ func (r LinuxVirtualMachineScaleSetResource) templateWithLocation(data acceptanc
 %s
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-vmss-%d"
   location = "%s"
 }
 
