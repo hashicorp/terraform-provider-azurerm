@@ -3926,10 +3926,6 @@ resource "azurerm_cosmosdb_account" "test" {
     name = "EnableTtlOnCustomPath"
   }
 
-  capabilities {
-    name = "EnablePartialUniqueIndex"
-  }
-
   consistency_policy {
     consistency_level = "%s"
   }
