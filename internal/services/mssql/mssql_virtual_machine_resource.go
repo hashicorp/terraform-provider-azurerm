@@ -733,11 +733,13 @@ func resourceMsSqlVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		payload.Properties.ServerConfigurationsManagementSettings.SqlConnectivityUpdateSettings.SqlAuthUpdateUserName = pointer.To(d.Get("sql_connectivity_update_username").(string))
 	}
 
-	if d.HasChange("storage_configuration") {
-		// TODO expand for update only and update separately
-		//	payload.Properties.StorageConfigurationSettings
+	if d.HasChange("storage_configuration") && sqlvirtualmachines.DiskConfigurationType(d.Get("storage_configuration.0.disk_type").(string)) != sqlvirtualmachines.DiskConfigurationTypeEXTEND {
 		payload.Properties.StorageConfigurationSettings = expandSqlVirtualMachineStorageConfigurationSettings(d.Get("storage_configuration").([]interface{}))
 		payload.Properties.ServerConfigurationsManagementSettings.SqlWorkloadTypeUpdateSettings = nil
+	}
+
+	if sqlvirtualmachines.DiskConfigurationType(d.Get("storage_configuration.0.disk_type").(string)) == sqlvirtualmachines.DiskConfigurationTypeEXTEND && !d.HasChange("storage_configuration") {
+		payload.Properties.StorageConfigurationSettings.DiskConfigurationType = nil
 	}
 
 	if d.HasChange("tags") {
@@ -748,7 +750,14 @@ func resourceMsSqlVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
+	// if storage configuration disks are being extended we need to send these requests separately as the API only allows for updating one at a time
+	if d.HasChange("storage_configuration") && sqlvirtualmachines.DiskConfigurationType(d.Get("storage_configuration.0.disk_type").(string)) == sqlvirtualmachines.DiskConfigurationTypeEXTEND {
+		payload.Properties.ServerConfigurationsManagementSettings.SqlWorkloadTypeUpdateSettings = nil
+		err = updateSqlVirtualMachineStorageConfigurationSettingsForExtend(ctx, client, d, *payload)
+		if err != nil {
+			return err
+		}
+	}
 
 	// Wait for the auto backup settings to take effect
 	// See: https://github.com/Azure/azure-rest-api-specs/issues/12818
@@ -1389,6 +1398,73 @@ func expandSqlVirtualMachineStorageConfigurationSettings(input []interface{}) *s
 		SqlLogSettings:        expandSqlVirtualMachineDataStorageSettings(storageSettings["log_settings"].([]interface{})),
 		SqlTempDbSettings:     expandSqlVirtualMachineTempDbSettings(storageSettings["temp_db_settings"].([]interface{})),
 	}
+}
+
+func updateSqlVirtualMachineStorageConfigurationSettingsForExtend(ctx context.Context, client *sqlvirtualmachines.SqlVirtualMachinesClient, d *pluginsdk.ResourceData, payload sqlvirtualmachines.SqlVirtualMachine) error {
+
+	if len(d.Get("storage_configuration").([]interface{})) == 0 || (d.Get("storage_configuration").([]interface{}))[0] == nil {
+		return nil
+	}
+	storageSettings := d.Get("storage_configuration").([]interface{})[0].(map[string]interface{})
+
+	id, err := sqlvirtualmachines.ParseSqlVirtualMachineID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	payload.Properties.StorageConfigurationSettings.DiskConfigurationType = pointer.To(sqlvirtualmachines.DiskConfigurationType(storageSettings["disk_type"].(string)))
+	payload.Properties.StorageConfigurationSettings.StorageWorkloadType = pointer.To(sqlvirtualmachines.StorageWorkloadType(storageSettings["storage_workload_type"].(string)))
+	payload.Properties.StorageConfigurationSettings.SqlSystemDbOnDataDisk = pointer.To(storageSettings["system_db_on_data_disk_enabled"].(bool))
+
+	if d.HasChange("storage_configuration.0.data_settings") {
+		if d.HasChange("storage_configuration.0.data_settings.0.luns") {
+			payload.Properties.StorageConfigurationSettings.SqlDataSettings.Luns = expandSqlVirtualMachineStorageSettingsLuns(d.Get("storage_configuration.0.data_settings.0.luns").([]interface{}))
+
+			// TODO no new updated luns ?
+		}
+		// API does not allow SqlDataSettings.DefaultFilePath or any other disk settings to be sent in the request when a disk is being extended, so set these to nil here
+		payload.Properties.StorageConfigurationSettings.SqlDataSettings.DefaultFilePath = nil
+		payload.Properties.StorageConfigurationSettings.SqlLogSettings = nil
+		payload.Properties.StorageConfigurationSettings.SqlTempDbSettings = nil
+
+		if err := client.CreateOrUpdateThenPoll(ctx, *id, payload); err != nil {
+			return fmt.Errorf("updating `data_settings` for extension %s: %+v", *id, err)
+		}
+	}
+
+	if d.HasChange("storage_configuration.0.log_settings") {
+		if d.HasChange("storage_configuration.0.log_settings.0.luns") {
+			payload.Properties.StorageConfigurationSettings.SqlDataSettings.Luns = expandSqlVirtualMachineStorageSettingsLuns(d.Get("storage_configuration.0.log_settings.0.luns").([]interface{}))
+
+			// TODO no new updated luns ?
+		}
+		// API does not allow SqlLogSettings.DefaultFilePath or any other disk settings to be sent in the request when a disk is being extended, so set these to nil here
+		payload.Properties.StorageConfigurationSettings.SqlLogSettings.DefaultFilePath = nil
+		payload.Properties.StorageConfigurationSettings.SqlDataSettings = nil
+		payload.Properties.StorageConfigurationSettings.SqlTempDbSettings = nil
+
+		if err := client.CreateOrUpdateThenPoll(ctx, *id, payload); err != nil {
+			return fmt.Errorf("updating `log_settings` for extension %s: %+v", *id, err)
+		}
+	}
+
+	if d.HasChange("storage_configuration.0.temp_db_settings") {
+		if d.HasChange("storage_configuration.0.temp_db_settings.0.luns") {
+			payload.Properties.StorageConfigurationSettings.SqlDataSettings.Luns = expandSqlVirtualMachineStorageSettingsLuns(d.Get("storage_configuration.0.log_settings.0.luns").([]interface{}))
+
+			// TODO no new updated luns ?
+		}
+		// API does not allow SqlTempDbSettings.DefaultFilePath or any other disk settings to be sent in the request when a disk is being extended, so set these to nil here
+		payload.Properties.StorageConfigurationSettings.SqlTempDbSettings.DefaultFilePath = nil
+		payload.Properties.StorageConfigurationSettings.SqlDataSettings = nil
+		payload.Properties.StorageConfigurationSettings.SqlLogSettings = nil
+
+		if err := client.CreateOrUpdateThenPoll(ctx, *id, payload); err != nil {
+			return fmt.Errorf("updating `temp_db_settings` for extension %s: %+v", *id, err)
+		}
+	}
+
+	return nil
 }
 
 func flattenSqlVirtualMachineStorageConfigurationSettings(input *sqlvirtualmachines.StorageConfigurationSettings, storageWorkloadType string) []interface{} {
