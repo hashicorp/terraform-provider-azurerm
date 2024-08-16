@@ -1420,6 +1420,15 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		return tf.ImportAsExistsError("azurerm_storage_account", id.ID())
 	}
 
+	// Block create here...
+	if _, ok := d.GetOk("queue_properties"); ok {
+		return fmt.Errorf("the `queue_properties` code block is no longer supported for new storage accounts, please use the `azurerm_storage_account_queue_properties` resource instead")
+	}
+
+	if _, ok := d.GetOk("static_website"); ok {
+		return fmt.Errorf("the `static_website` field is no longer supported for new storage accounts, please use the `azurerm_storage_account_static_website_properties` resource instead")
+	}
+
 	accountKind := storageaccounts.Kind(d.Get("account_kind").(string))
 	accountTier := storageaccounts.SkuTier(d.Get("account_tier").(string))
 	replicationType := d.Get("account_replication_type").(string)
