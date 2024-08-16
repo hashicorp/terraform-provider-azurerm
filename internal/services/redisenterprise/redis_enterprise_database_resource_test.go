@@ -169,22 +169,22 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_redis_enterprise_cluster" "test" {
-  name     = "acctest-rec-%d"
-  location = azurerm_resource_group.test.location
-
-  sku_name = "Enterprise_E20-4"
+  name                = "acctest-rec-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku_name            = "Enterprise_E20-4"
 }
 resource "azurerm_redis_enterprise_cluster" "test1" {
-  name     = "acctest-rec-%d"
-  location = azurerm_resource_group.test.location
-
-  sku_name = "Enterprise_E20-4"
+  name                = "acctest-rec-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku_name            = "Enterprise_E20-4"
 }
 resource "azurerm_redis_enterprise_cluster" "test2" {
-  name     = "acctest-rec-%d"
-  location = azurerm_resource_group.test.location
-
-  sku_name = "Enterprise_E20-4"
+  name                = "acctest-rec-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku_name            = "Enterprise_E20-4"
 }
 `, data.RandomInteger, "eastus", data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
