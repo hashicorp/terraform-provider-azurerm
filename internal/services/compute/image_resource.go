@@ -439,7 +439,7 @@ func expandImageDataDisks(disks []interface{}) *[]images.ImageDataDisk {
 
 		if id := config["disk_encryption_set_id"].(string); id != "" {
 			item.DiskEncryptionSet = &images.SubResource{
-				Id: utils.String(id),
+				Id: pointer.To(id),
 			}
 		}
 
