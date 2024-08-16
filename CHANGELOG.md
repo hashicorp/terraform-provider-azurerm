@@ -6,6 +6,7 @@ All Azure Kubernetes Service (AKS) properties related to preview features are de
 
 FEATURES:
 
+* New Resource: `azurerm_ai_services` [GH-26008]
 * New Resource: `azurerm_communication_service_email_domain_association` [GH-26432]
 * New Resource: `azurerm_dev_center_project_environment_type` [GH-26941]
 * New Resource: `azurerm_extended_location_custom_location` [GH-24267]
@@ -14,10 +15,12 @@ FEATURES:
 ENHANCEMENTS:
 
 * `notificationhub` - updating to use version `2023-09-01` [GH-26528]
+* `azurerm_api_management_api` - update validation of `path` to allow single character strings [GH-26922]
 * `azurerm_cosmosdb_account` - add support for the property `burst_capacity_enabled` [GH-26986]
 * `azurerm_linux_function_app` - add support for `vnet_image_pull_enabled` property in 4.0 [GH-27001]
 * `azurerm_linux_function_app_slot` - add support for `vnet_image_pull_enabled` property in 4.0 [GH-27001]
 * `azurerm_logic_app_standard` - add support for `v8.0` in `site_config.dotnet_framework_version` [GH-26983]
+* `azurerm_management_group_policy_assignment` - remove length restriction on name [GH-27055]
 * `azurerm_recovery_services_vault` - add support for the `identity` block [GH-26254]
 * `azurerm_web_application_firewall_policy` - add support for the `js_challenge_cookie_expiration_in_minutes` property [GH-26878]
 * `azurerm_windows_function_app` - add support for `vnet_image_pull_enabled` property in 4.0 [GH-27001]
@@ -27,6 +30,8 @@ BUG FIXES:
 
 * Data Source: `azurerm_storage_account` - add `default_share_level_permission` to the `azure_files_authentication` to prevent invalid address errors [GH-26996]
 * Data Source: `azurerm_search_service` - expose the `tags` property [GH-26978]
+* Data Source: `azurerm_virtual_machine` - populate missing `power_state` [GH-26991]
+* Data Source: `azurerm_virtual_machine_scale_set` - populate missing `power_state` [GH-26991]
 * `azurerm_api_management_api_schema` - correctly unmarshal `definition` and `components` [GH-26531]
 * `azurerm_cdn_frontdoor_secret` - fix issue where `expiration_date` was being set into the parent block [GH-26982]
 * `azurerm_container_app_environment` - fix diff suppress on `infrastructure_resource_group_name` [GH-27007]
