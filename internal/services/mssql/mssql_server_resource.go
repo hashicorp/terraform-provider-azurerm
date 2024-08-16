@@ -518,7 +518,7 @@ func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			if v := props.MinimalTlsVersion; v == nil || *v == "None" {
 				d.Set("minimum_tls_version", "Disabled")
 			} else {
-				d.Set("minimum_tls_version", props.MinimalTlsVersion)
+				d.Set("minimum_tls_version", string(pointer.From(props.MinimalTlsVersion)))
 			}
 
 			d.Set("public_network_access_enabled", pointer.From(props.PublicNetworkAccess) == servers.ServerPublicNetworkAccessFlagEnabled)

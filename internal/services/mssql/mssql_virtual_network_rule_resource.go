@@ -154,7 +154,7 @@ func resourceMsSqlVirtualNetworkRuleRead(d *pluginsdk.ResourceData, meta interfa
 				return fmt.Errorf("parsing subnet ID returned by API %q: %+v", props.VirtualNetworkSubnetId, err)
 			}
 
-			d.Set("subnet_id", subnetId)
+			d.Set("subnet_id", subnetId.ID())
 		}
 	}
 
