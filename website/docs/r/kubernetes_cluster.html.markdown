@@ -101,10 +101,6 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `cost_analysis_enabled` - (Optional) Should cost analysis be enabled for this Kubernetes Cluster? Defaults to `false`. The `sku_tier` must be set to `Standard` or `Premium` to enable this feature. Enabling this will add Kubernetes Namespace and Deployment details to the Cost Analysis views in the Azure portal.
 
-* `custom_ca_trust_certificates_base64` - (Optional) A list of up to 10 base64 encoded CAs that will be added to the trust store on nodes with the `custom_ca_trust_enabled` feature enabled.
-
--> **Note:** Removing `custom_ca_trust_certificates_base64` after it has been set forces a new resource to be created.
-
 * `disk_encryption_set_id` - (Optional) The ID of the Disk Encryption Set which should be used for the Nodes and Volumes. More information [can be found in the documentation](https://docs.microsoft.com/azure/aks/azure-disk-customer-managed-keys). Changing this forces a new resource to be created.
 
 * `edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Managed Kubernetes Cluster should exist. Changing this forces a new resource to be created.
@@ -284,12 +280,6 @@ An `api_server_access_profile` block supports the following:
 
 * `authorized_ip_ranges` - (Optional) Set of authorized IP ranges to allow access to API server, e.g. ["198.51.100.0/24"].
 
-* `subnet_id` - (Optional) The ID of the Subnet where the API server endpoint is delegated to.
-
-* `vnet_integration_enabled` - (Optional) Should API Server VNet Integration be enabled? For more details please visit [Use API Server VNet Integration](https://learn.microsoft.com/en-us/azure/aks/api-server-vnet-integration).
-
--> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/EnableAPIServerVnetIntegrationPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://learn.microsoft.com/en-us/azure/aks/api-server-vnet-integration#register-the-enableapiservervnetintegrationpreview-preview-feature) for more information.
-
 ---
 
 An `auto_scaler_profile` block supports the following:
@@ -372,10 +362,6 @@ A `default_node_pool` block supports the following:
 
 * `capacity_reservation_group_id` - (Optional) Specifies the ID of the Capacity Reservation Group within which this AKS Cluster should be created. Changing this forces a new resource to be created.
 
-* `custom_ca_trust_enabled` - (Optional) Specifies whether to trust a Custom CA.
-
--> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/CustomCATrustPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://learn.microsoft.com/en-us/azure/aks/custom-certificate-authority) for more information.
-
 * `enable_auto_scaling` - (Optional) Should [the Kubernetes Auto Scaler](https://docs.microsoft.com/azure/aks/cluster-autoscaler) be enabled for this Node Pool?
 
 -> **Note:** This requires that the `type` is set to `VirtualMachineScaleSets`.
@@ -401,8 +387,6 @@ A `default_node_pool` block supports the following:
 * `kubelet_disk_type` - (Optional) The type of disk used by kubelet. Possible values are `OS` and `Temporary`.
 
 * `max_pods` - (Optional) The maximum number of pods that can run on each agent. `temporary_name_for_rotation` must be specified when changing this property.
-
-* `message_of_the_day` - (Optional) A base64-encoded string which will be written to /etc/motd after decoding. This allows customization of the message of the day for Linux nodes. It cannot be specified for Windows nodes and must be a static string (i.e. will be printed raw and not executed as a script). Changing this forces a new resource to be created.
 
 * `node_network_profile` - (Optional) A `node_network_profile` block as documented below.
 
@@ -448,9 +432,7 @@ A `default_node_pool` block supports the following:
 
 ~> **Note:** A Route Table must be configured on this Subnet.
 
-* `workload_runtime` - (Optional) Specifies the workload runtime used by the node pool. Possible values are `OCIContainer` and `KataMshvVmIsolation`.
-
-~> **Note:** Pod Sandboxing / KataVM Isolation node pools are in Public Preview - more information and details on how to opt into the preview can be found in [this article](https://learn.microsoft.com/azure/aks/use-pod-sandboxing)
+* `workload_runtime` - (Optional) Specifies the workload runtime used by the node pool. Possible value is `OCIContainer`.
 
 * `zones` - (Optional) Specifies a list of Availability Zones in which this Kubernetes Cluster should be located. `temporary_name_for_rotation` must be specified when changing this property.
 
@@ -824,10 +806,6 @@ A `storage_profile` block supports the following:
 * `blob_driver_enabled` - (Optional) Is the Blob CSI driver enabled? Defaults to `false`.
 
 * `disk_driver_enabled` - (Optional) Is the Disk CSI driver enabled? Defaults to `true`.
-
-* `disk_driver_version` - (Optional) Disk CSI Driver version to be used. Possible values are `v1` and `v2`. Defaults to `v1`.
-
--> **Note:** `Azure Disk CSI driver v2` is currently in [Public Preview](https://azure.microsoft.com/en-us/updates/public-preview-azure-disk-csi-driver-v2-in-aks/) on an opt-in basis. To use it, the feature `EnableAzureDiskCSIDriverV2` for namespace `Microsoft.ContainerService` must be requested.
 
 * `file_driver_enabled` - (Optional) Is the File CSI driver enabled? Defaults to `true`.
 

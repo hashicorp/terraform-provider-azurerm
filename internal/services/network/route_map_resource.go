@@ -216,7 +216,7 @@ func (r RouteMapResource) Attributes() map[string]*pluginsdk.Schema {
 
 func (r RouteMapResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			var model RouteMapModel
 			if err := metadata.Decode(&model); err != nil {
@@ -256,7 +256,7 @@ func (r RouteMapResource) Create() sdk.ResourceFunc {
 
 func (r RouteMapResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Network.VirtualWANs
 
@@ -333,7 +333,7 @@ func (r RouteMapResource) Read() sdk.ResourceFunc {
 
 func (r RouteMapResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Network.VirtualWANs
 

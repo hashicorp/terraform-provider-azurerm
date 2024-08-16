@@ -1552,6 +1552,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   sku_name  = "Standard_F2"
   instances = 1
 
+  extension_operations_enabled = false
+
   os_profile {
     linux_configuration {
       computer_name_prefix = "testvm"
