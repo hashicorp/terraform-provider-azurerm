@@ -10,7 +10,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/encryptionprotectors"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/serverkeys"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	keyVaultParser "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -87,7 +90,7 @@ func resourceMsSqlTransparentDataEncryptionCreateUpdate(d *pluginsdk.ResourceDat
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	serverId, err := parse.ServerID(d.Get("server_id").(string))
+	serverId, err := commonids.ParseSqlServerID(d.Get("server_id").(string))
 	if err != nil {
 		return err
 	}
@@ -99,24 +102,24 @@ func resourceMsSqlTransparentDataEncryptionCreateUpdate(d *pluginsdk.ResourceDat
 	// because after the SQL server is created, we need to grant it permissions to AKV, so encryption protector can use those
 	// keys are part of setting up TDE
 
-	var serverKey sql.ServerKey
+	var serverKey serverkeys.ServerKey
 
 	// Default values for Service Managed keys. Will update to AKV values if key_vault_key_id references a key.
 	serverKeyName := ""
-	serverKeyType := sql.ServerKeyTypeServiceManaged
+	serverKeyType := serverkeys.ServerKeyTypeServiceManaged
 
 	if v, ok := d.GetOk("key_vault_key_id"); ok {
 		keyVaultKeyId := strings.TrimSpace(v.(string))
 		// Update the server key type to AKV
-		serverKeyType = sql.ServerKeyTypeAzureKeyVault
+		serverKeyType = serverkeys.ServerKeyTypeAzureKeyVault
 
 		// Set the SQL Server Key properties
-		serverKeyProperties := sql.ServerKeyProperties{
+		serverKeyProperties := serverkeys.ServerKeyProperties{
 			ServerKeyType:       serverKeyType,
-			URI:                 &keyVaultKeyId,
+			Uri:                 &keyVaultKeyId,
 			AutoRotationEnabled: utils.Bool(d.Get("auto_rotation_enabled").(bool)),
 		}
-		serverKey.ServerKeyProperties = &serverKeyProperties
+		serverKey.Properties = &serverKeyProperties
 
 		// Set the encryption protector properties
 		keyId, err := keyVaultParser.ParseNestedItemID(keyVaultKeyId)
@@ -148,15 +151,15 @@ func resourceMsSqlTransparentDataEncryptionCreateUpdate(d *pluginsdk.ResourceDat
 	if v, ok := d.GetOk("managed_hsm_key_id"); ok {
 		mhsmKeyId := strings.TrimSpace(v.(string))
 		// Update the server key type to AKV
-		serverKeyType = sql.ServerKeyTypeAzureKeyVault
+		serverKeyType = serverkeys.ServerKeyTypeAzureKeyVault
 
 		// Set the SQL Server Key properties z
-		serverKeyProperties := sql.ServerKeyProperties{
+		serverKeyProperties := serverkeys.ServerKeyProperties{
 			ServerKeyType:       serverKeyType,
-			URI:                 &mhsmKeyId,
+			Uri:                 &mhsmKeyId,
 			AutoRotationEnabled: utils.Bool(d.Get("auto_rotation_enabled").(bool)),
 		}
-		serverKey.ServerKeyProperties = &serverKeyProperties
+		serverKey.Properties = &serverKeyProperties
 
 		// Make sure it's a key, if not, throw an error
 		keyId, err := mhsmParser.ManagedHSMDataPlaneVersionedKeyID(mhsmKeyId, nil)
@@ -177,40 +180,39 @@ func resourceMsSqlTransparentDataEncryptionCreateUpdate(d *pluginsdk.ResourceDat
 		serverKeyName = fmt.Sprintf("%s_%s_%s", vaultName, keyId.KeyName, keyId.KeyVersion)
 	}
 
+	keyType := encryptionprotectors.ServerKeyTypeServiceManaged
+	if serverKeyType == serverkeys.ServerKeyTypeAzureKeyVault {
+		keyType = encryptionprotectors.ServerKeyTypeAzureKeyVault
+	}
+
 	// Service managed doesn't require a key name
-	encryptionProtectorProperties := sql.EncryptionProtectorProperties{
-		ServerKeyType:       serverKeyType,
+	encryptionProtectorProperties := encryptionprotectors.EncryptionProtectorProperties{
+		ServerKeyType:       keyType,
 		ServerKeyName:       &serverKeyName,
 		AutoRotationEnabled: utils.Bool(d.Get("auto_rotation_enabled").(bool)),
 	}
 
+	keyId := serverkeys.NewKeyID(serverId.SubscriptionId, serverId.ResourceGroupName, serverId.ServerName, serverKeyName)
+
 	// Only create a server key if the properties have been set
-	if serverKey.ServerKeyProperties != nil {
+	if serverKey.Properties != nil {
 		// Create a key on the server
-		futureServers, err := serverKeysClient.CreateOrUpdate(ctx, serverId.ResourceGroup, serverId.Name, serverKeyName, serverKey)
+		err = serverKeysClient.CreateOrUpdateThenPoll(ctx, keyId, serverKey)
 		if err != nil {
 			return fmt.Errorf("creating/updating server key for %s: %+v", serverId, err)
 		}
-
-		if err = futureServers.WaitForCompletionRef(ctx, serverKeysClient.Client); err != nil {
-			return fmt.Errorf("waiting on update of %s: %+v", serverId, err)
-		}
 	}
 
-	encryptionProtectorObject := sql.EncryptionProtector{
-		EncryptionProtectorProperties: &encryptionProtectorProperties,
+	encryptionProtectorObject := encryptionprotectors.EncryptionProtector{
+		Properties: &encryptionProtectorProperties,
 	}
 
 	// Encryption protector always uses "current" for the name
-	id := parse.NewEncryptionProtectorID(serverId.SubscriptionId, serverId.ResourceGroup, serverId.Name, "current")
+	id := parse.NewEncryptionProtectorID(serverId.SubscriptionId, serverId.ResourceGroupName, serverId.ServerName, "current")
 
-	futureEncryptionProtector, err := encryptionProtectorClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, encryptionProtectorObject)
+	err = encryptionProtectorClient.CreateOrUpdateThenPoll(ctx, *serverId, encryptionProtectorObject)
 	if err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
-	}
-
-	if err = futureEncryptionProtector.WaitForCompletionRef(ctx, encryptionProtectorClient.Client); err != nil {
-		return fmt.Errorf("waiting on create/update future for %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -229,32 +231,32 @@ func resourceMsSqlTransparentDataEncryptionRead(d *pluginsdk.ResourceData, meta 
 	if err != nil {
 		return err
 	}
+	serverId := commonids.NewSqlServerID(id.SubscriptionId, id.ResourceGroup, id.ServerName)
 
-	resp, err := encryptionProtectorClient.Get(ctx, id.ResourceGroup, id.ServerName)
+	resp, err := encryptionProtectorClient.Get(ctx, serverId)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
 		return fmt.Errorf("making Read request for %s: %v", id, err)
 	}
 
-	serverId := parse.NewServerID(id.SubscriptionId, id.ResourceGroup, id.ServerName)
 	d.Set("server_id", serverId.ID())
 
-	log.Printf("[INFO] Encryption protector key type is %s", resp.EncryptionProtectorProperties.ServerKeyType)
+	log.Printf("[INFO] Encryption protector key type is %s", resp.Model.Properties.ServerKeyType)
 
 	keyId := ""
 	autoRotationEnabled := false
 	// Only set the key type if it's an AKV key. For service managed, we can omit the setting the key_vault_key_id
-	if resp.EncryptionProtectorProperties != nil && resp.EncryptionProtectorProperties.ServerKeyType == sql.ServerKeyTypeAzureKeyVault {
-		log.Printf("[INFO] Setting Key Vault URI to %s", *resp.EncryptionProtectorProperties.URI)
+	if resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.ServerKeyType == encryptionprotectors.ServerKeyTypeAzureKeyVault {
+		log.Printf("[INFO] Setting Key Vault URI to %s", *resp.Model.Properties.Uri)
 
-		keyId = *resp.EncryptionProtectorProperties.URI
+		keyId = *resp.Model.Properties.Uri
 
 		// autoRotation is only for AKV keys
-		if resp.EncryptionProtectorProperties.AutoRotationEnabled != nil {
-			autoRotationEnabled = *resp.EncryptionProtectorProperties.AutoRotationEnabled
+		if resp.Model.Properties.AutoRotationEnabled != nil {
+			autoRotationEnabled = *resp.Model.Properties.AutoRotationEnabled
 		}
 	}
 
@@ -303,23 +305,21 @@ func resourceMsSqlTransparentDataEncryptionDelete(d *pluginsdk.ResourceData, met
 		return err
 	}
 
+	serverId := commonids.NewSqlServerID(id.SubscriptionId, id.ResourceGroup, id.ServerName)
+
 	serverKeyName := ""
 
 	// Service managed doesn't require a key name
-	encryptionProtector := sql.EncryptionProtector{
-		EncryptionProtectorProperties: &sql.EncryptionProtectorProperties{
-			ServerKeyType: sql.ServerKeyTypeServiceManaged,
+	encryptionProtector := encryptionprotectors.EncryptionProtector{
+		Properties: &encryptionprotectors.EncryptionProtectorProperties{
+			ServerKeyType: encryptionprotectors.ServerKeyTypeServiceManaged,
 			ServerKeyName: &serverKeyName,
 		},
 	}
 
-	futureEncryptionProtector, err := encryptionProtectorClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, encryptionProtector)
+	err = encryptionProtectorClient.CreateOrUpdateThenPoll(ctx, serverId, encryptionProtector)
 	if err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
-	}
-
-	if err = futureEncryptionProtector.WaitForCompletionRef(ctx, encryptionProtectorClient.Client); err != nil {
-		return fmt.Errorf("waiting on create/update future for %s: %+v", id, err)
 	}
 
 	return nil
