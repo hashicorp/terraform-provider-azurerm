@@ -746,6 +746,10 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 
 * The deprecated property `roles.kafka_management_node` has been removed.
 
+### `azurerm_image`
+
+* A new required property `storage_type` has been added to the `os_disk` and `data_disk` blocks.
+
 ### `azurerm_iotcentral_application`
 
 * The property `template` now defaults to `iotc-pnp-preview@1.0.0`.
