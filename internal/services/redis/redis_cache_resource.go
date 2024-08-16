@@ -391,7 +391,7 @@ func resourceRedisCache() *pluginsdk.Resource {
 				log.Printf("[DEBUG] CustomizeDiff: access_keys_authentication_disabled: %v, active_directory_authentication_enabled: %v", accessKeysAuthenticationDisabled, activeDirectoryAuthenticationEnabled)
 
 				if accessKeysAuthenticationDisabled && !activeDirectoryAuthenticationEnabled {
-					return fmt.Errorf("microsoft entra authorization (active_directory_authentication_enabled) must be enabled in order to disable access key authentication (access_keys_authentication_disabled): https://learn.microsoft.com/en-us/azure/azure-cache-for-redis/cache-azure-active-directory-for-authentication#disable-access-key-authentication-on-your-cache")
+					return fmt.Errorf("`active_directory_authentication_enabled` must be enabled in order to enable `access_keys_authentication_disabled`")
 				}
 
 				return nil
