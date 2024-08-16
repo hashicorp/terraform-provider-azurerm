@@ -38,7 +38,7 @@ resource "azurerm_storage_account_static_website_properties" "example" {
   storage_account_id = azurerm_storage_account.example.id
 
   properties {
-    index_document     = "index.html
+    index_document     = "index.html"
     error_404_document = "error.html"
   }
 }
