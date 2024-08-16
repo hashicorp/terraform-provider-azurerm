@@ -28,8 +28,6 @@ resource "azurerm_storage_account" "example" {
   account_tier                  = "Standard"
   account_replication_type      = "LRS"
   account_kind                  = "StorageV2"
-  data_plane_enabled            = false
-  public_network_access_enabled = false
 
   tags = {
     environment = "staging"
@@ -39,8 +37,10 @@ resource "azurerm_storage_account" "example" {
 resource "azurerm_storage_account_static_website_properties" "example" {
   storage_account_id = azurerm_storage_account.example.id
 
-  index_document     = "index.html
-  error_404_document = "error.html"
+  properties {
+    index_document     = "index.html
+    error_404_document = "error.html"
+  }
 }
 ```
 
@@ -50,7 +50,11 @@ The following arguments are supported:
 
 * `storage_account_id` - (Required) Specifies the resource id of the storage account.
 
+* `properties` - (Required) A `properties` block as defined below.
+
 ---
+
+A `properties` block supports the following:
 
 * `index_document` - (Optional) The webpage that Azure Storage serves for requests to the root of a website or any subfolder (e.g., `index.html`). The value is case-sensitive.
 
@@ -62,7 +66,7 @@ The following arguments are supported:
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the Storage Account Static Website.
+* `id` - The ID of the Storage Account Static Website Properties.
 
 ---
 

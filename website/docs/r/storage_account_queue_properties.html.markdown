@@ -27,8 +27,6 @@ resource "azurerm_storage_account" "example" {
   account_tier                  = "Standard"
   account_kind                  = "StorageV2"
   account_replication_type      = "GRS"
-  data_plane_enabled            = false
-  public_network_access_enabled = false
 
   tags = {
     environment = "staging"
@@ -38,32 +36,34 @@ resource "azurerm_storage_account" "example" {
 resource "azurerm_storage_account_queue_properties" "example" {
   storage_account_id = azurerm_storage_account.example.id
 
-  cors_rule {
-    allowed_origins    = ["http://www.example.com"]
-    exposed_headers    = ["x-tempo-*"]
-    allowed_headers    = ["x-tempo-*"]
-    allowed_methods    = ["GET", "PUT"]
-    max_age_in_seconds = "500"
-  }
+  properties {
+    cors_rule {
+      allowed_origins    = ["http://www.example.com"]
+      exposed_headers    = ["x-tempo-*"]
+      allowed_headers    = ["x-tempo-*"]
+      allowed_methods    = ["GET", "PUT"]
+      max_age_in_seconds = "500"
+    }
 
-  logging {
-    version               = "1.0"
-    delete                = true
-    read                  = true
-    write                 = true
-    retention_policy_days = 7
-  }
+    logging {
+      version               = "1.0"
+      delete                = true
+      read                  = true
+      write                 = true
+      retention_policy_days = 7
+    }
 
-  minute_metrics {
-    version               = "1.0"
-    enabled               = false
-    retention_policy_days = 7
-  }
+    minute_metrics {
+      version               = "1.0"
+      enabled               = false
+      retention_policy_days = 7
+    }
 
-  hour_metrics {
-    version               = "1.0"
-    enabled               = false
-    retention_policy_days = 7
+    hour_metrics {
+      version               = "1.0"
+      enabled               = false
+      retention_policy_days = 7
+    }
   }
 }
 ```
@@ -74,9 +74,13 @@ The following arguments are supported:
 
 * `storage_account_id` - (Required) Specifies the resource id of the storage account.
 
+* `properties` - (Required) A `properties` block as defined below.
+
 ---
 
-* `cors_rule` - (Optional) A `cors_rule` block as defined above.
+A `properties` block supports the following:
+
+* `cors_rule` - (Optional) A `cors_rule` block as defined below.
 
 * `logging` - (Optional) A `logging` block as defined below.
 
