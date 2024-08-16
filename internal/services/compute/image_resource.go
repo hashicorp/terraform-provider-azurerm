@@ -398,8 +398,9 @@ func expandImageOSDisk(input []interface{}) *images.ImageOSDisk {
 		}
 
 		if id := config["disk_encryption_set_id"].(string); id != "" {
+			encryptionId, _ := commonids.ParseDiskEncryptionSetIDInsensitively(id)
 			out.DiskEncryptionSet = &images.SubResource{
-				Id: utils.String(id),
+				Id: pointer.To(encryptionId.String()),
 			}
 		}
 
@@ -438,8 +439,9 @@ func expandImageDataDisks(disks []interface{}) *[]images.ImageDataDisk {
 		}
 
 		if id := config["disk_encryption_set_id"].(string); id != "" {
+			encryptionId, _ := commonids.ParseDiskEncryptionSetIDInsensitively(id)
 			item.DiskEncryptionSet = &images.SubResource{
-				Id: pointer.To(id),
+				Id: pointer.To(encryptionId.String()),
 			}
 		}
 
