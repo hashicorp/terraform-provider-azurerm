@@ -398,9 +398,8 @@ func expandImageOSDisk(input []interface{}) *images.ImageOSDisk {
 		}
 
 		if id := config["disk_encryption_set_id"].(string); id != "" {
-			encryptionId, _ := commonids.ParseDiskEncryptionSetIDInsensitively(id)
 			out.DiskEncryptionSet = &images.SubResource{
-				Id: pointer.To(encryptionId.String()),
+				Id: pointer.To(id),
 			}
 		}
 
@@ -439,9 +438,8 @@ func expandImageDataDisks(disks []interface{}) *[]images.ImageDataDisk {
 		}
 
 		if id := config["disk_encryption_set_id"].(string); id != "" {
-			encryptionId, _ := commonids.ParseDiskEncryptionSetIDInsensitively(id)
 			item.DiskEncryptionSet = &images.SubResource{
-				Id: pointer.To(encryptionId.String()),
+				Id: pointer.To(id),
 			}
 		}
 
@@ -478,7 +476,8 @@ func flattenImageOSDisk(input *images.ImageStorageProfile) []interface{} {
 			}
 			diskEncryptionSetId := ""
 			if set := v.DiskEncryptionSet; set != nil && set.Id != nil {
-				diskEncryptionSetId = *set.Id
+				encryptionId, _ := commonids.ParseDiskEncryptionSetIDInsensitively(*set.Id)
+				diskEncryptionSetId = encryptionId.String()
 			}
 
 			properties := map[string]interface{}{
@@ -530,7 +529,8 @@ func flattenImageDataDisks(input *images.ImageStorageProfile) []interface{} {
 				}
 				diskEncryptionSetId := ""
 				if set := disk.DiskEncryptionSet; set != nil && set.Id != nil {
-					diskEncryptionSetId = *set.Id
+					encryptionId, _ := commonids.ParseDiskEncryptionSetIDInsensitively(*set.Id)
+					diskEncryptionSetId = encryptionId.String()
 				}
 
 				properties := map[string]interface{}{
