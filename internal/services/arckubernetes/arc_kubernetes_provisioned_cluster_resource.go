@@ -63,7 +63,6 @@ func (ArcKubernetesProvisionedClusterInstanceResource) ModelObject() interface{}
 
 type ArcKubernetesProvisionedClusterInstanceResourceModel struct {
 	AgentPoolProfile     []ProvisionedClusterInstanceAgentPoolProfile     `tfschema:"agent_pool_profile"`
-	AutoScalerProfile    []ProvisionedClusterInstanceAutoScalerProfile    `tfschema:"auto_scaler_profile"`
 	CloudProviderProfile []ProvisionedClusterInstanceCloudProviderProfile `tfschema:"cloud_provider_profile"`
 	ConnectedClusterID   string                                           `tfschema:"connected_cluster_id"`
 	ControlPlaneProfile  []ProvisionedClusterInstanceControlPlaneProfile  `tfschema:"control_plane_profile"`
@@ -76,17 +75,17 @@ type ArcKubernetesProvisionedClusterInstanceResourceModel struct {
 }
 
 type ProvisionedClusterInstanceAgentPoolProfile struct {
-	AutoScalingEnabled bool                   `tfschema:"auto_scaling_enabled"`
-	Count              int64                  `tfschema:"count"`
-	MaxCount           int64                  `tfschema:"max_count"`
-	MaxPods            int64                  `tfschema:"max_pods"`
-	MinCount           int64                  `tfschema:"min_count"`
-	Name               string                 `tfschema:"name"`
-	NodeLabels         map[string]interface{} `tfschema:"node_labels"`
-	NodeTaints         []string               `tfschema:"node_taints"`
-	OsSku              string                 `tfschema:"os_sku"`
-	OsType             string                 `tfschema:"os_type"`
-	VmSize             string                 `tfschema:"vm_size"`
+	AutoScalingEnabled bool              `tfschema:"auto_scaling_enabled"`
+	Count              int64             `tfschema:"count"`
+	MaxCount           int64             `tfschema:"max_count"`
+	MaxPods            int64             `tfschema:"max_pods"`
+	MinCount           int64             `tfschema:"min_count"`
+	Name               string            `tfschema:"name"`
+	NodeLabels         map[string]string `tfschema:"node_labels"`
+	NodeTaints         []string          `tfschema:"node_taints"`
+	OsSku              string            `tfschema:"os_sku"`
+	OsType             string            `tfschema:"os_type"`
+	VmSize             string            `tfschema:"vm_size"`
 }
 
 type ProvisionedClusterInstanceAutoScalerProfile struct {
@@ -166,129 +165,10 @@ func (ArcKubernetesProvisionedClusterInstanceResource) Arguments() map[string]*p
 			ValidateFunc: customlocations.ValidateCustomLocationID,
 		},
 
-		"auto_scaler_profile": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			ForceNew: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"balance_similar_node_groups": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-					"expander": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ForceNew: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(provisionedclusterinstances.ExpanderLeastNegativewaste),
-							string(provisionedclusterinstances.ExpanderMostNegativepods),
-							string(provisionedclusterinstances.ExpanderPriority),
-							string(provisionedclusterinstances.ExpanderRandom),
-						}, false),
-					},
-					"max_empty_bulk_delete": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-					"max_graceful_termination_sec": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-					"max_node_provision_time": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-					"max_total_unready_percentage": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-					"new_pod_scale_up_delay": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-					"ok_total_unready_count": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-					"scan_interval": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-					"scale_down_delay_after_add": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-					"scale_down_delay_after_delete": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-					"scale_down_delay_after_failure": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-					"scale_down_unneeded_time": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-					"scale_down_unready_time": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-					"scale_down_utilization_threshold": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-					"skip_nodes_with_local_storage": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-					"skip_nodes_with_system_pods": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-				},
-			},
-		},
-
 		"agent_pool_profile": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
 			ForceNew: true,
-			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
@@ -435,10 +315,9 @@ func (ArcKubernetesProvisionedClusterInstanceResource) Arguments() map[string]*p
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
-
 		"linux_profile": {
 			Type:     pluginsdk.TypeList,
-			Required: true,
+			Optional: true,
 			ForceNew: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
@@ -558,19 +437,21 @@ func (r ArcKubernetesProvisionedClusterInstanceResource) Create() sdk.ResourceFu
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			id, err := connectedclusters.ParseConnectedClusterID(config.ConnectedClusterID)
+			connectedClusterId, err := connectedclusters.ParseConnectedClusterID(config.ConnectedClusterID)
 			if err != nil {
 				return err
 			}
 
-			scopeId := commonids.NewScopeID(id.ID())
+			scopeId := commonids.NewScopeID(connectedClusterId.ID())
+			// TODO: the id should use resourceids.ResourceId
+			provisionedClusterInstanceId := connectedClusterId.ID() + ArcKubernetesProvisionedClusterInstanceResourceIdSuffix
 
 			existing, err := client.ProvisionedClusterInstancesGet(ctx, scopeId)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", provisionedClusterInstanceId, err)
 			}
 			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				return metadata.ResourceRequiresImport(r.ResourceType(), scopeId)
 			}
 
 			payload := provisionedclusterinstances.ProvisionedCluster{
@@ -578,13 +459,23 @@ func (r ArcKubernetesProvisionedClusterInstanceResource) Create() sdk.ResourceFu
 					Name: pointer.To(config.CustomLocationId),
 					Type: pointer.To(provisionedclusterinstances.ExtendedLocationTypesCustomLocation),
 				},
+				Properties: &provisionedclusterinstances.ProvisionedClusterProperties{
+					AgentPoolProfiles:    expandProvisionedClusterAgentPoolProfiles(config.AgentPoolProfile),
+					CloudProviderProfile: expandProvisionedClusterCloudProviderProfile(config.CloudProviderProfile),
+					ControlPlane:         expandProvisionedClusterControlPlaneProfile(config.ControlPlaneProfile),
+					KubernetesVersion:    pointer.To(config.KubernetesVersion),
+					LinuxProfile:         expandProvisionedClusterLinuxProfile(config.LinuxProfile),
+					LicenseProfile:       expandProvisionedClusterLicenseProfile(config.LicenseProfile),
+					NetworkProfile:       expandProvisionedClusterNetworkProfile(config.NetworkProfile),
+					StorageProfile:       expandProvisionedClusterStorageProfile(config.StorageProfile),
+				},
 			}
 
 			if err := client.ProvisionedClusterInstancesCreateOrUpdateThenPoll(ctx, scopeId, payload); err != nil {
-				return fmt.Errorf("creating %s: %+v", id, err)
+				return fmt.Errorf("creating %s: %+v", connectedClusterId, err)
 			}
 
-			metadata.SetID(id)
+			metadata.SetID(connectedClusterId)
 
 			return nil
 		},
@@ -595,14 +486,19 @@ func (r ArcKubernetesProvisionedClusterInstanceResource) Read() sdk.ResourceFunc
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.AzureStackHCI.LogicalNetworks
+			client := metadata.Client.ArcKubernetes.ProvisionedClusterInstancesClient
 
-			id, err := logicalnetworks.ParseLogicalNetworkID(metadata.ResourceData.Id())
-			if err != nil {
-				return err
+			idRaw := metadata.ResourceData.Id()
+			scopeId := strings.TrimRight(idRaw, ArcKubernetesProvisionedClusterInstanceResourceIdSuffix)
+			if !strings.EqualFold(idRaw, scopeId+ArcKubernetesProvisionedClusterInstanceResourceIdSuffix) {
+				return fmt.Errorf("expect `id` ends with %s, but got %s", ArcKubernetesProvisionedClusterInstanceResourceIdSuffix, idRaw)
 			}
 
-			resp, err := client.Get(ctx, *id)
+			if connectedClusterId, err := connectedclusters.ParseConnectedClusterID(scopeId); err != nil {
+				return fmt.Errorf("parsing the scope of %q as a Connected Cluster ID: %+v", idRaw, err)
+			}
+
+			resp, err := client.ProvisionedClusterInstancesGet(ctx, commonids.scopeId)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
@@ -611,10 +507,7 @@ func (r ArcKubernetesProvisionedClusterInstanceResource) Read() sdk.ResourceFunc
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			schema := ArcKubernetesProvisionedClusterInstanceResourceModel{
-				Name:              id.LogicalNetworkName,
-				ResourceGroupName: id.ResourceGroupName,
-			}
+			schema := ArcKubernetesProvisionedClusterInstanceResourceModel{}
 
 			if model := resp.Model; model != nil {
 				schema.Location = location.Normalize(model.Location)
@@ -670,10 +563,6 @@ func (r ArcKubernetesProvisionedClusterInstanceResource) Update() sdk.ResourceFu
 				return fmt.Errorf("retrieving %s: `model` was nil", *id)
 			}
 
-			if metadata.ResourceData.HasChange("tags") {
-				parameters.Tags = tags.Expand(model.Tags)
-			}
-
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *parameters); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
@@ -702,119 +591,258 @@ func (r ArcKubernetesProvisionedClusterInstanceResource) Delete() sdk.ResourceFu
 	}
 }
 
-func expandStackHCILogicalNetworkSubnet(input []StackHCISubnetModel) *[]logicalnetworks.Subnet {
+func expandProvisionedClusterAgentPoolProfiles(input []ProvisionedClusterInstanceAgentPoolProfile) *[]provisionedclusterinstances.NamedAgentPoolProfile {
 	if len(input) == 0 {
 		return nil
 	}
 
-	results := make([]logicalnetworks.Subnet, 0)
+	output := make([]provisionedclusterinstances.NamedAgentPoolProfile, 0)
 	for _, v := range input {
-		results = append(results, logicalnetworks.Subnet{
-			Properties: &logicalnetworks.SubnetPropertiesFormat{
-				AddressPrefix:      pointer.To(v.AddressPrefix),
-				IPAllocationMethod: pointer.To(logicalnetworks.IPAllocationMethodEnum(v.IpAllocationMethod)),
-				IPPools:            expandStackHCILogicalNetworkIPPool(v.IpPool),
-				RouteTable:         expandStackHCILogicalNetworkRouteTable(v.Route),
-				Vlan:               pointer.To(v.VlanId),
-			},
-		})
-	}
-
-	return &results
-}
-
-func flattenStackHCILogicalNetworkSubnet(input *[]logicalnetworks.Subnet) []StackHCISubnetModel {
-	if input == nil {
-		return make([]StackHCISubnetModel, 0)
-	}
-
-	results := make([]StackHCISubnetModel, 0)
-	for _, v := range *input {
-		if v.Properties != nil {
-			results = append(results, StackHCISubnetModel{
-				AddressPrefix:      pointer.From(v.Properties.AddressPrefix),
-				IpAllocationMethod: string(pointer.From(v.Properties.IPAllocationMethod)),
-				IpPool:             flattenStackHCILogicalNetworkIPPool(v.Properties.IPPools),
-				Route:              flattenStackHCILogicalNetworkRouteTable(v.Properties.RouteTable),
-				VlanId:             pointer.From(v.Properties.Vlan),
-			})
+		agentPool := provisionedclusterinstances.NamedAgentPoolProfile{
+			Name:              pointer.To(v.Name),
+			Count:             pointer.To(v.Count),
+			EnableAutoScaling: pointer.To(v.AutoScalingEnabled),
+			MaxCount:          pointer.To(v.MaxCount),
+			MaxPods:           pointer.To(v.MaxPods),
+			MinCount:          pointer.To(v.MinCount),
+			NodeLabels:        pointer.To(v.NodeLabels),
+			NodeTaints:        pointer.To(v.NodeTaints),
+			OsSKU:             pointer.To(provisionedclusterinstances.OSSKU(v.OsSku)),
+			OsType:            pointer.To(provisionedclusterinstances.OsType(v.OsType)),
+			VMSize:            pointer.To(v.VmSize),
 		}
+
+		output = append(output, agentPool)
 	}
 
-	return results
+	return &output
 }
 
-func expandStackHCILogicalNetworkIPPool(input []StackHCIIPPoolModel) *[]logicalnetworks.IPPool {
-	if len(input) == 0 {
-		return nil
-	}
-
-	results := make([]logicalnetworks.IPPool, 0)
-	for _, v := range input {
-		results = append(results, logicalnetworks.IPPool{
-			Start: pointer.To(v.Start),
-			End:   pointer.To(v.End),
-		})
-	}
-
-	return &results
-}
-
-func flattenStackHCILogicalNetworkIPPool(input *[]logicalnetworks.IPPool) []StackHCIIPPoolModel {
+func flattenProvisionedClusterAgentPoolProfiles(input *[]provisionedclusterinstances.NamedAgentPoolProfile) []ProvisionedClusterInstanceAgentPoolProfile {
 	if input == nil {
-		return make([]StackHCIIPPoolModel, 0)
+		return make([]ProvisionedClusterInstanceAgentPoolProfile, 0)
 	}
 
-	results := make([]StackHCIIPPoolModel, 0)
+	output := make([]ProvisionedClusterInstanceAgentPoolProfile, 0)
 	for _, v := range *input {
-		results = append(results, StackHCIIPPoolModel{
-			Start: pointer.From(v.Start),
-			End:   pointer.From(v.End),
-		})
+		agentPool := ProvisionedClusterInstanceAgentPoolProfile{
+			Name:               pointer.From(v.Name),
+			Count:              pointer.From(v.Count),
+			AutoScalingEnabled: pointer.From(v.EnableAutoScaling),
+			MaxCount:           pointer.From(v.MaxCount),
+			MaxPods:            pointer.From(v.MaxPods),
+			MinCount:           pointer.From(v.MinCount),
+			NodeLabels:         pointer.From(v.NodeLabels),
+			NodeTaints:         pointer.From(v.NodeTaints),
+			OsSku:              string(pointer.From(v.OsSKU)),
+			OsType:             string(pointer.From(v.OsType)),
+			VmSize:             pointer.From(v.VMSize),
+		}
+
+		output = append(output, agentPool)
 	}
 
-	return results
+	return output
 }
 
-func expandStackHCILogicalNetworkRouteTable(input []StackHCIRouteModel) *logicalnetworks.RouteTable {
+func expandProvisionedClusterCloudProviderProfile(input []ProvisionedClusterInstanceCloudProviderProfile) *provisionedclusterinstances.CloudProviderProfile {
 	if len(input) == 0 {
 		return nil
 	}
 
-	routes := make([]logicalnetworks.Route, 0)
-	for _, v := range input {
-		routes = append(routes, logicalnetworks.Route{
-			Name: pointer.To(v.Name),
-			Properties: &logicalnetworks.RoutePropertiesFormat{
-				AddressPrefix:    pointer.To(v.AddressPrefix),
-				NextHopIPAddress: pointer.To(v.NextHopIpAddress),
-			},
-		})
-	}
-
-	return &logicalnetworks.RouteTable{
-		Properties: &logicalnetworks.RouteTablePropertiesFormat{
-			Routes: pointer.To(routes),
+	v := input[0]
+	return &provisionedclusterinstances.CloudProviderProfile{
+		InfraNetworkProfile: &provisionedclusterinstances.CloudProviderProfileInfraNetworkProfile{
+			VnetSubnetIds: pointer.To(v.InfraNetworkProfile[0].VnetSubnetIds),
 		},
 	}
 }
 
-func flattenStackHCILogicalNetworkRouteTable(input *logicalnetworks.RouteTable) []StackHCIRouteModel {
-	if input == nil || input.Properties == nil || input.Properties.Routes == nil {
-		return make([]StackHCIRouteModel, 0)
+func flattenProvisionedClusterCloudProviderProfile(input *provisionedclusterinstances.CloudProviderProfile) []ProvisionedClusterInstanceCloudProviderProfile {
+	if input == nil {
+		return make([]ProvisionedClusterInstanceCloudProviderProfile, 0)
 	}
 
-	results := make([]StackHCIRouteModel, 0)
-	for _, v := range *input.Properties.Routes {
-		route := StackHCIRouteModel{
-			Name: pointer.From(v.Name),
-		}
-		if v.Properties != nil {
-			route.AddressPrefix = pointer.From(v.Properties.AddressPrefix)
-			route.NextHopIpAddress = pointer.From(v.Properties.NextHopIPAddress)
-		}
-		results = append(results, route)
+	return []ProvisionedClusterInstanceCloudProviderProfile{
+		{
+			InfraNetworkProfile: []ProvisionedClusterInstanceInfraNetworkProfile{
+				{
+					VnetSubnetIds: pointer.From(input.InfraNetworkProfile.VnetSubnetIds),
+				},
+			},
+		},
+	}
+}
+
+func expandProvisionedClusterControlPlaneProfile(input []ProvisionedClusterInstanceControlPlaneProfile) *provisionedclusterinstances.ControlPlaneProfile {
+	if len(input) == 0 {
+		return nil
 	}
 
-	return results
+	v := input[0]
+	return &provisionedclusterinstances.ControlPlaneProfile{
+		Count:  pointer.To(v.Count),
+		VMSize: pointer.To(v.VmSize),
+		ControlPlaneEndpoint: &provisionedclusterinstances.ControlPlaneProfileControlPlaneEndpoint{
+			HostIP: pointer.To(v.HostIp),
+		},
+	}
+}
+
+func flattenProvisionedClusterControlPlaneProfile(input *provisionedclusterinstances.ControlPlaneProfile) []ProvisionedClusterInstanceControlPlaneProfile {
+	if input == nil {
+		return make([]ProvisionedClusterInstanceControlPlaneProfile, 0)
+	}
+
+	var hostIp string
+	if input.ControlPlaneEndpoint != nil {
+		hostIp = pointer.From(input.ControlPlaneEndpoint.HostIP)
+	}
+
+	return []ProvisionedClusterInstanceControlPlaneProfile{
+		{
+			Count:  pointer.From(input.Count),
+			VmSize: pointer.From(input.VMSize),
+			HostIp: hostIp,
+		},
+	}
+}
+
+func expandProvisionedClusterLinuxProfile(input []ProvisionedClusterInstanceLinuxProfile) *provisionedclusterinstances.LinuxProfileProperties {
+	if len(input) == 0 {
+		return nil
+	}
+
+	publicKeys := make([]provisionedclusterinstances.LinuxProfilePropertiesSshPublicKeysInlined, 0)
+	for _, v := range input[0].SshKey {
+		publicKeys = append(publicKeys, provisionedclusterinstances.LinuxProfilePropertiesSshPublicKeysInlined{
+			KeyData: pointer.To(v.KeyData),
+		})
+	}
+
+	return &provisionedclusterinstances.LinuxProfileProperties{
+		Ssh: &provisionedclusterinstances.LinuxProfilePropertiesSsh{
+			PublicKeys: &publicKeys,
+		},
+	}
+}
+
+func flattenProvisionedClusterLinuxProfile(input *provisionedclusterinstances.LinuxProfileProperties) []ProvisionedClusterInstanceLinuxProfile {
+	if input == nil || input.Ssh == nil || input.Ssh.PublicKeys == nil {
+		return nil
+	}
+
+	sshKey := make([]ProvisionedClusterInstanceSshKey, 0)
+	for _, v := range *input.Ssh.PublicKeys {
+		sshKey = append(sshKey, ProvisionedClusterInstanceSshKey{
+			KeyData: pointer.From(v.KeyData),
+		})
+	}
+
+	return []ProvisionedClusterInstanceLinuxProfile{
+		{
+			SshKey: sshKey,
+		},
+	}
+}
+
+func expandProvisionedClusterLicenseProfile(input []ProvisionedClusterInstanceLicenseProfile) *provisionedclusterinstances.ProvisionedClusterLicenseProfile {
+	if len(input) == 0 {
+		return nil
+	}
+
+	v := input[0]
+	return &provisionedclusterinstances.ProvisionedClusterLicenseProfile{
+		AzureHybridBenefit: pointer.To(provisionedclusterinstances.AzureHybridBenefit(v.AzureHybridBenefit)),
+	}
+}
+
+func flattenProvisionedClusterLicenseProfile(input *provisionedclusterinstances.ProvisionedClusterLicenseProfile) []ProvisionedClusterInstanceLicenseProfile {
+	if input == nil || input.AzureHybridBenefit == nil {
+		return make([]ProvisionedClusterInstanceLicenseProfile, 0)
+	}
+
+	return []ProvisionedClusterInstanceLicenseProfile{
+		{
+			AzureHybridBenefit: string(pointer.From(input.AzureHybridBenefit)),
+		},
+	}
+}
+
+func expandProvisionedClusterNetworkProfile(input []ProvisionedClusterInstanceNetworkProfile) *provisionedclusterinstances.NetworkProfile {
+	if len(input) == 0 {
+		return nil
+	}
+
+	v := input[0]
+	networkProfile := &provisionedclusterinstances.NetworkProfile{
+		NetworkPolicy: pointer.To(provisionedclusterinstances.NetworkPolicy(v.NetworkPolicy)),
+		PodCidr:       pointer.To(v.PodCidr),
+	}
+
+	if len(v.LoadBalancerProfile) > 0 && v.LoadBalancerProfile[0].Count != 0 {
+		networkProfile.LoadBalancerProfile = &provisionedclusterinstances.NetworkProfileLoadBalancerProfile{
+			Count: pointer.To(v.LoadBalancerProfile[0].Count),
+		}
+	}
+
+	return networkProfile
+}
+
+func flattenProvisionedClusterNetworkProfile(input *provisionedclusterinstances.NetworkProfile) []ProvisionedClusterInstanceNetworkProfile {
+	if input == nil {
+		return make([]ProvisionedClusterInstanceNetworkProfile, 0)
+	}
+
+	loadBalancer := make([]ProvisionedClusterInstanceLoadBalancerProfile, 0)
+	if input.LoadBalancerProfile != nil {
+		loadBalancer = append(loadBalancer, ProvisionedClusterInstanceLoadBalancerProfile{
+			Count: pointer.From(input.LoadBalancerProfile.Count),
+		})
+	}
+
+	return []ProvisionedClusterInstanceNetworkProfile{
+		{
+			NetworkPolicy:       string(pointer.From(input.NetworkPolicy)),
+			PodCidr:             pointer.From(input.PodCidr),
+			LoadBalancerProfile: loadBalancer,
+		},
+	}
+}
+
+func expandProvisionedClusterStorageProfile(input []ProvisionedClusterInstanceStorageProfile) *provisionedclusterinstances.StorageProfile {
+	if len(input) == 0 {
+		return nil
+	}
+
+	v := input[0]
+	return &provisionedclusterinstances.StorageProfile{
+		NfsCsiDriver: &provisionedclusterinstances.StorageProfileNfsCSIDriver{
+			Enabled: pointer.To(v.NfsCsiDriverEnabled),
+		},
+		SmbCsiDriver: &provisionedclusterinstances.StorageProfileSmbCSIDriver{
+			Enabled: pointer.To(v.SmbCsiDriverEnabled),
+		},
+	}
+}
+
+func flattenProvisionedClusterStorageProfile(input *provisionedclusterinstances.StorageProfile) []ProvisionedClusterInstanceStorageProfile {
+	if input == nil {
+		return make([]ProvisionedClusterInstanceStorageProfile, 0)
+	}
+
+	var nfsCsiDriverEnabled, smbCsiDriverEnabled bool
+	if input.NfsCsiDriver != nil {
+		nfsCsiDriverEnabled = pointer.From(input.NfsCsiDriver.Enabled)
+	}
+	if input.SmbCsiDriver != nil {
+		smbCsiDriverEnabled = pointer.From(input.SmbCsiDriver.Enabled)
+	}
+
+	return []ProvisionedClusterInstanceStorageProfile{
+		{
+			NfsCsiDriverEnabled: nfsCsiDriverEnabled,
+			SmbCsiDriverEnabled: smbCsiDriverEnabled,
+		},
+	}
 }
