@@ -204,7 +204,7 @@ func resourcePrivateEndpoint() *pluginsdk.Resource {
 						// lintignore:S013
 						"member_name": {
 							Type: pluginsdk.TypeString,
-							// This value should remain optional computed as there are certain cases where Azure will error if you pass in a member id when it isn't expecting one.
+							// NOTE: O+C This value should remain optional computed as there are certain cases where Azure will error if you pass in a member id when it isn't expecting one.
 							Optional:     true,
 							Computed:     true,
 							ForceNew:     true,
