@@ -1254,7 +1254,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 			Type:       pluginsdk.TypeList,
 			Optional:   true,
 			Computed:   true,
-			Deprecated: "As the `queue_properties` code block requires reaching out to the dataplane, to better support private endpoints and storage accounts with public network access disabled, new storage accounts will be required to use the `azurerm_storage_account_queue_properties` resource instead of the exposed `queue_properties` field in the storage account resource itself.",
+			Deprecated: "the `queue_properties` code block requires reaching out to the dataplane, to better support private endpoints and storage accounts with public network access disabled, new storage accounts will be required to use the `azurerm_storage_account_queue_properties` resource instead of the exposed `queue_properties` code block in the storage account resource itself.",
 			MaxItems:   1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -1358,7 +1358,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 			Type:       pluginsdk.TypeList,
 			Optional:   true,
 			Computed:   true,
-			Deprecated: "As the `static_website` field requires reaching out to the dataplane, to better support private endpoints and storage accounts with public network access disabled, new storage accounts will be required to use the `azurerm_storage_account_static_website_properties` resource instead of the exposed `static_website` field in the storage account resource itself.",
+			Deprecated: "the `static_website` field requires reaching out to the dataplane, to better support private endpoints and storage accounts with public network access disabled, new storage accounts will be required to use the `azurerm_storage_account_static_website_properties` resource instead of the exposed `static_website` code block in the storage account resource itself.",
 			MaxItems:   1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
