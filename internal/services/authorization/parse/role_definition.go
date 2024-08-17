@@ -45,7 +45,7 @@ func (r RoleDefinitionID) Segments() []resourceids.Segment {
 // It is formed of the Azure Resource ID for the Role and the Scope it is created against
 func RoleDefinitionId(input string) (*RoleDefinitionID, error) {
 	parts := strings.Split(input, "|")
-	if len(parts) != 2 {
+	if len(parts) != 2 || !strings.Contains(parts[0], "providers/Microsoft.Authorization/roleDefinitions/") {
 		return nil, fmt.Errorf("could not parse Role Definition ID, invalid format %q", input)
 	}
 
