@@ -17,7 +17,23 @@ func TestParseRoleDefinitionID(t *testing.T) {
 			Expect:           true,
 		},
 		{
+			RoleDefinitionID: "/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/roleDefinitions/00000000-0000-0000-0000-000000000000|/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/valid.resource()-_group",
+			Expect:           true,
+		},
+		{
+			RoleDefinitionID: "/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/roleDefinitions/00000000-0000-0000-0000-000000000000|/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/invalid.resource()-_group.",
+			Expect:           false,
+		},
+		{
 			RoleDefinitionID: "/providers/Microsoft.Authorization/roleDefinitions/ab65ee35-dc39-43ac-86a0-accaadf4abcd|/providers/Microsoft.Management/managementGroups/Some-Management-Group",
+			Expect:           true,
+		},
+		{
+			RoleDefinitionID: "/providers/Microsoft.Authorization/roleDefinitions/ab65ee35-dc39-43ac-86a0-accaadf4abcd|/providers/Microsoft.Management/managementGroups/Some-Management-Group/subscriptions/12345678-1234-1234-1234567890ab",
+			Expect:           true,
+		},
+		{
+			RoleDefinitionID: "/providers/Microsoft.Authorization/roleDefinitions/ab65ee35-dc39-43ac-86a0-accaadf4abcd|/",
 			Expect:           true,
 		},
 		{
@@ -37,9 +53,9 @@ func TestParseRoleDefinitionID(t *testing.T) {
 			t.Logf("parse failed as expected, got %q", err)
 		} else {
 			if v.Expect == false {
-				t.Fatalf("expected %q parse failure, got %q", v.RoleDefinitionID, roleDefinitionID)
+				t.Fatalf("expected %q parse failure, got:\n%+v", v.RoleDefinitionID, roleDefinitionID)
 			}
-			t.Logf("parse succeeded as expected, got %+v", roleDefinitionID)
+			t.Logf("parse succeeded as expected, got:\n%+v", roleDefinitionID)
 		}
 	}
 }
