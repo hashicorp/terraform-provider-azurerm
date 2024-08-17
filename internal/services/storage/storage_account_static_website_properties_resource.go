@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/storageaccounts"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -92,9 +91,8 @@ func resourceStorageAccountStaticWebSitePropertiesCreate(d *pluginsdk.ResourceDa
 			return fmt.Errorf("checking for existing %s: %+v", id, err)
 		}
 	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError(storageAccountStaticWebSitePropertiesResourceName, id.ID())
-	}
+
+	// NOTE: Import error cannot be supported for this resource...
 
 	if existing.Model == nil {
 		return fmt.Errorf("retrieving %s: `model` was nil", id)
@@ -309,18 +307,18 @@ func resourceStorageAccountStaticWebSitePropertiesDelete(d *pluginsdk.ResourceDa
 		},
 	}
 
-	account, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
+	dataPlaneAccount, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	if account == nil {
+	if dataPlaneAccount == nil {
 		return fmt.Errorf("unable to locate %s", *id)
 	}
 
-	accountsClient, err := storageClient.AccountsDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
+	accountsClient, err := storageClient.AccountsDataPlaneClient(ctx, *dataPlaneAccount, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
 	if err != nil {
-		return fmt.Errorf("building Data Plane client for %s: %+v", *id, err)
+		return fmt.Errorf("building Data Plane Accounts Client %s: %+v", *id, err)
 	}
 
 	if _, err = accountsClient.SetServiceProperties(ctx, id.StorageAccountName, staticWebsiteProps); err != nil {

@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/storageaccounts"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/helpers"
@@ -179,9 +178,8 @@ func resourceStorageAccountQueuePropertiesCreate(d *pluginsdk.ResourceData, meta
 			return fmt.Errorf("checking for existing %s: %+v", id, err)
 		}
 	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError(storageAccountQueuePropertiesResourceName, id.ID())
-	}
+
+	// NOTE: Import error cannot be supported for this resource...
 
 	if existing.Model == nil {
 		return fmt.Errorf("retrieving %s: `model` was nil", id)
@@ -339,7 +337,6 @@ func resourceStorageAccountQueuePropertiesRead(d *pluginsdk.ResourceData, meta i
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	// we then need to find the storage account
 	account, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
@@ -386,7 +383,30 @@ func resourceStorageAccountQueuePropertiesDelete(d *pluginsdk.ResourceData, meta
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	// NOTE: Put Delete here but I don't know what that means since this is a fake resource...
+	dataPlaneAccount, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
+
+	if dataPlaneAccount == nil {
+		return fmt.Errorf("unable to locate %s", *id)
+	}
+
+	queueClient, err := storageClient.QueuesDataPlaneClient(ctx, *dataPlaneAccount, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
+	if err != nil {
+		return fmt.Errorf("building Data Plane Queues Client: %s", err)
+	}
+
+	// NOTE: Call expand with an empty interface to get an
+	// unconfigured block back from the function...
+	queueProperties, err := expandAccountQueueProperties(make([]interface{}, 0))
+	if err != nil {
+		return fmt.Errorf("expanding %s: %+v", *id, err)
+	}
+
+	if err = queueClient.UpdateServiceProperties(ctx, *queueProperties); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
+	}
 
 	return nil
 }
@@ -421,6 +441,7 @@ func expandAccountQueueProperties(input []interface{}) (*queues.StorageServicePr
 			},
 		},
 	}
+
 	if len(input) == 0 {
 		return &properties, nil
 	}

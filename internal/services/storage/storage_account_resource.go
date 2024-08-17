@@ -43,7 +43,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-const dataPlaneDisabledWithDependentPropertyError = "%s cannot be set on create when the `data_plane_access_on_create_enabled` feature is set to `false`. This property is deprecated and will become computed only in version 4.0 of the provider. We recommend using the separate %s resource to manage this configuration correctly"
+const dataPlaneDependentPropertyError = `the '%[1]s' code block cannot be set on create for new storage accounts, this property has been deprecated and will become computed only in version 4.0 of the provider
+New storage accounts must use the separate '%[2]s' resource to manage the '%[1]s' configuration values
+Existing storage accounts can continue to use the exposed '%[1]s' code block to manage (e.g., update) the resource in version 3.116.1 of the provider`
 
 var (
 	storageAccountResourceName  = "azurerm_storage_account"
@@ -1399,6 +1401,18 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
+	if !features.FourPointOh() {
+		// NOTE: We want to block creation of all new storage accounts in v3.x that have 'queue_properties'
+		// and/or 'static_website' fields defined within the configuration file...
+		if _, ok := d.GetOk("queue_properties"); ok {
+			return fmt.Errorf(dataPlaneDependentPropertyError, "queue_properties", "azurerm_storage_account_queue_properties")
+		}
+
+		if _, ok := d.GetOk("static_website"); ok {
+			return fmt.Errorf(dataPlaneDependentPropertyError, "static_website", "azurerm_storage_account_static_website_properties")
+		}
+	}
+
 	id := commonids.NewStorageAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	locks.ByName(id.StorageAccountName, storageAccountResourceName)
 	defer locks.UnlockByName(id.StorageAccountName, storageAccountResourceName)
@@ -1410,16 +1424,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_storage_account", id.ID())
-	}
-
-	// Block create here...
-	if _, ok := d.GetOk("queue_properties"); ok {
-		return fmt.Errorf("the `queue_properties` code block is no longer supported for new storage accounts, please use the `azurerm_storage_account_queue_properties` resource instead")
-	}
-
-	if _, ok := d.GetOk("static_website"); ok {
-		return fmt.Errorf("the `static_website` field is no longer supported for new storage accounts, please use the `azurerm_storage_account_static_website_properties` resource instead")
+		return tf.ImportAsExistsError(storageAccountResourceName, id.ID())
 	}
 
 	accountKind := storageaccounts.Kind(d.Get("account_kind").(string))
@@ -1606,17 +1611,22 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("populating cache for %s: %+v", id, err)
 	}
 
-	dataPlaneAccount, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
-	if err != nil {
-		return fmt.Errorf("retrieving %s: %+v", id, err)
-	}
-	if dataPlaneAccount == nil {
-		return fmt.Errorf("unable to locate %q", id)
-	}
-
 	supportLevel := availableFunctionalityForAccount(accountKind, accountTier, replicationType)
-	if err := waitForDataPlaneToBecomeAvailableForAccount(ctx, storageClient, dataPlaneAccount, supportLevel); err != nil {
-		return fmt.Errorf("waiting for the Data Plane for %s to become available: %+v", id, err)
+
+	// NOTE: Only do the wait for dataplane if the dataplane is enabled...
+	if dataPlaneEnabled {
+		dataPlaneAccount, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
+		if err != nil {
+			return fmt.Errorf("retrieving %s: %+v", id, err)
+		}
+
+		if dataPlaneAccount == nil {
+			return fmt.Errorf("unable to locate %q", id)
+		}
+
+		if err := waitForDataPlaneToBecomeAvailableForAccount(ctx, storageClient, dataPlaneAccount, supportLevel); err != nil {
+			return fmt.Errorf("waiting for the Data Plane for %s to become available: %+v", id, err)
+		}
 	}
 
 	if val, ok := d.GetOk("blob_properties"); ok {
@@ -1669,51 +1679,6 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 		if _, err = storageClient.ResourceManager.BlobService.SetServiceProperties(ctx, id, *blobProperties); err != nil {
 			return fmt.Errorf("updating `blob_properties`: %+v", err)
-		}
-	}
-
-	if dataPlaneEnabled && !features.FourPointOhBeta() {
-		if val, ok := d.GetOk("queue_properties"); ok {
-			if !supportLevel.supportQueue {
-				return fmt.Errorf("`queue_properties` are not supported for account kind %q in sku tier %q", accountKind, accountTier)
-			}
-
-			queueClient, err := storageClient.QueuesDataPlaneClient(ctx, *dataPlaneAccount, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
-			if err != nil {
-				return fmt.Errorf("building Queues Client: %s", err)
-			}
-
-			queueProperties, err := expandAccountQueueProperties(val.([]interface{}))
-			if err != nil {
-				return fmt.Errorf("expanding `queue_properties`: %+v", err)
-			}
-
-			if err = queueClient.UpdateServiceProperties(ctx, *queueProperties); err != nil {
-				return fmt.Errorf("updating Queue Properties: %+v", err)
-			}
-		}
-		if val, ok := d.GetOk("static_website"); ok {
-			if !supportLevel.supportStaticWebsite {
-				return fmt.Errorf("`static_website` are not supported for account kind %q in sku tier %q", accountKind, accountTier)
-			}
-
-			accountsClient, err := storageClient.AccountsDataPlaneClient(ctx, *dataPlaneAccount, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
-			if err != nil {
-				return fmt.Errorf("building Accounts Data Plane Client: %s", err)
-			}
-
-			staticWebsiteProps := expandAccountStaticWebsiteProperties(val.([]interface{}))
-
-			if _, err = accountsClient.SetServiceProperties(ctx, id.StorageAccountName, staticWebsiteProps); err != nil {
-				return fmt.Errorf("updating `static_website`: %+v", err)
-			}
-		}
-	} else {
-		if _, ok := d.GetOk("queue_properties"); ok {
-			return fmt.Errorf(dataPlaneDisabledWithDependentPropertyError, "queue_properties", "azurerm_storage_account_queue_properties")
-		}
-		if _, ok := d.GetOk("static_website"); ok {
-			return fmt.Errorf(dataPlaneDisabledWithDependentPropertyError, "static_website", "azurerm_storage_account_static_website_properties")
 		}
 	}
 
@@ -2074,32 +2039,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 				return fmt.Errorf("updating Queue Properties for %s: %+v", *id, err)
 			}
 		}
-	}
 
-	if d.HasChange("share_properties") {
-		if !supportLevel.supportShare {
-			return fmt.Errorf("`share_properties` are not supported for account kind %q in sku tier %q", accountKind, accountTier)
-		}
-
-		sharePayload := expandAccountShareProperties(d.Get("share_properties").([]interface{}))
-		// The API complains if any multichannel info is sent on non premium fileshares. Even if multichannel is set to false
-		if accountTier != storageaccounts.SkuTierPremium {
-			// Error if the user has tried to enable multichannel on a standard tier storage account
-			if sharePayload.Properties.ProtocolSettings.Smb.Multichannel != nil && sharePayload.Properties.ProtocolSettings.Smb.Multichannel.Enabled != nil {
-				if *sharePayload.Properties.ProtocolSettings.Smb.Multichannel.Enabled {
-					return fmt.Errorf("`multichannel_enabled` isn't supported for Standard tier Storage accounts")
-				}
-			}
-
-			sharePayload.Properties.ProtocolSettings.Smb.Multichannel = nil
-		}
-
-		if _, err = storageClient.ResourceManager.FileService.SetServiceProperties(ctx, *id, sharePayload); err != nil {
-			return fmt.Errorf("updating File Share Properties for %s: %+v", *id, err)
-		}
-	}
-
-	if !features.FourPointOhBeta() {
 		if d.HasChange("static_website") {
 			if !supportLevel.supportStaticWebsite {
 				return fmt.Errorf("`static_website` are not supported for account kind %q in sku tier %q", accountKind, accountTier)
@@ -2123,6 +2063,29 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			if _, err = accountsClient.SetServiceProperties(ctx, id.StorageAccountName, staticWebsiteProps); err != nil {
 				return fmt.Errorf("updating `static_website` for %s: %+v", *id, err)
 			}
+		}
+	}
+
+	if d.HasChange("share_properties") {
+		if !supportLevel.supportShare {
+			return fmt.Errorf("`share_properties` are not supported for account kind %q in sku tier %q", accountKind, accountTier)
+		}
+
+		sharePayload := expandAccountShareProperties(d.Get("share_properties").([]interface{}))
+		// The API complains if any multichannel info is sent on non premium fileshares. Even if multichannel is set to false
+		if accountTier != storageaccounts.SkuTierPremium {
+			// Error if the user has tried to enable multichannel on a standard tier storage account
+			if sharePayload.Properties.ProtocolSettings.Smb.Multichannel != nil && sharePayload.Properties.ProtocolSettings.Smb.Multichannel.Enabled != nil {
+				if *sharePayload.Properties.ProtocolSettings.Smb.Multichannel.Enabled {
+					return fmt.Errorf("`multichannel_enabled` isn't supported for Standard tier Storage accounts")
+				}
+			}
+
+			sharePayload.Properties.ProtocolSettings.Smb.Multichannel = nil
+		}
+
+		if _, err = storageClient.ResourceManager.FileService.SetServiceProperties(ctx, *id, sharePayload); err != nil {
+			return fmt.Errorf("updating File Share Properties for %s: %+v", *id, err)
 		}
 	}
 

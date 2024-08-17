@@ -320,13 +320,17 @@ resource "azurerm_storage_account" "test" {
     default_action = "Deny"
   }
 
-  static_website {
-    index_document     = "index.html"
-    error_404_document = "404.html"
-  }
-
   tags = {
     environment = "Test"
+  }
+}
+
+resource "azurerm_storage_account_static_website_properties" "test" {
+  storage_account_id = azurerm_storage_account.test.id
+
+  properties {
+    index_document     = "index.html"
+    error_404_document = "404.html"
   }
 }
 `, template, data.RandomString)
