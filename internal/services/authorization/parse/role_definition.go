@@ -43,18 +43,18 @@ func (r RoleDefinitionID) Segments() []resourceids.Segment {
 }
 
 var roleDefinitionIdRegexp *regexp.Regexp = regexp.MustCompile(
-	"^(/subscriptions/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})?" +
-		"/providers/Microsoft.Authorization/roleDefinitions/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+	"^(?i)(?:/subscriptions/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})?" +
+		"/providers/Microsoft.Authorization/roleDefinitions/([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$")
 
 var subscriptionScopeRegexp *regexp.Regexp = regexp.MustCompile(
-	"^(/subscriptions/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})" +
-		"(/resourceGroups/[_\\-.()0-9a-zA-Z]{1,89}[_\\-()0-9a-zA-Z]{1})?$")
+	"^(?i)(?:/subscriptions/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})" +
+		"(?:/resourceGroups/[_\\-.()0-9a-zA-Z]{1,89}[_\\-()0-9a-zA-Z]{1})?$")
 
 var mgmtGroupScopeRegexp *regexp.Regexp = regexp.MustCompile(
-	"^(/providers/Microsoft.Management/managementGroups/[_\\-.()0-9a-zA-Z]{1,89}[_\\-()0-9a-zA-Z]{1})" +
-		"(/subscriptions/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})?")
+	"^(?i)(?:/providers/Microsoft.Management/managementGroups/[_\\-.()0-9a-zA-Z]{1,89}[_\\-()0-9a-zA-Z]{1})" +
+		"(?:/subscriptions/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})?$")
 
-const allScopesToken string = "/"
+const allScopes string = "/"
 
 // RoleDefinitionId is a pseudo ID for storing Scope parameter as this it not retrievable from API
 // It is formed of the Azure Resource ID for the Role and the Scope it is created against
@@ -64,8 +64,8 @@ func RoleDefinitionId(input string) (*RoleDefinitionID, error) {
 		return nil, fmt.Errorf("could not parse Role Definition ID, invalid format %q", input)
 	}
 
-	resourceId := roleDefinitionIdRegexp.FindString(parts[0])
-	if resourceId == "" {
+	roleID := roleDefinitionIdRegexp.FindStringSubmatch(parts[0])
+	if len(roleID) != 2 {
 		return nil, fmt.Errorf("could not parse Role Definition ID, invalid format %q", parts[0])
 	}
 
@@ -74,21 +74,16 @@ func RoleDefinitionId(input string) (*RoleDefinitionID, error) {
 		scope = mgmtGroupScopeRegexp.FindString(parts[1])
 		if scope == "" {
 			scope = parts[1]
-			if scope != allScopesToken {
+			if scope != allScopes {
 				return nil, fmt.Errorf("could not parse scope from Role Definition ID, invalid format %q", parts[1])
 			}
 		}
 	}
 
 	roleDefinitionID := RoleDefinitionID{
-		ResourceID: resourceId,
+		ResourceID: roleID[0],
 		Scope:      scope,
-	}
-
-	if idParts := strings.Split(resourceId, "roleDefinitions/"); len(idParts) < 1 {
-		return nil, fmt.Errorf("failed to parse Role Definition ID from resource ID %q", input)
-	} else {
-		roleDefinitionID.RoleID = idParts[1]
+		RoleID:     roleID[1],
 	}
 
 	return &roleDefinitionID, nil
