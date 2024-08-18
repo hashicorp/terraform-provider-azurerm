@@ -567,21 +567,21 @@ func TestAccRedisCache_AccessKeysAuthenticationEnabledDisabled(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.accessKeysAuthentication(data, false, false),
+			Config: r.accessKeysAuthentication(data, true, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.accessKeysAuthentication(data, true, true),
+			Config: r.accessKeysAuthentication(data, false, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.accessKeysAuthentication(data, false, false),
+			Config: r.accessKeysAuthentication(data, true, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1624,7 +1624,7 @@ resource "azurerm_redis_cache" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (RedisCacheResource) accessKeysAuthentication(data acceptance.TestData, accessKeysAuthenticationDisabled bool, activeDirectoryAuthenticationEnabled bool) string {
+func (RedisCacheResource) accessKeysAuthentication(data acceptance.TestData, accessKeysAuthenticationEnabled bool, activeDirectoryAuthenticationEnabled bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1644,10 +1644,10 @@ resource "azurerm_redis_cache" "test" {
   sku_name                            = "Basic"
   non_ssl_port_enabled                = false
   minimum_tls_version                 = "1.2"
-  access_keys_authentication_disabled = %t
+  access_keys_authentication_enabled = %t
 
   redis_configuration {
     active_directory_authentication_enabled = %t
   }
-}`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, accessKeysAuthenticationDisabled, activeDirectoryAuthenticationEnabled)
+}`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, accessKeysAuthenticationEnabled, activeDirectoryAuthenticationEnabled)
 }

@@ -365,9 +365,10 @@ func resourceRedisCache() *pluginsdk.Resource {
 				},
 			},
 
-			"access_keys_authentication_disabled": {
+			"access_keys_authentication_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
+				Default:  true,
 			},
 
 			"tags": commonschema.Tags(),
@@ -385,13 +386,13 @@ func resourceRedisCache() *pluginsdk.Resource {
 				// Entra (AD) auth has to be set to disable access keys auth
 				// https://learn.microsoft.com/en-us/azure/azure-cache-for-redis/cache-azure-active-directory-for-authentication
 
-				accessKeysAuthenticationDisabled := diff.Get("access_keys_authentication_disabled").(bool)
+				accessKeysAuthenticationDisabled := !(diff.Get("access_keys_authentication_enabled").(bool))
 				activeDirectoryAuthenticationEnabled := diff.Get("redis_configuration.0.active_directory_authentication_enabled").(bool)
 
-				log.Printf("[DEBUG] CustomizeDiff: access_keys_authentication_disabled: %v, active_directory_authentication_enabled: %v", accessKeysAuthenticationDisabled, activeDirectoryAuthenticationEnabled)
+				log.Printf("[DEBUG] CustomizeDiff: access_keys_authentication_enabled: %v, active_directory_authentication_enabled: %v", accessKeysAuthenticationDisabled, activeDirectoryAuthenticationEnabled)
 
 				if accessKeysAuthenticationDisabled && !activeDirectoryAuthenticationEnabled {
-					return fmt.Errorf("`active_directory_authentication_enabled` must be enabled in order to enable `access_keys_authentication_disabled`")
+					return fmt.Errorf("`active_directory_authentication_enabled` must be enabled in order to disable `access_keys_authentication_enabled`")
 				}
 
 				return nil
@@ -519,7 +520,7 @@ func resourceRedisCacheCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	parameters := redis.RedisCreateParameters{
 		Location: location.Normalize(d.Get("location").(string)),
 		Properties: redis.RedisCreateProperties{
-			DisableAccessKeyAuthentication: pointer.To(d.Get("access_keys_authentication_disabled").(bool)),
+			DisableAccessKeyAuthentication: pointer.To(!(d.Get("access_keys_authentication_enabled").(bool))),
 			EnableNonSslPort:               pointer.To(enableNonSslPort.(bool)),
 			Sku: redis.Sku{
 				Capacity: int64(d.Get("capacity").(int)),
@@ -634,7 +635,7 @@ func resourceRedisCacheUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 
 	parameters := redis.RedisUpdateParameters{
 		Properties: &redis.RedisUpdateProperties{
-			DisableAccessKeyAuthentication: pointer.To(d.Get("access_keys_authentication_disabled").(bool)),
+			DisableAccessKeyAuthentication: pointer.To(!(d.Get("access_keys_authentication_enabled").(bool))),
 			MinimumTlsVersion:              pointer.To(redis.TlsVersion(d.Get("minimum_tls_version").(string))),
 			EnableNonSslPort:               pointer.To(enableNonSslPort.(bool)),
 			Sku: &redis.Sku{
@@ -859,7 +860,7 @@ func resourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		d.Set("primary_access_key", keysResp.Model.PrimaryKey)
 		d.Set("secondary_access_key", keysResp.Model.SecondaryKey)
 
-		d.Set("access_keys_authentication_disabled", props.DisableAccessKeyAuthentication)
+		d.Set("access_keys_authentication_enabled", !(*props.DisableAccessKeyAuthentication))
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return fmt.Errorf("setting `tags`: %+v", err)
