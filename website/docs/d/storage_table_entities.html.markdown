@@ -15,7 +15,7 @@ Use this data source to access information about an existing Storage Table Entit
 ```hcl
 data "azurerm_storage_table_entities" "example" {
   storage_table_id = azurerm_storage_table.example.id
-  filter               = "PartitionKey eq 'example'"
+  filter           = "PartitionKey eq 'example'"
 }
 ```
 

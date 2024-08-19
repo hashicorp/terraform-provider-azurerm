@@ -24,9 +24,9 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_route_table" "example" {
-  name                          = "example-route-table"
-  location                      = azurerm_resource_group.example.location
-  resource_group_name           = azurerm_resource_group.example.name
+  name                = "example-route-table"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   route {
     name           = "route1"

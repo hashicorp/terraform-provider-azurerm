@@ -55,9 +55,9 @@ resource "azurerm_automation_software_update_configuration" "example" {
 
   linux {
     classifications_included = "Security"
-    excluded_packages       = ["apt"]
-    included_packages       = ["vim"]
-    reboot                  = "IfRequired"
+    excluded_packages        = ["apt"]
+    included_packages        = ["vim"]
+    reboot                   = "IfRequired"
   }
 
   pre_task {

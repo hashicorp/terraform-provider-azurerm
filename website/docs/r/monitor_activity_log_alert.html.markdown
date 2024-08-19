@@ -40,7 +40,7 @@ resource "azurerm_storage_account" "to_monitor" {
 resource "azurerm_monitor_activity_log_alert" "main" {
   name                = "example-activitylogalert"
   resource_group_name = azurerm_resource_group.example.name
-  location = azurerm_resource_group.example.location
+  location            = azurerm_resource_group.example.location
   scopes              = [azurerm_resource_group.example.id]
   description         = "This alert will monitor a specific storage account updates."
 

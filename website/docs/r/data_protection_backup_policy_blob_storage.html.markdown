@@ -27,8 +27,8 @@ resource "azurerm_data_protection_backup_vault" "example" {
 }
 
 resource "azurerm_data_protection_backup_policy_blob_storage" "example" {
-  name               = "example-backup-policy"
-  vault_id           = azurerm_data_protection_backup_vault.example.id
+  name                                   = "example-backup-policy"
+  vault_id                               = azurerm_data_protection_backup_vault.example.id
   operational_default_retention_duration = "P30D"
 }
 ```

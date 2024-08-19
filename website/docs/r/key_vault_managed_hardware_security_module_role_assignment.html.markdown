@@ -14,7 +14,7 @@ Manages a Managed Hardware Security Module Role Assignment.
 
 ```hcl
 data "azurerm_key_vault_managed_hardware_security_module_role_definition" "user" {
-  managed_hsm_id     = azurerm_key_vault_managed_hardware_security_module.example.id
+  managed_hsm_id = azurerm_key_vault_managed_hardware_security_module.example.id
   name           = "21dbd100-6940-42c2-9190-5d6cb909625b"
 }
 
