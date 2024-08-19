@@ -632,7 +632,7 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	disk, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(disk.HttpResponse) {
-			return fmt.Errorf("Managed Disk %q (Resource Group %q) was not found", name, resourceGroup)
+			return fmt.Errorf("managed disk %q (Resource Group %q) was not found", name, resourceGroup)
 		}
 
 		return fmt.Errorf("making Read request on Azure Managed Disk %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -768,7 +768,7 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 				DiskEncryptionSetId: utils.String(diskEncryptionSetId),
 			}
 		} else {
-			return fmt.Errorf("Once a customer-managed key is used, you can’t change the selection back to a platform-managed key")
+			return fmt.Errorf("once a customer-managed key is used, you can’t change the selection back to a platform-managed key")
 		}
 	}
 
@@ -924,7 +924,7 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 			log.Printf("[DEBUG] Deallocating %s.", virtualMachineId)
 			// Upgrading to 2021-07-01 exposed a new hibernate paramater to the Deallocate method
 			if err := virtualMachinesClient.DeallocateThenPoll(ctx, *virtualMachineId, virtualmachines.DefaultDeallocateOperationOptions()); err != nil {
-				return fmt.Errorf("Deallocating to %s: %+v", virtualMachineId, err)
+				return fmt.Errorf("deallocating to %s: %+v", virtualMachineId, err)
 			}
 			log.Printf("[DEBUG] Deallocated %s", virtualMachineId)
 		}

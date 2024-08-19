@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/privatelinkservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type PrivateLinkServiceResource struct{}
@@ -231,17 +231,17 @@ func TestAccPrivateLinkService_withAlias(t *testing.T) {
 }
 
 func (t PrivateLinkServiceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.PrivateLinkServiceID(state.ID)
+	id, err := privatelinkservices.ParsePrivateLinkServiceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Network.PrivateLinkServiceClient.Get(ctx, id.ResourceGroup, id.Name, "")
+	resp, err := clients.Network.PrivateLinkServices.Get(ctx, *id, privatelinkservices.DefaultGetOperationOptions())
 	if err != nil {
-		return nil, fmt.Errorf("reading %s: %+v", *id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r PrivateLinkServiceResource) basic(data acceptance.TestData) string {
@@ -254,7 +254,7 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.5.4.0/24"]
 
-  enforce_private_link_service_network_policies = true
+  private_link_service_network_policies_enabled = false
 }
 
 resource "azurerm_private_link_service" "test" {
@@ -285,7 +285,7 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.5.3.0/24"]
 
-  enforce_private_link_service_network_policies = true
+  private_link_service_network_policies_enabled = false
 }
 
 resource "azurerm_private_link_service" "test" {
@@ -340,7 +340,7 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.5.4.0/24"]
 
-  enforce_private_link_service_network_policies = true
+  private_link_service_network_policies_enabled = false
 }
 
 resource "azurerm_private_link_service" "test" {
@@ -372,7 +372,7 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.5.3.0/24"]
 
-  enforce_private_link_service_network_policies = true
+  private_link_service_network_policies_enabled = false
 }
 
 resource "azurerm_private_link_service" "test" {
@@ -435,7 +435,7 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.5.2.0/24"]
 
-  enforce_private_link_service_network_policies = true
+  private_link_service_network_policies_enabled = false
 }
 
 resource "azurerm_private_link_service" "test" {
@@ -474,7 +474,7 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.5.2.0/24"]
 
-  enforce_private_link_service_network_policies = true
+  private_link_service_network_policies_enabled = false
 }
 
 resource "azurerm_private_link_service" "test" {
@@ -537,7 +537,7 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.5.2.0/24"]
 
-  enforce_private_link_service_network_policies = true
+  private_link_service_network_policies_enabled = false
 }
 
 resource "azurerm_private_link_service" "test" {
@@ -600,7 +600,7 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.5.2.0/24"]
 
-  enforce_private_link_service_network_policies = true
+  private_link_service_network_policies_enabled = false
 }
 
 resource "azurerm_private_link_service" "test" {
@@ -663,7 +663,7 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.5.2.0/24"]
 
-  enforce_private_link_service_network_policies = true
+  private_link_service_network_policies_enabled = false
 }
 
 resource "azurerm_private_link_service" "test" {
@@ -726,7 +726,7 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.5.1.0/24"]
 
-  enforce_private_link_service_network_policies = true
+  private_link_service_network_policies_enabled = false
 }
 
 resource "azurerm_private_link_service" "test" {
@@ -774,7 +774,7 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.5.4.0/24"]
 
-  enforce_private_link_service_network_policies = true
+  private_link_service_network_policies_enabled = false
 }
 
 resource "azurerm_private_link_service" "test" {

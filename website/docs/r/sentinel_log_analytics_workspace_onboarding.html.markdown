@@ -26,8 +26,7 @@ resource "azurerm_log_analytics_workspace" "example" {
 }
 
 resource "azurerm_sentinel_log_analytics_workspace_onboarding" "example" {
-  resource_group_name          = azurerm_resource_group.example.name
-  workspace_name               = azurerm_log_analytics_workspace.example.name
+  workspace_id                 = azurerm_log_analytics_workspace.example.id
   customer_managed_key_enabled = false
 }
 ```
@@ -36,9 +35,7 @@ resource "azurerm_sentinel_log_analytics_workspace_onboarding" "example" {
 
 The following arguments are supported:
 
-* `resource_group_name` - (Optional) Specifies the name of the Resource Group where the Security Insights Sentinel Onboarding States should exist. Changing this forces the Log Analytics Workspace off the board and onboard again.
-
-* `workspace_name` - (Optional) Specifies the Workspace Name. Changing this forces the Log Analytics Workspace off the board and onboard again. Changing this forces a new resource to be created.
+* `workspace_id` - (Required) Specifies the Workspace Id. Changing this forces the Log Analytics Workspace off the board and onboard again. Changing this forces a new resource to be created.
 
 * `customer_managed_key_enabled` - (Optional) Specifies if the Workspace is using Customer managed key. Defaults to `false`. Changing this forces a new resource to be created.
 

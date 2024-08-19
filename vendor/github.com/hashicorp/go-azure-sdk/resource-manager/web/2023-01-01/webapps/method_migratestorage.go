@@ -57,8 +57,8 @@ func (c WebAppsClient) MigrateStorage(ctx context.Context, id commonids.AppServi
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPut,
-		Path:          fmt.Sprintf("%s/migrate", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/migrate", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

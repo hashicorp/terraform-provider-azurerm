@@ -52,8 +52,8 @@ func (c JobClient) Resume(ctx context.Context, id JobId, options ResumeOperation
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPost,
-		Path:          fmt.Sprintf("%s/resume", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/resume", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

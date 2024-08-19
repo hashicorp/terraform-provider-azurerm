@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/privateendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/privateendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -207,7 +207,7 @@ func TestAccPrivateEndpoint_privateDnsZoneUpdate(t *testing.T) {
 	})
 }
 
-func TestAccPrivateEndpoint_statiIpAddress(t *testing.T) {
+func TestAccPrivateEndpoint_staticIpAddress(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_endpoint", "test")
 	r := PrivateEndpointResource{}
 
@@ -321,7 +321,26 @@ func TestAccPrivateEndpoint_multipleInstances(t *testing.T) {
 		checks = append(checks, check.That(fmt.Sprintf("%s.%d", data.ResourceName, i)).ExistsInAzure(r))
 	}
 
-	config := r.multipleInstances(data, instanceCount)
+	config := r.multipleInstances(data, instanceCount, false)
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: config,
+			Check:  acceptance.ComposeTestCheckFunc(checks...),
+		},
+	})
+}
+
+func TestAccPrivateEndpoint_multipleInstancesWithLinkAlias(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_private_endpoint", "test")
+	r := PrivateEndpointResource{}
+
+	instanceCount := 5
+	var checks []pluginsdk.TestCheckFunc
+	for i := 0; i < instanceCount; i++ {
+		checks = append(checks, check.That(fmt.Sprintf("%s.%d", data.ResourceName, i)).ExistsInAzure(r))
+	}
+
+	config := r.multipleInstances(data, instanceCount, true)
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: config,
@@ -371,7 +390,7 @@ resource "azurerm_subnet" "service" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.5.1.0/24"]
 
-  enforce_private_link_service_network_policies = true
+  private_link_service_network_policies_enabled = false
 }
 
 resource "azurerm_subnet" "endpoint" {
@@ -380,7 +399,7 @@ resource "azurerm_subnet" "endpoint" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.5.2.0/24"]
 
-  enforce_private_link_endpoint_network_policies = true
+  private_endpoint_network_policies = "Disabled"
 }
 
 resource "azurerm_public_ip" "test" {
@@ -556,7 +575,7 @@ resource "azurerm_subnet" "service" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.5.1.0/24"]
 
-  enforce_private_link_service_network_policies = true
+  private_link_service_network_policies_enabled = false
 }
 
 resource "azurerm_subnet" "endpoint" {
@@ -565,7 +584,7 @@ resource "azurerm_subnet" "endpoint" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.5.2.0/24"]
 
-  enforce_private_link_endpoint_network_policies = true
+  private_endpoint_network_policies = "Disabled"
 }
 
 resource "azurerm_postgresql_server" "test" {
@@ -636,7 +655,7 @@ resource "azurerm_subnet" "service" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.5.1.0/24"]
 
-  enforce_private_link_service_network_policies = true
+  private_link_service_network_policies_enabled = false
 }
 
 resource "azurerm_subnet" "endpoint" {
@@ -645,7 +664,7 @@ resource "azurerm_subnet" "endpoint" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.5.2.0/24"]
 
-  enforce_private_link_endpoint_network_policies = true
+  private_endpoint_network_policies = "Disabled"
 }
 
 resource "azurerm_postgresql_server" "test" {
@@ -711,7 +730,7 @@ resource "azurerm_subnet" "service" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.5.1.0/24"]
 
-  enforce_private_link_service_network_policies = true
+  private_link_service_network_policies_enabled = false
 }
 
 resource "azurerm_subnet" "endpoint" {
@@ -720,7 +739,7 @@ resource "azurerm_subnet" "endpoint" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.5.2.0/24"]
 
-  enforce_private_link_endpoint_network_policies = true
+  private_endpoint_network_policies = "Disabled"
 }
 
 resource "azurerm_postgresql_server" "test" {
@@ -820,7 +839,7 @@ resource "azurerm_subnet" "service" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.5.1.0/24"]
 
-  enforce_private_link_service_network_policies = true
+  private_link_service_network_policies_enabled = false
 }
 
 resource "azurerm_subnet" "endpoint" {
@@ -829,7 +848,7 @@ resource "azurerm_subnet" "endpoint" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.5.2.0/24"]
 
-  enforce_private_link_endpoint_network_policies = true
+  private_endpoint_network_policies = "Disabled"
 }
 
 resource "azurerm_postgresql_server" "test" {
@@ -905,7 +924,13 @@ resource "azurerm_private_endpoint" "test" {
 `, r.template(data, r.serviceAutoApprove(data)), data.RandomInteger, tags)
 }
 
-func (r PrivateEndpointResource) multipleInstances(data acceptance.TestData, count int) string {
+func (r PrivateEndpointResource) multipleInstances(data acceptance.TestData, count int, useAlias bool) string {
+	privateConnectionAssignment := "private_connection_resource_id = azurerm_private_link_service.test.id"
+	if useAlias {
+		privateConnectionAssignment = `private_connection_resource_alias = azurerm_private_link_service.test.alias
+                                       request_message                   = "test"`
+	}
+
 	return fmt.Sprintf(`
 %s
 
@@ -917,12 +942,12 @@ resource "azurerm_private_endpoint" "test" {
   subnet_id           = azurerm_subnet.endpoint.id
 
   private_service_connection {
-    name                           = azurerm_private_link_service.test.name
-    is_manual_connection           = false
-    private_connection_resource_id = azurerm_private_link_service.test.id
+    name                 = azurerm_private_link_service.test.name
+    is_manual_connection = %t
+    %s
   }
 }
-`, r.template(data, r.serviceAutoApprove(data)), count, data.RandomInteger)
+`, r.template(data, r.serviceAutoApprove(data)), count, data.RandomInteger, useAlias, privateConnectionAssignment)
 }
 
 func (r PrivateEndpointResource) recoveryServiceVaultWithMultiIpConfig(data acceptance.TestData) string {

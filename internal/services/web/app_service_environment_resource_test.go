@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -19,6 +20,9 @@ import (
 type AppServiceEnvironmentResource struct{}
 
 func TestAccAppServiceEnvironment_basic(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("skipping as removed in 4.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
 	r := AppServiceEnvironmentResource{}
 
@@ -36,6 +40,9 @@ func TestAccAppServiceEnvironment_basic(t *testing.T) {
 }
 
 func TestAccAppServiceEnvironment_requiresImport(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("skipping as removed in 4.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
 	r := AppServiceEnvironmentResource{}
 
@@ -51,6 +58,9 @@ func TestAccAppServiceEnvironment_requiresImport(t *testing.T) {
 }
 
 func TestAccAppServiceEnvironment_update(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("skipping as removed in 4.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
 	r := AppServiceEnvironmentResource{}
 
@@ -76,6 +86,9 @@ func TestAccAppServiceEnvironment_update(t *testing.T) {
 }
 
 func TestAccAppServiceEnvironment_tierAndScaleFactor(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("skipping as removed in 4.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
 	r := AppServiceEnvironmentResource{}
 
@@ -93,6 +106,9 @@ func TestAccAppServiceEnvironment_tierAndScaleFactor(t *testing.T) {
 }
 
 func TestAccAppServiceEnvironment_withAppServicePlan(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("skipping as removed in 4.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
 	aspData := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
 	r := AppServiceEnvironmentResource{}
@@ -112,6 +128,9 @@ func TestAccAppServiceEnvironment_withAppServicePlan(t *testing.T) {
 }
 
 func TestAccAppServiceEnvironment_dedicatedResourceGroup(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("skipping as removed in 4.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
 	r := AppServiceEnvironmentResource{}
 
@@ -127,6 +146,9 @@ func TestAccAppServiceEnvironment_dedicatedResourceGroup(t *testing.T) {
 }
 
 func TestAccAppServiceEnvironment_withCertificatePfx(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("skipping as removed in 4.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
 	r := AppServiceEnvironmentResource{}
 
@@ -142,6 +164,9 @@ func TestAccAppServiceEnvironment_withCertificatePfx(t *testing.T) {
 }
 
 func TestAccAppServiceEnvironment_internalLoadBalancer(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("skipping as removed in 4.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
 	r := AppServiceEnvironmentResource{}
 
@@ -158,6 +183,9 @@ func TestAccAppServiceEnvironment_internalLoadBalancer(t *testing.T) {
 }
 
 func TestAccAppServiceEnvironment_clusterSettings(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("skipping as removed in 4.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
 	r := AppServiceEnvironmentResource{}
 

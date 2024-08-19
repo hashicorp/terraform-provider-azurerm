@@ -25,7 +25,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/validate"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -33,7 +32,7 @@ import (
 )
 
 func resourceKustoCluster() *pluginsdk.Resource {
-	s := &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceKustoClusterCreate,
 		Read:   resourceKustoClusterRead,
 		Update: resourceKustoClusterUpdate,
@@ -158,23 +157,16 @@ func resourceKustoCluster() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ForceNew:     true,
-							ValidateFunc: networkValidate.PublicIpAddressID,
+							ValidateFunc: commonids.ValidatePublicIPAddressID,
 						},
 						"data_management_public_ip_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ForceNew:     true,
-							ValidateFunc: networkValidate.PublicIpAddressID,
+							ValidateFunc: commonids.ValidatePublicIPAddressID,
 						},
 					},
 				},
-			},
-
-			"engine": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Deprecated:   "This property has been deprecated as it will no longer be supported by the API. It will be removed in a future version of the provider.",
-				ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForEngineType(), false),
 			},
 
 			"uri": {
@@ -243,7 +235,7 @@ func resourceKustoCluster() *pluginsdk.Resource {
 	}
 
 	if features.FourPointOhBeta() {
-		s.Schema["language_extensions"] = &pluginsdk.Schema{
+		resource.Schema["language_extensions"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			Elem: &pluginsdk.Resource{
@@ -262,7 +254,7 @@ func resourceKustoCluster() *pluginsdk.Resource {
 			},
 		}
 	} else {
-		s.Schema["language_extensions"] = &pluginsdk.Schema{
+		resource.Schema["language_extensions"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
 			Elem: &pluginsdk.Schema{
@@ -270,9 +262,15 @@ func resourceKustoCluster() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{"R", "PYTHON", "PYTHON_3.10.8"}, false),
 			},
 		}
+		resource.Schema["engine"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Deprecated:   "This property has been deprecated as it will no longer be supported by the API. It will be removed in v4.0 of the AzureRM Provider.",
+			ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForEngineType(), false),
+		}
 	}
 
-	return s
+	return resource
 }
 
 func resourceKustoClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {

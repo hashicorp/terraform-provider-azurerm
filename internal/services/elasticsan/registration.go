@@ -18,7 +18,11 @@ func (Registration) Name() string {
 }
 
 func (Registration) DataSources() []sdk.DataSource {
-	return []sdk.DataSource{}
+	return []sdk.DataSource{
+		ElasticSANDataSource{},
+		ElasticSANVolumeGroupDataSource{},
+		ElasticSANVolumeSnapshotDataSource{},
+	}
 }
 
 func (Registration) Resources() []sdk.Resource {

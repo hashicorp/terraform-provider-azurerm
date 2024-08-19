@@ -11,15 +11,16 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkinterfaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/networkinterfaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func dataSourceNetworkInterface() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	dataSource := &pluginsdk.Resource{
 		Read: dataSourceNetworkInterfaceRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -149,14 +150,12 @@ func dataSourceNetworkInterface() *pluginsdk.Resource {
 				Set:      pluginsdk.HashString,
 			},
 
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_accelerated_networking": {
+			"accelerated_networking_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
 
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_ip_forwarding": {
+			"ip_forwarding_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
@@ -177,6 +176,19 @@ func dataSourceNetworkInterface() *pluginsdk.Resource {
 			"tags": commonschema.TagsDataSource(),
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		dataSource.Schema["enable_ip_forwarding"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Computed:   true,
+			Deprecated: "The property `enable_ip_forwarding` has been superseded by `ip_forwarding_enabled` and will be removed in v4.0 of the AzureRM Provider."}
+		dataSource.Schema["enable_accelerated_networking"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Computed:   true,
+			Deprecated: "The property `enable_accelerated_networking` has been superseded by `accelerated_networking_enabled` and will be removed in v4.0 of the AzureRM Provider.",
+		}
+	}
+	return dataSource
 }
 
 func dataSourceNetworkInterfaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -267,8 +279,12 @@ func dataSourceNetworkInterfaceRead(d *pluginsdk.ResourceData, meta interface{})
 
 		d.Set("applied_dns_servers", appliedDNSServers)
 		d.Set("dns_servers", dnsServers)
-		d.Set("enable_ip_forwarding", props.EnableIPForwarding)
-		d.Set("enable_accelerated_networking", props.EnableAcceleratedNetworking)
+		if !features.FourPointOhBeta() {
+			d.Set("enable_ip_forwarding", props.EnableIPForwarding)
+			d.Set("enable_accelerated_networking", props.EnableAcceleratedNetworking)
+		}
+		d.Set("ip_forwarding_enabled", props.EnableIPForwarding)
+		d.Set("accelerated_networking_enabled", props.EnableAcceleratedNetworking)
 	}
 
 	return tags.FlattenAndSet(d, model.Tags)

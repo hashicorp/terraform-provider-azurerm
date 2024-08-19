@@ -53,29 +53,31 @@ func (c Client) GetProperties(ctx context.Context, shareName string) (result Get
 	if resp != nil && resp.Response != nil {
 		result.HttpResponse = resp.Response
 
-		if resp.Header != nil {
-			result.MetaData = metadata.ParseFromHeaders(resp.Header)
+		if err == nil {
+			if resp.Header != nil {
+				result.MetaData = metadata.ParseFromHeaders(resp.Header)
 
-			quotaRaw := resp.Header.Get("x-ms-share-quota")
-			if quotaRaw != "" {
-				quota, e := strconv.Atoi(quotaRaw)
-				if e != nil {
-					err = fmt.Errorf("error converting %q to an integer: %s", quotaRaw, err)
-					return
+				quotaRaw := resp.Header.Get("x-ms-share-quota")
+				if quotaRaw != "" {
+					quota, e := strconv.Atoi(quotaRaw)
+					if e != nil {
+						err = fmt.Errorf("error converting %q to an integer: %s", quotaRaw, err)
+						return
+					}
+					result.QuotaInGB = quota
 				}
-				result.QuotaInGB = quota
-			}
 
-			protocol := SMB
-			if protocolRaw := resp.Header.Get("x-ms-enabled-protocols"); protocolRaw != "" {
-				protocol = ShareProtocol(protocolRaw)
-			}
+				protocol := SMB
+				if protocolRaw := resp.Header.Get("x-ms-enabled-protocols"); protocolRaw != "" {
+					protocol = ShareProtocol(protocolRaw)
+				}
 
-			if accessTierRaw := resp.Header.Get("x-ms-access-tier"); accessTierRaw != "" {
-				tier := AccessTier(accessTierRaw)
-				result.AccessTier = &tier
+				if accessTierRaw := resp.Header.Get("x-ms-access-tier"); accessTierRaw != "" {
+					tier := AccessTier(accessTierRaw)
+					result.AccessTier = &tier
+				}
+				result.EnabledProtocol = protocol
 			}
-			result.EnabledProtocol = protocol
 		}
 	}
 	if err != nil {

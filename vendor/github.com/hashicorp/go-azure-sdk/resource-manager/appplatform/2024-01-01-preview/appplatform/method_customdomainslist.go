@@ -23,6 +23,18 @@ type CustomDomainsListCompleteResult struct {
 	Items              []CustomDomainResource
 }
 
+type CustomDomainsListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *CustomDomainsListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // CustomDomainsList ...
 func (c AppPlatformClient) CustomDomainsList(ctx context.Context, id AppId) (result CustomDomainsListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c AppPlatformClient) CustomDomainsList(ctx context.Context, id AppId) (res
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &CustomDomainsListCustomPager{},
 		Path:       fmt.Sprintf("%s/domains", id.ID()),
 	}
 
@@ -72,6 +85,7 @@ func (c AppPlatformClient) CustomDomainsListCompleteMatchingPredicate(ctx contex
 
 	resp, err := c.CustomDomainsList(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

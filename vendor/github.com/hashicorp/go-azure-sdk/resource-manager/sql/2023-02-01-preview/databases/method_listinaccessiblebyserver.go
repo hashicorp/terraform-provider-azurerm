@@ -24,6 +24,18 @@ type ListInaccessibleByServerCompleteResult struct {
 	Items              []Database
 }
 
+type ListInaccessibleByServerCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListInaccessibleByServerCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListInaccessibleByServer ...
 func (c DatabasesClient) ListInaccessibleByServer(ctx context.Context, id commonids.SqlServerId) (result ListInaccessibleByServerOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c DatabasesClient) ListInaccessibleByServer(ctx context.Context, id common
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListInaccessibleByServerCustomPager{},
 		Path:       fmt.Sprintf("%s/inaccessibleDatabases", id.ID()),
 	}
 
@@ -73,6 +86,7 @@ func (c DatabasesClient) ListInaccessibleByServerCompleteMatchingPredicate(ctx c
 
 	resp, err := c.ListInaccessibleByServer(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

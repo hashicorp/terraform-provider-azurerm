@@ -36,6 +36,29 @@ func TestAccWindowsWebApp_basic(t *testing.T) {
 	})
 }
 
+func TestAccWindowsWebApp_updateTags(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
+	r := WindowsWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.basicWithTags(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("app_settings.WEBSITE_HEALTHCHECK_MAXPINGFAILURES").DoesNotExist(),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
 func TestAccWindowsWebApp_freeSkuAlwaysOnShouldFail(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
 	r := WindowsWebAppResource{}
@@ -1111,24 +1134,6 @@ func TestAccWindowsWebApp_withDockerImageDockerHub(t *testing.T) {
 
 // TODO: More Java matrix tests...
 
-func TestAccWindowsWebApp_withNode12(t *testing.T) {
-	if features.FourPointOh() {
-		t.Fatalf("Node 12 is no longer supported in v4.0")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
-	r := WindowsWebAppResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.node(data, "~12"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("site_credential.0.password"),
-	})
-}
-
 func TestAccWindowsWebApp_withNode14(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
 	r := WindowsWebAppResource{}
@@ -1436,6 +1441,21 @@ func TestAccWindowsWebApp_withAutoHealRulesSlowRequest(t *testing.T) {
 	})
 }
 
+func TestAccWindowsWebApp_withAutoHealRulesSlowRequestWithPath(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
+	r := WindowsWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.autoHealRulesSlowRequestWithPath(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccWindowsWebApp_stickySettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
 	r := WindowsWebAppResource{}
@@ -1695,6 +1715,29 @@ resource "azurerm_windows_web_app" "test" {
   service_plan_id     = azurerm_service_plan.test.id
 
   site_config {}
+}
+`, r.baseTemplate(data), data.RandomInteger)
+}
+
+func (r WindowsWebAppResource) basicWithTags(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_windows_web_app" "test" {
+  name                = "acctestWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {}
+
+  tags = {
+    foo = "bar"
+  }
 }
 `, r.baseTemplate(data), data.RandomInteger)
 }
@@ -2438,19 +2481,20 @@ resource "azurerm_windows_web_app" "test" {
       "third.aspx",
       "hostingstart.html",
     ]
-    http2_enabled               = true
-    scm_use_main_ip_restriction = true
-    local_mysql_enabled         = true
-    managed_pipeline_mode       = "Integrated"
-    remote_debugging_enabled    = true
-    remote_debugging_version    = "VS2022"
-    use_32_bit_worker           = false
-    websockets_enabled          = true
-    ftps_state                  = "FtpsOnly"
-    health_check_path           = "/health"
-    worker_count                = 1
-    minimum_tls_version         = "1.1"
-    scm_minimum_tls_version     = "1.1"
+    http2_enabled                     = true
+    scm_use_main_ip_restriction       = true
+    local_mysql_enabled               = true
+    managed_pipeline_mode             = "Integrated"
+    remote_debugging_enabled          = true
+    remote_debugging_version          = "VS2022"
+    use_32_bit_worker                 = false
+    websockets_enabled                = true
+    ftps_state                        = "FtpsOnly"
+    health_check_path                 = "/health"
+    health_check_eviction_time_in_min = 7
+    worker_count                      = 1
+    minimum_tls_version               = "1.1"
+    scm_minimum_tls_version           = "1.1"
     cors {
       allowed_origins = [
         "http://www.contoso.com",
@@ -2619,18 +2663,19 @@ resource "azurerm_windows_web_app" "test" {
       "third.aspx",
       "hostingstart.html",
     ]
-    http2_enabled               = false
-    scm_use_main_ip_restriction = false
-    local_mysql_enabled         = false
-    managed_pipeline_mode       = "Integrated"
-    remote_debugging_enabled    = true
-    remote_debugging_version    = "VS2017"
-    websockets_enabled          = true
-    ftps_state                  = "FtpsOnly"
-    health_check_path           = "/health2"
-    worker_count                = 2
-    minimum_tls_version         = "1.2"
-    scm_minimum_tls_version     = "1.2"
+    http2_enabled                     = false
+    scm_use_main_ip_restriction       = false
+    local_mysql_enabled               = false
+    managed_pipeline_mode             = "Integrated"
+    remote_debugging_enabled          = true
+    remote_debugging_version          = "VS2022"
+    websockets_enabled                = true
+    ftps_state                        = "FtpsOnly"
+    health_check_path                 = "/health2"
+    health_check_eviction_time_in_min = 7
+    worker_count                      = 2
+    minimum_tls_version               = "1.2"
+    scm_minimum_tls_version           = "1.2"
     cors {
       support_credentials = true
     }
@@ -3306,10 +3351,52 @@ resource "azurerm_windows_web_app" "test" {
           count      = "10"
           interval   = "00:10:00"
           time_taken = "00:00:10"
-          path       = null
         }
       }
 
+      action {
+        action_type                    = "Recycle"
+        minimum_process_execution_time = "00:05:00"
+      }
+    }
+  }
+}
+`, r.baseTemplate(data), data.RandomInteger)
+}
+
+func (r WindowsWebAppResource) autoHealRulesSlowRequestWithPath(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+%s
+resource "azurerm_windows_web_app" "test" {
+  name                = "acctestWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+  site_config {
+    auto_heal_enabled = true
+    auto_heal_setting {
+      trigger {
+        slow_request {
+          count      = "10"
+          interval   = "00:10:00"
+          time_taken = "00:00:10"
+        }
+        slow_request_with_path {
+          count      = "11"
+          interval   = "00:11:00"
+          time_taken = "00:00:11"
+          path       = "/tftest1"
+        }
+        slow_request_with_path {
+          count      = "12"
+          interval   = "00:12:00"
+          time_taken = "00:00:12"
+          path       = "/tftest2"
+        }
+      }
       action {
         action_type                    = "Recycle"
         minimum_process_execution_time = "00:05:00"

@@ -53,8 +53,8 @@ func (c EmailTemplatesClient) EmailTemplateDelete(ctx context.Context, id Templa
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodDelete,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

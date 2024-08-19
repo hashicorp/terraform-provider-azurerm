@@ -21,7 +21,7 @@ type DeleteOperationResponse struct {
 }
 
 type DeleteOperationOptions struct {
-	Force *Force
+	Force *ForceDelete
 }
 
 func DefaultDeleteOperationOptions() DeleteOperationOptions {
@@ -56,8 +56,8 @@ func (c VirtualMachineTemplatesClient) Delete(ctx context.Context, id VirtualMac
 			http.StatusNoContent,
 		},
 		HttpMethod:    http.MethodDelete,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

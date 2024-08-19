@@ -23,6 +23,18 @@ type ListInstanceFunctionsSlotCompleteResult struct {
 	Items              []FunctionEnvelope
 }
 
+type ListInstanceFunctionsSlotCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListInstanceFunctionsSlotCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListInstanceFunctionsSlot ...
 func (c WebAppsClient) ListInstanceFunctionsSlot(ctx context.Context, id SlotId) (result ListInstanceFunctionsSlotOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c WebAppsClient) ListInstanceFunctionsSlot(ctx context.Context, id SlotId)
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListInstanceFunctionsSlotCustomPager{},
 		Path:       fmt.Sprintf("%s/functions", id.ID()),
 	}
 
@@ -72,6 +85,7 @@ func (c WebAppsClient) ListInstanceFunctionsSlotCompleteMatchingPredicate(ctx co
 
 	resp, err := c.ListInstanceFunctionsSlot(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

@@ -53,8 +53,8 @@ func (c VirtualMachinesClient) RetrieveBootDiagnosticsData(ctx context.Context, 
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPost,
-		Path:          fmt.Sprintf("%s/retrieveBootDiagnosticsData", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/retrieveBootDiagnosticsData", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

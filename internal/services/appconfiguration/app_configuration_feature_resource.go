@@ -71,8 +71,9 @@ func (k FeatureResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional: true,
 		},
 		"key": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// NOTE: O+C We generate a value for this if it's omitted so this should be kept
 			Computed:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.AppConfigurationFeatureKey,
@@ -84,7 +85,8 @@ func (k FeatureResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.AppConfigurationFeatureName,
 		},
 		"etag": {
-			Type:     pluginsdk.TypeString,
+			Type: pluginsdk.TypeString,
+			// NOTE: O+C The value of this is updated anytime the resource changes so this should remain Computed
 			Computed: true,
 			Optional: true,
 		},
@@ -311,8 +313,8 @@ func (k FeatureResource) Create() sdk.ResourceFunc {
 				Pending:                   []string{"NotFound", "Forbidden"},
 				Target:                    []string{"Exists"},
 				Refresh:                   appConfigurationGetKeyRefreshFunc(ctx, client, featureKey, model.Label),
-				PollInterval:              10 * time.Second,
-				ContinuousTargetOccurence: 2,
+				PollInterval:              5 * time.Second,
+				ContinuousTargetOccurence: 4,
 				Timeout:                   time.Until(deadline),
 			}
 
@@ -509,7 +511,7 @@ func (k FeatureResource) Update() sdk.ResourceFunc {
 					Parameters: PercentageFilterParameters{Value: model.PercentageFilter},
 				})
 				filterChanged = true
-			} else {
+			} else if percentageFilter.Name != "" {
 				filters = append(filters, percentageFilter)
 			}
 

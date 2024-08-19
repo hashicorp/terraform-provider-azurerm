@@ -57,8 +57,8 @@ func (c PrivateZonesClient) Update(ctx context.Context, id PrivateDnsZoneId, inp
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPatch,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

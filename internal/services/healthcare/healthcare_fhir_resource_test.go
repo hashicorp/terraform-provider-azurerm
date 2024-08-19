@@ -311,9 +311,7 @@ resource "azurerm_healthcare_fhir_service" "test" {
     audience  = "https://acctestfhir.fhir.azurehealthcareapis.com"
   }
 
-  access_policy_object_ids = [
-    data.azurerm_client_config.current.object_id
-  ]
+  access_policy_object_ids = []
 
   identity {
     type = "SystemAssigned"
@@ -382,9 +380,7 @@ resource "azurerm_healthcare_fhir_service" "test" {
     audience  = "https://acctestfhir.fhir.azurehealthcareapis.com"
   }
 
-  access_policy_object_ids = [
-    data.azurerm_client_config.current.object_id
-  ]
+  access_policy_object_ids = []
 
   identity {
     type = "SystemAssigned"
@@ -449,9 +445,7 @@ resource "azurerm_healthcare_fhir_service" "test" {
     audience  = "https://acctestfhir.fhir.azurehealthcareapis.com"
   }
 
-  access_policy_object_ids = [
-    data.azurerm_client_config.current.object_id
-  ]
+  access_policy_object_ids = []
 
   identity {
     type = "SystemAssigned"

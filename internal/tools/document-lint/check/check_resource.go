@@ -75,6 +75,10 @@ func NewResourceDiff(tf *schema.Resource) *ResourceDiff {
 
 func (r *ResourceDiff) DiffAll() {
 	if r.md == nil {
+		if r.MDFile == "" {
+			r.Diff = append(r.Diff, newDiffWithMessage(fmt.Sprintf("%s has no document", r.tf.ResourceType), r.tf.IsDeprecated()))
+			return
+		}
 		mark := md.MustNewMarkFromFile(r.MDFile)
 		r.md = mark.BuildResourceDoc()
 	}

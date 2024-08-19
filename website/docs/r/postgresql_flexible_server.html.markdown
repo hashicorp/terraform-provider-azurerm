@@ -59,15 +59,16 @@ resource "azurerm_private_dns_zone_virtual_network_link" "example" {
 }
 
 resource "azurerm_postgresql_flexible_server" "example" {
-  name                   = "example-psqlflexibleserver"
-  resource_group_name    = azurerm_resource_group.example.name
-  location               = azurerm_resource_group.example.location
-  version                = "12"
-  delegated_subnet_id    = azurerm_subnet.example.id
-  private_dns_zone_id    = azurerm_private_dns_zone.example.id
-  administrator_login    = "psqladmin"
-  administrator_password = "H@Sh1CoR3!"
-  zone                   = "1"
+  name                          = "example-psqlflexibleserver"
+  resource_group_name           = azurerm_resource_group.example.name
+  location                      = azurerm_resource_group.example.location
+  version                       = "12"
+  delegated_subnet_id           = azurerm_subnet.example.id
+  private_dns_zone_id           = azurerm_private_dns_zone.example.id
+  public_network_access_enabled = false
+  administrator_login           = "psqladmin"
+  administrator_password        = "H@Sh1CoR3!"
+  zone                          = "1"
 
   storage_mb   = 32768
   storage_tier = "P30"
@@ -90,7 +91,7 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the PostgreSQL Flexible Server should exist. Changing this forces a new PostgreSQL Flexible Server to be created.
 
-* `administrator_login` - (Optional) The Administrator login for the PostgreSQL Flexible Server. Required when `create_mode` is `Default` and `authentication.password_auth_enabled` is `true`. 
+* `administrator_login` - (Optional) The Administrator login for the PostgreSQL Flexible Server. Required when `create_mode` is `Default` and `authentication.password_auth_enabled` is `true`.
 
 -> **Note:** Once `administrator_login` is specified, changing this forces a new PostgreSQL Flexible Server to be created.
 
@@ -106,7 +107,9 @@ The following arguments are supported:
 
 * `geo_redundant_backup_enabled` - (Optional) Is Geo-Redundant backup enabled on the PostgreSQL Flexible Server. Defaults to `false`. Changing this forces a new PostgreSQL Flexible Server to be created.
 
-* `create_mode` - (Optional) The creation mode which can be used to restore or replicate existing servers. Possible values are `Default`, `GeoRestore`, `PointInTimeRestore`, `Replica` and `Update`.
+* `create_mode` - (Optional) The creation mode which can be used to restore or replicate existing servers. Possible values are `Default`, `GeoRestore`, `PointInTimeRestore`, `Replica` and `Update`. Changing this forces a new PostgreSQL Flexible Server to be created.
+
+-> **Note:** `create_mode` cannot be changed once it's set since it's a parameter at creation.
 
 -> **Note:** While creating the resource, `create_mode` cannot be set to `Update`.
 
@@ -115,6 +118,10 @@ The following arguments are supported:
 * `private_dns_zone_id` - (Optional) The ID of the private DNS zone to create the PostgreSQL Flexible Server.
 
 ~> **Note:** There will be a breaking change from upstream service at 15th July 2021, the `private_dns_zone_id` will be required when setting a `delegated_subnet_id`. For existing flexible servers who don't want to be recreated, you need to provide the `private_dns_zone_id` to the service team to manually migrate to the specified private DNS zone. The `azurerm_private_dns_zone` should end with suffix `.postgres.database.azure.com`.
+
+* `public_network_access_enabled` - (Optional) Specifies whether this PostgreSQL Flexible Server is publicly accessible. Defaults to `true`.
+
+-> **Note:** `public_network_access_enabled` must be set to `false` when `delegated_subnet_id` and `private_dns_zone_id` have a value.
 
 * `high_availability` - (Optional) A `high_availability` block as defined below.
 
@@ -202,6 +209,8 @@ A `maintenance_window` block supports the following:
 
 * `start_minute` - (Optional) The start minute for maintenance window. Defaults to `0`.
 
+-> **NOTE** The specified `maintenance_window` is always defined in UTC time. When unspecified, the maintenance window falls back to the default [system-managed](https://learn.microsoft.com/en-us/azure/postgresql/flexible-server/how-to-maintenance-portal#specify-maintenance-schedule-options).
+
 ---
 
 A `high_availability` block supports the following:
@@ -244,8 +253,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `id` - The ID of the PostgreSQL Flexible Server.
 
 * `fqdn` - The FQDN of the PostgreSQL Flexible Server.
-
-* `public_network_access_enabled` - Is public network access enabled?
 
 ## Timeouts
 

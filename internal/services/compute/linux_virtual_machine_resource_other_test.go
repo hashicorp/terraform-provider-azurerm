@@ -8,9 +8,9 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
-	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 )
 
 func TestAccLinuxVirtualMachine_otherAllowExtensionOperationsDefault(t *testing.T) {
@@ -623,6 +623,21 @@ func TestAccLinuxVirtualMachine_otherTerminationNotificationTimeout(t *testing.T
 	})
 }
 
+func TestAccLinuxVirtualMachine_otherHibernation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.otherHibernation(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccLinuxVirtualMachine_otherUltraSsdDefault(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 	r := LinuxVirtualMachineResource{}
@@ -824,7 +839,7 @@ func TestAccLinuxVirtualMachine_otherPatchModeAutomaticByPlatform(t *testing.T) 
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.otherPatchMode(data, string(compute.LinuxVMGuestPatchModeAutomaticByPlatform)),
+			Config: r.otherPatchMode(data, string(virtualmachines.LinuxVMGuestPatchModeAutomaticByPlatform)),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -839,21 +854,21 @@ func TestAccLinuxVirtualMachine_otherPatchModeUpdate(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.otherPatchMode(data, string(compute.LinuxVMGuestPatchModeImageDefault)),
+			Config: r.otherPatchMode(data, string(virtualmachines.LinuxVMGuestPatchModeImageDefault)),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.otherPatchMode(data, string(compute.LinuxVMGuestPatchModeAutomaticByPlatform)),
+			Config: r.otherPatchMode(data, string(virtualmachines.LinuxVMGuestPatchModeAutomaticByPlatform)),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.otherPatchMode(data, string(compute.LinuxVMGuestPatchModeImageDefault)),
+			Config: r.otherPatchMode(data, string(virtualmachines.LinuxVMGuestPatchModeImageDefault)),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1614,10 +1629,11 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "internal"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/24"]
+  name                            = "internal"
+  resource_group_name             = azurerm_resource_group.test.name
+  virtual_network_name            = azurerm_virtual_network.test.name
+  address_prefixes                = ["10.0.2.0/24"]
+  default_outbound_access_enabled = false
 }
 
 resource "azurerm_network_interface" "test" {
@@ -2632,6 +2648,46 @@ resource "azurerm_linux_virtual_machine" "test" {
   termination_notification {
     enabled = true
     timeout = "PT15M"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r LinuxVirtualMachineResource) otherHibernation(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_linux_virtual_machine" "test" {
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_D16as_v5"
+  admin_username      = "adminuser"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+  zone = 1
+
+  admin_ssh_key {
+    username   = "adminuser"
+    public_key = local.first_public_key
+  }
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+    disk_size_gb         = 128
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
+    version   = "latest"
+  }
+
+  additional_capabilities {
+    hibernation_enabled = true
   }
 }
 `, r.template(data), data.RandomInteger)

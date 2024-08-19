@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/routefilters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/routefilters"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -25,9 +25,9 @@ import (
 
 func resourceRouteFilter() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceRouteFilterCreateUpdate,
+		Create: resourceRouteFilterCreate,
 		Read:   resourceRouteFilterRead,
-		Update: resourceRouteFilterCreateUpdate,
+		Update: resourceRouteFilterUpdate,
 		Delete: resourceRouteFilterDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -55,9 +55,9 @@ func resourceRouteFilter() *pluginsdk.Resource {
 
 			"rule": {
 				Type:       pluginsdk.TypeList,
-				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Optional:   true,
 				Computed:   true,
+				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				MaxItems:   1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -101,29 +101,27 @@ func resourceRouteFilter() *pluginsdk.Resource {
 	}
 }
 
-func resourceRouteFilterCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRouteFilterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.RouteFilters
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Route Filter create/update.")
+	log.Printf("[INFO] preparing arguments for Route Filter create.")
 
 	id := routefilters.NewRouteFilterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id, routefilters.DefaultGetOperationOptions())
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id, routefilters.DefaultGetOperationOptions())
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_route_filter", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
+	}
+
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_route_filter", id.ID())
 	}
 
 	routeSet := routefilters.RouteFilter{
@@ -136,7 +134,50 @@ func resourceRouteFilterCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, routeSet); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+
+	return resourceRouteFilterRead(d, meta)
+}
+
+func resourceRouteFilterUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.RouteFilters
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	log.Printf("[INFO] preparing arguments for Route Filter update.")
+
+	id, err := routefilters.ParseRouteFilterID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.Get(ctx, *id, routefilters.DefaultGetOperationOptions())
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", *id)
+	}
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", *id)
+	}
+
+	payload := existing.Model
+
+	if d.HasChange("rule") {
+		payload.Properties.Rules = expandRouteFilterRules(d)
+	}
+
+	if d.HasChange("tags") {
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())

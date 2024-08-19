@@ -23,6 +23,18 @@ type ListByLocalRulestacksCompleteResult struct {
 	Items              []CertificateObjectLocalRulestackResource
 }
 
+type ListByLocalRulestacksCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByLocalRulestacksCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByLocalRulestacks ...
 func (c CertificateObjectLocalRulestackClient) ListByLocalRulestacks(ctx context.Context, id LocalRulestackId) (result ListByLocalRulestacksOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c CertificateObjectLocalRulestackClient) ListByLocalRulestacks(ctx context
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByLocalRulestacksCustomPager{},
 		Path:       fmt.Sprintf("%s/certificates", id.ID()),
 	}
 
@@ -72,6 +85,7 @@ func (c CertificateObjectLocalRulestackClient) ListByLocalRulestacksCompleteMatc
 
 	resp, err := c.ListByLocalRulestacks(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

@@ -23,6 +23,18 @@ type ListInstanceProcessThreadsCompleteResult struct {
 	Items              []ProcessThreadInfo
 }
 
+type ListInstanceProcessThreadsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListInstanceProcessThreadsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListInstanceProcessThreads ...
 func (c WebAppsClient) ListInstanceProcessThreads(ctx context.Context, id InstanceProcessId) (result ListInstanceProcessThreadsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c WebAppsClient) ListInstanceProcessThreads(ctx context.Context, id Instan
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListInstanceProcessThreadsCustomPager{},
 		Path:       fmt.Sprintf("%s/threads", id.ID()),
 	}
 
@@ -72,6 +85,7 @@ func (c WebAppsClient) ListInstanceProcessThreadsCompleteMatchingPredicate(ctx c
 
 	resp, err := c.ListInstanceProcessThreads(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

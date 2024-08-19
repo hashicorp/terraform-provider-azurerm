@@ -57,8 +57,8 @@ func (c OutboundEndpointsClient) Delete(ctx context.Context, id OutboundEndpoint
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodDelete,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

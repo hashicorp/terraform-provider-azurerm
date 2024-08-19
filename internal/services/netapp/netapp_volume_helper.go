@@ -48,7 +48,7 @@ func expandNetAppVolumeGroupVolumeExportPolicyRule(input []netAppModels.ExportPo
 			Cifs:                utils.Bool(cifsEnabled),
 			Nfsv3:               utils.Bool(item.Nfsv3Enabled),
 			Nfsv41:              utils.Bool(item.Nfsv41Enabled),
-			RuleIndex:           utils.Int64(int64(item.RuleIndex)),
+			RuleIndex:           utils.Int64(item.RuleIndex),
 			UnixReadOnly:        utils.Bool(item.UnixReadOnly),
 			UnixReadWrite:       utils.Bool(item.UnixReadWrite),
 			HasRootAccess:       utils.Bool(item.RootAccessEnabled),
@@ -119,7 +119,6 @@ func expandNetAppVolumeGroupVolumes(input []netAppModels.NetAppVolumeGroupVolume
 		snapshotDirectoryVisible := item.SnapshotDirectoryVisible
 		securityStyle := volumegroups.SecurityStyle(item.SecurityStyle)
 		storageQuotaInGB := item.StorageQuotaInGB * 1073741824
-		proximityPlacementGroupId := utils.NormalizeNilableString(&item.ProximityPlacementGroupId)
 		exportPolicyRule := expandNetAppVolumeGroupVolumeExportPolicyRule(item.ExportPolicy)
 		dataProtectionReplication := expandNetAppVolumeGroupDataProtectionReplication(item.DataProtectionReplication)
 		dataProtectionSnapshotPolicy := expandNetAppVolumeGroupDataProtectionSnapshotPolicy(item.DataProtectionSnapshotPolicy)
@@ -137,7 +136,6 @@ func expandNetAppVolumeGroupVolumes(input []netAppModels.NetAppVolumeGroupVolume
 				ExportPolicy:             exportPolicyRule,
 				SnapshotDirectoryVisible: utils.Bool(snapshotDirectoryVisible),
 				ThroughputMibps:          utils.Float(item.ThroughputInMibps),
-				ProximityPlacementGroup:  &proximityPlacementGroupId,
 				VolumeSpecName:           utils.String(item.VolumeSpecName),
 				DataProtection: &volumegroups.VolumePropertiesDataProtection{
 					Replication: dataProtectionReplication.Replication,
@@ -145,6 +143,10 @@ func expandNetAppVolumeGroupVolumes(input []netAppModels.NetAppVolumeGroupVolume
 				},
 			},
 			Tags: &item.Tags,
+		}
+
+		if v := item.ProximityPlacementGroupId; v != "" {
+			volumeProperties.Properties.ProximityPlacementGroup = pointer.To(utils.NormalizeNilableString(pointer.To(v)))
 		}
 
 		results = append(results, *volumeProperties)
@@ -349,7 +351,7 @@ func flattenNetAppVolumeGroupVolumesExportPolicies(input *[]volumegroups.ExportP
 	for _, item := range pointer.From(input) {
 		rule := netAppModels.ExportPolicyRule{}
 
-		rule.RuleIndex = int(pointer.From(item.RuleIndex))
+		rule.RuleIndex = pointer.From(item.RuleIndex)
 		rule.AllowedClients = pointer.From(item.AllowedClients)
 		rule.Nfsv3Enabled = pointer.From(item.Nfsv3)
 		rule.Nfsv41Enabled = pointer.From(item.Nfsv41)

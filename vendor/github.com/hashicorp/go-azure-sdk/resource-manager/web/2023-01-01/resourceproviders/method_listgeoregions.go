@@ -63,6 +63,18 @@ func (o ListGeoRegionsOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListGeoRegionsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListGeoRegionsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListGeoRegions ...
 func (c ResourceProvidersClient) ListGeoRegions(ctx context.Context, id commonids.SubscriptionId, options ListGeoRegionsOperationOptions) (result ListGeoRegionsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -71,8 +83,9 @@ func (c ResourceProvidersClient) ListGeoRegions(ctx context.Context, id commonid
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/providers/Microsoft.Web/geoRegions", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListGeoRegionsCustomPager{},
+		Path:          fmt.Sprintf("%s/providers/Microsoft.Web/geoRegions", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -113,6 +126,7 @@ func (c ResourceProvidersClient) ListGeoRegionsCompleteMatchingPredicate(ctx con
 
 	resp, err := c.ListGeoRegions(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

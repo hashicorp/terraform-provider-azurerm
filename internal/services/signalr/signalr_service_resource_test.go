@@ -967,7 +967,6 @@ resource "azurerm_signalr_service" "test" {
   messaging_logs_enabled    = true
   live_trace_enabled        = true
   service_mode              = "Serverless"
-
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -997,7 +996,6 @@ resource "azurerm_signalr_service" "test" {
   messaging_logs_enabled    = false
   live_trace_enabled        = false
   service_mode              = "Classic"
-
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

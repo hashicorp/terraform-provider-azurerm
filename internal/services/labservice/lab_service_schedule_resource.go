@@ -46,6 +46,10 @@ func (r LabServiceScheduleResource) ResourceType() string {
 	return "azurerm_lab_service_schedule"
 }
 
+func (r LabServiceScheduleResource) DeprecationMessage() string {
+	return "The `azurerm_lab_service_schedule` resource is deprecated and will be removed in v4.0 of the AzureRM Provider. See more details from https://learn.microsoft.com/en-us/azure/lab-services/retirement-guide"
+}
+
 func (r LabServiceScheduleResource) ModelObject() interface{} {
 	return &LabServiceScheduleModel{}
 }

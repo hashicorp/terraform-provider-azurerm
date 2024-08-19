@@ -16,8 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/containerapps"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/managedenvironments"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2024-03-01/managedenvironments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/validate"
@@ -258,11 +257,13 @@ func (r ContainerAppResource) Read() sdk.ResourceFunc {
 			if model := existing.Model; model != nil {
 				state.Location = location.Normalize(model.Location)
 				state.Tags = tags.Flatten(model.Tags)
-				ident, err := identity.FlattenSystemAndUserAssignedMapToModel(pointer.To(identity.SystemAndUserAssignedMap(*model.Identity)))
-				if err != nil {
-					return err
+				if model.Identity != nil {
+					ident, err := identity.FlattenSystemAndUserAssignedMapToModel(pointer.To(identity.SystemAndUserAssignedMap(*model.Identity)))
+					if err != nil {
+						return err
+					}
+					state.Identity = pointer.From(ident)
 				}
-				state.Identity = pointer.From(ident)
 
 				if props := model.Properties; props != nil {
 					envId, err := managedenvironments.ParseManagedEnvironmentIDInsensitively(pointer.From(props.ManagedEnvironmentId))
@@ -469,31 +470,6 @@ func (r ContainerAppResource) CustomizeDiff() sdk.ResourceFunc {
 					}
 					if latestRevCount > 1 {
 						return fmt.Errorf("more than one `ingress.0.traffic_weight` has `latest_revision` set to `true`")
-					}
-				}
-			}
-
-			if metadata.ResourceDiff.HasChange("secret") {
-				stateSecretsRaw, configSecretsRaw := metadata.ResourceDiff.GetChange("secret")
-				stateSecrets := stateSecretsRaw.(*schema.Set).List()
-				configSecrets := configSecretsRaw.(*schema.Set).List()
-				// Check there's not less
-				if len(configSecrets) < len(stateSecrets) {
-					return fmt.Errorf("cannot remove secrets from Container Apps at this time due to a limitation in the Container Apps Service. Please see `https://github.com/microsoft/azure-container-apps/issues/395` for more details")
-				}
-				// Check secrets names in state are all present in config, the values don't matter
-				if len(stateSecrets) > 0 {
-					for _, s := range stateSecrets {
-						found := false
-						for _, c := range configSecrets {
-							if s.(map[string]interface{})["name"] == c.(map[string]interface{})["name"] {
-								found = true
-								break
-							}
-						}
-						if !found {
-							return fmt.Errorf("previously configured secret %q was removed. Removing secrets is not supported by the Container Apps Service at this time, see `https://github.com/microsoft/azure-container-apps/issues/395` for more details", s.(map[string]interface{})["name"])
-						}
 					}
 				}
 			}

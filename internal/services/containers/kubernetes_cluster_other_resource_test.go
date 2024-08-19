@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-09-02-preview/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-09-02-preview/snapshots"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -22,6 +22,9 @@ import (
 )
 
 func TestAccKubernetesCluster_basicAvailabilitySet(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("AvailabilitySet not supported as an option for default_node_pool in 4.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -271,6 +274,9 @@ func TestAccKubernetesCluster_nodePoolOther(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_nodePoolKataMshvVmIsolation(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("Skipping this test in 4.0 beta as it is not supported")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -415,6 +421,23 @@ func TestAccKubernetesCluster_windowsProfile(t *testing.T) {
 				check.That(data.ResourceName).Key("default_node_pool.0.max_pods").Exists(),
 				check.That(data.ResourceName).Key("linux_profile.0.admin_username").Exists(),
 				check.That(data.ResourceName).Key("windows_profile.0.admin_username").Exists(),
+			),
+		},
+		data.ImportStep(
+			"windows_profile.0.admin_password",
+		),
+	})
+}
+
+func TestAccKubernetesCluster_windowsProfileGMSA(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.windowsProfileGMSAEmptyPropertyConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(
@@ -792,6 +815,38 @@ func TestAccKubernetesCluster_osSku(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesCluster_osSkuUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.osSku(data, "Ubuntu"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_node_pool.0.os_sku").HasValue("Ubuntu"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.osSku(data, "AzureLinux"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_node_pool.0.os_sku").HasValue("AzureLinux"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.osSku(data, "Ubuntu"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_node_pool.0.os_sku").HasValue("Ubuntu"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccKubernetesCluster_microsoftDefender(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
@@ -865,6 +920,9 @@ func TestAccKubernetesCluster_workloadIdentity(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_customCATrustEnabled(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("Skipping this test in 4.0 beta as it is not supported")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -886,7 +944,42 @@ func TestAccKubernetesCluster_customCATrustEnabled(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesCluster_webAppRoutingWithMultipleDnsZone(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.webAppRoutingWithMultipleDnsZone(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("web_app_routing.0.web_app_routing_identity.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_webAppRoutingWithEmptyDnsZone(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.webAppRoutingWitEmptyDnsZone(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("web_app_routing.0.web_app_routing_identity.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccKubernetesCluster_webAppRouting(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("Skipping test in 4.0 as `dns_zone_id` is removed")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -912,11 +1005,22 @@ func TestAccKubernetesCluster_webAppRouting(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep("web_app_routing.0.dns_zone_id", "web_app_routing.0.dns_zone_ids.#", "web_app_routing.0.dns_zone_ids.0"),
+		{
+			Config: r.webAppRoutingWithMultipleDnsZone(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("web_app_routing.0.web_app_routing_identity.#").HasValue("1"),
+			),
+		},
 		data.ImportStep(),
 	})
 }
 
 func TestAccKubernetesCluster_webAppRoutingPrivateDNS(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("Skipping test in 4.0 as `dns_zone_id` is removed")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -928,7 +1032,7 @@ func TestAccKubernetesCluster_webAppRoutingPrivateDNS(t *testing.T) {
 				check.That(data.ResourceName).Key("web_app_routing.0.web_app_routing_identity.#").HasValue("1"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("web_app_routing.0.dns_zone_id", "web_app_routing.0.dns_zone_ids.#", "web_app_routing.0.dns_zone_ids.0"),
 	})
 }
 
@@ -1008,6 +1112,9 @@ func TestAccKubernetesCluster_nodeOsUpgradeChannel(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_customCaTrustCerts(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("Skipping this test in 4.0 beta as it is not supported")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -1051,6 +1158,11 @@ func TestAccKubernetesCluster_snapshotId(t *testing.T) {
 			Config: r.snapshotSource(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+					if _, ok := ctx.Deadline(); !ok {
+						var cancel context.CancelFunc
+						ctx, cancel = context.WithTimeout(ctx, 30*time.Minute)
+						defer cancel()
+					}
 					client := clients.Containers.SnapshotClient
 					clusterId, err := commonids.ParseKubernetesClusterID(state.ID)
 					if err != nil {
@@ -1085,6 +1197,11 @@ func TestAccKubernetesCluster_snapshotId(t *testing.T) {
 			Config: r.snapshotSource(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+					if _, ok := ctx.Deadline(); !ok {
+						var cancel context.CancelFunc
+						ctx, cancel = context.WithTimeout(ctx, 30*time.Minute)
+						defer cancel()
+					}
 					client := clients.Containers.SnapshotClient
 					clusterId, err := commonids.ParseKubernetesClusterID(state.ID)
 					if err != nil {
@@ -1140,6 +1257,35 @@ func TestAccKubernetesCluster_supportPlanAKSLongTermSupport(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.supportPlanAKSLongTermSupport(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_costAnalysis(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.costAnalysisEnabled(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.costAnalysisEnabled(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.costAnalysisEnabled(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1348,7 +1494,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     vm_size             = "Standard_DS2_v2"
     enable_auto_scaling = true
     min_count           = 1
-    max_count           = 1000
+    max_count           = 399
     node_count          = 1
     upgrade_settings {
       max_surge = "10%%"
@@ -1477,7 +1623,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name                         = "default"
     node_count                   = 1
-    type                         = "AvailabilitySet"
+    type                         = "VirtualMachineScaleSets"
     vm_size                      = "Standard_DS2_v2"
     only_critical_addons_enabled = true
     upgrade_settings {
@@ -1739,7 +1885,8 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func (KubernetesClusterResource) nodePoolOther(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FourPointOhBeta() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -1763,6 +1910,40 @@ resource "azurerm_kubernetes_cluster" "test" {
     kubelet_disk_type  = "OS"
     message_of_the_day = "daily message"
     workload_runtime   = "OCIContainer"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name              = "default"
+    node_count        = 1
+    vm_size           = "Standard_DS2_v2"
+    fips_enabled      = true
+    kubelet_disk_type = "OS"
+    workload_runtime  = "OCIContainer"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -1797,7 +1978,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     node_count         = 1
     vm_size            = "Standard_D2s_v3"
     message_of_the_day = "daily message"
-    os_sku             = "Mariner"
+    os_sku             = "AzureLinux"
     workload_runtime   = "KataMshvVmIsolation"
     upgrade_settings {
       max_surge = "10%%"
@@ -2112,6 +2293,64 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (KubernetesClusterResource) windowsProfileGMSAEmptyPropertyConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[1]d"
+
+  linux_profile {
+    admin_username = "acctestuser%[1]d"
+
+    ssh_key {
+      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    }
+  }
+
+  windows_profile {
+    admin_username = "azureuser"
+    admin_password = "P@55W0rd1234!h@2h1C0rP"
+    gmsa {
+      dns_server  = ""
+      root_domain = ""
+    }
+  }
+
+  # the default node pool /has/ to be Linux agents - Windows agents can be added via the node pools resource
+  default_node_pool {
+    name       = "np"
+    node_count = 3
+    vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  network_profile {
+    network_plugin = "azure"
+    network_policy = "azure"
+    dns_service_ip = "10.10.0.10"
+    service_cidr   = "10.10.0.0/16"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (KubernetesClusterResource) windowsProfileLicense(data acceptance.TestData) string {
@@ -3041,6 +3280,90 @@ resource "azurerm_kubernetes_cluster" "test" {
  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
+func (KubernetesClusterResource) webAppRoutingWithMultipleDnsZone(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_dns_zone" "test" {
+  name                = "acctestzone%[2]d.com"
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_dns_zone" "test2" {
+  name                = "acctestzone2%[2]d.com"
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[2]d"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  web_app_routing {
+    dns_zone_ids = [azurerm_dns_zone.test.id, azurerm_dns_zone.test2.id]
+  }
+}
+ `, data.Locations.Primary, data.RandomInteger)
+}
+
+func (KubernetesClusterResource) webAppRoutingWitEmptyDnsZone(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[2]d"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  web_app_routing {
+    dns_zone_ids = []
+  }
+}
+ `, data.Locations.Primary, data.RandomInteger)
+}
+
 func (KubernetesClusterResource) webAppRouting(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3581,4 +3904,38 @@ resource "azurerm_kubernetes_cluster" "test" {
   sku_tier     = "Premium"
 }
 `, data.Locations.Primary, data.RandomInteger)
+}
+
+func (KubernetesClusterResource) costAnalysisEnabled(data acceptance.TestData, enabled bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[2]d"
+  default_node_pool {
+    name       = "default"
+    vm_size    = "Standard_DS2_v2"
+    node_count = 1
+    upgrade_settings {
+      max_surge = "10%%"
+    }
+  }
+  identity {
+    type = "SystemAssigned"
+  }
+  cost_analysis_enabled = %[3]t
+  sku_tier              = "Premium"
+  support_plan          = "AKSLongTermSupport"
+}
+`, data.Locations.Primary, data.RandomInteger, enabled)
 }

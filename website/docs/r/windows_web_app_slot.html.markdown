@@ -306,7 +306,9 @@ An `active_directory_v2` block supports the following:
 
 * `client_id` - (Required) The ID of the Client to use to authenticate with Azure Active Directory.
 
-* `tenant_auth_endpoint` - (Required) The Azure Tenant Endpoint for the Authenticating Tenant. e.g. `https://login.microsoftonline.com/v2.0/{tenant-guid}/`
+* `tenant_auth_endpoint` - (Required) The Azure Tenant Endpoint for the Authenticating Tenant. e.g. `https://login.microsoftonline.com/{tenant-guid}/v2.0/`
+
+~> **NOTE:** [Here](https://learn.microsoft.com/en-us/entra/identity-platform/authentication-national-cloud#microsoft-entra-authentication-endpoints) is a list of possible authentication endpoints based on the cloud environment. [Here](https://learn.microsoft.com/en-us/azure/app-service/configure-authentication-provider-aad?tabs=workforce-tenant) is more information to better understand how to configure authentication for Azure App Service or Azure Functions.
 
 * `client_secret_setting_name` - (Optional) The App Setting name that contains the client secret of the Client.
 
@@ -621,6 +623,7 @@ A `ip_restriction` block supports the following:
 ~> **NOTE:** One and only one of `ip_address`, `service_tag` or `virtual_network_subnet_id` must be specified.
 
 * `description` - (Optional) The Description of this IP Restriction.
+
 ---
 
 A `logs` block supports the following:
@@ -690,6 +693,7 @@ A `scm_ip_restriction` block supports the following:
 ~> **NOTE:** One and only one of `ip_address`, `service_tag` or `virtual_network_subnet_id` must be specified.
 
 * `description` - (Optional) The Description of this IP Restriction.
+
 ---
 
 A `site_config` block supports the following:
@@ -744,7 +748,7 @@ A `site_config` block supports the following:
 
 * `remote_debugging_enabled` - (Optional) Should Remote Debugging be enabled. Defaults to `false`.
 
-* `remote_debugging_version` - (Optional) The Remote Debugging Version. Possible values include `VS2017` and `VS2019`
+* `remote_debugging_version` - (Optional) The Remote Debugging Version. Possible values include `VS2017`, `VS2019` and `VS2022`
 
 * `scm_ip_restriction` - (Optional) One or more `scm_ip_restriction` blocks as defined above.
 
@@ -769,6 +773,20 @@ A `site_config` block supports the following:
 ---
 
 A `slow_request` block supports the following:
+
+* `count` - (Required) The number of Slow Requests in the time `interval` to trigger this rule.
+
+* `interval` - (Required) The time interval in the form `hh:mm:ss`.
+
+* `time_taken` - (Required) The threshold of time passed to qualify as a Slow Request in `hh:mm:ss`.
+
+* `path` - (Optional) The path for which this slow request rule applies.
+
+~> **NOTE:** The `path` property in the `slow_request` block is deprecated and will be removed in 4.0 of provider. Please use `slow_request_with_path` to set a slow request trigger with path specified.
+
+---
+
+A `slow_request_with_path` block supports the following:
 
 * `count` - (Required) The number of Slow Requests in the time `interval` to trigger this rule.
 
@@ -818,7 +836,9 @@ A `trigger` block supports the following:
 
 * `requests` - (Optional) A `requests` block as defined above.
 
-* `slow_request` - (Optional) One or more `slow_request` blocks as defined above.
+* `slow_request` - (Optional) A `slow_request` block as defined above.
+
+* `slow_request_with_path` - (Optional) One or more `slow_request_with_path` blocks as defined above.
 
 * `status_code` - (Optional) One or more `status_code` blocks as defined above.
 

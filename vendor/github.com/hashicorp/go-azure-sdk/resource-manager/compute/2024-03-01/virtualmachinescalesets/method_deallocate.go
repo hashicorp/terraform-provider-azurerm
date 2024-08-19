@@ -56,8 +56,8 @@ func (c VirtualMachineScaleSetsClient) Deallocate(ctx context.Context, id Virtua
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPost,
-		Path:          fmt.Sprintf("%s/deallocate", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/deallocate", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

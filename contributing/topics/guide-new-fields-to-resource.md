@@ -48,8 +48,8 @@ func (ResourceGroupExampleResource) Arguments() map[string]*pluginsdk.Schema {
 
 ```go
 props := machinelearning.Workspace{
-	WorkspaceProperties: &machinelearning.WorkspaceProperties{
-		PublicNetworkAccess: utils.Bool(d.Get("public_network_access_enabled").(bool))
+	Properties: &machinelearning.WorkspaceProperties{
+		PublicNetworkAccess: pointer.To(d.Get("public_network_access_enabled").(bool))
     }
 }
 ```
@@ -60,7 +60,7 @@ props := machinelearning.Workspace{
 
 ```go
 if d.HasChange("public_network_access_enabled") {
-	props.WorkspaceProperties.PublicNetworkAccess = utils.Bool(d.Get("public_network_access_enabled").(bool))
+	existing.Model.Properties.PublicNetworkAccess = pointer.From(d.Get("public_network_access_enabled").(bool))
 }
 ```
 
@@ -72,7 +72,7 @@ if d.HasChange("public_network_access_enabled") {
 
 ```go
 publicNetworkAccess := true
-if v := props.WorkspaceProperties.PublicNetworkAccess; v != nil {
+if v := props.PublicNetworkAccess; v != nil {
 	publicNetworkAccess = *v
 }
 d.Set("public_network_access_enabled", publicNetworkAccess)
@@ -87,6 +87,8 @@ d.Set("public_network_access_enabled", publicNetworkAccess)
 * Properties that are `Required` will need to be added to all the existing tests for that resource.
 
 * In cases where a new property or block requires additional setup or pre-requisites it makes sense to create a dedicated test for it.
+
+* Adding a new property or updating an existing property with a default should be checked properly against the current version of Terraform State and the Azure API as tests won't be able to catch a potential breaking change, see our [section on defaults and breaking changes](guide-breaking-changes.md)
 
 ## Docs
 

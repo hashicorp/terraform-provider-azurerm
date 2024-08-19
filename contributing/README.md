@@ -43,6 +43,7 @@ References:
 * [Best Practices](topics/best-practices.md)
 * [Glossary](topics/reference-glossary.md)
 * [Naming](topics/reference-naming.md)
+* [Resource IDs](topics/guide-resource-ids.md)
 * [Schema Design](topics/schema-design-considerations.md)
 * [Working with Errors](topics/reference-errors.md)
 

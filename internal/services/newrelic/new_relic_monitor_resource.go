@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2022-07-01/monitors"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -193,6 +194,8 @@ func (r NewRelicMonitorResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
+		"identity": commonschema.SystemAssignedIdentityOptionalForceNew(),
+
 		"ingestion_key": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -265,6 +268,15 @@ func (r NewRelicMonitorResource) Create() sdk.ResourceFunc {
 				},
 			}
 
+			identityValue, err := identity.ExpandSystemAssigned(metadata.ResourceData.Get("identity").([]interface{}))
+			if err != nil {
+				return fmt.Errorf("expanding `identity`: %+v", err)
+			}
+			// Currently the API does not accept `None` type: https://github.com/Azure/azure-rest-api-specs/issues/29257
+			if identityValue.Type != identity.TypeNone {
+				properties.Identity = identityValue
+			}
+
 			if err := client.CreateOrUpdateThenPoll(ctx, id, *properties); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
@@ -308,6 +320,10 @@ func (r NewRelicMonitorResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				state.Location = location.Normalize(model.Location)
+
+				if err := metadata.ResourceData.Set("identity", identity.FlattenSystemAssigned(model.Identity)); err != nil {
+					return fmt.Errorf("setting `identity`: %+v", err)
+				}
 
 				properties := &model.Properties
 				if properties.AccountCreationSource != nil {

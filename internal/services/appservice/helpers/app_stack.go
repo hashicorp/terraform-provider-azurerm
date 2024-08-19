@@ -42,7 +42,7 @@ type ApplicationStackWindows struct {
 	NetCoreVersion          string `tfschema:"dotnet_core_version"`
 	NodeVersion             string `tfschema:"node_version"`
 	PhpVersion              string `tfschema:"php_version"`
-	PythonVersion           string `tfschema:"python_version"`
+	PythonVersion           string `tfschema:"python_version,removedInNextMajorVersion"`
 	Python                  bool   `tfschema:"python"`
 	TomcatVersion           string `tfschema:"tomcat_version"`
 
@@ -488,6 +488,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 					"8.0",
 					"8.1",
 					"8.2",
+					"8.3",
 				}, false),
 				ExactlyOneOf: linuxApplicationStackConstraint,
 			},

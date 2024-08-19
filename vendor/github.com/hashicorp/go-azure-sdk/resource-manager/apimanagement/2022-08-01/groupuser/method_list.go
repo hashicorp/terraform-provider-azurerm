@@ -58,6 +58,18 @@ func (o ListOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // List ...
 func (c GroupUserClient) List(ctx context.Context, id GroupId, options ListOperationOptions) (result ListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -66,8 +78,9 @@ func (c GroupUserClient) List(ctx context.Context, id GroupId, options ListOpera
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/users", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListCustomPager{},
+		Path:          fmt.Sprintf("%s/users", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -108,6 +121,7 @@ func (c GroupUserClient) ListCompleteMatchingPredicate(ctx context.Context, id G
 
 	resp, err := c.List(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

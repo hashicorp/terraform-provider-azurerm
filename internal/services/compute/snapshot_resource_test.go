@@ -47,6 +47,20 @@ func TestAccSnapshot_networkAccessPolicy(t *testing.T) {
 	})
 }
 
+func TestAccSnapshot_networkAccessPolicyAllowPrivate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_snapshot", "test")
+	r := SnapshotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.networkAccessPolicyAllowPrivate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
 func TestAccSnapshot_publicNetworkAccess(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_snapshot", "test")
 	r := SnapshotResource{}
@@ -756,6 +770,44 @@ resource "azurerm_snapshot" "test" {
   network_access_policy = "AllowAll"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (SnapshotResource) networkAccessPolicyAllowPrivate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_disk_access" "test" {
+  name                = "acctestDA-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = "%s"
+}
+
+resource "azurerm_managed_disk" "test" {
+  name                 = "acctestmd-%d"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  storage_account_type = "Standard_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = "10"
+}
+
+resource "azurerm_snapshot" "test" {
+  name                  = "acctestss_%d"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  disk_access_id        = azurerm_disk_access.test.id
+  create_option         = "Copy"
+  source_uri            = azurerm_managed_disk.test.id
+  network_access_policy = "AllowPrivate"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func (SnapshotResource) publicNetworkAccess(data acceptance.TestData) string {

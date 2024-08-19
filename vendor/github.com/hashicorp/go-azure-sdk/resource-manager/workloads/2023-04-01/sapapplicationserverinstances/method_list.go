@@ -23,6 +23,18 @@ type ListCompleteResult struct {
 	Items              []SAPApplicationServerInstance
 }
 
+type ListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // List ...
 func (c SAPApplicationServerInstancesClient) List(ctx context.Context, id SapVirtualInstanceId) (result ListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c SAPApplicationServerInstancesClient) List(ctx context.Context, id SapVir
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListCustomPager{},
 		Path:       fmt.Sprintf("%s/applicationInstances", id.ID()),
 	}
 
@@ -72,6 +85,7 @@ func (c SAPApplicationServerInstancesClient) ListCompleteMatchingPredicate(ctx c
 
 	resp, err := c.List(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

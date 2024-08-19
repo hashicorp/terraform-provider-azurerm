@@ -67,7 +67,7 @@ type Linux struct {
 }
 
 type MonthlyOccurrence struct {
-	Occurrence int    `tfschema:"occurrence"`
+	Occurrence int64  `tfschema:"occurrence"`
 	Day        string `tfschema:"day"`
 }
 
@@ -90,13 +90,13 @@ type Schedule struct {
 	IsEnabled               bool                `tfschema:"is_enabled"`
 	NextRun                 string              `tfschema:"next_run"`
 	NextRunOffsetMinutes    float64             `tfschema:"next_run_offset_minutes"`
-	Interval                int                 `tfschema:"interval"`
+	Interval                int64               `tfschema:"interval"`
 	Frequency               string              `tfschema:"frequency"`
 	CreationTime            string              `tfschema:"creation_time"`
 	LastModifiedTime        string              `tfschema:"last_modified_time"`
 	TimeZone                string              `tfschema:"time_zone"`
 	AdvancedWeekDays        []string            `tfschema:"advanced_week_days"`
-	AdvancedMonthDays       []int               `tfschema:"advanced_month_days"`
+	AdvancedMonthDays       []int64             `tfschema:"advanced_month_days"`
 	MonthlyOccurrence       []MonthlyOccurrence `tfschema:"monthly_occurrence"`
 }
 
@@ -118,9 +118,9 @@ type SoftwareUpdateConfigurationModel struct {
 	AutomationAccountID   string       `tfschema:"automation_account_id"`
 	Name                  string       `tfschema:"name"`
 	ErrorCode             string       `tfschema:"error_code"`
-	ErrorMeesage          string       `tfschema:"error_meesage"`
+	ErrorMeesage          string       `tfschema:"error_meesage,removedInNextMajorVersion"`
 	ErrorMessage          string       `tfschema:"error_message"`
-	OperatingSystem       string       `tfschema:"operating_system"`
+	OperatingSystem       string       `tfschema:"operating_system,removedInNextMajorVersion"`
 	Linux                 []Linux      `tfschema:"linux"`
 	Windows               []Windows    `tfschema:"windows"`
 	Duration              string       `tfschema:"duration"`
@@ -157,19 +157,17 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 				"classification_included": {
 					Type:          pluginsdk.TypeString,
 					Optional:      true,
-					ConflictsWith: []string{"windows.0.classifications_included"},
+					ConflictsWith: []string{"linux.0.classifications_included"},
 					Computed:      true,
-					ValidateFunc: validation.StringInSlice(
-						softwareupdateconfiguration.PossibleValuesForLinuxUpdateClasses(),
-						false),
-					Deprecated: "", // TODO
+					ValidateFunc:  validation.StringInSlice(softwareupdateconfiguration.PossibleValuesForLinuxUpdateClasses(), false),
+					Deprecated:    "this property is deprecated and will be removed in version 4.0 of the provider, please use `classifications_included` instead.",
 				},
 
 				"classifications_included": {
 					Type:          pluginsdk.TypeList,
 					Optional:      true,
 					Computed:      true,
-					ConflictsWith: []string{"windows.0.classification_included"},
+					ConflictsWith: []string{"linux.0.classification_included"},
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 						ValidateFunc: validation.StringInSlice(
@@ -204,11 +202,8 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 					Optional:      true,
 					Computed:      true,
 					ConflictsWith: []string{"windows.0.classifications_included"},
-					Deprecated:    "windows classification can be set as a list, use `classifications_included` instead.",
-					ValidateFunc: validation.StringInSlice(func() (vs []string) {
-						vs = append(vs, softwareupdateconfiguration.PossibleValuesForWindowsUpdateClasses()...)
-						return
-					}(), false),
+					Deprecated:    "this property is deprecated and will be removed in version 4.0 of the provider, please use `classifications_included` instead.",
+					ValidateFunc:  validation.StringInSlice(softwareupdateconfiguration.PossibleValuesForWindowsUpdateClasses(), false),
 				},
 
 				"classifications_included": {
@@ -217,11 +212,8 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 					Computed:      true,
 					ConflictsWith: []string{"windows.0.classification_included"},
 					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeString,
-						ValidateFunc: validation.StringInSlice(func() (res []string) {
-							res = append(res, softwareupdateconfiguration.PossibleValuesForWindowsUpdateClasses()...)
-							return
-						}(), false),
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: validation.StringInSlice(softwareupdateconfiguration.PossibleValuesForWindowsUpdateClasses(), false),
 					},
 				},
 
@@ -273,11 +265,10 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 
 				"classifications_included": {
 					Type:     pluginsdk.TypeList,
-					Required: true, // TODO 4.0 - Update docs to reflect this breaking change.
+					Required: true,
 					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeString,
-						ValidateFunc: validation.StringInSlice(softwareupdateconfiguration.PossibleValuesForLinuxUpdateClasses(),
-							false),
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: validation.StringInSlice(softwareupdateconfiguration.PossibleValuesForLinuxUpdateClasses(), false),
 					},
 				},
 
@@ -304,7 +295,7 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 			Schema: map[string]*pluginsdk.Schema{
 				"classifications_included": {
 					Type:     pluginsdk.TypeList,
-					Required: true, // TODO 4.0 - Update docs to reflect this breaking change.
+					Required: true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 						ValidateFunc: validation.StringInSlice(
@@ -467,7 +458,7 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 								"tag_filter": {
 									Type:     pluginsdk.TypeString,
 									Optional: true,
-									Computed: true,
+									Computed: !features.FourPointOhBeta(),
 									ValidateFunc: validation.StringInSlice([]string{
 										string(softwareupdateconfiguration.TagOperatorsAny),
 										string(softwareupdateconfiguration.TagOperatorsAll),
@@ -512,8 +503,9 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 					},
 
 					"start_time": {
-						Type:             pluginsdk.TypeString,
-						Optional:         true,
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						// NOTE: O+C API returns a default if omitted which can be updated without issue so this can remain
 						Computed:         true,
 						DiffSuppressFunc: suppress.RFC3339MinuteTime,
 						ValidateFunc:     validation.IsRFC3339Time,
@@ -522,12 +514,13 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 					"start_time_offset_minutes": {
 						Type:     pluginsdk.TypeFloat,
 						Optional: true,
-						Computed: true,
+						Computed: !features.FourPointOhBeta(),
 					},
 
 					"expiry_time": {
-						Type:             pluginsdk.TypeString,
-						Optional:         true,
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						// NOTE: O+C API returns a default if omitted which can be updated without issue so this can remain
 						Computed:         true,
 						DiffSuppressFunc: suppress.RFC3339MinuteTime,
 						ValidateFunc:     validation.IsRFC3339Time,
@@ -536,7 +529,7 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 					"expiry_time_offset_minutes": {
 						Type:     pluginsdk.TypeFloat,
 						Optional: true,
-						Computed: true,
+						Computed: !features.FourPointOhBeta(),
 					},
 
 					"is_enabled": {
@@ -546,8 +539,9 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 					},
 
 					"next_run": {
-						Type:             pluginsdk.TypeString,
-						Optional:         true,
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						// NOTE: O+C API returns a default if omitted which  can be updated without issue so this can remain
 						Computed:         true,
 						DiffSuppressFunc: suppress.RFC3339MinuteTime,
 						ValidateFunc:     validation.IsRFC3339Time,
@@ -556,7 +550,7 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 					"next_run_offset_minutes": {
 						Type:     pluginsdk.TypeFloat,
 						Optional: true,
-						Computed: true,
+						Computed: !features.FourPointOhBeta(),
 					},
 
 					"interval": {
@@ -715,17 +709,10 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 }
 
 func (m SoftwareUpdateConfigurationResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	r := map[string]*pluginsdk.Schema{
 		"error_code": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
-		},
-
-		// TODO 4.0 remove & update docs
-		"error_meesage": {
-			Type:       pluginsdk.TypeString,
-			Computed:   true,
-			Deprecated: "`error_meesage` will be removed in favour of `error_message` in version 4.0 of the AzureRM Provider",
 		},
 
 		"error_message": {
@@ -733,6 +720,15 @@ func (m SoftwareUpdateConfigurationResource) Attributes() map[string]*pluginsdk.
 			Computed: true,
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		r["error_meesage"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeString,
+			Computed:   true,
+			Deprecated: "`error_meesage` will be removed in favour of `error_message` in version 4.0 of the AzureRM Provider",
+		}
+	}
+	return r
 }
 
 func (m SoftwareUpdateConfigurationResource) ModelObject() interface{} {
@@ -886,7 +882,7 @@ func (m SoftwareUpdateConfigurationResource) Read() sdk.ResourceFunc {
 					IsEnabled:               pointer.From(scheduleConfiguration.IsEnabled),
 					NextRun:                 pointer.From(scheduleConfiguration.NextRun),
 					NextRunOffsetMinutes:    pointer.From(scheduleConfiguration.NextRunOffsetMinutes),
-					Interval:                int(pointer.From(scheduleConfiguration.Interval)),
+					Interval:                pointer.From(scheduleConfiguration.Interval),
 					Frequency:               string(pointer.From(scheduleConfiguration.Frequency)),
 					CreationTime:            pointer.From(scheduleConfiguration.CreationTime),
 					LastModifiedTime:        pointer.From(scheduleConfiguration.LastModifiedTime),
@@ -897,18 +893,12 @@ func (m SoftwareUpdateConfigurationResource) Read() sdk.ResourceFunc {
 				// Tracking Issue: https://github.com/Azure/azure-rest-api-specs/issues/24436
 				if advSchedule := scheduleConfiguration.AdvancedSchedule; advSchedule != nil {
 					schedule.AdvancedWeekDays = pointer.From(advSchedule.WeekDays)
-					if monthDays := pointer.From(advSchedule.MonthDays); len(monthDays) > 0 {
-						advMonthDays := make([]int, 0)
-						for _, v := range monthDays {
-							advMonthDays = append(advMonthDays, int(v))
-						}
-						schedule.AdvancedMonthDays = advMonthDays
-					}
+					schedule.AdvancedMonthDays = pointer.From(advSchedule.MonthDays)
 					if monthlyOccurrence := pointer.From(advSchedule.MonthlyOccurrences); len(monthlyOccurrence) > 0 {
 						mo := make([]MonthlyOccurrence, 0)
 						for _, v := range monthlyOccurrence {
 							mo = append(mo, MonthlyOccurrence{
-								Occurrence: int(pointer.From(v.Occurrence)),
+								Occurrence: pointer.From(v.Occurrence),
 								Day:        string(pointer.From(v.Day)),
 							})
 						}
@@ -923,9 +913,9 @@ func (m SoftwareUpdateConfigurationResource) Read() sdk.ResourceFunc {
 						schedule.AdvancedWeekDays = wd
 					}
 					if monthDays, ok := meta.ResourceData.GetOk("schedule.0.advanced_month_days"); ok {
-						md := make([]int, 0)
+						md := make([]int64, 0)
 						for _, v := range monthDays.([]interface{}) {
-							md = append(md, v.(int))
+							md = append(md, int64(v.(int)))
 						}
 						schedule.AdvancedMonthDays = md
 					}
@@ -935,7 +925,7 @@ func (m SoftwareUpdateConfigurationResource) Read() sdk.ResourceFunc {
 							for _, v := range moRaw {
 								mo := v.(map[string]interface{})
 								mos = append(mos, MonthlyOccurrence{
-									Occurrence: mo["occurrence"].(int),
+									Occurrence: int64(mo["occurrence"].(int)),
 									Day:        mo["day"].(string),
 								})
 							}
@@ -959,6 +949,10 @@ func (m SoftwareUpdateConfigurationResource) Read() sdk.ResourceFunc {
 							Parameters: pointer.From(post.Parameters),
 						}}
 					}
+				}
+
+				if errorMessage := props.Error; errorMessage != nil {
+					state.ErrorMeesage = pointer.From(errorMessage.Message)
 				}
 			}
 
@@ -1098,7 +1092,7 @@ func (m SoftwareUpdateConfigurationResource) Update() sdk.ResourceFunc {
 						ExpiryTime:              pointer.To(v.ExpiryTime),
 						ExpiryTimeOffsetMinutes: pointer.To(v.ExpiryTimeOffsetMinutes),
 						Frequency:               pointer.To(softwareupdateconfiguration.ScheduleFrequency(v.Frequency)),
-						Interval:                pointer.To(int64(v.Interval)),
+						Interval:                pointer.To(v.Interval),
 						IsEnabled:               pointer.To(v.IsEnabled),
 						NextRun:                 pointer.To(v.NextRun),
 						NextRunOffsetMinutes:    pointer.To(v.NextRunOffsetMinutes),
@@ -1114,11 +1108,7 @@ func (m SoftwareUpdateConfigurationResource) Update() sdk.ResourceFunc {
 						}
 
 						if len(v.AdvancedMonthDays) > 0 {
-							i := make([]int64, 0)
-							for _, v := range v.AdvancedMonthDays {
-								i = append(i, int64(v))
-							}
-							advSchedule.MonthDays = pointer.To(i)
+							advSchedule.MonthDays = pointer.To(v.AdvancedMonthDays)
 						}
 
 						if len(v.MonthlyOccurrence) > 0 {
@@ -1126,7 +1116,7 @@ func (m SoftwareUpdateConfigurationResource) Update() sdk.ResourceFunc {
 							for _, mo := range v.MonthlyOccurrence {
 								monthlyOccurrences = append(monthlyOccurrences, softwareupdateconfiguration.AdvancedScheduleMonthlyOccurrence{
 									Day:        pointer.To(softwareupdateconfiguration.ScheduleDay(mo.Day)),
-									Occurrence: pointer.To(int64(mo.Occurrence)),
+									Occurrence: pointer.To(mo.Occurrence),
 								})
 							}
 
@@ -1216,7 +1206,7 @@ func expandUpdateConfig(input SoftwareUpdateConfigurationModel) *softwareupdatec
 			ExpiryTime:              pointer.To(v.ExpiryTime),
 			ExpiryTimeOffsetMinutes: pointer.To(v.ExpiryTimeOffsetMinutes),
 			Frequency:               pointer.To(softwareupdateconfiguration.ScheduleFrequency(v.Frequency)),
-			Interval:                pointer.To(int64(v.Interval)),
+			Interval:                pointer.To(v.Interval),
 			IsEnabled:               pointer.To(v.IsEnabled),
 			NextRun:                 pointer.To(v.NextRun),
 			NextRunOffsetMinutes:    pointer.To(v.NextRunOffsetMinutes),
@@ -1232,11 +1222,7 @@ func expandUpdateConfig(input SoftwareUpdateConfigurationModel) *softwareupdatec
 			}
 
 			if len(v.AdvancedMonthDays) > 0 {
-				i := make([]int64, 0)
-				for _, v := range v.AdvancedMonthDays {
-					i = append(i, int64(v))
-				}
-				advSchedule.MonthDays = pointer.To(i)
+				advSchedule.MonthDays = pointer.To(v.AdvancedMonthDays)
 			}
 
 			if len(v.MonthlyOccurrence) > 0 {
@@ -1244,7 +1230,7 @@ func expandUpdateConfig(input SoftwareUpdateConfigurationModel) *softwareupdatec
 				for _, mo := range v.MonthlyOccurrence {
 					monthlyOccurrences = append(monthlyOccurrences, softwareupdateconfiguration.AdvancedScheduleMonthlyOccurrence{
 						Day:        pointer.To(softwareupdateconfiguration.ScheduleDay(mo.Day)),
-						Occurrence: pointer.To(int64(mo.Occurrence)),
+						Occurrence: pointer.To(mo.Occurrence),
 					})
 				}
 

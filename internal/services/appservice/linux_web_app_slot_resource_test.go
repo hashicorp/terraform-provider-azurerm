@@ -36,6 +36,29 @@ func TestAccLinuxWebAppSlot_basic(t *testing.T) {
 	})
 }
 
+func TestAccLinuxWebAppSlot_updateTags(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
+	r := LinuxWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.basicWithTags(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("app_settings.WEBSITE_HEALTHCHECK_MAXPINGFAILURES").DoesNotExist(),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
 func TestAccLinuxWebAppSlot_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
 	r := LinuxWebAppSlotResource{}
@@ -159,6 +182,7 @@ func TestAccLinuxWebAppSlot_completeUpdate(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.always_on").HasValue("true"),
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
@@ -516,6 +540,20 @@ func TestAccLinuxWebAppSlot_withAutoHealRules(t *testing.T) {
 	})
 }
 
+func TestAccLinuxWebAppSlot_withAutoHealSlowRequestWithPath(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
+	r := LinuxWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.autoHealRulesSlowRequestWithPath(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
 func TestAccLinuxWebAppSlot_withAutoHealRulesUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
 	r := LinuxWebAppSlotResource{}
@@ -832,6 +870,21 @@ func TestAccLinuxWebAppSlot_withPhp82(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.php(data, "8.2"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+func TestAccLinuxWebAppSlot_withPhp83(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
+	r := LinuxWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.php(data, "8.3"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1505,6 +1558,27 @@ resource "azurerm_linux_web_app_slot" "test" {
 `, r.baseTemplate(data), data.RandomInteger)
 }
 
+func (r LinuxWebAppSlotResource) basicWithTags(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_web_app_slot" "test" {
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
+
+  site_config {}
+
+  tags = {
+    foo = "bar"
+  }
+}
+`, r.baseTemplate(data), data.RandomInteger)
+}
+
 func (r LinuxWebAppSlotResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
@@ -1565,6 +1639,48 @@ resource "azurerm_linux_web_app_slot" "test" {
         }
       }
 
+      action {
+        action_type                    = "Recycle"
+        minimum_process_execution_time = "00:05:00"
+      }
+    }
+  }
+}
+`, r.baseTemplate(data), data.RandomInteger)
+}
+
+func (r LinuxWebAppSlotResource) autoHealRulesSlowRequestWithPath(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+%s
+resource "azurerm_linux_web_app_slot" "test" {
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
+
+  site_config {
+    auto_heal_enabled = true
+    auto_heal_setting {
+      trigger {
+        slow_request {
+          count      = "10"
+          interval   = "00:10:00"
+          time_taken = "00:00:10"
+        }
+        slow_request_with_path {
+          count      = "11"
+          interval   = "00:11:00"
+          time_taken = "00:00:11"
+          path       = "/tftest1"
+        }
+        slow_request_with_path {
+          count      = "12"
+          interval   = "00:12:00"
+          time_taken = "00:00:12"
+          path       = "/tftest2"
+        }
+      }
       action {
         action_type                    = "Recycle"
         minimum_process_execution_time = "00:05:00"
@@ -1754,19 +1870,20 @@ resource "azurerm_linux_web_app_slot" "test" {
       "third.aspx",
       "hostingstart.html",
     ]
-    http2_enabled               = true
-    scm_use_main_ip_restriction = true
-    local_mysql_enabled         = true
-    managed_pipeline_mode       = "Integrated"
-    remote_debugging_enabled    = true
-    remote_debugging_version    = "VS2019"
-    use_32_bit_worker           = true
-    websockets_enabled          = true
-    ftps_state                  = "FtpsOnly"
-    health_check_path           = "/health"
-    worker_count                = 1
-    minimum_tls_version         = "1.1"
-    scm_minimum_tls_version     = "1.1"
+    http2_enabled                     = true
+    scm_use_main_ip_restriction       = true
+    local_mysql_enabled               = true
+    managed_pipeline_mode             = "Integrated"
+    remote_debugging_enabled          = true
+    remote_debugging_version          = "VS2022"
+    use_32_bit_worker                 = true
+    websockets_enabled                = true
+    ftps_state                        = "FtpsOnly"
+    health_check_path                 = "/health"
+    health_check_eviction_time_in_min = 7
+    worker_count                      = 1
+    minimum_tls_version               = "1.1"
+    scm_minimum_tls_version           = "1.1"
     cors {
       allowed_origins = [
         "http://www.contoso.com",
@@ -2378,6 +2495,9 @@ resource "azurerm_linux_web_app_slot" "test" {
     }
   }
 }
+
+
+
 
 `, r.baseTemplate(data), data.RandomInteger, phpVersion)
 }

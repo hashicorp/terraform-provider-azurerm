@@ -13,8 +13,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/loadbalancers"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2022-02-01/availabilitygrouplisteners"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2022-02-01/sqlvirtualmachines"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2023-10-01/availabilitygrouplisteners"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2023-10-01/sqlvirtualmachines"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -34,7 +34,7 @@ type MsSqlVirtualMachineAvailabilityGroupListenerModel struct {
 	SqlVirtualMachineGroupId string `tfschema:"sql_virtual_machine_group_id"`
 	AvailabilityGroupName    string `tfschema:"availability_group_name"`
 
-	Port                       int                                                                      `tfschema:"port"`
+	Port                       int64                                                                    `tfschema:"port"`
 	LoadBalancerConfiguration  []LoadBalancerConfigurationMsSqlVirtualMachineAvailabilityGroupListener  `tfschema:"load_balancer_configuration"`
 	MultiSubnetIpConfiguration []MultiSubnetIpConfigurationMsSqlVirtualMachineAvailabilityGroupListener `tfschema:"multi_subnet_ip_configuration"`
 	Replica                    []ReplicaMsSqlVirtualMachineAvailabilityGroupListener                    `tfschema:"replica"`
@@ -43,7 +43,7 @@ type MsSqlVirtualMachineAvailabilityGroupListenerModel struct {
 type LoadBalancerConfigurationMsSqlVirtualMachineAvailabilityGroupListener struct {
 	LoadBalancerId       string   `tfschema:"load_balancer_id"`
 	PrivateIpAddress     string   `tfschema:"private_ip_address"`
-	ProbePort            int      `tfschema:"probe_port"`
+	ProbePort            int64    `tfschema:"probe_port"`
 	SqlVirtualMachineIds []string `tfschema:"sql_virtual_machine_ids"`
 	SubnetId             string   `tfschema:"subnet_id"`
 }
@@ -274,7 +274,7 @@ func (r MsSqlVirtualMachineAvailabilityGroupListenerResource) Create() sdk.Resou
 				Properties: &availabilitygrouplisteners.AvailabilityGroupListenerProperties{
 					AvailabilityGroupName:                    pointer.To(model.AvailabilityGroupName),
 					CreateDefaultAvailabilityGroupIfNotExist: pointer.To(true),
-					Port:                                     pointer.To(int64(model.Port)),
+					Port:                                     pointer.To(model.Port),
 					AvailabilityGroupConfiguration: &availabilitygrouplisteners.AgConfiguration{
 						Replicas: replicas,
 					},
@@ -332,7 +332,7 @@ func (r MsSqlVirtualMachineAvailabilityGroupListenerResource) Read() sdk.Resourc
 				if props := model.Properties; props != nil {
 
 					state.AvailabilityGroupName = pointer.From(props.AvailabilityGroupName)
-					state.Port = int(pointer.From(props.Port))
+					state.Port = pointer.From(props.Port)
 
 					avGroupListenerLbConfigs, err := flattenMsSqlVirtualMachineAvailabilityGroupListenerLoadBalancerConfigurations(props.LoadBalancerConfigurations, id.SubscriptionId)
 					if err != nil {
@@ -389,7 +389,7 @@ func expandMsSqlVirtualMachineAvailabilityGroupListenerLoadBalancerConfiguration
 	for _, lb := range lbConfigs {
 
 		lbConfig := availabilitygrouplisteners.LoadBalancerConfiguration{
-			ProbePort: pointer.To(int64(lb.ProbePort)),
+			ProbePort: pointer.To(lb.ProbePort),
 		}
 
 		parsedLbId := ""
@@ -491,7 +491,7 @@ func flattenMsSqlVirtualMachineAvailabilityGroupListenerLoadBalancerConfiguratio
 		v := LoadBalancerConfigurationMsSqlVirtualMachineAvailabilityGroupListener{
 			LoadBalancerId:       loadBalancerId,
 			PrivateIpAddress:     privateIpAddress,
-			ProbePort:            int(pointer.From(lbConfig.ProbePort)),
+			ProbePort:            pointer.From(lbConfig.ProbePort),
 			SqlVirtualMachineIds: sqlVirtualMachineIds,
 			SubnetId:             subnetResourceId,
 		}

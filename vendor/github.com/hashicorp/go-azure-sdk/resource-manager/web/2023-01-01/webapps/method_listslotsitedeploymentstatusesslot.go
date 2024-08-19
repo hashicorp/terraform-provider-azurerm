@@ -23,6 +23,18 @@ type ListSlotSiteDeploymentStatusesSlotCompleteResult struct {
 	Items              []CsmDeploymentStatus
 }
 
+type ListSlotSiteDeploymentStatusesSlotCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListSlotSiteDeploymentStatusesSlotCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListSlotSiteDeploymentStatusesSlot ...
 func (c WebAppsClient) ListSlotSiteDeploymentStatusesSlot(ctx context.Context, id SlotId) (result ListSlotSiteDeploymentStatusesSlotOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c WebAppsClient) ListSlotSiteDeploymentStatusesSlot(ctx context.Context, i
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListSlotSiteDeploymentStatusesSlotCustomPager{},
 		Path:       fmt.Sprintf("%s/deploymentStatus", id.ID()),
 	}
 
@@ -72,6 +85,7 @@ func (c WebAppsClient) ListSlotSiteDeploymentStatusesSlotCompleteMatchingPredica
 
 	resp, err := c.ListSlotSiteDeploymentStatusesSlot(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

@@ -6,6 +6,7 @@ package nginx
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -14,10 +15,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-01-01-preview/nginxconfiguration"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-01-01-preview/nginxdeployment"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
+
+const defaultCapacity = 20 // TODO: remove this in v4.0
 
 type FrontendPrivate struct {
 	IpAddress        string `tfschema:"ip_address"`
@@ -38,11 +42,13 @@ type NetworkInterface struct {
 	SubnetId string `tfschema:"subnet_id"`
 }
 
+// Deprecated: remove in next major version
 type ConfigureFile struct {
 	Content     string `tfschema:"content"`
 	VirtualPath string `tfschema:"virtual_path"`
 }
 
+// Deprecated: remove in next major version
 type Configuration struct {
 	ConfigureFile []ConfigureFile `tfschema:"config_file"`
 	ProtectedFile []ConfigureFile `tfschema:"protected_file"`
@@ -74,8 +80,9 @@ type DeploymentModel struct {
 	FrontendPrivate        []FrontendPrivate                          `tfschema:"frontend_private"`
 	NetworkInterface       []NetworkInterface                         `tfschema:"network_interface"`
 	UpgradeChannel         string                                     `tfschema:"automatic_upgrade_channel"`
-	Configuration          []Configuration                            `tfschema:"configuration"`
-	Tags                   map[string]string                          `tfschema:"tags"`
+	// Deprecated: remove in next major version
+	Configuration []Configuration   `tfschema:"configuration,removedInNextMajorVersion"`
+	Tags          map[string]string `tfschema:"tags"`
 }
 
 type DeploymentResource struct{}
@@ -83,7 +90,7 @@ type DeploymentResource struct{}
 var _ sdk.ResourceWithUpdate = (*DeploymentResource)(nil)
 
 func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	resource := map[string]*pluginsdk.Schema{
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"name": {
@@ -119,7 +126,6 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:          pluginsdk.TypeInt,
 			Optional:      true,
 			ConflictsWith: []string{"auto_scale_profile"},
-			Default:       20,
 			ValidateFunc:  validation.IntPositive,
 		},
 
@@ -191,6 +197,7 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 					"ip_address": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
+						ForceNew: true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -210,17 +217,20 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 					"ip_address": {
 						Type:     pluginsdk.TypeString,
 						Required: true,
+						ForceNew: true,
 					},
 
 					"allocation_method": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
+						ForceNew:     true,
 						ValidateFunc: validation.StringInSlice(nginxdeployment.PossibleValuesForNginxPrivateIPAllocationMethod(), false),
 					},
 
 					"subnet_id": {
 						Type:     pluginsdk.TypeString,
 						Required: true,
+						ForceNew: true,
 					},
 				},
 			},
@@ -235,6 +245,7 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 					"subnet_id": {
 						Type:     pluginsdk.TypeString,
 						Required: true,
+						ForceNew: true,
 					},
 				},
 			},
@@ -251,11 +262,18 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 				}, false),
 		},
 
-		"configuration": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			Computed: true,
-			MaxItems: 1,
+		"tags": commonschema.Tags(),
+	}
+
+	if !features.FourPointOhBeta() {
+		resource["capacity"].Default = defaultCapacity
+
+		resource["configuration"] = &pluginsdk.Schema{
+			Deprecated: "The `configuration` block has been superseded by the `azurerm_nginx_configuration` resource and will be removed in v4.0 of the AzureRM Provider.",
+			Type:       pluginsdk.TypeList,
+			Optional:   true,
+			Computed:   true,
+			MaxItems:   1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"config_file": {
@@ -316,10 +334,10 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
-		},
-
-		"tags": commonschema.Tags(),
+		}
 	}
+
+	return resource
 }
 
 func (m DeploymentResource) Attributes() map[string]*pluginsdk.Schema {
@@ -421,9 +439,30 @@ func (m DeploymentResource) Create() sdk.ResourceFunc {
 				prop.NetworkProfile.NetworkInterfaceConfiguration.SubnetId = pointer.FromString(model.NetworkInterface[0].SubnetId)
 			}
 
-			if model.Capacity > 0 {
-				prop.ScalingProperties = &nginxdeployment.NginxDeploymentScalingProperties{
-					Capacity: pointer.FromInt64(model.Capacity),
+			isBasicSKU := strings.HasPrefix(model.Sku, "basic")
+			if !features.FourPointOhBeta() {
+				if isBasicSKU && (model.Capacity != defaultCapacity || len(model.AutoScaleProfile) > 0) {
+					return fmt.Errorf("basic SKUs are incompatible with `capacity` or `auto_scale_profiles`")
+				}
+
+				if model.Capacity > 0 && !isBasicSKU {
+					prop.ScalingProperties = &nginxdeployment.NginxDeploymentScalingProperties{
+						Capacity: pointer.FromInt64(model.Capacity),
+					}
+				}
+			} else {
+				hasScaling := (model.Capacity > 0 || len(model.AutoScaleProfile) > 0)
+				if isBasicSKU && hasScaling {
+					return fmt.Errorf("basic SKUs are incompatible with `capacity` or `auto_scale_profiles`")
+				}
+				if !isBasicSKU && !hasScaling {
+					return fmt.Errorf("scaling is required for `sku` '%s', please provide `capacity` or `auto_scale_profiles`", model.Sku)
+				}
+
+				if model.Capacity > 0 {
+					prop.ScalingProperties = &nginxdeployment.NginxDeploymentScalingProperties{
+						Capacity: pointer.FromInt64(model.Capacity),
+					}
 				}
 			}
 
@@ -469,13 +508,15 @@ func (m DeploymentResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %v", id, err)
 			}
 
-			if len(model.Configuration) > 0 {
-				// update configuration
-				configID := nginxconfiguration.NewConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.NginxDeploymentName, defaultConfigurationName)
+			if !features.FourPointOhBeta() {
+				if len(model.Configuration) > 0 {
+					// update configuration
+					configID := nginxconfiguration.NewConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.NginxDeploymentName, defaultConfigurationName)
 
-				configProp := expandConfiguration(model.Configuration[0])
-				if err := meta.Client.Nginx.NginxConfiguration.ConfigurationsCreateOrUpdateThenPoll(ctx, configID, configProp); err != nil {
-					return fmt.Errorf("update default configuration of %q: %v", configID, err)
+					configProp := expandConfiguration(model.Configuration[0])
+					if err := meta.Client.Nginx.NginxConfiguration.ConfigurationsCreateOrUpdateThenPoll(ctx, configID, configProp); err != nil {
+						return fmt.Errorf("update default configuration of %q: %v", configID, err)
+					}
 				}
 			}
 
@@ -594,40 +635,44 @@ func (m DeploymentResource) Read() sdk.ResourceFunc {
 				}
 			}
 
-			// read configuration
-			configResp, err := meta.Client.Nginx.NginxConfiguration.ConfigurationsGet(ctx, nginxconfiguration.NewConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.NginxDeploymentName, defaultConfigurationName))
-			if err != nil && !response.WasNotFound(configResp.HttpResponse) {
-				return fmt.Errorf("retrieving default configuration of %q: %v", id, err)
-			}
-			if model := configResp.Model; model != nil {
-				if prop := model.Properties; prop != nil {
-					var files []ConfigureFile
-					if prop.Files != nil {
-						for _, file := range *prop.Files {
-							files = append(files, ConfigureFile{
-								Content:     pointer.From(file.Content),
-								VirtualPath: pointer.From(file.VirtualPath),
-							})
-						}
+			if !features.FourPointOhBeta() {
+				if v := meta.ResourceData.Get("configuration"); len(v.([]interface{})) != 0 {
+					// read configuration
+					configResp, err := meta.Client.Nginx.NginxConfiguration.ConfigurationsGet(ctx, nginxconfiguration.NewConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.NginxDeploymentName, defaultConfigurationName))
+					if err != nil && !response.WasNotFound(configResp.HttpResponse) {
+						return fmt.Errorf("retrieving default configuration of %q: %v", id, err)
 					}
+					if model := configResp.Model; model != nil {
+						if prop := model.Properties; prop != nil {
+							var files []ConfigureFile
+							if prop.Files != nil {
+								for _, file := range *prop.Files {
+									files = append(files, ConfigureFile{
+										Content:     pointer.From(file.Content),
+										VirtualPath: pointer.From(file.VirtualPath),
+									})
+								}
+							}
 
-					var protectedFiles []ConfigureFile
-					if prop.ProtectedFiles != nil {
-						for _, file := range *prop.ProtectedFiles {
-							protectedFiles = append(protectedFiles, ConfigureFile{
-								Content:     pointer.From(file.Content),
-								VirtualPath: pointer.From(file.VirtualPath),
-							})
+							var protectedFiles []ConfigureFile
+							if prop.ProtectedFiles != nil {
+								for _, file := range *prop.ProtectedFiles {
+									protectedFiles = append(protectedFiles, ConfigureFile{
+										Content:     pointer.From(file.Content),
+										VirtualPath: pointer.From(file.VirtualPath),
+									})
+								}
+							}
+
+							output.Configuration = []Configuration{
+								{
+									ConfigureFile: files,
+									ProtectedFile: protectedFiles,
+									PackageData:   pointer.From(pointer.From(prop.Package).Data),
+									RootFile:      pointer.From(prop.RootFile),
+								},
+							}
 						}
-					}
-
-					output.Configuration = []Configuration{
-						{
-							ConfigureFile: files,
-							ProtectedFile: protectedFiles,
-							PackageData:   pointer.From(pointer.From(prop.Package).Data),
-							RootFile:      pointer.From(prop.RootFile),
-						},
 					}
 				}
 			}
@@ -649,7 +694,7 @@ func (m DeploymentResource) Update() sdk.ResourceFunc {
 			}
 			var model DeploymentModel
 			if err := meta.Decode(&model); err != nil {
-				return fmt.Errorf("Decode NginxDeploymentModel %s: %v", id, err)
+				return fmt.Errorf("decoding NginxDeploymentModel %s: %v", id, err)
 			}
 
 			var req nginxdeployment.NginxDeploymentUpdateParameters
@@ -717,16 +762,22 @@ func (m DeploymentResource) Update() sdk.ResourceFunc {
 				}
 			}
 
+			if strings.HasPrefix(model.Sku, "basic") && req.Properties.ScalingProperties != nil {
+				return fmt.Errorf("basic SKUs are incompatible with `capacity` or `auto_scale_profiles`")
+			}
+
 			if err := client.DeploymentsUpdateThenPoll(ctx, *id, req); err != nil {
 				return fmt.Errorf("updating %s: %v", id, err)
 			}
 
-			if meta.ResourceData.HasChange("configuration") {
-				configID := nginxconfiguration.NewConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.NginxDeploymentName, defaultConfigurationName)
+			if !features.FourPointOhBeta() {
+				if meta.ResourceData.HasChange("configuration") {
+					configID := nginxconfiguration.NewConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.NginxDeploymentName, defaultConfigurationName)
 
-				configProp := expandConfiguration(model.Configuration[0])
-				if err := meta.Client.Nginx.NginxConfiguration.ConfigurationsCreateOrUpdateThenPoll(ctx, configID, configProp); err != nil {
-					return fmt.Errorf("update default configuration of %q: %v", configID, err)
+					configProp := expandConfiguration(model.Configuration[0])
+					if err := meta.Client.Nginx.NginxConfiguration.ConfigurationsCreateOrUpdateThenPoll(ctx, configID, configProp); err != nil {
+						return fmt.Errorf("update default configuration of %q: %v", configID, err)
+					}
 				}
 			}
 

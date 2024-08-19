@@ -13,15 +13,16 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-08-01/patchschedules"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-08-01/redis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-03-01/patchschedules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-03-01/redis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func dataSourceRedisCache() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Read: dataSourceRedisCacheRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -65,8 +66,7 @@ func dataSourceRedisCache() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_non_ssl_port": {
+			"non_ssl_port_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
@@ -157,8 +157,7 @@ func dataSourceRedisCache() *pluginsdk.Resource {
 							Computed:  true,
 							Sensitive: true,
 						},
-						// TODO 4.0: change this from enable_* to *_enabled
-						"enable_authentication": {
+						"authentication_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Computed: true,
 						},
@@ -239,6 +238,22 @@ func dataSourceRedisCache() *pluginsdk.Resource {
 			"tags": commonschema.TagsDataSource(),
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["enable_non_ssl_port"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Computed:   true,
+			Deprecated: "`enable_non_ssl_port` will be removed in favour of the property `non_ssl_port_enabled` in version 4.0 of the AzureRM Provider.",
+		}
+		resource.Schema["redis_configuration"].Elem.(*pluginsdk.Resource).Schema["enable_authentication"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Default:    true,
+			Deprecated: "`enable_authentication` will be removed in favour of the property `authentication_enabled` in version 4.0 of the AzureRM Provider.",
+		}
+	}
+
+	return resource
 }
 
 func dataSourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -294,7 +309,12 @@ func dataSourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error
 		}
 		d.Set("minimum_tls_version", minimumTlsVersion)
 		d.Set("port", props.Port)
-		d.Set("enable_non_ssl_port", props.EnableNonSslPort)
+		d.Set("non_ssl_port_enabled", props.EnableNonSslPort)
+
+		if !features.FourPointOhBeta() {
+			d.Set("enable_non_ssl_port", props.EnableNonSslPort)
+		}
+
 		shardCount := 0
 		if props.ShardCount != nil {
 			shardCount = int(*props.ShardCount)

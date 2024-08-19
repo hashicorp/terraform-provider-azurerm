@@ -139,6 +139,11 @@ The following arguments are supported:
 
 ~> **Note:** Assigning the `virtual_network_subnet_id` property requires [RBAC permissions on the subnet](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#permissions)
 
+[//]: # (TODO 4.0 add it in 4.0 provider)
+[//]: # (* `vnet_image_pull_enabled` - &#40;Optional&#41; Specifies whether traffic for the image pull should be routed over virtual network. Defaults to `false`.)
+
+[//]: # (~> **Note:** The feature can also be enabled via the app setting `WEBSITE_PULL_IMAGE_OVER_VNET`. The Setting is enabled by default for app running in the App Service Environment.)
+
 * `webdeploy_publish_basic_authentication_enabled` - (Optional) Should the default WebDeploy Basic Authentication publishing credentials enabled. Defaults to `true`.
 
 ~> **NOTE:** Setting this value to true will disable the ability to use `zip_deploy_file` which currently relies on the default publishing profile.
@@ -173,7 +178,7 @@ A `application_stack` block supports the following:
 
 * `node_version` - (Optional) The version of Node to run. Possible values include `~12`, `~14`, `~16`, `~18` and `~20`.
 
-* `powershell_core_version` - (Optional) The version of PowerShell Core to run. Possible values are `7`, and `7.2`.
+* `powershell_core_version` - (Optional) The version of PowerShell Core to run. Possible values are `7`, `7.2`, and `7.4`.
 
 ~> **NOTE:** A value of `7` will provide the latest stable version. `7.2` is in preview at the time of writing.
 
@@ -301,7 +306,9 @@ An `active_directory_v2` block supports the following:
 
 * `client_id` - (Required) The ID of the Client to use to authenticate with Azure Active Directory.
 
-* `tenant_auth_endpoint` - (Required) The Azure Tenant Endpoint for the Authenticating Tenant. e.g. `https://login.microsoftonline.com/v2.0/{tenant-guid}/`
+* `tenant_auth_endpoint` - (Required) The Azure Tenant Endpoint for the Authenticating Tenant. e.g. `https://login.microsoftonline.com/{tenant-guid}/v2.0/`
+
+~> **NOTE:** [Here](https://learn.microsoft.com/en-us/entra/identity-platform/authentication-national-cloud#microsoft-entra-authentication-endpoints) is a list of possible authentication endpoints based on the cloud environment. [Here](https://learn.microsoft.com/en-us/azure/app-service/configure-authentication-provider-aad?tabs=workforce-tenant) is more information to better understand how to configure authentication for Azure App Service or Azure Functions.
 
 * `client_secret_setting_name` - (Optional) The App Setting name that contains the client secret of the Client.
 
@@ -566,6 +573,7 @@ An `ip_restriction` block supports the following:
 ~> **NOTE:** One and only one of `ip_address`, `service_tag` or `virtual_network_subnet_id` must be specified.
 
 * `description` - (Optional) The Description of this IP Restriction.
+
 ---
 
 A `microsoft` block supports the following:
@@ -615,6 +623,7 @@ A `scm_ip_restriction` block supports the following:
 ~> **NOTE:** One and only one of `ip_address`, `service_tag` or `virtual_network_subnet_id` must be specified.
 
 * `description` - (Optional) The Description of this IP Restriction.
+
 ---
 
 A `site_config` block supports the following:

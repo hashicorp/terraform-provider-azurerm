@@ -23,6 +23,18 @@ type ListByServerCompleteResult struct {
 	Items              []LogFile
 }
 
+type ListByServerCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByServerCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByServer ...
 func (c LogFilesClient) ListByServer(ctx context.Context, id FlexibleServerId) (result ListByServerOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c LogFilesClient) ListByServer(ctx context.Context, id FlexibleServerId) (
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByServerCustomPager{},
 		Path:       fmt.Sprintf("%s/logFiles", id.ID()),
 	}
 
@@ -72,6 +85,7 @@ func (c LogFilesClient) ListByServerCompleteMatchingPredicate(ctx context.Contex
 
 	resp, err := c.ListByServer(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

@@ -73,6 +73,7 @@ func resourceApiManagementNamedValue() *pluginsdk.Resource {
 						},
 					},
 				},
+				RequiredWith: []string{"secret"},
 			},
 
 			"value": {
@@ -127,6 +128,10 @@ func resourceApiManagementNamedValueCreateUpdate(d *pluginsdk.ResourceData, meta
 			Secret:      pointer.To(d.Get("secret").(bool)),
 			KeyVault:    expandApiManagementNamedValueKeyVault(d.Get("value_from_key_vault").([]interface{})),
 		},
+	}
+
+	if parameters.Properties.KeyVault != nil && (parameters.Properties.Secret == nil || !*parameters.Properties.Secret) {
+		return fmt.Errorf("`secret` must be true when `value_from_key_vault` is set")
 	}
 
 	if v, ok := d.GetOk("value"); ok {

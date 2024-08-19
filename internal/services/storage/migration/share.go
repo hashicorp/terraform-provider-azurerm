@@ -26,7 +26,7 @@ func (ShareV0ToV1) Schema() map[string]*pluginsdk.Schema {
 
 func (ShareV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	// this should have been applied from pre-0.12 migration system; backporting just in-case
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]interface{}, _ interface{}) (map[string]interface{}, error) {
 		shareName := rawState["name"].(string)
 		resourceGroup := rawState["resource_group_name"].(string)
 		accountName := rawState["storage_account_name"].(string)

@@ -11,7 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/flowlogs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkwatchers"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/networksecuritygroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -153,11 +153,11 @@ func (NetworkWatcherFlowLogV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 		} else {
 			// The `name` is introduced as an attribute since 0e528be. If users have provisioned this resource prior to that commit, and didn't run a `refresh` for the flow log. Then the state won't have `name` included.
 			// In this case, we will use the Portal way to construct the flow log name.
-			nsgId, err := parse.NetworkSecurityGroupID(parts[1])
+			nsgId, err := networksecuritygroups.ParseNetworkSecurityGroupID(parts[1])
 			if err != nil {
 				return rawState, err
 			}
-			name = fmt.Sprintf("Microsoft.Network%s%s", watcherId.ResourceGroupName, nsgId.Name)
+			name = fmt.Sprintf("Microsoft.Network%s%s", watcherId.ResourceGroupName, nsgId.NetworkSecurityGroupName)
 			if len(name) > 80 {
 				name = name[:80]
 			}

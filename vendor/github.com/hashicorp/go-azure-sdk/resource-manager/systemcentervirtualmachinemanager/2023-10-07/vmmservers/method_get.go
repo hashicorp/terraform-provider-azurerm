@@ -14,7 +14,7 @@ import (
 type GetOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *VMMServer
+	Model        *VMmServer
 }
 
 // Get ...
@@ -43,7 +43,7 @@ func (c VMmServersClient) Get(ctx context.Context, id VMmServerId) (result GetOp
 		return
 	}
 
-	var model VMMServer
+	var model VMmServer
 	result.Model = &model
 
 	if err = resp.Unmarshal(result.Model); err != nil {

@@ -53,8 +53,8 @@ func (c PostRulesClient) ResetCounters(ctx context.Context, id PostRuleId, optio
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPost,
-		Path:          fmt.Sprintf("%s/resetCounters", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/resetCounters", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

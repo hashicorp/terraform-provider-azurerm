@@ -23,6 +23,18 @@ type NamespacesListNetworkRuleSetCompleteResult struct {
 	Items              []NetworkRuleSet
 }
 
+type NamespacesListNetworkRuleSetCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *NamespacesListNetworkRuleSetCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // NamespacesListNetworkRuleSet ...
 func (c NetworkRuleSetsClient) NamespacesListNetworkRuleSet(ctx context.Context, id NamespaceId) (result NamespacesListNetworkRuleSetOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c NetworkRuleSetsClient) NamespacesListNetworkRuleSet(ctx context.Context,
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &NamespacesListNetworkRuleSetCustomPager{},
 		Path:       fmt.Sprintf("%s/networkRuleSets", id.ID()),
 	}
 
@@ -72,6 +85,7 @@ func (c NetworkRuleSetsClient) NamespacesListNetworkRuleSetCompleteMatchingPredi
 
 	resp, err := c.NamespacesListNetworkRuleSet(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

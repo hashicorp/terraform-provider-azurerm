@@ -183,6 +183,7 @@ func SiteConfigSchemaLinuxWebAppSlot() *pluginsdk.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						"VS2017",
 						"VS2019",
+						"VS2022",
 					}, false),
 				},
 
@@ -213,14 +214,26 @@ func SiteConfigSchemaLinuxWebAppSlot() *pluginsdk.Schema {
 				"health_check_path": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
+					RequiredWith: func() []string {
+						if features.FourPointOhBeta() {
+							return []string{"site_config.0.health_check_eviction_time_in_min"}
+						}
+						return []string{}
+					}(),
 				},
 
 				"health_check_eviction_time_in_min": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					Computed:     true,
+					Computed:     !features.FourPointOhBeta(),
 					ValidateFunc: validation.IntBetween(2, 10),
-					Description:  "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Defaults to `10`. Only valid in conjunction with `health_check_path`",
+					RequiredWith: func() []string {
+						if features.FourPointOhBeta() {
+							return []string{"site_config.0.health_check_path"}
+						}
+						return []string{}
+					}(),
+					Description: "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Only valid in conjunction with `health_check_path`",
 				},
 
 				"worker_count": {
@@ -446,6 +459,7 @@ func SiteConfigSchemaWindowsWebAppSlot() *pluginsdk.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						"VS2017",
 						"VS2019",
+						"VS2022",
 					}, false),
 				},
 
@@ -476,14 +490,26 @@ func SiteConfigSchemaWindowsWebAppSlot() *pluginsdk.Schema {
 				"health_check_path": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
+					RequiredWith: func() []string {
+						if features.FourPointOhBeta() {
+							return []string{"site_config.0.health_check_eviction_time_in_min"}
+						}
+						return []string{}
+					}(),
 				},
 
 				"health_check_eviction_time_in_min": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					Computed:     true,
+					Computed:     !features.FourPointOhBeta(),
 					ValidateFunc: validation.IntBetween(2, 10),
-					Description:  "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Defaults to `10`. Only valid in conjunction with `health_check_path`",
+					RequiredWith: func() []string {
+						if features.FourPointOhBeta() {
+							return []string{"site_config.0.health_check_path"}
+						}
+						return []string{}
+					}(),
+					Description: "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Only valid in conjunction with `health_check_path`",
 				},
 
 				"worker_count": {
@@ -681,6 +707,7 @@ func (s *SiteConfigLinuxWebAppSlot) ExpandForCreate(appSettings map[string]strin
 func (s *SiteConfigLinuxWebAppSlot) ExpandForUpdate(metadata sdk.ResourceMetaData, existing *webapps.SiteConfig, appSettings map[string]string) (*webapps.SiteConfig, error) {
 	expanded := *existing
 
+	expanded.AlwaysOn = pointer.To(s.AlwaysOn)
 	expanded.AcrUseManagedIdentityCreds = pointer.To(s.UseManagedIdentityACR)
 	expanded.AutoHealEnabled = pointer.To(s.AutoHeal)
 	expanded.HTTP20Enabled = pointer.To(s.Http2Enabled)
@@ -930,7 +957,7 @@ func (s *SiteConfigLinuxWebAppSlot) DecodeDockerAppStack(input map[string]string
 
 	registryHost := trimURLScheme(applicationStack.DockerRegistryUrl)
 	dockerString := strings.TrimPrefix(s.LinuxFxVersion, "DOCKER|")
-	applicationStack.DockerImageName = strings.TrimPrefix(dockerString, registryHost)
+	applicationStack.DockerImageName = strings.TrimPrefix(dockerString, registryHost+"/")
 
 	s.ApplicationStack = []ApplicationStackLinux{applicationStack}
 }
@@ -1444,7 +1471,7 @@ func (s *SiteConfigWindowsWebAppSlot) DecodeDockerAppStack(input map[string]stri
 
 	registryHost := trimURLScheme(applicationStack.DockerRegistryUrl)
 	dockerString := strings.TrimPrefix(s.WindowsFxVersion, "DOCKER|")
-	applicationStack.DockerImageName = strings.TrimPrefix(dockerString, registryHost)
+	applicationStack.DockerImageName = strings.TrimPrefix(dockerString, registryHost+"/")
 
 	s.ApplicationStack = []ApplicationStackWindows{applicationStack}
 }

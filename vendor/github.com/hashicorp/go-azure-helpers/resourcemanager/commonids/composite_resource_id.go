@@ -21,6 +21,14 @@ type CompositeResourceID[T1 resourceids.ResourceId, T2 resourceids.ResourceId] s
 	Second T2
 }
 
+// NewCompositeResourceID returns a new CompositeResourceID struct
+func NewCompositeResourceID[T1 resourceids.ResourceId, T2 resourceids.ResourceId](first T1, second T2) CompositeResourceID[T1, T2] {
+	return CompositeResourceID[T1, T2]{
+		First:  first,
+		Second: second,
+	}
+}
+
 // ID returns the formatted Composite Resource Id
 func (id CompositeResourceID[T1, T2]) ID() string {
 	fmtString := "%s|%s"

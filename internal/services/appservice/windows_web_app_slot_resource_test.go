@@ -36,6 +36,29 @@ func TestAccWindowsWebAppSlot_basic(t *testing.T) {
 	})
 }
 
+func TestAccWindowsWebAppSlot_updateTags(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
+	r := WindowsWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.basicWithTags(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("app_settings.WEBSITE_HEALTHCHECK_MAXPINGFAILURES").DoesNotExist(),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
 func TestAccWindowsWebAppSlot_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
 	r := WindowsWebAppSlotResource{}
@@ -465,6 +488,20 @@ func TestAccWindowsWebAppSlot_withAutoHealRules(t *testing.T) {
 	})
 }
 
+func TestAccWindowsWebAppSlot_withAutoHealSlowRequestWithPath(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
+	r := WindowsWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.autoHealRulesSlowRequestWithPath(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
 func TestAccWindowsWebAppSlot_withAutoHealRulesUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
 	r := WindowsWebAppSlotResource{}
@@ -766,29 +803,6 @@ func TestAccWindowsWebAppSlot_withPython(t *testing.T) {
 			Config: r.python(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("site_credential.0.password"),
-	})
-}
-
-func TestAccWindowsWebAppSlot_withNode12(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
-	r := WindowsWebAppSlotResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.node(data, "~12"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("site_credential.0.password"),
-		{
-			Config: r.nodeWithAppSettings(data, "~12"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.application_stack.0.node_version").HasValue("~12"),
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
@@ -1283,6 +1297,23 @@ resource "azurerm_windows_web_app_slot" "test" {
 `, r.baseTemplate(data), data.RandomInteger)
 }
 
+func (r WindowsWebAppSlotResource) basicWithTags(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_windows_web_app_slot" "test" {
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_windows_web_app.test.id
+
+  site_config {}
+}
+`, r.baseTemplate(data), data.RandomInteger)
+}
+
 func (r WindowsWebAppSlotResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
@@ -1344,6 +1375,48 @@ resource "azurerm_windows_web_app_slot" "test" {
         }
       }
 
+      action {
+        action_type                    = "Recycle"
+        minimum_process_execution_time = "00:05:00"
+      }
+    }
+  }
+}
+`, r.baseTemplate(data), data.RandomInteger)
+}
+
+func (r WindowsWebAppSlotResource) autoHealRulesSlowRequestWithPath(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+%s
+resource "azurerm_windows_web_app_slot" "test" {
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_windows_web_app.test.id
+
+  site_config {
+    auto_heal_enabled = true
+    auto_heal_setting {
+      trigger {
+        slow_request {
+          count      = "10"
+          interval   = "00:10:00"
+          time_taken = "00:00:10"
+        }
+        slow_request_with_path {
+          count      = "11"
+          interval   = "00:11:00"
+          time_taken = "00:00:11"
+          path       = "/tftest1"
+        }
+        slow_request_with_path {
+          count      = "12"
+          interval   = "00:12:00"
+          time_taken = "00:00:12"
+          path       = "/tftest2"
+        }
+      }
       action {
         action_type                    = "Recycle"
         minimum_process_execution_time = "00:05:00"
@@ -1533,19 +1606,20 @@ resource "azurerm_windows_web_app_slot" "test" {
       "third.aspx",
       "hostingstart.html",
     ]
-    http2_enabled               = true
-    scm_use_main_ip_restriction = true
-    local_mysql_enabled         = true
-    managed_pipeline_mode       = "Integrated"
-    remote_debugging_enabled    = true
-    remote_debugging_version    = "VS2019"
-    use_32_bit_worker           = true
-    websockets_enabled          = true
-    ftps_state                  = "FtpsOnly"
-    health_check_path           = "/health"
-    worker_count                = 1
-    minimum_tls_version         = "1.1"
-    scm_minimum_tls_version     = "1.1"
+    http2_enabled                     = true
+    scm_use_main_ip_restriction       = true
+    local_mysql_enabled               = true
+    managed_pipeline_mode             = "Integrated"
+    remote_debugging_enabled          = true
+    remote_debugging_version          = "VS2022"
+    use_32_bit_worker                 = true
+    websockets_enabled                = true
+    ftps_state                        = "FtpsOnly"
+    health_check_path                 = "/health"
+    health_check_eviction_time_in_min = 7
+    worker_count                      = 1
+    minimum_tls_version               = "1.1"
+    scm_minimum_tls_version           = "1.1"
     cors {
       allowed_origins = [
         "http://www.contoso.com",

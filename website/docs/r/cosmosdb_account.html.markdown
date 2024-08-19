@@ -30,7 +30,7 @@ resource "azurerm_cosmosdb_account" "db" {
   offer_type          = "Standard"
   kind                = "MongoDB"
 
-  enable_automatic_failover = true
+  automatic_failover_enabled = true
 
   capabilities {
     name = "EnableAggregationPipeline"
@@ -149,6 +149,8 @@ The following arguments are supported:
 * `automatic_failover_enabled` - (Optional) Enable automatic failover for this Cosmos DB account.
 
 * `partition_merge_enabled` - (Optional) Is partition merge on the Cosmos DB account enabled? Defaults to `false`.
+
+* `burst_capacity_enabled` - (Optional) Enable burst capacity for this Cosmos DB account. Defaults to `false`.
 
 * `public_network_access_enabled` - (Optional) Whether or not public network access is allowed for this CosmosDB account. Defaults to `true`.
 

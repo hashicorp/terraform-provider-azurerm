@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -264,6 +265,9 @@ func TestAccKustoCluster_vnet(t *testing.T) {
 }
 
 func TestAccKustoCluster_languageExtensions(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("Property has been removed in 4.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
 	r := KustoClusterResource{}
 
@@ -380,7 +384,7 @@ func TestAccKustoCluster_trustedExternalTenants(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.trustedExternalTenants(data, "[]"),
+			Config: r.unsetTrustedExternalTenants(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -515,6 +519,35 @@ resource "azurerm_kusto_cluster" "test" {
   trusted_external_tenants = %s
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, tenantConfig)
+}
+
+func (KustoClusterResource) unsetTrustedExternalTenants(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_kusto_cluster" "test" {
+  name                = "acctestkc%s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    name     = "Dev(No SLA)_Standard_D11_v2"
+    capacity = 1
+  }
+
+  trusted_external_tenants = []
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (KustoClusterResource) doubleEncryption(data acceptance.TestData) string {
@@ -901,7 +934,7 @@ resource "azurerm_kusto_cluster" "test" {
 
   optimized_auto_scale {
     minimum_instances = 2
-    maximum_instances = 2
+    maximum_instances = 3
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)

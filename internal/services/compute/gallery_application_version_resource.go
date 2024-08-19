@@ -57,7 +57,7 @@ type ManageAction struct {
 
 type TargetRegion struct {
 	Name                 string `tfschema:"name"`
-	RegionalReplicaCount int    `tfschema:"regional_replica_count"`
+	RegionalReplicaCount int64  `tfschema:"regional_replica_count"`
 	ExcludeFromLatest    bool   `tfschema:"exclude_from_latest"`
 	StorageAccountType   string `tfschema:"storage_account_type"`
 }
@@ -502,16 +502,15 @@ func flattenGalleryApplicationVersionManageAction(input *galleryapplicationversi
 	}
 
 	output := make([]ManageAction, 0)
-	if input != nil {
-		obj := ManageAction{
-			Install: input.Install,
-			Remove:  input.Remove,
-		}
-		if input.Update != nil {
-			obj.Update = *input.Update
-		}
-		output = append(output, obj)
+
+	obj := ManageAction{
+		Install: input.Install,
+		Remove:  input.Remove,
 	}
+	if input.Update != nil {
+		obj.Update = *input.Update
+	}
+	output = append(output, obj)
 
 	return output
 }
@@ -544,7 +543,7 @@ func expandGalleryApplicationVersionTargetRegion(input []TargetRegion) *[]galler
 	for _, item := range input {
 		targetRegion := galleryapplicationversions.TargetRegion{
 			Name:                 location.Normalize(item.Name),
-			RegionalReplicaCount: pointer.To(int64(item.RegionalReplicaCount)),
+			RegionalReplicaCount: pointer.To(item.RegionalReplicaCount),
 			StorageAccountType:   pointer.To(galleryapplicationversions.StorageAccountType(item.StorageAccountType)),
 		}
 
@@ -572,7 +571,7 @@ func flattenGalleryApplicationVersionTargetRegion(input *[]galleryapplicationver
 		}
 
 		if item.RegionalReplicaCount != nil {
-			obj.RegionalReplicaCount = int(*item.RegionalReplicaCount)
+			obj.RegionalReplicaCount = *item.RegionalReplicaCount
 		}
 
 		if item.StorageAccountType != nil {

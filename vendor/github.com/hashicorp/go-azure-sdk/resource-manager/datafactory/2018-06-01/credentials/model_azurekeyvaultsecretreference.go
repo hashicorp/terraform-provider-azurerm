@@ -11,8 +11,8 @@ import (
 var _ SecretBase = AzureKeyVaultSecretReference{}
 
 type AzureKeyVaultSecretReference struct {
-	SecretName    interface{}            `json:"secretName"`
-	SecretVersion *interface{}           `json:"secretVersion,omitempty"`
+	SecretName    string                 `json:"secretName"`
+	SecretVersion *string                `json:"secretVersion,omitempty"`
 	Store         LinkedServiceReference `json:"store"`
 
 	// Fields inherited from SecretBase

@@ -159,7 +159,12 @@ func resourceStorageShareFileCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if v, ok := d.GetOk("content_md5"); ok {
-		input.ContentMD5 = utils.String(v.(string))
+		// Azure uses a Base64 encoded representation of the standard MD5 sum of the file
+		contentMD5, err := convertHexToBase64Encoding(v.(string))
+		if err != nil {
+			return fmt.Errorf("failed to hex decode then base64 encode `content_md5` value: %s", err)
+		}
+		input.ContentMD5 = &contentMD5
 	}
 
 	var file *os.File
@@ -237,7 +242,12 @@ func resourceStorageShareFileUpdate(d *pluginsdk.ResourceData, meta interface{})
 		}
 
 		if v, ok := d.GetOk("content_md5"); ok {
-			input.ContentMD5 = utils.String(v.(string))
+			// Azure uses a Base64 encoded representation of the standard MD5 sum of the file
+			contentMD5, err := convertHexToBase64Encoding(v.(string))
+			if err != nil {
+				return fmt.Errorf("failed to hex decode then base64 encode `content_md5` value: %s", err)
+			}
+			input.ContentMD5 = &contentMD5
 		}
 
 		if _, err = client.SetProperties(ctx, id.ShareName, id.DirectoryPath, id.FileName, input); err != nil {

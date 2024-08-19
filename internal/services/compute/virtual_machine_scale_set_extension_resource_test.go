@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesetextensions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type VirtualMachineScaleSetExtensionResource struct{}
@@ -223,17 +223,17 @@ func TestAccVirtualMachineScaleSetExtension_updateVersion(t *testing.T) {
 }
 
 func (t VirtualMachineScaleSetExtensionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.VirtualMachineScaleSetExtensionID(state.ID)
+	id, err := virtualmachinescalesetextensions.ParseVirtualMachineScaleSetExtensionID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Compute.VMScaleSetExtensionsClient.Get(ctx, id.ResourceGroup, id.VirtualMachineScaleSetName, id.ExtensionName, "")
+	resp, err := clients.Compute.VirtualMachineScaleSetExtensionsClient.Get(ctx, *id, virtualmachinescalesetextensions.DefaultGetOperationOptions())
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Compute Virtual Machine Scale Set Extension %q", id.String())
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r VirtualMachineScaleSetExtensionResource) basicLinux(data acceptance.TestData) string {

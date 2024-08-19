@@ -37,6 +37,49 @@ func TestAccLinuxWebApp_basic(t *testing.T) {
 	})
 }
 
+func TestAccLinuxWebApp_updateTags(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
+	r := LinuxWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("app,linux"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.basicWithTags(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("app,linux"),
+				check.That(data.ResourceName).Key("app_settings.WEBSITE_HEALTHCHECK_MAXPINGFAILURES").DoesNotExist(),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+func TestAccLinuxWebApp_healthCheckTimeoutOnly(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("skipping as not valid config in 4.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
+	r := LinuxWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.healthCheckOnly(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
 func TestAccLinuxWebApp_freeSkuAlwaysOnShouldFail(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
 	r := LinuxWebAppResource{}
@@ -81,6 +124,7 @@ func TestAccLinuxWebApp_completeUpdated(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.always_on").HasValue("true"),
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
@@ -803,6 +847,21 @@ func TestAccLinuxWebApp_withPhp82(t *testing.T) {
 	})
 }
 
+func TestAccLinuxWebApp_withPhp83(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
+	r := LinuxWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.php(data, "8.3"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
 func TestAccLinuxWebApp_withPython37(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
 	r := LinuxWebAppResource{}
@@ -1404,6 +1463,21 @@ func TestAccLinuxWebApp_withAutoHealRulesSlowRequest(t *testing.T) {
 	})
 }
 
+func TestAccLinuxWebApp_withAutoHealRulesSlowRequestWithPath(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
+	r := LinuxWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.autoHealRulesSlowRequestWithPath(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccLinuxWebApp_appSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
 	r := LinuxWebAppResource{}
@@ -1717,6 +1791,50 @@ resource "azurerm_linux_web_app" "test" {
 `, r.baseTemplate(data), data.RandomInteger)
 }
 
+func (r LinuxWebAppResource) basicWithTags(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_web_app" "test" {
+  name                = "acctestWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {}
+
+  tags = {
+    foo = "bar"
+  }
+}
+`, r.baseTemplate(data), data.RandomInteger)
+}
+
+func (r LinuxWebAppResource) healthCheckOnly(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_web_app" "test" {
+  name                = "acctestWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {
+    health_check_eviction_time_in_min = 5
+  }
+}
+`, r.baseTemplate(data), data.RandomInteger)
+}
+
 func (r LinuxWebAppResource) linuxFreeSku(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1862,19 +1980,20 @@ resource "azurerm_linux_web_app" "test" {
       "third.aspx",
       "hostingstart.html",
     ]
-    http2_enabled               = true
-    scm_use_main_ip_restriction = true
-    local_mysql_enabled         = true
-    managed_pipeline_mode       = "Integrated"
-    remote_debugging_enabled    = true
-    remote_debugging_version    = "VS2022"
-    use_32_bit_worker           = false
-    websockets_enabled          = true
-    ftps_state                  = "FtpsOnly"
-    health_check_path           = "/health"
-    worker_count                = 1
-    minimum_tls_version         = "1.1"
-    scm_minimum_tls_version     = "1.1"
+    http2_enabled                     = true
+    scm_use_main_ip_restriction       = true
+    local_mysql_enabled               = true
+    managed_pipeline_mode             = "Integrated"
+    remote_debugging_enabled          = true
+    remote_debugging_version          = "VS2022"
+    use_32_bit_worker                 = false
+    websockets_enabled                = true
+    ftps_state                        = "FtpsOnly"
+    health_check_path                 = "/health"
+    health_check_eviction_time_in_min = 7
+    worker_count                      = 1
+    minimum_tls_version               = "1.1"
+    scm_minimum_tls_version           = "1.1"
 
     cors {
       allowed_origins = [
@@ -2040,11 +2159,11 @@ resource "azurerm_linux_web_app" "test" {
     local_mysql_enabled               = false
     managed_pipeline_mode             = "Integrated"
     remote_debugging_enabled          = true
-    remote_debugging_version          = "VS2017"
+    remote_debugging_version          = "VS2022"
     websockets_enabled                = true
     ftps_state                        = "FtpsOnly"
     health_check_path                 = "/health2"
-    health_check_eviction_time_in_min = 7
+    health_check_eviction_time_in_min = 8
     worker_count                      = 2
     minimum_tls_version               = "1.2"
     scm_minimum_tls_version           = "1.2"
@@ -3300,10 +3419,52 @@ resource "azurerm_linux_web_app" "test" {
           count      = "10"
           interval   = "00:10:00"
           time_taken = "00:00:10"
-          path       = null
         }
       }
 
+      action {
+        action_type                    = "Recycle"
+        minimum_process_execution_time = "00:05:00"
+      }
+    }
+  }
+}
+`, r.baseTemplate(data), data.RandomInteger)
+}
+
+func (r LinuxWebAppResource) autoHealRulesSlowRequestWithPath(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+%s
+resource "azurerm_linux_web_app" "test" {
+  name                = "acctestWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+  site_config {
+    auto_heal_enabled = true
+    auto_heal_setting {
+      trigger {
+        slow_request {
+          count      = "10"
+          interval   = "00:10:00"
+          time_taken = "00:00:10"
+        }
+        slow_request_with_path {
+          count      = "11"
+          interval   = "00:11:00"
+          time_taken = "00:00:11"
+          path       = "/tftest1"
+        }
+        slow_request_with_path {
+          count      = "12"
+          interval   = "00:12:00"
+          time_taken = "00:00:12"
+          path       = "/tftest2"
+        }
+      }
       action {
         action_type                    = "Recycle"
         minimum_process_execution_time = "00:05:00"

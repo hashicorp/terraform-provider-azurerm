@@ -95,7 +95,7 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure location where the Linux Virtual Machine should exist. Changing this forces a new resource to be created.
 
-* `license_type` - (Optional) Specifies the BYOL Type for this Virtual Machine. Possible values are `RHEL_BYOS` and `SLES_BYOS`.
+* `license_type` - (Optional) Specifies the License Type for this Virtual Machine. Possible values are `RHEL_BYOS`, `RHEL_BASE`, `RHEL_EUS`, `RHEL_SAPAPPS`, `RHEL_SAPHA`, `RHEL_BASESAPAPPS`, `RHEL_BASESAPHA`, `SLES_BYOS`, `SLES_SAP`, `SLES_HPC`.
 
 * `name` - (Required) The name of the Linux Virtual Machine. Changing this forces a new resource to be created.
 
@@ -162,6 +162,8 @@ The following arguments are supported:
 
 * `gallery_application` - (Optional) One or more `gallery_application` blocks as defined below.
 
+~> **Note** Gallery Application Assignments can be defined either directly on `azurerm_linux_virtual_machine` resource, or using the `azurerm_virtual_machine_gallery_application_assignment` resource - but the two approaches cannot be used together. If both are used with the same Virtual Machine, spurious changes will occur. If `azurerm_virtual_machine_gallery_application_assignment` is used, it's recommended to use `ignore_changes` for the `gallery_application` block on the corresponding `azurerm_linux_virtual_machine` resource, to avoid a persistent diff when using this resource.
+
 * `identity` - (Optional) An `identity` block as defined below.
 
 * `patch_assessment_mode` - (Optional) Specifies the mode of VM Guest Patching for the Virtual Machine. Possible values are `AutomaticByPlatform` or `ImageDefault`. Defaults to `ImageDefault`.
@@ -222,6 +224,8 @@ The following arguments are supported:
 
 ~> **NOTE:** Orchestrated Virtual Machine Scale Sets can be provisioned using [the `azurerm_orchestrated_virtual_machine_scale_set` resource](/docs/providers/azurerm/r/orchestrated_virtual_machine_scale_set.html).
 
+~> **NOTE:** To attach an existing VM to a Virtual Machine Scale Set, the scale set must have `single_placement_group` set to `false`, see [the documentation](https://learn.microsoft.com/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-attach-detach-vm?tabs=portal-1%2Cportal-2%2Cportal-3#limitations-for-attaching-an-existing-vm-to-a-scale-set) for more information.
+
 * `zone` - (Optional) Specifies the Availability Zones in which this Linux Virtual Machine should be located. Changing this forces a new Linux Virtual Machine to be created.
 
 ---
@@ -229,6 +233,8 @@ The following arguments are supported:
 A `additional_capabilities` block supports the following:
 
 * `ultra_ssd_enabled` - (Optional) Should the capacity to enable Data Disks of the `UltraSSD_LRS` storage account type be supported on this Virtual Machine? Defaults to `false`.
+
+* `hibernation_enabled` - (Optional) Whether to enable the hibernation capability or not.
 
 ---
 
@@ -274,7 +280,7 @@ A `gallery_application` block supports the following:
 
 * `configuration_blob_uri` - (Optional) Specifies the URI to an Azure Blob that will replace the default configuration for the package if provided.
 
-* `order` - (Optional) Specifies the order in which the packages have to be installed. Possible values are between `0` and `2,147,483,647`.
+* `order` - (Optional) Specifies the order in which the packages have to be installed. Possible values are between `0` and `2147483647`. Defaults to `0`.
 
 * `tag` - (Optional) Specifies a passthrough value for more generic context. This field can be any valid `string` value.
 

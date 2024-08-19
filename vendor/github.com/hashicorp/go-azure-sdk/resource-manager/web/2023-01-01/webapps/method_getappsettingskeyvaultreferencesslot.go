@@ -23,6 +23,18 @@ type GetAppSettingsKeyVaultReferencesSlotCompleteResult struct {
 	Items              []ApiKVReference
 }
 
+type GetAppSettingsKeyVaultReferencesSlotCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *GetAppSettingsKeyVaultReferencesSlotCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // GetAppSettingsKeyVaultReferencesSlot ...
 func (c WebAppsClient) GetAppSettingsKeyVaultReferencesSlot(ctx context.Context, id SlotId) (result GetAppSettingsKeyVaultReferencesSlotOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c WebAppsClient) GetAppSettingsKeyVaultReferencesSlot(ctx context.Context,
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &GetAppSettingsKeyVaultReferencesSlotCustomPager{},
 		Path:       fmt.Sprintf("%s/config/configReferences/appSettings", id.ID()),
 	}
 
@@ -72,6 +85,7 @@ func (c WebAppsClient) GetAppSettingsKeyVaultReferencesSlotCompleteMatchingPredi
 
 	resp, err := c.GetAppSettingsKeyVaultReferencesSlot(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

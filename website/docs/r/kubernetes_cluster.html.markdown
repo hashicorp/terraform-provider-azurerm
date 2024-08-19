@@ -99,9 +99,7 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `confidential_computing` - (Optional) A `confidential_computing` block as defined below. For more details please [the documentation](https://learn.microsoft.com/en-us/azure/confidential-computing/confidential-nodes-aks-overview)
 
-* `custom_ca_trust_certificates_base64` - (Optional) A list of up to 10 base64 encoded CAs that will be added to the trust store on nodes with the `custom_ca_trust_enabled` feature enabled.
-
--> **Note:** Removing `custom_ca_trust_certificates_base64` after it has been set forces a new resource to be created.
+* `cost_analysis_enabled` - (Optional) Should cost analysis be enabled for this Kubernetes Cluster? Defaults to `false`. The `sku_tier` must be set to `Standard` or `Premium` to enable this feature. Enabling this will add Kubernetes Namespace and Deployment details to the Cost Analysis views in the Azure portal.
 
 * `disk_encryption_set_id` - (Optional) The ID of the Disk Encryption Set which should be used for the Nodes and Volumes. More information [can be found in the documentation](https://docs.microsoft.com/azure/aks/azure-disk-customer-managed-keys). Changing this forces a new resource to be created.
 
@@ -160,8 +158,6 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 * `node_os_channel_upgrade` - (Optional) The upgrade channel for this Kubernetes Cluster Nodes' OS Image. Possible values are `Unmanaged`, `SecurityPatch`, `NodeImage` and `None`.
 
 -> **Note:** `node_os_channel_upgrade` must be set to `NodeImage` if `automatic_channel_upgrade` has been set to `node-image`
-
--> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/NodeOsUpgradeChannelPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://learn.microsoft.com/en-us/azure/aks/auto-upgrade-node-image#register-the-nodeosupgradechannelpreview-feature-flag) for more information.
 
 * `node_resource_group` - (Optional) The name of the Resource Group where the Kubernetes Nodes should exist. Changing this forces a new resource to be created.
 
@@ -223,8 +219,6 @@ resource "azurerm_kubernetes_cluster" "example" {
 
 * `service_mesh_profile` - (Optional) A `service_mesh_profile` block as defined below.
 
--> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/AzureServiceMeshPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://learn.microsoft.com/en-us/azure/aks/istio-deploy-addon#register-the-azureservicemeshpreview-feature-flag) for more information.
-
 * `workload_autoscaler_profile` - (Optional) A `workload_autoscaler_profile` block defined below.
 
 * `workload_identity_enabled` - (Optional) Specifies whether Azure AD Workload Identity should be enabled for the Cluster. Defaults to `false`.
@@ -232,10 +226,6 @@ resource "azurerm_kubernetes_cluster" "example" {
 -> **Note:** To enable Azure AD Workload Identity `oidc_issuer_enabled` must be set to `true`.
 
 -> **Note:** Enabling this option will allocate Workload Identity resources to the `kube-system` namespace in Kubernetes. If you wish to customize the deployment of Workload Identity, you can refer to [the documentation on Azure AD Workload Identity.](https://azure.github.io/azure-workload-identity/docs/installation/mutating-admission-webhook.html) The documentation provides guidance on how to install the mutating admission webhook, which allows for the customization of Workload Identity deployment.
-
-* `public_network_access_enabled` - (Optional) Whether public network access is allowed for this Kubernetes Cluster. Defaults to `true`.
-
-!> **Note:** `public_network_access_enabled` is currently not functional and is not passed to the Azure API. For further information please see this [issue](https://github.com/Azure/AKS/issues/3690). For controlling the public and private exposure of a cluster please see the properties `private_cluster_enabled` and `api_server_access_profile`.
 
 * `role_based_access_control_enabled` - (Optional) Whether Role Based Access Control for the Kubernetes Cluster should be enabled. Defaults to `true`. Changing this forces a new resource to be created.
 
@@ -290,12 +280,6 @@ An `api_server_access_profile` block supports the following:
 
 * `authorized_ip_ranges` - (Optional) Set of authorized IP ranges to allow access to API server, e.g. ["198.51.100.0/24"].
 
-* `subnet_id` - (Optional) The ID of the Subnet where the API server endpoint is delegated to.
-
-* `vnet_integration_enabled` - (Optional) Should API Server VNet Integration be enabled? For more details please visit [Use API Server VNet Integration](https://learn.microsoft.com/en-us/azure/aks/api-server-vnet-integration).
-
--> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/EnableAPIServerVnetIntegrationPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://learn.microsoft.com/en-us/azure/aks/api-server-vnet-integration#register-the-enableapiservervnetintegrationpreview-preview-feature) for more information.
-
 ---
 
 An `auto_scaler_profile` block supports the following:
@@ -338,7 +322,9 @@ An `auto_scaler_profile` block supports the following:
 
 An `azure_active_directory_role_based_access_control` block supports the following:
 
-* `managed` - (Optional) Is the Azure Active Directory integration Managed, meaning that Azure will create/manage the Service Principal used for integration.
+* `managed` - (Optional) Is the Azure Active Directory integration Managed, meaning that Azure will create/manage the Service Principal used for integration. Defaults to `false`.
+
+-> **Note:** The property `managed` is deprecated and will be defaulted to `true` in v4.0 of the AzureRM provider. Until the property is removed it must be specified with `true` for AKS-managed Entra Integration.
 
 * `tenant_id` - (Optional) The Tenant ID used for Azure Active Directory Application. If this isn't specified the Tenant ID of the current Subscription is used.
 
@@ -347,14 +333,6 @@ When `managed` is set to `true` the following properties can be specified:
 * `admin_group_object_ids` - (Optional) A list of Object IDs of Azure Active Directory Groups which should have Admin Role on the Cluster.
 
 * `azure_rbac_enabled` - (Optional) Is Role Based Access Control based on Azure AD enabled?
-
-When `managed` is set to `false` the following properties can be specified:
-
-* `client_app_id` - (Optional) The Client ID of an Azure Active Directory Application.
-
-* `server_app_id` - (Optional) The Server ID of an Azure Active Directory Application.
-
-* `server_app_secret` - (Optional) The Server Secret of an Azure Active Directory Application.
 
 ---
 
@@ -384,10 +362,6 @@ A `default_node_pool` block supports the following:
 
 * `capacity_reservation_group_id` - (Optional) Specifies the ID of the Capacity Reservation Group within which this AKS Cluster should be created. Changing this forces a new resource to be created.
 
-* `custom_ca_trust_enabled` - (Optional) Specifies whether to trust a Custom CA.
-
--> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/CustomCATrustPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://learn.microsoft.com/en-us/azure/aks/custom-certificate-authority) for more information.
-
 * `enable_auto_scaling` - (Optional) Should [the Kubernetes Auto Scaler](https://docs.microsoft.com/azure/aks/cluster-autoscaler) be enabled for this Node Pool?
 
 -> **Note:** This requires that the `type` is set to `VirtualMachineScaleSets`.
@@ -414,8 +388,6 @@ A `default_node_pool` block supports the following:
 
 * `max_pods` - (Optional) The maximum number of pods that can run on each agent. `temporary_name_for_rotation` must be specified when changing this property.
 
-* `message_of_the_day` - (Optional) A base64-encoded string which will be written to /etc/motd after decoding. This allows customization of the message of the day for Linux nodes. It cannot be specified for Windows nodes and must be a static string (i.e. will be printed raw and not executed as a script). Changing this forces a new resource to be created.
-
 * `node_network_profile` - (Optional) A `node_network_profile` block as documented below.
 
 * `node_public_ip_prefix_id` - (Optional) Resource ID for the Public IP Addresses Prefix for the nodes in this Node Pool. `enable_node_public_ip` should be `true`. Changing this forces a new resource to be created.
@@ -432,7 +404,7 @@ A `default_node_pool` block supports the following:
 
 * `os_disk_type` - (Optional) The type of disk which should be used for the Operating System. Possible values are `Ephemeral` and `Managed`. Defaults to `Managed`. `temporary_name_for_rotation` must be specified when attempting a change.
 
-* `os_sku` - (Optional) Specifies the OS SKU used by the agent pool. Possible values are `AzureLinux`, `Ubuntu`, `Windows2019` and `Windows2022`. If not specified, the default is `Ubuntu` if OSType=Linux or `Windows2019` if OSType=Windows. And the default Windows OSSKU will be changed to `Windows2022` after Windows2019 is deprecated. `temporary_name_for_rotation` must be specified when attempting a change.
+* `os_sku` - (Optional) Specifies the OS SKU used by the agent pool. Possible values are `AzureLinux`, `Ubuntu`, `Windows2019` and `Windows2022`. If not specified, the default is `Ubuntu` if OSType=Linux or `Windows2019` if OSType=Windows. And the default Windows OSSKU will be changed to `Windows2022` after Windows2019 is deprecated. Changing this from `AzureLinux` or `Ubuntu` to `AzureLinux` or `Ubuntu` will not replace the resource, otherwise `temporary_name_for_rotation` must be specified when attempting a change.
 
 * `pod_subnet_id` - (Optional) The ID of the Subnet where the pods in the default Node Pool should exist.
 
@@ -460,9 +432,7 @@ A `default_node_pool` block supports the following:
 
 ~> **Note:** A Route Table must be configured on this Subnet.
 
-* `workload_runtime` - (Optional) Specifies the workload runtime used by the node pool. Possible values are `OCIContainer` and `KataMshvVmIsolation`.
-
-~> **Note:** Pod Sandboxing / KataVM Isolation node pools are in Public Preview - more information and details on how to opt into the preview can be found in [this article](https://learn.microsoft.com/azure/aks/use-pod-sandboxing)
+* `workload_runtime` - (Optional) Specifies the workload runtime used by the node pool. Possible value is `OCIContainer`.
 
 * `zones` - (Optional) Specifies a list of Availability Zones in which this Kubernetes Cluster should be located. `temporary_name_for_rotation` must be specified when changing this property.
 
@@ -602,7 +572,7 @@ A `maintenance_window_auto_upgrade` block supports the following:
 
 * `interval` - (Required) The interval for maintenance runs. Depending on the frequency this interval is week or month based.
 
-* `duration` - (Required) The duration of the window for maintenance to run in hours.
+* `duration` - (Required) The duration of the window for maintenance to run in hours. Possible options are between `4` to `24`.
 
 * `day_of_week` - (Optional) The day of the week for the maintenance run. Required in combination with weekly frequency. Possible values are `Friday`, `Monday`, `Saturday`, `Sunday`, `Thursday`, `Tuesday` and `Wednesday`.
 
@@ -627,7 +597,7 @@ A `maintenance_window_node_os` block supports the following:
 
 * `interval` - (Required) The interval for maintenance runs. Depending on the frequency this interval is week or month based.
 
-* `duration` - (Required) The duration of the window for maintenance to run in hours.
+* `duration` - (Required) The duration of the window for maintenance to run in hours. Possible options are between `4` to `24`.
 
 * `day_of_week` - (Optional) The day of the week for the maintenance run. Required in combination with weekly frequency. Possible values are `Friday`, `Monday`, `Saturday`, `Sunday`, `Thursday`, `Tuesday` and `Wednesday`.
 
@@ -671,7 +641,7 @@ A `network_profile` block supports the following:
 
 * `network_plugin` - (Required) Network plugin to use for networking. Currently supported values are `azure`, `kubenet` and `none`. Changing this forces a new resource to be created.
 
--> **Note:** When `network_plugin` is set to `azure` - the `pod_cidr` field must not be set.
+-> **Note:** When `network_plugin` is set to `azure` - the `pod_cidr` field must not be set, unless specifying `network_plugin_mode` to `overlay`.
 
 * `network_mode` - (Optional) Network mode to be used with Azure CNI. Possible values are `bridge` and `transparent`. Changing this forces a new resource to be created.
 
@@ -683,7 +653,7 @@ A `network_profile` block supports the following:
 
 ~> **Note:** When `network_policy` is set to `azure`, the `network_plugin` field can only be set to `azure`.
 
-~> **Note:** When `network_policy` is set to `cilium`, the `ebpf_data_plane` field must be set to `cilium`.
+~> **Note:** When `network_policy` is set to `cilium`, the `network_data_plane` field must be set to `cilium`.
 
 * `dns_service_ip` - (Optional) IP address within the Kubernetes service address range that will be used by cluster service discovery (kube-dns). Changing this forces a new resource to be created.
 
@@ -691,11 +661,11 @@ A `network_profile` block supports the following:
 
 -> **Note:** `docker_bridge_cidr` has been deprecated as the API no longer supports it and will be removed in version 4.0 of the provider.
 
-* `ebpf_data_plane` - (Optional) Specifies the eBPF data plane used for building the Kubernetes network. Possible value is `cilium`. Disabling this forces a new resource to be created.
+* `network_data_plane` - (Optional) Specifies the data plane used for building the Kubernetes network. Possible values are `azure` and `cilium`. Defaults to `azure`. Disabling this forces a new resource to be created.
 
-~> **Note:** When `ebpf_data_plane` is set to `cilium`, the `network_plugin` field can only be set to `azure`.
+~> **Note:** When `network_data_plane` is set to `cilium`, the `network_plugin` field can only be set to `azure`.
 
-~> **Note:** When `ebpf_data_plane` is set to `cilium`, one of either `network_plugin_mode = "overlay"` or `pod_subnet_id` must be specified.
+~> **Note:** When `network_data_plane` is set to `cilium`, one of either `network_plugin_mode = "overlay"` or `pod_subnet_id` must be specified.
 
 -> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/CiliumDataplanePreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://learn.microsoft.com/en-us/azure/aks/azure-cni-powered-by-cilium) for more information.
 
@@ -705,7 +675,7 @@ A `network_profile` block supports the following:
 
 * `outbound_type` - (Optional) The outbound (egress) routing method which should be used for this Kubernetes Cluster. Possible values are `loadBalancer`, `userDefinedRouting`, `managedNATGateway` and `userAssignedNATGateway`. Defaults to `loadBalancer`. More information on supported migration paths for `outbound_type` can be found in [this documentation](https://learn.microsoft.com/azure/aks/egress-outboundtype#updating-outboundtype-after-cluster-creation).
 
-* `pod_cidr` - (Optional) The CIDR to use for pod IP addresses. This field can only be set when `network_plugin` is set to `kubenet`. Changing this forces a new resource to be created.
+* `pod_cidr` - (Optional) The CIDR to use for pod IP addresses. This field can only be set when `network_plugin` is set to `kubenet` or `network_plugin_mode` is set to `overlay`. Changing this forces a new resource to be created.
 
 * `pod_cidrs` - (Optional) A list of CIDRs to use for pod IP addresses. For single-stack networking a single IPv4 CIDR is expected. For dual-stack networking an IPv4 and IPv6 CIDR are expected. Changing this forces a new resource to be created.
 
@@ -795,9 +765,25 @@ A `service_mesh_profile` block supports the following:
 
 * `external_ingress_gateway_enabled` - (Optional) Is Istio External Ingress Gateway enabled?
 
--> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/AzureServiceMeshPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://learn.microsoft.com/en-us/azure/aks/istio-deploy-addon#register-the-azureservicemeshpreview-feature-flag) for more information.
-
 -> **NOTE:** Currently only one Internal Ingress Gateway and one External Ingress Gateway are allowed per cluster
+
+* `certificate_authority` - (Optional) A `certificate_authority` block as defined below. When this property is specified, `key_vault_secrets_provider` is also required to be set. This configuration allows you to bring your own root certificate and keys for Istio CA in the Istio-based service mesh add-on for Azure Kubernetes Service.
+
+---
+
+A `certificate_authority` block supports the following:
+
+* `key_vault_id` - (Required) The resource ID of the Key Vault.
+
+* `root_cert_object_name` - (Required) The root certificate object name in Azure Key Vault.
+
+* `cert_chain_object_name` - (Required) The certificate chain object name in Azure Key Vault.
+
+* `cert_object_name` - (Required) The intermediate certificate object name in Azure Key Vault.
+
+* `key_object_name` - (Required) The intermediate certificate private key object name in Azure Key Vault.
+
+-> **Note:** For more information on [Istio-based service mesh add-on with plug-in CA certificates and how to generate these certificates](https://learn.microsoft.com/en-us/azure/aks/istio-plugin-ca),
 
 ---
 
@@ -820,10 +806,6 @@ A `storage_profile` block supports the following:
 * `blob_driver_enabled` - (Optional) Is the Blob CSI driver enabled? Defaults to `false`.
 
 * `disk_driver_enabled` - (Optional) Is the Disk CSI driver enabled? Defaults to `true`.
-
-* `disk_driver_version` - (Optional) Disk CSI Driver version to be used. Possible values are `v1` and `v2`. Defaults to `v1`.
-
--> **Note:** `Azure Disk CSI driver v2` is currently in [Public Preview](https://azure.microsoft.com/en-us/updates/public-preview-azure-disk-csi-driver-v2-in-aks/) on an opt-in basis. To use it, the feature `EnableAzureDiskCSIDriverV2` for namespace `Microsoft.ContainerService` must be requested.
 
 * `file_driver_enabled` - (Optional) Is the File CSI driver enabled? Defaults to `true`.
 
@@ -897,7 +879,7 @@ A `sysctl_config` block supports the following:
 
 A `web_app_routing` block supports the following:
 
-* `dns_zone_id` - (Required) Specifies the ID of the DNS Zone in which DNS entries are created for applications deployed to the cluster when Web App Routing is enabled. For Bring-Your-Own DNS zones this property should be set to an empty string `""`.
+* `dns_zone_ids` - (Required) Specifies the list of the DNS Zone IDs in which DNS entries are created for applications deployed to the cluster when Web App Routing is enabled. If not using Bring-Your-Own DNS zones this property should be set to an empty list.
 
 ---
 
@@ -950,6 +932,10 @@ A `http_proxy_config` block supports the following:
 ---
 
 A `upgrade_settings` block supports the following:
+
+* `drain_timeout_in_minutes` - (Optional) The amount of time in minutes to wait on eviction of pods and graceful termination per node. This eviction wait time honors pod disruption budgets for upgrades. If this time is exceeded, the upgrade fails. Unsetting this after configuring it will force a new resource to be created.
+
+* `node_soak_duration_in_minutes` - (Optional) The amount of time in minutes to wait after draining a node and before reimaging and moving on to next node. Defaults to `0`.
 
 * `max_surge` - (Required) The maximum number or percentage of nodes which will be added to the Node Pool size during an upgrade.
 
@@ -1139,14 +1125,6 @@ The `web_app_routing_identity` block exports the following:
 * `object_id` - The Object ID of the user-defined Managed Identity used for Web App Routing
 
 * `user_assigned_identity_id` - The ID of the User Assigned Identity used for Web App Routing.
-
----
-
-A `workload_autoscaler_profile` block exports the following:
-
-* `vertical_pod_autoscaler_controlled_values` - Which resources values should be controlled.
-
-* `vertical_pod_autoscaler_update_mode` - How the autoscaler applies changes to pod resources.
 
 ---
 

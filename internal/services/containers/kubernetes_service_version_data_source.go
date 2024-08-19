@@ -47,6 +47,11 @@ func dataSourceKubernetesServiceVersions() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"default_version": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"include_preview": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -75,7 +80,11 @@ func dataSourceKubernetesServiceVersionsRead(d *pluginsdk.ResourceData, meta int
 
 	lv, err := version.NewVersion("0.0.0")
 	if err != nil {
-		return fmt.Errorf("Cannot set version baseline (likely an issue in go-version): %+v", err)
+		return fmt.Errorf("cannot set version baseline (likely an issue in go-version): %+v", err)
+	}
+	dv, err := version.NewVersion("0.0.0")
+	if err != nil {
+		return fmt.Errorf("cannot set default version baseline (likely an issue in go-version): %+v", err)
 	}
 
 	var versions []string
@@ -85,6 +94,7 @@ func dataSourceKubernetesServiceVersionsRead(d *pluginsdk.ResourceData, meta int
 	if model := listResp.Model; model != nil {
 		for _, rawV := range model.Properties.Orchestrators {
 			isPreview := false
+			isDefault := false
 			orchestratorType := rawV.OrchestratorType
 			kubeVersion := rawV.OrchestratorVersion
 
@@ -120,12 +130,22 @@ func dataSourceKubernetesServiceVersionsRead(d *pluginsdk.ResourceData, meta int
 			if v.GreaterThan(lv) {
 				lv = v
 			}
+
+			if rawV.Default != nil {
+				isDefault = *rawV.Default
+				log.Printf("[DEBUG] Default is %t", isDefault)
+			}
+
+			if isDefault && v.GreaterThan(dv) {
+				dv = v
+			}
 		}
 	}
 
 	d.SetId(id.ID())
 	d.Set("versions", versions)
 	d.Set("latest_version", lv.Original())
+	d.Set("default_version", dv.Original())
 
 	return nil
 }

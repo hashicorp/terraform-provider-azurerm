@@ -24,6 +24,18 @@ type ListByDatabaseCompleteResult struct {
 	Items              []BackupShortTermRetentionPolicy
 }
 
+type ListByDatabaseCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByDatabaseCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByDatabase ...
 func (c BackupShortTermRetentionPoliciesClient) ListByDatabase(ctx context.Context, id commonids.SqlDatabaseId) (result ListByDatabaseOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c BackupShortTermRetentionPoliciesClient) ListByDatabase(ctx context.Conte
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByDatabaseCustomPager{},
 		Path:       fmt.Sprintf("%s/backupShortTermRetentionPolicies", id.ID()),
 	}
 
@@ -73,6 +86,7 @@ func (c BackupShortTermRetentionPoliciesClient) ListByDatabaseCompleteMatchingPr
 
 	resp, err := c.ListByDatabase(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
