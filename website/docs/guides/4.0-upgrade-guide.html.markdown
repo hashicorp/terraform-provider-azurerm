@@ -602,14 +602,14 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 
 * The deprecated block `policy` has been removed in favour of the `azurerm_api_management_policy` resource.
 
+### `azurerm_api_management_diagnostic`
+
+* The property `operation_name_format` has had the default value `Name` removed.
+
 ### `azurerm_application_insights`
 
 * The property `daily_data_cap_in_gb` now defaults to `100`.
 * The property `daily_data_cap_notifications_disabled` now defaults to `false`.
-
-### `azurerm_function_app`
-
-* The property `site.config.elastic_instance_minimum` no longer accepts the value 0.
 
 ### `azurerm_attestation_provider`
 
@@ -652,6 +652,7 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 ### `azurerm_cdn_frontdoor_origin`
 
 * The deprecated property `health_probes_enabled` has been removed in favour of the `enabled` property.
+* The `enabled` property now defaults to `true`.
 
 ### `azurerm_consumption_budget_management_group`
 
@@ -695,6 +696,7 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 * The deprecated property `enable_multiple_write_locations` has been removed in favour of the `multiple_write_locations_enabled` property.
 * The deprecated property `enable_free_tier` has been removed in favour of the `free_tier_enabled` property.
 * The deprecated property `enable_automatic_failover` has been removed in favour of the `automatic_failover_enabled` property.
+* The property `minimal_tls_version` now defaults to `Tls12`.
 
 ### `azurerm_cosmosdb_sql_container`
 
@@ -742,6 +744,10 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 
 * The property `sku` now defaults to `Standard`.
 
+### `azurerm_function_app`
+
+* The property `site.config.elastic_instance_minimum` no longer accepts the value 0.
+
 ### `azurerm_hdinsight_kafka_cluster`
 
 * The deprecated property `roles.kafka_management_node` has been removed.
@@ -759,6 +765,9 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 * The property `event_hub_partition_count` now defaults to `4`.
 * The property `event_hub_retention_in_days` now defaults to `1`.
 * The property `fallback_route.enabled` now defaults to `true`.
+* The property `file_upload.sas_ttl` now defaults to `PT1H`.
+* The property `file_upload.default_ttl` now defaults to `PT1H`.
+* The property `file_upload.lock_duration` now defaults to `PT1M`.
 
 ### `azurerm_key_vault_managed_hardware_security_module_role_assignment`
 
@@ -852,6 +861,10 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 ### `azurerm_log_analytics_workspace`
 
 * The property `sku` no longer supports the value `Free`.
+
+### `azurerm_logic_app_standard`
+
+* The property `version` now defaults to `~4`.
 
 ### `azurerm_machine_learning_compute_cluster`
 
@@ -947,6 +960,10 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 
 * The property `extension_operations_enabled` now defaults to `true`.
 
+### `azurerm_public_ip`
+
+* The property `sku` now defaults to `Standard`.
+
 ### `azurerm_recovery_services_vault_resource_guard_association`
 
 * The deprecated property `name` has been removed.
@@ -974,9 +991,17 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 
 * The deprecated property `disable_bgp_route_propagation` has been removed in favour of the `bgp_route_propagation_enabled` property.
 
+### `azurerm_site_recovery_protection_container_mapping`
+
+* The property `authentication_type` now defaults to `SystemAssignedIdentity`.
+
 ### `azurerm_snapshot`
 
 * The deprecated property `encryption_settings.enabled` has been removed, enabling and disabling encryption is controlled by the presence or absence of the `encryption_settings` block.
+
+### `azurerm_spring_cloud_gateway_route_config`
+
+* The property `protocol` has become Required.
 
 ### `azurerm_stream_analytics_job`
 
@@ -988,6 +1013,8 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 * The deprecated property `private_endpoint_network_policies_enabled` has been removed in favour of the `private_endpoint_network_policies` property.
 * The deprecated property `enforce_private_link_endpoint_network_policies` has been removed in favour of the `private_endpoint_network_policies` property.
 * The deprecated property `enforce_private_link_service_network_policies` has been removed in favour of the `private_link_service_network_policies_enabled` property.
+* The property `private_endpoint_network_policies` now defaults to `Disabled`.
+* The property `private_link_service_network_policies_enabled` now defaults to `true`.
 
 ### `azurerm_subscription_policy_remediation`
 
@@ -1116,7 +1143,7 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 
 ### `azurerm_virtual_network_gateway_connections`
 
-* The property `shared_key` has become `Required`.
+* The property `shared_key` has become Required.
 
 ### `azurerm_vpn_gateway`
 
@@ -1131,6 +1158,7 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 ### `azurerm_web_application_firewall_policy`
 
 * The deprecated property `managed_rules.managed_rule_set.rule_group_override.disabled_rules` has been removed in favour of the `managed_rules.managed_rule_set.rule_group_override.rule` block.
+* The property `managed_rules.managed_rule_set.rule_group_override.rule.enabled` now defaults to `false`.
 
 ### `azurerm_windows_function_app`
 
