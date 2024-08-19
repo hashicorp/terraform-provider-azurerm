@@ -333,7 +333,7 @@ This Azure Service will be retired on 2025-03-31, as a result this deprecated re
 
 This Azure Service will be retired on 2025-03-31, as a result this deprecated resource has been removed from the Azure Provider.
 
-### `azurerm_integrated_service_environment`
+### `azurerm_integration_service_environment`
 
 This Azure Service is being retired on 2024-08-31 and the provisioning of new instances has been blocked since 2022-11-01, as a result this deprecated resource has been removed from the Azure Provider.
 
@@ -405,6 +405,10 @@ The Azure Database for Maria DB will be retired on 2024-09-19 and will migrate t
 
 [Azure Media Services will be retired June 30th, 2024](https://learn.microsoft.com/en-us/azure/media-services/latest/azure-media-services-retirement), as a result this deprecated resource has been removed from the provider.
 
+### `azurerm_media_live_event`
+
+[Azure Media Services will be retired June 30th, 2024](https://learn.microsoft.com/en-us/azure/media-services/latest/azure-media-services-retirement), as a result this deprecated resource has been removed from the provider.
+
 ### `azurerm_media_live_output`
 
 [Azure Media Services will be retired June 30th, 2024](https://learn.microsoft.com/en-us/azure/media-services/latest/azure-media-services-retirement), as a result this deprecated resource has been removed from the provider.
@@ -421,11 +425,7 @@ The Azure Database for Maria DB will be retired on 2024-09-19 and will migrate t
 
 [Azure Media Services will be retired June 30th, 2024](https://learn.microsoft.com/en-us/azure/media-services/latest/azure-media-services-retirement), as a result this deprecated resource has been removed from the provider.
 
-### `azurerm_media_streaming_live_event`
-
-[Azure Media Services will be retired June 30th, 2024](https://learn.microsoft.com/en-us/azure/media-services/latest/azure-media-services-retirement), as a result this deprecated resource has been removed from the provider.
-
-### `azurerm_media_streaming_ locator`
+### `azurerm_media_streaming_locator`
 
 [Azure Media Services will be retired June 30th, 2024](https://learn.microsoft.com/en-us/azure/media-services/latest/azure-media-services-retirement), as a result this deprecated resource has been removed from the provider.
 
