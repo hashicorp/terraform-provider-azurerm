@@ -530,7 +530,7 @@ func flattenImageDataDisks(input *images.ImageStorageProfile) []interface{} {
 				diskEncryptionSetId := ""
 				if set := disk.DiskEncryptionSet; set != nil && set.Id != nil {
 					encryptionId, _ := commonids.ParseDiskEncryptionSetIDInsensitively(*set.Id)
-					diskEncryptionSetId = encryptionId.String()
+					diskEncryptionSetId = encryptionId.ID()
 				}
 
 				properties := map[string]interface{}{
