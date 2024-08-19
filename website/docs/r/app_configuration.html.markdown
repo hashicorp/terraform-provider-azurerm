@@ -155,8 +155,6 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-~> **NOTE:** Azure does not allow a downgrade from `standard` to `free`.
-
 * `encryption` - (Optional) An `encryption` block as defined below.
 
 * `local_auth_enabled` - (Optional) Whether local authentication methods is enabled. Defaults to `true`.
@@ -172,6 +170,8 @@ The following arguments are supported:
 * `replica` - (Optional) One or more `replica` blocks as defined below.
 
 * `sku` - (Optional) The SKU name of the App Configuration. Possible values are `free` and `standard`. Defaults to `free`.
+
+~> **NOTE:** Azure does not allow a downgrade from `standard` to `free`.
 
 * `soft_delete_retention_days` - (Optional) The number of days that items should be retained for once soft-deleted. This field only works for `standard` sku. This value can be between `1` and `7` days. Defaults to `7`. Changing this forces a new resource to be created.
 
