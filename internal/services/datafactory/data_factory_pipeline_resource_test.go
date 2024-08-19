@@ -236,12 +236,12 @@ resource "azurerm_data_factory_pipeline" "test" {
   }
 
   parameters {
-    name          = "testobject"
-    type          = "Object"
+    name = "testobject"
+    type = "Object"
     default_value = jsonencode({
-		key1 = "value1"
-		key2 = "value2"
-	  })
+      key1 = "value1"
+      key2 = "value2"
+    })
   }
 
   parameters {
@@ -365,12 +365,12 @@ resource "azurerm_data_factory_pipeline" "test" {
   }
 
   parameters {
-    name          = "testobject"
-    type          = "Object"
+    name = "testobject"
+    type = "Object"
     default_value = jsonencode({
-		key1 = "value1"
-		key2 = "value2"
-	  })
+      key1 = "value1"
+      key2 = "value2"
+    })
   }
 
   parameters {
