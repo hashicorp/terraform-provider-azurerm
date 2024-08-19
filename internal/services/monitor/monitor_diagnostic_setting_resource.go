@@ -366,6 +366,7 @@ func resourceMonitorDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("internal error: could not retrieve context deadline for %s", id.ID())
 	}
 
+	// https://github.com/Azure/azure-rest-api-specs/issues/30249
 	log.Printf("[DEBUG] Waiting for Monitor Diagnostic Setting %q for Resource %q to become ready", id.DiagnosticSettingName, id.ResourceUri)
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:                   []string{"NotFound"},
