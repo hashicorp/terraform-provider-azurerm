@@ -45,7 +45,7 @@ import (
 
 const dataPlaneDependentPropertyError = `the '%[1]s' code block cannot be set on create for new storage accounts, this property has been deprecated and will become computed only in version 4.0 of the provider
 New storage accounts must use the separate '%[2]s' resource to manage the '%[1]s' configuration values
-Existing storage accounts can continue to use the exposed '%[1]s' code block to manage (e.g., update) the resource in version 3.116.1 of the provider`
+Existing storage accounts can continue to use the exposed '%[1]s' code block to manage (e.g., update) the resource in version 3.117.0 of the provider`
 
 var (
 	storageAccountResourceName  = "azurerm_storage_account"
