@@ -48,6 +48,7 @@ The following arguments are supported:
 
 The `os_disk` block supports the following:
 
+* `storage_type` - (Required) The type of Storage Disk to use. Possible values are `Premium_LRS`, `PremiumV2_LRS`, `Premium_ZRS`, `Standard_LRS`, `StandardSSD_LRS`, `StandardSSD_ZRS` and `UltraSSD_LRS`. Changing this forces a new resource to be created.
 * `os_type` - (Optional) Specifies the type of operating system contained in the virtual machine image. Possible values are: `Windows` or `Linux`.
 * `os_state` - (Optional) Specifies the state of the operating system contained in the blob. Currently, the only value is Generalized. Possible values are `Generalized` and `Specialized`.
 * `managed_disk_id` - (Optional) Specifies the ID of the managed disk resource that you want to use to create the image.
@@ -60,6 +61,7 @@ The `os_disk` block supports the following:
 
 The `data_disk` block supports the following:
 
+* `storage_type` - (Required) The type of Storage Disk to use. Possible values are `Premium_LRS`, `PremiumV2_LRS`, `Premium_ZRS`, `Standard_LRS`, `StandardSSD_LRS`, `StandardSSD_ZRS` and `UltraSSD_LRS`. Changing this forces a new resource to be created.
 * `lun` - (Optional) Specifies the logical unit number of the data disk.
 * `managed_disk_id` - (Optional) Specifies the ID of the managed disk resource that you want to use to create the image. Changing this forces a new resource to be created.
 * `blob_uri` - (Optional) Specifies the URI in Azure storage of the blob that you want to use to create the image.

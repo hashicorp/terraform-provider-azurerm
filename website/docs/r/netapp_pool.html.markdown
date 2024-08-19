@@ -54,7 +54,7 @@ The following arguments are supported:
 
 ~> **NOTE** The maximum `size_in_tb` is goverened by regional quotas. You may request additional capacity from Azure, currently up to `2048`.
 
-* `qos_type` - (Optional) QoS Type of the pool. Valid values include `Auto` or `Manual`.
+* `qos_type` - (Optional) QoS Type of the pool. Valid values include `Auto` or `Manual`. Defaults to `Auto`.
 
 * `encryption_type` - (Optional) The encryption type of the pool. Valid values include `Single`, and `Double`. Defaults to `Single`. Changing this forces a new resource to be created.
 

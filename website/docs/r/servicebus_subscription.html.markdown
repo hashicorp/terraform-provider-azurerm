@@ -33,7 +33,7 @@ resource "azurerm_servicebus_topic" "example" {
   name         = "tfex_servicebus_topic"
   namespace_id = azurerm_servicebus_namespace.example.id
 
-  enable_partitioning = true
+  partitioning_enabled = true
 }
 
 resource "azurerm_servicebus_subscription" "example" {
@@ -53,17 +53,17 @@ The following arguments are supported:
 
 * `max_delivery_count` - (Required) The maximum number of deliveries.
 
-* `auto_delete_on_idle` - (Optional) The idle interval after which the topic is automatically deleted as an [ISO 8601 duration](https://en.wikipedia.org/wiki/ISO_8601#Durations). The minimum duration is `5` minutes or `PT5M`.
+* `auto_delete_on_idle` - (Optional) The idle interval after which the topic is automatically deleted as an [ISO 8601 duration](https://en.wikipedia.org/wiki/ISO_8601#Durations). The minimum duration is `5` minutes or `PT5M`. Defaults to `P10675199DT2H48M5.4775807S`.
 
-* `default_message_ttl` - (Optional) The Default message timespan to live as an [ISO 8601 duration](https://en.wikipedia.org/wiki/ISO_8601#Durations). This is the duration after which the message expires, starting from when the message is sent to Service Bus. This is the default value used when TimeToLive is not set on a message itself.
+* `default_message_ttl` - (Optional) The Default message timespan to live as an [ISO 8601 duration](https://en.wikipedia.org/wiki/ISO_8601#Durations). This is the duration after which the message expires, starting from when the message is sent to Service Bus. This is the value used when TimeToLive is not set on a message itself. Defaults to `P10675199DT2H48M5.4775807S`.
 
-* `lock_duration` - (Optional) The lock duration for the subscription as an [ISO 8601 duration](https://en.wikipedia.org/wiki/ISO_8601#Durations). The default value is `1` minute or `P0DT0H1M0S` . The maximum value is `5` minutes or `P0DT0H5M0S` .
+* `lock_duration` - (Optional) The lock duration for the subscription as an [ISO 8601 duration](https://en.wikipedia.org/wiki/ISO_8601#Durations). The default value is `1` minute or `P0DT0H1M0S` . The maximum value is `5` minutes or `P0DT0H5M0S` . Defaults to `PT1M`.
 
 * `dead_lettering_on_message_expiration` - (Optional) Boolean flag which controls whether the Subscription has dead letter support when a message expires.
 
 * `dead_lettering_on_filter_evaluation_error` - (Optional) Boolean flag which controls whether the Subscription has dead letter support on filter evaluation exceptions. Defaults to `true`.
 
-* `enable_batched_operations` - (Optional) Boolean flag which controls whether the Subscription supports batched operations.
+* `batched_operations_enabled` - (Optional) Boolean flag which controls whether the Subscription supports batched operations.
 
 * `requires_session` - (Optional) Boolean flag which controls whether this Subscription supports the concept of a session. Changing this forces a new resource to be created.
 

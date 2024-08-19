@@ -594,7 +594,7 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 
 * The deprecated property `soap_pass_through` has been removed in favour of the property `api_type`.
 
-### `azurerm_api_management_api_tags`
+### `azurerm_api_management_api_tag`
 
 * This resource will need to be recreated upon upgrading so that the tag revision can be included in the resource ID.
 
@@ -648,6 +648,7 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 ### `azurerm_cdn_endpoint_custom_domain`
 
 * The deprecated property `user_managed_https.key_vault_certificate_id` has been removed in favour of the `user_managed_https.key_vault_secret_id` property.
+* The property `user_managed_https.key_vault_secret_id` is now Required.
 
 ### `azurerm_cdn_frontdoor_origin`
 
@@ -883,7 +884,7 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 * The deprecated property `public_access_behind_virtual_network_enabled` has been removed in favour of the `public_network_access_enabled` property.
 * The property `public_network_access_enabled` now defaults to `true`.
 
-### `azurerm_managed_applications`
+### `azurerm_managed_application`
 
 * The deprecated property `parameters` has been removed in favour of the `parameter_values` property.
 
@@ -911,10 +912,6 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 ### `azurerm_monitor_data_collection_rule`
 
 * The property `data_sources.data_import.syslog.streams` is now Required.
-
-### `azurerm_monitor_diagnostic_categories`
-
-* The deprecated property `logs` will be removed in favour of the `log_category_types` property.
 
 ### `azurerm_monitor_diagnostic_setting`
 
@@ -968,10 +965,6 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 
 * The deprecated property `name` has been removed.
 
-### `azurerm_recovery_services_site_recovery_replicated_vm`
-
-* The deprecated property `is_primary` has been removed.
-
 ### `azurerm_redis_cache`
 
 * The deprecated property `enable_non_ssl_port` has been removed in favour of the `non_ssl_port_enabled` property.
@@ -994,6 +987,10 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 ### `azurerm_site_recovery_protection_container_mapping`
 
 * The property `authentication_type` now defaults to `SystemAssignedIdentity`.
+
+### `azurerm_site_recovery_replicated_vm`
+
+* The deprecated property `is_primary` has been removed.
 
 ### `azurerm_snapshot`
 
@@ -1116,7 +1113,7 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 ### `azurerm_synapse_workspace`
 
 * The deprecated block `aad_admin` has been removed in favour of the `azurerm_synapse_workspace_aad_admin` resource.
-* The deprecated block `sqlsql_aad_admin` has been removed in favour of the `azurerm_synapse_workspace_sql_aad_admin` resource.
+* The deprecated block `sql_aad_admin` has been removed in favour of the `azurerm_synapse_workspace_sql_aad_admin` resource.
 
 ### `azurerm_traffic_manager_azure_endpoint`
 
@@ -1133,7 +1130,7 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 * The property `weight` now defaults to `1`.
 * The property `priority` now defaults to `1`.
 
-### `azurerm_traffic_manager_nested_endpoint`
+### `azurerm_traffic_manager_profile`
 
 * The property `profile_status` now defaults to `Enabled`.
 
@@ -1141,7 +1138,7 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 
 * The property `address_space` has been changed from a list to a set. If you're referencing an element in this property then this will require code changes.
 
-### `azurerm_virtual_network_gateway_connections`
+### `azurerm_virtual_network_gateway_connection`
 
 * The property `shared_key` has become Required.
 
