@@ -1092,6 +1092,10 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 * The property `large_file_share_enabled` is no longer defaulted to `true` as that value varies based on the value of `account_kind`
 * The property `cross_tenant_replication_enabled` now defaults to `false`
 
+### `azurerm_storage_account_customer_managed_key`
+
+* The property `key_vault_id` no longer accepts Managed HSM keys, instead please use the `managed_hsm_key_id` property.
+
 ### `azurerm_storage_share_directory`
 
 * The deprecated property `share_name` has been removed in favour of the `storage_share_id` property.
@@ -1238,14 +1242,6 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 
 * The deprecated property `enable_https_traffic_only` has been removed in favour of the `https_traffic_only_enabled` property.
 
-### `azurerm_storage_account_customer_managed_key`
-
-* The property `key_vault_id` no longer accepts Managed HSM keys, instead please use the `managed_hsm_key_id` property.
-
-### `azurerm_storage_share_directory`
-
-* The deprecated properties `storage_account_name` and `share_name` have been removed in favour of the `storage_share_id` property.
-
 ### `azurerm_storage_table_entity`
 
 * The deprecated properties `storage_account_name` and `table_name` have been removed in favour of the `storage_table_id` property.
@@ -1261,11 +1257,6 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 * The deprecated property `enforce_private_link_service_network_policies` has been removed in favour of the `private_link_service_network_policies_enabled` property.
 
 ### `azurerm_servicebus_namespace_authorization_rule`
-
-* The deprecated property `namespace_name` has been removed in favour of the `namespace_id` property.
-* The deprecated property `resource_group_name` has been removed in favour of the `namespace_id` property.
-
-### `azurerm_servicebus_namespace_disaster_recovery_config`
 
 * The deprecated property `namespace_name` has been removed in favour of the `namespace_id` property.
 * The deprecated property `resource_group_name` has been removed in favour of the `namespace_id` property.

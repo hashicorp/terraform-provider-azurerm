@@ -14,8 +14,7 @@ Use this data source to access information about an existing Storage Table Entit
 
 ```hcl
 data "azurerm_storage_table_entity" "example" {
-  table_name           = "example-table-name"
-  storage_account_name = "example-storage-account-name"
+  storage_table_id = azurerm_storage_table.example.id
   partition_key        = "example-partition-key"
   row_key              = "example-row-key"
 }

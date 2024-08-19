@@ -47,8 +47,7 @@ output "storage_account_tier" {
 
 * `dns_endpoint_type` - Which DNS endpoint type is used - either `Standard` or `AzureDnsZone`.
 
-* `https_traffic_only_enabled` - Is traffic only allowed via HTTPS? See [here](https://docs.microsoft.com/azure/storage/storage-require-secure-transfer/)
-    for more information.
+* `https_traffic_only_enabled` - Is traffic only allowed via HTTPS? See [here](https://docs.microsoft.com/azure/storage/storage-require-secure-transfer/) for more information.
 
 * `min_tls_version` - The minimum supported TLS version for this storage account.
 

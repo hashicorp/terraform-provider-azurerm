@@ -27,14 +27,6 @@ output "servicebus_subscription" {
 
 * `name` - (Required) Specifies the name of the ServiceBus Subscription.
 
-* `resource_group_name` - (Required) Specifies the name of the Resource Group where the ServiceBus Namespace exists.
-
-* `namespace_name` - (Required) The name of the ServiceBus Namespace.
-
-* `topic_name` - (Required) The name of the ServiceBus Topic.
-
-~> **Note:** `namespace_name`，`resource_group_name` and `topic_name` has been deprecated and will be removed in version 4.0 of the provider in favour of `topic_id`.
-
 * `topic_id` - (Required) The ID of the ServiceBus Topic where the Service Bus Subscription exists.
 
 ## Attributes Reference
