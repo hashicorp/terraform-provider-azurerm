@@ -221,10 +221,6 @@ func (WebApplicationFirewallPolicyV0ToV1) Schema() map[string]*pluginsdk.Schema 
 					Optional: true,
 					Type:     pluginsdk.TypeBool,
 				},
-				"request_body_enforcement": {
-					Optional: true,
-					Type:     pluginsdk.TypeBool,
-				},
 			}},
 			Optional: true,
 			Type:     pluginsdk.TypeList,
