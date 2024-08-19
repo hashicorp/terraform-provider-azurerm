@@ -349,10 +349,10 @@ func dataSourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("primary_connection_string", getRedisConnectionString(*props.HostName, *props.SslPort, *keys.Model.PrimaryKey, enableSslPort))
 		d.Set("secondary_connection_string", getRedisConnectionString(*props.HostName, *props.SslPort, *keys.Model.SecondaryKey, enableSslPort))
 
-                accessKeyAuthEnabled := true
-                if props.DisableAccessKeyAuthentication != nil {
-                    accessKeyAuthEnabled = !(*props.DisableAccessKeyAuthentication)
-                }
+		accessKeyAuthEnabled := true
+		if props.DisableAccessKeyAuthentication != nil {
+			accessKeyAuthEnabled = !(*props.DisableAccessKeyAuthentication)
+		}
 		d.Set("access_keys_authentication_enabled", accessKeyAuthEnabled)
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
