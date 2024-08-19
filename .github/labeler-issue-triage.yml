@@ -46,7 +46,7 @@ service/automation:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_automation_((.|\n)*)###'
 
 service/azure-stack-hci:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_stack_hci_cluster((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_stack_hci_((.|\n)*)###'
 
 service/batch:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_batch_((.|\n)*)###'
@@ -64,7 +64,7 @@ service/cdn:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_cdn_((.|\n)*)###'
 
 service/cognitive-services:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_cognitive_((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(ai_services|cognitive_)((.|\n)*)###'
 
 service/communication:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(communication_service|email_communication_service)((.|\n)*)###'
@@ -140,6 +140,9 @@ service/event-grid:
 
 service/event-hubs:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_eventhub((.|\n)*)###'
+
+service/extended-location:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_extended_custom_location((.|\n)*)###'
 
 service/firewall:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_firewall((.|\n)*)###'

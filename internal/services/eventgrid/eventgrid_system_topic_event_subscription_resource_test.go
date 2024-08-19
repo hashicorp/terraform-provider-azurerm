@@ -841,10 +841,12 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_servicebus_namespace" "example" {
-  name                = "acctestservicebusnamespace-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
+  name                         = "acctestservicebusnamespace-%[1]d"
+  location                     = azurerm_resource_group.test.location
+  resource_group_name          = azurerm_resource_group.test.name
+  sku                          = "Premium"
+  premium_messaging_partitions = 2
+  capacity                     = 2
 }
 
 resource "azurerm_servicebus_queue" "test" {

@@ -121,6 +121,9 @@ func TestAccKubernetesClusterNodePool_capacityReservationGroup(t *testing.T) {
 }
 
 func TestAccKubernetesClusterNodePool_errorForAvailabilitySet(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("AvailabilitySet not supported as an option for default_node_pool in 4.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
 
@@ -941,16 +944,29 @@ func TestAccKubernetesClusterNodePool_workloadRuntime(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
 
+	if !features.FourPointOhBeta() {
+		data.ResourceTest(t, r, []acceptance.TestStep{
+			{
+				Config: r.workloadRuntime(data, "OCIContainer"),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: r.workloadRuntime(data, "KataMshvVmIsolation"),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
+			},
+			data.ImportStep(),
+		})
+		return
+	}
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.workloadRuntime(data, "OCIContainer"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.workloadRuntime(data, "KataMshvVmIsolation"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -960,6 +976,9 @@ func TestAccKubernetesClusterNodePool_workloadRuntime(t *testing.T) {
 }
 
 func TestAccKubernetesClusterNodePool_customCATrustEnabled(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("Skipping this test in 4.0 beta as it is not supported")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
 
@@ -1453,10 +1472,6 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.1.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-
-  lifecycle {
-    ignore_changes = [subnet]
-  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -1882,10 +1897,6 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/8"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-
-  lifecycle {
-    ignore_changes = [subnet]
-  }
 }
 resource "azurerm_subnet" "nodesubnet" {
   name                 = "nodesubnet"
@@ -2278,10 +2289,6 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.1.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-
-  lifecycle {
-    ignore_changes = [subnet]
-  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -2434,7 +2441,8 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 }
 
 func (r KubernetesClusterNodePoolResource) other(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FourPointOhBeta() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -2449,6 +2457,23 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   fips_enabled          = true
   kubelet_disk_type     = "OS"
   message_of_the_day    = "daily message"
+}
+`, r.templateConfig(data))
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "internal"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_DS2_v2"
+  node_count            = 3
+  fips_enabled          = true
+  kubelet_disk_type     = "OS"
 }
 `, r.templateConfig(data))
 }
@@ -3017,10 +3042,6 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.1.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-
-  lifecycle {
-    ignore_changes = [subnet]
-  }
 }
 
 resource "azurerm_subnet" "test" {

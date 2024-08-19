@@ -122,7 +122,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				return old.(string) != ""
 			}),
 			pluginsdk.ForceNewIfChange("custom_ca_trust_certificates_base64", func(ctx context.Context, old, new, meta interface{}) bool {
-				return len(old.([]interface{})) > 0 && len(new.([]interface{})) == 0
+				return !features.FourPointOhBeta() && len(old.([]interface{})) > 0 && len(new.([]interface{})) == 0
 			}),
 		),
 
@@ -158,17 +158,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"vnet_integration_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-						},
-
-						"subnet_id": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: commonids.ValidateSubnetID,
-						},
-
 						"authorized_ip_ranges": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
@@ -344,16 +333,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				Optional: true,
 			},
 
-			"custom_ca_trust_certificates_base64": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 10,
-				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
-					ValidateFunc: validation.StringIsBase64,
-				},
-			},
-
 			"default_node_pool": SchemaDefaultNodePool(),
 
 			"disk_encryption_set_id": {
@@ -437,7 +416,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						"dns_zone_ids": {
 							Type:     pluginsdk.TypeList,
 							Required: true,
-							MinItems: 1,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 								ValidateFunc: validation.Any(
@@ -1384,7 +1362,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-
 						"blob_driver_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
@@ -1394,15 +1371,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  true,
-						},
-						"disk_driver_version": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  "v1",
-							ValidateFunc: validation.StringInSlice([]string{
-								"v1",
-								"v2",
-							}, false),
 						},
 						"file_driver_enabled": {
 							Type:     pluginsdk.TypeBool,
@@ -1536,6 +1504,37 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			Deprecated:    "This property has been renamed to `authorized_ip_ranges` within the `api_server_access_profile` block and will be removed in v4.0 of the provider",
 			ConflictsWith: []string{"api_server_access_profile.0.authorized_ip_ranges"},
 		}
+		resource.Schema["api_server_access_profile"].Elem.(*pluginsdk.Resource).Schema["vnet_integration_enabled"] = &pluginsdk.Schema{
+			Deprecated: "This property is not available in the stable API and will be removed in v4.0 of the Azure Provider. Please see https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/4.0-upgrade-guide#aks-migration-to-stable-api for more details.",
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+		}
+		resource.Schema["api_server_access_profile"].Elem.(*pluginsdk.Resource).Schema["subnet_id"] = &pluginsdk.Schema{
+			Deprecated:   "This property is not available in the stable API and will be removed in v4.0 of the Azure Provider. Please see https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/4.0-upgrade-guide#aks-migration-to-stable-api for more details.",
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: commonids.ValidateSubnetID,
+		}
+		resource.Schema["custom_ca_trust_certificates_base64"] = &pluginsdk.Schema{
+			Deprecated: "This property is not available in the stable API and will be removed in v4.0 of the Azure Provider. Please see https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/4.0-upgrade-guide#aks-migration-to-stable-api for more details.",
+			Type:       pluginsdk.TypeList,
+			Optional:   true,
+			MaxItems:   10,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.StringIsBase64,
+			},
+		}
+		resource.Schema["storage_profile"].Elem.(*pluginsdk.Resource).Schema["disk_driver_version"] = &pluginsdk.Schema{
+			Deprecated: "This property is not available in the stable API and will be removed in v4.0 of the Azure Provider. Please see https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/4.0-upgrade-guide#aks-migration-to-stable-api for more details.",
+			Type:       pluginsdk.TypeString,
+			Optional:   true,
+			Default:    "v1",
+			ValidateFunc: validation.StringInSlice([]string{
+				"v1",
+				"v2",
+			}, false),
+		}
 		resource.Schema["network_profile"].Elem.(*pluginsdk.Resource).Schema["docker_bridge_cidr"] = &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -1595,7 +1594,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			Type:          pluginsdk.TypeSet,
 			Optional:      true,
 			Computed:      true,
-			ConfigMode:    pluginsdk.SchemaConfigModeAttr,
 			ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.managed_outbound_ip_count", "network_profile.0.load_balancer_profile.0.outbound_ip_address_ids"},
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
@@ -1606,7 +1604,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			Type:          pluginsdk.TypeSet,
 			Optional:      true,
 			Computed:      true,
-			ConfigMode:    pluginsdk.SchemaConfigModeAttr,
 			ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.managed_outbound_ip_count", "network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids"},
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
@@ -1744,7 +1741,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 		resource.Schema["web_app_routing"].Elem.(*pluginsdk.Resource).Schema["dns_zone_ids"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			MinItems: 1,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 				ValidateFunc: validation.Any(
@@ -1982,8 +1978,10 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		autoUpgradeProfile.NodeOSUpgradeChannel = pointer.To(managedclusters.NodeOSUpgradeChannel(nodeOsChannelUpgrade))
 	}
 
-	if customCaTrustCertListRaw := d.Get("custom_ca_trust_certificates_base64").([]interface{}); len(customCaTrustCertListRaw) > 0 {
-		securityProfile.CustomCATrustCertificates = convertCustomCaTrustCertsInput(customCaTrustCertListRaw)
+	if !features.FourPointOhBeta() {
+		if customCaTrustCertListRaw := d.Get("custom_ca_trust_certificates_base64").([]interface{}); len(customCaTrustCertListRaw) > 0 {
+			securityProfile.CustomCATrustCertificates = convertCustomCaTrustCertsInput(customCaTrustCertListRaw)
+		}
 	}
 
 	parameters := managedclusters.ManagedCluster{
@@ -2537,7 +2535,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		existing.Model.Properties.SecurityProfile.AzureKeyVaultKms = azureKeyVaultKms
 	}
 
-	if d.HasChanges("custom_ca_trust_certificates_base64") {
+	if !features.FourPointOhBeta() && d.HasChanges("custom_ca_trust_certificates_base64") {
 		updateCluster = true
 		customCaTrustCertListRaw := d.Get("custom_ca_trust_certificates_base64").([]interface{})
 		existing.Model.Properties.SecurityProfile.CustomCATrustCertificates = convertCustomCaTrustCertsInput(customCaTrustCertListRaw)
@@ -2944,8 +2942,10 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 				d.Set("node_os_upgrade_channel", nodeOSUpgradeChannel)
 			}
 
-			customCaTrustCertList := flattenCustomCaTrustCerts(props.SecurityProfile)
-			d.Set("custom_ca_trust_certificates_base64", customCaTrustCertList)
+			if !features.FourPointOhBeta() {
+				customCaTrustCertList := flattenCustomCaTrustCerts(props.SecurityProfile)
+				d.Set("custom_ca_trust_certificates_base64", customCaTrustCertList)
+			}
 
 			enablePrivateCluster := false
 			enablePrivateClusterPublicFQDN := false
@@ -3383,17 +3383,19 @@ func expandKubernetesClusterAPIAccessProfile(d *pluginsdk.ResourceData) *managed
 		}
 	}
 
-	enableVnetIntegration := false
-	if v := config["vnet_integration_enabled"]; v != nil {
-		enableVnetIntegration = v.(bool)
-	}
-	apiAccessProfile.EnableVnetIntegration = utils.Bool(enableVnetIntegration)
+	if !features.FourPointOhBeta() {
+		enableVnetIntegration := false
+		if v := config["vnet_integration_enabled"]; v != nil {
+			enableVnetIntegration = v.(bool)
+		}
+		apiAccessProfile.EnableVnetIntegration = utils.Bool(enableVnetIntegration)
 
-	subnetId := ""
-	if v := config["subnet_id"]; v != nil {
-		subnetId = v.(string)
+		subnetId := ""
+		if v := config["subnet_id"]; v != nil {
+			subnetId = v.(string)
+		}
+		apiAccessProfile.SubnetId = utils.String(subnetId)
 	}
-	apiAccessProfile.SubnetId = utils.String(subnetId)
 
 	return apiAccessProfile
 }
@@ -3402,26 +3404,40 @@ func flattenKubernetesClusterAPIAccessProfile(profile *managedclusters.ManagedCl
 	// some properties in this block are exposed within the `api_server_access_profile` block and others are exposed as
 	// top level properties which causes strange diffs depending on what is being set, so this also needs to check
 	// whether the properties in the block are returned or nil
-	if profile == nil || (profile.AuthorizedIPRanges == nil && profile.SubnetId == nil && profile.EnableVnetIntegration == nil) {
-		return []interface{}{}
+	if !features.FourPointOhBeta() {
+		if profile == nil || (profile.AuthorizedIPRanges == nil && profile.SubnetId == nil && profile.EnableVnetIntegration == nil) {
+			return []interface{}{}
+		}
+	} else {
+		if profile == nil || profile.AuthorizedIPRanges == nil {
+			return []interface{}{}
+		}
 	}
 
 	apiServerAuthorizedIPRanges := utils.FlattenStringSlice(profile.AuthorizedIPRanges)
 
-	enableVnetIntegration := false
-	if profile.EnableVnetIntegration != nil {
-		enableVnetIntegration = *profile.EnableVnetIntegration
-	}
-	subnetId := ""
-	if profile.SubnetId != nil && *profile.SubnetId != "" {
-		subnetId = *profile.SubnetId
+	if !features.FourPointOhBeta() {
+		enableVnetIntegration := false
+		if profile.EnableVnetIntegration != nil {
+			enableVnetIntegration = *profile.EnableVnetIntegration
+		}
+		subnetId := ""
+		if profile.SubnetId != nil && *profile.SubnetId != "" {
+			subnetId = *profile.SubnetId
+		}
+
+		return []interface{}{
+			map[string]interface{}{
+				"authorized_ip_ranges":     apiServerAuthorizedIPRanges,
+				"subnet_id":                subnetId,
+				"vnet_integration_enabled": enableVnetIntegration,
+			},
+		}
 	}
 
 	return []interface{}{
 		map[string]interface{}{
-			"authorized_ip_ranges":     apiServerAuthorizedIPRanges,
-			"subnet_id":                subnetId,
-			"vnet_integration_enabled": enableVnetIntegration,
+			"authorized_ip_ranges": apiServerAuthorizedIPRanges,
 		},
 	}
 }
@@ -4770,7 +4786,6 @@ func expandStorageProfile(input []interface{}) *managedclusters.ManagedClusterSt
 		},
 		DiskCSIDriver: &managedclusters.ManagedClusterStorageProfileDiskCSIDriver{
 			Enabled: utils.Bool(raw["disk_driver_enabled"].(bool)),
-			Version: utils.String(raw["disk_driver_version"].(string)),
 		},
 		FileCSIDriver: &managedclusters.ManagedClusterStorageProfileFileCSIDriver{
 			Enabled: utils.Bool(raw["file_driver_enabled"].(bool)),
@@ -4778,6 +4793,10 @@ func expandStorageProfile(input []interface{}) *managedclusters.ManagedClusterSt
 		SnapshotController: &managedclusters.ManagedClusterStorageProfileSnapshotController{
 			Enabled: utils.Bool(raw["snapshot_controller_enabled"].(bool)),
 		},
+	}
+
+	if !features.FourPointOhBeta() {
+		profile.DiskCSIDriver.Version = utils.String(raw["disk_driver_version"].(string))
 	}
 
 	return &profile

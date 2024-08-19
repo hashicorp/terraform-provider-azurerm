@@ -69,6 +69,32 @@ func TestAccRoleManagementPolicy_resourceGroup(t *testing.T) {
 	})
 }
 
+func TestAccRoleManagementPolicy_resourceGroup_activationRulesUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_role_management_policy", "test")
+	r := RoleManagementPolicyResource{}
+
+	data.ResourceTestSkipCheckDestroyed(t, []acceptance.TestStep{
+		{
+			Config: r.resourceGroupActivationRules(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("activation_rules.0.require_approval").HasValue("true"),
+				check.That(data.ResourceName).Key("notification_rules.0.eligible_assignments.0.approver_notifications.0.notification_level").HasValue("All"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.resourceGroupActivationRules(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("activation_rules.0.require_approval").HasValue("false"),
+				check.That(data.ResourceName).Key("notification_rules.0.eligible_assignments.0.approver_notifications.0.notification_level").HasValue("All"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccRoleManagementPolicy_subscription(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_management_policy", "test")
 	r := RoleManagementPolicyResource{}
@@ -382,4 +408,46 @@ resource "azurerm_role_management_policy" "test" {
   }
 }
 `, r.subscriptionTemplate(data), data.RandomString)
+}
+
+func (r RoleManagementPolicyResource) resourceGroupActivationRules(data acceptance.TestData, requireApproval bool) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azuread_group" "approver" {
+  display_name     = "PIM Approver Test %[2]s"
+  mail_enabled     = false
+  security_enabled = true
+}
+
+resource "azurerm_role_management_policy" "test" {
+  scope              = azurerm_resource_group.test.id
+  role_definition_id = data.azurerm_role_definition.contributor.id
+
+  activation_rules {
+    maximum_duration = "PT1H"
+    require_approval = %t
+    approval_stage {
+      primary_approver {
+        object_id = azuread_group.approver.object_id
+        type      = "Group"
+      }
+    }
+  }
+
+  eligible_assignment_rules {
+    expiration_required = false
+  }
+
+  notification_rules {
+    eligible_assignments {
+      approver_notifications {
+        notification_level    = "All"
+        default_recipients    = false
+        additional_recipients = ["someone@example.com"]
+      }
+    }
+  }
+}
+`, r.resourceGroupTemplate(data), data.RandomString, requireApproval)
 }

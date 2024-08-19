@@ -445,10 +445,6 @@ resource "azurerm_key_vault" "test" {
   tags = {
     environment = "Production"
   }
-
-  lifecycle {
-    ignore_changes = [access_policy]
-  }
 }
 
 resource "azurerm_key_vault_access_policy" "test" {
@@ -501,10 +497,6 @@ resource "azurerm_key_vault" "test" {
 
   tags = {
     environment = "Production"
-  }
-
-  lifecycle {
-    ignore_changes = [access_policy]
   }
 }
 

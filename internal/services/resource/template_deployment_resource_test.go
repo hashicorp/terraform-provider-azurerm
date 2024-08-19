@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -23,6 +24,10 @@ import (
 type TemplateDeploymentResource struct{}
 
 func TestAccTemplateDeployment_basic(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("The resource 'azurerm_template_deployment' has been superseded by the 'azurerm_resource_group_template_deployment' resource and will be removed in v4.0 of the AzureRM Provider.")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_template_deployment", "test")
 	r := TemplateDeploymentResource{}
 
@@ -37,6 +42,10 @@ func TestAccTemplateDeployment_basic(t *testing.T) {
 }
 
 func TestAccTemplateDeployment_requiresImport(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("The resource 'azurerm_template_deployment' has been superseded by the 'azurerm_resource_group_template_deployment' resource and will be removed in v4.0 of the AzureRM Provider.")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_template_deployment", "test")
 	r := TemplateDeploymentResource{}
 
@@ -52,6 +61,10 @@ func TestAccTemplateDeployment_requiresImport(t *testing.T) {
 }
 
 func TestAccTemplateDeployment_disappears(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("The resource 'azurerm_template_deployment' has been superseded by the 'azurerm_resource_group_template_deployment' resource and will be removed in v4.0 of the AzureRM Provider.")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_template_deployment", "test")
 	r := TemplateDeploymentResource{}
 
@@ -64,6 +77,10 @@ func TestAccTemplateDeployment_disappears(t *testing.T) {
 }
 
 func TestAccTemplateDeployment_nestedTemplate(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("The resource 'azurerm_template_deployment' has been superseded by the 'azurerm_resource_group_template_deployment' resource and will be removed in v4.0 of the AzureRM Provider.")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_template_deployment", "test")
 	r := TemplateDeploymentResource{}
 
@@ -78,6 +95,10 @@ func TestAccTemplateDeployment_nestedTemplate(t *testing.T) {
 }
 
 func TestAccTemplateDeployment_withParams(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("The resource 'azurerm_template_deployment' has been superseded by the 'azurerm_resource_group_template_deployment' resource and will be removed in v4.0 of the AzureRM Provider.")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_template_deployment", "test")
 	r := TemplateDeploymentResource{}
 
@@ -93,6 +114,10 @@ func TestAccTemplateDeployment_withParams(t *testing.T) {
 }
 
 func TestAccTemplateDeployment_withParamsBody(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("The resource 'azurerm_template_deployment' has been superseded by the 'azurerm_resource_group_template_deployment' resource and will be removed in v4.0 of the AzureRM Provider.")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_template_deployment", "test")
 	r := TemplateDeploymentResource{}
 
@@ -108,6 +133,10 @@ func TestAccTemplateDeployment_withParamsBody(t *testing.T) {
 }
 
 func TestAccTemplateDeployment_withOutputs(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("The resource 'azurerm_template_deployment' has been superseded by the 'azurerm_resource_group_template_deployment' resource and will be removed in v4.0 of the AzureRM Provider.")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_template_deployment", "test")
 	r := TemplateDeploymentResource{}
 
@@ -132,6 +161,10 @@ func TestAccTemplateDeployment_withOutputs(t *testing.T) {
 }
 
 func TestAccTemplateDeployment_withError(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("The resource 'azurerm_template_deployment' has been superseded by the 'azurerm_resource_group_template_deployment' resource and will be removed in v4.0 of the AzureRM Provider.")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_template_deployment", "test")
 	r := TemplateDeploymentResource{}
 

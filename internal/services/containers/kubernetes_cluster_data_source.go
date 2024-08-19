@@ -324,14 +324,6 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 				},
 			},
 
-			"custom_ca_trust_certificates_base64": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-				},
-			},
-
 			"oms_agent": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -646,17 +638,12 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-
 						"blob_driver_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Computed: true,
 						},
 						"disk_driver_enabled": {
 							Type:     pluginsdk.TypeBool,
-							Computed: true,
-						},
-						"disk_driver_version": {
-							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"file_driver_enabled": {
@@ -716,6 +703,13 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 								},
 							},
 						},
+						"revisions": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
 					},
 				},
 			},
@@ -725,6 +719,10 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 	}
 
 	if !features.FourPointOhBeta() {
+		// adding revisions to the resource is a breaking change, MSFT would like the corresponding change in data source to happen at the same time
+		serviceMeshProfile := resource.Schema["service_mesh_profile"].Elem.(*pluginsdk.Resource).SchemaMap()
+		delete(serviceMeshProfile, "revisions")
+
 		resource.Schema["agent_pool_profile"].Elem.(*pluginsdk.Resource).Schema["enable_auto_scaling"] = &pluginsdk.Schema{
 			Type:       pluginsdk.TypeBool,
 			Computed:   true,
@@ -735,6 +733,21 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 			Computed:   true,
 			Deprecated: "This property is deprecated and will be removed in v4.0 of the AzureRM Provider in favour of the `node_public_ip_enabled` property.",
 		}
+		resource.Schema["storage_profile"].Elem.(*pluginsdk.Resource).Schema["disk_driver_version"] = &pluginsdk.Schema{
+			Deprecated: "This property is not available in the stable API and will be removed in v4.0 of the Azure Provider. Please see https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/4.0-upgrade-guide#aks-migration-to-stable-api for more details.",
+			Type:       pluginsdk.TypeString,
+			Computed:   true,
+		}
+
+		resource.Schema["custom_ca_trust_certificates_base64"] = &pluginsdk.Schema{
+			Deprecated: "This property is not available in the stable API and will be removed in v4.0 of the Azure Provider. Please see https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/4.0-upgrade-guide#aks-migration-to-stable-api for more details.",
+			Type:       pluginsdk.TypeList,
+			Computed:   true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		}
+
 		resource.Schema["azure_active_directory_role_based_access_control"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeList,
 			Computed: true,
@@ -855,9 +868,11 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 				return fmt.Errorf("setting `key_management_service`: %+v", err)
 			}
 
-			customCaTrustCertList := flattenCustomCaTrustCerts(props.SecurityProfile)
-			if err := d.Set("custom_ca_trust_certificates_base64", customCaTrustCertList); err != nil {
-				return fmt.Errorf("setting `custom_ca_trust_certificates_base64`: %+v", err)
+			if !features.FourPointOhBeta() {
+				customCaTrustCertList := flattenCustomCaTrustCerts(props.SecurityProfile)
+				if err := d.Set("custom_ca_trust_certificates_base64", customCaTrustCertList); err != nil {
+					return fmt.Errorf("setting `custom_ca_trust_certificates_base64`: %+v", err)
+				}
 			}
 
 			serviceMeshProfile := flattenKubernetesClusterAzureServiceMeshProfile(props.ServiceMeshProfile)
@@ -1008,11 +1023,6 @@ func flattenKubernetesClusterDataSourceStorageProfile(input *managedclusters.Man
 			diskEnabled = *input.DiskCSIDriver.Enabled
 		}
 
-		diskVersion := ""
-		if input.DiskCSIDriver != nil && input.DiskCSIDriver.Version != nil {
-			diskVersion = *input.DiskCSIDriver.Version
-		}
-
 		fileEnabled := true
 		if input.FileCSIDriver != nil && input.FileCSIDriver.Enabled != nil {
 			fileEnabled = *input.FileCSIDriver.Enabled
@@ -1023,13 +1033,26 @@ func flattenKubernetesClusterDataSourceStorageProfile(input *managedclusters.Man
 			snapshotController = *input.SnapshotController.Enabled
 		}
 
-		storageProfile = append(storageProfile, map[string]interface{}{
-			"blob_driver_enabled":         blobEnabled,
-			"disk_driver_enabled":         diskEnabled,
-			"disk_driver_version":         diskVersion,
-			"file_driver_enabled":         fileEnabled,
-			"snapshot_controller_enabled": snapshotController,
-		})
+		if !features.FourPointOhBeta() {
+			diskVersion := ""
+			if input.DiskCSIDriver != nil && input.DiskCSIDriver.Version != nil {
+				diskVersion = *input.DiskCSIDriver.Version
+			}
+			storageProfile = append(storageProfile, map[string]interface{}{
+				"blob_driver_enabled":         blobEnabled,
+				"disk_driver_enabled":         diskEnabled,
+				"disk_driver_version":         diskVersion,
+				"file_driver_enabled":         fileEnabled,
+				"snapshot_controller_enabled": snapshotController,
+			})
+		} else {
+			storageProfile = append(storageProfile, map[string]interface{}{
+				"blob_driver_enabled":         blobEnabled,
+				"disk_driver_enabled":         diskEnabled,
+				"file_driver_enabled":         fileEnabled,
+				"snapshot_controller_enabled": snapshotController,
+			})
+		}
 	}
 
 	return storageProfile
@@ -1350,9 +1373,6 @@ func flattenKubernetesClusterDataSourceAzureActiveDirectoryRoleBasedAccessContro
 
 		result := map[string]interface{}{
 			"admin_group_object_ids": adminGroupObjectIds,
-			"client_app_id":          clientAppId,
-			"managed":                managed,
-			"server_app_id":          serverAppId,
 			"tenant_id":              tenantId,
 			"azure_rbac_enabled":     azureRbacEnabled,
 		}
