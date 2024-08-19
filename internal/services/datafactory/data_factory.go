@@ -97,6 +97,31 @@ func flattenDataFactoryParameters(input map[string]*datafactory.ParameterSpecifi
 	return output
 }
 
+func expandDataFactoryParametersFourPointOh(input []interface{}) map[string]*datafactory.ParameterSpecification {
+	parameters := make(map[string]*datafactory.ParameterSpecification)
+	for _, v := range input {
+		val := v.(map[string]interface{})
+		parameters[val["name"].(string)] = &datafactory.ParameterSpecification{
+			Type:         datafactory.ParameterType(val["type"].(string)),
+			DefaultValue: val["default_value"],
+		}
+	}
+	return parameters
+}
+
+func flattenDataFactoryParametersFourPointOh(input map[string]*datafactory.ParameterSpecification) []interface{} {
+	parameters := make([]interface{}, 0, len(input))
+	for k, v := range input {
+		param := map[string]interface{}{
+			"name":          k,
+			"type":          string(v.Type),
+			"default_value": v.DefaultValue,
+		}
+		parameters = append(parameters, param)
+	}
+	return parameters
+}
+
 func flattenDataFactoryAnnotations(input *[]interface{}) []string {
 	annotations := make([]string, 0)
 	if input == nil {
@@ -142,6 +167,39 @@ func flattenDataFactoryVariables(input map[string]*datafactory.VariableSpecifica
 	}
 
 	return output
+}
+
+func expandDataFactoryVariablesFourPointOh(input []interface{}) map[string]*datafactory.VariableSpecification {
+	variables := make(map[string]*datafactory.VariableSpecification)
+	for _, v := range input {
+		val := v.(map[string]interface{})
+
+		variables[val["name"].(string)] = &datafactory.VariableSpecification{
+			Type:         datafactory.VariableType(val["type"].(string)),
+			DefaultValue: val["default_value"],
+		}
+	}
+	return variables
+}
+
+func flattenDataFactoryVariablesFourPointOh(input map[string]*datafactory.VariableSpecification) []interface{} {
+	variables := make([]interface{}, 0, len(input))
+	for k, v := range input {
+
+		// convert value to string if it is bool
+		// this is needed because the API returns the default value as a bool
+		if _, ok := v.DefaultValue.(bool); ok {
+			v.DefaultValue = fmt.Sprintf("%v", v.DefaultValue)
+		}
+
+		variable := map[string]interface{}{
+			"name":          k,
+			"type":          string(v.Type),
+			"default_value": v.DefaultValue,
+		}
+		variables = append(variables, variable)
+	}
+	return variables
 }
 
 // DatasetColumn describes the attributes needed to specify a structure column for a dataset
