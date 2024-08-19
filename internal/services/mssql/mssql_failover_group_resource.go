@@ -319,7 +319,7 @@ func (r MsSqlFailoverGroupResource) Read() sdk.ResourceFunc {
 			serverId := parse.NewServerID(subscriptionId, id.ResourceGroupName, id.ServerName)
 
 			model := MsSqlFailoverGroupModel{
-				Name:     id.ServerName,
+				Name:     id.FailoverGroupName,
 				ServerId: serverId.ID(),
 			}
 
