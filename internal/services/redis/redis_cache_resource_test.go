@@ -1636,14 +1636,14 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_redis_cache" "test" {
-  name                                = "acctestRedis-%d"
-  location                            = azurerm_resource_group.test.location
-  resource_group_name                 = azurerm_resource_group.test.name
-  capacity                            = 1
-  family                              = "C"
-  sku_name                            = "Basic"
-  non_ssl_port_enabled                = false
-  minimum_tls_version                 = "1.2"
+  name                               = "acctestRedis-%d"
+  location                           = azurerm_resource_group.test.location
+  resource_group_name                = azurerm_resource_group.test.name
+  capacity                           = 1
+  family                             = "C"
+  sku_name                           = "Basic"
+  non_ssl_port_enabled               = false
+  minimum_tls_version                = "1.2"
   access_keys_authentication_enabled = %t
 
   redis_configuration {
