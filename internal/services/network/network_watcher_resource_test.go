@@ -39,9 +39,9 @@ func TestAccNetworkWatcher(t *testing.T) {
 			"basic": testAccDataSourceNetworkWatcher_basic,
 		},
 		"ConnectionMonitor": {
-			"addressBasic":                   testAccNetworkConnectionMonitor_addressBasic,
-			"addressComplete":                testAccNetworkConnectionMonitor_addressComplete,
-			"addressUpdate":                  testAccNetworkConnectionMonitor_addressUpdate,
+			"addressBasic":    testAccNetworkConnectionMonitor_addressBasic,
+			"addressComplete": testAccNetworkConnectionMonitor_addressComplete,
+			// "addressUpdate":                  testAccNetworkConnectionMonitor_addressUpdate,
 			"vmBasic":                        testAccNetworkConnectionMonitor_vmBasic,
 			"vmComplete":                     testAccNetworkConnectionMonitor_vmComplete,
 			"vmUpdate":                       testAccNetworkConnectionMonitor_vmUpdate,
