@@ -136,10 +136,11 @@ func resourceIpGroupCidrRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		if resp.Model.Properties == nil {
 			return fmt.Errorf("retrieving %s: `properties` was nil", ipGroupId)
 		}
-		if !utils.SliceContainsValue(*resp.Model.Properties.IPAddresses, cidr) {
-			d.SetId("")
-			return nil
-		}
+	}
+
+	if !utils.SliceContainsValue(*resp.Model.Properties.IPAddresses, cidr) {
+		d.SetId("")
+		return nil
 	}
 
 	d.Set("ip_group_id", ipGroupId.ID())
