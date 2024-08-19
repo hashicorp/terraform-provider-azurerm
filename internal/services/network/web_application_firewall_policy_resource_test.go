@@ -888,21 +888,21 @@ resource "azurerm_web_application_firewall_policy" "test" {
       version = "3.2"
 
       rule_group_override {
-		rule {
+        rule {
           id = "800112"
-		}
-		rule {
+        }
+        rule {
           id = "800111"
-		}
-		rule {
+        }
+        rule {
           id = "800110"
-		}
-		rule {
+        }
+        rule {
           id = "800100"
-		}
-		rule {
+        }
+        rule {
           id = "800113"
-		}
+        }
 
         rule_group_name = "Known-CVEs"
       }
@@ -1003,12 +1003,12 @@ resource "azurerm_web_application_firewall_policy" "test" {
 
       rule_group_override {
         rule_group_name = "REQUEST-920-PROTOCOL-ENFORCEMENT"
-		rule {
+        rule {
           id = "920300"
-		}
-		rule {
+        }
+        rule {
           id = "920440"
-		}
+        }
       }
     }
   }
@@ -1064,12 +1064,12 @@ resource "azurerm_web_application_firewall_policy" "test" {
 
       rule_group_override {
         rule_group_name = "REQUEST-920-PROTOCOL-ENFORCEMENT"
-		rule {
+        rule {
           id = "920300"
-		}
-		rule {
+        }
+        rule {
           id = "920440"
-		}
+        }
       }
     }
   }
@@ -1181,12 +1181,12 @@ resource "azurerm_web_application_firewall_policy" "test" {
 
       rule_group_override {
         rule_group_name = "REQUEST-920-PROTOCOL-ENFORCEMENT"
-		rule {
+        rule {
           id = "920300"
-		}
-		rule {
+        }
+        rule {
           id = "920440"
-		}
+        }
       }
     }
   }
@@ -1230,72 +1230,72 @@ resource "azurerm_web_application_firewall_policy" "test" {
 
       rule_group_override {
         rule_group_name = "REQUEST-931-APPLICATION-ATTACK-RFI"
-		rule {
+        rule {
           id = "931130"
-		}
+        }
       }
 
       rule_group_override {
         rule_group_name = "REQUEST-920-PROTOCOL-ENFORCEMENT"
-		rule {
+        rule {
           id = "920320"
-		}
-		rule {
+        }
+        rule {
           id = "920230"
-		}
+        }
       }
 
       rule_group_override {
         rule_group_name = "REQUEST-942-APPLICATION-ATTACK-SQLI"
-		rule {
+        rule {
           id = "942450"
-		}
-		rule {
+        }
+        rule {
           id = "942430"
-		}
-		rule {
+        }
+        rule {
           id = "942440"
-		}
-		rule {
+        }
+        rule {
           id = "942370"
-		}
-		rule {
+        }
+        rule {
           id = "942340"
-		}
-		rule {
+        }
+        rule {
           id = "942260"
-		}
-		rule {
+        }
+        rule {
           id = "942200"
-		}
-		rule {
+        }
+        rule {
           id = "942330"
-		}
-		rule {
+        }
+        rule {
           id = "942120"
-		}
-		rule {
+        }
+        rule {
           id = "942110"
-		}
-		rule {
+        }
+        rule {
           id = "942150"
-		}
-		rule {
+        }
+        rule {
           id = "942410"
-		}
-		rule {
+        }
+        rule {
           id = "942130"
-		}
-		rule {
+        }
+        rule {
           id = "942100"
-		}
+        }
       }
 
       rule_group_override {
         rule_group_name = "REQUEST-941-APPLICATION-ATTACK-XSS"
-		rule {
+        rule {
           id = "941340"
-		}
+        }
       }
     }
   }
@@ -1334,80 +1334,80 @@ resource "azurerm_web_application_firewall_policy" "test" {
 
       rule_group_override {
         rule_group_name = "REQUEST-931-APPLICATION-ATTACK-RFI"
-		rule {
+        rule {
           id = "931130"
-		}
+        }
       }
 
       rule_group_override {
         rule_group_name = "REQUEST-920-PROTOCOL-ENFORCEMENT"
-		rule {
+        rule {
           id = "920320"
-		}
-		rule {
+        }
+        rule {
           id = "920230"
-		}
+        }
       }
 
       #NEW BLOCK
       rule_group_override {
         rule_group_name = "REQUEST-932-APPLICATION-ATTACK-RCE"
-		rule {
+        rule {
           id = "932100"
-		}
+        }
       }
 
       rule_group_override {
         rule_group_name = "REQUEST-942-APPLICATION-ATTACK-SQLI"
-		rule {
+        rule {
           id = "942450"
-		}
-		rule {
+        }
+        rule {
           id = "942430"
-		}
-		rule {
+        }
+        rule {
           id = "942440"
-		}
-		rule {
+        }
+        rule {
           id = "942370"
-		}
-		rule {
+        }
+        rule {
           id = "942340"
-		}
-		rule {
+        }
+        rule {
           id = "942260"
-		}
-		rule {
+        }
+        rule {
           id = "942200"
-		}
-		rule {
+        }
+        rule {
           id = "942330"
-		}
-		rule {
+        }
+        rule {
           id = "942120"
-		}
-		rule {
+        }
+        rule {
           id = "942110"
-		}
-		rule {
+        }
+        rule {
           id = "942150"
-		}
-		rule {
+        }
+        rule {
           id = "942410"
-		}
-		rule {
+        }
+        rule {
           id = "942130"
-		}
-		rule {
+        }
+        rule {
           id = "942100"
-		}
+        }
       }
 
       rule_group_override {
         rule_group_name = "REQUEST-941-APPLICATION-ATTACK-XSS"
-		rule {
+        rule {
           id = "941340"
-		}
+        }
       }
     }
   }

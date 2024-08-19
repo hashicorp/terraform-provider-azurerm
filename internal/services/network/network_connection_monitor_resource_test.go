@@ -75,7 +75,7 @@ func testAccNetworkConnectionMonitor_addressComplete(t *testing.T) {
 	})
 }
 
-func TestAccNetworkConnectionMonitor_addressUpdate(t *testing.T) {
+func testAccNetworkConnectionMonitor_addressUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
 	r := NetworkConnectionMonitorResource{}
 
