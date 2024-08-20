@@ -10,16 +10,13 @@ import (
 
 	// nolint: staticcheck
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-
-	miValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
-
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type MsSqlManagedDatabaseDataSourceModel struct {
@@ -56,18 +53,22 @@ func (d MsSqlManagedDatabaseDataSource) Arguments() map[string]*pluginsdk.Schema
 			ForceNew:     true,
 			ValidateFunc: validate.ValidateMsSqlManagedInstanceDatabaseName,
 		},
-		"managed_instance_name": {
+		"managed_instance_id": {
 			Type:         schema.TypeString,
 			Required:     true,
-			ValidateFunc: miValidate.ValidateMsSqlServerName,
+			ForceNew:     true,
+			ValidateFunc: validate.ManagedInstanceID,
 		},
-		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 	}
 }
 
 func (d MsSqlManagedDatabaseDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"managed_instance_id": {
+		"managed_instance_name": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+		"resource_group_name": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -79,34 +80,29 @@ func (d MsSqlManagedDatabaseDataSource) Attributes() map[string]*pluginsdk.Schem
 					// WeeklyRetention - The weekly retention policy for an LTR backup in an ISO 8601 format.
 					"weekly_retention": {
 						Type:     pluginsdk.TypeString,
-						Optional: true,
 						Computed: true,
 					},
 
 					// MonthlyRetention - The monthly retention policy for an LTR backup in an ISO 8601 format.
 					"monthly_retention": {
 						Type:     pluginsdk.TypeString,
-						Optional: true,
 						Computed: true,
 					},
 
 					// YearlyRetention - The yearly retention policy for an LTR backup in an ISO 8601 format.
 					"yearly_retention": {
 						Type:     pluginsdk.TypeString,
-						Optional: true,
 						Computed: true,
 					},
 
 					// WeekOfYear - The week of year to take the yearly backup in an ISO 8601 format.
 					"week_of_year": {
 						Type:     pluginsdk.TypeInt,
-						Optional: true,
 						Computed: true,
 					},
 
 					"immutable_backups_enabled": {
 						Type:     pluginsdk.TypeBool,
-						Optional: true,
 						Computed: true,
 					},
 				},
@@ -120,6 +116,18 @@ func (d MsSqlManagedDatabaseDataSource) Attributes() map[string]*pluginsdk.Schem
 		"point_in_time_restore": {
 			Type:     schema.TypeList,
 			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"restore_point_in_time": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"source_database_id": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+				},
+			},
 		},
 	}
 }
@@ -138,7 +146,11 @@ func (d MsSqlManagedDatabaseDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v)", err)
 			}
 
-			managedInstanceId := parse.NewManagedInstanceID(subscriptionId, state.ResourceGroupName, state.ManagedInstanceName)
+			managedInstanceId, err := parse.ManagedInstanceID(state.ManagedInstanceId)
+			if err != nil {
+				return err
+			}
+
 			id := parse.NewManagedDatabaseID(subscriptionId, managedInstanceId.ResourceGroup, managedInstanceId.Name, state.Name)
 			resp, err := client.Get(ctx, id.ResourceGroup, id.ManagedInstanceName, id.DatabaseName)
 			if err != nil {
@@ -152,9 +164,8 @@ func (d MsSqlManagedDatabaseDataSource) Read() sdk.ResourceFunc {
 				Name:                id.DatabaseName,
 				ManagedInstanceName: managedInstanceId.Name,
 				ResourceGroupName:   id.ResourceGroup,
+				ManagedInstanceId:   managedInstanceId.ID(),
 			}
-
-			model.ManagedInstanceId = managedInstanceId.ID()
 
 			ltrResp, err := longTermRetentionClient.Get(ctx, id.ResourceGroup, id.ManagedInstanceName, id.DatabaseName)
 			if err != nil {
@@ -168,12 +179,9 @@ func (d MsSqlManagedDatabaseDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving Short Term Retention Policy for  %s: %v", id, err)
 			}
 
-			if shortTermRetentionResp.RetentionDays != nil {
-				model.ShortTermRetentionDays = int64(*shortTermRetentionResp.RetentionDays)
-			}
+			model.ShortTermRetentionDays = int64(pointer.From(shortTermRetentionResp.RetentionDays))
 
-			d := metadata.ResourceData
-			if v, ok := d.GetOk("point_in_time_restore"); ok {
+			if v, ok := metadata.ResourceData.GetOk("point_in_time_restore"); ok {
 				model.PointInTimeRestore = flattenManagedDatabasePointInTimeRestore(v)
 			}
 

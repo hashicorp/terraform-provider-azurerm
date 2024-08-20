@@ -20,11 +20,8 @@ func TestAccDataSourceMsSqlManagedDatabase_basic(t *testing.T) {
 		{
 			Config: MsSqlManagedDatabaseDataSource{}.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				// check.That(data.ResourceName).Key("location").Exists(),
 				check.That(data.ResourceName).Key("name").Exists(),
-				check.That(data.ResourceName).Key("resource_group_name").Exists(),
-				// check.That(data.ResourceName).Key("tags.%").HasValue("2"),
-				check.That(data.ResourceName).Key("managed_instance_name").Exists(),
+				check.That(data.ResourceName).Key("managed_instance_id").Exists(),
 			),
 		},
 	})
@@ -35,9 +32,8 @@ func (d MsSqlManagedDatabaseDataSource) basic(data acceptance.TestData) string {
 %[1]s
 
 data "azurerm_mssql_managed_database" "test" {
-  name                  = azurerm_mssql_managed_database.name
-  resource_group_name 	= azurerm_resource_group.test.name
-  managed_instance_name = azurerm_mssql_managed_database.test.managed_instance_name
+  name                  = azurerm_mssql_managed_database.test.name
+  managed_instance_id   = azurerm_mssql_managed_database.test.managed_instance_id
 }
 `, MsSqlManagedInstanceResource{}.basic(data))
 }
