@@ -198,6 +198,13 @@ func resourceImage() *pluginsdk.Resource {
 							ValidateFunc: validation.NoZeroValues,
 						},
 
+						"disk_encryption_set_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: validate.DiskEncryptionSetID,
+						},
+
 						"storage_type": {
 							Type:         pluginsdk.TypeString,
 							Description:  "The type of storage disk",
@@ -392,7 +399,7 @@ func expandImageOSDisk(input []interface{}) *images.ImageOSDisk {
 
 		if id := config["disk_encryption_set_id"].(string); id != "" {
 			out.DiskEncryptionSet = &images.SubResource{
-				Id: utils.String(id),
+				Id: pointer.To(id),
 			}
 		}
 
@@ -430,6 +437,12 @@ func expandImageDataDisks(disks []interface{}) *[]images.ImageDataDisk {
 			item.ManagedDisk = managedDisk
 		}
 
+		if id := config["disk_encryption_set_id"].(string); id != "" {
+			item.DiskEncryptionSet = &images.SubResource{
+				Id: pointer.To(id),
+			}
+		}
+
 		if features.FourPointOhBeta() {
 			item.StorageAccountType = pointer.To(images.StorageAccountTypes(config["storage_type"].(string)))
 		}
@@ -463,7 +476,8 @@ func flattenImageOSDisk(input *images.ImageStorageProfile) []interface{} {
 			}
 			diskEncryptionSetId := ""
 			if set := v.DiskEncryptionSet; set != nil && set.Id != nil {
-				diskEncryptionSetId = *set.Id
+				encryptionId, _ := commonids.ParseDiskEncryptionSetIDInsensitively(*set.Id)
+				diskEncryptionSetId = encryptionId.ID()
 			}
 
 			properties := map[string]interface{}{
@@ -513,13 +527,19 @@ func flattenImageDataDisks(input *images.ImageStorageProfile) []interface{} {
 				if disk.ManagedDisk != nil && disk.ManagedDisk.Id != nil {
 					managedDiskId = *disk.ManagedDisk.Id
 				}
+				diskEncryptionSetId := ""
+				if set := disk.DiskEncryptionSet; set != nil && set.Id != nil {
+					encryptionId, _ := commonids.ParseDiskEncryptionSetIDInsensitively(*set.Id)
+					diskEncryptionSetId = encryptionId.ID()
+				}
 
 				properties := map[string]interface{}{
-					"blob_uri":        blobUri,
-					"caching":         caching,
-					"lun":             int(disk.Lun),
-					"managed_disk_id": managedDiskId,
-					"size_gb":         diskSizeGb,
+					"blob_uri":               blobUri,
+					"caching":                caching,
+					"lun":                    int(disk.Lun),
+					"managed_disk_id":        managedDiskId,
+					"size_gb":                diskSizeGb,
+					"disk_encryption_set_id": diskEncryptionSetId,
 				}
 
 				if features.FourPointOhBeta() {
