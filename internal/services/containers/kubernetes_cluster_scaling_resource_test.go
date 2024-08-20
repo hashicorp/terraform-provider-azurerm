@@ -144,12 +144,7 @@ func TestAccKubernetesCluster_updateVmSizeAfterFailureWithTempWithoutDefault(t *
 						return fmt.Errorf("creating %s: %+v", tempNodePoolId, err)
 					}
 
-					ignorePodDisruptionBudget := true
-					deleteOpts := agentpools.DeleteOperationOptions{
-						IgnorePodDisruptionBudget: &ignorePodDisruptionBudget,
-					}
-
-					if err := client.DeleteThenPoll(ctx, defaultNodePoolId, deleteOpts); err != nil {
+					if err := client.DeleteThenPoll(ctx, defaultNodePoolId); err != nil {
 						return fmt.Errorf("deleting default %s: %+v", defaultNodePoolId, err)
 					}
 
