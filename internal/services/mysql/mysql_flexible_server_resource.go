@@ -298,7 +298,9 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 
 			"public_network_access_enabled": {
 				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Optional: true,
+				Default:  true,
+				ForceNew: true,
 			},
 
 			"replica_capacity": {
@@ -510,7 +512,9 @@ func resourceMysqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("fqdn", props.FullyQualifiedDomainName)
 
 			if network := props.Network; network != nil {
-				d.Set("public_network_access_enabled", *network.PublicNetworkAccess == servers.EnableStatusEnumEnabled)
+				if network.PublicNetworkAccess != nil {
+					d.Set("public_network_access_enabled", *network.PublicNetworkAccess == servers.EnableStatusEnumEnabled)
+				}
 				d.Set("delegated_subnet_id", network.DelegatedSubnetResourceId)
 				d.Set("private_dns_zone_id", network.PrivateDnsZoneResourceId)
 			}
@@ -750,6 +754,14 @@ func expandArmServerNetwork(d *pluginsdk.ResourceData) *servers.Network {
 
 	if v, ok := d.GetOk("private_dns_zone_id"); ok {
 		network.PrivateDnsZoneResourceId = utils.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("public_network_access_enabled"); ok {
+		if v.(bool) {
+			network.PublicNetworkAccess = pointer.To(servers.EnableStatusEnumEnabled)
+		} else {
+			network.PublicNetworkAccess = pointer.To(servers.EnableStatusEnumDisabled)
+		}
 	}
 
 	return &network

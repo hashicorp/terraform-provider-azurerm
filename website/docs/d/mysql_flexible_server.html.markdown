@@ -57,6 +57,8 @@ The following arguments are supported:
 
 * `private_dns_zone_id` - The ID of the Private DNS zone of the MySQL Flexible Server.
 
+* `public_network_access_enabled` - Is the public network access enabled?
+
 * `replication_role` - The replication role of the MySQL Flexible Server.
 
 * `sku_name` - The SKU Name of the MySQL Flexible Server.

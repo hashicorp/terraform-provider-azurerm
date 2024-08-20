@@ -111,6 +111,8 @@ The following arguments are supported:
 
 * `point_in_time_restore_time_in_utc` - (Optional) The point in time to restore from `creation_source_server_id` when `create_mode` is `PointInTimeRestore`. Changing this forces a new MySQL Flexible Server to be created.
 
+* `public_network_access_enabled` - (Optional) Should public network access be enabled? Defaults to `true`. Changing this forces a new MySQL Flexible Server to be created.
+
 * `private_dns_zone_id` - (Optional) The ID of the private DNS zone to create the MySQL Flexible Server. Changing this forces a new MySQL Flexible Server to be created.
 
 ~> **NOTE:** The `private_dns_zone_id` is required when setting a `delegated_subnet_id`. The `azurerm_private_dns_zone` should end with suffix `.mysql.database.azure.com`.
@@ -204,8 +206,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `id` - The ID of the MySQL Flexible Server.
 
 * `fqdn` - The fully qualified domain name of the MySQL Flexible Server.
-
-* `public_network_access_enabled` - Is the public network access enabled?
 
 * `replica_capacity` - The maximum number of replicas that a primary MySQL Flexible Server can have.
 
