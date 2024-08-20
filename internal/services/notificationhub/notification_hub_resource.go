@@ -150,6 +150,7 @@ func resourceNotificationHub() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
+							Sensitive:    true,
 						},
 						"vapid_public_key": {
 							Type:         pluginsdk.TypeString,

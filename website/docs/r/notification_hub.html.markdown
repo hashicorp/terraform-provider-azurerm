@@ -62,7 +62,7 @@ The following arguments are supported:
 
 ---
 
-A `apns_credential` block contains:
+A `apns_credential` supports the following:
 
 * `application_mode` - (Required) The Application Mode which defines which server the APNS Messages should be sent to. Possible values are `Production` and `Sandbox`.
 
@@ -76,7 +76,7 @@ A `apns_credential` block contains:
 
 ---
 
-A `browser_credential` block contains:
+A `browser_credential` supports the following:
 
 * `subject` - (Required) The subject name of web push.
 
@@ -86,7 +86,7 @@ A `browser_credential` block contains:
 
 ---
 
-A `gcm_credential` block contains:
+A `gcm_credential` supports the following:
 
 * `api_key` - (Required) The API Key associated with the Google Cloud Messaging service.
 
