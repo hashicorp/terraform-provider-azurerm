@@ -576,6 +576,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
   policy_settings {
     enabled = true
     mode    = "Prevention"
+    request_body_enforcement = false
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
