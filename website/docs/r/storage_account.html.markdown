@@ -12,7 +12,7 @@ Manages an Azure Storage Account.
 
 ## Disclaimers
 
--> **Note:** Version 3.117.0 and later of the Azure Provider includes a Feature Toggle which will allow blocking data plane calls during the creation of the storage account resource. See [the Features block documentation](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block) for more information on Feature Toggles within Terraform.
+-> **Note:** Beginning with version 3.117.0 of the Azure Provider, a new Feature Toggle will be introduced to block data plane calls during the creation of storage account resources. See [the Features block documentation](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block) for more information on Feature Toggles within Terraform.
 
 ## Example Usage
 
