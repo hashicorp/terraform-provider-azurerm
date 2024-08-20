@@ -89,7 +89,7 @@ func dataSourceDiskEncryptionSetRead(d *pluginsdk.ResourceData, meta interface{}
 			keyVaultURI := props.ActiveKey.KeyUrl
 			isHSMURI, err, _, _ := managedHsmHelpers.IsManagedHSMURI(env, keyVaultURI)
 			if err != nil {
-				return fmt.Errorf("Parshing key vault URI: %+v", err)
+				return fmt.Errorf("parsing key vault URI: %+v", err)
 			}
 			if isHSMURI {
 				d.Set("managed_hsm_key_id", keyVaultURI)

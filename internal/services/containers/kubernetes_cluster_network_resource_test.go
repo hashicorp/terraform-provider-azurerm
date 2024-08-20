@@ -979,6 +979,9 @@ func TestAccKubernetesCluster_networkDataPlane(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_apiServerInManagedSubnet(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("Skipping this test in 4.0 beta as it is not supported")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -994,6 +997,9 @@ func TestAccKubernetesCluster_apiServerInManagedSubnet(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_apiServerInBYOSubnet(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("Skipping this test in 4.0 beta as it is not supported")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 

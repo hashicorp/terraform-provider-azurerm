@@ -198,15 +198,28 @@ func resourceStorageAccount() *pluginsdk.Resource {
 								},
 							},
 						},
+
+						"default_share_level_permission": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      string(storageaccounts.DefaultSharePermissionNone),
+							ValidateFunc: validation.StringInSlice(storageaccounts.PossibleValuesForDefaultSharePermission(), false),
+						},
 					},
 				},
 			},
 
-			"cross_tenant_replication_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  true,
-			},
+			"cross_tenant_replication_enabled": func() *pluginsdk.Schema {
+				s := &pluginsdk.Schema{
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  false,
+				}
+				if !features.FourPointOhBeta() {
+					s.Default = true
+				}
+				return s
+			}(),
 
 			"custom_domain": {
 				Type:     pluginsdk.TypeList,
@@ -816,18 +829,11 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				Default:  false,
 			},
 
-			"large_file_share_enabled": func() *pluginsdk.Schema {
-				s := &pluginsdk.Schema{
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false, // @tombuildsstuff: this now defaults to `true` when `account_kind` is set to `FileStorage`
-				}
-				if !features.FourPointOhBeta() {
-					s.Computed = true
-					s.Default = nil
-				}
-				return s
-			}(),
+			"large_file_share_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Computed: true,
+			},
 
 			"local_user_enabled": {
 				Type:     pluginsdk.TypeBool,
@@ -1373,13 +1379,13 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	// BlobStorage does not support ZRS
 	if accountKind == storageaccounts.KindBlobStorage && string(payload.Sku.Name) == string(storageaccounts.SkuNameStandardZRS) {
-		return fmt.Errorf("a `account_replication_type` of `ZRS` isn't supported for Blob Storage accounts")
+		return fmt.Errorf("`account_replication_type` of `ZRS` isn't supported for Blob Storage accounts")
 	}
 
 	accessTier, accessTierSetInConfig := d.GetOk("access_tier")
 	_, skuTierSupported := storageKindsSupportsSkuTier[accountKind]
 	if !skuTierSupported && accessTierSetInConfig {
-		keys := sortedKeysFromSlice(storageKindsSupportHns)
+		keys := sortedKeysFromSlice(storageKindsSupportsSkuTier)
 		return fmt.Errorf("`access_tier` is only available for accounts of kind set to one of: %+v", strings.Join(keys, " / "))
 	}
 	if skuTierSupported {
@@ -1410,8 +1416,8 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	// AccountTier must be Premium for FileStorage
-	if accountKind == storageaccounts.KindFileStorage && accountTier == storageaccounts.SkuTierStandard {
-		return fmt.Errorf("a `account_tier` of `Standard` is not supported for FileStorage accounts")
+	if accountKind == storageaccounts.KindFileStorage && accountTier != storageaccounts.SkuTierPremium {
+		return fmt.Errorf("`account_tier` must be `Premium` for File Storage accounts")
 	}
 
 	// nolint staticcheck
@@ -2589,6 +2595,7 @@ func expandAccountAzureFilesAuthentication(input []interface{}) (*storageaccount
 		}
 
 		output.ActiveDirectoryProperties = ad
+		output.DefaultSharePermission = pointer.To(storageaccounts.DefaultSharePermission(v["default_share_level_permission"].(string)))
 	}
 
 	return &output, nil
@@ -2601,8 +2608,9 @@ func flattenAccountAzureFilesAuthentication(input *storageaccounts.AzureFilesIde
 
 	return []interface{}{
 		map[string]interface{}{
-			"active_directory": flattenAccountActiveDirectoryProperties(input.ActiveDirectoryProperties),
-			"directory_type":   input.DirectoryServiceOptions,
+			"active_directory":               flattenAccountActiveDirectoryProperties(input.ActiveDirectoryProperties),
+			"directory_type":                 input.DirectoryServiceOptions,
+			"default_share_level_permission": input.DefaultSharePermission,
 		},
 	}
 }

@@ -24,9 +24,7 @@ data "azurerm_storage_table_entities" "example" {
 
 The following arguments are supported:
 
-* `table_name` - The name of the Table.
-
-* `storage_account_name` - The name of the Storage Account where the Table exists.
+* `storage_table_id` - The Storage Table ID where the entities exist.
 
 * `filter` - The filter used to retrieve the entities.
 
