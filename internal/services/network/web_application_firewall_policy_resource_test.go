@@ -111,6 +111,7 @@ func TestAccWebApplicationFirewallPolicy_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("policy_settings.0.enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("policy_settings.0.mode").HasValue("Prevention"),
 				check.That(data.ResourceName).Key("policy_settings.0.request_body_check").HasValue("true"),
+				check.That(data.ResourceName).Key("policy_settings.0.request_body_enforcement").HasValue("false"),
 				check.That(data.ResourceName).Key("policy_settings.0.file_upload_limit_in_mb").HasValue("100"),
 				check.That(data.ResourceName).Key("policy_settings.0.max_request_body_size_in_kb").HasValue("128"),
 			),
@@ -189,6 +190,7 @@ func TestAccWebApplicationFirewallPolicy_update(t *testing.T) {
 				check.That(data.ResourceName).Key("policy_settings.0.enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("policy_settings.0.mode").HasValue("Prevention"),
 				check.That(data.ResourceName).Key("policy_settings.0.request_body_check").HasValue("true"),
+				check.That(data.ResourceName).Key("policy_settings.0.request_body_enforcement").HasValue("false"),
 				check.That(data.ResourceName).Key("policy_settings.0.file_upload_limit_in_mb").HasValue("100"),
 				check.That(data.ResourceName).Key("policy_settings.0.max_request_body_size_in_kb").HasValue("128"),
 			),
@@ -572,8 +574,9 @@ resource "azurerm_web_application_firewall_policy" "test" {
   }
 
   policy_settings {
-    enabled = true
-    mode    = "Prevention"
+    enabled                  = true
+    mode                     = "Prevention"
+    request_body_enforcement = false
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
