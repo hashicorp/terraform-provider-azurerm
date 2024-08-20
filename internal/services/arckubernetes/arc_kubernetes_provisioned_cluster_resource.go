@@ -4,25 +4,22 @@ import (
 	"context"
 	"fmt"
 	"regexp"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/logicalnetworks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/extendedlocation/2021-08-15/customlocations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridazurekubernetesservice/2024-01-01/provisionedclusterinstances"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridazurekubernetesservice/2024-01-01/virtualnetworks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridkubernetes/2024-01-01/connectedclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/arckubernetes/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/arckubernetes/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
-
-const ArcKubernetesProvisionedClusterInstanceResourceIdSuffix = "/providers/Microsoft.HybridContainerService/provisionedClusterInstances/default"
 
 var (
 	_ sdk.Resource           = ArcKubernetesProvisionedClusterInstanceResource{}
@@ -32,25 +29,7 @@ var (
 type ArcKubernetesProvisionedClusterInstanceResource struct{}
 
 func (ArcKubernetesProvisionedClusterInstanceResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return func(val interface{}, key string) (warns []string, errs []error) {
-		idRaw, ok := val.(string)
-		if !ok {
-			errs = append(errs, fmt.Errorf("expected `id` to be a string but got %+v", val))
-			return
-		}
-
-		scopeId := strings.TrimRight(idRaw, ArcKubernetesProvisionedClusterInstanceResourceIdSuffix)
-		if !strings.EqualFold(idRaw, scopeId+ArcKubernetesProvisionedClusterInstanceResourceIdSuffix) {
-			errs = append(errs, fmt.Errorf("expect `id` ends with %s, but got %s", ArcKubernetesProvisionedClusterInstanceResourceIdSuffix, idRaw))
-		}
-
-		if _, err := connectedclusters.ParseConnectedClusterID(scopeId); err != nil {
-			errs = append(errs, fmt.Errorf("parsing the scope of %q as a Connected Cluster ID: %+v", idRaw, err))
-			return
-		}
-
-		return
-	}
+	return validate.ArcKubernetesProvisionedClusterInstanceID
 }
 
 func (ArcKubernetesProvisionedClusterInstanceResource) ResourceType() string {
@@ -64,7 +43,7 @@ func (ArcKubernetesProvisionedClusterInstanceResource) ModelObject() interface{}
 type ArcKubernetesProvisionedClusterInstanceResourceModel struct {
 	AgentPoolProfile     []ProvisionedClusterInstanceAgentPoolProfile     `tfschema:"agent_pool_profile"`
 	CloudProviderProfile []ProvisionedClusterInstanceCloudProviderProfile `tfschema:"cloud_provider_profile"`
-	ConnectedClusterID   string                                           `tfschema:"connected_cluster_id"`
+	ClusterID            string                                           `tfschema:"cluster_id"`
 	ControlPlaneProfile  []ProvisionedClusterInstanceControlPlaneProfile  `tfschema:"control_plane_profile"`
 	CustomLocationId     string                                           `tfschema:"custom_location_id"`
 	KubernetesVersion    string                                           `tfschema:"kubernetes_version"`
@@ -86,26 +65,6 @@ type ProvisionedClusterInstanceAgentPoolProfile struct {
 	OsSku              string            `tfschema:"os_sku"`
 	OsType             string            `tfschema:"os_type"`
 	VmSize             string            `tfschema:"vm_size"`
-}
-
-type ProvisionedClusterInstanceAutoScalerProfile struct {
-	BalanceSimilarNodeGroups      string `tfschema:"balance_similar_node_groups"`
-	Expander                      string `tfschema:"expander"`
-	MaxEmptyBulkDelete            string `tfschema:"max_empty_bulk_delete"`
-	MaxGracefulTerminationSec     string `tfschema:"max_graceful_termination_sec"`
-	MaxNodeProvisionTime          string `tfschema:"max_node_provision_time"`
-	MaxTotalUnreadyPercentage     string `tfschema:"max_total_unready_percentage"`
-	NewPodScaleUpDelay            string `tfschema:"new_pod_scale_up_delay"`
-	OkTotalUnreadyCount           string `tfschema:"ok_total_unready_count"`
-	ScanInterval                  string `tfschema:"scan_interval"`
-	ScaleDownDelayAfterAdd        string `tfschema:"scale_down_delay_after_add"`
-	ScaleDownDelayAfterDelete     string `tfschema:"scale_down_delay_after_delete"`
-	ScaleDownDelayAfterFailure    string `tfschema:"scale_down_delay_after_failure"`
-	ScaleDownUnneededTime         string `tfschema:"scale_down_unneeded_time"`
-	ScaleDownUnreadyTime          string `tfschema:"scale_down_unready_time"`
-	ScaleDownUtilizationThreshold string `tfschema:"scale_down_utilization_threshold"`
-	SkipNodesWithLocalStorage     string `tfschema:"skip_nodes_with_local_storage"`
-	SkipNodesWithSystemPods       string `tfschema:"skip_nodes_with_system_pods"`
 }
 
 type ProvisionedClusterInstanceCloudProviderProfile struct {
@@ -151,7 +110,7 @@ type ProvisionedClusterInstanceStorageProfile struct {
 
 func (ArcKubernetesProvisionedClusterInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"connected_cluster_id": {
+		"cluster_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -437,21 +396,20 @@ func (r ArcKubernetesProvisionedClusterInstanceResource) Create() sdk.ResourceFu
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			connectedClusterId, err := connectedclusters.ParseConnectedClusterID(config.ConnectedClusterID)
+			connectedClusterId, err := connectedclusters.ParseConnectedClusterID(config.ClusterID)
 			if err != nil {
 				return err
 			}
 
 			scopeId := commonids.NewScopeID(connectedClusterId.ID())
-			// TODO: the id should use resourceids.ResourceId
-			provisionedClusterInstanceId := connectedClusterId.ID() + ArcKubernetesProvisionedClusterInstanceResourceIdSuffix
+			provisionedClusterInstanceId := parse.NewArcKubernetesProvisionedClusterInstanceID(connectedClusterId.SubscriptionId, connectedClusterId.ResourceGroupName, connectedClusterId.ConnectedClusterName, "default")
 
 			existing, err := client.ProvisionedClusterInstancesGet(ctx, scopeId)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", provisionedClusterInstanceId, err)
 			}
 			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), scopeId)
+				return metadata.ResourceRequiresImport(r.ResourceType(), provisionedClusterInstanceId)
 			}
 
 			payload := provisionedclusterinstances.ProvisionedCluster{
@@ -472,10 +430,10 @@ func (r ArcKubernetesProvisionedClusterInstanceResource) Create() sdk.ResourceFu
 			}
 
 			if err := client.ProvisionedClusterInstancesCreateOrUpdateThenPoll(ctx, scopeId, payload); err != nil {
-				return fmt.Errorf("creating %s: %+v", connectedClusterId, err)
+				return fmt.Errorf("creating %s: %+v", provisionedClusterInstanceId, err)
 			}
 
-			metadata.SetID(connectedClusterId)
+			metadata.SetID(provisionedClusterInstanceId)
 
 			return nil
 		},
@@ -488,31 +446,28 @@ func (r ArcKubernetesProvisionedClusterInstanceResource) Read() sdk.ResourceFunc
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.ArcKubernetes.ProvisionedClusterInstancesClient
 
-			idRaw := metadata.ResourceData.Id()
-			scopeId := strings.TrimRight(idRaw, ArcKubernetesProvisionedClusterInstanceResourceIdSuffix)
-			if !strings.EqualFold(idRaw, scopeId+ArcKubernetesProvisionedClusterInstanceResourceIdSuffix) {
-				return fmt.Errorf("expect `id` ends with %s, but got %s", ArcKubernetesProvisionedClusterInstanceResourceIdSuffix, idRaw)
+			id, err := parse.ArcKubernetesProvisionedClusterInstanceID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
 			}
 
-			if connectedClusterId, err := connectedclusters.ParseConnectedClusterID(scopeId); err != nil {
-				return fmt.Errorf("parsing the scope of %q as a Connected Cluster ID: %+v", idRaw, err)
-			}
+			connectedClusterId := connectedclusters.NewConnectedClusterID(id.SubscriptionId, id.ResourceGroup, id.ConnectedClusterName)
+			scopeId := commonids.NewScopeID(connectedClusterId.ID())
 
-			resp, err := client.ProvisionedClusterInstancesGet(ctx, commonids.scopeId)
+			resp, err := client.ProvisionedClusterInstancesGet(ctx, scopeId)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
 
-				return fmt.Errorf("retrieving %s: %+v", id, err)
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			schema := ArcKubernetesProvisionedClusterInstanceResourceModel{}
+			schema := ArcKubernetesProvisionedClusterInstanceResourceModel{
+				ClusterID: connectedClusterId.ID(),
+			}
 
 			if model := resp.Model; model != nil {
-				schema.Location = location.Normalize(model.Location)
-				schema.Tags = tags.Flatten(model.Tags)
-
 				if model.ExtendedLocation != nil && model.ExtendedLocation.Name != nil {
 					customLocationId, err := customlocations.ParseCustomLocationIDInsensitively(*model.ExtendedLocation.Name)
 					if err != nil {
@@ -523,12 +478,14 @@ func (r ArcKubernetesProvisionedClusterInstanceResource) Read() sdk.ResourceFunc
 				}
 
 				if props := model.Properties; props != nil {
-					schema.Subnet = flattenStackHCILogicalNetworkSubnet(props.Subnets)
-					schema.VirtualSwitchName = pointer.From(props.VMSwitchName)
-
-					if props.DhcpOptions != nil {
-						schema.DNSServers = pointer.From(props.DhcpOptions.DnsServers)
-					}
+					schema.CloudProviderProfile = flattenProvisionedClusterCloudProviderProfile(props.CloudProviderProfile)
+					schema.AgentPoolProfile = flattenProvisionedClusterAgentPoolProfiles(props.AgentPoolProfiles)
+					schema.ControlPlaneProfile = flattenProvisionedClusterControlPlaneProfile(props.ControlPlane)
+					schema.KubernetesVersion = pointer.From(props.KubernetesVersion)
+					schema.LinuxProfile = flattenProvisionedClusterLinuxProfile(props.LinuxProfile)
+					schema.LicenseProfile = flattenProvisionedClusterLicenseProfile(props.LicenseProfile)
+					schema.NetworkProfile = flattenProvisionedClusterNetworkProfile(props.NetworkProfile)
+					schema.StorageProfile = flattenProvisionedClusterStorageProfile(props.StorageProfile)
 				}
 			}
 
@@ -541,29 +498,64 @@ func (r ArcKubernetesProvisionedClusterInstanceResource) Update() sdk.ResourceFu
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.AzureStackHCI.LogicalNetworks
+			client := metadata.Client.ArcKubernetes.ProvisionedClusterInstancesClient
 
-			id, err := logicalnetworks.ParseLogicalNetworkID(metadata.ResourceData.Id())
+			var config ArcKubernetesProvisionedClusterInstanceResourceModel
+			if err := metadata.Decode(&config); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			id, err := parse.ArcKubernetesProvisionedClusterInstanceID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			var model ArcKubernetesProvisionedClusterInstanceResourceModel
-			if err := metadata.Decode(&model); err != nil {
-				return fmt.Errorf("decoding: %+v", err)
-			}
+			connectedClusterId := connectedclusters.NewConnectedClusterID(id.SubscriptionId, id.ResourceGroup, id.ConnectedClusterName)
+			scopeId := commonids.NewScopeID(connectedClusterId.ID())
 
-			resp, err := client.Get(ctx, *id)
+			resp, err := client.ProvisionedClusterInstancesGet(ctx, scopeId)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
 			parameters := resp.Model
-			if parameters == nil {
+			if parameters == nil || parameters.Properties == nil {
 				return fmt.Errorf("retrieving %s: `model` was nil", *id)
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, *id, *parameters); err != nil {
+			if metadata.ResourceData.HasChange("agent_pool_profile") {
+				parameters.Properties.AgentPoolProfiles = expandProvisionedClusterAgentPoolProfiles(config.AgentPoolProfile)
+			}
+
+			if metadata.ResourceData.HasChange("cloud_provider_profile") {
+				parameters.Properties.CloudProviderProfile = expandProvisionedClusterCloudProviderProfile(config.CloudProviderProfile)
+			}
+
+			if metadata.ResourceData.HasChange("control_plane_profile") {
+				parameters.Properties.ControlPlane = expandProvisionedClusterControlPlaneProfile(config.ControlPlaneProfile)
+			}
+
+			if metadata.ResourceData.HasChange("kubernetes_version") {
+				parameters.Properties.KubernetesVersion = pointer.To(config.KubernetesVersion)
+			}
+
+			if metadata.ResourceData.HasChange("linux_profile") {
+				parameters.Properties.LinuxProfile = expandProvisionedClusterLinuxProfile(config.LinuxProfile)
+			}
+
+			if metadata.ResourceData.HasChange("license_profile") {
+				parameters.Properties.LicenseProfile = expandProvisionedClusterLicenseProfile(config.LicenseProfile)
+			}
+
+			if metadata.ResourceData.HasChange("network_profile") {
+				parameters.Properties.NetworkProfile = expandProvisionedClusterNetworkProfile(config.NetworkProfile)
+			}
+
+			if metadata.ResourceData.HasChange("storage_profile") {
+				parameters.Properties.StorageProfile = expandProvisionedClusterStorageProfile(config.StorageProfile)
+			}
+
+			if err := client.ProvisionedClusterInstancesCreateOrUpdateThenPoll(ctx, scopeId, *parameters); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 			return nil
@@ -575,14 +567,22 @@ func (r ArcKubernetesProvisionedClusterInstanceResource) Delete() sdk.ResourceFu
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.AzureStackHCI.LogicalNetworks
+			client := metadata.Client.ArcKubernetes.ProvisionedClusterInstancesClient
 
-			id, err := logicalnetworks.ParseLogicalNetworkID(metadata.ResourceData.Id())
+			var config ArcKubernetesProvisionedClusterInstanceResourceModel
+			if err := metadata.Decode(&config); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			id, err := parse.ArcKubernetesProvisionedClusterInstanceID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			if err := client.DeleteThenPoll(ctx, *id); err != nil {
+			connectedClusterId := connectedclusters.NewConnectedClusterID(id.SubscriptionId, id.ResourceGroup, id.ConnectedClusterName)
+			scopeId := commonids.NewScopeID(connectedClusterId.ID())
+
+			if err := client.ProvisionedClusterInstancesDeleteThenPoll(ctx, scopeId); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
