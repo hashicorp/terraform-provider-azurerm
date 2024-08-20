@@ -5052,18 +5052,3 @@ func retrySystemNodePoolCreation(ctx context.Context, client *agentpools.AgentPo
 
 	return err
 }
-
-func convertCustomCaTrustCertsInput(input []interface{}) *[]string {
-	if len(input) == 0 {
-		return nil
-	}
-
-	customCaTrustCertList := make([]string, 0)
-
-	for _, value := range input {
-		customCaTrustCertList = append(customCaTrustCertList, value.(string))
-	}
-
-	return &customCaTrustCertList
-
-}
