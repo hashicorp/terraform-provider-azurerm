@@ -1015,7 +1015,7 @@ resource "azurerm_redis_cache" "test" {
   name                 = "acctestRedis-%d"
   location             = azurerm_resource_group.test.location
   resource_group_name  = azurerm_resource_group.test.name
-  capacity             = 1
+  capacity             = 3
   family               = "P"
   sku_name             = "Premium"
   non_ssl_port_enabled = false

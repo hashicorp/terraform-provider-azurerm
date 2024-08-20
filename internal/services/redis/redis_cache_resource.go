@@ -184,7 +184,6 @@ func resourceRedisCache() *pluginsdk.Resource {
 						"data_persistence_authentication_method": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Default:  "SAS",
 							ValidateFunc: validation.StringInSlice([]string{
 								"SAS",
 								"ManagedIdentity",
