@@ -307,7 +307,7 @@ resource "azurerm_storage_blob_inventory_policy" "test" {
     format                 = "Csv"
     schedule               = "Daily"
     scope                  = "Container"
-   filter {
+    filter {
       blob_types      = []
       include_deleted = true
     }
