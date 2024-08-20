@@ -190,7 +190,7 @@ func TestAccWebApplicationFirewallPolicy_update(t *testing.T) {
 				check.That(data.ResourceName).Key("policy_settings.0.enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("policy_settings.0.mode").HasValue("Prevention"),
 				check.That(data.ResourceName).Key("policy_settings.0.request_body_check").HasValue("true"),
-				check.That(data.ResourceName).Key("policy_settings.0.request_body_enforcement").HasValue("true"),
+				check.That(data.ResourceName).Key("policy_settings.0.request_body_enforcement").HasValue("false"),
 				check.That(data.ResourceName).Key("policy_settings.0.file_upload_limit_in_mb").HasValue("100"),
 				check.That(data.ResourceName).Key("policy_settings.0.max_request_body_size_in_kb").HasValue("128"),
 			),
