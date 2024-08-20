@@ -616,15 +616,16 @@ resource "azurerm_private_dns_zone_virtual_network_link" "test" {
 }
 
 resource "azurerm_mysql_flexible_server" "test" {
-  name                         = "acctest-fs-%[2]d"
-  resource_group_name          = azurerm_resource_group.test.name
-  location                     = azurerm_resource_group.test.location
-  administrator_login          = "adminTerraform"
-  administrator_password       = "QAZwsx123"
-  zone                         = "1"
-  version                      = "8.0.21"
-  backup_retention_days        = 7
-  geo_redundant_backup_enabled = false
+  name                          = "acctest-fs-%[2]d"
+  resource_group_name           = azurerm_resource_group.test.name
+  location                      = azurerm_resource_group.test.location
+  administrator_login           = "adminTerraform"
+  administrator_password        = "QAZwsx123"
+  zone                          = "1"
+  version                       = "8.0.21"
+  backup_retention_days         = 7
+  geo_redundant_backup_enabled  = false
+  public_network_access_enabled = false
 
   storage {
     size_gb = 20
