@@ -164,7 +164,7 @@ The following arguments are supported:
 
 * `table_encryption_key_type` - (Optional) The encryption type of the table service. Possible values are `Service` and `Account`. Changing this forces a new resource to be created. Default value is `Service`.
 
-~> **Note:** `queue_encryption_key_type` and `table_encryption_key_type` cannot be specified when `account_kind` is set `Storage`
+~> **Note:** `queue_encryption_key_type` and `table_encryption_key_type` cannot be set to `Account` when `account_kind` is set `Storage`
 
 * `infrastructure_encryption_enabled` - (Optional) Is infrastructure encryption enabled? Changing this forces a new resource to be created. Defaults to `false`.
 
