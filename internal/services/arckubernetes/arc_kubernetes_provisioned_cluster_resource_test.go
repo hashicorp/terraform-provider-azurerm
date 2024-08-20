@@ -80,7 +80,6 @@ func (r ArcKubernetesProvisionedClusterInstanceResource) basic(data acceptance.T
 %[1]s
 
 resource "azurerm_arc_kubernetes_provisioned_cluster_instance" "test" {
-  name       = "acctest-akpci-%[2]d"
   cluster_id = azurerm_arc_kubernetes_cluster.test.id
   custom_location_id = "%[3]s"
   kubernetes_version = "1.28.5"
@@ -110,9 +109,7 @@ resource "azurerm_arc_kubernetes_provisioned_cluster_instance" "test" {
   }
 
   linux_profile {
-    ssh_key {
-      key_data = tls_private_key.rsaKey.public_key_openssh
-    }
+    ssh_key = [tls_private_key.rsaKey.public_key_openssh]
   }
 
   network_profile {
@@ -193,7 +190,7 @@ resource "azurerm_stack_hci_logical_network" "test" {
 # from https://github.com/Azure/Edge-infrastructure-quickstart-template/blob/main/modules/aks-arc/readiness.ps1
 resource "terraform_data" "waitAksVhdReady" {
   provisioner "local-exec" {
-    command     = "powershell.exe -ExecutionPolicy Bypass -NoProfile -File testdata/readiness.ps1 -customLocationResourceId '%[2]s' -kubernetesVersion '1.28.5' -osSku CBLMariner"
+    command     = "powershell.exe -ExecutionPolicy Bypass -NoProfile -File ./testdata/readiness.ps1 -customLocationResourceId '%[2]s' -kubernetesVersion '1.28.5' -osSku CBLMariner"
     interpreter = ["PowerShell", "-Command"]
   }
 }

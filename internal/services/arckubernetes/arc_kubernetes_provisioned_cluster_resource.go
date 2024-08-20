@@ -82,11 +82,7 @@ type ProvisionedClusterInstanceControlPlaneProfile struct {
 }
 
 type ProvisionedClusterInstanceLinuxProfile struct {
-	SshKey []ProvisionedClusterInstanceSshKey `tfschema:"ssh_key"`
-}
-
-type ProvisionedClusterInstanceSshKey struct {
-	KeyData string `tfschema:"key_data"`
+	SshKey []string `tfschema:"ssh_key"`
 }
 
 type ProvisionedClusterInstanceLicenseProfile struct {
@@ -225,6 +221,7 @@ func (ArcKubernetesProvisionedClusterInstanceResource) Arguments() map[string]*p
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"vnet_subnet_ids": {
+									Type:     pluginsdk.TypeList,
 									Required: true,
 									MinItems: 1,
 									Elem: &pluginsdk.Schema{
@@ -716,7 +713,7 @@ func expandProvisionedClusterLinuxProfile(input []ProvisionedClusterInstanceLinu
 	publicKeys := make([]provisionedclusterinstances.LinuxProfilePropertiesSshPublicKeysInlined, 0)
 	for _, v := range input[0].SshKey {
 		publicKeys = append(publicKeys, provisionedclusterinstances.LinuxProfilePropertiesSshPublicKeysInlined{
-			KeyData: pointer.To(v.KeyData),
+			KeyData: pointer.To(v),
 		})
 	}
 
@@ -732,11 +729,9 @@ func flattenProvisionedClusterLinuxProfile(input *provisionedclusterinstances.Li
 		return nil
 	}
 
-	sshKey := make([]ProvisionedClusterInstanceSshKey, 0)
+	sshKey := make([]string, 0)
 	for _, v := range *input.Ssh.PublicKeys {
-		sshKey = append(sshKey, ProvisionedClusterInstanceSshKey{
-			KeyData: pointer.From(v.KeyData),
-		})
+		sshKey = append(sshKey, pointer.From(v.KeyData))
 	}
 
 	return []ProvisionedClusterInstanceLinuxProfile{
