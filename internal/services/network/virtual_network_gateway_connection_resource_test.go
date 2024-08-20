@@ -923,7 +923,6 @@ resource "azurerm_virtual_network_gateway_connection" "test" {
     ipsec_encryption = "AES256"
     ipsec_integrity  = "SHA256"
     pfs_group        = "PFS14"
-    sa_datasize      = 0
     sa_lifetime      = 27000
   }
 
