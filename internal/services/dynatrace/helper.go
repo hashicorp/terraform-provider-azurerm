@@ -23,12 +23,6 @@ func SchemaPlanData() *pluginsdk.Schema {
 					}, false),
 				},
 
-				"effective_date": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ValidateFunc: validation.IsRFC3339Time,
-				},
-
 				"plan": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
@@ -42,6 +36,11 @@ func SchemaPlanData() *pluginsdk.Schema {
 						"PAYG",
 						"COMMITTED",
 					}, false),
+				},
+
+				"effective_date": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
 				},
 			},
 		},
@@ -97,10 +96,9 @@ func ExpandDynatracePlanData(input []PlanData) *monitors.PlanData {
 	v := input[0]
 
 	return &monitors.PlanData{
-		BillingCycle:  &v.BillingCycle,
-		EffectiveDate: &v.EffectiveDate,
-		PlanDetails:   &v.PlanDetails,
-		UsageType:     &v.UsageType,
+		BillingCycle: &v.BillingCycle,
+		PlanDetails:  &v.PlanDetails,
+		UsageType:    &v.UsageType,
 	}
 }
 

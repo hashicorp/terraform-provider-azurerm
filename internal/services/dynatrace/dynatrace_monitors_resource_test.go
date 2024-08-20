@@ -149,25 +149,24 @@ resource "azurerm_dynatrace_monitor" "test" {
   }
 
   user {
-    first_name   = "%s"
-    last_name    = "%s"
-    email        = "%s"
-    phone_number = ""%s"
-    country      = "%s"
+    first_name   = "Alice"
+    last_name    = "Bobab"
+    email        = "alice@microsoft.com"
+    phone_number = "12345"
+    country      = "westus"
   }
 
   plan {
     usage_type     = "COMMITTED"
     billing_cycle  = "MONTHLY"
     plan           = "azureportalintegration_privatepreview@TIDgmz7xq9ge3py"
-    effective_date = "2019-08-30T15:14:33Z"
   }
 
   tags = {
     environment = "Dev"
   }
 }
-`, template, data.RandomInteger, r.dynatraceInfo.UserFirstName, r.dynatraceInfo.UserLastName, r.dynatraceInfo.UserEmail, r.dynatraceInfo.UserPhoneNumber, r.dynatraceInfo.UserCountry)
+`, template, data.RandomInteger)
 }
 
 func (r MonitorsResource) updated(data acceptance.TestData) string {
@@ -185,18 +184,17 @@ resource "azurerm_dynatrace_monitor" "test" {
     type = "SystemAssigned"
   }
   user {
-    first_name   = "%s"
-    last_name    = "%s"
-    email        = "%s"
-    phone_number = ""%s"
-    country      = "%s"
+    first_name   = "Alice"
+    last_name    = "Bobab"
+    email        = "alice@microsoft.com"
+    phone_number = "12345"
+    country      = "westus"
   }
 
   plan {
     usage_type     = "COMMITTED"
     billing_cycle  = "MONTHLY"
     plan           = "azureportalintegration_privatepreview@TIDgmz7xq9ge3py"
-    effective_date = "2019-08-30T15:14:33Z"
   }
 
   tags = {
@@ -204,7 +202,7 @@ resource "azurerm_dynatrace_monitor" "test" {
     test        = "Patch"
   }
 }
-`, template, data.RandomInteger, r.dynatraceInfo.UserFirstName, r.dynatraceInfo.UserLastName, r.dynatraceInfo.UserEmail, r.dynatraceInfo.UserPhoneNumber, r.dynatraceInfo.UserCountry)
+`, template, data.RandomInteger)
 }
 
 func (r MonitorsResource) requiresImport(data acceptance.TestData) string {
@@ -216,9 +214,11 @@ resource "azurerm_dynatrace_monitor" "import" {
   name                     = azurerm_dynatrace_monitor.test.name
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
-  identity_type            = azurerm_dynatrace_monitor.test.identity_type
+  identity = azurerm_dynatrace_monitor.test.identity
   monitoring_enabled       = azurerm_dynatrace_monitor.test.monitoring_enabled
   marketplace_subscription = azurerm_dynatrace_monitor.test.marketplace_subscription
+  plan                     = azurerm_dynatrace_monitor.test.plan
+  user                     = azurerm_dynatrace_monitor.test.user
 }
 `, template)
 }
