@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/ipgroups"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -138,7 +139,7 @@ func resourceIpGroupCidrRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		}
 	}
 
-	if !utils.SliceContainsValue(*resp.Model.Properties.IPAddresses, cidr) {
+	if !utils.SliceContainsValue(pointer.From(resp.Model.Properties.IPAddresses), cidr) {
 		d.SetId("")
 		return nil
 	}
