@@ -4,7 +4,6 @@
 package storage
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"time"
@@ -166,18 +165,6 @@ func resourceStorageBlobInventoryPolicy() *pluginsdk.Resource {
 				},
 			},
 		},
-
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
-			rules := diff.Get("rules").(*pluginsdk.Set).List()
-			for _, rule := range rules {
-				v := rule.(map[string]interface{})
-				if v["scope"] != string(blobinventorypolicies.ObjectTypeBlob) && len(v["filter"].([]interface{})) != 0 {
-					return fmt.Errorf("the `filter` can only be set when the `scope` is `%s`", blobinventorypolicies.ObjectTypeBlob)
-				}
-			}
-
-			return nil
-		}),
 	}
 }
 
