@@ -740,6 +740,10 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 
 * The property `billing_type` now defaults to `MeteredData`.
 
+### `azurerm_flexible_server`
+
+* The property `public_network_access_enabled` can now be configured and defaults to `true`.
+
 ### `azurerm_firewall_policy`
 
 * The property `sku` now defaults to `Standard`.
