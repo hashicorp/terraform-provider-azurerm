@@ -185,6 +185,9 @@ func TestAccKubernetesCluster_linuxProfile(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_linuxProfileUpdateSshKey(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("Skipping this test in 4.0 beta as it is not supported after switching to stable API")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 

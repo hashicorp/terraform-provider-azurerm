@@ -441,7 +441,6 @@ resource "azurerm_route_table" "test" {
   name                          = "test"
   location                      = azurerm_resource_group.test.location
   resource_group_name           = azurerm_resource_group.test.name
-  disable_bgp_route_propagation = false
   route {
     name           = "internal"
     address_prefix = tolist(azurerm_virtual_network.test.address_space)[0]

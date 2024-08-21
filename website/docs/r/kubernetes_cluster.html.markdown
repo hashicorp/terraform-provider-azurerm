@@ -797,7 +797,7 @@ A `service_principal` block supports the following:
 
 A `ssh_key` block supports the following:
 
-* `key_data` - (Required) The Public SSH Key used to access the cluster.
+* `key_data` - (Required) The Public SSH Key used to access the cluster. Changing this forces a new resource to be created.
 
 ---
 
