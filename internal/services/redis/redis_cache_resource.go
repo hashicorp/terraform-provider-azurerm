@@ -862,7 +862,7 @@ func resourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 		accessKeyAuthEnabled := true
 		if props.DisableAccessKeyAuthentication != nil {
-			accessKeyAuthEnabled = !(*props.DisableAccessKeyAuthentication)
+			accessKeyAuthEnabled = !pointer.From(props.DisableAccessKeyAuthentication)
 		}
 		d.Set("access_keys_authentication_enabled", accessKeyAuthEnabled)
 
