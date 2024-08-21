@@ -756,12 +756,10 @@ func expandArmServerNetwork(d *pluginsdk.ResourceData) *servers.Network {
 		network.PrivateDnsZoneResourceId = utils.String(v.(string))
 	}
 
-	if v, ok := d.GetOk("public_network_access_enabled"); ok {
-		if v.(bool) {
-			network.PublicNetworkAccess = pointer.To(servers.EnableStatusEnumEnabled)
-		} else {
-			network.PublicNetworkAccess = pointer.To(servers.EnableStatusEnumDisabled)
-		}
+	if _, v := d.Get("public_network_access_enabled").(bool); v {
+		network.PublicNetworkAccess = pointer.To(servers.EnableStatusEnumEnabled)
+	} else {
+		network.PublicNetworkAccess = pointer.To(servers.EnableStatusEnumDisabled)
 	}
 
 	return &network

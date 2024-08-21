@@ -436,6 +436,21 @@ func TestAccMySqlFlexibleServer_failover(t *testing.T) {
 	})
 }
 
+func TestAccMySqlFlexibleServer_publicNetworkAccessDisabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
+	r := MySqlFlexibleServerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.publicNetworkAccess(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password"),
+	})
+}
+
 func TestAccMySqlFlexibleServer_createWithCustomerManagedKey(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
 	r := MySqlFlexibleServerResource{}
@@ -616,16 +631,15 @@ resource "azurerm_private_dns_zone_virtual_network_link" "test" {
 }
 
 resource "azurerm_mysql_flexible_server" "test" {
-  name                          = "acctest-fs-%[2]d"
-  resource_group_name           = azurerm_resource_group.test.name
-  location                      = azurerm_resource_group.test.location
-  administrator_login           = "adminTerraform"
-  administrator_password        = "QAZwsx123"
-  zone                          = "1"
-  version                       = "8.0.21"
-  backup_retention_days         = 7
-  geo_redundant_backup_enabled  = false
-  public_network_access_enabled = false
+  name                         = "acctest-fs-%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  administrator_login          = "adminTerraform"
+  administrator_password       = "QAZwsx123"
+  zone                         = "1"
+  version                      = "8.0.21"
+  backup_retention_days        = 7
+  geo_redundant_backup_enabled = false
 
   storage {
     size_gb = 20
@@ -738,6 +752,29 @@ resource "azurerm_mysql_flexible_server" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
+func (r MySqlFlexibleServerResource) publicNetworkAccess(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mysql_flexible_server" "test" {
+  name                          = "acctest-fs-%d"
+  resource_group_name           = azurerm_resource_group.test.name
+  location                      = azurerm_resource_group.test.location
+  administrator_login           = "adminTerraform"
+  administrator_password        = "QAZwsx123"
+  public_network_access_enabled = false
+  sku_name                      = "B_Standard_B1s"
+  zone                          = "1"
+
+  maintenance_window {
+    day_of_week  = 0
+    start_hour   = 8
+    start_minute = 0
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
 func (r MySqlFlexibleServerResource) updateMaintenanceWindow(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -759,7 +796,6 @@ resource "azurerm_mysql_flexible_server" "test" {
 }
 `, r.template(data), data.RandomInteger)
 }
-
 func (r MySqlFlexibleServerResource) updateMaintenanceWindowUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
