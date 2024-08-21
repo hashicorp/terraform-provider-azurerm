@@ -127,6 +127,7 @@ resource "azurerm_resource_group_cost_management_export" "test" {
   recurrence_type              = "Monthly"
   recurrence_period_start_date = "%sT00:00:00Z"
   recurrence_period_end_date   = "%sT00:00:00Z"
+  file_format                  = "Csv"
 
   export_data_storage_location {
     container_id     = azurerm_storage_container.test.resource_manager_id
@@ -171,6 +172,7 @@ resource "azurerm_resource_group_cost_management_export" "test" {
   recurrence_type              = "Monthly"
   recurrence_period_start_date = "%sT00:00:00Z"
   recurrence_period_end_date   = "%sT00:00:00Z"
+  file_format                  = "Csv"
 
   export_data_storage_location {
     container_id     = azurerm_storage_container.test.resource_manager_id
