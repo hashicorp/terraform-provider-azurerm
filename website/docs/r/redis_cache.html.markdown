@@ -59,6 +59,8 @@ The following arguments are supported:
 
 ---
 
+* `access_keys_authentication_enabled` - (Optional) Whether access key authentication is enabled? Defaults to `true`. `active_directory_authentication_enabled` must be set to `true` to disable access key authentication.
+
 * `non_ssl_port_enabled` - (Optional) Enable the non-SSL port (6379) - disabled by default.
 
 * `identity` - (Optional) An `identity` block as defined below.
