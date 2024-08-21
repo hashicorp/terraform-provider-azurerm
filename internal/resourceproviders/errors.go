@@ -20,7 +20,7 @@ If you don't have permission to register Resource Providers you may wish to disa
 functionality by adding the following to the Provider block:
 
 provider "azurerm" {
-  "resource_provider_registrations = "none"
+  resource_provider_registrations = "none"
 }
 
 Please note that if you opt out of Resource Provider Registration and Terraform tries
