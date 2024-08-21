@@ -1627,6 +1627,8 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		if err := waitForDataPlaneToBecomeAvailableForAccount(ctx, storageClient, dataPlaneAccount, supportLevel); err != nil {
 			return fmt.Errorf("waiting for the Data Plane for %s to become available: %+v", id, err)
 		}
+	} else {
+		log.Printf("[DEBUG] storage account 'waitForDataPlaneToBecomeAvailableForAccount' skipped due to DataPlaneAccessEnabled feature flag being set to 'false'.")
 	}
 
 	if val, ok := d.GetOk("blob_properties"); ok {
@@ -2062,6 +2064,8 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 					return fmt.Errorf("updating `static_website` for %s: %+v", *id, err)
 				}
 			}
+		} else {
+			log.Printf("[DEBUG] storage account update for 'queue_properties' and 'static_website' skipped due to DataPlaneAccessEnabled feature flag being set to 'false'.")
 		}
 	}
 
@@ -2379,6 +2383,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 			return fmt.Errorf("setting `static_website`: %+v", err)
 		}
 	} else {
+		log.Printf("[DEBUG] storage account read for 'queue_properties' and 'static_website' skipped due to DataPlaneAccessEnabled feature flag being set to 'false'.")
 		d.Set("static_website", d.Get("static_website"))
 		d.Set("queue_properties", d.Get("queue_properties"))
 	}
