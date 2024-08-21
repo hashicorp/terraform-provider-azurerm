@@ -37,8 +37,8 @@ resource "azurerm_data_factory_pipeline" "test" {
   name            = "example"
   data_factory_id = azurerm_data_factory.test.id
   variables {
-    name  = "variableName"
-    type  = "String"
+    name          = "variableName"
+    type          = "String"
     default_value = "variableDefaultValue"
   }
   activities_json = <<JSON
