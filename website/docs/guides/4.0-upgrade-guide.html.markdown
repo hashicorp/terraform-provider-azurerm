@@ -606,6 +606,11 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 
 * The property `operation_name_format` has had the default value `Name` removed.
 
+### `azurerm_application_gateway`
+
+* The property `ssl_profile.ssl_policy.policy_name` now has a default value of `AppGwSslPolicy20220101`.
+* The property `ssl_profile.ssl_policy.min_protocol_version` now has a default value of `TLSv1_2`.
+
 ### `azurerm_application_insights`
 
 * The property `daily_data_cap_in_gb` now defaults to `100`.
