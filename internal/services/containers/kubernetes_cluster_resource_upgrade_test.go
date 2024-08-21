@@ -286,7 +286,7 @@ func TestAccKubernetesCluster_upgradeSettings(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.upgradeSettings(data, 1, 0),
+			Config: r.upgradeSettings(data, 5, 0),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
