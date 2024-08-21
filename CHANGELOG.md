@@ -30,6 +30,7 @@ BUG FIXES:
 * `azurerm_ip_group_cidr` - fixed the position of the CIDR check to correctly refresh the resource when it's no longer present [GH-27103]
 * `azurerm_monitor_diagnostic_setting` - add further polling to work around an eventual consistency issue when creating the resource [GH-27088]
 * `azurerm_storage_account` - prevent API error by populating `infrastructure_encryption_enabled` when updating `customer_managed_key` [GH-26971]
+* `azurerm_storage_blob_inventory_policy` - the `filter` property can now be set when `scope` is `container` [GH-27113]
 * `azurerm_virtual_network_dns_servers` - moved locks to prevent the creation of subnets with stale data [GH-27036]
 * `azurerm_virtual_network_gateway_connection` - allow `0` as a valid value for `ipsec_policy.sa_datasize` [GH-27056]
 
