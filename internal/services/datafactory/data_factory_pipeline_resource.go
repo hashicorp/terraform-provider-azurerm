@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/validate"
@@ -23,7 +22,7 @@ import (
 )
 
 func resourceDataFactoryPipeline() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceDataFactoryPipelineCreateUpdate,
 		Read:   resourceDataFactoryPipelineRead,
 		Update: resourceDataFactoryPipelineCreateUpdate,
@@ -57,18 +56,61 @@ func resourceDataFactoryPipeline() *pluginsdk.Resource {
 			},
 
 			"parameters": {
-				Type:     pluginsdk.TypeMap,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"default_value": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+						},
+						"type": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  string(datafactory.ParameterTypeString),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(datafactory.ParameterTypeString),
+								string(datafactory.ParameterTypeInt),
+								string(datafactory.ParameterTypeFloat),
+								string(datafactory.ParameterTypeBool),
+								string(datafactory.ParameterTypeArray),
+								string(datafactory.ParameterTypeObject),
+								string(datafactory.ParameterTypeSecureString),
+							}, false),
+						},
+					},
 				},
 			},
 
 			"variables": {
-				Type:     pluginsdk.TypeMap,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"default_value": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+						},
+						"type": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  string(datafactory.VariableTypeString),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(datafactory.VariableTypeString),
+								string(datafactory.VariableTypeArray),
+							}, false),
+						},
+					},
 				},
 			},
 
@@ -110,69 +152,6 @@ func resourceDataFactoryPipeline() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	if features.FourPointOhBeta() {
-		resource.Schema["parameters"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"name": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-					"default_value": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-					},
-					"type": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  string(datafactory.ParameterTypeString),
-						ValidateFunc: validation.StringInSlice([]string{
-							string(datafactory.ParameterTypeString),
-							string(datafactory.ParameterTypeInt),
-							string(datafactory.ParameterTypeFloat),
-							string(datafactory.ParameterTypeBool),
-							string(datafactory.ParameterTypeArray),
-							string(datafactory.ParameterTypeObject),
-							string(datafactory.ParameterTypeSecureString),
-						}, false),
-					},
-				},
-			},
-		}
-
-		resource.Schema["variables"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"name": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-					"default_value": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-					},
-					"type": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  string(datafactory.VariableTypeString),
-						ValidateFunc: validation.StringInSlice([]string{
-							string(datafactory.VariableTypeString),
-							string(datafactory.VariableTypeArray),
-						}, false),
-					},
-				},
-			},
-		}
-	}
-
-	return resource
 }
 
 func resourceDataFactoryPipelineCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -208,13 +187,8 @@ func resourceDataFactoryPipelineCreateUpdate(d *pluginsdk.ResourceData, meta int
 		Description: utils.String(d.Get("description").(string)),
 	}
 
-	if features.FourPointOhBeta() {
-		pipeline.Parameters = expandDataFactoryParametersFourPointOh(d.Get("parameters").([]interface{}))
-		pipeline.Variables = expandDataFactoryVariablesFourPointOh(d.Get("variables").([]interface{}))
-	} else {
-		pipeline.Parameters = expandDataFactoryParameters(d.Get("parameters").(map[string]interface{}))
-		pipeline.Variables = expandDataFactoryVariables(d.Get("variables").(map[string]interface{}))
-	}
+	pipeline.Parameters = expandDataFactoryParameters(d.Get("parameters").([]interface{}))
+	pipeline.Variables = expandDataFactoryVariables(d.Get("variables").([]interface{}))
 
 	if v, ok := d.GetOk("activities_json"); ok {
 		activities, err := deserializeDataFactoryPipelineActivities(v.(string))
@@ -295,27 +269,14 @@ func resourceDataFactoryPipelineRead(d *pluginsdk.ResourceData, meta interface{}
 	if props := resp.Pipeline; props != nil {
 		d.Set("description", props.Description)
 
-		if features.FourPointOhBeta() {
-			parameters := flattenDataFactoryParametersFourPointOh(props.Parameters)
-			if err := d.Set("parameters", parameters); err != nil {
-				return fmt.Errorf("setting `parameters`: %+v", err)
-			}
+		parameters := flattenDataFactoryParameters(props.Parameters)
+		if err := d.Set("parameters", parameters); err != nil {
+			return fmt.Errorf("setting `parameters`: %+v", err)
+		}
 
-			variables := flattenDataFactoryVariablesFourPointOh(props.Variables)
-			if err := d.Set("variables", variables); err != nil {
-				return fmt.Errorf("setting `variables`: %+v", err)
-			}
-		} else {
-			parameters := flattenDataFactoryParameters(props.Parameters)
-			if err := d.Set("parameters", parameters); err != nil {
-				return fmt.Errorf("setting `parameters`: %+v", err)
-			}
-
-			variables := flattenDataFactoryVariables(props.Variables)
-			if err := d.Set("variables", variables); err != nil {
-				return fmt.Errorf("setting `variables`: %+v", err)
-			}
-
+		variables := flattenDataFactoryVariables(props.Variables)
+		if err := d.Set("variables", variables); err != nil {
+			return fmt.Errorf("setting `variables`: %+v", err)
 		}
 
 		annotations := flattenDataFactoryAnnotations(props.Annotations)

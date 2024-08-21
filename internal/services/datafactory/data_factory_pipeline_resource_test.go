@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -176,8 +175,7 @@ resource "azurerm_data_factory_pipeline" "test" {
 }
 
 func (PipelineResource) update1(data acceptance.TestData) string {
-	if features.FourPointOhBeta() {
-		return fmt.Sprintf(`
+	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -263,45 +261,10 @@ resource "azurerm_data_factory_pipeline" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
-	}
-
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-df-%d"
-  location = "%s"
-}
-
-resource "azurerm_data_factory" "test" {
-  name                = "acctestdfv2%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_data_factory_pipeline" "test" {
-  name            = "acctest%d"
-  data_factory_id = azurerm_data_factory.test.id
-  annotations     = ["test1", "test2", "test3"]
-  description     = "test description"
-
-  parameters = {
-    test = "testparameter"
-  }
-
-  variables = {
-    foo = "test1"
-    bar = "test2"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func (PipelineResource) update2(data acceptance.TestData) string {
-	if features.FourPointOhBeta() {
-		return fmt.Sprintf(`
+	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -394,45 +357,6 @@ resource "azurerm_data_factory_pipeline" "test" {
     name          = "qux"
     type          = "Array"
     default_value = jsonencode(["a", "b", "c"])
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
-	}
-
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-df-%d"
-  location = "%s"
-}
-
-resource "azurerm_data_factory" "test" {
-  name                = "acctestdfv2%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_data_factory_pipeline" "test" {
-  name                           = "acctest%d"
-  data_factory_id                = azurerm_data_factory.test.id
-  annotations                    = ["test1", "test2"]
-  concurrency                    = 30
-  description                    = "test description2"
-  moniter_metrics_after_duration = "12:23:34"
-  folder                         = "test-folder"
-
-  parameters = {
-    test  = "testparameter"
-    test2 = "testparameter2"
-  }
-
-  variables = {
-    foo = "test1"
-    bar = "test2"
-    baz = "test3"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)

@@ -66,38 +66,7 @@ func azureRmDataFactoryLinkedServiceConnectionStringDiff(_, old string, new stri
 	return true
 }
 
-func expandDataFactoryParameters(input map[string]interface{}) map[string]*datafactory.ParameterSpecification {
-	output := make(map[string]*datafactory.ParameterSpecification)
-
-	for k, v := range input {
-		output[k] = &datafactory.ParameterSpecification{
-			Type:         datafactory.ParameterTypeString,
-			DefaultValue: v.(string),
-		}
-	}
-
-	return output
-}
-
-func flattenDataFactoryParameters(input map[string]*datafactory.ParameterSpecification) map[string]interface{} {
-	output := make(map[string]interface{})
-
-	for k, v := range input {
-		if v != nil {
-			// we only support string parameters at this time
-			val, ok := v.DefaultValue.(string)
-			if !ok {
-				log.Printf("[DEBUG] Skipping parameter %q since it's not a string", k)
-			}
-
-			output[k] = val
-		}
-	}
-
-	return output
-}
-
-func expandDataFactoryParametersFourPointOh(input []interface{}) map[string]*datafactory.ParameterSpecification {
+func expandDataFactoryParameters(input []interface{}) map[string]*datafactory.ParameterSpecification {
 	parameters := make(map[string]*datafactory.ParameterSpecification)
 	for _, v := range input {
 		val := v.(map[string]interface{})
@@ -109,7 +78,7 @@ func expandDataFactoryParametersFourPointOh(input []interface{}) map[string]*dat
 	return parameters
 }
 
-func flattenDataFactoryParametersFourPointOh(input map[string]*datafactory.ParameterSpecification) []interface{} {
+func flattenDataFactoryParameters(input map[string]*datafactory.ParameterSpecification) []interface{} {
 	parameters := make([]interface{}, 0, len(input))
 	for k, v := range input {
 		param := map[string]interface{}{
@@ -138,38 +107,7 @@ func flattenDataFactoryAnnotations(input *[]interface{}) []string {
 	return annotations
 }
 
-func expandDataFactoryVariables(input map[string]interface{}) map[string]*datafactory.VariableSpecification {
-	output := make(map[string]*datafactory.VariableSpecification)
-
-	for k, v := range input {
-		output[k] = &datafactory.VariableSpecification{
-			Type:         datafactory.VariableTypeString,
-			DefaultValue: v.(string),
-		}
-	}
-
-	return output
-}
-
-func flattenDataFactoryVariables(input map[string]*datafactory.VariableSpecification) map[string]interface{} {
-	output := make(map[string]interface{})
-
-	for k, v := range input {
-		if v != nil {
-			// we only support string parameters at this time
-			val, ok := v.DefaultValue.(string)
-			if !ok {
-				log.Printf("[DEBUG] Skipping variable %q since it's not a string", k)
-			}
-
-			output[k] = val
-		}
-	}
-
-	return output
-}
-
-func expandDataFactoryVariablesFourPointOh(input []interface{}) map[string]*datafactory.VariableSpecification {
+func expandDataFactoryVariables(input []interface{}) map[string]*datafactory.VariableSpecification {
 	variables := make(map[string]*datafactory.VariableSpecification)
 	for _, v := range input {
 		val := v.(map[string]interface{})
@@ -182,7 +120,7 @@ func expandDataFactoryVariablesFourPointOh(input []interface{}) map[string]*data
 	return variables
 }
 
-func flattenDataFactoryVariablesFourPointOh(input map[string]*datafactory.VariableSpecification) []interface{} {
+func flattenDataFactoryVariables(input map[string]*datafactory.VariableSpecification) []interface{} {
 	variables := make([]interface{}, 0, len(input))
 	for k, v := range input {
 
