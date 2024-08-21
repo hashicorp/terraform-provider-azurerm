@@ -72,13 +72,13 @@ The following arguments are supported:
 
 * `capacity_reservation_group_id` - (Optional) Specifies the ID of the Capacity Reservation Group where this Node Pool should exist. Changing this forces a new resource to be created.
 
-* `enable_auto_scaling` - (Optional) Whether to enable [auto-scaler](https://docs.microsoft.com/azure/aks/cluster-autoscaler).
+* `auto_scaling_enabled` - (Optional) Whether to enable [auto-scaler](https://docs.microsoft.com/azure/aks/cluster-autoscaler).
 
-* `enable_host_encryption` - (Optional) Should the nodes in this Node Pool have host encryption enabled? Changing this forces a new resource to be created.
+* `host_encryption_enabled` - (Optional) Should the nodes in this Node Pool have host encryption enabled? Changing this forces a new resource to be created.
 
 ~> **NOTE:** Additional fields must be configured depending on the value of this field - see below.
 
-* `enable_node_public_ip` - (Optional) Should each node have a Public IP Address? Changing this forces a new resource to be created.
+* `node_public_ip_enabled` - (Optional) Should each node have a Public IP Address? Changing this forces a new resource to be created.
 
 * `eviction_policy` - (Optional) The Eviction Policy which should be used for Virtual Machines within the Virtual Machine Scale Set powering this Node Pool. Possible values are `Deallocate` and `Delete`. Changing this forces a new resource to be created.
 
@@ -106,7 +106,7 @@ The following arguments are supported:
 
 * `node_labels` - (Optional) A map of Kubernetes labels which should be applied to nodes in this Node Pool.
 
-* `node_public_ip_prefix_id` - (Optional) Resource ID for the Public IP Addresses Prefix for the nodes in this Node Pool. `enable_node_public_ip` should be `true`. Changing this forces a new resource to be created.
+* `node_public_ip_prefix_id` - (Optional) Resource ID for the Public IP Addresses Prefix for the nodes in this Node Pool. `node_public_ip_enabled` should be `true`. Changing this forces a new resource to be created.
 
 * `node_taints` - (Optional) A list of Kubernetes taints which should be applied to nodes in the agent pool (e.g `key=value:NoSchedule`).
 
@@ -160,7 +160,7 @@ The following arguments are supported:
 
 ---
 
-If `enable_auto_scaling` is set to `true`, then the following fields can also be configured:
+If `auto_scaling_enabled` is set to `true`, then the following fields can also be configured:
 
 * `max_count` - (Optional) The maximum number of nodes which should exist within this Node Pool. Valid values are between `0` and `1000` and must be greater than or equal to `min_count`.
 
@@ -170,7 +170,7 @@ If `enable_auto_scaling` is set to `true`, then the following fields can also be
 
 -> **NOTE:** If you're specifying an initial number of nodes you may wish to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/language/meta-arguments/lifecycle#ignore_changess) to ignore changes to this field.
 
-If `enable_auto_scaling` is set to `false`, then the following fields can also be configured:
+If `auto_scaling_enabled` is set to `false`, then the following fields can also be configured:
 
 * `node_count` - (Optional) The number of nodes which should exist within this Node Pool. Valid values are between `0` and `1000` (inclusive) for user pools and between `1` and `1000` (inclusive) for system pools.
 

@@ -336,7 +336,6 @@ resource "azurerm_virtual_machine_scale_set_packet_capture" "test" {
 
   machine_scope {
     include_instance_ids = ["0", "1"]
-    exclude_instance_ids = ["2", "3"]
   }
 
   depends_on = [azurerm_virtual_machine_scale_set_extension.test]

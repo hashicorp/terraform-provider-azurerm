@@ -41,7 +41,7 @@ type directoryObjectModel struct {
 }
 
 func graphClient(authorizer auth.Authorizer, environment environments.Environment) (*msgraph.Client, error) {
-	client, err := msgraph.NewMsGraphClient(environment.MicrosoftGraph, "Graph", msgraph.VersionOnePointZero)
+	client, err := msgraph.NewClient(environment.MicrosoftGraph, "Graph", msgraph.VersionOnePointZero)
 	if err != nil {
 		return nil, fmt.Errorf("building client: %+v", err)
 	}

@@ -390,6 +390,12 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 							Default:      100,
 						},
 
+						"request_body_enforcement": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+
 						"max_request_body_size_in_kb": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
@@ -720,6 +726,7 @@ func expandWebApplicationFirewallPolicyPolicySettings(input []interface{}) *weba
 	}
 	mode := v["mode"].(string)
 	requestBodyCheck := v["request_body_check"].(bool)
+	requestBodyEnforcement := v["request_body_enforcement"].(bool)
 	maxRequestBodySizeInKb := v["max_request_body_size_in_kb"].(int)
 	fileUploadLimitInMb := v["file_upload_limit_in_mb"].(int)
 
@@ -727,6 +734,7 @@ func expandWebApplicationFirewallPolicyPolicySettings(input []interface{}) *weba
 		State:                             pointer.To(enabled),
 		Mode:                              pointer.To(webapplicationfirewallpolicies.WebApplicationFirewallMode(mode)),
 		RequestBodyCheck:                  pointer.To(requestBodyCheck),
+		RequestBodyEnforcement:            pointer.To(requestBodyEnforcement),
 		MaxRequestBodySizeInKb:            pointer.To(int64(maxRequestBodySizeInKb)),
 		FileUploadLimitInMb:               pointer.To(int64(fileUploadLimitInMb)),
 		LogScrubbing:                      expandWebApplicationFirewallPolicyLogScrubbing(v["log_scrubbing"].([]interface{})),
@@ -1079,6 +1087,7 @@ func flattenWebApplicationFirewallPolicyPolicySettings(input *webapplicationfire
 	result["enabled"] = pointer.From(input.State) == webapplicationfirewallpolicies.WebApplicationFirewallEnabledStateEnabled
 	result["mode"] = string(pointer.From(input.Mode))
 	result["request_body_check"] = input.RequestBodyCheck
+	result["request_body_enforcement"] = input.RequestBodyEnforcement
 	result["max_request_body_size_in_kb"] = int(pointer.From(input.MaxRequestBodySizeInKb))
 	result["file_upload_limit_in_mb"] = int(pointer.From(input.FileUploadLimitInMb))
 	result["log_scrubbing"] = flattenWebApplicationFirewallPolicyLogScrubbing(input.LogScrubbing)

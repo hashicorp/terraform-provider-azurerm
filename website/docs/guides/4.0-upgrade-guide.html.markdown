@@ -333,7 +333,7 @@ This Azure Service will be retired on 2025-03-31, as a result this deprecated re
 
 This Azure Service will be retired on 2025-03-31, as a result this deprecated resource has been removed from the Azure Provider.
 
-### `azurerm_integrated_service_environment`
+### `azurerm_integration_service_environment`
 
 This Azure Service is being retired on 2024-08-31 and the provisioning of new instances has been blocked since 2022-11-01, as a result this deprecated resource has been removed from the Azure Provider.
 
@@ -405,6 +405,10 @@ The Azure Database for Maria DB will be retired on 2024-09-19 and will migrate t
 
 [Azure Media Services will be retired June 30th, 2024](https://learn.microsoft.com/en-us/azure/media-services/latest/azure-media-services-retirement), as a result this deprecated resource has been removed from the provider.
 
+### `azurerm_media_live_event`
+
+[Azure Media Services will be retired June 30th, 2024](https://learn.microsoft.com/en-us/azure/media-services/latest/azure-media-services-retirement), as a result this deprecated resource has been removed from the provider.
+
 ### `azurerm_media_live_output`
 
 [Azure Media Services will be retired June 30th, 2024](https://learn.microsoft.com/en-us/azure/media-services/latest/azure-media-services-retirement), as a result this deprecated resource has been removed from the provider.
@@ -421,11 +425,7 @@ The Azure Database for Maria DB will be retired on 2024-09-19 and will migrate t
 
 [Azure Media Services will be retired June 30th, 2024](https://learn.microsoft.com/en-us/azure/media-services/latest/azure-media-services-retirement), as a result this deprecated resource has been removed from the provider.
 
-### `azurerm_media_streaming_live_event`
-
-[Azure Media Services will be retired June 30th, 2024](https://learn.microsoft.com/en-us/azure/media-services/latest/azure-media-services-retirement), as a result this deprecated resource has been removed from the provider.
-
-### `azurerm_media_streaming_ locator`
+### `azurerm_media_streaming_locator`
 
 [Azure Media Services will be retired June 30th, 2024](https://learn.microsoft.com/en-us/azure/media-services/latest/azure-media-services-retirement), as a result this deprecated resource has been removed from the provider.
 
@@ -594,7 +594,7 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 
 * The deprecated property `soap_pass_through` has been removed in favour of the property `api_type`.
 
-### `azurerm_api_management_api_tags`
+### `azurerm_api_management_api_tag`
 
 * This resource will need to be recreated upon upgrading so that the tag revision can be included in the resource ID.
 
@@ -648,6 +648,7 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 ### `azurerm_cdn_endpoint_custom_domain`
 
 * The deprecated property `user_managed_https.key_vault_certificate_id` has been removed in favour of the `user_managed_https.key_vault_secret_id` property.
+* The property `user_managed_https.key_vault_secret_id` is now Required.
 
 ### `azurerm_cdn_frontdoor_origin`
 
@@ -750,7 +751,7 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 
 ### `azurerm_hdinsight_kafka_cluster`
 
-* The deprecated property `roles.kafka_management_node` has been removed.
+* The property `roles.kafka_management_node.username` is now Computed only.
 
 ### `azurerm_image`
 
@@ -883,7 +884,7 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 * The deprecated property `public_access_behind_virtual_network_enabled` has been removed in favour of the `public_network_access_enabled` property.
 * The property `public_network_access_enabled` now defaults to `true`.
 
-### `azurerm_managed_applications`
+### `azurerm_managed_application`
 
 * The deprecated property `parameters` has been removed in favour of the `parameter_values` property.
 
@@ -911,10 +912,6 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 ### `azurerm_monitor_data_collection_rule`
 
 * The property `data_sources.data_import.syslog.streams` is now Required.
-
-### `azurerm_monitor_diagnostic_categories`
-
-* The deprecated property `logs` will be removed in favour of the `log_category_types` property.
 
 ### `azurerm_monitor_diagnostic_setting`
 
@@ -960,6 +957,10 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 
 * The property `extension_operations_enabled` now defaults to `true`.
 
+### `azurerm_private_dns_resolver_inbound_endpoint`
+
+* The block `ip_configurations` can have a maximum of one item.
+
 ### `azurerm_public_ip`
 
 * The property `sku` now defaults to `Standard`.
@@ -968,16 +969,17 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 
 * The deprecated property `name` has been removed.
 
-### `azurerm_recovery_services_site_recovery_replicated_vm`
-
-* The deprecated property `is_primary` has been removed.
-
 ### `azurerm_redis_cache`
 
 * The deprecated property `enable_non_ssl_port` has been removed in favour of the `non_ssl_port_enabled` property.
 * The deprecated property `redis_configuration.enable_authentication` has been removed in favour of the `redis_configuration.authentication_enabled` property.
+* The property `redis_configuraton.data_persistence_authentication_method` no longer defaults to `SAS`.
 * The property `family` is now case-sensitive. You will need to update your configuration to match the casing expected by the API.
 * The property `redis_version` now defaults to `6`.
+
+### `azurerm_redis_enterprise_database`
+
+* The deprecated property `resource_group_name` has been removed.
 
 ### `azurerm_resource_policy_remediation`
 
@@ -994,6 +996,10 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 ### `azurerm_site_recovery_protection_container_mapping`
 
 * The property `authentication_type` now defaults to `SystemAssignedIdentity`.
+
+### `azurerm_site_recovery_replicated_vm`
+
+* The deprecated property `is_primary` has been removed.
 
 ### `azurerm_snapshot`
 
@@ -1095,6 +1101,10 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 * The property `large_file_share_enabled` is no longer defaulted to `true` as that value varies based on the value of `account_kind`
 * The property `cross_tenant_replication_enabled` now defaults to `false`
 
+### `azurerm_storage_account_customer_managed_key`
+
+* The property `key_vault_id` no longer accepts Managed HSM keys, instead please use the `managed_hsm_key_id` property.
+
 ### `azurerm_storage_share_directory`
 
 * The deprecated property `share_name` has been removed in favour of the `storage_share_id` property.
@@ -1116,7 +1126,7 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 ### `azurerm_synapse_workspace`
 
 * The deprecated block `aad_admin` has been removed in favour of the `azurerm_synapse_workspace_aad_admin` resource.
-* The deprecated block `sqlsql_aad_admin` has been removed in favour of the `azurerm_synapse_workspace_sql_aad_admin` resource.
+* The deprecated block `sql_aad_admin` has been removed in favour of the `azurerm_synapse_workspace_sql_aad_admin` resource.
 
 ### `azurerm_traffic_manager_azure_endpoint`
 
@@ -1133,7 +1143,7 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 * The property `weight` now defaults to `1`.
 * The property `priority` now defaults to `1`.
 
-### `azurerm_traffic_manager_nested_endpoint`
+### `azurerm_traffic_manager_profile`
 
 * The property `profile_status` now defaults to `Enabled`.
 
@@ -1141,7 +1151,7 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 
 * The property `address_space` has been changed from a list to a set. If you're referencing an element in this property then this will require code changes.
 
-### `azurerm_virtual_network_gateway_connections`
+### `azurerm_virtual_network_gateway_connection`
 
 * The property `shared_key` has become Required.
 
@@ -1241,14 +1251,6 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 
 * The deprecated property `enable_https_traffic_only` has been removed in favour of the `https_traffic_only_enabled` property.
 
-### `azurerm_storage_account_customer_managed_key`
-
-* The property `key_vault_id` no longer accepts Managed HSM keys, instead please use the `managed_hsm_key_id` property.
-
-### `azurerm_storage_share_directory`
-
-* The deprecated properties `storage_account_name` and `share_name` have been removed in favour of the `storage_share_id` property.
-
 ### `azurerm_storage_table_entity`
 
 * The deprecated properties `storage_account_name` and `table_name` have been removed in favour of the `storage_table_id` property.
@@ -1264,11 +1266,6 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 * The deprecated property `enforce_private_link_service_network_policies` has been removed in favour of the `private_link_service_network_policies_enabled` property.
 
 ### `azurerm_servicebus_namespace_authorization_rule`
-
-* The deprecated property `namespace_name` has been removed in favour of the `namespace_id` property.
-* The deprecated property `resource_group_name` has been removed in favour of the `namespace_id` property.
-
-### `azurerm_servicebus_namespace_disaster_recovery_config`
 
 * The deprecated property `namespace_name` has been removed in favour of the `namespace_id` property.
 * The deprecated property `resource_group_name` has been removed in favour of the `namespace_id` property.
