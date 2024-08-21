@@ -62,12 +62,6 @@ func LongTermRetentionPolicySchema() *pluginsdk.Schema {
 					ValidateFunc: validation.IntBetween(0, 52),
 					AtLeastOneOf: atLeastOneOf,
 				},
-
-				"immutable_backups_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
-				},
 			},
 		},
 	}
@@ -120,8 +114,6 @@ func ExpandLongTermRetentionPolicy(input []interface{}) *longtermretentionpolici
 		MonthlyRetention: pointer.To("PT0S"),
 		YearlyRetention:  pointer.To("PT0S"),
 		WeekOfYear:       pointer.To(int64(1)),
-		// TODO removed from model - check this
-		//	MakeBackupsImmutable: pointer.To(false),
 	}
 
 	if v, ok := policy["weekly_retention"].(string); ok && v != "" {
@@ -139,11 +131,6 @@ func ExpandLongTermRetentionPolicy(input []interface{}) *longtermretentionpolici
 	if v, ok := policy["week_of_year"].(int); ok && v != 0 {
 		output.WeekOfYear = pointer.To(int64(v))
 	}
-
-	/*	if v, ok := policy["immutable_backups_enabled"].(bool); ok {
-		output.MakeBackupsImmutable = pointer.To(v)
-	}*/
-
 	return pointer.To(output)
 }
 
@@ -172,18 +159,12 @@ func FlattenLongTermRetentionPolicy(input *longtermretentionpolicies.LongTermRet
 		yearlyRetention = *input.Properties.YearlyRetention
 	}
 
-	/*	immutableBackupsEnabled := false
-		if input.Properties.MakeBackupsImmutable != nil {
-			immutableBackupsEnabled = *input.Properties.MakeBackupsImmutable
-		}*/
-
 	return []interface{}{
 		map[string]interface{}{
 			"monthly_retention": monthlyRetention,
 			"weekly_retention":  weeklyRetention,
 			"week_of_year":      weekOfYear,
 			"yearly_retention":  yearlyRetention,
-			//		"immutable_backups_enabled": immutableBackupsEnabled,
 		},
 	}
 }
