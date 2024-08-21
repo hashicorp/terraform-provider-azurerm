@@ -43,21 +43,13 @@ func TestAccDataFactoryPipeline_update(t *testing.T) {
 			Config: r.update1(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("parameters.%").HasValue("1"),
-				check.That(data.ResourceName).Key("annotations.#").HasValue("3"),
-				check.That(data.ResourceName).Key("description").HasValue("test description"),
-				check.That(data.ResourceName).Key("variables.%").HasValue("2"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.update2(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("parameters.%").HasValue("2"),
-				check.That(data.ResourceName).Key("annotations.#").HasValue("2"),
-				check.That(data.ResourceName).Key("description").HasValue("test description2"),
-				check.That(data.ResourceName).Key("variables.%").HasValue("3"),
-				check.That(data.ResourceName).Key("folder").HasValue("test-folder"),
 			),
 		},
 		data.ImportStep(),

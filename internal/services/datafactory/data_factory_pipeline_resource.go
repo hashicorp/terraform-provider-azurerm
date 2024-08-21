@@ -56,7 +56,7 @@ func resourceDataFactoryPipeline() *pluginsdk.Resource {
 			},
 
 			"parameters": {
-				Type:     pluginsdk.TypeList,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -88,7 +88,7 @@ func resourceDataFactoryPipeline() *pluginsdk.Resource {
 			},
 
 			"variables": {
-				Type:     pluginsdk.TypeList,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -187,8 +187,8 @@ func resourceDataFactoryPipelineCreateUpdate(d *pluginsdk.ResourceData, meta int
 		Description: utils.String(d.Get("description").(string)),
 	}
 
-	pipeline.Parameters = expandDataFactoryParameters(d.Get("parameters").([]interface{}))
-	pipeline.Variables = expandDataFactoryVariables(d.Get("variables").([]interface{}))
+	pipeline.Parameters = expandDataFactoryParameters(d.Get("parameters").(*pluginsdk.Set).List())
+	pipeline.Variables = expandDataFactoryVariables(d.Get("variables").(*pluginsdk.Set).List())
 
 	if v, ok := d.GetOk("activities_json"); ok {
 		activities, err := deserializeDataFactoryPipelineActivities(v.(string))

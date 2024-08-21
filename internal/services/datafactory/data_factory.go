@@ -111,7 +111,6 @@ func expandDataFactoryVariables(input []interface{}) map[string]*datafactory.Var
 	variables := make(map[string]*datafactory.VariableSpecification)
 	for _, v := range input {
 		val := v.(map[string]interface{})
-
 		variables[val["name"].(string)] = &datafactory.VariableSpecification{
 			Type:         datafactory.VariableType(val["type"].(string)),
 			DefaultValue: val["default_value"],
@@ -123,7 +122,6 @@ func expandDataFactoryVariables(input []interface{}) map[string]*datafactory.Var
 func flattenDataFactoryVariables(input map[string]*datafactory.VariableSpecification) []interface{} {
 	variables := make([]interface{}, 0, len(input))
 	for k, v := range input {
-
 		// convert value to string if it is bool
 		// this is needed because the API returns the default value as a bool
 		if _, ok := v.DefaultValue.(bool); ok {
