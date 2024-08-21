@@ -211,8 +211,8 @@ func TestProviderConfig_LoadDefault(t *testing.T) {
 		t.Errorf("expected recovery_service.PurgeProtectedItemsFromVaultOnDestroy to be false")
 	}
 
-	if !features.Storage.DataPlaneAccessOnCreateEnabled {
-		t.Errorf("expected storage.DataPlaneAccessOnCreateEnabled to be true")
+	if !features.Storage.DataPlaneAccessEnabled {
+		t.Errorf("expected storage.DataPlaneAccessEnabled to be true")
 	}
 }
 
@@ -290,7 +290,7 @@ func defaultFeaturesList() types.List {
 	managedDiskList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(ManagedDiskAttributes), []attr.Value{managedDisk})
 
 	storage, _ := basetypes.NewObjectValueFrom(context.Background(), StorageAttributes, map[string]attr.Value{
-		"data_plane_access_on_create_enabled": basetypes.NewBoolNull(),
+		"data_plane_access_enabled": basetypes.NewBoolNull(),
 	})
 	storageList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(StorageAttributes), []attr.Value{storage})
 

@@ -410,7 +410,7 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 						"storage": schema.ListNestedBlock{
 							NestedObject: schema.NestedBlockObject{
 								Attributes: map[string]schema.Attribute{
-									"data_plane_access_on_create_enabled": schema.BoolAttribute{
+									"data_plane_access_enabled": schema.BoolAttribute{
 										Optional: true,
 									},
 								},

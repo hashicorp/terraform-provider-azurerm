@@ -76,7 +76,7 @@ func TestExpandFeatures(t *testing.T) {
 					RecoverSoftDeletedBackupProtectedVM: true,
 				},
 				Storage: features.StorageFeatures{
-					DataPlaneAccessOnCreateEnabled: true,
+					DataPlaneAccessEnabled: true,
 				},
 				Subscription: features.SubscriptionFeatures{
 					PreventCancellationOnDestroy: false,
@@ -161,7 +161,7 @@ func TestExpandFeatures(t *testing.T) {
 					},
 					"storage": []interface{}{
 						map[string]interface{}{
-							"data_plane_access_on_create_enabled": true,
+							"data_plane_access_enabled": true,
 						},
 					},
 					"subscription": []interface{}{
@@ -244,7 +244,7 @@ func TestExpandFeatures(t *testing.T) {
 					RecoverSoftDeletedBackupProtectedVM: true,
 				},
 				Storage: features.StorageFeatures{
-					DataPlaneAccessOnCreateEnabled: true,
+					DataPlaneAccessEnabled: true,
 				},
 				Subscription: features.SubscriptionFeatures{
 					PreventCancellationOnDestroy: true,
@@ -344,7 +344,7 @@ func TestExpandFeatures(t *testing.T) {
 					},
 					"storage": []interface{}{
 						map[string]interface{}{
-							"data_plane_access_on_create_enabled": false,
+							"data_plane_access_enabled": false,
 						},
 					},
 					"subscription": []interface{}{
@@ -427,7 +427,7 @@ func TestExpandFeatures(t *testing.T) {
 					RecoverSoftDeletedBackupProtectedVM: false,
 				},
 				Storage: features.StorageFeatures{
-					DataPlaneAccessOnCreateEnabled: false,
+					DataPlaneAccessEnabled: false,
 				},
 				Subscription: features.SubscriptionFeatures{
 					PreventCancellationOnDestroy: false,
@@ -1466,7 +1466,7 @@ func TestExpandFeaturesStorage(t *testing.T) {
 			},
 			Expected: features.UserFeatures{
 				Storage: features.StorageFeatures{
-					DataPlaneAccessOnCreateEnabled: true,
+					DataPlaneAccessEnabled: true,
 				},
 			},
 		},
@@ -1476,14 +1476,14 @@ func TestExpandFeaturesStorage(t *testing.T) {
 				map[string]interface{}{
 					"storage": []interface{}{
 						map[string]interface{}{
-							"data_plane_access_on_create_enabled": false,
+							"data_plane_access_enabled": false,
 						},
 					},
 				},
 			},
 			Expected: features.UserFeatures{
 				Storage: features.StorageFeatures{
-					DataPlaneAccessOnCreateEnabled: false,
+					DataPlaneAccessEnabled: false,
 				},
 			},
 		},

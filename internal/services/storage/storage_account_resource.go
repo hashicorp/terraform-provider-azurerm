@@ -1397,7 +1397,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	client := meta.(*clients.Client).Storage.ResourceManager.StorageAccounts
 	storageClient := meta.(*clients.Client).Storage
 	keyVaultClient := meta.(*clients.Client).KeyVault
-	dataPlaneEnabled := meta.(*clients.Client).Features.Storage.DataPlaneAccessOnCreateEnabled
+	dataPlaneEnabled := meta.(*clients.Client).Features.Storage.DataPlaneAccessEnabled
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -1707,10 +1707,6 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	if !dataPlaneEnabled {
-		return resourceStorageAccountReadNoDataPlane(d, meta)
-	}
-
 	return resourceStorageAccountRead(d, meta)
 }
 
@@ -1719,6 +1715,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	storageClient := meta.(*clients.Client).Storage
 	client := storageClient.ResourceManager.StorageAccounts
 	keyVaultClient := meta.(*clients.Client).KeyVault
+	dataPlaneEnabled := meta.(*clients.Client).Features.Storage.DataPlaneAccessEnabled
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -2012,56 +2009,58 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if !features.FourPointOhBeta() {
-		if d.HasChange("queue_properties") {
-			if !supportLevel.supportQueue {
-				return fmt.Errorf("`queue_properties` are not supported for account kind %q in sku tier %q", accountKind, accountTier)
+		if dataPlaneEnabled {
+			if d.HasChange("queue_properties") {
+				if !supportLevel.supportQueue {
+					return fmt.Errorf("`queue_properties` are not supported for account kind %q in sku tier %q", accountKind, accountTier)
+				}
+
+				account, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
+				if err != nil {
+					return fmt.Errorf("retrieving %s: %+v", *id, err)
+				}
+				if account == nil {
+					return fmt.Errorf("unable to locate %s", *id)
+				}
+
+				queueClient, err := storageClient.QueuesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
+				if err != nil {
+					return fmt.Errorf("building Queues Client: %s", err)
+				}
+
+				queueProperties, err := expandAccountQueueProperties(d.Get("queue_properties").([]interface{}))
+				if err != nil {
+					return fmt.Errorf("expanding `queue_properties` for %s: %+v", *id, err)
+				}
+
+				if err = queueClient.UpdateServiceProperties(ctx, *queueProperties); err != nil {
+					return fmt.Errorf("updating Queue Properties for %s: %+v", *id, err)
+				}
 			}
 
-			account, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
-			if err != nil {
-				return fmt.Errorf("retrieving %s: %+v", *id, err)
-			}
-			if account == nil {
-				return fmt.Errorf("unable to locate %s", *id)
-			}
+			if d.HasChange("static_website") {
+				if !supportLevel.supportStaticWebsite {
+					return fmt.Errorf("`static_website` are not supported for account kind %q in sku tier %q", accountKind, accountTier)
+				}
 
-			queueClient, err := storageClient.QueuesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
-			if err != nil {
-				return fmt.Errorf("building Queues Client: %s", err)
-			}
+				account, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
+				if err != nil {
+					return fmt.Errorf("retrieving %s: %+v", *id, err)
+				}
+				if account == nil {
+					return fmt.Errorf("unable to locate %s", *id)
+				}
 
-			queueProperties, err := expandAccountQueueProperties(d.Get("queue_properties").([]interface{}))
-			if err != nil {
-				return fmt.Errorf("expanding `queue_properties` for %s: %+v", *id, err)
-			}
+				accountsClient, err := storageClient.AccountsDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
+				if err != nil {
+					return fmt.Errorf("building Data Plane client for %s: %+v", *id, err)
+				}
 
-			if err = queueClient.UpdateServiceProperties(ctx, *queueProperties); err != nil {
-				return fmt.Errorf("updating Queue Properties for %s: %+v", *id, err)
-			}
-		}
+				staticWebsiteProps := expandAccountStaticWebsiteProperties(d.Get("static_website").([]interface{}))
 
-		if d.HasChange("static_website") {
-			if !supportLevel.supportStaticWebsite {
-				return fmt.Errorf("`static_website` are not supported for account kind %q in sku tier %q", accountKind, accountTier)
-			}
-
-			account, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
-			if err != nil {
-				return fmt.Errorf("retrieving %s: %+v", *id, err)
-			}
-			if account == nil {
-				return fmt.Errorf("unable to locate %s", *id)
-			}
-
-			accountsClient, err := storageClient.AccountsDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
-			if err != nil {
-				return fmt.Errorf("building Data Plane client for %s: %+v", *id, err)
-			}
-
-			staticWebsiteProps := expandAccountStaticWebsiteProperties(d.Get("static_website").([]interface{}))
-
-			if _, err = accountsClient.SetServiceProperties(ctx, id.StorageAccountName, staticWebsiteProps); err != nil {
-				return fmt.Errorf("updating `static_website` for %s: %+v", *id, err)
+				if _, err = accountsClient.SetServiceProperties(ctx, id.StorageAccountName, staticWebsiteProps); err != nil {
+					return fmt.Errorf("updating `static_website` for %s: %+v", *id, err)
+				}
 			}
 		}
 	}
@@ -2092,265 +2091,11 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	return resourceStorageAccountRead(d, meta)
 }
 
-func resourceStorageAccountReadNoDataPlane(d *pluginsdk.ResourceData, meta interface{}) error {
-	storageClient := meta.(*clients.Client).Storage
-	client := storageClient.ResourceManager.StorageAccounts
-	env := meta.(*clients.Client).Account.Environment
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	storageDomainSuffix, ok := meta.(*clients.Client).Account.Environment.Storage.DomainSuffix()
-	if !ok {
-		return fmt.Errorf("could not determine Storage domain suffix for environment %q", meta.(*clients.Client).Account.Environment.Name)
-	}
-
-	id, err := commonids.ParseStorageAccountID(d.Id())
-	if err != nil {
-		return err
-	}
-
-	resp, err := client.GetProperties(ctx, *id, storageaccounts.DefaultGetPropertiesOperationOptions())
-	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
-			d.SetId("")
-			return nil
-		}
-
-		return fmt.Errorf("retrieving %s: %+v", id, err)
-	}
-
-	// we then need to find the storage account
-	account, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
-	if err != nil {
-		return fmt.Errorf("retrieving %s: %+v", *id, err)
-	}
-	if account == nil {
-		return fmt.Errorf("unable to locate %q", id)
-	}
-
-	listKeysOpts := storageaccounts.DefaultListKeysOperationOptions()
-	listKeysOpts.Expand = pointer.To(storageaccounts.ListKeyExpandKerb)
-	keys, err := client.ListKeys(ctx, *id, listKeysOpts)
-	if err != nil {
-		hasWriteLock := response.WasConflict(keys.HttpResponse)
-		doesntHavePermissions := response.WasForbidden(keys.HttpResponse) || response.WasStatusCode(keys.HttpResponse, http.StatusUnauthorized)
-		if !hasWriteLock && !doesntHavePermissions {
-			return fmt.Errorf("listing Keys for %s: %+v", id, err)
-		}
-	}
-
-	d.Set("name", id.StorageAccountName)
-	d.Set("resource_group_name", id.ResourceGroupName)
-
-	supportLevel := storageAccountServiceSupportLevel{
-		supportBlob:  false,
-		supportShare: false,
-	}
-
-	var accountKind storageaccounts.Kind
-	var primaryEndpoints *storageaccounts.Endpoints
-	var secondaryEndpoints *storageaccounts.Endpoints
-	var routingPreference *storageaccounts.RoutingPreference
-
-	if model := resp.Model; model != nil {
-		if model.Kind != nil {
-			accountKind = *model.Kind
-		}
-		d.Set("account_kind", string(accountKind))
-
-		var accountTier storageaccounts.SkuTier
-		accountReplicationType := ""
-		if sku := model.Sku; sku != nil {
-			accountReplicationType = strings.Split(string(sku.Name), "_")[1]
-			if sku.Tier != nil {
-				accountTier = *sku.Tier
-			}
-		}
-		d.Set("account_tier", string(accountTier))
-		d.Set("account_replication_type", accountReplicationType)
-
-		d.Set("edge_zone", flattenEdgeZone(model.ExtendedLocation))
-		d.Set("location", location.Normalize(model.Location))
-
-		if props := model.Properties; props != nil {
-			primaryEndpoints = props.PrimaryEndpoints
-			routingPreference = props.RoutingPreference
-			secondaryEndpoints = props.SecondaryEndpoints
-
-			d.Set("access_tier", pointer.From(props.AccessTier))
-			d.Set("allowed_copy_scope", pointer.From(props.AllowedCopyScope))
-			if err := d.Set("azure_files_authentication", flattenAccountAzureFilesAuthentication(props.AzureFilesIdentityBasedAuthentication)); err != nil {
-				return fmt.Errorf("setting `azure_files_authentication`: %+v", err)
-			}
-			d.Set("cross_tenant_replication_enabled", pointer.From(props.AllowCrossTenantReplication))
-			d.Set("https_traffic_only_enabled", pointer.From(props.SupportsHTTPSTrafficOnly))
-			if !features.FourPointOhBeta() {
-				d.Set("enable_https_traffic_only", pointer.From(props.SupportsHTTPSTrafficOnly))
-			}
-			d.Set("is_hns_enabled", pointer.From(props.IsHnsEnabled))
-			d.Set("nfsv3_enabled", pointer.From(props.IsNfsV3Enabled))
-			d.Set("primary_location", pointer.From(props.PrimaryLocation))
-			if err := d.Set("routing", flattenAccountRoutingPreference(props.RoutingPreference)); err != nil {
-				return fmt.Errorf("setting `routing`: %+v", err)
-			}
-			d.Set("secondary_location", pointer.From(props.SecondaryLocation))
-			d.Set("sftp_enabled", pointer.From(props.IsSftpEnabled))
-
-			// NOTE: The Storage API returns `null` rather than the default value in the API response for existing
-			// resources when a new field gets added - meaning we need to default the values below.
-			allowBlobPublicAccess := true
-			if props.AllowBlobPublicAccess != nil {
-				allowBlobPublicAccess = *props.AllowBlobPublicAccess
-			}
-			d.Set("allow_nested_items_to_be_public", allowBlobPublicAccess)
-
-			defaultToOAuthAuthentication := false
-			if props.DefaultToOAuthAuthentication != nil {
-				defaultToOAuthAuthentication = *props.DefaultToOAuthAuthentication
-			}
-			d.Set("default_to_oauth_authentication", defaultToOAuthAuthentication)
-
-			dnsEndpointType := storageaccounts.DnsEndpointTypeStandard
-			if props.DnsEndpointType != nil {
-				dnsEndpointType = *props.DnsEndpointType
-			}
-			d.Set("dns_endpoint_type", dnsEndpointType)
-
-			isLocalEnabled := true
-			if props.IsLocalUserEnabled != nil {
-				isLocalEnabled = *props.IsLocalUserEnabled
-			}
-			d.Set("local_user_enabled", isLocalEnabled)
-
-			largeFileShareEnabled := false
-			if props.LargeFileSharesState != nil {
-				largeFileShareEnabled = *props.LargeFileSharesState == storageaccounts.LargeFileSharesStateEnabled
-			}
-			d.Set("large_file_share_enabled", largeFileShareEnabled)
-
-			minTlsVersion := string(storageaccounts.MinimumTlsVersionTLSOneZero)
-			if props.MinimumTlsVersion != nil {
-				minTlsVersion = string(*props.MinimumTlsVersion)
-			}
-			d.Set("min_tls_version", minTlsVersion)
-
-			publicNetworkAccessEnabled := true
-			if props.PublicNetworkAccess != nil && *props.PublicNetworkAccess == storageaccounts.PublicNetworkAccessDisabled {
-				publicNetworkAccessEnabled = false
-			}
-			d.Set("public_network_access_enabled", publicNetworkAccessEnabled)
-
-			allowSharedKeyAccess := true
-			if props.AllowSharedKeyAccess != nil {
-				allowSharedKeyAccess = *props.AllowSharedKeyAccess
-			}
-			d.Set("shared_access_key_enabled", allowSharedKeyAccess)
-
-			if err := d.Set("custom_domain", flattenAccountCustomDomain(props.CustomDomain)); err != nil {
-				return fmt.Errorf("setting `custom_domain`: %+v", err)
-			}
-			if err := d.Set("immutability_policy", flattenAccountImmutabilityPolicy(props.ImmutableStorageWithVersioning)); err != nil {
-				return fmt.Errorf("setting `immutability_policy`: %+v", err)
-			}
-			if err := d.Set("network_rules", flattenAccountNetworkRules(props.NetworkAcls)); err != nil {
-				return fmt.Errorf("setting `network_rules`: %+v", err)
-			}
-
-			// When the encryption key type is "Service", the queue/table is not returned in the service list, so we default
-			// the encryption key type to "Service" if it is absent (must also be the default value for "Service" in the schema)
-			infrastructureEncryption := false
-			queueEncryptionKeyType := string(storageaccounts.KeyTypeService)
-			tableEncryptionKeyType := string(storageaccounts.KeyTypeService)
-			if encryption := props.Encryption; encryption != nil {
-				infrastructureEncryption = pointer.From(encryption.RequireInfrastructureEncryption)
-				if encryption.Services != nil {
-					if encryption.Services.Queue != nil && encryption.Services.Queue.KeyType != nil {
-						queueEncryptionKeyType = string(*encryption.Services.Queue.KeyType)
-					}
-					if encryption.Services.Table != nil && encryption.Services.Table.KeyType != nil {
-						tableEncryptionKeyType = string(*encryption.Services.Table.KeyType)
-					}
-				}
-			}
-			d.Set("infrastructure_encryption_enabled", infrastructureEncryption)
-			d.Set("queue_encryption_key_type", queueEncryptionKeyType)
-			d.Set("table_encryption_key_type", tableEncryptionKeyType)
-
-			customerManagedKey := flattenAccountCustomerManagedKey(props.Encryption, env)
-			if err := d.Set("customer_managed_key", customerManagedKey); err != nil {
-				return fmt.Errorf("setting `customer_managed_key`: %+v", err)
-			}
-
-			if err := d.Set("sas_policy", flattenAccountSASPolicy(props.SasPolicy)); err != nil {
-				return fmt.Errorf("setting `sas_policy`: %+v", err)
-			}
-
-			supportLevel = availableFunctionalityForAccount(accountKind, accountTier, accountReplicationType)
-		}
-
-		flattenedIdentity, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
-		if err != nil {
-			return fmt.Errorf("flattening `identity`: %+v", err)
-		}
-		if err := d.Set("identity", flattenedIdentity); err != nil {
-			return fmt.Errorf("setting `identity`: %+v", err)
-		}
-
-		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
-			return err
-		}
-	}
-
-	endpoints := flattenAccountEndpoints(primaryEndpoints, secondaryEndpoints, routingPreference)
-	if err := endpoints.set(d); err != nil {
-		return err
-	}
-
-	storageAccountKeys := make([]storageaccounts.StorageAccountKey, 0)
-	if keys.Model != nil && keys.Model.Keys != nil {
-		storageAccountKeys = *keys.Model.Keys
-	}
-	keysAndConnectionStrings := flattenAccountAccessKeysAndConnectionStrings(id.StorageAccountName, *storageDomainSuffix, storageAccountKeys, endpoints)
-	if err := keysAndConnectionStrings.set(d); err != nil {
-		return err
-	}
-
-	blobProperties := make([]interface{}, 0)
-	if supportLevel.supportBlob {
-		blobProps, err := storageClient.ResourceManager.BlobService.GetServiceProperties(ctx, *id)
-		if err != nil {
-			return fmt.Errorf("reading blob properties for %s: %+v", *id, err)
-		}
-
-		blobProperties = flattenAccountBlobServiceProperties(blobProps.Model)
-	}
-	if err := d.Set("blob_properties", blobProperties); err != nil {
-		return fmt.Errorf("setting `blob_properties` for %s: %+v", *id, err)
-	}
-
-	shareProperties := make([]interface{}, 0)
-	if supportLevel.supportShare {
-		shareProps, err := storageClient.ResourceManager.FileService.GetServiceProperties(ctx, *id)
-		if err != nil {
-			return fmt.Errorf("retrieving share properties for %s: %+v", *id, err)
-		}
-
-		shareProperties = flattenAccountShareProperties(shareProps.Model)
-	}
-	if err := d.Set("share_properties", shareProperties); err != nil {
-		return fmt.Errorf("setting `share_properties` for %s: %+v", *id, err)
-	}
-
-	d.Set("static_website", d.Get("static_website"))
-	d.Set("queue_properties", d.Get("queue_properties"))
-
-	return nil
-}
-
 func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
 	client := storageClient.ResourceManager.StorageAccounts
 	env := meta.(*clients.Client).Account.Environment
+	dataPlaneEnabled := meta.(*clients.Client).Features.Storage.DataPlaneAccessEnabled
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -2583,25 +2328,6 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("setting `blob_properties` for %s: %+v", *id, err)
 	}
 
-	queueProperties := make([]interface{}, 0)
-	if supportLevel.supportQueue {
-		queueClient, err := storageClient.QueuesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
-		if err != nil {
-			return fmt.Errorf("building Queues Client: %s", err)
-		}
-
-		queueProps, err := queueClient.GetServiceProperties(ctx)
-		if err != nil {
-			return fmt.Errorf("retrieving queue properties for %s: %+v", *id, err)
-		}
-
-		queueProperties = flattenAccountQueueProperties(queueProps)
-	}
-
-	if err := d.Set("queue_properties", queueProperties); err != nil {
-		return fmt.Errorf("setting `queue_properties`: %+v", err)
-	}
-
 	shareProperties := make([]interface{}, 0)
 	if supportLevel.supportShare {
 		shareProps, err := storageClient.ResourceManager.FileService.GetServiceProperties(ctx, *id)
@@ -2615,22 +2341,46 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("setting `share_properties` for %s: %+v", *id, err)
 	}
 
-	staticWebsiteProperties := make([]interface{}, 0)
-	if supportLevel.supportStaticWebsite {
-		accountsClient, err := storageClient.AccountsDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
-		if err != nil {
-			return fmt.Errorf("building Accounts Data Plane Client: %s", err)
+	if dataPlaneEnabled {
+		queueProperties := make([]interface{}, 0)
+		if supportLevel.supportQueue {
+			queueClient, err := storageClient.QueuesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
+			if err != nil {
+				return fmt.Errorf("building Queues Client: %s", err)
+			}
+
+			queueProps, err := queueClient.GetServiceProperties(ctx)
+			if err != nil {
+				return fmt.Errorf("retrieving queue properties for %s: %+v", *id, err)
+			}
+
+			queueProperties = flattenAccountQueueProperties(queueProps)
 		}
 
-		staticWebsiteProps, err := accountsClient.GetServiceProperties(ctx, id.StorageAccountName)
-		if err != nil {
-			return fmt.Errorf("retrieving static website properties for %s: %+v", *id, err)
+		if err := d.Set("queue_properties", queueProperties); err != nil {
+			return fmt.Errorf("setting `queue_properties`: %+v", err)
 		}
 
-		staticWebsiteProperties = flattenAccountStaticWebsiteProperties(staticWebsiteProps)
-	}
-	if err := d.Set("static_website", staticWebsiteProperties); err != nil {
-		return fmt.Errorf("setting `static_website`: %+v", err)
+		staticWebsiteProperties := make([]interface{}, 0)
+		if supportLevel.supportStaticWebsite {
+			accountsClient, err := storageClient.AccountsDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
+			if err != nil {
+				return fmt.Errorf("building Accounts Data Plane Client: %s", err)
+			}
+
+			staticWebsiteProps, err := accountsClient.GetServiceProperties(ctx, id.StorageAccountName)
+			if err != nil {
+				return fmt.Errorf("retrieving static website properties for %s: %+v", *id, err)
+			}
+
+			staticWebsiteProperties = flattenAccountStaticWebsiteProperties(staticWebsiteProps)
+		}
+		if err := d.Set("static_website", staticWebsiteProperties); err != nil {
+			return fmt.Errorf("setting `static_website`: %+v", err)
+		}
+	} else {
+		d.Set("static_website", d.Get("static_website"))
+		d.Set("queue_properties", d.Get("queue_properties"))
 	}
 
 	return nil

@@ -12,7 +12,7 @@ Manages an Azure Storage Account.
 
 ## Disclaimers
 
--> **Note:** Beginning with version 3.117.0 of the Azure Provider, a new Feature Toggle will be introduced to block data plane calls during the creation of storage account resources. See [the Features block documentation](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block) for more information on Feature Toggles within Terraform.
+-> **Note:** Beginning with version 3.117.0 of the Azure Provider, a new Feature Toggle will be introduced to block data plane calls of storage account resources. See [the Features block documentation](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block) for more information on Feature Toggles within Terraform.
 
 ## Example Usage
 
@@ -78,13 +78,13 @@ resource "azurerm_storage_account" "example" {
 }
 ```
 
-## Example Usage with data_plane_access_on_create_enabled Features Flag
+## Example Usage with data_plane_access_enabled Features Flag
 
 ```hcl
 provider "azurerm" {
   features {
     storage {
-      data_plane_access_on_create_enabled = false
+      data_plane_access_enabled = false
     }
   }
 }
@@ -171,12 +171,12 @@ The following arguments are supported:
 
 * `blob_properties` - (Optional) A `blob_properties` block as defined below.
 
-<!-- TODO: Remove `queue_properties` in v4.0 -->
+<!-- TODO: Remove `queue_properties` in v4.0 but add them to the Attributes Reference since they will still be exposed as a computed field -->
 * `queue_properties` - (Optional) A `queue_properties` block as defined below.
 
 ~> **Note:** `queue_properties` can only be configured when `account_tier` is set to `Standard` and `account_kind` is set to either `Storage` or `StorageV2`.
 
-<!-- TODO: Remove `static_website` in v4.0 -->
+<!-- TODO: Remove `static_website` in v4.0 but add them to the Attributes Reference since they will still be exposed as a computed field -->
 * `static_website` - (Optional) A `static_website` block as defined below.
 
 ~> **Note:** `static_website` can only be set when the `account_kind` is set to `StorageV2` or `BlockBlobStorage`.

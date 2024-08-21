@@ -315,7 +315,7 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*schema.Schema{
-					"data_plane_access_on_create_enabled": {
+					"data_plane_access_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Default:  true,
@@ -600,8 +600,8 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 		items := raw.([]interface{})
 		if len(items) > 0 {
 			storageRaw := items[0].(map[string]interface{})
-			if v, ok := storageRaw["data_plane_access_on_create_enabled"]; ok {
-				featuresMap.Storage.DataPlaneAccessOnCreateEnabled = v.(bool)
+			if v, ok := storageRaw["data_plane_access_enabled"]; ok {
+				featuresMap.Storage.DataPlaneAccessEnabled = v.(bool)
 			}
 		}
 	}

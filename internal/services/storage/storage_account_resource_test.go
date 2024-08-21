@@ -1892,7 +1892,7 @@ func (r StorageAccountResource) basicDataPlaneDisabled(data acceptance.TestData)
 provider "azurerm" {
   features {
     storage {
-      data_plane_access_on_create_enabled = false
+      data_plane_access_enabled = false
     }
   }
 }
@@ -3316,7 +3316,7 @@ func (r StorageAccountResource) staticWebsiteEnabledNoPublicAccess(data acceptan
 provider "azurerm" {
   features {
     storage {
-      data_plane_access_on_create_enabled = false
+      data_plane_access_enabled = false
     }
   }
 }
