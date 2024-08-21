@@ -36,6 +36,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 		ManagerDataSource{},
 		ManagerNetworkGroupDataSource{},
 		ManagerConnectivityConfigurationDataSource{},
+		VPNServerConfigurationDataSource{},
 	}
 }
 
@@ -94,7 +95,6 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 		"azurerm_virtual_wan":                               dataSourceVirtualWan(),
 		"azurerm_local_network_gateway":                     dataSourceLocalNetworkGateway(),
 		"azurerm_vpn_gateway":                               dataSourceVPNGateway(),
-		"azurerm_vpn_server_configuration":                  dataSourceVPNServerConfiguration(),
 	}
 }
 
