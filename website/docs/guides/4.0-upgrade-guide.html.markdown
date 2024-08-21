@@ -751,7 +751,7 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 
 ### `azurerm_hdinsight_kafka_cluster`
 
-* The deprecated property `roles.kafka_management_node` has been removed.
+* The property `roles.kafka_management_node.username` is now Computed only.
 
 ### `azurerm_image`
 
@@ -957,6 +957,10 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 
 * The property `extension_operations_enabled` now defaults to `true`.
 
+### `azurerm_private_dns_resolver_inbound_endpoint`
+
+* The block `ip_configurations` can have a maximum of one item.
+
 ### `azurerm_public_ip`
 
 * The property `sku` now defaults to `Standard`.
@@ -969,8 +973,13 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 
 * The deprecated property `enable_non_ssl_port` has been removed in favour of the `non_ssl_port_enabled` property.
 * The deprecated property `redis_configuration.enable_authentication` has been removed in favour of the `redis_configuration.authentication_enabled` property.
+* The property `redis_configuraton.data_persistence_authentication_method` no longer defaults to `SAS`.
 * The property `family` is now case-sensitive. You will need to update your configuration to match the casing expected by the API.
 * The property `redis_version` now defaults to `6`.
+
+### `azurerm_redis_enterprise_database`
+
+* The deprecated property `resource_group_name` has been removed.
 
 ### `azurerm_resource_policy_remediation`
 
