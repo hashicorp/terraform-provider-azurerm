@@ -8,8 +8,11 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedserversecurityalertpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/parse"
@@ -116,30 +119,25 @@ func resourceMsSqlManagedInstanceSecurityAlertPolicyCreate(d *pluginsdk.Resource
 
 	log.Printf("[INFO] preparing arguments for managed instance security alert policy creation.")
 
-	resourceGroupName := d.Get("resource_group_name").(string)
-	managedInstanceName := d.Get("managed_instance_name").(string)
-
 	alertPolicy := expandManagedServerSecurityAlertPolicy(d)
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroupName, managedInstanceName, *alertPolicy)
+	managedInstanceId := commonids.NewSqlManagedInstanceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("managed_instance_name").(string))
+
+	err := client.CreateOrUpdateThenPoll(ctx, managedInstanceId, *alertPolicy)
 	if err != nil {
 		return fmt.Errorf("updating managed instance security alert policy: %v", err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creating of managed instance security alert policy (server %q, resource group %q): %+v", managedInstanceName, resourceGroupName, err)
-	}
-
-	result, err := client.Get(ctx, resourceGroupName, managedInstanceName)
+	result, err := client.Get(ctx, managedInstanceId)
 	if err != nil {
-		return fmt.Errorf("retrieving mssql manged instance security alert policy (managed instance %q, resource group %q): %+v", managedInstanceName, resourceGroupName, err)
+		return fmt.Errorf("retrieving %s: %+v", managedInstanceId, err)
 	}
 
-	if result.Name == nil {
-		return fmt.Errorf("reading mssql manged instance security alert policy name (managed instance %q, resource group %q)", managedInstanceName, resourceGroupName)
+	if result.Model == nil || result.Model.Name == nil {
+		return fmt.Errorf("reading %s", managedInstanceId)
 	}
 
-	id := parse.NewManagedInstancesSecurityAlertPolicyID(subscriptionId, resourceGroupName, managedInstanceName, *result.Name)
+	id := parse.NewManagedInstancesSecurityAlertPolicyID(subscriptionId, managedInstanceId.ResourceGroupName, managedInstanceId.ManagedInstanceName, *result.Model.Name)
 
 	d.SetId(id.ID())
 
@@ -151,25 +149,29 @@ func resourceMsSqlManagedInstanceSecurityAlertPolicyUpdate(d *pluginsdk.Resource
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceGroupName := d.Get("resource_group_name").(string)
-	instanceName := d.Get("managed_instance_name").(string)
-
 	id, err := parse.ManagedInstancesSecurityAlertPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	existing, err := client.Get(ctx, resourceGroupName, instanceName)
+	managedInstanceId := commonids.NewSqlManagedInstanceID(id.SubscriptionId, id.ResourceGroup, id.ManagedInstanceName)
+
+	existing, err := client.Get(ctx, managedInstanceId)
 	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
 
-	props := existing.SecurityAlertsPolicyProperties
-	if props == nil {
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", *id)
+	}
+
+	if existing.Model.Properties == nil {
 		return fmt.Errorf("retrieving %s: `properties` was nil", *id)
 	}
+
+	payload := existing.Model
 
 	if d.HasChange("disabled_alerts") {
 		if v, ok := d.GetOk("disabled_alerts"); ok {
@@ -177,17 +179,17 @@ func resourceMsSqlManagedInstanceSecurityAlertPolicyUpdate(d *pluginsdk.Resource
 			for _, v := range v.(*pluginsdk.Set).List() {
 				disabledAlerts = append(disabledAlerts, v.(string))
 			}
-			props.DisabledAlerts = &disabledAlerts
+			payload.Properties.DisabledAlerts = &disabledAlerts
 		} else {
-			props.DisabledAlerts = nil
+			payload.Properties.DisabledAlerts = nil
 		}
 	}
 	if d.HasChange("email_account_admins_enabled") {
-		props.EmailAccountAdmins = utils.Bool(d.Get("email_account_admins_enabled").(bool))
+		payload.Properties.EmailAccountAdmins = utils.Bool(d.Get("email_account_admins_enabled").(bool))
 	}
 
 	if d.HasChange("retention_days") {
-		props.RetentionDays = utils.Int32(int32(d.Get("retention_days").(int)))
+		payload.Properties.RetentionDays = pointer.To(int64(d.Get("retention_days").(int)))
 	}
 
 	if d.HasChange("email_addresses") {
@@ -196,45 +198,41 @@ func resourceMsSqlManagedInstanceSecurityAlertPolicyUpdate(d *pluginsdk.Resource
 			for _, v := range v.(*pluginsdk.Set).List() {
 				emailAddresses = append(emailAddresses, v.(string))
 			}
-			props.EmailAddresses = &emailAddresses
+			payload.Properties.EmailAddresses = &emailAddresses
 		} else {
-			props.EmailAddresses = nil
+			payload.Properties.EmailAddresses = nil
 		}
 	}
 
 	if d.HasChange("enabled") {
 		if d.Get("enabled").(bool) {
-			props.State = sql.SecurityAlertsPolicyStateEnabled
+			payload.Properties.State = managedserversecurityalertpolicies.SecurityAlertsPolicyStateEnabled
 		} else {
-			props.State = sql.SecurityAlertsPolicyStateDisabled
+			payload.Properties.State = managedserversecurityalertpolicies.SecurityAlertsPolicyStateDisabled
 		}
 	}
 
 	if d.HasChange("storage_account_access_key") {
-		props.StorageAccountAccessKey = utils.String(d.Get("storage_account_access_key").(string))
+		payload.Properties.StorageAccountAccessKey = utils.String(d.Get("storage_account_access_key").(string))
 	}
 
 	// StorageAccountAccessKey cannot be passed in if it is empty. The api returns this as empty so we need to nil it before sending it back to the api
-	if props.StorageAccountAccessKey != nil && *props.StorageAccountAccessKey == "" {
-		props.StorageAccountAccessKey = nil
+	if payload.Properties.StorageAccountAccessKey != nil && *payload.Properties.StorageAccountAccessKey == "" {
+		payload.Properties.StorageAccountAccessKey = nil
 	}
 
 	if d.HasChange("storage_endpoint") {
-		props.StorageEndpoint = utils.String(d.Get("storage_endpoint").(string))
+		payload.Properties.StorageEndpoint = utils.String(d.Get("storage_endpoint").(string))
 	}
 
 	// StorageEndpoint cannot be passed in if it is empty. The api returns this as empty so we need to nil it before sending it back to the api
-	if props.StorageEndpoint != nil && *props.StorageEndpoint == "" {
-		props.StorageEndpoint = nil
+	if payload.Properties.StorageEndpoint != nil && *payload.Properties.StorageEndpoint == "" {
+		payload.Properties.StorageEndpoint = nil
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroupName, instanceName, existing)
+	err = client.CreateOrUpdateThenPoll(ctx, managedInstanceId, *payload)
 	if err != nil {
 		return fmt.Errorf("updating managed instance security alert policy: %v", err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for updating of managed instance security alert policy (server %q, resource group %q): %+v", instanceName, resourceGroupName, err)
 	}
 
 	d.SetId(id.ID())
@@ -254,9 +252,11 @@ func resourceMsSqlManagedInstanceSecurityAlertPolicyRead(d *pluginsdk.ResourceDa
 		return err
 	}
 
-	result, err := client.Get(ctx, id.ResourceGroup, id.ManagedInstanceName)
+	managedInstanceId := commonids.NewSqlManagedInstanceID(id.SubscriptionId, id.ResourceGroup, id.ManagedInstanceName)
+
+	result, err := client.Get(ctx, managedInstanceId)
 	if err != nil {
-		if utils.ResponseWasNotFound(result.Response) {
+		if response.WasNotFound(result.HttpResponse) {
 			log.Printf("[WARN] managed instance security alert policy %v not found", id)
 			d.SetId("")
 			return nil
@@ -268,45 +268,48 @@ func resourceMsSqlManagedInstanceSecurityAlertPolicyRead(d *pluginsdk.ResourceDa
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("managed_instance_name", id.ManagedInstanceName)
 
-	if props := result.SecurityAlertsPolicyProperties; props != nil {
-		d.Set("enabled", props.State == sql.SecurityAlertsPolicyStateEnabled)
+	if result.Model != nil {
 
-		if props.DisabledAlerts != nil {
-			disabledAlerts := pluginsdk.NewSet(pluginsdk.HashString, []interface{}{})
-			for _, v := range *props.DisabledAlerts {
-				if v != "" {
-					disabledAlerts.Add(v)
+		if props := result.Model.Properties; props != nil {
+			d.Set("enabled", props.State == managedserversecurityalertpolicies.SecurityAlertsPolicyStateEnabled)
+
+			if props.DisabledAlerts != nil {
+				disabledAlerts := pluginsdk.NewSet(pluginsdk.HashString, []interface{}{})
+				for _, v := range *props.DisabledAlerts {
+					if v != "" {
+						disabledAlerts.Add(v)
+					}
 				}
+
+				d.Set("disabled_alerts", disabledAlerts)
 			}
 
-			d.Set("disabled_alerts", disabledAlerts)
-		}
-
-		if props.EmailAccountAdmins != nil {
-			d.Set("email_account_admins_enabled", props.EmailAccountAdmins)
-		}
-
-		if props.EmailAddresses != nil {
-			emailAddresses := pluginsdk.NewSet(pluginsdk.HashString, []interface{}{})
-			for _, v := range *props.EmailAddresses {
-				if v != "" {
-					emailAddresses.Add(v)
-				}
+			if props.EmailAccountAdmins != nil {
+				d.Set("email_account_admins_enabled", props.EmailAccountAdmins)
 			}
 
-			d.Set("email_addresses", emailAddresses)
-		}
+			if props.EmailAddresses != nil {
+				emailAddresses := pluginsdk.NewSet(pluginsdk.HashString, []interface{}{})
+				for _, v := range *props.EmailAddresses {
+					if v != "" {
+						emailAddresses.Add(v)
+					}
+				}
 
-		if props.RetentionDays != nil {
-			d.Set("retention_days", int(*props.RetentionDays))
-		}
+				d.Set("email_addresses", emailAddresses)
+			}
 
-		if v, ok := d.GetOk("storage_account_access_key"); ok {
-			d.Set("storage_account_access_key", v)
-		}
+			if props.RetentionDays != nil {
+				d.Set("retention_days", int(*props.RetentionDays))
+			}
 
-		if props.StorageEndpoint != nil {
-			d.Set("storage_endpoint", props.StorageEndpoint)
+			if v, ok := d.GetOk("storage_account_access_key"); ok {
+				d.Set("storage_account_access_key", v)
+			}
+
+			if props.StorageEndpoint != nil {
+				d.Set("storage_endpoint", props.StorageEndpoint)
+			}
 		}
 	}
 
@@ -323,42 +326,40 @@ func resourceMsSqlManagedInstanceSecurityAlertPolicyDelete(d *pluginsdk.Resource
 		return err
 	}
 
-	disabledPolicy := sql.ManagedServerSecurityAlertPolicy{
-		SecurityAlertsPolicyProperties: &sql.SecurityAlertsPolicyProperties{
-			State: sql.SecurityAlertsPolicyStateDisabled,
+	managedInstanceId := commonids.NewSqlManagedInstanceID(id.SubscriptionId, id.ResourceGroup, id.ManagedInstanceName)
+
+	disabledPolicy := managedserversecurityalertpolicies.ManagedServerSecurityAlertPolicy{
+		Properties: &managedserversecurityalertpolicies.SecurityAlertsPolicyProperties{
+			State: managedserversecurityalertpolicies.SecurityAlertsPolicyStateDisabled,
 		},
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ManagedInstanceName, disabledPolicy)
+	err = client.CreateOrUpdateThenPoll(ctx, managedInstanceId, disabledPolicy)
 	if err != nil {
 		return fmt.Errorf("updating managed instance security alert policy: %v", err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of managed instance security alert policy (server %q, resource group %q): %+v", id.ManagedInstanceName, id.ResourceGroup, err)
-	}
-
-	if _, err = client.Get(ctx, id.ResourceGroup, id.ManagedInstanceName); err != nil {
+	if _, err = client.Get(ctx, managedInstanceId); err != nil {
 		return fmt.Errorf("deleting managed instance security alert policy: %v", err)
 	}
 
 	return nil
 }
 
-func expandManagedServerSecurityAlertPolicy(d *pluginsdk.ResourceData) *sql.ManagedServerSecurityAlertPolicy {
-	state := sql.SecurityAlertsPolicyStateDisabled
+func expandManagedServerSecurityAlertPolicy(d *pluginsdk.ResourceData) *managedserversecurityalertpolicies.ManagedServerSecurityAlertPolicy {
+	state := managedserversecurityalertpolicies.SecurityAlertsPolicyStateDisabled
 
 	if d.Get("enabled").(bool) {
-		state = sql.SecurityAlertsPolicyStateEnabled
+		state = managedserversecurityalertpolicies.SecurityAlertsPolicyStateEnabled
 	}
 
-	policy := sql.ManagedServerSecurityAlertPolicy{
-		SecurityAlertsPolicyProperties: &sql.SecurityAlertsPolicyProperties{
+	policy := managedserversecurityalertpolicies.ManagedServerSecurityAlertPolicy{
+		Properties: &managedserversecurityalertpolicies.SecurityAlertsPolicyProperties{
 			State: state,
 		},
 	}
 
-	props := policy.SecurityAlertsPolicyProperties
+	props := policy.Properties
 
 	if v, ok := d.GetOk("disabled_alerts"); ok {
 		disabledAlerts := make([]string, 0)
@@ -381,7 +382,7 @@ func expandManagedServerSecurityAlertPolicy(d *pluginsdk.ResourceData) *sql.Mana
 	}
 
 	if v, ok := d.GetOk("retention_days"); ok {
-		props.RetentionDays = utils.Int32(int32(v.(int)))
+		props.RetentionDays = utils.Int64(int64(v.(int)))
 	}
 
 	if v, ok := d.GetOk("storage_account_access_key"); ok {

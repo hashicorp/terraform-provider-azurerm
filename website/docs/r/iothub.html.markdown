@@ -145,9 +145,9 @@ The following arguments are supported:
 
 * `local_authentication_enabled` - (Optional) If false, SAS tokens with Iot hub scoped SAS keys cannot be used for authentication. Defaults to `true`.
 
-* `event_hub_partition_count` - (Optional) The number of device-to-cloud partitions used by backing event hubs. Must be between `2` and `128`.
+* `event_hub_partition_count` - (Optional) The number of device-to-cloud partitions used by backing event hubs. Must be between `2` and `128`. Defaults to `4`.
 
-* `event_hub_retention_in_days` - (Optional) The event hub retention to use in days. Must be between `1` and `7`.
+* `event_hub_retention_in_days` - (Optional) The event hub retention to use in days. Must be between `1` and `7`. Defaults to `1`.
 
 * `endpoint` - (Optional) An `endpoint` block as defined below.
 
@@ -283,7 +283,7 @@ A `fallback_route` block supports the following:
 
 * `endpoint_names` - (Optional) The endpoints to which messages that satisfy the condition are routed. Currently only 1 endpoint is allowed.
 
-* `enabled` - (Optional) Used to specify whether the fallback route is enabled.
+* `enabled` - (Optional) Used to specify whether the fallback route is enabled. Defaults to `true`.
 
 ---
 

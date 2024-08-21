@@ -48,10 +48,6 @@ The following arguments are supported:
 
 * `log_analytics_workspace_id` - (Required) The ID of the Log Analytics Workspace. Changing this forces a new Data Connector to be created.
 
-* `bing_safety_phishing_url_lookback_date` - (Optional) The lookback date for the Bing Safety Phishing Url in RFC3339. Changing this forces a new Data Connector to be created.
-
--> **Note:** `bing_safety_phishing_url_lookback_date` has been deprecated as the API no longer supports it and will be removed in version 4.0 of the provider.
-
 * `microsoft_emerging_threat_feed_lookback_date` - (Optional) The lookback date for the Microsoft Emerging Threat Feed in RFC3339. Changing this forces a new Data Connector to be created.
 
 -> **Note:** `microsoft_emerging_threat_feed_lookback_date` will be required in version 4.0 of the provider.
