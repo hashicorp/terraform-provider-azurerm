@@ -84,15 +84,21 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the Azure Region where the Arc Kubernetes Cluster should exist. Changing this forces a new Arc Kubernetes Cluster to be created.
 
-* `aad_profile` (Optional) An `aad_profile` block as specified below.
+* `aad_profile` - (Optional) An `aad_profile` block as specified below.
 
 ~> **NOTE** `aad_profile` can only be specified if `kind` is `ProvisionedCluster`.
+
+* `arc_agent_auto_upgrade_enabled` - (Optional) Whether the Arc agents will be upgraded automatically to the latest version. Possible values are `true` and `false`. Defaults to `true`.
+
+* `arc_agent_desired_version` - (Optional) The version of the Arc agents to be installed on the cluster.
 
 * `agent_public_key_certificate` - (Optional) Specifies the base64-encoded public certificate used by the agent to do the initial handshake to the backend services in Azure. Changing this forces a new Arc Kubernetes Cluster to be created.
 
 -> **NOTE** `agent_public_key_certificate` must not be specified if `kind` is `ProvisionedCluster`.
 
-* `kind` - The kind of the Arc Kubernetes Cluster based on host infrastructure. Possible value is `ProvisionedCluster`.
+* `azure_hybrid_benefit` - (Optional) Indicates whether Azure Hybrid Benefit is opted in. Possible values are `True`, `False` and `NotApplicable`. Defaults to `NotApplicable`.
+
+* `kind` - (Optional) The kind of the Arc Kubernetes Cluster based on host infrastructure. Possible value is `ProvisionedCluster`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Arc Kubernetes Cluster.
 
