@@ -754,10 +754,6 @@ A `slow_request` block supports the following:
 
 * `time_taken` - (Required) The threshold of time passed to qualify as a Slow Request in `hh:mm:ss`.
 
-* `path` - (Optional) The path for which this slow request rule applies.
-
-~> **NOTE:** `path` in `slow_request` block will be deprecated in 4.0 provider. Please use `slow_request_with_path` to set a slow request trigger with path specified.
-
 ---
 
 A `slow_request_with_path` block supports the following:

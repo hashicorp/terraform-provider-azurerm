@@ -104,10 +104,6 @@ The following arguments are supported:
 
 ---
 
-* `location` - (Optional) The Azure Region where the Machine Learning Compute Instance should exist.
-
--> **Note:** The `location` field is not supported for Machine Learning Compute Instances and has no effect so as such will be removed in v4.0 of the AzureRM provider. For more information, please see the product [documentation](https://learn.microsoft.com/azure/machine-learning/how-to-create-attach-compute-cluster?view=azureml-api-2&tabs=python).
-
 * `authorization_type` - (Optional) The Compute Instance Authorization type. Possible values include: `personal`. Changing this forces a new Machine Learning Compute Instance to be created.
 
 * `assign_to_user` - (Optional) A `assign_to_user` block as defined below. A user explicitly assigned to a personal compute instance. Changing this forces a new Machine Learning Compute Instance to be created.
