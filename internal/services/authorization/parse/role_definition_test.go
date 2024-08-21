@@ -34,6 +34,24 @@ func TestParseRoleDefinitionID(t *testing.T) {
 			ShouldParse: true,
 		},
 		{
+			Input: "/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333/providers/Microsoft.Authorization/roleDefinitions/12345678-1234-1234-1234-1234567890ab|/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333/resourceGroups/myGroup/providers/Microsoft.Compute/virtualMachines/myVM",
+			Expected: &RoleDefinitionID{
+				ResourceID: "/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333/providers/Microsoft.Authorization/roleDefinitions/12345678-1234-1234-1234-1234567890ab",
+				Scope:      "/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333/resourceGroups/myGroup/providers/Microsoft.Compute/virtualMachines/myVM",
+				RoleID:     "12345678-1234-1234-1234-1234567890ab",
+			},
+			ShouldParse: true,
+		},
+		{
+			Input: "/providers/Microsoft.Authorization/rOlEdEfiNiTiOns/AB65ee35-Dc39-43aC-86a0-aCCaaDf4abcd|/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333/resourceGroups/myGroup/providers/Microsoft.Compute/virtualMachines/myVM",
+			Expected: &RoleDefinitionID{
+				ResourceID: "/providers/Microsoft.Authorization/rOlEdEfiNiTiOns/AB65ee35-Dc39-43aC-86a0-aCCaaDf4abcd",
+				Scope:      "/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333/resourceGroups/myGroup/providers/Microsoft.Compute/virtualMachines/myVM",
+				RoleID:     "AB65ee35-Dc39-43aC-86a0-aCCaaDf4abcd",
+			},
+			ShouldParse: true,
+		},
+		{
 			Input:       "/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/roleDefinitions/00000000-0000-0000-0000-000000000000|/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/invalid.resource()-_group.",
 			Expected:    nil,
 			ShouldParse: false,
@@ -61,6 +79,15 @@ func TestParseRoleDefinitionID(t *testing.T) {
 			Expected: &RoleDefinitionID{
 				ResourceID: "/providers/Microsoft.Authorization/roleDefinitions/ab65ee35-dc39-43ac-86a0-accaadf4abcd",
 				Scope:      "/providers/Microsoft.Management/managementGroups/Some-Management-Group/subscriptions/12345678-1234-1234-1234-1234567890ab",
+				RoleID:     "ab65ee35-dc39-43ac-86a0-accaadf4abcd",
+			},
+			ShouldParse: true,
+		},
+		{
+			Input: "/providers/Microsoft.Authorization/roleDefinitions/ab65ee35-dc39-43ac-86a0-accaadf4abcd|/providers/Microsoft.Management/managementGroups/Some-Management-Group/subscriptions/12345678-1234-1234-1234-1234567890ab/resourceGroups/myGroup/providers/Microsoft.Compute/virtualMachines/myVM",
+			Expected: &RoleDefinitionID{
+				ResourceID: "/providers/Microsoft.Authorization/roleDefinitions/ab65ee35-dc39-43ac-86a0-accaadf4abcd",
+				Scope:      "/providers/Microsoft.Management/managementGroups/Some-Management-Group/subscriptions/12345678-1234-1234-1234-1234567890ab/resourceGroups/myGroup/providers/Microsoft.Compute/virtualMachines/myVM",
 				RoleID:     "ab65ee35-dc39-43ac-86a0-accaadf4abcd",
 			},
 			ShouldParse: true,
