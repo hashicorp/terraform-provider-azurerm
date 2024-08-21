@@ -35,6 +35,21 @@ func TestAccStackHCIStoragePath_basic(t *testing.T) {
 	})
 }
 
+func TestAccStackHCIStoragePath_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stack_hci_storage_path", "test")
+	r := StackHCIStoragePathResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccStackHCIStoragePath_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stack_hci_storage_path", "test")
 	r := StackHCIStoragePathResource{}
@@ -87,21 +102,6 @@ func TestAccStackHCIStoragePath_requiresImport(t *testing.T) {
 			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
-	})
-}
-
-func TestAccStackHCIStoragePath_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_stack_hci_storage_path", "test")
-	r := StackHCIStoragePathResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
 	})
 }
 
