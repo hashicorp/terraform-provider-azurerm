@@ -109,6 +109,8 @@ resource "azurerm_storage_account" "example" {
 }
 ```
 
+-> **Note:** If you are setting up a private endpoint for a storage account please see the [product documentation](https://learn.microsoft.com/azure/private-link/private-endpoint-dns#storage) for more information on the Azure Private Endpoint private DNS zone values.
+
 ## Argument Reference
 
 The following arguments are supported:
