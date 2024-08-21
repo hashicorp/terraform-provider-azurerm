@@ -54,12 +54,12 @@ func (br costManagementExportBaseResource) arguments(fields map[string]*pluginsd
 
 		"file_format": {
 			Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  string(exports.FormatTypeCsv),
-						ValidateFunc: validation.StringInSlice([]string{
-							string(exports.FormatTypeCsv),
-							// TODO add support for Parquet once added to the SDK
-						}, false),
+			Optional: true,
+			Default:  string(exports.FormatTypeCsv),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(exports.FormatTypeCsv),
+				// TODO add support for Parquet once added to the SDK
+			}, false),
 		},
 
 		"export_data_storage_location": {
