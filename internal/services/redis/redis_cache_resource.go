@@ -859,12 +859,7 @@ func resourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		d.Set("secondary_connection_string", getRedisConnectionString(*props.HostName, *props.SslPort, *keysResp.Model.SecondaryKey, true))
 		d.Set("primary_access_key", keysResp.Model.PrimaryKey)
 		d.Set("secondary_access_key", keysResp.Model.SecondaryKey)
-
-		accessKeyAuthEnabled := true
-		if props.DisableAccessKeyAuthentication != nil {
-			accessKeyAuthEnabled = !pointer.From(props.DisableAccessKeyAuthentication)
-		}
-		d.Set("access_keys_authentication_enabled", accessKeyAuthEnabled)
+		d.Set("access_keys_authentication_enabled", !pointer.From(props.DisableAccessKeyAuthentication))
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return fmt.Errorf("setting `tags`: %+v", err)
