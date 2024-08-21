@@ -35,7 +35,7 @@ resource "azurerm_redis_enterprise_cluster" "example1" {
 }
 
 resource "azurerm_redis_enterprise_database" "example" {
-  name                = "default"
+  name = "default"
 
   cluster_id        = azurerm_redis_enterprise_cluster.example.id
   client_protocol   = "Encrypted"
