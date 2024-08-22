@@ -7,11 +7,41 @@ import (
 	"errors"
 	"fmt"
 	"sync"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 var ErrNoAuthorization = errors.New("authorization failed")
 
 const registrationErrorFmt = `%s.
+
+Terraform automatically attempts to register the Azure Resource Providers it supports, to
+ensure it is able to provision resources.
+
+If you don't have permission to register Resource Providers you may wish to disable this
+functionality by adding the following to the Provider block:
+
+provider "azurerm" {
+  skip_provider_registration = true
+}
+
+Please note that if you opt out of Resource Provider Registration and Terraform tries
+to provision a resource from a Resource Provider which is unregistered, then the errors
+may appear misleading - for example:
+
+> API version 2019-XX-XX was not found for Microsoft.Foo
+
+Could suggest that the Resource Provider "Microsoft.Foo" requires registration, but
+this could also indicate that this Azure Region doesn't support this API version.
+
+More information on the "skip_provider_registration" property can be found here:
+https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#skip_provider_registration
+
+Encountered the following errors:
+
+%v`
+
+const registrationErrorFourPointOhBetaFmt = `%s.
 
 Terraform automatically attempts to register the Azure Resource Providers it supports, to
 ensure it is able to provision resources.
@@ -33,7 +63,7 @@ Could suggest that the Resource Provider "Microsoft.Foo" requires registration, 
 this could also indicate that this Azure Region doesn't support this API version.
 
 More information on the "resource_provider_registrations" property can be found here:
-https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#resource_provider_registrations
+https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/4.0-upgrade-guide#improved-resource-provider-registration
 
 Encountered the following errors:
 
@@ -43,7 +73,13 @@ Encountered the following errors:
 // resource providers.
 func userError(err error) error {
 	if errors.Is(err, ErrNoAuthorization) {
+		if features.FourPointOhBeta() {
+			return fmt.Errorf(registrationErrorFourPointOhBetaFmt, "Terraform does not have the necessary permissions to register Resource Providers", err)
+		}
 		return fmt.Errorf(registrationErrorFmt, "Terraform does not have the necessary permissions to register Resource Providers", err)
+	}
+	if features.FourPointOhBeta() {
+		return fmt.Errorf(registrationErrorFourPointOhBetaFmt, "Encountered an error whilst ensuring Resource Providers are registered", err)
 	}
 	return fmt.Errorf(registrationErrorFmt, "Encountered an error whilst ensuring Resource Providers are registered", err)
 }
