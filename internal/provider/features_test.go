@@ -1188,7 +1188,7 @@ func TestExpandFeaturesLogAnalyticsWorkspace(t *testing.T) {
 			},
 			Expected: features.UserFeatures{
 				LogAnalyticsWorkspace: features.LogAnalyticsWorkspaceFeatures{
-					PermanentlyDeleteOnDestroy: !features.FourPointOhBeta(),
+					PermanentlyDeleteOnDestroy: false,
 				},
 			},
 		},
