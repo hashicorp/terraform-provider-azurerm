@@ -24,10 +24,28 @@ const (
 
 type ArcKubernetesProvisionedClusterInstanceResource struct{}
 
-func TestAccArcKubernetesProvisionedClusterInstance_basic(t *testing.T) {
+func TestAccArcKubernetesProvisionedClusterInstance(t *testing.T) {
+	// NOTE: this is a combined test rather than separate split out tests due to
+	// the test environment network limitation
+	// (which our test suite can't easily work around)
+
+	testCases := map[string]func(t *testing.T){
+		"basic":          testAccArcKubernetesProvisionedClusterInstance_basic,
+		"complete":       testAccArcKubernetesProvisionedClusterInstance_complete,
+		"update":         testAccArcKubernetesProvisionedClusterInstance_update,
+		"requiresImport": testAccArcKubernetesProvisionedClusterInstance_requiresImport,
+	}
+	for name, m := range testCases {
+		t.Run(name, func(t *testing.T) {
+			m(t)
+		})
+	}
+}
+
+func testAccArcKubernetesProvisionedClusterInstance_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_provisioned_cluster_instance", "test")
 	r := ArcKubernetesProvisionedClusterInstanceResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -38,10 +56,52 @@ func TestAccArcKubernetesProvisionedClusterInstance_basic(t *testing.T) {
 	})
 }
 
-func TestAccArcKubernetesProvisionedClusterInstance_requiresImport(t *testing.T) {
+func testAccArcKubernetesProvisionedClusterInstance_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_provisioned_cluster_instance", "test")
 	r := ArcKubernetesProvisionedClusterInstanceResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func testAccArcKubernetesProvisionedClusterInstance_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_provisioned_cluster_instance", "test")
+	r := ArcKubernetesProvisionedClusterInstanceResource{}
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func testAccArcKubernetesProvisionedClusterInstance_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_provisioned_cluster_instance", "test")
+	r := ArcKubernetesProvisionedClusterInstanceResource{}
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -85,7 +145,6 @@ resource "azurerm_arc_kubernetes_provisioned_cluster_instance" "test" {
   kubernetes_version = "1.28.5"
 
   agent_pool_profile {
-    count = 1
     name = "nodepool1"
     os_sku = "CBLMariner"
     os_type = "Linux"
@@ -99,13 +158,8 @@ resource "azurerm_arc_kubernetes_provisioned_cluster_instance" "test" {
   }
 
   control_plane_profile {
-    count = 1
     host_ip = "192.168.1.190"
     vm_size = "Standard_A4_v2"
-  }
-
-  license_profile {
-    azure_hybrid_benefit = "False"
   }
 
   linux_profile {
@@ -131,25 +185,108 @@ func (r ArcKubernetesProvisionedClusterInstanceResource) requiresImport(data acc
 %s
 
 resource "azurerm_arc_kubernetes_provisioned_cluster_instance" "import" {
-  name       = azurerm_arc_kubernetes_provisioned_cluster_instance.test.name
   cluster_id = azurerm_arc_kubernetes_provisioned_cluster_instance.test.cluster_id
-  namespace  = azurerm_arc_kubernetes_provisioned_cluster_instance.test.namespace
+  custom_location_id = azurerm_arc_kubernetes_provisioned_cluster_instance.test.custom_location_id
+  kubernetes_version = "1.28.5"
 
-  git_repository {
-    url             = "https://github.com/Azure/arc-k8s-demo"
-    reference_type  = "branch"
-    reference_value = "main"
+  agent_pool_profile {
+    name = "nodepool1"
+    os_sku = "CBLMariner"
+    os_type = "Linux"
+    vm_size = "Standard_A4_v2"
   }
 
-  kustomizations {
-    name = "kustomization-1"
+  cloud_provider_profile {
+    infra_network_profile {
+      vnet_subnet_ids = [azurerm_stack_hci_logical_network.test.id]
+    }
   }
 
-  depends_on = [
-    azurerm_arc_kubernetes_cluster_extension.test
-  ]
+  control_plane_profile {
+    host_ip = "192.168.1.190"
+    vm_size = "Standard_A4_v2"
+  }
+
+  linux_profile {
+    ssh_key = [tls_private_key.rsaKey.public_key_openssh]
+  }
+
+  network_profile {
+    network_policy = "calico"
+    pod_cidr = "10.244.0.0/16"
+  }
+
+  storage_profile {
+    smb_csi_driver_enabled = false
+    nfs_csi_driver_enabled = false
+  }
 }
 `, config)
+}
+
+func (r ArcKubernetesProvisionedClusterInstanceResource) complete(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_arc_kubernetes_provisioned_cluster_instance" "test" {
+  cluster_id = azurerm_arc_kubernetes_cluster.test.id
+  custom_location_id = "%[3]s"
+  kubernetes_version = "1.28.5"
+
+  agent_pool_profile {
+    auto_scaling_enabled = true
+    count = 1
+    max_count = 2
+    min_count = 1
+    max_pods = 20
+    name = "nodepool1"
+    os_sku = "CBLMariner"
+    os_type = "Linux"
+    vm_size = "Standard_A4_v2"
+    node_taints = ["env=prod:NoSchedule"]
+
+    node_labels = {
+      foo = "bar"
+      env = "dev"
+    }
+  }
+
+  cloud_provider_profile {
+    infra_network_profile {
+      vnet_subnet_ids = [azurerm_stack_hci_logical_network.test.id]
+    }
+  }
+
+  cluster_vm_access_profile {
+    authorized_ip_ranges = "192.168.0.1,192.168.0.2"
+  }
+
+  control_plane_profile {
+    count = 3
+    vm_size = "Standard_A4_v2"
+    host_ip = "192.168.1.190"
+  }
+
+  license_profile {
+    azure_hybrid_benefit = "False"
+  }
+
+  linux_profile {
+    ssh_key = [tls_private_key.rsaKey.public_key_openssh]
+  }
+
+  network_profile {
+    network_policy = "calico"
+    pod_cidr = "10.244.0.0/16"
+  }
+
+  storage_profile {
+    smb_csi_driver_enabled = true
+    nfs_csi_driver_enabled = true
+  }
+}
+`, template, data.RandomInteger, os.Getenv(customLocationIdEnv))
 }
 
 func (r ArcKubernetesProvisionedClusterInstanceResource) template(data acceptance.TestData) string {
@@ -181,17 +318,9 @@ resource "azurerm_stack_hci_logical_network" "test" {
     }
     route {
       name                = "test-route"
-      address_prefix      = "10.0.0.0/0"
+      address_prefix      = "0.0.0.0/0"
       next_hop_ip_address = "192.168.1.1"
     }
-  }
-}
-
-# from https://github.com/Azure/Edge-infrastructure-quickstart-template/blob/main/modules/aks-arc/readiness.ps1
-resource "terraform_data" "waitAksVhdReady" {
-  provisioner "local-exec" {
-    command     = "powershell.exe -ExecutionPolicy Bypass -NoProfile -File ./testdata/readiness.ps1 -customLocationResourceId '%[2]s' -kubernetesVersion '1.28.5' -osSku CBLMariner"
-    interpreter = ["PowerShell", "-Command"]
   }
 }
 
@@ -203,8 +332,6 @@ resource "azurerm_arc_kubernetes_cluster" "test" {
   identity {
     type = "SystemAssigned"
   }
-  depends_on = [terraform_data.waitAksVhdReady]
 }
-
 `, data.RandomInteger, data.Locations.Primary, os.Getenv(customLocationIdEnv))
 }

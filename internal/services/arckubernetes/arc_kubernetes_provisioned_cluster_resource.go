@@ -41,16 +41,17 @@ func (ArcKubernetesProvisionedClusterInstanceResource) ModelObject() interface{}
 }
 
 type ArcKubernetesProvisionedClusterInstanceResourceModel struct {
-	AgentPoolProfile     []ProvisionedClusterInstanceAgentPoolProfile     `tfschema:"agent_pool_profile"`
-	CloudProviderProfile []ProvisionedClusterInstanceCloudProviderProfile `tfschema:"cloud_provider_profile"`
-	ClusterID            string                                           `tfschema:"cluster_id"`
-	ControlPlaneProfile  []ProvisionedClusterInstanceControlPlaneProfile  `tfschema:"control_plane_profile"`
-	CustomLocationId     string                                           `tfschema:"custom_location_id"`
-	KubernetesVersion    string                                           `tfschema:"kubernetes_version"`
-	LinuxProfile         []ProvisionedClusterInstanceLinuxProfile         `tfschema:"linux_profile"`
-	LicenseProfile       []ProvisionedClusterInstanceLicenseProfile       `tfschema:"license_profile"`
-	NetworkProfile       []ProvisionedClusterInstanceNetworkProfile       `tfschema:"network_profile"`
-	StorageProfile       []ProvisionedClusterInstanceStorageProfile       `tfschema:"storage_profile"`
+	AgentPoolProfile      []ProvisionedClusterInstanceAgentPoolProfile       `tfschema:"agent_pool_profile"`
+	CloudProviderProfile  []ProvisionedClusterInstanceCloudProviderProfile   `tfschema:"cloud_provider_profile"`
+	ClusterID             string                                             `tfschema:"cluster_id"`
+	ClusterVmAcessProfile []ProvisionedClusterInstanceClusterVmAccessProfile `tfschema:"cluster_vm_access_profile"`
+	ControlPlaneProfile   []ProvisionedClusterInstanceControlPlaneProfile    `tfschema:"control_plane_profile"`
+	CustomLocationId      string                                             `tfschema:"custom_location_id"`
+	KubernetesVersion     string                                             `tfschema:"kubernetes_version"`
+	LinuxProfile          []ProvisionedClusterInstanceLinuxProfile           `tfschema:"linux_profile"`
+	LicenseProfile        []ProvisionedClusterInstanceLicenseProfile         `tfschema:"license_profile"`
+	NetworkProfile        []ProvisionedClusterInstanceNetworkProfile         `tfschema:"network_profile"`
+	StorageProfile        []ProvisionedClusterInstanceStorageProfile         `tfschema:"storage_profile"`
 }
 
 type ProvisionedClusterInstanceAgentPoolProfile struct {
@@ -73,6 +74,10 @@ type ProvisionedClusterInstanceCloudProviderProfile struct {
 
 type ProvisionedClusterInstanceInfraNetworkProfile struct {
 	VnetSubnetIds []string `tfschema:"vnet_subnet_ids"`
+}
+
+type ProvisionedClusterInstanceClusterVmAccessProfile struct {
+	AuthorizedIPRanges string `tfschema:"authorized_ip_ranges"`
 }
 
 type ProvisionedClusterInstanceControlPlaneProfile struct {
@@ -123,7 +128,6 @@ func (ArcKubernetesProvisionedClusterInstanceResource) Arguments() map[string]*p
 		"agent_pool_profile": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
-			ForceNew: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
@@ -137,12 +141,12 @@ func (ArcKubernetesProvisionedClusterInstanceResource) Arguments() map[string]*p
 					"vm_size": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
+						ForceNew:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"auto_scaling_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
-						ForceNew: true,
 						Default:  false,
 					},
 					"count": {
@@ -154,38 +158,34 @@ func (ArcKubernetesProvisionedClusterInstanceResource) Arguments() map[string]*p
 					"max_count": {
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
-						ForceNew:     true,
 						ValidateFunc: validation.IntAtLeast(1),
 					},
 					"max_pods": {
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
-						ForceNew:     true,
 						ValidateFunc: validation.IntAtLeast(1),
 					},
 					"min_count": {
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
-						ForceNew:     true,
 						ValidateFunc: validation.IntAtLeast(1),
 					},
 					"node_labels": {
 						Type:     pluginsdk.TypeMap,
-						ForceNew: true,
 						Optional: true,
 					},
 					"node_taints": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
-						ForceNew: true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
-							ValidateFunc: validation.IsIPv4Address,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
 					"os_sku": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
+						ForceNew: true,
 						ValidateFunc: validation.StringInSlice([]string{
 							string(provisionedclusterinstances.OSSKUCBLMariner),
 							string(provisionedclusterinstances.OSSKUWindowsTwoZeroOneNine),
@@ -195,8 +195,8 @@ func (ArcKubernetesProvisionedClusterInstanceResource) Arguments() map[string]*p
 					"os_type": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
-						Default:  string(provisionedclusterinstances.OsTypeLinux),
 						ForceNew: true,
+						Default:  string(provisionedclusterinstances.OsTypeLinux),
 						ValidateFunc: validation.StringInSlice([]string{
 							string(provisionedclusterinstances.OsTypeLinux),
 							string(provisionedclusterinstances.OsTypeWindows),
@@ -239,21 +239,40 @@ func (ArcKubernetesProvisionedClusterInstanceResource) Arguments() map[string]*p
 			},
 		},
 
-		"control_plane_profile": {
+		"cluster_vm_access_profile": {
 			Type:     pluginsdk.TypeList,
-			Required: true,
+			Optional: true,
 			ForceNew: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"host_ip": {
+					"authorized_ip_ranges": {
 						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.IsIPv4Address,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+				},
+			},
+		},
+
+		"control_plane_profile": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"host_ip": {
+						Type:          pluginsdk.TypeString,
+						Optional:      true,
+						ForceNew:      true,
+						ValidateFunc:  validation.IsIPv4Address,
+						ConflictsWith: []string{"network_profile.0.load_balancer_profile"},
 					},
 					"vm_size": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
+						ForceNew:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"count": {
@@ -269,8 +288,10 @@ func (ArcKubernetesProvisionedClusterInstanceResource) Arguments() map[string]*p
 		"kubernetes_version": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
+
 		"linux_profile": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -281,6 +302,7 @@ func (ArcKubernetesProvisionedClusterInstanceResource) Arguments() map[string]*p
 					"ssh_key": {
 						Type:     pluginsdk.TypeList,
 						Required: true,
+						ForceNew: true,
 						MinItems: 1,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
@@ -294,14 +316,13 @@ func (ArcKubernetesProvisionedClusterInstanceResource) Arguments() map[string]*p
 		"license_profile": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			ForceNew: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"azure_hybrid_benefit": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
-						Default:  string(provisionedclusterinstances.AzureHybridBenefitNotApplicable),
+						Default:  string(connectedclusters.AzureHybridBenefitNotApplicable),
 						ValidateFunc: validation.StringInSlice([]string{
 							string(provisionedclusterinstances.AzureHybridBenefitNotApplicable),
 							string(provisionedclusterinstances.AzureHybridBenefitFalse),
@@ -314,14 +335,14 @@ func (ArcKubernetesProvisionedClusterInstanceResource) Arguments() map[string]*p
 
 		"network_profile": {
 			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Required: true,
 			ForceNew: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"network_policy": {
 						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Required: true,
 						ForceNew: true,
 						ValidateFunc: validation.StringInSlice([]string{
 							string(provisionedclusterinstances.NetworkPolicyCalico),
@@ -329,21 +350,22 @@ func (ArcKubernetesProvisionedClusterInstanceResource) Arguments() map[string]*p
 					},
 					"pod_cidr": {
 						Type:         pluginsdk.TypeString,
-						Optional:     true,
+						Required:     true,
 						ForceNew:     true,
 						ValidateFunc: validation.IsCIDR,
 					},
 					"load_balancer_profile": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						ForceNew: true,
-						MaxItems: 1,
+						Type:          pluginsdk.TypeList,
+						Optional:      true,
+						ForceNew:      true,
+						MaxItems:      1,
+						ConflictsWith: []string{"control_plane_profile.0.host_ip"},
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"count": {
 									Type:         pluginsdk.TypeInt,
-									Optional:     true,
-									Default:      0,
+									Required:     true,
+									ForceNew:     true,
 									ValidateFunc: validation.IntAtLeast(1),
 								},
 							},
@@ -356,20 +378,17 @@ func (ArcKubernetesProvisionedClusterInstanceResource) Arguments() map[string]*p
 		"storage_profile": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			ForceNew: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"smb_csi_driver_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
-						ForceNew: true,
 						Default:  true,
 					},
 					"nfs_csi_driver_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
-						ForceNew: true,
 						Default:  true,
 					},
 				},
@@ -415,14 +434,15 @@ func (r ArcKubernetesProvisionedClusterInstanceResource) Create() sdk.ResourceFu
 					Type: pointer.To(provisionedclusterinstances.ExtendedLocationTypesCustomLocation),
 				},
 				Properties: &provisionedclusterinstances.ProvisionedClusterProperties{
-					AgentPoolProfiles:    expandProvisionedClusterAgentPoolProfiles(config.AgentPoolProfile),
-					CloudProviderProfile: expandProvisionedClusterCloudProviderProfile(config.CloudProviderProfile),
-					ControlPlane:         expandProvisionedClusterControlPlaneProfile(config.ControlPlaneProfile),
-					KubernetesVersion:    pointer.To(config.KubernetesVersion),
-					LinuxProfile:         expandProvisionedClusterLinuxProfile(config.LinuxProfile),
-					LicenseProfile:       expandProvisionedClusterLicenseProfile(config.LicenseProfile),
-					NetworkProfile:       expandProvisionedClusterNetworkProfile(config.NetworkProfile),
-					StorageProfile:       expandProvisionedClusterStorageProfile(config.StorageProfile),
+					AgentPoolProfiles:      expandProvisionedClusterAgentPoolProfiles(config.AgentPoolProfile),
+					CloudProviderProfile:   expandProvisionedClusterCloudProviderProfile(config.CloudProviderProfile),
+					ClusterVMAccessProfile: expandProvisionedClusterClusterVmAccessProfile(config.ClusterVmAcessProfile),
+					ControlPlane:           expandProvisionedClusterControlPlaneProfile(config.ControlPlaneProfile),
+					KubernetesVersion:      pointer.To(config.KubernetesVersion),
+					LinuxProfile:           expandProvisionedClusterLinuxProfile(config.LinuxProfile),
+					LicenseProfile:         expandProvisionedClusterLicenseProfile(config.LicenseProfile),
+					NetworkProfile:         expandProvisionedClusterNetworkProfile(config.NetworkProfile),
+					StorageProfile:         expandProvisionedClusterStorageProfile(config.StorageProfile),
 				},
 			}
 
@@ -477,6 +497,7 @@ func (r ArcKubernetesProvisionedClusterInstanceResource) Read() sdk.ResourceFunc
 				if props := model.Properties; props != nil {
 					schema.CloudProviderProfile = flattenProvisionedClusterCloudProviderProfile(props.CloudProviderProfile)
 					schema.AgentPoolProfile = flattenProvisionedClusterAgentPoolProfiles(props.AgentPoolProfiles)
+					schema.ClusterVmAcessProfile = flattenProvisionedClusterClusterVmAccessProfile(props.ClusterVMAccessProfile)
 					schema.ControlPlaneProfile = flattenProvisionedClusterControlPlaneProfile(props.ControlPlane)
 					schema.KubernetesVersion = pointer.From(props.KubernetesVersion)
 					schema.LinuxProfile = flattenProvisionedClusterLinuxProfile(props.LinuxProfile)
@@ -671,6 +692,28 @@ func flattenProvisionedClusterCloudProviderProfile(input *provisionedclusterinst
 	}
 }
 
+func expandProvisionedClusterClusterVmAccessProfile(input []ProvisionedClusterInstanceClusterVmAccessProfile) *provisionedclusterinstances.ClusterVMAccessProfile {
+	if len(input) == 0 {
+		return nil
+	}
+
+	return &provisionedclusterinstances.ClusterVMAccessProfile{
+		AuthorizedIPRanges: pointer.To(input[0].AuthorizedIPRanges),
+	}
+}
+
+func flattenProvisionedClusterClusterVmAccessProfile(input *provisionedclusterinstances.ClusterVMAccessProfile) []ProvisionedClusterInstanceClusterVmAccessProfile {
+	if input == nil || input.AuthorizedIPRanges == nil {
+		return make([]ProvisionedClusterInstanceClusterVmAccessProfile, 0)
+	}
+
+	return []ProvisionedClusterInstanceClusterVmAccessProfile{
+		{
+			AuthorizedIPRanges: pointer.From(input.AuthorizedIPRanges),
+		},
+	}
+}
+
 func expandProvisionedClusterControlPlaneProfile(input []ProvisionedClusterInstanceControlPlaneProfile) *provisionedclusterinstances.ControlPlaneProfile {
 	if len(input) == 0 {
 		return nil
@@ -790,7 +833,7 @@ func flattenProvisionedClusterNetworkProfile(input *provisionedclusterinstances.
 	}
 
 	loadBalancer := make([]ProvisionedClusterInstanceLoadBalancerProfile, 0)
-	if input.LoadBalancerProfile != nil {
+	if input.LoadBalancerProfile != nil && input.LoadBalancerProfile.Count != nil {
 		loadBalancer = append(loadBalancer, ProvisionedClusterInstanceLoadBalancerProfile{
 			Count: pointer.From(input.LoadBalancerProfile.Count),
 		})
