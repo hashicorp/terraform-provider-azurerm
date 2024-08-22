@@ -11,11 +11,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type NetAppBackupVaultDataSource struct{}
+type NetAppBackupPolicyDataSource struct{}
 
-func TestAccNetAppBackupVaultDataSource_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_netapp_backup_vault", "test")
-	d := NetAppBackupVaultDataSource{}
+func TestAccNetAppBackupPolicyDataSource_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_netapp_backup_policy", "test")
+	d := NetAppBackupPolicyDataSource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
@@ -27,14 +27,14 @@ func TestAccNetAppBackupVaultDataSource_basic(t *testing.T) {
 	})
 }
 
-func (d NetAppBackupVaultDataSource) basic(data acceptance.TestData) string {
+func (d NetAppBackupPolicyDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-data "azurerm_netapp_backup_vault" "test" {
+data "azurerm_netapp_backup_policy" "test" {
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_netapp_account.test.name
-  name                = azurerm_netapp_backup_vault.test.name
+  name                = azurerm_netapp_backup_policy.test.name
 }
-`, NetAppBackupVaultResource{}.basic(data))
+`, NetAppBackupPolicyResource{}.basic(data))
 }

@@ -124,3 +124,15 @@ type NetAppBackupVaultModel struct {
 	AccountName       string            `tfschema:"account_name"`
 	Tags              map[string]string `tfschema:"tags"`
 }
+
+type NetAppBackupPolicyModel struct {
+	Name                 string            `tfschema:"name"`
+	ResourceGroupName    string            `tfschema:"resource_group_name"`
+	Location             string            `tfschema:"location"`
+	AccountName          string            `tfschema:"account_name"`
+	Tags                 map[string]string `tfschema:"tags"`
+	DailyBackupsToKeep   int64             `tfschema:"daily_backups_to_keep"`
+	WeeklyBackupsToKeep  int64             `tfschema:"weekly_backups_to_keep"`
+	MonthlyBackupsToKeep int64             `tfschema:"monthly_backups_to_keep"`
+	Enabled              bool              `tfschema:"enabled"`
+}

@@ -372,6 +372,28 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 				},
 			},
 		},
+
+		"netapp": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"delete_backups_on_backup_vault_destroy": {
+						Description: "When enabled, backups will be deleted when the `azurerm_netapp_backup_vault` resource is destroyed",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
+					},
+					"prevent_volume_destruction": {
+						Description: "When enabled, the volume will not be destroyed, safeguarding from severe data loss",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
+					},
+				},
+			},
+		},
 	}
 
 	// this is a temporary hack to enable us to gradually add provider blocks to test configurations
@@ -620,6 +642,19 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			}
 			if v, ok := recoveryServicesRaw["purge_protected_items_from_vault_on_destroy"]; ok {
 				featuresMap.RecoveryService.PurgeProtectedItemsFromVaultOnDestroy = v.(bool)
+			}
+		}
+	}
+
+	if raw, ok := val["netapp"]; ok {
+		items := raw.([]interface{})
+		if len(items) > 0 {
+			netappRaw := items[0].(map[string]interface{})
+			if v, ok := netappRaw["delete_backups_on_backup_vault_destroy"]; ok {
+				featuresMap.NetApp.DeleteBackupsOnBackupVaultDestroy = v.(bool)
+			}
+			if v, ok := netappRaw["prevent_volume_destruction"]; ok {
+				featuresMap.NetApp.PreventVolumeDestruction = v.(bool)
 			}
 		}
 	}

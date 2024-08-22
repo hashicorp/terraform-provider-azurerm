@@ -56,6 +56,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 		NetAppVolumeQuotaRuleDataSource{},
 		NetAppAccountEncryptionDataSource{},
 		NetAppBackupVaultDataSource{},
+		NetAppBackupPolicyDataSource{},
 	}
 }
 
@@ -66,5 +67,6 @@ func (r Registration) Resources() []sdk.Resource {
 		NetAppVolumeQuotaRuleResource{},
 		NetAppAccountEncryptionResource{},
 		NetAppBackupVaultResource{},
+		NetAppBackupPolicyResource{},
 	}
 }

@@ -75,5 +75,9 @@ func Default() UserFeatures {
 			VMBackupStopProtectionAndRetainDataOnDestroy: false,
 			PurgeProtectedItemsFromVaultOnDestroy:        false,
 		},
+		NetApp: NetAppFeatures{
+			DeleteBackupsOnBackupVaultDestroy: false,
+			PreventVolumeDestruction:          true,
+		},
 	}
 }

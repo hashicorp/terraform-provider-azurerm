@@ -17,16 +17,13 @@ import (
 
 func PreCheck(t *testing.T) {
 	variables := []string{
+		"ARM_CLIENT_ID",
+		"ARM_CLIETN_SECRET",
 		"ARM_SUBSCRIPTION_ID",
 		"ARM_TENANT_ID",
 		"ARM_TEST_LOCATION",
 		"ARM_TEST_LOCATION_ALT",
 		"ARM_TEST_LOCATION_ALT2",
-	}
-
-	cliAuthEnabled := os.Getenv("ARM_USE_CLI")
-	if cliAuthEnabled == "" {
-		variables = append(variables, "ARM_CLIENT_ID", "ARM_CLIENT_SECRET")
 	}
 
 	for _, variable := range variables {
