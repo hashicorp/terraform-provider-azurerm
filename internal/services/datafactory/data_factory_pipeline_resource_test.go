@@ -374,8 +374,10 @@ resource "azurerm_data_factory" "test" {
 resource "azurerm_data_factory_pipeline" "test" {
   name            = "acctest%d"
   data_factory_id = azurerm_data_factory.test.id
-  variables = {
-    "bob" = "item1"
+  variables {
+    name          = "bob"
+    type          = "String"
+    default_value = "item1"
   }
   activities_json = <<JSON
 [
@@ -428,8 +430,10 @@ resource "azurerm_data_factory" "test" {
 resource "azurerm_data_factory_pipeline" "test" {
   name            = "acctest%d"
   data_factory_id = azurerm_data_factory.test.id
-  variables = {
-    "bob" = "item1"
+  variables {
+    name          = "bob"
+    type          = "String"
+    default_value = "item1"
   }
   activities_json = <<JSON
 [
@@ -468,8 +472,10 @@ resource "azurerm_data_factory" "test" {
 resource "azurerm_data_factory_pipeline" "test" {
   name            = "acctest%d"
   data_factory_id = azurerm_data_factory.test.id
-  variables = {
-    "bob" = "item1"
+  variables {
+    name          = "bob"
+    type          = "String"
+    default_value = "item1"
   }
   activities_json = <<JSON
 [

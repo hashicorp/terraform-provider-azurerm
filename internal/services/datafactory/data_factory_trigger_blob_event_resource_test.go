@@ -251,12 +251,16 @@ resource "azurerm_data_factory_pipeline" "test" {
   name            = "acctest%d"
   data_factory_id = azurerm_data_factory.test.id
 
-  parameters = {
-    test = "testparameter"
+  parameters {
+    name          = "test"
+    type          = "String"
+    default_value = "testparameter"
   }
 
-  variables = {
-    test = "testvariable"
+  variables {
+    name          = "test"
+    type          = "String"
+    default_value = "testvariable"
   }
 
   activities_json = <<JSON
