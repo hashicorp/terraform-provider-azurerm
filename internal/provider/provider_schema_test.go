@@ -10,7 +10,6 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -562,9 +561,9 @@ func TestResourcesDoNotContainLocalAuthenticationDisabled(t *testing.T) {
 		"azurerm_log_analytics_workspace": {},
 		"azurerm_search_service":          {},
 	}
-	if features.FourPointOhBeta() {
+	/*if features.FourPointOhBeta() {
 		resourcesWhichNeedToBeAddressed = map[string]struct{}{}
-	}
+	}*/
 
 	for _, resourceName := range resourceNames {
 		resource := provider.ResourcesMap[resourceName]

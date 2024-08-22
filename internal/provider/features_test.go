@@ -49,7 +49,7 @@ func TestExpandFeatures(t *testing.T) {
 					RecoverSoftDeletedHSMKeys:        true,
 				},
 				LogAnalyticsWorkspace: features.LogAnalyticsWorkspaceFeatures{
-					PermanentlyDeleteOnDestroy: true,
+					PermanentlyDeleteOnDestroy: false,
 				},
 				ManagedDisk: features.ManagedDiskFeatures{
 					ExpandWithoutDowntime: true,
