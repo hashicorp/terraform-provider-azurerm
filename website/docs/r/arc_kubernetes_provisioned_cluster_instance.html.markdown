@@ -19,7 +19,7 @@ resource "tls_private_key" "rsaKey" {
 }
 
 resource "azurerm_resource_group" "example" {
-  name = "example-akpci"
+  name     = "example-akpci"
   location = "West Europe"
 }
 
@@ -57,21 +57,21 @@ resource "azurerm_arc_kubernetes_cluster" "example" {
 }
 
 resource "azurerm_arc_kubernetes_provisioned_cluster_instance" "example" {
-  cluster_id = azurerm_arc_kubernetes_cluster.example.id
-  custom_location_id  = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.ExtendedLocation/customLocations/cl1"
+  cluster_id         = azurerm_arc_kubernetes_cluster.example.id
+  custom_location_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.ExtendedLocation/customLocations/cl1"
   kubernetes_version = "1.28.5"
 
   agent_pool_profile {
     auto_scaling_enabled = true
-    count = 1
-    max_count = 2
-    min_count = 1
-    max_pods = 20
-    name = "nodepool1"
-    os_sku = "CBLMariner"
-    os_type = "Linux"
-    vm_size = "Standard_A4_v2"
-    node_taints = ["env=prod:NoSchedule"]
+    count                = 1
+    max_count            = 2
+    min_count            = 1
+    max_pods             = 20
+    name                 = "nodepool1"
+    os_sku               = "CBLMariner"
+    os_type              = "Linux"
+    vm_size              = "Standard_A4_v2"
+    node_taints          = ["env=prod:NoSchedule"]
 
     node_labels = {
       foo = "bar"
@@ -90,7 +90,7 @@ resource "azurerm_arc_kubernetes_provisioned_cluster_instance" "example" {
   }
 
   control_plane_profile {
-    count = 3
+    count   = 3
     vm_size = "Standard_A4_v2"
     host_ip = "192.168.1.190"
   }
@@ -105,7 +105,7 @@ resource "azurerm_arc_kubernetes_provisioned_cluster_instance" "example" {
 
   network_profile {
     network_policy = "calico"
-    pod_cidr = "10.244.0.0/16"
+    pod_cidr       = "10.244.0.0/16"
   }
 
   storage_profile {
