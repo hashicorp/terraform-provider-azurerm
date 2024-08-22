@@ -50,50 +50,6 @@ func parseAccountCreationSource(input string) (*AccountCreationSource, error) {
 	return &out, nil
 }
 
-type BillingCycle string
-
-const (
-	BillingCycleMONTHLY BillingCycle = "MONTHLY"
-	BillingCycleWEEKLY  BillingCycle = "WEEKLY"
-	BillingCycleYEARLY  BillingCycle = "YEARLY"
-)
-
-func PossibleValuesForBillingCycle() []string {
-	return []string{
-		string(BillingCycleMONTHLY),
-		string(BillingCycleWEEKLY),
-		string(BillingCycleYEARLY),
-	}
-}
-
-func (s *BillingCycle) UnmarshalJSON(bytes []byte) error {
-	var decoded string
-	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling: %+v", err)
-	}
-	out, err := parseBillingCycle(decoded)
-	if err != nil {
-		return fmt.Errorf("parsing %q: %+v", decoded, err)
-	}
-	*s = *out
-	return nil
-}
-
-func parseBillingCycle(input string) (*BillingCycle, error) {
-	vals := map[string]BillingCycle{
-		"monthly": BillingCycleMONTHLY,
-		"weekly":  BillingCycleWEEKLY,
-		"yearly":  BillingCycleYEARLY,
-	}
-	if v, ok := vals[strings.ToLower(input)]; ok {
-		return &v, nil
-	}
-
-	// otherwise presume it's an undefined value and best-effort it
-	out := BillingCycle(input)
-	return &out, nil
-}
-
 type LiftrResourceCategories string
 
 const (

@@ -10,10 +10,10 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type PlanData struct {
-	BillingCycle  *BillingCycle `json:"billingCycle,omitempty"`
-	EffectiveDate *string       `json:"effectiveDate,omitempty"`
-	PlanDetails   *string       `json:"planDetails,omitempty"`
-	UsageType     *UsageType    `json:"usageType,omitempty"`
+	BillingCycle  *string    `json:"billingCycle,omitempty"`
+	EffectiveDate *string    `json:"effectiveDate,omitempty"`
+	PlanDetails   *string    `json:"planDetails,omitempty"`
+	UsageType     *UsageType `json:"usageType,omitempty"`
 }
 
 func (o *PlanData) GetEffectiveDateAsTime() (*time.Time, error) {
