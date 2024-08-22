@@ -41,10 +41,10 @@ type NewRelicMonitorModel struct {
 }
 
 type PlanDataModel struct {
-	EffectiveDate string                `tfschema:"effective_date"`
-	BillingCycle  monitors.BillingCycle `tfschema:"billing_cycle"`
-	PlanDetails   string                `tfschema:"plan_id"`
-	UsageType     monitors.UsageType    `tfschema:"usage_type"`
+	EffectiveDate string             `tfschema:"effective_date"`
+	BillingCycle  string             `tfschema:"billing_cycle"`
+	PlanDetails   string             `tfschema:"plan_id"`
+	UsageType     monitors.UsageType `tfschema:"usage_type"`
 }
 
 type UserInfoModel struct {
@@ -105,11 +105,11 @@ func (r NewRelicMonitorResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
 						ForceNew: true,
-						Default:  string(monitors.BillingCycleMONTHLY),
+						Default:  "MONTHLY",
 						ValidateFunc: validation.StringInSlice([]string{
-							string(monitors.BillingCycleMONTHLY),
-							string(monitors.BillingCycleWEEKLY),
-							string(monitors.BillingCycleYEARLY),
+							"MONTHLY",
+							"WEEKLY",
+							"YEARLY",
 						}, false),
 					},
 
