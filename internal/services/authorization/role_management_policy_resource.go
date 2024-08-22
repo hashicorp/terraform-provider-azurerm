@@ -16,6 +16,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	billingValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/billing/validate"
 )
 
 type RoleManagementPolicyResource struct{}
