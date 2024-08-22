@@ -924,6 +924,14 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 * The deprecated `metric.retention_policy` block has been removed in favour of the `azurerm_storage_management_policy` resource.
 * The deprecated `log` block has been removed in favour of the `enabled_log` block.
 
+### `azurerm_mssql_managed_database`
+
+* The `long_term_retention_policy.immutable_backups_enabled` property has been removed due to a breaking SDK upgrade.
+
+### `azurerm_mssql_database`
+
+* The `long_term_retention_policy.immutable_backups_enabled` property has been removed due to a breaking SDK upgrade.
+
 ### `azurerm_netapp_pool`
 
 * The `qos_type` property now defaults to `Auto`.
