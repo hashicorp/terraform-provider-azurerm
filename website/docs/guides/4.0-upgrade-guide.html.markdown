@@ -660,6 +660,10 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 * The deprecated `health_probes_enabled` property has been removed in favour of the `enabled` property.
 * The `enabled` property now defaults to `true`.
 
+### `azurerm_cognitive_account`
+
+* The `scale` block is no longer supported by the service and has been removed and replaced with the `sku` block.
+
 ### `azurerm_consumption_budget_management_group`
 
 * The deprecated `filter.not` block has been removed.
