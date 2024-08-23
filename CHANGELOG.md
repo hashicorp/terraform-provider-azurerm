@@ -3,6 +3,7 @@
 BUG FIXES:
 
 `azurerm_kubernetes_cluster_node_pool` - prevent a panic caused by renamed `enable_*` properties [GH-27164]
+azurerm_sentinel_data_connector_microsoft_threat_intelligence - prevent error by removing deprecated property `bing_safety_phishing_url_lookback_date` [GH-27171]
 
 ## 4.0.0 (August 22, 2024)
 
