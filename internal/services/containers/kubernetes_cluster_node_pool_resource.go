@@ -500,19 +500,19 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 
 	count := d.Get("node_count").(int)
 	if features.FourPointOh() {
-		enableAutoScaling = d.Get("auto_scaling_enabled").(bool)
+		enableAutoScaling := d.Get("auto_scaling_enabled").(bool)
 	} else {
 		enableAutoScaling := d.Get("enable_auto_scaling").(bool)
 	}
 
 	if features.FourPointOh() {
-		hostEncryption = d.Get("host_encryption_enabled").(bool)
+		hostEncryption := d.Get("host_encryption_enabled").(bool)
 	} else {
 		hostEncryption := d.Get("enable_host_encryption").(bool)
 	}
 
 	if features.FourPointOh() {
-		nodeIp = d.Get("node_public_ip_enabled").(bool)
+		nodeIp := d.Get("node_public_ip_enabled").(bool)
 	} else {
 		nodeIp := d.Get("enable_node_public_ip").(bool)
 	}
