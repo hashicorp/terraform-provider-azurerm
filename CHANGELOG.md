@@ -1,3 +1,9 @@
+## 4.0.1 (Unreleased)
+
+BUG FIXES:
+
+`azurerm_kubernetes_cluster_node_pool` - prevent a panic caused by renamed `enable_*` properties [GH-27164]
+
 ## 4.0.0 (August 22, 2024)
 
 NOTES:
