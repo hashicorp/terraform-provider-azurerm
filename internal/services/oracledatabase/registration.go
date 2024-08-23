@@ -14,7 +14,6 @@ var (
 
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
-		ExadataInfraDataSource{},
 		CloudVmClusterDataSource{},
 		DBServersDataSource{},
 	}
@@ -22,7 +21,6 @@ func (r Registration) DataSources() []sdk.DataSource {
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		ExadataInfraResource{},
 		CloudVmClusterResource{},
 	}
 }
