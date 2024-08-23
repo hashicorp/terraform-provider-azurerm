@@ -265,7 +265,7 @@ func (r CognitiveDeploymentResource) Update() sdk.ResourceFunc {
 
 			properties := resp.Model
 
-			if metadata.ResourceData.HasChange("scale.0.capacity") {
+			if metadata.ResourceData.HasChange("sku.0.capacity") {
 				properties.Sku.Capacity = pointer.To(model.Sku[0].Capacity)
 			}
 
