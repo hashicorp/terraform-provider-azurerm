@@ -703,6 +703,7 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 * The deprecated `enable_free_tier` property has been removed in favour of the `free_tier_enabled` property.
 * The deprecated `enable_automatic_failover` property has been removed in favour of the `automatic_failover_enabled` property.
 * The `minimal_tls_version` property now defaults to `Tls12`.
+* The `ip_range_filter` property is now a set that will only accept valid CIDR values.
 
 ### `azurerm_cosmosdb_sql_container`
 
