@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/autonomousdatabases"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -231,7 +232,13 @@ func (AdbsRegularResource) Read() sdk.ResourceFunc {
 			switch adbsPropModel := prop.(type) {
 			case autonomousdatabases.AutonomousDatabaseProperties:
 				var output AdbsRegularResourceModel
+				// Azure
+				output.Name = pointer.ToString(result.Model.Name)
+				output.Location = result.Model.Location
+				output.Tags = utils.FlattenPtrMapStringString(result.Model.Tags)
+				output.ResourceGroupName = id.ResourceGroupName
 				output.DisplayName = pointer.From(adbsPropModel.DisplayName)
+				output.AdminPassword = pointer.From(adbsPropModel.AdminPassword)
 				output.ComputeModel = string(pointer.From(adbsPropModel.ComputeModel))
 				output.ComputeCount = pointer.From(adbsPropModel.ComputeCount)
 				output.LicenseModel = string(pointer.From(adbsPropModel.LicenseModel))
@@ -242,6 +249,7 @@ func (AdbsRegularResource) Read() sdk.ResourceFunc {
 				output.CharacterSet = pointer.From(adbsPropModel.CharacterSet)
 				output.NcharacterSet = pointer.From(adbsPropModel.NcharacterSet)
 				output.VnetId = pointer.From(adbsPropModel.VnetId)
+				output.SubnetId = pointer.From(adbsPropModel.SubnetId)
 
 				return metadata.Encode(&output)
 			default:
