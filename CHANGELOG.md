@@ -1,13 +1,13 @@
-## 4.0.1 (Unreleased)
+## 4.0.1 (August 23, 2024)
 
 BUG FIXES:
 
 
-* provider: fix a validation bug that prevents `terraform validate` from working when `subscription_id` is not specified [GH-27178]
-* `azurerm_cognitive_deployment` - fixed replacement of `scale` block with `sku` [GH-27173]
-* `azurerm_kubernetes_cluster` - prevent a panic [GH-27183]
-* `azurerm_kubernetes_cluster_node_pool` - prevent a panic caused by renamed `enable_*` properties [GH-27164]
-* `azurerm_sentinel_data_connector_microsoft_threat_intelligence` - prevent error by removing deprecated property `bing_safety_phishing_url_lookback_date` [GH-27171]
+* provider: fix a validation bug that prevents `terraform validate` from working when `subscription_id` is not specified ([#27178](https://github.com/hashicorp/terraform-provider-azurerm/issues/27178))
+* `azurerm_cognitive_deployment` - fixed replacement of `scale` block with `sku` ([#27173](https://github.com/hashicorp/terraform-provider-azurerm/issues/27173))
+* `azurerm_kubernetes_cluster` - prevent a panic ([#27183](https://github.com/hashicorp/terraform-provider-azurerm/issues/27183))
+* `azurerm_kubernetes_cluster_node_pool` - prevent a panic caused by renamed `enable_*` properties ([#27164](https://github.com/hashicorp/terraform-provider-azurerm/issues/27164))
+* `azurerm_sentinel_data_connector_microsoft_threat_intelligence` - prevent error by removing deprecated property `bing_safety_phishing_url_lookback_date` ([#27171](https://github.com/hashicorp/terraform-provider-azurerm/issues/27171))
 
 ## 4.0.0 (August 22, 2024)
 
