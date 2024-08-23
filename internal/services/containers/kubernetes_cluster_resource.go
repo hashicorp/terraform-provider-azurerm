@@ -3350,12 +3350,11 @@ func expandKubernetesClusterAPIAccessProfile(d *pluginsdk.ResourceData) *managed
 	}
 
 	apiServerAccessProfileRaw := d.Get("api_server_access_profile").([]interface{})
-	if len(apiServerAccessProfileRaw) == 0 {
+	if len(apiServerAccessProfileRaw) == 0 || apiServerAccessProfileRaw[0] == nil {
 		return apiAccessProfile
 	}
 
 	config := apiServerAccessProfileRaw[0].(map[string]interface{})
-
 	if v := config["authorized_ip_ranges"]; v != nil {
 		apiServerAuthorizedIPRangesRaw := v.(*pluginsdk.Set).List()
 		if apiServerAuthorizedIPRanges := utils.ExpandStringSlice(apiServerAuthorizedIPRangesRaw); len(*apiServerAuthorizedIPRanges) > 0 {
