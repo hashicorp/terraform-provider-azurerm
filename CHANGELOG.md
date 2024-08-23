@@ -2,6 +2,8 @@
 
 BUG FIXES:
 
+
+* provider: fix a validation bug that prevents `terraform validate` from working when `subscription_id` is not specified [GH-27178]
 * `azurerm_cognitive_deployment` - fixed replacement of `scale` block with `sku` [GH-27173]
 * `azurerm_kubernetes_cluster_node_pool` - prevent a panic caused by renamed `enable_*` properties [GH-27164]
 * `azurerm_sentinel_data_connector_microsoft_threat_intelligence` - prevent error by removing deprecated property `bing_safety_phishing_url_lookback_date` [GH-27171]
