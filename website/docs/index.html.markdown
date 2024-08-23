@@ -103,13 +103,15 @@ The following arguments are supported:
 
 * `features` - (Required) A `features` block as defined below which can be used to customize the behaviour of certain Azure Provider resources.
 
+* `subscription_id` - (Required) The Subscription ID which should be used. This can also be sourced from the `ARM_SUBSCRIPTION_ID` Environment Variable.
+
+-> The `subscription_id` property is required when performing a plan or apply operation, but is not required to run `terraform validate`.
+
 * `client_id` - (Optional) The Client ID which should be used. This can also be sourced from the `ARM_CLIENT_ID` Environment Variable.
 
 * `client_id_file_path` (Optional) The path to a file containing the Client ID which should be used. This can also be sourced from the `ARM_CLIENT_ID_FILE_PATH` Environment Variable.
 
 * `environment` - (Optional) The Cloud Environment which should be used. Possible values are `public`, `usgovernment`, `german`, and `china`. Defaults to `public`. This can also be sourced from the `ARM_ENVIRONMENT` Environment Variable. Not used when `metadata_host` is specified.
-
-* `subscription_id` - (Optional) The Subscription ID which should be used. This can also be sourced from the `ARM_SUBSCRIPTION_ID` Environment Variable.
 
 * `tenant_id` - (Optional) The Tenant ID which should be used. This can also be sourced from the `ARM_TENANT_ID` Environment Variable.
 
@@ -203,10 +205,6 @@ For some advanced scenarios, such as where more granular permissions are necessa
 
 ~> **Note:** The Files Storage API does not support authenticating via AzureAD and will continue to use a SharedKey when AAD authentication is enabled.
 
-* `use_msal` - (Optional) When `true`, and when using service principal authentication, the provider will obtain [v2 authentication tokens](https://docs.microsoft.com/azure/active-directory/develop/access-tokens#token-formats-and-ownership) from the Microsoft Identity Platform. Has no effect when authenticating via Managed Identity or the Azure CLI. Can also be set via the `ARM_USE_MSAL` or `ARM_USE_MSGRAPH` environment variables.
-
--> **Note:** This will behaviour will be defaulted on in version 3.0 of the AzureRM (with no opt-out) due to [the deprecation of Azure Active Directory Graph](https://docs.microsoft.com/azure/active-directory/develop/msal-migration).
-
 It's also possible to use multiple Provider blocks within a single Terraform configuration, for example, to work with resources across multiple Subscriptions - more information can be found [in the documentation for Providers](https://www.terraform.io/docs/configuration/providers.html#multiple-provider-instances).
 
 ## Features
@@ -228,4 +226,4 @@ To view the latest specific Azure Resource Providers included in each set, pleas
 
 In addition to, or in place of, the sets described above, you can also configure the AzureRM Provider to register specific Azure Resource Providers, by setting the `resource_providers_to_register` provider property. This should be a list of strings, containing the exact names of Azure Resource Providers to register. For a list of all resource providers, please refer to [official Azure documentation](https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-providers-and-types).
 
-->**Note on Permissions** The User, Service Principal or Managed Identity running Terraform should have permissions to register [Azure Resource Providers](https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-providers-and-types). If the principal running Terraform has insufficient permissions to register Resource Providers then we recommend setting the property [`resource_provider_registrations`](#resource_provider_registrations) to `none` in the provider block to prevent auto-registration.
+-> **Note on Permissions** The User, Service Principal or Managed Identity running Terraform should have permissions to register [Azure Resource Providers](https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-providers-and-types). If the principal running Terraform has insufficient permissions to register Resource Providers then we recommend setting the property [`resource_provider_registrations`](#resource_provider_registrations) to `none` in the provider block to prevent auto-registration.
