@@ -26,8 +26,8 @@ func TestAccCognitiveDeploymentSequential(t *testing.T) {
 		"deployment": {
 			"basic":          TestAccCognitiveDeployment_basic,
 			"requiresImport": testAccCognitiveDeployment_requiresImport,
-			//"complete":       testAccCognitiveDeployment_complete,
-			"update": TestAccCognitiveDeployment_update,
+			"complete":       testAccCognitiveDeployment_complete,
+			"update":         TestAccCognitiveDeployment_update,
 		},
 	})
 }
@@ -62,7 +62,7 @@ func testAccCognitiveDeployment_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccCognitiveDeployment_complete(t *testing.T) {
+func testAccCognitiveDeployment_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_deployment", "test")
 	r := CognitiveDeploymentTestResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
