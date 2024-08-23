@@ -263,6 +263,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 			"snapshot_directory_visible": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
+				Default:  true,
 				Computed: true,
 			},
 
@@ -666,6 +667,12 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	if d.HasChange("zones") {
 		return fmt.Errorf("zone changes are not supported after volume is already created, %s", id)
+	}
+
+	if d.HasChange("snapshot_directory_visible") {
+		shouldUpdate = true
+		snapshotDirectoryVisible := d.Get("snapshot_directory_visible").(bool)
+		update.Properties.SnapshotDirectoryVisible = pointer.To(snapshotDirectoryVisible)
 	}
 
 	if d.HasChange("storage_quota_in_gb") {

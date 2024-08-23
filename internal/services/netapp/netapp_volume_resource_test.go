@@ -720,7 +720,7 @@ resource "azurerm_netapp_volume" "test_primary" {
   subnet_id                  = azurerm_subnet.test.id
   protocols                  = ["NFSv3"]
   storage_quota_in_gb        = 100
-  snapshot_directory_visible = false
+  snapshot_directory_visible = true
   throughput_in_mibps        = 1.562
 
   export_policy_rule {
@@ -748,7 +748,7 @@ resource "azurerm_netapp_volume" "test_secondary" {
   subnet_id                  = azurerm_subnet.test_secondary.id
   protocols                  = ["NFSv3"]
   storage_quota_in_gb        = 100
-  snapshot_directory_visible = false
+  snapshot_directory_visible = true
   throughput_in_mibps        = 1.562
 
   export_policy_rule {
@@ -1377,10 +1377,12 @@ resource "azurerm_netapp_pool" "test" {
 `, r.templateProviderFeatureFlags(), data.RandomInteger, "westus2", data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (NetAppVolumeResource) networkTemplate(data acceptance.TestData) string {
+func (r NetAppVolumeResource) networkTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+%[1]s
+
 resource "azurerm_virtual_network" "test" {
-  name                = "acctest-VirtualNetwork-%[1]d"
+  name                = "acctest-VirtualNetwork-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   address_space       = ["10.6.0.0/16"]
@@ -1392,7 +1394,7 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "test-delegated" {
-  name                 = "acctest-Delegated-Subnet-%[1]d"
+  name                 = "acctest-Delegated-Subnet-%[2]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.6.1.0/24"]
@@ -1408,12 +1410,12 @@ resource "azurerm_subnet" "test-delegated" {
 }
 
 resource "azurerm_subnet" "test-non-delegated" {
-  name                 = "acctest-Non-Delegated-Subnet-%[1]d"
+  name                 = "acctest-Non-Delegated-Subnet-%[2]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.6.0.0/24"]
 }
-`, data.RandomInteger)
+`, r.templateProviderFeatureFlags(), data.RandomInteger)
 }
 
 func (NetAppVolumeResource) templateProviderFeatureFlags() string {

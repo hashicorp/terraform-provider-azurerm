@@ -128,7 +128,15 @@ resource "azurerm_netapp_snapshot" "test" {
 func (NetAppSnapshotResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+    netapp {
+      prevent_volume_destruction = false
+      delete_backups_on_backup_vault_destroy = true
+	  } 
+  }
 }
 
 resource "azurerm_resource_group" "test" {
