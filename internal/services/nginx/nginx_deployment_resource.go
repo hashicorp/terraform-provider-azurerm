@@ -21,7 +21,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-const defaultCapacity = 20
+const defaultCapacity = 20 // TODO: remove this in v4.0
 
 type FrontendPrivate struct {
 	IpAddress        string `tfschema:"ip_address"`
@@ -126,7 +126,6 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:          pluginsdk.TypeInt,
 			Optional:      true,
 			ConflictsWith: []string{"auto_scale_profile"},
-			Default:       defaultCapacity,
 			ValidateFunc:  validation.IntPositive,
 		},
 
@@ -267,6 +266,8 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 	}
 
 	if !features.FourPointOhBeta() {
+		resource["capacity"].Default = defaultCapacity
+
 		resource["configuration"] = &pluginsdk.Schema{
 			Deprecated: "The `configuration` block has been superseded by the `azurerm_nginx_configuration` resource and will be removed in v4.0 of the AzureRM Provider.",
 			Type:       pluginsdk.TypeList,
@@ -439,13 +440,29 @@ func (m DeploymentResource) Create() sdk.ResourceFunc {
 			}
 
 			isBasicSKU := strings.HasPrefix(model.Sku, "basic")
-			if isBasicSKU && (model.Capacity != defaultCapacity || len(model.AutoScaleProfile) > 0) {
-				return fmt.Errorf("basic SKUs are incompatible with `capacity` or `auto_scale_profiles`")
-			}
+			if !features.FourPointOhBeta() {
+				if isBasicSKU && (model.Capacity != defaultCapacity || len(model.AutoScaleProfile) > 0) {
+					return fmt.Errorf("basic SKUs are incompatible with `capacity` or `auto_scale_profiles`")
+				}
 
-			if model.Capacity > 0 && !isBasicSKU {
-				prop.ScalingProperties = &nginxdeployment.NginxDeploymentScalingProperties{
-					Capacity: pointer.FromInt64(model.Capacity),
+				if model.Capacity > 0 && !isBasicSKU {
+					prop.ScalingProperties = &nginxdeployment.NginxDeploymentScalingProperties{
+						Capacity: pointer.FromInt64(model.Capacity),
+					}
+				}
+			} else {
+				hasScaling := (model.Capacity > 0 || len(model.AutoScaleProfile) > 0)
+				if isBasicSKU && hasScaling {
+					return fmt.Errorf("basic SKUs are incompatible with `capacity` or `auto_scale_profiles`")
+				}
+				if !isBasicSKU && !hasScaling {
+					return fmt.Errorf("scaling is required for `sku` '%s', please provide `capacity` or `auto_scale_profiles`", model.Sku)
+				}
+
+				if model.Capacity > 0 {
+					prop.ScalingProperties = &nginxdeployment.NginxDeploymentScalingProperties{
+						Capacity: pointer.FromInt64(model.Capacity),
+					}
 				}
 			}
 
@@ -743,6 +760,10 @@ func (m DeploymentResource) Update() sdk.ResourceFunc {
 				req.Properties.AutoUpgradeProfile = &nginxdeployment.AutoUpgradeProfile{
 					UpgradeChannel: model.UpgradeChannel,
 				}
+			}
+
+			if strings.HasPrefix(model.Sku, "basic") && req.Properties.ScalingProperties != nil {
+				return fmt.Errorf("basic SKUs are incompatible with `capacity` or `auto_scale_profiles`")
 			}
 
 			if err := client.DeploymentsUpdateThenPoll(ctx, *id, req); err != nil {

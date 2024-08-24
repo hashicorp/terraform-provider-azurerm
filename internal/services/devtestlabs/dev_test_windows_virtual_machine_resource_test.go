@@ -215,6 +215,17 @@ resource "azurerm_dev_test_virtual_network" "test" {
   subnet {
     use_public_ip_address           = "Allow"
     use_in_virtual_machine_creation = "Allow"
+
+    shared_public_ip_address {
+      allowed_ports {
+        backend_port       = 22
+        transport_protocol = "Tcp"
+      }
+      allowed_ports {
+        backend_port       = 3389
+        transport_protocol = "Tcp"
+      }
+    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)

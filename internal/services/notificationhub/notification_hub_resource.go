@@ -134,6 +134,33 @@ func resourceNotificationHub() *pluginsdk.Resource {
 				},
 			},
 
+			"browser_credential": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				ForceNew: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"subject": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"vapid_private_key": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+							Sensitive:    true,
+						},
+						"vapid_public_key": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+			},
+
 			"gcm_credential": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -177,8 +204,9 @@ func resourceNotificationHubCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	parameters := hubs.NotificationHubResource{
 		Location: location.Normalize(d.Get("location").(string)),
 		Properties: &hubs.NotificationHubProperties{
-			ApnsCredential: expandNotificationHubsAPNSCredentials(d.Get("apns_credential").([]interface{})),
-			GcmCredential:  expandNotificationHubsGCMCredentials(d.Get("gcm_credential").([]interface{})),
+			ApnsCredential:    expandNotificationHubsAPNSCredentials(d.Get("apns_credential").([]interface{})),
+			BrowserCredential: expandNotificationHubsBrowserCredentials(d.Get("browser_credential").([]interface{})),
+			GcmCredential:     expandNotificationHubsGCMCredentials(d.Get("gcm_credential").([]interface{})),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -265,6 +293,10 @@ func resourceNotificationHubRead(d *pluginsdk.ResourceData, meta interface{}) er
 			if setErr := d.Set("apns_credential", apns); setErr != nil {
 				return fmt.Errorf("setting `apns_credential`: %+v", setErr)
 			}
+			browser := flattenNotificationHubsBrowserCredentials(props.BrowserCredential)
+			if setErr := d.Set("browser_credential", browser); setErr != nil {
+				return fmt.Errorf("setting `browser_credential`: %+v", setErr)
+			}
 			gcm := flattenNotificationHubsGCMCredentials(props.GcmCredential)
 			if setErr := d.Set("gcm_credential", gcm); setErr != nil {
 				return fmt.Errorf("setting `gcm_credential`: %+v", setErr)
@@ -331,6 +363,22 @@ func expandNotificationHubsAPNSCredentials(inputs []interface{}) *hubs.ApnsCrede
 	return &credentials
 }
 
+func expandNotificationHubsBrowserCredentials(inputs []interface{}) *hubs.BrowserCredential {
+	if len(inputs) == 0 {
+		return nil
+	}
+
+	input := inputs[0].(map[string]interface{})
+	credentials := hubs.BrowserCredential{
+		Properties: hubs.BrowserCredentialProperties{
+			Subject:         input["subject"].(string),
+			VapidPrivateKey: input["vapid_private_key"].(string),
+			VapidPublicKey:  input["vapid_public_key"].(string),
+		},
+	}
+	return &credentials
+}
+
 func flattenNotificationHubsAPNSCredentials(input *hubs.ApnsCredential) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
@@ -360,6 +408,20 @@ func flattenNotificationHubsAPNSCredentials(input *hubs.ApnsCredential) []interf
 	if token := input.Properties.Token; token != nil {
 		output["token"] = *token
 	}
+
+	return []interface{}{output}
+}
+
+func flattenNotificationHubsBrowserCredentials(input *hubs.BrowserCredential) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	output := make(map[string]interface{})
+
+	output["subject"] = input.Properties.Subject
+	output["vapid_private_key"] = input.Properties.VapidPrivateKey
+	output["vapid_public_key"] = input.Properties.VapidPublicKey
 
 	return []interface{}{output}
 }

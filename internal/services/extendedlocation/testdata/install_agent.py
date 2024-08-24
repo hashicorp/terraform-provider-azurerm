@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 # This python script is used to install a Helm client on the cluster.
 # This should be identical to the script used in the Azure Arc onboarding flow, plus setting custom location enabled.
 

@@ -52,13 +52,12 @@ CONTENT
 resource "azurerm_automation_software_update_configuration" "example" {
   name                  = "example"
   automation_account_id = azurerm_automation_account.example.id
-  operating_system      = "Linux"
 
   linux {
-    classification_included = "Security"
-    excluded_packages       = ["apt"]
-    included_packages       = ["vim"]
-    reboot                  = "IfRequired"
+    classifications_included = "Security"
+    excluded_packages        = ["apt"]
+    included_packages        = ["vim"]
+    reboot                   = "IfRequired"
   }
 
   pre_task {
@@ -222,7 +221,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `error_code` - The Error code when failed.
 
-* `error_meesage` - The Error message indicating why the operation failed.
+* `error_message` - The Error message indicating why the operation failed.
 
 ## Timeouts
 
