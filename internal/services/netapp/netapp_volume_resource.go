@@ -940,62 +940,56 @@ func resourceNetAppVolumeDelete(d *pluginsdk.ResourceData, meta interface{}) err
 			dataProtectionBackup := netApp.Model.Properties.DataProtection
 
 			if dataProtectionBackup.Backup != nil {
-				dataProtectionBackupPolicyRaw := d.Get("data_protection_backup_policy").([]interface{})
-				dataProtectionBackupPolicy := expandNetAppVolumeDataProtectionBackupPolicyPatch(dataProtectionBackupPolicyRaw)
+				// Checking if initial backup is in progress
+				volumeIdFromBackupClient := backups.NewVolumeID(id.SubscriptionId, id.ResourceGroupName, id.NetAppAccountName, id.CapacityPoolName, id.VolumeName)
+				backupClient := meta.(*clients.Client).NetApp.BackupClient
+				if err = waitForBackupRelationshipStateForDeletion(ctx, backupClient, volumeIdFromBackupClient); err != nil {
+					return fmt.Errorf("waiting for of %s: %+v", *id, err)
+				}
 
-				if dataProtectionBackupPolicy.Backup != nil {
-
-					// Checking if initial backup is in progress
-					volumeIdFromBackupClient := backups.NewVolumeID(id.SubscriptionId, id.ResourceGroupName, id.NetAppAccountName, id.CapacityPoolName, id.VolumeName)
-					backupClient := meta.(*clients.Client).NetApp.BackupClient
-					if err = waitForBackupRelationshipStateForDeletion(ctx, backupClient, volumeIdFromBackupClient); err != nil {
-						return fmt.Errorf("waiting for of %s: %+v", *id, err)
-					}
-
-					// Disabling backup policy first, PolicyEnforced and BackupPolicyId can't be sent together
-					disableBackupPolicy := volumes.VolumePatch{
-						Properties: &volumes.VolumePatchProperties{
-							DataProtection: &volumes.VolumePatchPropertiesDataProtection{
-								Backup: &volumes.VolumeBackupProperties{
-									PolicyEnforced: utils.Bool(false),
-								},
+				// Disabling backup policy first, PolicyEnforced and BackupPolicyId can't be sent together
+				disableBackupPolicy := volumes.VolumePatch{
+					Properties: &volumes.VolumePatchProperties{
+						DataProtection: &volumes.VolumePatchPropertiesDataProtection{
+							Backup: &volumes.VolumeBackupProperties{
+								PolicyEnforced: utils.Bool(false),
 							},
 						},
-					}
+					},
+				}
 
-					if err = client.UpdateThenPoll(ctx, *id, disableBackupPolicy); err != nil {
-						return fmt.Errorf("updating %s: %+v", id, err)
-					}
+				if err = client.UpdateThenPoll(ctx, *id, disableBackupPolicy); err != nil {
+					return fmt.Errorf("updating %s: %+v", id, err)
+				}
 
-					// Wait for volume to complete update
-					if err := waitForVolumeCreateOrUpdate(ctx, client, *id); err != nil {
-						return err
-					}
+				// Wait for volume to complete update
+				if err := waitForVolumeCreateOrUpdate(ctx, client, *id); err != nil {
+					return err
+				}
 
-					// Checking again if backup is in progress
-					if err = waitForBackupRelationshipStateForDeletion(ctx, backupClient, volumeIdFromBackupClient); err != nil {
-						return fmt.Errorf("waiting for of %s: %+v", *id, err)
-					}
+				// Checking again if backup is in progress
+				if err = waitForBackupRelationshipStateForDeletion(ctx, backupClient, volumeIdFromBackupClient); err != nil {
+					return fmt.Errorf("waiting for of %s: %+v", *id, err)
+				}
 
-					// Removing BackupPolicyId
-					backupPolicyIdRemoval := volumes.VolumePatch{
-						Properties: &volumes.VolumePatchProperties{
-							DataProtection: &volumes.VolumePatchPropertiesDataProtection{
-								Backup: &volumes.VolumeBackupProperties{
-									BackupPolicyId: pointer.To(""),
-								},
+				// Removing BackupPolicyId
+				backupPolicyIdRemoval := volumes.VolumePatch{
+					Properties: &volumes.VolumePatchProperties{
+						DataProtection: &volumes.VolumePatchPropertiesDataProtection{
+							Backup: &volumes.VolumeBackupProperties{
+								BackupPolicyId: pointer.To(""),
 							},
 						},
-					}
+					},
+				}
 
-					if err = client.UpdateThenPoll(ctx, *id, backupPolicyIdRemoval); err != nil {
-						return fmt.Errorf("updating %s: %+v", id, err)
-					}
+				if err = client.UpdateThenPoll(ctx, *id, backupPolicyIdRemoval); err != nil {
+					return fmt.Errorf("updating %s: %+v", id, err)
+				}
 
-					// Wait for volume to complete update
-					if err := waitForVolumeCreateOrUpdate(ctx, client, *id); err != nil {
-						return err
-					}
+				// Wait for volume to complete update
+				if err := waitForVolumeCreateOrUpdate(ctx, client, *id); err != nil {
+					return err
 				}
 			}
 		}
