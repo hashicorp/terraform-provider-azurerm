@@ -111,6 +111,7 @@ func TestAccWebApplicationFirewallPolicy_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("policy_settings.0.enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("policy_settings.0.mode").HasValue("Prevention"),
 				check.That(data.ResourceName).Key("policy_settings.0.request_body_check").HasValue("true"),
+				check.That(data.ResourceName).Key("policy_settings.0.request_body_enforcement").HasValue("false"),
 				check.That(data.ResourceName).Key("policy_settings.0.file_upload_limit_in_mb").HasValue("100"),
 				check.That(data.ResourceName).Key("policy_settings.0.max_request_body_size_in_kb").HasValue("128"),
 			),
@@ -189,6 +190,7 @@ func TestAccWebApplicationFirewallPolicy_update(t *testing.T) {
 				check.That(data.ResourceName).Key("policy_settings.0.enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("policy_settings.0.mode").HasValue("Prevention"),
 				check.That(data.ResourceName).Key("policy_settings.0.request_body_check").HasValue("true"),
+				check.That(data.ResourceName).Key("policy_settings.0.request_body_enforcement").HasValue("false"),
 				check.That(data.ResourceName).Key("policy_settings.0.file_upload_limit_in_mb").HasValue("100"),
 				check.That(data.ResourceName).Key("policy_settings.0.max_request_body_size_in_kb").HasValue("128"),
 			),
@@ -572,8 +574,9 @@ resource "azurerm_web_application_firewall_policy" "test" {
   }
 
   policy_settings {
-    enabled = true
-    mode    = "Prevention"
+    enabled                  = true
+    mode                     = "Prevention"
+    request_body_enforcement = false
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -888,13 +891,22 @@ resource "azurerm_web_application_firewall_policy" "test" {
       version = "3.2"
 
       rule_group_override {
-        disabled_rules = [
-          "800112",
-          "800111",
-          "800110",
-          "800100",
-          "800113",
-        ]
+        rule {
+          id = "800112"
+        }
+        rule {
+          id = "800111"
+        }
+        rule {
+          id = "800110"
+        }
+        rule {
+          id = "800100"
+        }
+        rule {
+          id = "800113"
+        }
+
         rule_group_name = "Known-CVEs"
       }
     }
@@ -994,10 +1006,12 @@ resource "azurerm_web_application_firewall_policy" "test" {
 
       rule_group_override {
         rule_group_name = "REQUEST-920-PROTOCOL-ENFORCEMENT"
-        disabled_rules = [
-          "920300",
-          "920440",
-        ]
+        rule {
+          id = "920300"
+        }
+        rule {
+          id = "920440"
+        }
       }
     }
   }
@@ -1053,10 +1067,12 @@ resource "azurerm_web_application_firewall_policy" "test" {
 
       rule_group_override {
         rule_group_name = "REQUEST-920-PROTOCOL-ENFORCEMENT"
-        disabled_rules = [
-          "920300",
-          "920440",
-        ]
+        rule {
+          id = "920300"
+        }
+        rule {
+          id = "920440"
+        }
       }
     }
   }
@@ -1168,10 +1184,12 @@ resource "azurerm_web_application_firewall_policy" "test" {
 
       rule_group_override {
         rule_group_name = "REQUEST-920-PROTOCOL-ENFORCEMENT"
-        disabled_rules = [
-          "920300",
-          "920440",
-        ]
+        rule {
+          id = "920300"
+        }
+        rule {
+          id = "920440"
+        }
       }
     }
   }
@@ -1215,42 +1233,72 @@ resource "azurerm_web_application_firewall_policy" "test" {
 
       rule_group_override {
         rule_group_name = "REQUEST-931-APPLICATION-ATTACK-RFI"
-        disabled_rules  = ["931130"]
+        rule {
+          id = "931130"
+        }
       }
 
       rule_group_override {
         rule_group_name = "REQUEST-920-PROTOCOL-ENFORCEMENT"
-        disabled_rules = [
-          "920320", # Missing User Agent Header
-          "920230"  # Multiple URL Encoding Detected
-        ]
+        rule {
+          id = "920320"
+        }
+        rule {
+          id = "920230"
+        }
       }
 
       rule_group_override {
         rule_group_name = "REQUEST-942-APPLICATION-ATTACK-SQLI"
-        disabled_rules = [
-          "942450",
-          "942430",
-          "942440",
-          "942370",
-          "942340",
-          "942260",
-          "942200",
-          "942330",
-          "942120",
-          "942110",
-          "942150",
-          "942410",
-          "942130",
-          "942100"
-        ]
+        rule {
+          id = "942450"
+        }
+        rule {
+          id = "942430"
+        }
+        rule {
+          id = "942440"
+        }
+        rule {
+          id = "942370"
+        }
+        rule {
+          id = "942340"
+        }
+        rule {
+          id = "942260"
+        }
+        rule {
+          id = "942200"
+        }
+        rule {
+          id = "942330"
+        }
+        rule {
+          id = "942120"
+        }
+        rule {
+          id = "942110"
+        }
+        rule {
+          id = "942150"
+        }
+        rule {
+          id = "942410"
+        }
+        rule {
+          id = "942130"
+        }
+        rule {
+          id = "942100"
+        }
       }
 
       rule_group_override {
         rule_group_name = "REQUEST-941-APPLICATION-ATTACK-XSS"
-        disabled_rules = [
-          "941340"
-        ]
+        rule {
+          id = "941340"
+        }
       }
     }
   }
@@ -1289,48 +1337,80 @@ resource "azurerm_web_application_firewall_policy" "test" {
 
       rule_group_override {
         rule_group_name = "REQUEST-931-APPLICATION-ATTACK-RFI"
-        disabled_rules  = ["931130"]
+        rule {
+          id = "931130"
+        }
       }
 
       rule_group_override {
         rule_group_name = "REQUEST-920-PROTOCOL-ENFORCEMENT"
-        disabled_rules = [
-          "920320", # Missing User Agent Header
-          "920230"  # Multiple URL Encoding Detected
-        ]
+        rule {
+          id = "920320"
+        }
+        rule {
+          id = "920230"
+        }
       }
 
       #NEW BLOCK
       rule_group_override {
         rule_group_name = "REQUEST-932-APPLICATION-ATTACK-RCE"
-        disabled_rules  = ["932100"]
+        rule {
+          id = "932100"
+        }
       }
 
       rule_group_override {
         rule_group_name = "REQUEST-942-APPLICATION-ATTACK-SQLI"
-        disabled_rules = [
-          "942450",
-          "942430",
-          "942440",
-          "942370",
-          "942340",
-          "942260",
-          "942200",
-          "942330",
-          "942120",
-          "942110",
-          "942150",
-          "942410",
-          "942130",
-          "942100"
-        ]
+        rule {
+          id = "942450"
+        }
+        rule {
+          id = "942430"
+        }
+        rule {
+          id = "942440"
+        }
+        rule {
+          id = "942370"
+        }
+        rule {
+          id = "942340"
+        }
+        rule {
+          id = "942260"
+        }
+        rule {
+          id = "942200"
+        }
+        rule {
+          id = "942330"
+        }
+        rule {
+          id = "942120"
+        }
+        rule {
+          id = "942110"
+        }
+        rule {
+          id = "942150"
+        }
+        rule {
+          id = "942410"
+        }
+        rule {
+          id = "942130"
+        }
+        rule {
+          id = "942100"
+        }
       }
 
       rule_group_override {
         rule_group_name = "REQUEST-941-APPLICATION-ATTACK-XSS"
-        disabled_rules = [
-          "941340"
-        ]
+        rule {
+          id = "941340"
+        }
       }
     }
   }

@@ -57,6 +57,18 @@ The following attributes are exported:
 
 * `release_note_uri` - The URI containing the Release Notes for this Shared Image.
 
+* `trusted_launch_supported` - Specifies if supports creation of both Trusted Launch virtual machines and Gen2 virtual machines with standard security created from the Shared Image.
+
+* `trusted_launch_enabled` - Specifies if Trusted Launch has to be enabled for the Virtual Machine created from the Shared Image.
+
+* `confidential_vm_supported` - Specifies if supports creation of both Confidential virtual machines and Gen2 virtual machines with standard security from a compatible Gen2 OS disk VHD or Gen2 Managed image.
+
+* `confidential_vm_enabled` - Specifies if Confidential Virtual Machines enabled. It will enable all the features of trusted, with higher confidentiality features for isolate machines or encrypted data. Available for Gen2 machines.
+
+* `accelerated_network_support_enabled` - Specifies if the Shared Image supports Accelerated Network.
+
+* `hibernation_enabled` - Specifies if the Shared Image supports hibernation.
+
 * `tags` - A mapping of tags assigned to the Shared Image.
 
 ---

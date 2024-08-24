@@ -68,7 +68,6 @@ resource "azurerm_netapp_volume" "example" {
   volume_path                = "my-unique-file-path"
   service_level              = "Premium"
   subnet_id                  = azurerm_subnet.example.id
-  network_features           = "Basic"
   protocols                  = ["NFSv4.1"]
   security_style             = "unix"
   storage_quota_in_gb        = 100
