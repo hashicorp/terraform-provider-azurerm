@@ -34,6 +34,20 @@ func TestAccNotificationHub_basic(t *testing.T) {
 	})
 }
 
+func TestAccNotificationHub_browserCredential(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_notification_hub", "test")
+	r := NotificationHubResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.browserCredential(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccNotificationHub_updateTag(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_notification_hub", "test")
 	r := NotificationHubResource{}
@@ -119,6 +133,44 @@ resource "azurerm_notification_hub" "test" {
   namespace_name      = azurerm_notification_hub_namespace.test.name
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
+
+  tags = {
+    env = "Test"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (NotificationHubResource) browserCredential(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRGpol-%d"
+  location = "%s"
+}
+
+resource "azurerm_notification_hub_namespace" "test" {
+  name                = "acctestnhn-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  namespace_type      = "NotificationHub"
+  sku_name            = "Free"
+}
+
+resource "azurerm_notification_hub" "test" {
+  name                = "acctestnh-%d"
+  namespace_name      = azurerm_notification_hub_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  browser_credential {
+    subject           = "testSubject"
+    vapid_private_key = "X4X_Awjb4HyD70adCrw6FmFgA4wiu_TTWSZFcayBN6U"
+    vapid_public_key  = "BC1XlIUxB6kQ2a214VqTMT4hnX44LRnhWDaiNxEi5bRtkdE5bFkRClX6gunX4_YWIn0UY8TD20gBGqvOg6T-go4"
+  }
 
   tags = {
     env = "Test"

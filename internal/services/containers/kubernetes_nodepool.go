@@ -4,7 +4,6 @@
 package containers
 
 import (
-	"encoding/base64"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -17,9 +16,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-09-02-preview/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-09-02-preview/managedclusters"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-09-02-preview/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-05-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-05-01/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-05-01/snapshots"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/applicationsecuritygroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipprefixes"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -275,50 +274,6 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 					},
-				}
-
-				if !features.FourPointOhBeta() {
-					s["custom_ca_trust_enabled"] = &pluginsdk.Schema{
-						Deprecated: "This property is not available in the stable API and will be removed in v4.0 of the Azure Provider. Please see https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/4.0-upgrade-guide#aks-migration-to-stable-api for more details.",
-						Type:       pluginsdk.TypeBool,
-						Optional:   true,
-					}
-
-					s["message_of_the_day"] = &pluginsdk.Schema{
-						Deprecated:   "This property is not available in the stable API and will be removed in v4.0 of the Azure Provider. Please see https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/4.0-upgrade-guide#aks-migration-to-stable-api for more details.",
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ForceNew:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					}
-
-					s["type"].ValidateFunc = validation.StringInSlice([]string{
-						string(managedclusters.AgentPoolTypeAvailabilitySet),
-						string(managedclusters.AgentPoolTypeVirtualMachineScaleSets),
-					}, false)
-
-					s["os_sku"].ValidateFunc = validation.StringInSlice([]string{
-						string(agentpools.OSSKUAzureLinux),
-						string(agentpools.OSSKUCBLMariner),
-						string(agentpools.OSSKUMariner),
-						string(agentpools.OSSKUUbuntu),
-						string(agentpools.OSSKUWindowsTwoZeroOneNine),
-						string(agentpools.OSSKUWindowsTwoZeroTwoTwo),
-					}, false)
-
-					s["workload_runtime"].ValidateFunc = validation.StringInSlice([]string{
-						string(managedclusters.WorkloadRuntimeOCIContainer),
-						string(managedclusters.WorkloadRuntimeKataMshvVMIsolation),
-					}, false)
-
-					s["node_taints"] = &pluginsdk.Schema{
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeString,
-						},
-						Deprecated: "This field will be removed in v4.0 of the Azure Provider since the AKS API doesn't allow arbitrary node taints on the default node pool",
-					}
 				}
 
 				if !features.FourPointOh() {
@@ -1104,11 +1059,6 @@ func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAg
 		},
 	}
 
-	if !features.FourPointOhBeta() {
-		agentpool.Properties.MessageOfTheDay = defaultCluster.MessageOfTheDay
-		agentpool.Properties.EnableCustomCATrust = defaultCluster.EnableCustomCATrust
-	}
-
 	if osDisktypeNodePool := defaultCluster.OsDiskType; osDisktypeNodePool != nil {
 		osDisktype := agentpools.OSDiskType(string(*osDisktypeNodePool))
 		agentpool.Properties.OsDiskType = &osDisktype
@@ -1302,15 +1252,6 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 
 	if maxPods := int64(raw["max_pods"].(int)); maxPods > 0 {
 		profile.MaxPods = utils.Int64(maxPods)
-	}
-
-	if !features.FourPointOhBeta() {
-		if v := raw["message_of_the_day"].(string); v != "" {
-			messageOfTheDayEncoded := base64.StdEncoding.EncodeToString([]byte(v))
-			profile.MessageOfTheDay = &messageOfTheDayEncoded
-		}
-
-		profile.EnableCustomCATrust = utils.Bool(raw["custom_ca_trust_enabled"].(bool))
 	}
 
 	if prefixID := raw["node_public_ip_prefix_id"].(string); prefixID != "" {
@@ -1823,26 +1764,6 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		"linux_os_config":               linuxOSConfig,
 		"zones":                         zones.FlattenUntyped(agentPool.AvailabilityZones),
 		"capacity_reservation_group_id": capacityReservationGroupId,
-	}
-
-	if !features.FourPointOhBeta() {
-		customCaTrustEnabled := false
-		if agentPool.EnableCustomCATrust != nil {
-			customCaTrustEnabled = *agentPool.EnableCustomCATrust
-		}
-
-		messageOfTheDay := ""
-		if agentPool.MessageOfTheDay != nil {
-			messageOfTheDayDecoded, err := base64.StdEncoding.DecodeString(*agentPool.MessageOfTheDay)
-			if err != nil {
-				return nil, err
-			}
-			messageOfTheDay = string(messageOfTheDayDecoded)
-		}
-
-		out["node_taints"] = []string{}
-		out["custom_ca_trust_enabled"] = customCaTrustEnabled
-		out["message_of_the_day"] = messageOfTheDay
 	}
 
 	if features.FourPointOh() {

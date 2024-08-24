@@ -25,14 +25,14 @@ resource "azurerm_resource_group" "example" {
 
 # NOTE: the Name used for Redis needs to be globally unique
 resource "azurerm_redis_cache" "example" {
-  name                = "example-cache"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-  capacity            = 2
-  family              = "C"
-  sku_name            = "Standard"
-  enable_non_ssl_port = false
-  minimum_tls_version = "1.2"
+  name                 = "example-cache"
+  location             = azurerm_resource_group.example.location
+  resource_group_name  = azurerm_resource_group.example.name
+  capacity             = 2
+  family               = "C"
+  sku_name             = "Standard"
+  non_ssl_port_enabled = false
+  minimum_tls_version  = "1.2"
 
   redis_configuration {
   }
@@ -59,7 +59,9 @@ The following arguments are supported:
 
 ---
 
-* `enable_non_ssl_port` - (Optional) Enable the non-SSL port (6379) - disabled by default.
+* `access_keys_authentication_enabled` - (Optional) Whether access key authentication is enabled? Defaults to `true`. `active_directory_authentication_enabled` must be set to `true` to disable access key authentication.
+
+* `non_ssl_port_enabled` - (Optional) Enable the non-SSL port (6379) - disabled by default.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
@@ -79,7 +81,7 @@ The following arguments are supported:
 
 * `replicas_per_primary` - (Optional) Amount of replicas to create per primary for this Redis Cache. If both `replicas_per_primary` and `replicas_per_master` are set, they need to be equal.
 
-* `redis_version` - (Optional) Redis version. Only major version needed. Valid values: `4`, `6`.
+* `redis_version` - (Optional) Redis version. Only major version needed. Possible values are `4` and `6`. Defaults to `6`.
 
 * `tenant_settings` - (Optional) A mapping of tenant settings to assign to the resource.
 
@@ -136,9 +138,9 @@ redis_configuration {
 }
 ```
 
-* `enable_authentication` - (Optional) If set to `false`, the Redis instance will be accessible without authentication. Defaults to `true`.
+* `authentication_enabled` - (Optional) If set to `false`, the Redis instance will be accessible without authentication. Defaults to `true`.
 
--> **NOTE:** `enable_authentication` can only be set to `false` if a `subnet_id` is specified; and only works if there aren't existing instances within the subnet with `enable_authentication` set to `true`.
+-> **NOTE:** `authentication_enabled` can only be set to `false` if a `subnet_id` is specified; and only works if there aren't existing instances within the subnet with `authentication_enabled` set to `true`.
 
 * `active_directory_authentication_enabled` - (Optional) Enable Microsoft Entra (AAD) authentication. Defaults to `false`.
 
@@ -146,7 +148,7 @@ redis_configuration {
 * `maxmemory_delta` - (Optional) The max-memory delta for this Redis instance. Defaults are shown below.
 * `maxmemory_policy` - (Optional) How Redis will select what to remove when `maxmemory` is reached. Defaults to `volatile-lru`.
 
-* `data_persistence_authentication_method` - (Optional) Preferred auth method to communicate to storage account used for data persistence. Possible values are `SAS` and `ManagedIdentity`. Defaults to `SAS`.
+* `data_persistence_authentication_method` - (Optional) Preferred auth method to communicate to storage account used for data persistence. Possible values are `SAS` and `ManagedIdentity`.
 
 * `maxfragmentationmemory_reserved` - (Optional) Value in megabytes reserved to accommodate for memory fragmentation. Defaults are shown below.
 
@@ -182,8 +184,8 @@ redis_configuration {
 ### Default Redis Configuration Values
 
 | Redis Value                     | Basic        | Standard     | Premium      |
-| ------------------------------- | ------------ | ------------ | ------------ |
-| enable_authentication           | true         | true         | true         |
+|---------------------------------| ------------ | ------------ | ------------ |
+| authentication_enabled          | true         | true         | true         |
 | maxmemory_reserved              | 2            | 50           | 200          |
 | maxfragmentationmemory_reserved | 2            | 50           | 200          |
 | maxmemory_delta                 | 2            | 50           | 200          |

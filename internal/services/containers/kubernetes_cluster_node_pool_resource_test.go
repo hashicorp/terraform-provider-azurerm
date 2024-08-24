@@ -13,8 +13,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-09-02-preview/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-09-02-preview/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-05-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-05-01/snapshots"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -576,7 +576,7 @@ func TestAccKubernetesClusterNodePool_upgradeSettings(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.upgradeSettings(data, 1, 0),
+			Config: r.upgradeSettings(data, 5, 0),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -727,7 +727,7 @@ func TestAccKubernetesClusterNodePool_hostEncryption(t *testing.T) {
 			Config: r.hostEncryption(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("enable_host_encryption").HasValue("true"),
+				check.That(data.ResourceName).Key("host_encryption_enabled").HasValue("true"),
 			),
 		},
 	})
@@ -1242,7 +1242,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "internal"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
   vm_size               = "Standard_DS2_v2"
-  enable_auto_scaling   = true
+  auto_scaling_enabled  = true
   min_count             = 1
   max_count             = 3
 }
@@ -1261,7 +1261,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "internal"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
   vm_size               = "Standard_DS2_v2"
-  enable_auto_scaling   = true
+  auto_scaling_enabled  = true
   min_count             = %d
   max_count             = %d
 }
@@ -1793,7 +1793,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "autoscale" {
   name                  = "autoscale"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
   vm_size               = "Standard_DS2_v2"
-  enable_auto_scaling   = true
+  auto_scaling_enabled  = true
   min_count             = 1
   max_count             = 3
 }
@@ -1877,7 +1877,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   kubernetes_cluster_id    = azurerm_kubernetes_cluster.test.id
   vm_size                  = "Standard_DS2_v2"
   node_count               = 1
-  enable_node_public_ip    = true
+  node_public_ip_enabled   = true
   node_public_ip_prefix_id = azurerm_public_ip_prefix.test.id
 }
 `, r.templateConfig(data), data.RandomInteger)
@@ -2107,7 +2107,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "internal"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
   vm_size               = "Standard_DS2_v2"
-  enable_auto_scaling   = true
+  auto_scaling_enabled  = true
   min_count             = 1
   max_count             = 3
   vnet_subnet_id        = azurerm_subnet.test.id
@@ -2374,7 +2374,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "internal"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
   vm_size               = "Standard_DS2_v2"
-  enable_auto_scaling   = true
+  auto_scaling_enabled  = true
   min_count             = 0
   max_count             = 3
   node_count            = 0
@@ -2391,11 +2391,11 @@ provider "azurerm" {
 	%s
 
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
-  name                   = "internal"
-  kubernetes_cluster_id  = azurerm_kubernetes_cluster.test.id
-  vm_size                = "Standard_DS2_v2"
-  enable_host_encryption = true
-  node_count             = 1
+  name                    = "internal"
+  kubernetes_cluster_id   = azurerm_kubernetes_cluster.test.id
+  vm_size                 = "Standard_DS2_v2"
+  host_encryption_enabled = true
+  node_count              = 1
 }
 `, r.templateConfig(data))
 }
@@ -2412,7 +2412,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "internal"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
   vm_size               = "Standard_DS2_v2"
-  enable_auto_scaling   = true
+  auto_scaling_enabled  = true
   min_count             = 1
   max_count             = 399
   node_count            = 1
@@ -2432,7 +2432,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "internal"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
   vm_size               = "Standard_DS2_v2"
-  enable_auto_scaling   = true
+  auto_scaling_enabled  = true
   min_count             = 1
   max_count             = 1
   node_count            = 1
@@ -2636,7 +2636,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "internal"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
   vm_size               = "Standard_DS2_v2"
-  enable_auto_scaling   = %t
+  auto_scaling_enabled  = %t
   min_count             = %d
   max_count             = %d
 }
@@ -2830,10 +2830,10 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
-  name                  = "internal"
-  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_D2s_v3"
-  enable_node_public_ip = true
+  name                   = "internal"
+  kubernetes_cluster_id  = azurerm_kubernetes_cluster.test.id
+  vm_size                = "Standard_D2s_v3"
+  node_public_ip_enabled = true
   node_network_profile {
     node_public_ip_tags = {
       RoutingPreference = "Internet"
@@ -2879,10 +2879,10 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
-  name                  = "internal"
-  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_D2s_v3"
-  enable_node_public_ip = true
+  name                   = "internal"
+  kubernetes_cluster_id  = azurerm_kubernetes_cluster.test.id
+  vm_size                = "Standard_D2s_v3"
+  node_public_ip_enabled = true
   node_network_profile {
     allowed_host_ports {
       port_start = 8001

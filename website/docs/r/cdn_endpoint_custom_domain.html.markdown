@@ -95,11 +95,7 @@ A `cdn_managed_https` block supports the following:
 
 A `user_managed_https` block supports the following:
 
-* `key_vault_certificate_id` - (Optional) The ID of the Key Vault Certificate that contains the HTTPS certificate. This is deprecated in favor of `key_vault_secret_id`.
-
-* `key_vault_secret_id` - (Optional) The ID of the Key Vault Secret that contains the HTTPS certificate.
-
-~> **NOTE** Either `key_vault_certificate_id` or `key_vault_secret_id` has to be specified.
+* `key_vault_secret_id` - (Required) The ID of the Key Vault Secret that contains the HTTPS certificate.
 
 * `tls_version` - (Optional) The minimum TLS protocol version that is used for HTTPS. Possible values are `TLS10` (representing TLS 1.0/1.1), `TLS12` (representing TLS 1.2) and `None` (representing no minimums). Defaults to `TLS12`.
 
