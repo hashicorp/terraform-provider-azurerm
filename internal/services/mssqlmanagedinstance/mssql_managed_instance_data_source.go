@@ -8,18 +8,17 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstances"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type MsSqlManagedInstanceDataSourceModel struct {
@@ -172,65 +171,51 @@ func (d MsSqlManagedInstanceDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			id := parse.NewManagedInstanceID(subscriptionId, state.ResourceGroupName, state.Name)
-			resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+			id := commonids.NewSqlManagedInstanceID(subscriptionId, state.ResourceGroupName, state.Name)
+			resp, err := client.Get(ctx, id, managedinstances.GetOperationOptions{})
 			if err != nil {
-				if utils.ResponseWasNotFound(resp.Response) {
+				if response.WasNotFound(resp.HttpResponse) {
 					return fmt.Errorf("%s was not found", id)
 				}
 				return fmt.Errorf("retrieving %s: %v", id, err)
 			}
 
+			if resp.Model == nil {
+				return fmt.Errorf("retrieving %s model was nil", id)
+			}
+
+			if resp.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s properties was nil", id)
+			}
+
 			model := MsSqlManagedInstanceDataSourceModel{
-				Name:              id.Name,
-				Location:          location.NormalizeNilable(resp.Location),
-				ResourceGroupName: id.ResourceGroup,
-				Identity:          d.flattenIdentity(resp.Identity),
-				Tags:              tags.ToTypedObject(resp.Tags),
+				Name:              id.ManagedInstanceName,
+				Location:          resp.Model.Location,
+				ResourceGroupName: id.ResourceGroupName,
+				Identity:          d.flattenIdentity(resp.Model.Identity),
+				Tags:              pointer.From(resp.Model.Tags),
 			}
 
-			if sku := resp.Sku; sku != nil && sku.Name != nil {
-				model.SkuName = *sku.Name
+			if sku := resp.Model.Sku; sku != nil {
+				model.SkuName = sku.Name
 			}
 
-			if props := resp.ManagedInstanceProperties; props != nil {
-				model.LicenseType = string(props.LicenseType)
-				model.ProxyOverride = string(props.ProxyOverride)
-				model.StorageAccountType = string(props.StorageAccountType)
+			if props := resp.Model.Properties; props != nil {
+				model.LicenseType = string(pointer.From(props.LicenseType))
+				model.ProxyOverride = string(pointer.From(props.ProxyOverride))
+				model.StorageAccountType = backupStorageRedundancyToStorageAccType(pointer.From(props.RequestedBackupStorageRedundancy))
+				model.AdministratorLogin = pointer.From(props.AdministratorLogin)
+				model.Collation = pointer.From(props.Collation)
+				model.DnsZone = pointer.From(props.DnsZone)
+				model.CustomerManagedKeyId = pointer.From(props.KeyId)
+				model.Fqdn = pointer.From(props.FullyQualifiedDomainName)
+				model.MinimumTlsVersion = pointer.From(props.MinimalTlsVersion)
+				model.PublicDataEndpointEnabled = pointer.From(props.PublicDataEndpointEnabled)
+				model.StorageSizeInGb = pointer.From(props.StorageSizeInGB)
+				model.SubnetId = pointer.From(props.SubnetId)
+				model.TimezoneId = pointer.From(props.TimezoneId)
+				model.VCores = pointer.From(props.VCores)
 
-				if props.AdministratorLogin != nil {
-					model.AdministratorLogin = *props.AdministratorLogin
-				}
-				if props.Collation != nil {
-					model.Collation = *props.Collation
-				}
-				if props.DNSZone != nil {
-					model.DnsZone = *props.DNSZone
-				}
-				if props.KeyID != nil {
-					model.CustomerManagedKeyId = *props.KeyID
-				}
-				if props.FullyQualifiedDomainName != nil {
-					model.Fqdn = *props.FullyQualifiedDomainName
-				}
-				if props.MinimalTLSVersion != nil {
-					model.MinimumTlsVersion = *props.MinimalTLSVersion
-				}
-				if props.PublicDataEndpointEnabled != nil {
-					model.PublicDataEndpointEnabled = *props.PublicDataEndpointEnabled
-				}
-				if props.StorageSizeInGB != nil {
-					model.StorageSizeInGb = int64(*props.StorageSizeInGB)
-				}
-				if props.SubnetID != nil {
-					model.SubnetId = *props.SubnetID
-				}
-				if props.TimezoneID != nil {
-					model.TimezoneId = *props.TimezoneID
-				}
-				if props.VCores != nil {
-					model.VCores = int64(*props.VCores)
-				}
 			}
 
 			metadata.SetID(id)
@@ -239,23 +224,13 @@ func (d MsSqlManagedInstanceDataSource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (d MsSqlManagedInstanceDataSource) flattenIdentity(input *sql.ResourceIdentity) []identity.SystemOrUserAssignedList {
+func (d MsSqlManagedInstanceDataSource) flattenIdentity(input *identity.LegacySystemAndUserAssignedMap) []identity.SystemOrUserAssignedList {
 	if input == nil {
 		return nil
 	}
 
-	principalId := ""
-	if input.PrincipalID != nil {
-		principalId = input.PrincipalID.String()
-	}
-
-	tenantId := ""
-	if input.TenantID != nil {
-		tenantId = input.TenantID.String()
-	}
-
 	var identityIds = make([]string, 0)
-	for k := range input.UserAssignedIdentities {
+	for k := range input.IdentityIds {
 		parsedId, err := commonids.ParseUserAssignedIdentityIDInsensitively(k)
 		if err != nil {
 			continue
@@ -264,9 +239,9 @@ func (d MsSqlManagedInstanceDataSource) flattenIdentity(input *sql.ResourceIdent
 	}
 
 	return []identity.SystemOrUserAssignedList{{
-		Type:        identity.Type(input.Type),
-		PrincipalId: principalId,
-		TenantId:    tenantId,
+		Type:        input.Type,
+		PrincipalId: input.PrincipalId,
+		TenantId:    input.TenantId,
 		IdentityIds: identityIds,
 	}}
 }

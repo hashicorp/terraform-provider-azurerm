@@ -344,7 +344,7 @@ func resourcePublicIpUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	if d.HasChange("idle_timeout_in_minutes") {
-		payload.Properties.IdleTimeoutInMinutes = utils.Int64(d.Get("idle_timeout_in_minutes").(int64))
+		payload.Properties.IdleTimeoutInMinutes = utils.Int64(int64(d.Get("idle_timeout_in_minutes").(int)))
 	}
 
 	if d.HasChange("domain_name_label") {

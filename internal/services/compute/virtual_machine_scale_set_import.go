@@ -78,7 +78,7 @@ func importVirtualMachineScaleSet(osType virtualmachinescalesets.OperatingSystem
 		}
 
 		if !isCorrectOS {
-			return []*pluginsdk.ResourceData{}, fmt.Errorf("The %q resource only supports %s Virtual Machine Scale Sets", resourceType, string(osType))
+			return []*pluginsdk.ResourceData{}, fmt.Errorf("the %q resource only supports %s Virtual Machine Scale Sets", resourceType, string(osType))
 		}
 
 		if !hasSshKeys {

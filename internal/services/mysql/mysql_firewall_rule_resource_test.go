@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -19,6 +20,9 @@ import (
 type MySQLFirewallRuleResource struct{}
 
 func TestAccMySQLFirewallRule_basic(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skipf("Skipping since `azurerm_mysql_firewall_rule` is deprecated and will be removed in 4.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_mysql_firewall_rule", "test")
 	r := MySQLFirewallRuleResource{}
 
@@ -34,6 +38,9 @@ func TestAccMySQLFirewallRule_basic(t *testing.T) {
 }
 
 func TestAccMySQLFirewallRule_requiresImport(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skipf("Skipping since `azurerm_mysql_firewall_rule` is deprecated and will be removed in 4.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_mysql_firewall_rule", "test")
 	r := MySQLFirewallRuleResource{}
 

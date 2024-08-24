@@ -61,9 +61,9 @@ func (l LogAnalyticsClusterResource) Arguments() map[string]*schema.Schema {
 				if !features.FourPointOh() {
 					return 1000
 				}
-				return 500
+				return 100
 			}(),
-			ValidateFunc: validation.IntInSlice([]int{500, 1000, 2000, 5000}),
+			ValidateFunc: validation.IntInSlice([]int{100, 500, 1000, 2000, 5000}),
 		},
 
 		"tags": tags.Schema(),

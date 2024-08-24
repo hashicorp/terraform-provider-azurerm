@@ -13,12 +13,17 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type MonitorActionRuleSuppressionResource struct{}
 
 func TestAccMonitorActionRuleSuppression_basic(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip(`This resource has been deprecated in favour of the 'azurerm_monitor_alert_processing_rule_suppression' resource and will be removed in v4.0 of the AzureRM Provider`)
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_monitor_action_rule_suppression", "test")
 	r := MonitorActionRuleSuppressionResource{}
 
@@ -34,6 +39,10 @@ func TestAccMonitorActionRuleSuppression_basic(t *testing.T) {
 }
 
 func TestAccMonitorActionRuleSuppression_requiresImport(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip(`This resource has been deprecated in favour of the 'azurerm_monitor_alert_processing_rule_suppression' resource and will be removed in v4.0 of the AzureRM Provider`)
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_monitor_action_rule_suppression", "test")
 	r := MonitorActionRuleSuppressionResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -48,6 +57,10 @@ func TestAccMonitorActionRuleSuppression_requiresImport(t *testing.T) {
 }
 
 func TestAccMonitorActionRuleSuppression_complete(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip(`This resource has been deprecated in favour of the 'azurerm_monitor_alert_processing_rule_suppression' resource and will be removed in v4.0 of the AzureRM Provider`)
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_monitor_action_rule_suppression", "test")
 	r := MonitorActionRuleSuppressionResource{}
 
@@ -63,6 +76,10 @@ func TestAccMonitorActionRuleSuppression_complete(t *testing.T) {
 }
 
 func TestAccMonitorActionRuleSuppression_updateSuppressionConfig(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip(`This resource has been deprecated in favour of the 'azurerm_monitor_alert_processing_rule_suppression' resource and will be removed in v4.0 of the AzureRM Provider`)
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_monitor_action_rule_suppression", "test")
 	r := MonitorActionRuleSuppressionResource{}
 

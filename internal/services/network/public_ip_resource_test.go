@@ -238,10 +238,16 @@ func TestAccPublicIpStatic_idleTimeout(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.idleTimeout(data),
+			Config: r.idleTimeout(data, 30),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("idle_timeout_in_minutes").HasValue("30"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.idleTimeout(data, 15),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -478,6 +484,7 @@ resource "azurerm_public_ip" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
+  sku                 = "Basic"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -491,6 +498,7 @@ resource "azurerm_public_ip" "import" {
   location            = azurerm_public_ip.test.location
   resource_group_name = azurerm_public_ip.test.resource_group_name
   allocation_method   = azurerm_public_ip.test.allocation_method
+  sku                 = "Basic"
 }
 `, r.static_basic(data))
 }
@@ -511,6 +519,7 @@ resource "azurerm_public_ip" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
+  sku                 = "Basic"
   domain_name_label   = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, dnsNameLabel)
@@ -532,6 +541,7 @@ resource "azurerm_public_ip" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
+  sku                 = "Basic"
   ip_version          = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, ipVersion)
@@ -736,16 +746,18 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                = "acctestpublicip-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Static"
-  domain_name_label   = "acctest-%d"
+  name                    = "acctestpublicip-%d"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  allocation_method       = "Static"
+  sku                     = "Basic"
+  domain_name_label       = "acctest-%d"
+  idle_timeout_in_minutes = 30
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (PublicIPResource) idleTimeout(data acceptance.TestData) string {
+func (PublicIPResource) idleTimeout(data acceptance.TestData, idleTimeout int) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -761,9 +773,10 @@ resource "azurerm_public_ip" "test" {
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
   allocation_method       = "Static"
-  idle_timeout_in_minutes = 30
+  sku                     = "Basic"
+  idle_timeout_in_minutes = %d
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, idleTimeout)
 }
 
 func (PublicIPResource) dynamic_basic(data acceptance.TestData) string {
@@ -782,6 +795,7 @@ resource "azurerm_public_ip" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Dynamic"
+  sku                 = "Basic"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -802,6 +816,7 @@ resource "azurerm_public_ip" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Dynamic"
+  sku                 = "Basic"
 
   ip_version = "%s"
 }
@@ -824,6 +839,7 @@ resource "azurerm_public_ip" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
+  sku                 = "Basic"
 
   tags = {
     environment = "Production"
@@ -849,6 +865,7 @@ resource "azurerm_public_ip" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
+  sku                 = "Basic"
 
   tags = {
     environment = "staging"
@@ -874,6 +891,7 @@ resource "azurerm_public_ip" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   allocation_method = "Static"
+  sku               = "Basic"
   domain_name_label = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, strings.ToLower(data.RandomStringOfLength(63)))

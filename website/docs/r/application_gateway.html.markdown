@@ -41,7 +41,7 @@ resource "azurerm_public_ip" "example" {
   name                = "example-pip"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
 }
 
 # since these variables are re-used - a locals block makes this more maintainable
@@ -552,6 +552,8 @@ A `waf_configuration` block supports the following:
 * `file_upload_limit_mb` - (Optional) The File Upload Limit in MB. Accepted values are in the range `1`MB to `750`MB for the `WAF_v2` SKU, and `1`MB to `500`MB for all other SKUs. Defaults to `100`MB.
 
 * `request_body_check` - (Optional) Is Request Body Inspection enabled? Defaults to `true`.
+
+* `request_body_enforcement` - (Optional) Whether the firewall should block a request with body size greater then `max_request_body_size_kb`. Defaults to `true`.
 
 * `max_request_body_size_kb` - (Optional) The Maximum Request Body Size in KB. Accepted values are in the range `1`KB to `128`KB. Defaults to `128`KB.
 

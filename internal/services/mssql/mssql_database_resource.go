@@ -18,15 +18,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/publicmaintenanceconfigurations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/backupshorttermretentionpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/databases"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/databasesecurityalertpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/elasticpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/geobackuppolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/longtermretentionpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/servers"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/serversecurityalertpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/transparentdataencryptions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/backupshorttermretentionpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/databases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/databasesecurityalertpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/elasticpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/geobackuppolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/longtermretentionpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/serversecurityalertpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/transparentdataencryptions"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -651,7 +651,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	// Determine whether the SKU is for SQL Data Warehouse
 	isDwSku := strings.HasPrefix(strings.ToLower(skuName), "dw")
 
-	if strings.HasPrefix(skuName, "GP_S_") && d.Get("license_type").(string) != "" {
+	if strings.HasPrefix(skuName, "GP_S_") && !pluginsdk.IsExplicitlyNullInConfig(d, "license_type") {
 		return fmt.Errorf("serverless databases do not support license type")
 	}
 
@@ -1207,8 +1207,11 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		// Determine whether the SKU is for SQL Data Warehouse
 		isDwSku := strings.HasPrefix(strings.ToLower(skuName), "dw")
 
-		// DW SKUs do not currently support LRP and do not honour normal SRP operations
-		if !isDwSku {
+		// Determine whether the SKU is for SQL Database Free tier
+		isFreeSku := strings.EqualFold(skuName, "free")
+
+		// DW SKUs and SQL Database Free tier do not currently support LRP and do not honour normal SRP operations
+		if !isDwSku && !isFreeSku {
 			longTermPolicy, err := longTermRetentionClient.Get(ctx, pointer.From(id))
 			if err != nil {
 				return fmt.Errorf("retrieving Long Term Retention Policies for %s: %+v", id, err)
@@ -1231,7 +1234,7 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 				}
 			}
 		} else {
-			// DW SKUs need the retention policies to be empty for state consistency
+			// DW SKUs and SQL Database Free tier need the retention policies to be empty for state consistency
 			emptySlice := make([]interface{}, 0)
 			d.Set("long_term_retention_policy", emptySlice)
 			d.Set("short_term_retention_policy", emptySlice)
@@ -1246,9 +1249,9 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 				return fmt.Errorf("retrieving Geo Backup Policies for %s: %+v", id, err)
 			}
 
-			// For Datawarehouse SKUs, set the geo-backup policy setting
+			// For Datawarehouse SKUs and SQL Database Free tier, set the geo-backup policy setting
 			if geoPolicyModel := geoPoliciesResponse.Model; geoPolicyModel != nil {
-				if isDwSku && geoPolicyModel.Properties.State == geobackuppolicies.GeoBackupPolicyStateDisabled {
+				if (isDwSku || isFreeSku) && geoPolicyModel.Properties.State == geobackuppolicies.GeoBackupPolicyStateDisabled {
 					geoBackupPolicy = false
 				}
 			}

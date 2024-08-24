@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	loadBalancerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -326,7 +327,7 @@ func expandAzureRmLoadBalancerRule(d *pluginsdk.ResourceData, lb *loadbalancers.
 }
 
 func resourceArmLoadBalancerRuleSchema() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	resource := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -389,7 +390,6 @@ func resourceArmLoadBalancerRuleSchema() map[string]*pluginsdk.Schema {
 		"probe_id": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
 		},
 
 		// TODO 4.0: change this from enable_* to *_enabled
@@ -414,14 +414,31 @@ func resourceArmLoadBalancerRuleSchema() map[string]*pluginsdk.Schema {
 		"idle_timeout_in_minutes": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			Computed:     true,
+			Default:      4,
 			ValidateFunc: validation.IntBetween(4, 100),
 		},
 
 		"load_distribution": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
+			Default:  string(loadbalancers.LoadDistributionDefault),
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		resource["idle_timeout_in_minutes"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validation.IntBetween(4, 100),
+		}
+
+		resource["load_distribution"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+		}
+	}
+
+	return resource
 }

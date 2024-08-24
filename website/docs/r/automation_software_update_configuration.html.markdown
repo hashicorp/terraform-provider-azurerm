@@ -52,13 +52,12 @@ CONTENT
 resource "azurerm_automation_software_update_configuration" "example" {
   name                  = "example"
   automation_account_id = azurerm_automation_account.example.id
-  operating_system      = "Linux"
 
   linux {
-    classification_included = "Security"
-    excluded_packages       = ["apt"]
-    included_packages       = ["vim"]
-    reboot                  = "IfRequired"
+    classifications_included = "Security"
+    excluded_packages        = ["apt"]
+    included_packages        = ["vim"]
+    reboot                   = "IfRequired"
   }
 
   pre_task {
@@ -108,6 +107,8 @@ A `linux` block supports the following:
 
 * `classifications_included` - (Optional) Specifies the list of update classifications included in the Software Update Configuration. Possible values are `Unclassified`, `Critical`, `Security` and `Other`.
 
+~> **NOTE:** The `classifications_included` property will become `Required` in version 4.0 of the Provider.
+
 * `excluded_packages` - (Optional) Specifies a list of packages to excluded from the Software Update Configuration.
 
 * `included_packages` - (Optional) Specifies a list of packages to included from the Software Update Configuration.
@@ -119,6 +120,8 @@ A `linux` block supports the following:
 A `windows` block supports the following:
 
 * `classifications_included` - (Optional) Specifies the list of update classification. Possible values are `Unclassified`, `Critical`, `Security`, `UpdateRollup`, `FeaturePack`, `ServicePack`, `Definition`, `Tools` and `Updates`.
+
+~> **NOTE:** The `classifications_included` property will become `Required` in version 4.0 of the Provider.
 
 * `excluded_knowledge_base_numbers` - (Optional) Specifies a list of knowledge base numbers excluded.
 
@@ -218,7 +221,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `error_code` - The Error code when failed.
 
-* `error_meesage` - The Error message indicating why the operation failed.
+* `error_message` - The Error message indicating why the operation failed.
 
 ## Timeouts
 

@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/disks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/disks/parse"
@@ -25,6 +26,10 @@ import (
 type DisksPoolIscsiTargetLunResource struct{}
 
 func TestAccDiskPoolIscsiTargetLun_basic(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("Resource has been removed in 4.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_disk_pool_iscsi_target_lun", "test")
 	l := DisksPoolIscsiTargetLunResource{}
 	data.ResourceTest(t, l, []acceptance.TestStep{
@@ -39,6 +44,10 @@ func TestAccDiskPoolIscsiTargetLun_basic(t *testing.T) {
 }
 
 func TestAccDiskPoolIscsiTargetLun_multipleLuns(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("Resource has been removed in 4.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_disk_pool_iscsi_target_lun", "test0")
 	l := DisksPoolIscsiTargetLunResource{}
 	data.ResourceTest(t, l, []acceptance.TestStep{
@@ -61,6 +70,10 @@ func TestAccDiskPoolIscsiTargetLun_multipleLuns(t *testing.T) {
 }
 
 func TestAccDiskPoolIscsiTargetLun_updateName(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("Resource has been removed in 4.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_disk_pool_iscsi_target_lun", "test")
 	l := DisksPoolIscsiTargetLunResource{}
 	data.ResourceTest(t, l, []acceptance.TestStep{
@@ -76,6 +89,10 @@ func TestAccDiskPoolIscsiTargetLun_updateName(t *testing.T) {
 }
 
 func TestAccDiskPoolIscsiTargetLun_requiresImport(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("Resource has been removed in 4.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_disk_pool_iscsi_target_lun", "test")
 	l := DisksPoolIscsiTargetLunResource{}
 	data.ResourceTest(t, l, []acceptance.TestStep{
@@ -90,6 +107,10 @@ func TestAccDiskPoolIscsiTargetLun_requiresImport(t *testing.T) {
 }
 
 func TestAccDiskPoolIscsiTargetLun_destroy(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("Resource has been removed in 4.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_disk_pool_iscsi_target_lun", "test")
 	l := DisksPoolIscsiTargetLunResource{}
 	data.ResourceTest(t, l, []acceptance.TestStep{
