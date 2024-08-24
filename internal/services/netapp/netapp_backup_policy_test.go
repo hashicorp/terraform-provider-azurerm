@@ -98,7 +98,7 @@ resource "azurerm_netapp_backup_policy" "test" {
   daily_backups_to_keep   = 2
   weekly_backups_to_keep  = 2
   monthly_backups_to_keep = 2
-  enabled = true
+  enabled                 = true
 
   tags = {
     "testTag" = "testTagValue"
@@ -112,14 +112,14 @@ func (r NetAppBackupPolicyResource) update(data acceptance.TestData) string {
 %[1]s
 
 resource "azurerm_netapp_backup_policy" "test" {
-  name                = "acctest-NetAppBackupPolicy-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  account_name        = azurerm_netapp_account.test.name
+  name                    = "acctest-NetAppBackupPolicy-%[2]d"
+  resource_group_name     = azurerm_resource_group.test.name
+  location                = azurerm_resource_group.test.location
+  account_name            = azurerm_netapp_account.test.name
   daily_backups_to_keep   = 10
   weekly_backups_to_keep  = 10
   monthly_backups_to_keep = 10
-  enabled = false
+  enabled                 = false
 
   tags = {
     "testTag" = "testTagValue",

@@ -521,7 +521,7 @@ resource "azurerm_netapp_backup_policy" "test" {
   daily_backups_to_keep   = 2
   weekly_backups_to_keep  = 2
   monthly_backups_to_keep = 2
-  enabled = true
+  enabled                 = true
 }
 
 resource "azurerm_netapp_volume" "test" {

@@ -120,8 +120,8 @@ provider "azurerm" {
       prevent_deletion_if_contains_resources = false
     }
     netapp {
-      delete_backups_on_backup_vault_destroy = true	  
-	} 
+      delete_backups_on_backup_vault_destroy = true
+    }
   }
 }
 
@@ -144,6 +144,7 @@ resource "azurerm_netapp_account" "test" {
     "SkipASMAzSecPack" = "true"
   }
 }
+
 
 `, data.RandomInteger, data.Locations.Primary)
 }

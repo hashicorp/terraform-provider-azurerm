@@ -59,9 +59,9 @@ provider "azurerm" {
       prevent_deletion_if_contains_resources = false
     }
     netapp {
-      prevent_volume_destruction = false
+      prevent_volume_destruction             = false
       delete_backups_on_backup_vault_destroy = true
-	}
+    }
   }
 }
 
