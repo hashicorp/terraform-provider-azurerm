@@ -511,6 +511,7 @@ resource "azurerm_netapp_account_encryption" "test" {
 func (NetAppAccountEncryptionResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
+  alias = "acccountEncryption"
   features {
     resource_group {
       prevent_deletion_if_contains_resources = false

@@ -264,7 +264,6 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
-				Computed: true,
 			},
 
 			"data_protection_replication": {
