@@ -95,7 +95,7 @@ func (r NetAppBackupPolicyDataSource) Read() sdk.ResourceFunc {
 			existing, err := client.BackupPoliciesGet(ctx, backupPolicyID)
 			if err != nil {
 				if existing.HttpResponse.StatusCode == http.StatusNotFound {
-					return metadata.MarkAsGone(backupPolicyID)
+					return fmt.Errorf("%s was not found", backupPolicyID)
 				}
 				return fmt.Errorf("retrieving %s: %v", backupPolicyID, err)
 			}

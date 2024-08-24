@@ -75,7 +75,7 @@ func (r NetAppBackupVaultDataSource) Read() sdk.ResourceFunc {
 			existing, err := client.Get(ctx, backupVaultID)
 			if err != nil {
 				if existing.HttpResponse.StatusCode == http.StatusNotFound {
-					return metadata.MarkAsGone(backupVaultID)
+					return fmt.Errorf("%s was not found", backupVaultID)
 				}
 				return fmt.Errorf("retrieving %s: %v", backupVaultID, err)
 			}
