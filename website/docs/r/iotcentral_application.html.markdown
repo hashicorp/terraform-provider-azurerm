@@ -56,7 +56,7 @@ The following arguments are supported:
 
 * `sku` - (Optional) A `sku` name. Possible values is `ST0`, `ST1`, `ST2`, Default value is `ST1`
 
-* `template` - (Optional) A `template` name. IoT Central application template name. Default is a custom application. Changing this forces a new resource to be created.
+* `template` - (Optional) A `template` name. IoT Central application template name. Defaults to `iotc-pnp-preview@1.0.0`. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

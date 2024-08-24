@@ -118,9 +118,9 @@ type SoftwareUpdateConfigurationModel struct {
 	AutomationAccountID   string       `tfschema:"automation_account_id"`
 	Name                  string       `tfschema:"name"`
 	ErrorCode             string       `tfschema:"error_code"`
-	ErrorMeesage          string       `tfschema:"error_meesage"`
+	ErrorMeesage          string       `tfschema:"error_meesage,removedInNextMajorVersion"`
 	ErrorMessage          string       `tfschema:"error_message"`
-	OperatingSystem       string       `tfschema:"operating_system"`
+	OperatingSystem       string       `tfschema:"operating_system,removedInNextMajorVersion"`
 	Linux                 []Linux      `tfschema:"linux"`
 	Windows               []Windows    `tfschema:"windows"`
 	Duration              string       `tfschema:"duration"`
@@ -157,19 +157,17 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 				"classification_included": {
 					Type:          pluginsdk.TypeString,
 					Optional:      true,
-					ConflictsWith: []string{"windows.0.classifications_included"},
+					ConflictsWith: []string{"linux.0.classifications_included"},
 					Computed:      true,
-					ValidateFunc: validation.StringInSlice(
-						softwareupdateconfiguration.PossibleValuesForLinuxUpdateClasses(),
-						false),
-					Deprecated: "", // TODO
+					ValidateFunc:  validation.StringInSlice(softwareupdateconfiguration.PossibleValuesForLinuxUpdateClasses(), false),
+					Deprecated:    "this property is deprecated and will be removed in version 4.0 of the provider, please use `classifications_included` instead.",
 				},
 
 				"classifications_included": {
 					Type:          pluginsdk.TypeList,
 					Optional:      true,
 					Computed:      true,
-					ConflictsWith: []string{"windows.0.classification_included"},
+					ConflictsWith: []string{"linux.0.classification_included"},
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 						ValidateFunc: validation.StringInSlice(
@@ -204,11 +202,8 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 					Optional:      true,
 					Computed:      true,
 					ConflictsWith: []string{"windows.0.classifications_included"},
-					Deprecated:    "windows classification can be set as a list, use `classifications_included` instead.",
-					ValidateFunc: validation.StringInSlice(func() (vs []string) {
-						vs = append(vs, softwareupdateconfiguration.PossibleValuesForWindowsUpdateClasses()...)
-						return
-					}(), false),
+					Deprecated:    "this property is deprecated and will be removed in version 4.0 of the provider, please use `classifications_included` instead.",
+					ValidateFunc:  validation.StringInSlice(softwareupdateconfiguration.PossibleValuesForWindowsUpdateClasses(), false),
 				},
 
 				"classifications_included": {
@@ -217,11 +212,8 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 					Computed:      true,
 					ConflictsWith: []string{"windows.0.classification_included"},
 					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeString,
-						ValidateFunc: validation.StringInSlice(func() (res []string) {
-							res = append(res, softwareupdateconfiguration.PossibleValuesForWindowsUpdateClasses()...)
-							return
-						}(), false),
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: validation.StringInSlice(softwareupdateconfiguration.PossibleValuesForWindowsUpdateClasses(), false),
 					},
 				},
 
@@ -273,11 +265,10 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 
 				"classifications_included": {
 					Type:     pluginsdk.TypeList,
-					Required: true, // TODO 4.0 - Update docs to reflect this breaking change.
+					Required: true,
 					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeString,
-						ValidateFunc: validation.StringInSlice(softwareupdateconfiguration.PossibleValuesForLinuxUpdateClasses(),
-							false),
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: validation.StringInSlice(softwareupdateconfiguration.PossibleValuesForLinuxUpdateClasses(), false),
 					},
 				},
 
@@ -304,7 +295,7 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 			Schema: map[string]*pluginsdk.Schema{
 				"classifications_included": {
 					Type:     pluginsdk.TypeList,
-					Required: true, // TODO 4.0 - Update docs to reflect this breaking change.
+					Required: true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 						ValidateFunc: validation.StringInSlice(
@@ -467,7 +458,7 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 								"tag_filter": {
 									Type:     pluginsdk.TypeString,
 									Optional: true,
-									Computed: true,
+									Computed: !features.FourPointOhBeta(),
 									ValidateFunc: validation.StringInSlice([]string{
 										string(softwareupdateconfiguration.TagOperatorsAny),
 										string(softwareupdateconfiguration.TagOperatorsAll),
@@ -512,8 +503,9 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 					},
 
 					"start_time": {
-						Type:             pluginsdk.TypeString,
-						Optional:         true,
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						// NOTE: O+C API returns a default if omitted which can be updated without issue so this can remain
 						Computed:         true,
 						DiffSuppressFunc: suppress.RFC3339MinuteTime,
 						ValidateFunc:     validation.IsRFC3339Time,
@@ -522,12 +514,13 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 					"start_time_offset_minutes": {
 						Type:     pluginsdk.TypeFloat,
 						Optional: true,
-						Computed: true,
+						Computed: !features.FourPointOhBeta(),
 					},
 
 					"expiry_time": {
-						Type:             pluginsdk.TypeString,
-						Optional:         true,
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						// NOTE: O+C API returns a default if omitted which can be updated without issue so this can remain
 						Computed:         true,
 						DiffSuppressFunc: suppress.RFC3339MinuteTime,
 						ValidateFunc:     validation.IsRFC3339Time,
@@ -536,7 +529,7 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 					"expiry_time_offset_minutes": {
 						Type:     pluginsdk.TypeFloat,
 						Optional: true,
-						Computed: true,
+						Computed: !features.FourPointOhBeta(),
 					},
 
 					"is_enabled": {
@@ -546,8 +539,9 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 					},
 
 					"next_run": {
-						Type:             pluginsdk.TypeString,
-						Optional:         true,
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						// NOTE: O+C API returns a default if omitted which  can be updated without issue so this can remain
 						Computed:         true,
 						DiffSuppressFunc: suppress.RFC3339MinuteTime,
 						ValidateFunc:     validation.IsRFC3339Time,
@@ -556,7 +550,7 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 					"next_run_offset_minutes": {
 						Type:     pluginsdk.TypeFloat,
 						Optional: true,
-						Computed: true,
+						Computed: !features.FourPointOhBeta(),
 					},
 
 					"interval": {
@@ -715,17 +709,10 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 }
 
 func (m SoftwareUpdateConfigurationResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	r := map[string]*pluginsdk.Schema{
 		"error_code": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
-		},
-
-		// TODO 4.0 remove & update docs
-		"error_meesage": {
-			Type:       pluginsdk.TypeString,
-			Computed:   true,
-			Deprecated: "`error_meesage` will be removed in favour of `error_message` in version 4.0 of the AzureRM Provider",
 		},
 
 		"error_message": {
@@ -733,6 +720,15 @@ func (m SoftwareUpdateConfigurationResource) Attributes() map[string]*pluginsdk.
 			Computed: true,
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		r["error_meesage"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeString,
+			Computed:   true,
+			Deprecated: "`error_meesage` will be removed in favour of `error_message` in version 4.0 of the AzureRM Provider",
+		}
+	}
+	return r
 }
 
 func (m SoftwareUpdateConfigurationResource) ModelObject() interface{} {
@@ -953,6 +949,10 @@ func (m SoftwareUpdateConfigurationResource) Read() sdk.ResourceFunc {
 							Parameters: pointer.From(post.Parameters),
 						}}
 					}
+				}
+
+				if errorMessage := props.Error; errorMessage != nil {
+					state.ErrorMeesage = pointer.From(errorMessage.Message)
 				}
 			}
 

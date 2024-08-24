@@ -349,32 +349,6 @@ func TestAccContainerGroup_linuxBasicUpdate(t *testing.T) {
 	})
 }
 
-func TestAccContainerGroup_exposedPortUpdate(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skipf("Skipping in 4.0 since `exposed_port` is `ForceNew` and has had `Computed` removed, Terraform should successfully be recreating the resource")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
-	r := ContainerGroupResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.exposedPort(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("exposed_port.#").HasValue("1"),
-			),
-		},
-		{
-			Config: r.exposedPortUpdated(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("container.0.ports.#").HasValue("2"),
-				check.That(data.ResourceName).Key("exposed_port.#").HasValue("2"),
-			),
-		},
-	})
-}
-
 func TestAccContainerGroup_linuxBasicTagsUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
 	r := ContainerGroupResource{}
@@ -797,6 +771,28 @@ func TestAccContainerGroup_priority(t *testing.T) {
 	})
 }
 
+func TestAccContainerGroup_updateWithStorageAccount(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	r := ContainerGroupResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.storageAccount(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("container.0.volume.0.storage_account_key"),
+		{
+			Config: r.updateWithStorageAccount(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("container.0.volume.0.storage_account_key"),
+	})
+}
+
 func (ContainerGroupResource) SystemAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -817,7 +813,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "ubuntu:20.04"
+    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -857,7 +853,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "ubuntu:20.04"
+    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -868,7 +864,7 @@ resource "azurerm_container_group" "test" {
       http_get {
         path   = "/"
         port   = 443
-        scheme = "Http"
+        scheme = "http"
         http_headers = {
           h1 = "v1"
           h2 = "v2"
@@ -908,7 +904,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "ubuntu:20.04"
+    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu    = "0.5"
     memory = "0.5"
     liveness_probe {
@@ -951,7 +947,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "ubuntu:20.04"
+    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu    = "0.5"
     memory = "0.5"
   }
@@ -987,7 +983,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "ubuntu:20.04"
+    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu    = "0.5"
     memory = "0.5"
   }
@@ -1032,7 +1028,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "ubuntu:20.04"
+    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -1101,7 +1097,7 @@ resource "azurerm_container_group" "test" {
   os_type             = "Linux"
   container {
     name   = "hw"
-    image  = "ubuntu:20.04"
+    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -1151,7 +1147,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "ubuntu:20.04"
+    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -1194,7 +1190,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "ubuntu:20.04"
+    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -1235,7 +1231,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "ubuntu:20.04"
+    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -1275,7 +1271,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "ubuntu:20.04"
+    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -1305,7 +1301,7 @@ resource "azurerm_container_group" "import" {
 
   container {
     name   = "hw"
-    image  = "ubuntu:20.04"
+    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -1341,7 +1337,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "ubuntu:20.04"
+    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -1396,7 +1392,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "ubuntu:20.04"
+    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu    = "0.5"
     memory = "0.5"
 
@@ -1452,7 +1448,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "ubuntu:20.04"
+    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -1494,7 +1490,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "ubuntu:20.04"
+    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu    = "0.5"
     memory = "0.5"
 
@@ -1513,56 +1509,6 @@ resource "azurerm_container_group" "test" {
     image  = "mcr.microsoft.com/azuredocs/aci-tutorial-sidecar"
     cpu    = "0.5"
     memory = "0.5"
-  }
-
-  tags = {
-    environment = "Testing"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func (ContainerGroupResource) exposedPortUpdated(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_container_group" "test" {
-  name                = "acctestcontainergroup-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  ip_address_type     = "Public"
-  os_type             = "Linux"
-
-  exposed_port {
-    port = 80
-  }
-
-  exposed_port {
-    port     = 5443
-    protocol = "UDP"
-  }
-
-  container {
-    name   = "hw"
-    image  = "ubuntu:20.04"
-    cpu    = "0.5"
-    memory = "0.5"
-
-    ports {
-      port = 80
-    }
-
-    ports {
-      port     = 5443
-      protocol = "UDP"
-    }
   }
 
   tags = {
@@ -1615,7 +1561,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "ubuntu:20.04"
+    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -1683,7 +1629,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "ubuntu:20.04"
+    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -1737,7 +1683,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "ubuntu:20.04"
+    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -1890,7 +1836,7 @@ resource "azurerm_container_group" "test" {
       http_get {
         path   = "/"
         port   = 443
-        scheme = "Http"
+        scheme = "http"
         http_headers = {
           h1 = "v1"
           h2 = "v2"
@@ -1985,7 +1931,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hf"
-    image  = "seanmckenna/aci-hellofiles"
+    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu    = "1"
     memory = "1.5"
 
@@ -1994,19 +1940,8 @@ resource "azurerm_container_group" "test" {
       protocol = "TCP"
     }
 
-    gpu {
-      count = 1
-      sku   = "V100"
-    }
-
     cpu_limit    = "1"
     memory_limit = "1.5"
-
-    gpu_limit {
-      count = 1
-      sku   = "V100"
-    }
-
 
     volume {
       name       = "logs"
@@ -2040,8 +1975,8 @@ resource "azurerm_container_group" "test" {
     liveness_probe {
       http_get {
         path   = "/"
-        port   = 443
-        scheme = "Http"
+        port   = 80
+        scheme = "http"
         http_headers = {
           h1 = "v1"
           h2 = "v2"
@@ -2210,7 +2145,7 @@ resource "azurerm_container_group" "test" {
       http_get {
         path   = "/"
         port   = 80
-        scheme = "Http"
+        scheme = "http"
       }
 
       initial_delay_seconds = 10
@@ -2247,7 +2182,7 @@ resource "azurerm_container_group" "test" {
 
   init_container {
     name     = "init"
-    image    = "busybox"
+    image    = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     commands = ["touch", "/sharedempty/file.txt"]
 
     volume {
@@ -2260,7 +2195,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "reader"
-    image  = "ubuntu:20.04"
+    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu    = "1"
     memory = "1.5"
 
@@ -2298,7 +2233,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name     = "writer"
-    image    = "ubuntu:20.04"
+    image    = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu      = "1"
     memory   = "1.5"
     commands = ["touch", "/sharedempty/file.txt"]
@@ -2313,7 +2248,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "reader"
-    image  = "ubuntu:20.04"
+    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu    = "1"
     memory = "1.5"
 
@@ -2351,7 +2286,7 @@ resource "azurerm_container_group" "test" {
 
   init_container {
     name     = "init"
-    image    = "busybox"
+    image    = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     commands = ["echo", "hello from init"]
     secure_environment_variables = {
       PASSWORD = "something_very_secure_for_init"
@@ -2360,7 +2295,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "ubuntu:20.04"
+    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu    = "1"
     memory = "1.5"
 
@@ -2393,7 +2328,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "ubuntu:20.04"
+    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -2458,7 +2393,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hello-world"
-    image  = "ubuntu:20.04"
+    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu    = "0.5"
     memory = "1.5"
 
@@ -2567,7 +2502,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "ubuntu:20.04"
+    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -2668,7 +2603,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "ubuntu:20.04"
+    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -2708,7 +2643,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "ubuntu:20.04"
+    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -2743,7 +2678,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "ubuntu:20.04"
+    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -2755,4 +2690,109 @@ resource "azurerm_container_group" "test" {
   priority = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, priority)
+}
+
+func (ContainerGroupResource) storageAccount(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cg-%d"
+  location = "%s"
+}
+resource "azurerm_storage_account" "test" {
+  name                     = "accsa%d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+resource "azurerm_storage_share" "test" {
+  name                 = "acctestss-%d"
+  storage_account_name = azurerm_storage_account.test.name
+  quota                = 1
+}
+resource "azurerm_container_group" "test" {
+  name                = "acctestcontainergroup-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  ip_address_type     = "Public"
+  os_type             = "Linux"
+  container {
+    name   = "hw"
+    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
+    cpu    = "1"
+    memory = "1"
+    ports {
+      port     = 443
+      protocol = "TCP"
+    }
+    volume {
+      name                 = "testvolume"
+      mount_path           = "/test"
+      share_name           = azurerm_storage_share.test.name
+      storage_account_name = azurerm_storage_account.test.name
+      storage_account_key  = azurerm_storage_account.test.primary_access_key
+    }
+  }
+  tags = {
+    environment = "Test1"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (ContainerGroupResource) updateWithStorageAccount(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cg-%d"
+  location = "%s"
+}
+resource "azurerm_storage_account" "test" {
+  name                     = "accsa%d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+resource "azurerm_storage_share" "test" {
+  name                 = "acctestss-%d"
+  storage_account_name = azurerm_storage_account.test.name
+  quota                = 1
+}
+resource "azurerm_container_group" "test" {
+  name                = "acctestcontainergroup-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  ip_address_type     = "Public"
+  os_type             = "Linux"
+  container {
+    name   = "hw"
+    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
+    cpu    = "1"
+    memory = "1"
+    ports {
+      port     = 443
+      protocol = "TCP"
+    }
+    volume {
+      name                 = "testvolume"
+      mount_path           = "/test"
+      share_name           = azurerm_storage_share.test.name
+      storage_account_name = azurerm_storage_account.test.name
+      storage_account_key  = azurerm_storage_account.test.primary_access_key
+    }
+  }
+  identity {
+    type = "SystemAssigned"
+  }
+  tags = {
+    environment = "Test2"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

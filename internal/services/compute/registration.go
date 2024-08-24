@@ -92,6 +92,9 @@ func (r Registration) Resources() []sdk.Resource {
 		VirtualMachineRunCommandResource{},
 		GalleryApplicationResource{},
 		GalleryApplicationVersionResource{},
+		RestorePointCollectionResource{},
+		VirtualMachineRestorePointCollectionResource{},
+		VirtualMachineRestorePointResource{},
 		VirtualMachineGalleryApplicationAssignmentResource{},
 	}
 }

@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -66,6 +67,7 @@ func TestAccNetworkSecurityGroup_singleRule(t *testing.T) {
 func TestAccNetworkSecurityGroup_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_security_group", "test")
 	r := NetworkSecurityGroupResource{}
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.singleRule(data),
@@ -192,6 +194,10 @@ func TestAccNetworkSecurityGroup_applicationSecurityGroup(t *testing.T) {
 }
 
 func TestAccNetworkSecurityGroup_deleteRule(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("This test can be removed since it will be a duplicate of the update test in 4.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_network_security_group", "test")
 	r := NetworkSecurityGroupResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{

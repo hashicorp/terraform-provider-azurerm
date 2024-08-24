@@ -156,5 +156,15 @@ func isServiceTagOf(stName, serviceName string) bool {
 	if len(stNameComponents) != 1 && len(stNameComponents) != 2 {
 		return false
 	}
-	return stNameComponents[0] == serviceName
+
+	// Adds support for "AzureFrontDoor.Frontend" service tag
+	serviceNameComponents := strings.Split(serviceName, ".")
+	if len(serviceNameComponents) != 1 && len(serviceNameComponents) != 2 {
+		return false
+	}
+
+	if len(serviceNameComponents) == 1 {
+		return stNameComponents[0] == serviceNameComponents[0]
+	}
+	return stNameComponents[0] == serviceNameComponents[0] && stNameComponents[1] == serviceNameComponents[1]
 }

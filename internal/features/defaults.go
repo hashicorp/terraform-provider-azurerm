@@ -36,7 +36,7 @@ func Default() UserFeatures {
 			RecoverSoftDeletedHSMKeys:        true,
 		},
 		LogAnalyticsWorkspace: LogAnalyticsWorkspaceFeatures{
-			PermanentlyDeleteOnDestroy: true,
+			PermanentlyDeleteOnDestroy: false,
 		},
 		ManagedDisk: ManagedDiskFeatures{
 			ExpandWithoutDowntime: true,

@@ -29,6 +29,8 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/availabilitysets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/dedicatedhostgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/dedicatedhosts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/restorepointcollections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/restorepoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/sshpublickeys"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachineextensions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachineimages"
@@ -61,6 +63,8 @@ type Client struct {
 	ImagesClient                                *images.ImagesClient
 	MarketplaceAgreementsClient                 *agreements.AgreementsClient
 	ProximityPlacementGroupsClient              *proximityplacementgroups.ProximityPlacementGroupsClient
+	RestorePointCollectionsClient               *restorepointcollections.RestorePointCollectionsClient
+	RestorePointsClient                         *restorepoints.RestorePointsClient
 	SkusClient                                  *skus.SkusClient
 	SSHPublicKeysClient                         *sshpublickeys.SshPublicKeysClient
 	SnapshotsClient                             *snapshots.SnapshotsClient
@@ -177,6 +181,18 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(proximityPlacementGroupsClient.Client, o.Authorizers.ResourceManager)
 
+	restorePointCollectionsClient, err := restorepointcollections.NewRestorePointCollectionsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building RestorePointCollections client: %+v", err)
+	}
+	o.Configure(restorePointCollectionsClient.Client, o.Authorizers.ResourceManager)
+
+	restorePointsClient, err := restorepoints.NewRestorePointsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building RestorePoints client: %+v", err)
+	}
+	o.Configure(restorePointsClient.Client, o.Authorizers.ResourceManager)
+
 	skusClient, err := skus.NewSkusClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Skus client: %+v", err)
@@ -261,6 +277,8 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		ImagesClient:                                imagesClient,
 		MarketplaceAgreementsClient:                 marketplaceAgreementsClient,
 		ProximityPlacementGroupsClient:              proximityPlacementGroupsClient,
+		RestorePointCollectionsClient:               restorePointCollectionsClient,
+		RestorePointsClient:                         restorePointsClient,
 		SkusClient:                                  skusClient,
 		SSHPublicKeysClient:                         sshPublicKeysClient,
 		SnapshotsClient:                             snapshotsClient,

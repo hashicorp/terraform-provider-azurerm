@@ -5,6 +5,7 @@ package tfjsonpath
 
 import (
 	"fmt"
+	"strings"
 )
 
 // Path represents exact traversal steps specifying a value inside
@@ -38,13 +39,25 @@ type Path struct {
 	steps []step
 }
 
-// New creates a new path with an initial MapStep.
-func New(name string) Path {
-	return Path{
-		steps: []step{
-			MapStep(name),
-		},
+// New creates a new path with an initial MapStep or SliceStep.
+func New[T int | string](firstStep T) Path {
+	switch t := any(firstStep).(type) {
+	case int:
+		return Path{
+			steps: []step{
+				SliceStep(t),
+			},
+		}
+	case string:
+		return Path{
+			steps: []step{
+				MapStep(t),
+			},
+		}
 	}
+
+	// Unreachable code
+	return Path{}
 }
 
 // AtSliceIndex returns a copied Path with a new SliceStep at the end.
@@ -61,6 +74,17 @@ func (s Path) AtMapKey(key string) Path {
 	return s
 }
 
+// String returns a string representation of the Path.
+func (s Path) String() string {
+	var pathStr []string
+
+	for _, step := range s.steps {
+		pathStr = append(pathStr, fmt.Sprintf("%v", step))
+	}
+
+	return strings.Join(pathStr, ".")
+}
+
 // Traverse returns the element found when traversing the given
 // object using the specified Path. The object is an unmarshalled
 // JSON object representing Terraform data.
@@ -69,34 +93,38 @@ func (s Path) AtMapKey(key string) Path {
 // is not found in the given object or if the given object does not
 // conform to format of Terraform JSON data.
 func Traverse(object any, attrPath Path) (any, error) {
-	_, ok := object.(map[string]any)
-
-	if !ok {
-		return nil, fmt.Errorf("cannot convert given object to map[string]any")
-	}
-
 	result := object
+
+	var steps []string
 
 	for _, step := range attrPath.steps {
 		switch s := step.(type) {
 		case MapStep:
+			steps = append(steps, string(s))
+
 			mapObj, ok := result.(map[string]any)
+
 			if !ok {
-				return nil, fmt.Errorf("path not found: cannot convert object at MapStep %s to map[string]any", string(s))
+				return nil, fmt.Errorf("path not found: cannot convert object at MapStep %s to map[string]any", strings.Join(steps, "."))
 			}
+
 			result, ok = mapObj[string(s)]
+
 			if !ok {
-				return nil, fmt.Errorf("path not found: specified key %s not found in map", string(s))
+				return nil, fmt.Errorf("path not found: specified key %s not found in map at %s", string(s), strings.Join(steps, "."))
 			}
 
 		case SliceStep:
+			steps = append(steps, fmt.Sprint(s))
+
 			sliceObj, ok := result.([]any)
+
 			if !ok {
-				return nil, fmt.Errorf("path not found: cannot convert object at SliceStep %d to []any", s)
+				return nil, fmt.Errorf("path not found: cannot convert object at SliceStep %s to []any", strings.Join(steps, "."))
 			}
 
 			if int(s) >= len(sliceObj) {
-				return nil, fmt.Errorf("path not found: SliceStep index %d is out of range with slice length %d", s, len(sliceObj))
+				return nil, fmt.Errorf("path not found: SliceStep index %s is out of range with slice length %d", strings.Join(steps, "."), len(sliceObj))
 			}
 
 			result = sliceObj[s]

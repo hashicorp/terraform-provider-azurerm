@@ -85,7 +85,6 @@ func resourceHDInsightSparkCluster() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				ForceNew: true,
-				Computed: true,
 			},
 
 			"disk_encryption": SchemaHDInsightsDiskEncryptionProperties(),

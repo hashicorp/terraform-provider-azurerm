@@ -17,14 +17,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceNetworkSecurityRule() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceNetworkSecurityRuleCreateUpdate,
+		Create: resourceNetworkSecurityRuleCreate,
 		Read:   resourceNetworkSecurityRuleRead,
-		Update: resourceNetworkSecurityRuleCreateUpdate,
+		Update: resourceNetworkSecurityRuleUpdate,
 		Delete: resourceNetworkSecurityRuleDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := securityrules.ParseSecurityRuleID(id)
@@ -174,25 +173,23 @@ func resourceNetworkSecurityRule() *pluginsdk.Resource {
 	}
 }
 
-func resourceNetworkSecurityRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkSecurityRuleCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SecurityRules
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := securityrules.NewSecurityRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("network_security_group_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_network_security_rule", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
+	}
+
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_network_security_rule", id.ID())
 	}
 
 	rule := securityrules.SecurityRule{
@@ -258,7 +255,7 @@ func resourceNetworkSecurityRuleCreateUpdate(d *pluginsdk.ResourceData, meta int
 		var sourceApplicationSecurityGroups []securityrules.ApplicationSecurityGroup
 		for _, v := range r.(*pluginsdk.Set).List() {
 			sg := securityrules.ApplicationSecurityGroup{
-				Id: utils.String(v.(string)),
+				Id: pointer.To(v.(string)),
 			}
 			sourceApplicationSecurityGroups = append(sourceApplicationSecurityGroups, sg)
 		}
@@ -269,7 +266,7 @@ func resourceNetworkSecurityRuleCreateUpdate(d *pluginsdk.ResourceData, meta int
 		var destinationApplicationSecurityGroups []securityrules.ApplicationSecurityGroup
 		for _, v := range r.(*pluginsdk.Set).List() {
 			sg := securityrules.ApplicationSecurityGroup{
-				Id: utils.String(v.(string)),
+				Id: pointer.To(v.(string)),
 			}
 			destinationApplicationSecurityGroups = append(destinationApplicationSecurityGroups, sg)
 		}
@@ -277,7 +274,138 @@ func resourceNetworkSecurityRuleCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, rule); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+
+	return resourceNetworkSecurityRuleRead(d, meta)
+}
+
+func resourceNetworkSecurityRuleUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.SecurityRules
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := securityrules.ParseSecurityRuleID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", id)
+	}
+
+	payload := existing.Model
+
+	if d.HasChange("description") {
+		payload.Properties.Description = pointer.To(d.Get("description").(string))
+	}
+
+	if d.HasChange("protocol") {
+		payload.Properties.Protocol = securityrules.SecurityRuleProtocol(d.Get("protocol").(string))
+	}
+
+	if d.HasChange("source_port_range") {
+		payload.Properties.SourcePortRange = pointer.To(d.Get("source_port_range").(string))
+	}
+
+	if d.HasChange("source_port_ranges") {
+		var sourcePortRanges []string
+		r := d.Get("source_port_ranges").(*pluginsdk.Set).List()
+		for _, v := range r {
+			s := v.(string)
+			sourcePortRanges = append(sourcePortRanges, s)
+		}
+		payload.Properties.SourcePortRanges = pointer.To(sourcePortRanges)
+	}
+
+	if d.HasChange("destination_port_range") {
+		payload.Properties.DestinationPortRange = pointer.To(d.Get("destination_port_range").(string))
+	}
+
+	if d.HasChange("destination_port_ranges") {
+		var destinationPortRanges []string
+		r := d.Get("destination_port_ranges").(*pluginsdk.Set).List()
+		for _, v := range r {
+			s := v.(string)
+			destinationPortRanges = append(destinationPortRanges, s)
+		}
+		payload.Properties.DestinationPortRanges = pointer.To(destinationPortRanges)
+	}
+
+	if d.HasChange("source_address_prefix") {
+		payload.Properties.SourceAddressPrefix = pointer.To(d.Get("source_address_prefix").(string))
+	}
+
+	if d.HasChange("source_address_prefixes") {
+		var sourceAddressPrefixes []string
+		r := d.Get("source_address_prefixes").(*pluginsdk.Set).List()
+		for _, v := range r {
+			s := v.(string)
+			sourceAddressPrefixes = append(sourceAddressPrefixes, s)
+		}
+		payload.Properties.SourceAddressPrefixes = pointer.To(sourceAddressPrefixes)
+	}
+
+	if d.HasChange("destination_address_prefix") {
+		payload.Properties.DestinationAddressPrefix = pointer.To(d.Get("destination_address_prefix").(string))
+	}
+
+	if d.HasChange("destination_address_prefixes") {
+		var destinationAddressPrefixes []string
+		r := d.Get("destination_address_prefixes").(*pluginsdk.Set).List()
+		for _, v := range r {
+			s := v.(string)
+			destinationAddressPrefixes = append(destinationAddressPrefixes, s)
+		}
+		payload.Properties.DestinationAddressPrefixes = pointer.To(destinationAddressPrefixes)
+	}
+
+	if d.HasChange("source_application_security_group_ids") {
+		var sourceApplicationSecurityGroups []securityrules.ApplicationSecurityGroup
+		for _, v := range d.Get("source_application_security_group_ids").(*pluginsdk.Set).List() {
+			sg := securityrules.ApplicationSecurityGroup{
+				Id: pointer.To(v.(string)),
+			}
+			sourceApplicationSecurityGroups = append(sourceApplicationSecurityGroups, sg)
+		}
+		payload.Properties.SourceApplicationSecurityGroups = pointer.To(sourceApplicationSecurityGroups)
+	}
+
+	if d.HasChange("destination_application_security_group_ids") {
+		var destinationApplicationSecurityGroups []securityrules.ApplicationSecurityGroup
+		for _, v := range d.Get("destination_application_security_group_ids").(*pluginsdk.Set).List() {
+			sg := securityrules.ApplicationSecurityGroup{
+				Id: pointer.To(v.(string)),
+			}
+			destinationApplicationSecurityGroups = append(destinationApplicationSecurityGroups, sg)
+		}
+		payload.Properties.DestinationApplicationSecurityGroups = pointer.To(destinationApplicationSecurityGroups)
+	}
+
+	if d.HasChange("access") {
+		payload.Properties.Access = securityrules.SecurityRuleAccess(d.Get("access").(string))
+	}
+
+	if d.HasChange("priority") {
+		payload.Properties.Priority = int64(d.Get("priority").(int))
+	}
+
+	if d.HasChange("direction") {
+		payload.Properties.Direction = securityrules.SecurityRuleDirection(d.Get("direction").(string))
+	}
+
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())

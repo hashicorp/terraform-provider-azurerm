@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/disks/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -22,6 +23,10 @@ import (
 type DisksPoolManagedDiskAttachmentResource struct{}
 
 func TestAccDiskPoolDiskAttachment_basic(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("Resource has been removed in 4.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_disk_pool_managed_disk_attachment", "test")
 	a := DisksPoolManagedDiskAttachmentResource{}
 	data.ResourceTest(t, a, []acceptance.TestStep{
@@ -36,6 +41,10 @@ func TestAccDiskPoolDiskAttachment_basic(t *testing.T) {
 }
 
 func TestAccDiskPoolDiskAttachment_requiresImport(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("Resource has been removed in 4.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_disk_pool_managed_disk_attachment", "test")
 	a := DisksPoolManagedDiskAttachmentResource{}
 	data.ResourceTest(t, a, []acceptance.TestStep{
@@ -51,6 +60,10 @@ func TestAccDiskPoolDiskAttachment_requiresImport(t *testing.T) {
 }
 
 func TestAccDiskPoolDiskAttachment_multipleDisks(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("Resource has been removed in 4.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_disk_pool_managed_disk_attachment", "test")
 	a := DisksPoolManagedDiskAttachmentResource{}
 	secondResourceName := "azurerm_disk_pool_managed_disk_attachment.second"
@@ -74,6 +87,10 @@ func TestAccDiskPoolDiskAttachment_multipleDisks(t *testing.T) {
 }
 
 func TestAccDiskPoolDiskAttachment_destroy(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("Resource has been removed in 4.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_disk_pool_managed_disk_attachment", "test")
 	a := DisksPoolManagedDiskAttachmentResource{}
 	data.ResourceTest(t, a, []acceptance.TestStep{
