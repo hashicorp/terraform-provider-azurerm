@@ -173,6 +173,9 @@ func (ArcKubernetesProvisionedClusterInstanceResource) Arguments() map[string]*p
 					"node_labels": {
 						Type:     pluginsdk.TypeMap,
 						Optional: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
 					},
 					"node_taints": {
 						Type:     pluginsdk.TypeList,
