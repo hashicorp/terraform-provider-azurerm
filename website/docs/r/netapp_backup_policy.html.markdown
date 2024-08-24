@@ -32,7 +32,7 @@ resource "azurerm_netapp_backup_policy" "example" {
   daily_backups_to_keep   = 2
   weekly_backups_to_keep  = 2
   monthly_backups_to_keep = 2
-  enabled = true
+  enabled                 = true
 }
 ```
 

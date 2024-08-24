@@ -18,9 +18,9 @@ Manages a NetApp Volume.
 provider "azurerm" {
   features {
     netapp {
-      prevent_volume_destruction = true
+      prevent_volume_destruction             = true
       delete_backups_on_backup_vault_destroy = false
-	  } 
+    }
   }
 }
 
@@ -73,7 +73,7 @@ resource "azurerm_netapp_backup_policy" "example" {
   daily_backups_to_keep   = 2
   weekly_backups_to_keep  = 2
   monthly_backups_to_keep = 2
-  enabled = true
+  enabled                 = true
 }
 
 resource "azurerm_netapp_pool" "example" {
