@@ -67,7 +67,10 @@ func (r Registration) DataSources() []sdk.DataSource {
 }
 
 func (r Registration) Resources() []sdk.Resource {
-	return []sdk.Resource{
-		AccountFilterResource{},
+	if !features.FourPointOhBeta() {
+		return []sdk.Resource{
+			AccountFilterResource{},
+		}
 	}
+	return []sdk.Resource{}
 }
