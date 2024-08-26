@@ -53,10 +53,6 @@ The following arguments are supported:
 
 * `maximum_throughput_units` - (Optional) Specifies the maximum number of throughput units when Auto Inflate is Enabled. Valid values range from `1` - `20`.
 
-* `zone_redundant` - (Optional) Specifies if the EventHub Namespace should be Zone Redundant (created across Availability Zones). Changing this forces a new resource to be created. Defaults to `false`.
-
-~> **Note:** For eventhub premium namespace, `zone_redundant` is computed by the api based on the availability zone feature in each region, user's input will be overridden. Please explicitly sets the property to `true` when creating the premium namespace in a region that supports availability zone since the default value is `false` in 3.0 provider.
-
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 * `network_rulesets` - (Optional) A `network_rulesets` block as defined below.
@@ -65,7 +61,7 @@ The following arguments are supported:
 
 * `public_network_access_enabled` - (Optional) Is public network access enabled for the EventHub Namespace? Defaults to `true`.
 
-* `minimum_tls_version` - (Optional) The minimum supported TLS version for this EventHub Namespace. Valid values are: `1.0`, `1.1` and `1.2`. The current default minimum TLS version is `1.2`.
+* `minimum_tls_version` - (Optional) The minimum supported TLS version for this EventHub Namespace. Valid values are: `1.0`, `1.1` and `1.2`. Defaults to `1.2`.
 
 ---
 

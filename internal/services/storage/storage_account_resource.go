@@ -209,11 +209,17 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				},
 			},
 
-			"cross_tenant_replication_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  true,
-			},
+			"cross_tenant_replication_enabled": func() *pluginsdk.Schema {
+				s := &pluginsdk.Schema{
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  false,
+				}
+				if !features.FourPointOhBeta() {
+					s.Default = true
+				}
+				return s
+			}(),
 
 			"custom_domain": {
 				Type:     pluginsdk.TypeList,
@@ -823,18 +829,11 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				Default:  false,
 			},
 
-			"large_file_share_enabled": func() *pluginsdk.Schema {
-				s := &pluginsdk.Schema{
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false, // @tombuildsstuff: this now defaults to `true` when `account_kind` is set to `FileStorage`
-				}
-				if !features.FourPointOhBeta() {
-					s.Computed = true
-					s.Default = nil
-				}
-				return s
-			}(),
+			"large_file_share_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Computed: true,
+			},
 
 			"local_user_enabled": {
 				Type:     pluginsdk.TypeBool,
@@ -1380,13 +1379,13 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	// BlobStorage does not support ZRS
 	if accountKind == storageaccounts.KindBlobStorage && string(payload.Sku.Name) == string(storageaccounts.SkuNameStandardZRS) {
-		return fmt.Errorf("a `account_replication_type` of `ZRS` isn't supported for Blob Storage accounts")
+		return fmt.Errorf("`account_replication_type` of `ZRS` isn't supported for Blob Storage accounts")
 	}
 
 	accessTier, accessTierSetInConfig := d.GetOk("access_tier")
 	_, skuTierSupported := storageKindsSupportsSkuTier[accountKind]
 	if !skuTierSupported && accessTierSetInConfig {
-		keys := sortedKeysFromSlice(storageKindsSupportHns)
+		keys := sortedKeysFromSlice(storageKindsSupportsSkuTier)
 		return fmt.Errorf("`access_tier` is only available for accounts of kind set to one of: %+v", strings.Join(keys, " / "))
 	}
 	if skuTierSupported {
@@ -1417,8 +1416,8 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	// AccountTier must be Premium for FileStorage
-	if accountKind == storageaccounts.KindFileStorage && accountTier == storageaccounts.SkuTierStandard {
-		return fmt.Errorf("a `account_tier` of `Standard` is not supported for FileStorage accounts")
+	if accountKind == storageaccounts.KindFileStorage && accountTier != storageaccounts.SkuTierPremium {
+		return fmt.Errorf("`account_tier` must be `Premium` for File Storage accounts")
 	}
 
 	// nolint staticcheck
@@ -1724,6 +1723,14 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		if err != nil {
 			return fmt.Errorf("expanding `customer_managed_key`: %+v", err)
 		}
+
+		// When updating CMK the existing value for `RequireInfrastructureEncryption` gets overwritten which results in
+		// an error from the API so we set this back into encryption after it's been overwritten by this update
+		existingEnc := existing.Model.Properties.Encryption
+		if existingEnc != nil && existingEnc.RequireInfrastructureEncryption != nil {
+			encryption.RequireInfrastructureEncryption = existingEnc.RequireInfrastructureEncryption
+		}
+
 		props.Encryption = encryption
 	}
 	if d.HasChange("shared_access_key_enabled") {
@@ -2351,12 +2358,12 @@ func flattenAccountCustomDomain(input *storageaccounts.CustomDomain) []interface
 }
 
 func expandAccountCustomerManagedKey(ctx context.Context, keyVaultClient *keyVaultClient.Client, subscriptionId string, input []interface{}, accountTier storageaccounts.SkuTier, accountKind storageaccounts.Kind, expandedIdentity identity.LegacySystemAndUserAssignedMap, queueEncryptionKeyType, tableEncryptionKeyType storageaccounts.KeyType) (*storageaccounts.Encryption, error) {
-	if accountKind != storageaccounts.KindStorageVTwo {
+	if accountKind == storageaccounts.KindStorage {
 		if queueEncryptionKeyType == storageaccounts.KeyTypeAccount {
-			return nil, fmt.Errorf("`queue_encryption_key_type = %q` can only be used with account kind `%q`", string(storageaccounts.KeyTypeAccount), string(storageaccounts.KindStorageVTwo))
+			return nil, fmt.Errorf("`queue_encryption_key_type = %q` cannot be used with account kind `%q`", string(storageaccounts.KeyTypeAccount), string(storageaccounts.KindStorage))
 		}
 		if tableEncryptionKeyType == storageaccounts.KeyTypeAccount {
-			return nil, fmt.Errorf("`table_encryption_key_type = %q` can only be used with account kind `%q`", string(storageaccounts.KeyTypeAccount), string(storageaccounts.KindStorageVTwo))
+			return nil, fmt.Errorf("`table_encryption_key_type = %q` cannot be used with account kind `%q`", string(storageaccounts.KeyTypeAccount), string(storageaccounts.KindStorage))
 		}
 	}
 	if len(input) == 0 {

@@ -51,7 +51,7 @@ The following arguments are supported:
 
 * `auto_learn_private_ranges_enabled` - (Optional) Whether enable auto learn private ip range.
 
-* `sku` - (Optional) The SKU Tier of the Firewall Policy. Possible values are `Standard`, `Premium` and `Basic`. Changing this forces a new Firewall Policy to be created.
+* `sku` - (Optional) The SKU Tier of the Firewall Policy. Possible values are `Standard`, `Premium` and `Basic`. Defaults to `Standard`. Changing this forces a new Firewall Policy to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Firewall Policy.
 

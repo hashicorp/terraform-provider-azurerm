@@ -188,13 +188,9 @@ The `email_receiver` block supports the following:
 The `event_hub_receiver` block supports the following:
 
 * `name` - (Required) The name of the EventHub Receiver, must be unique within action group.
-* `event_hub_id` - (Optional) The resource ID of the respective Event Hub.
 * `event_hub_name` - (Optional) The name of the specific Event Hub queue.
 * `event_hub_namespace` - (Optional) The namespace name of the Event Hub.
 * `subscription_id` - (Optional) The ID for the subscription containing this Event Hub. Default to the subscription ID of the Action Group.
-
-~> **NOTE:** `event_hub_id` is deprecated in version 3.0 and will be removed in version 4.0 of the AzureRM Provider. Please use `event_hub_name`, `event_hub_name`,and `subscription_id` instead. And `event_hub_name`, `event_hub_name` will be required properties in version 4.0.
-
 * `tenant_id` - (Optional) The Tenant ID for the subscription containing this Event Hub.
 * `use_common_alert_schema` - (Optional) Indicates whether to use common alert schema.
 

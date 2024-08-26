@@ -1419,8 +1419,6 @@ resource "azurerm_windows_web_app_slot" "test" {
   app_service_id = azurerm_windows_web_app.test.id
 
   site_config {
-    auto_heal_enabled = true
-
     auto_heal_setting {
       trigger {
         status_code {
@@ -1451,7 +1449,6 @@ resource "azurerm_windows_web_app_slot" "test" {
   app_service_id = azurerm_windows_web_app.test.id
 
   site_config {
-    auto_heal_enabled = true
     auto_heal_setting {
       trigger {
         slow_request {
@@ -1495,8 +1492,6 @@ resource "azurerm_windows_web_app_slot" "test" {
   app_service_id = azurerm_windows_web_app.test.id
 
   site_config {
-    auto_heal_enabled = true
-
     auto_heal_setting {
       trigger {
         status_code {
@@ -1688,7 +1683,6 @@ resource "azurerm_windows_web_app_slot" "test" {
     container_registry_managed_identity_client_id = azurerm_user_assigned_identity.test.client_id
 
     auto_swap_slot_name = "Production"
-    auto_heal_enabled   = true
 
     virtual_application {
       virtual_path  = "/"

@@ -2044,7 +2044,6 @@ resource "azurerm_linux_web_app" "test" {
     container_registry_managed_identity_client_id = azurerm_user_assigned_identity.test.client_id
 
     // auto_swap_slot_name = // TODO
-    auto_heal_enabled = true
 
     auto_heal_setting {
       trigger {
@@ -2213,8 +2212,6 @@ resource "azurerm_linux_web_app" "test" {
     }
 
     container_registry_use_managed_identity = true
-
-    auto_heal_enabled = true
 
     auto_heal_setting {
       trigger {
@@ -3334,8 +3331,6 @@ resource "azurerm_linux_web_app" "test" {
   service_plan_id     = azurerm_service_plan.test.id
 
   site_config {
-    auto_heal_enabled = true
-
     auto_heal_setting {
       trigger {
         status_code {
@@ -3370,8 +3365,6 @@ resource "azurerm_linux_web_app" "test" {
   service_plan_id     = azurerm_service_plan.test.id
 
   site_config {
-    auto_heal_enabled = true
-
     auto_heal_setting {
       trigger {
         status_code {
@@ -3411,8 +3404,6 @@ resource "azurerm_linux_web_app" "test" {
   service_plan_id     = azurerm_service_plan.test.id
 
   site_config {
-    auto_heal_enabled = true
-
     auto_heal_setting {
       trigger {
         status_code {
@@ -3447,8 +3438,6 @@ resource "azurerm_linux_web_app" "test" {
   service_plan_id     = azurerm_service_plan.test.id
 
   site_config {
-    auto_heal_enabled = true
-
     auto_heal_setting {
       trigger {
         slow_request {
@@ -3480,7 +3469,6 @@ resource "azurerm_linux_web_app" "test" {
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
   site_config {
-    auto_heal_enabled = true
     auto_heal_setting {
       trigger {
         slow_request {

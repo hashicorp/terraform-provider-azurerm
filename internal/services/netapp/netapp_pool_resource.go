@@ -77,7 +77,7 @@ func resourceNetAppPool() *pluginsdk.Resource {
 			"size_in_tb": {
 				Type:         pluginsdk.TypeInt,
 				Required:     true,
-				ValidateFunc: validation.IntBetween(2, 2048),
+				ValidateFunc: validation.IntBetween(1, 2048),
 			},
 
 			"qos_type": {

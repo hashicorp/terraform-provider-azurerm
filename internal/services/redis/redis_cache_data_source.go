@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -235,6 +236,11 @@ func dataSourceRedisCache() *pluginsdk.Resource {
 				Sensitive: true,
 			},
 
+			"access_keys_authentication_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
 			"tags": commonschema.TagsDataSource(),
 		},
 	}
@@ -343,6 +349,7 @@ func dataSourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error
 		enableSslPort := !*props.EnableNonSslPort
 		d.Set("primary_connection_string", getRedisConnectionString(*props.HostName, *props.SslPort, *keys.Model.PrimaryKey, enableSslPort))
 		d.Set("secondary_connection_string", getRedisConnectionString(*props.HostName, *props.SslPort, *keys.Model.SecondaryKey, enableSslPort))
+		d.Set("access_keys_authentication_enabled", !pointer.From(props.DisableAccessKeyAuthentication))
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return fmt.Errorf("setting `tags`: %+v", err)

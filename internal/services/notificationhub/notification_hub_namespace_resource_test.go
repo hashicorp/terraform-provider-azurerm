@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/notificationhubs/2017-04-01/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/notificationhubs/2023-09-01/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -32,7 +32,7 @@ func TestAccNotificationHubNamespace_free(t *testing.T) {
 	})
 }
 
-func TestAccNotificationHubNamespace_updateTag(t *testing.T) {
+func TestAccNotificationHubNamespace_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_notification_hub_namespace", "test")
 	r := NotificationHubNamespaceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -45,7 +45,7 @@ func TestAccNotificationHubNamespace_updateTag(t *testing.T) {
 		},
 		data.ImportStep("namespace_type"),
 		{
-			Config: r.withoutTag(data),
+			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
@@ -117,7 +117,7 @@ resource "azurerm_notification_hub_namespace" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (NotificationHubNamespaceResource) withoutTag(data acceptance.TestData) string {
+func (NotificationHubNamespaceResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -134,7 +134,7 @@ resource "azurerm_notification_hub_namespace" "test" {
   location            = azurerm_resource_group.test.location
   namespace_type      = "NotificationHub"
 
-  sku_name = "Free"
+  sku_name = "Basic"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
