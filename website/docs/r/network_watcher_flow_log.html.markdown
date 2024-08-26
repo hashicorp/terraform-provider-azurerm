@@ -85,10 +85,6 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which the Network Watcher was deployed. Changing this forces a new resource to be created.
 
-* `network_security_group_id` - (Required) The ID of the Network Security Group for which to enable flow logs for. Changing this forces a new resource to be created.
-
-~> **NOTE:** `network_security_group_id` is deprecated and will be removed in favour of the property `target_resource_id` in version 4.0 of the AzureRM Provider.
-
 * `target_resource_id` - (Required) The ID of the Resource for which to enable flow logs for. Changing this forces a new resource to be created.
 
 * `storage_account_id` - (Required) The ID of the Storage Account where flow logs are stored.

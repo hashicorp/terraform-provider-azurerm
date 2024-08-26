@@ -14,8 +14,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/flowlogs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/networkwatchers"
+
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -72,10 +74,13 @@ func resourceNetworkWatcherFlowLog() *pluginsdk.Resource {
 			},
 
 			"target_resource_id": {
-				Type:         pluginsdk.TypeString,
-				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
-				ExactlyOneOf: []string{"network_security_group_id", "target_resource_id"},
+				Type:     pluginsdk.TypeString,
+				ForceNew: true,
+				Required: true,
+				ValidateFunc: validation.Any(
+					networksecuritygroups.ValidateNetworkSecurityGroupID,
+					commonids.ValidateVirtualNetworkID,
+				),
 			},
 
 			"storage_account_id": {
@@ -171,14 +176,18 @@ func resourceNetworkWatcherFlowLog() *pluginsdk.Resource {
 		},
 	}
 
-	if !features.FivePointOh() {
+	if !features.FivePointOhBeta() {
 		resource.Schema["network_security_group_id"] = &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
+			Optional:     true,
 			ForceNew:     true,
-			ValidateFunc: azure.ValidateResourceID,
+			ValidateFunc: networksecuritygroups.ValidateNetworkSecurityGroupID,
 			Deprecated:   "The property `network_security_group_id` has been superseded by `target_resource_id` and will be removed in version 5.0 of the AzureRM Provider.",
 			ExactlyOneOf: []string{"network_security_group_id", "target_resource_id"},
 		}
+		resource.Schema["target_resource_id"].Required = false
+		resource.Schema["target_resource_id"].Optional = true
+		resource.Schema["target_resource_id"].ExactlyOneOf = []string{"network_security_group_id", "target_resource_id"}
 	}
 
 	return resource
@@ -206,16 +215,15 @@ func resourceNetworkWatcherFlowLogCreate(d *pluginsdk.ResourceData, meta interfa
 
 	targetResourceId := ""
 
-	if !features.FivePointOh() {
-		if v, ok := d.GetOk("network_security_group_id"); ok {
+	if !features.FivePointOhBeta() {
+		if v, ok := d.GetOk("network_security_group_id"); ok && v.(string) != "" {
 			targetResourceId = v.(string)
 		}
 	}
 
-	if v, ok := d.GetOk("target_resource_id"); ok {
+	if v, ok := d.GetOk("target_resource_id"); ok && v.(string) != "" {
 		targetResourceId = v.(string)
 	}
-	targetResourceId = d.Get("target_resource_id").(string)
 
 	// For newly created resources, the "name" is required, it is set as Optional and Computed is merely for the existing ones for the sake of backward compatibility.
 	if id.NetworkWatcherName == "" {
@@ -305,14 +313,12 @@ func resourceNetworkWatcherFlowLogUpdate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	payload := existing.Model
-
 	var targetResourceId string
-	if !features.FivePointOh() {
+	if !features.FivePointOhBeta() {
 		targetResourceId = d.Get("network_security_group_id").(string)
 	} else {
 		targetResourceId = d.Get("target_resource_id").(string)
 	}
-	targetResourceId = d.Get("target_resource_id").(string)
 
 	locks.ByID(targetResourceId)
 	defer locks.UnlockByID(targetResourceId)
@@ -402,11 +408,18 @@ func resourceNetworkWatcherFlowLogRead(d *pluginsdk.ResourceData, meta interface
 				d.Set("storage_account_id", props.StorageId)
 			}
 
-			if !features.FourPointOhBeta() {
-				d.Set("network_security_group_id", props.TargetResourceId)
+			targetResourceId := props.TargetResourceId
+			if nsgId, err := networksecuritygroups.ParseNetworkSecurityGroupIDInsensitively(props.TargetResourceId); err == nil {
+				targetResourceId = nsgId.ID()
+			} else if vnetId, err := commonids.ParseVirtualNetworkIDInsensitively(props.TargetResourceId); err == nil {
+				targetResourceId = vnetId.ID()
 			}
 
-			d.Set("target_resource_id", props.TargetResourceId)
+			if !features.FivePointOhBeta() {
+				d.Set("network_security_group_id", targetResourceId)
+			}
+
+			d.Set("target_resource_id", targetResourceId)
 
 			if err := d.Set("retention_policy", flattenNetworkWatcherFlowLogRetentionPolicy(props.RetentionPolicy)); err != nil {
 				return fmt.Errorf("setting `retention_policy`: %+v", err)
@@ -434,10 +447,15 @@ func resourceNetworkWatcherFlowLogDelete(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 	if resp.Model == nil || resp.Model.Properties == nil || resp.Model.Properties.TargetResourceId == "" {
-		return fmt.Errorf("retreiving %s: `properties` or `properties.TargetResourceID` was nil", id)
+		return fmt.Errorf("retrieving %s: `properties` or `properties.TargetResourceID` was nil", id)
 	}
 
 	targetResourceId := resp.Model.Properties.TargetResourceId
+	if nsgId, err := networksecuritygroups.ParseNetworkSecurityGroupIDInsensitively(resp.Model.Properties.TargetResourceId); err == nil {
+		targetResourceId = nsgId.ID()
+	} else if vnetId, err := commonids.ParseVirtualNetworkIDInsensitively(resp.Model.Properties.TargetResourceId); err == nil {
+		targetResourceId = vnetId.ID()
+	}
 
 	locks.ByID(targetResourceId)
 	defer locks.UnlockByID(targetResourceId)
