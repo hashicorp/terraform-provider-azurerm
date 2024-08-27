@@ -274,18 +274,14 @@ func resourceServiceBusTopicCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	var sku namespaces.SkuName
 	if nsModel := resp.Model; nsModel != nil {
 		sku = nsModel.Sku.Name
-	}
-
-	if sbNamespaceModel := resp.Model; sbNamespaceModel != nil {
-		if sbNamespaceModel.Properties != nil &&
-			sbNamespaceModel.Properties.PremiumMessagingPartitions != nil && *sbNamespaceModel.Properties.PremiumMessagingPartitions == 1 {
+		if props := nsModel.Properties; props != nil && props.PremiumMessagingPartitions != nil && *props.PremiumMessagingPartitions == 1 {
 			isPremiumNamespacePartitioned = false
 		}
 	}
 
 	if sku == namespaces.SkuNamePremium {
 		if isPremiumNamespacePartitioned && !enablePartitioning {
-			return fmt.Errorf("non-partitioned entities are not allowed in partitioned namespace")
+			return fmt.Errorf("topic must have `partitioning_enabled` set to `true` when the parent namespace is partitioned")
 		} else if !isPremiumNamespacePartitioned && enablePartitioning {
 			return fmt.Errorf("the parent premium namespace is not partitioned and the partitioning for premium namespace is only available at the namepsace creation")
 		}
