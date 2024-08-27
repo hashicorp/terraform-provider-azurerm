@@ -19,11 +19,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type LogAnalyticsWorkspaceTableResource struct {
-}
+type LogAnalyticsWorkspaceTableResource struct{}
 
-var _ sdk.ResourceWithUpdate = LogAnalyticsWorkspaceTableResource{}
-var _ sdk.ResourceWithCustomizeDiff = LogAnalyticsWorkspaceTableResource{}
+var (
+	_ sdk.ResourceWithUpdate        = LogAnalyticsWorkspaceTableResource{}
+	_ sdk.ResourceWithCustomizeDiff = LogAnalyticsWorkspaceTableResource{}
+)
 
 type LogAnalyticsWorkspaceTableResourceModel struct {
 	Name                 string `tfschema:"name"`
@@ -76,13 +77,13 @@ func (r LogAnalyticsWorkspaceTableResource) Arguments() map[string]*pluginsdk.Sc
 		"retention_in_days": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			ValidateFunc: validation.Any(validation.IntBetween(30, 730), validation.IntInSlice([]int{7})),
+			ValidateFunc: validation.IntBetween(4, 730),
 		},
 
 		"total_retention_in_days": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			ValidateFunc: validation.Any(validation.IntBetween(30, 4383), validation.IntInSlice([]int{7})),
+			ValidateFunc: validation.Any(validation.IntBetween(4, 730), validation.IntInSlice([]int{1095, 1460, 1826, 2191, 2556, 2922, 3288, 3653, 4018, 4383})),
 		},
 	}
 }

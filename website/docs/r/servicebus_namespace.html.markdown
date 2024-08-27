@@ -61,9 +61,7 @@ The following arguments are supported:
 
 * `public_network_access_enabled` - (Optional) Is public network access enabled for the Service Bus Namespace? Defaults to `true`.
 
-* `minimum_tls_version` - (Optional) The minimum supported TLS version for this Service Bus Namespace. Valid values are: `1.0`, `1.1` and `1.2`. The current default minimum TLS version is `1.2`.
-
-* `zone_redundant` - (Optional) Whether or not this resource is zone redundant. `sku` needs to be `Premium`. Changing this forces a new resource to be created.
+* `minimum_tls_version` - (Optional) The minimum supported TLS version for this Service Bus Namespace. Valid values are: `1.0`, `1.1` and `1.2`. Defaults to `1.2`.
 
 * `network_rule_set` - (Optional) An `network_rule_set` block as defined below.
 

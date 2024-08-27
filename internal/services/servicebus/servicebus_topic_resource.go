@@ -113,16 +113,18 @@ func resourceServiceBusTopicSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"max_message_size_in_kilobytes": {
-			Type:         pluginsdk.TypeInt,
-			Optional:     true,
-			Default:      "256",
+			Type:     pluginsdk.TypeInt,
+			Optional: true,
+			// NOTE: O+C this gets a variable default based on the sku and can be updated without issues
+			Computed:     true,
 			ValidateFunc: azValidate.ServiceBusMaxMessageSizeInKilobytes(),
 		},
 
 		"max_size_in_megabytes": {
-			Type:         pluginsdk.TypeInt,
-			Optional:     true,
-			Default:      "5120",
+			Type:     pluginsdk.TypeInt,
+			Optional: true,
+			// NOTE: O+C this gets a variable default based on the sku and can be updated without issues
+			Computed:     true,
 			ValidateFunc: azValidate.ServiceBusMaxSizeInMegabytes(),
 		},
 
@@ -163,6 +165,7 @@ func resourceServiceBusTopicSchema() map[string]*pluginsdk.Schema {
 		schema["enable_batched_operations"] = &pluginsdk.Schema{
 			Type:          pluginsdk.TypeBool,
 			Optional:      true,
+			Computed:      true,
 			ConflictsWith: []string{"batched_operations_enabled"},
 			Deprecated:    "The property `enable_batched_operations` has been superseded by `batched_operations_enabled` and will be removed in v4.0 of the AzureRM Provider.",
 		}
@@ -170,6 +173,7 @@ func resourceServiceBusTopicSchema() map[string]*pluginsdk.Schema {
 		schema["enable_express"] = &pluginsdk.Schema{
 			Type:          pluginsdk.TypeBool,
 			Optional:      true,
+			Computed:      true,
 			ConflictsWith: []string{"express_enabled"},
 			Deprecated:    "The property `enable_express` has been superseded by `express_enabled` and will be removed in v4.0 of the AzureRM Provider.",
 		}
@@ -178,22 +182,9 @@ func resourceServiceBusTopicSchema() map[string]*pluginsdk.Schema {
 			Type:          pluginsdk.TypeBool,
 			Optional:      true,
 			ForceNew:      true,
+			Computed:      true,
 			ConflictsWith: []string{"partitioning_enabled"},
 			Deprecated:    "The property `enable_partitioning` has been superseded by `partitioning_enabled` and will be removed in v4.0 of the AzureRM Provider.",
-		}
-
-		schema["max_message_size_in_kilobytes"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeInt,
-			Optional:     true,
-			Computed:     true,
-			ValidateFunc: azValidate.ServiceBusMaxMessageSizeInKilobytes(),
-		}
-
-		schema["max_size_in_megabytes"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeInt,
-			Optional:     true,
-			Computed:     true,
-			ValidateFunc: azValidate.ServiceBusMaxSizeInMegabytes(),
 		}
 	}
 
@@ -232,20 +223,16 @@ func resourceServiceBusTopicCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	enableExpress := d.Get("express_enabled").(bool)
 	enablePartitioning := d.Get("partitioning_enabled").(bool)
 	if !features.FourPointOh() {
-
-		// nolint staticcheck
-		if v, ok := d.GetOkExists("enable_batched_operations"); ok {
-			enableBatchedOperations = v.(bool)
+		if v := d.GetRawConfig().AsValueMap()["enable_batched_operations"]; !v.IsNull() {
+			enableBatchedOperations = d.Get("enable_batched_operations").(bool)
 		}
 
-		// nolint staticcheck
-		if v, ok := d.GetOkExists("enable_express"); ok {
-			enableExpress = v.(bool)
+		if v := d.GetRawConfig().AsValueMap()["enable_express"]; !v.IsNull() {
+			enableExpress = d.Get("enable_express").(bool)
 		}
 
-		// nolint staticcheck
-		if v, ok := d.GetOkExists("enable_partitioning"); ok {
-			enablePartitioning = v.(bool)
+		if v := d.GetRawConfig().AsValueMap()["enable_partitioning"]; !v.IsNull() {
+			enablePartitioning = d.Get("enable_partitioning").(bool)
 		}
 	}
 

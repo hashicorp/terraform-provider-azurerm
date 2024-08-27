@@ -11,7 +11,6 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/workspaces"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/validate"
@@ -27,7 +26,6 @@ type DataConnectorMicrosoftThreatIntelligenceModel struct {
 	Name                                    string `tfschema:"name"`
 	WorkspaceId                             string `tfschema:"log_analytics_workspace_id"`
 	TenantId                                string `tfschema:"tenant_id"`
-	BingSafetyPhishingUrlLookBackDate       string `tfschema:"bing_safety_phishing_url_lookback_date"`
 	MicrosoftEmergingThreatFeedLookBackDate string `tfschema:"microsoft_emerging_threat_feed_lookback_date"`
 }
 
@@ -37,7 +35,7 @@ type DataConnectorMicrosoftThreatIntelligenceDataType struct {
 }
 
 func (s DataConnectorMicrosoftThreatIntelligenceResource) Arguments() map[string]*schema.Schema {
-	res := map[string]*schema.Schema{
+	return map[string]*schema.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -64,32 +62,10 @@ func (s DataConnectorMicrosoftThreatIntelligenceResource) Arguments() map[string
 		"microsoft_emerging_threat_feed_lookback_date": {
 			Type:         pluginsdk.TypeString,
 			ForceNew:     true,
-			Optional:     !features.FourPointOh(),
-			Required:     features.FourPointOh(),
+			Required:     true,
 			ValidateFunc: validation.IsRFC3339Time,
-			AtLeastOneOf: func() []string {
-				if !features.FourPointOh() {
-					return []string{"bing_safety_phishing_url_lookback_date", "microsoft_emerging_threat_feed_lookback_date"}
-				}
-				return []string{}
-			}(),
 		},
 	}
-
-	if !features.FourPointOh() {
-		// this has been removed in newer API version, and it's actually not working in current API version
-		// TODO Remove in 4.0
-		res["bing_safety_phishing_url_lookback_date"] = &schema.Schema{
-			Deprecated:   "This field is deprecated and will be removed in version 4.0 of the AzureRM Provider.",
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.IsRFC3339Time,
-			AtLeastOneOf: []string{"bing_safety_phishing_url_lookback_date", "microsoft_emerging_threat_feed_lookback_date"},
-		}
-	}
-
-	return res
 }
 
 func (s DataConnectorMicrosoftThreatIntelligenceResource) Attributes() map[string]*schema.Schema {
@@ -140,7 +116,6 @@ func (s DataConnectorMicrosoftThreatIntelligenceResource) Create() sdk.ResourceF
 				Kind: securityinsight.KindBasicDataConnectorKindMicrosoftThreatIntelligence,
 				MSTIDataConnectorProperties: &securityinsight.MSTIDataConnectorProperties{
 					DataTypes: &securityinsight.MSTIDataConnectorDataTypes{
-						BingSafetyPhishingURL:       expandSentinelDataConnectorMicrosoftThreatIntelligenceBingSafetyPhishingUrl(metaModel),
 						MicrosoftEmergingThreatFeed: expandSentinelDataConnectorMicrosoftThreatIntelligenceMicrosoftEmergingThreatFeed(metaModel),
 					},
 					TenantID: &tenantId,
@@ -193,14 +168,6 @@ func (s DataConnectorMicrosoftThreatIntelligenceResource) Read() sdk.ResourceFun
 			}
 
 			if dt := dc.DataTypes; dt != nil {
-				if dt.BingSafetyPhishingURL != nil {
-					if strings.EqualFold(string(dt.BingSafetyPhishingURL.State), string(securityinsight.DataTypeStateEnabled)) {
-						state.BingSafetyPhishingUrlLookBackDate, err = flattenSentinelDataConnectorMicrosoftThreatIntelligenceTime(*dt.BingSafetyPhishingURL.LookbackPeriod)
-						if err != nil {
-							return fmt.Errorf("flattening `bing_safety_phishing_url`: %+v", err)
-						}
-					}
-				}
 				if dt.MicrosoftEmergingThreatFeed != nil {
 					if strings.EqualFold(string(dt.MicrosoftEmergingThreatFeed.State), string(securityinsight.DataTypeStateEnabled)) {
 						state.MicrosoftEmergingThreatFeedLookBackDate, err = flattenSentinelDataConnectorMicrosoftThreatIntelligenceTime(*dt.MicrosoftEmergingThreatFeed.LookbackPeriod)
@@ -238,20 +205,6 @@ func (s DataConnectorMicrosoftThreatIntelligenceResource) Delete() sdk.ResourceF
 
 func (s DataConnectorMicrosoftThreatIntelligenceResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return validate.DataConnectorID
-}
-
-func expandSentinelDataConnectorMicrosoftThreatIntelligenceBingSafetyPhishingUrl(input DataConnectorMicrosoftThreatIntelligenceModel) *securityinsight.MSTIDataConnectorDataTypesBingSafetyPhishingURL {
-	if input.BingSafetyPhishingUrlLookBackDate == "" {
-		return &securityinsight.MSTIDataConnectorDataTypesBingSafetyPhishingURL{
-			LookbackPeriod: utils.String(""),
-			State:          securityinsight.DataTypeStateDisabled,
-		}
-	}
-
-	return &securityinsight.MSTIDataConnectorDataTypesBingSafetyPhishingURL{
-		LookbackPeriod: utils.String(input.BingSafetyPhishingUrlLookBackDate),
-		State:          securityinsight.DataTypeStateEnabled,
-	}
 }
 
 func expandSentinelDataConnectorMicrosoftThreatIntelligenceMicrosoftEmergingThreatFeed(input DataConnectorMicrosoftThreatIntelligenceModel) *securityinsight.MSTIDataConnectorDataTypesMicrosoftEmergingThreatFeed {

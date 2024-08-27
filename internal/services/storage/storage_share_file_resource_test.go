@@ -349,7 +349,8 @@ resource "azurerm_storage_share_file" "test" {
   name             = "test"
   storage_share_id = azurerm_storage_share.test.id
 
-  source = "%s"
+  source      = "%[2]s"
+  content_md5 = filemd5(%[2]q)
 
   metadata = {
     hello = "world"

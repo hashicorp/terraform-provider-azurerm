@@ -4,6 +4,7 @@
 package labservice
 
 import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -24,12 +25,15 @@ func (r Registration) DataSources() []sdk.DataSource {
 }
 
 func (r Registration) Resources() []sdk.Resource {
-	return []sdk.Resource{
-		LabServiceLabResource{},
-		LabServicePlanResource{},
-		LabServiceScheduleResource{},
-		LabServiceUserResource{},
+	if !features.FourPointOhBeta() {
+		return []sdk.Resource{
+			LabServiceLabResource{},
+			LabServicePlanResource{},
+			LabServiceScheduleResource{},
+			LabServiceUserResource{},
+		}
 	}
+	return []sdk.Resource{}
 }
 
 // Name is the name of this Service

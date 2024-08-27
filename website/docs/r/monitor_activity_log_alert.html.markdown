@@ -40,6 +40,7 @@ resource "azurerm_storage_account" "to_monitor" {
 resource "azurerm_monitor_activity_log_alert" "main" {
   name                = "example-activitylogalert"
   resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
   scopes              = [azurerm_resource_group.example.id]
   description         = "This alert will monitor a specific storage account updates."
 
@@ -65,7 +66,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the activity log alert. Changing this forces a new resource to be created.
 * `resource_group_name` - (Required) The name of the resource group in which to create the activity log alert instance. Changing this forces a new resource to be created.
-* `location` - (Optional) The Azure Region where the activity log alert rule should exist. Changing this forces a new resource to be created. Defaults to `global`.
+* `location` - (Required) The Azure Region where the activity log alert rule should exist. Changing this forces a new resource to be created.
 * `scopes` - (Required) The Scope at which the Activity Log should be applied. A list of strings which could be a resource group , or a subscription, or a resource ID (such as a Storage Account).
 * `criteria` - (Required) A `criteria` block as defined below.
 * `action` - (Optional) One or more `action` blocks as defined below.

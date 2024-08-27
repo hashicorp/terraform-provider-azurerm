@@ -155,15 +155,13 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-~> **NOTE:** Azure does not allow a downgrade from `standard` to `free`.
-
 * `encryption` - (Optional) An `encryption` block as defined below.
 
 * `local_auth_enabled` - (Optional) Whether local authentication methods is enabled. Defaults to `true`.
 
 * `public_network_access` - (Optional) The Public Network Access setting of the App Configuration. Possible values are `Enabled` and `Disabled`.
 
-~> **NOTE:** If `public_network_access` is not specified, the App Configuration will be created as  `Automatic`. However, once a different value is defined, can not be set again as automatic.
+~> **Note:** If `public_network_access` is not specified, the App Configuration will be created as  `Automatic`. However, once a different value is defined, can not be set again as automatic.
 
 * `purge_protection_enabled` - (Optional) Whether Purge Protection is enabled. This field only works for `standard` sku. Defaults to `false`.
 
@@ -172,6 +170,8 @@ The following arguments are supported:
 * `replica` - (Optional) One or more `replica` blocks as defined below.
 
 * `sku` - (Optional) The SKU name of the App Configuration. Possible values are `free` and `standard`. Defaults to `free`.
+
+~> **Note:** Azure does not allow a downgrade from `standard` to `free`.
 
 * `soft_delete_retention_days` - (Optional) The number of days that items should be retained for once soft-deleted. This field only works for `standard` sku. This value can be between `1` and `7` days. Defaults to `7`. Changing this forces a new resource to be created.
 
@@ -195,7 +195,7 @@ An `identity` block supports the following:
 
 * `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this App Configuration.
 
-~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+~> **Note:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 

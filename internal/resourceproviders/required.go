@@ -3,6 +3,11 @@
 
 package resourceproviders
 
+import (
+	"fmt"
+	"strings"
+)
+
 // This file contains sets of resource providers which the provider should automatically register, depending on
 // configuration by the user. Historically, we have ordained the same set of RPs for all users, and users could
 // enable or disable automatic registration of the RPs in that set.
@@ -15,6 +20,14 @@ package resourceproviders
 // Official Docs: https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/azure-services-resource-providers
 
 type ResourceProviders map[string]struct{}
+
+const (
+	ProviderRegistrationsNone     = "none"
+	ProviderRegistrationsLegacy   = "legacy"
+	ProviderRegistrationsCore     = "core"
+	ProviderRegistrationsExtended = "extended"
+	ProviderRegistrationsAll      = "all"
+)
 
 func (r ResourceProviders) Add(providers ...string) {
 	for _, p := range providers {
@@ -101,6 +114,7 @@ func All() ResourceProviders {
 		"Microsoft.BotService":              {},
 		"Microsoft.CognitiveServices":       {},
 		"Microsoft.CustomProviders":         {},
+		"Microsoft.Dashboard":               {},
 		"Microsoft.DesktopVirtualization":   {},
 		"Microsoft.GuestConfiguration":      {},
 		"Microsoft.HealthcareApis":          {},
@@ -109,6 +123,7 @@ func All() ResourceProviders {
 		"Microsoft.ManagedServices":         {},
 		"Microsoft.Maps":                    {},
 		"Microsoft.MixedReality":            {},
+		"Microsoft.Monitor":                 {},
 		"Microsoft.PolicyInsights":          {},
 		"Microsoft.RecoveryServices":        {},
 		"Microsoft.Search":                  {},
@@ -188,4 +203,22 @@ func Legacy() ResourceProviders {
 		"Microsoft.Web":                     {},
 		"microsoft.insights":                {},
 	}
+}
+
+func GetResourceProvidersSet(input string) (ResourceProviders, error) {
+	empty := make(ResourceProviders)
+	switch strings.ToLower(input) {
+	case ProviderRegistrationsLegacy:
+		return Legacy(), nil
+	case ProviderRegistrationsCore:
+		return Core(), nil
+	case ProviderRegistrationsAll:
+		return All(), nil
+	case ProviderRegistrationsExtended:
+		return Extended(), nil
+	case ProviderRegistrationsNone:
+		return empty, nil
+	}
+
+	return empty, fmt.Errorf("unsupported value %q for provider property `resource_provider_registrations`", input)
 }

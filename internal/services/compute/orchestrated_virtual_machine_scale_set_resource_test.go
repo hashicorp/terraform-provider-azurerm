@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -1948,6 +1949,7 @@ resource "azurerm_public_ip" "gwtest" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Dynamic"
+  sku                 = "Basic"
 }
 
 resource "azurerm_application_gateway" "test" {
@@ -2030,13 +2032,19 @@ resource "azurerm_application_gateway" "test" {
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) natgateway_template(data acceptance.TestData) string {
+	// NOTE: In v4.0 the 'azurerm_public_ip' resources 'sku' field will default to 'Standard' instead of 'Basic'...
+	publicIpSku := "Standard"
+	if !features.FourPointOhBeta() {
+		publicIpSku = "Basic"
+	}
+
 	return fmt.Sprintf(`
 resource "azurerm_public_ip" "test" {
   name                = "acctpip-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
-  sku                 = "Standard"
+  sku                 = "%[2]s"
 }
 
 resource "azurerm_virtual_network" "test" {
@@ -2070,7 +2078,7 @@ resource "azurerm_subnet_nat_gateway_association" "example" {
   subnet_id      = azurerm_subnet.test.id
   nat_gateway_id = azurerm_nat_gateway.test.id
 }
-`, data.RandomInteger)
+`, data.RandomInteger, publicIpSku)
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) priorityMixPolicy(data acceptance.TestData) string {

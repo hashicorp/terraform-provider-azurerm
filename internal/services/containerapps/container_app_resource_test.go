@@ -2650,8 +2650,6 @@ resource "azurerm_container_registry" "test" {
   location            = azurerm_resource_group.test.location
   sku                 = "Basic"
   admin_enabled       = true
-
-  network_rule_set = []
 }
 
 resource "azurerm_storage_account" "test" {
@@ -2694,8 +2692,6 @@ resource "azurerm_container_registry" "test" {
   location            = azurerm_resource_group.test.location
   sku                 = "Basic"
   admin_enabled       = true
-
-  network_rule_set = []
 }
 
 resource "azurerm_storage_share" "test" {

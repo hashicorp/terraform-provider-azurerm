@@ -911,15 +911,19 @@ func resourceVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface{}) e
 
 	virtualMachine, err := client.Get(ctx, *id, virtualmachines.DefaultGetOperationOptions())
 	if err != nil {
-		return fmt.Errorf("retrieving %s: %+v", id, err)
+		if !response.WasNotFound(virtualMachine.HttpResponse) {
+			return fmt.Errorf("retrieving %s: %+v", id, err)
+		}
 	}
 
-	// @tombuildsstuff: sending `nil` here omits this value from being sent - which matches
-	// the previous behaviour - we're only splitting this out so it's clear why
-	opts := virtualmachines.DefaultDeleteOperationOptions()
-	opts.ForceDeletion = nil
-	if err := client.DeleteThenPoll(ctx, *id, opts); err != nil {
-		return fmt.Errorf("deleting %s: %+v", id, err)
+	if !response.WasNotFound(virtualMachine.HttpResponse) {
+		// @tombuildsstuff: sending `nil` here omits this value from being sent - which matches
+		// the previous behaviour - we're only splitting this out so it's clear why
+		opts := virtualmachines.DefaultDeleteOperationOptions()
+		opts.ForceDeletion = nil
+		if err := client.DeleteThenPoll(ctx, *id, opts); err != nil {
+			return fmt.Errorf("deleting %s: %+v", id, err)
+		}
 	}
 
 	// delete OS Disk if opted in
