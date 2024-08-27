@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/localusers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	computevalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -93,7 +92,7 @@ func (r LocalUserResource) Arguments() map[string]*pluginsdk.Schema {
 					"key": {
 						Type:             pluginsdk.TypeString,
 						Required:         true,
-						ValidateFunc:     computevalidate.SSHKey,
+						ValidateFunc:     validate.SSHKey,
 						DiffSuppressFunc: suppress.SSHKey,
 					},
 					"description": {
