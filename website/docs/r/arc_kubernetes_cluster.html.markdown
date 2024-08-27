@@ -88,7 +88,7 @@ The following arguments are supported:
 
 ~> **NOTE** `aad_profile` can only be specified if `kind` is `ProvisionedCluster`.
 
-* `arc_agent_auto_upgrade_enabled` - (Optional) Whether the Arc agents will be upgraded automatically to the latest version. Possible values are `true` and `false`. Defaults to `true`.
+* `arc_agent_auto_upgrade_enabled` - (Optional) Whether the Arc agents will be upgraded automatically to the latest version. Defaults to `true`.
 
 * `arc_agent_desired_version` - (Optional) The version of the Arc agents to be installed on the cluster.
 
@@ -98,7 +98,7 @@ The following arguments are supported:
 
 * `azure_hybrid_benefit` - (Optional) Indicates whether Azure Hybrid Benefit is opted in. Possible values are `True`, `False` and `NotApplicable`. Defaults to `NotApplicable`.
 
-* `kind` - (Optional) The kind of the Arc Kubernetes Cluster based on host infrastructure. Possible value is `ProvisionedCluster`.
+* `kind` - (Optional) The kind of the Arc Kubernetes Cluster based on host infrastructure. The only possible value is `ProvisionedCluster`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Arc Kubernetes Cluster.
 
