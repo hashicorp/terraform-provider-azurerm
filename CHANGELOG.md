@@ -1,3 +1,9 @@
+## 4.1.0 (Unreleased)
+
+BUG FIXES:
+
+* `azurerm_cosmosdb_account` - the `ip_range_filter` property now supports IPV4 addresses [GH-27208]
+
 ## 4.0.1 (August 23, 2024)
 
 BUG FIXES:
