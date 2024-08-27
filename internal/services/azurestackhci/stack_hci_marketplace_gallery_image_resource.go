@@ -81,6 +81,16 @@ func (StackHCIMarketplaceGalleryImageResource) Arguments() map[string]*pluginsdk
 			ValidateFunc: customlocations.ValidateCustomLocationID,
 		},
 
+		"hyperv_generation": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(marketplacegalleryimages.HyperVGenerationVOne),
+				string(marketplacegalleryimages.HyperVGenerationVTwo),
+			}, false),
+		},
+
 		"identifier": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
@@ -138,16 +148,6 @@ func (StackHCIMarketplaceGalleryImageResource) Arguments() map[string]*pluginsdk
 			}, false),
 		},
 
-		"hyperv_generation": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(marketplacegalleryimages.HyperVGenerationVOne),
-				string(marketplacegalleryimages.HyperVGenerationVTwo),
-			}, false),
-		},
-
 		"storage_path_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -165,7 +165,7 @@ func (StackHCIMarketplaceGalleryImageResource) Attributes() map[string]*pluginsd
 
 func (r StackHCIMarketplaceGalleryImageResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 2 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AzureStackHCI.MarketplaceGalleryImages
 

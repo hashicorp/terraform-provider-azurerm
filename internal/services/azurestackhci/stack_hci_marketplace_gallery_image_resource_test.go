@@ -64,7 +64,7 @@ func TestAccStackHCIMarketplaceGalleryImage_update(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -78,7 +78,7 @@ func TestAccStackHCIMarketplaceGalleryImage_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.basic(data),
+			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -135,8 +135,9 @@ resource "azurerm_stack_hci_marketplace_gallery_image" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   custom_location_id  = %q
-  os_type = "Windows"
-  version = "20348.2113.231109"
+  hyperv_generation   = "V2"
+  os_type             = "Windows"
+  version             = "20348.2655.240810"
   identifier {
     publisher = "MicrosoftWindowsServer"
     offer     = "WindowsServer"
@@ -159,6 +160,14 @@ resource "azurerm_stack_hci_marketplace_gallery_image" "import" {
   resource_group_name = azurerm_stack_hci_marketplace_gallery_image.test.resource_group_name
   location            = azurerm_stack_hci_marketplace_gallery_image.test.location
   custom_location_id  = azurerm_stack_hci_marketplace_gallery_image.test.custom_location_id
+  hyperv_generation   = azurerm_stack_hci_marketplace_gallery_image.test.hyperv_generation
+  os_type             = azurerm_stack_hci_marketplace_gallery_image.test.os_type
+  version             = azurerm_stack_hci_marketplace_gallery_image.test.version
+  identifier {
+    publisher = azurerm_stack_hci_marketplace_gallery_image.test.identifier.0.publisher
+    offer     = azurerm_stack_hci_marketplace_gallery_image.test.identifier.0.offer
+    sku       = azurerm_stack_hci_marketplace_gallery_image.test.identifier.0.sku
+  }
 }
 `, config)
 }
@@ -166,7 +175,7 @@ resource "azurerm_stack_hci_marketplace_gallery_image" "import" {
 func (r StackHCIMarketplaceGalleryImageResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 provider "azurerm" {
   features {}
@@ -177,58 +186,69 @@ resource "azurerm_stack_hci_marketplace_gallery_image" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   custom_location_id  = %q
-
+  hyperv_generation   = "V2"
+  os_type             = "Windows"
+  version             = "20348.2655.240810"
+  identifier {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2022-datacenter-azure-edition"
+  }
   tags = {
     foo = "bar"
   }
 }
-`, template, os.Getenv(customLocationIdEnv))
+`, template, data.RandomString, os.Getenv(customLocationIdEnv))
 }
 
 func (r StackHCIMarketplaceGalleryImageResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_stack_hci_marketplace_gallery_image" "test" {
-  name                = "acctest-ln-${var.random_string}"
+  name                = "acctest-mgi-%[2]s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  custom_location_id  = %q
-
+  custom_location_id  = %[3]q
+  hyperv_generation   = "V2"
+  os_type             = "Windows"
+  version             = "20348.2655.240810"
+  identifier {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2022-datacenter-azure-edition"
+  }
   tags = {
     foo = "bar"
     env = "test"
   }
 }
-`, template, os.Getenv(customLocationIdEnv))
+`, template, data.RandomString, os.Getenv(customLocationIdEnv))
 }
 
 func (r StackHCIMarketplaceGalleryImageResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-variable "primary_location" {
-  default = %q
-}
-
-variable "random_string" {
-  default = %q
-}
-
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-hci-mgi-${var.random_string}"
-  location = var.primary_location
+  name     = "acctest-hci-mgi-%s"
+  location = "%s"
 }
 
 data "azurerm_client_config" "test" {}
 
+// service principal of 'Microsoft.AzureStackHCI Resource Provider'
+data "azuread_service_principal" "hciRp" {
+  client_id = "1412d89f-b8a8-4111-b4fd-e82905cbd85d"
+}
+
 resource "azurerm_role_assignment" "test" {
   scope                = azurerm_resource_group.test.id
   role_definition_name = "Azure Connected Machine Resource Manager"
-  principal_id         = data.azurerm_client_config.test.object_id
+  principal_id         = data.azuread_service_principal.hciRp.object_id
 }
-`, data.Locations.Primary, data.RandomString)
+`, data.RandomString, data.Locations.Primary)
 }
