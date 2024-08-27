@@ -112,7 +112,7 @@ An `authentication` block supports the following:
 
 ---
 
-* `scope` - (Optional) Connection scope in source service.
+* `scope` - (Optional) Connection scope in source service. It's namespace name if source is AKS cluster, container name if source is Container app.
 
 * `configuration` - (Optional) The connection information consumed by applications, including secrets, connection strings. A `configuration` block as defined below.
 
