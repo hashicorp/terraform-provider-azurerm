@@ -8,7 +8,6 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -57,7 +56,7 @@ func resourceArcKubernetesCluster() *pluginsdk.Resource {
 
 			"agent_public_key_certificate": {
 				Type:         pluginsdk.TypeString,
-				Optional:     true,
+				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: azValidate.Base64EncodedString,
 			},
@@ -65,16 +64,6 @@ func resourceArcKubernetesCluster() *pluginsdk.Resource {
 			"identity": commonschema.SystemAssignedIdentityRequiredForceNew(),
 
 			"location": commonschema.Location(),
-
-			"kind": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				ForceNew:      true,
-				ConflictsWith: []string{"agent_public_key_certificate"},
-				ValidateFunc: validation.StringInSlice([]string{
-					string(arckubernetes.ConnectedClusterKindProvisionedCluster),
-				}, false),
-			},
 
 			"agent_version": {
 				Type:     pluginsdk.TypeString,
@@ -149,9 +138,6 @@ func resourceArcKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interfac
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
-	if kindVal := d.Get("kind").(string); kindVal != "" {
-		props.Kind = pointer.To(arckubernetes.ConnectedClusterKind(kindVal))
-	}
 
 	if err := client.ConnectedClusterCreateThenPoll(ctx, id, props); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
@@ -187,7 +173,6 @@ func resourceArcKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{
 		if err := d.Set("identity", identity.FlattenSystemAssigned(&model.Identity)); err != nil {
 			return fmt.Errorf("setting `identity`: %+v", err)
 		}
-		d.Set("kind", string(pointer.From(model.Kind)))
 		d.Set("location", location.Normalize(model.Location))
 		props := model.Properties
 		d.Set("agent_public_key_certificate", props.AgentPublicKeyCertificate)
