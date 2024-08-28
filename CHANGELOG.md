@@ -3,6 +3,7 @@
 BUG FIXES:
 
 * `azurerm_cosmosdb_account` - the `ip_range_filter` property now supports IPV4 addresses [GH-27208]
+* `azurerm_linux_virtual_machine` - the `admin_ssh_key.public_key` property now supports ed25519 ssh keys [GH-27202]
 
 ## 4.0.1 (August 23, 2024)
 
