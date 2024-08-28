@@ -79,9 +79,6 @@ func autoHealSettingSchemaWindows() *pluginsdk.Schema {
 				"action": autoHealActionSchemaWindows(),
 			},
 		},
-		RequiredWith: []string{
-			"site_config.0.auto_heal_enabled",
-		},
 	}
 }
 
@@ -218,7 +215,7 @@ func autoHealTriggerSchemaWindows() *pluginsdk.Schema {
 				},
 
 				"status_code": {
-					Type:     pluginsdk.TypeList,
+					Type:     pluginsdk.TypeSet,
 					Optional: true,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
@@ -388,7 +385,7 @@ func autoHealTriggerSchemaWindowsComputed() *pluginsdk.Schema {
 				},
 
 				"status_code": {
-					Type:     pluginsdk.TypeList,
+					Type:     pluginsdk.TypeSet,
 					Computed: true,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{

@@ -859,6 +859,24 @@ func (r ImageResource) standaloneImageEncrypt(data acceptance.TestData) string {
   }`
 	}
 
+	dataDisk := `
+  data_disk {
+    blob_uri               = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
+    size_gb                = 30
+    caching                = "None"
+    disk_encryption_set_id = azurerm_disk_encryption_set.test.id
+    storage_type           = "StandardSSD_LRS"
+    }`
+	if !features.FourPointOhBeta() {
+		dataDisk = `
+    data_disk {
+      blob_uri               = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
+      size_gb                = 30
+      caching                = "None"
+      disk_encryption_set_id = azurerm_disk_encryption_set.test.id
+  }`
+	}
+
 	return fmt.Sprintf(`
 %[1]s
 
@@ -872,7 +890,6 @@ resource "azurerm_key_vault" "test" {
   sku_name                    = "standard"
   purge_protection_enabled    = true
   enabled_for_disk_encryption = true
-
 }
 
 resource "azurerm_key_vault_access_policy" "service-principal" {
@@ -952,12 +969,14 @@ resource "azurerm_image" "test" {
 
   %[4]s
 
+  %[5]s
+
   tags = {
     environment = "Dev"
     cost-center = "Ops"
   }
 }
-`, template, data.RandomInteger, data.RandomString, osDisk)
+`, template, data.RandomInteger, data.RandomString, osDisk, dataDisk)
 }
 
 func (ImageResource) template(data acceptance.TestData) string {

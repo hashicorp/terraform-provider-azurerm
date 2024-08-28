@@ -364,9 +364,7 @@ The following arguments are supported:
 
 -> **NOTE:** The `admin_enabled` should be `true` in order to associate the Container Registry to this Machine Learning Workspace.
 
-* `public_access_behind_virtual_network_enabled` - (Optional) Enable public access when this Machine Learning Workspace is behind a VNet. Changing this forces a new resource to be created.
-
-* `public_network_access_enabled` - (Optional) Enable public access when this Machine Learning Workspace is behind VNet.
+* `public_network_access_enabled` - (Optional) Enable public access when this Machine Learning Workspace is behind VNet. Defaults to `true`.
 
 ~> **NOTE:** `public_access_behind_virtual_network_enabled` is deprecated and will be removed in favour of the property `public_network_access_enabled`.
 

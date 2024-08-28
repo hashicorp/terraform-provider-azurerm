@@ -334,7 +334,7 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							Computed:     true,
-							ValidateFunc: validation.IntAtLeast(1024),
+							ValidateFunc: validation.IntBetween(0, 2147483647),
 						},
 
 						"sa_lifetime": {

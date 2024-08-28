@@ -300,7 +300,17 @@ func resourceStorageShareFileRead(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 	d.Set("content_type", props.ContentType)
 	d.Set("content_encoding", props.ContentEncoding)
-	d.Set("content_md5", props.ContentMD5)
+
+	// Set the ContentMD5 value to md5 hash in hex
+	contentMD5 := ""
+	if props.ContentMD5 != "" {
+		contentMD5, err = convertBase64ToHexEncoding(props.ContentMD5)
+		if err != nil {
+			return fmt.Errorf("converting hex to base64 encoding for content_md5: %v", err)
+		}
+	}
+	d.Set("content_md5", contentMD5)
+
 	d.Set("content_disposition", props.ContentDisposition)
 
 	if props.ContentLength == nil {
