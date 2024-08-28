@@ -63,6 +63,21 @@ func TestAccLocalUser_sshKeyOnly(t *testing.T) {
 	})
 }
 
+func TestAccLocalUser_sshKeyED25519(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account_local_user", "test")
+	r := LocalUserResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.sshKeyED25519(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("ssh_authorized_key"),
+	})
+}
+
 func TestAccLocalUser_passwordAndSSHKey(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_local_user", "test")
 	r := LocalUserResource{}
@@ -211,6 +226,23 @@ resource "azurerm_storage_account_local_user" "test" {
   ssh_authorized_key {
     description = "key1"
     key         = local.first_public_key
+  }
+}
+`, template)
+}
+
+func (r LocalUserResource) sshKeyED25519(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_account_local_user" "test" {
+  name               = "user"
+  storage_account_id = azurerm_storage_account.test.id
+  ssh_key_enabled    = true
+  ssh_authorized_key {
+    description = "key1"
+    key         = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINreJb2zmSALgQUjzq/vKsf05fp5kM0ZGl8YDsP1FdWc"
   }
 }
 `, template)
