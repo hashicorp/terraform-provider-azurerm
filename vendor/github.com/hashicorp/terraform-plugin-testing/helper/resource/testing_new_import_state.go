@@ -264,13 +264,16 @@ func testStepNewImportState(ctx context.Context, t testing.T, helper *plugintest
 
 			// Remove fields we're ignoring
 			for _, v := range step.ImportStateVerifyIgnore {
+				fmt.Printf("ImportStateVerifyIgnore name: %s", v)
 				for k := range actual {
 					if strings.HasPrefix(k, v) {
+						fmt.Printf("ImportStateVerifyIgnore name: %s deleted in actual", v)
 						delete(actual, k)
 					}
 				}
 				for k := range expected {
 					if strings.HasPrefix(k, v) {
+						fmt.Printf("ImportStateVerifyIgnore name: %s deleted in actual", v)
 						delete(expected, k)
 					}
 				}
