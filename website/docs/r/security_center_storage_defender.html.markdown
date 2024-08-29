@@ -44,6 +44,8 @@ The following arguments are supported:
 
 * `malware_scanning_on_upload_cap_gb_per_month` - (Optional) The max GB to be scanned per Month. Must be `-1` or above `0`. Omit this property or set to `-1` if no capping is needed. Defaults to `-1`.
 
+* `scan_results_event_grid_topic_id` - (Optional) The Event Grid Topic where every scan result will be sent to. When you set an Event Grid custom topic, you must set `override_subscription_settings_enabled` to `true` to override the subscription-level settings.
+
 * `sensitive_data_discovery_enabled` - (Optional) Whether Sensitive Data Discovery should be enabled. Defaults to `false`.
  
 ## Attributes Reference

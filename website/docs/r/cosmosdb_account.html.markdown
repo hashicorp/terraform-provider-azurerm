@@ -136,7 +136,7 @@ The following arguments are supported:
 
 * `geo_location` - (Required) Specifies a `geo_location` resource, used to define where data should be replicated with the `failover_priority` 0 specifying the primary location. Value is a `geo_location` block as defined below.
 
-* `ip_range_filter` - (Optional) CosmosDB Firewall Support: This value specifies the set of IP addresses or IP address ranges in CIDR form to be included as the allowed list of client IPs for a given database account. IP addresses/ranges must be comma separated and must not contain any spaces.
+* `ip_range_filter` - (Optional) A set of IP addresses or IP address ranges in CIDR form to be included as the allowed list of client IPs for a given database account. For example `["55.0.1.0/24", "55.0.2.0/24"]`.
 
 ~> **Note:** To enable the "Allow access from the Azure portal" behavior, you should add the IP addresses provided by the [documentation](https://docs.microsoft.com/azure/cosmos-db/how-to-configure-firewall#allow-requests-from-the-azure-portal) to this list.
 
@@ -149,6 +149,8 @@ The following arguments are supported:
 * `automatic_failover_enabled` - (Optional) Enable automatic failover for this Cosmos DB account.
 
 * `partition_merge_enabled` - (Optional) Is partition merge on the Cosmos DB account enabled? Defaults to `false`.
+
+* `burst_capacity_enabled` - (Optional) Enable burst capacity for this Cosmos DB account. Defaults to `false`.
 
 * `public_network_access_enabled` - (Optional) Whether or not public network access is allowed for this CosmosDB account. Defaults to `true`.
 

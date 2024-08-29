@@ -19,8 +19,8 @@ import (
 
 func dataSourceAppServiceEnvironment() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceAppServiceEnvironmentRead,
-
+		Read:               dataSourceAppServiceEnvironmentRead,
+		DeprecationMessage: "This data source is deprecated due to the [retirement of v1 and v2 App Service Environments](https://azure.microsoft.com/en-gb/updates/app-service-environment-v1-and-v2-retirement-announcement/) and will be removed inv4.0 of the provider. Please use `azurerm_app_service_environment_v3` instead.",
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},

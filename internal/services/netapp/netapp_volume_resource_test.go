@@ -1027,10 +1027,6 @@ resource "azurerm_virtual_network" "updated" {
     "CreatedOnDate"    = "2022-07-08T23:50:21Z",
     "SkipASMAzSecPack" = "true"
   }
-
-  lifecycle {
-    ignore_changes = ["subnet"]
-  }
 }
 
 resource "azurerm_subnet" "updated" {
@@ -1196,10 +1192,6 @@ resource "azurerm_virtual_network" "test" {
     "CreatedOnDate"    = "2022-07-08T23:50:21Z",
     "SkipASMAzSecPack" = "true"
   }
-
-  lifecycle {
-    ignore_changes = ["subnet"]
-  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -1290,10 +1282,6 @@ resource "azurerm_virtual_network" "test" {
     "CreatedOnDate"    = "2022-07-08T23:50:21Z",
     "SkipASMAzSecPack" = "true"
   }
-
-  lifecycle {
-    ignore_changes = ["subnet"]
-  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -1351,10 +1339,6 @@ resource "azurerm_virtual_network" "test" {
   tags = {
     "CreatedOnDate"    = "2022-07-08T23:50:21Z",
     "SkipASMAzSecPack" = "true"
-  }
-
-  lifecycle {
-    ignore_changes = ["subnet"]
   }
 }
 

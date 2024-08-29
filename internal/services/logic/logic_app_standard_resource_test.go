@@ -851,6 +851,22 @@ func TestAccLogicAppStandard_dotnetVersion6(t *testing.T) {
 	})
 }
 
+func TestAccLogicAppStandard_dotnetVersion8(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	r := LogicAppStandardResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dotnetVersion(data, "~4", "v8.0"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.dotnet_framework_version").HasValue("v8.0"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccLogicAppStandard_vNetIntegration(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
 	r := LogicAppStandardResource{}
@@ -1620,10 +1636,6 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-
-  lifecycle {
-    ignore_changes = [subnet]
-  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -1688,8 +1700,7 @@ resource "azurerm_logic_app_standard" "test" {
 }
 
 func (r LogicAppStandardResource) ipRestrictionRemoved(data acceptance.TestData) string {
-	if !features.FourPointOhBeta() {
-		return fmt.Sprintf(`
+	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -1707,25 +1718,6 @@ resource "azurerm_logic_app_standard" "test" {
   site_config {
     ip_restriction = []
   }
-}
-`, r.template(data), data.RandomInteger)
-	}
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_logic_app_standard" "test" {
-  name                       = "acctest-%d-func"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
-
-  site_config {}
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -1805,8 +1797,7 @@ resource "azurerm_logic_app_standard" "test" {
 }
 
 func (r LogicAppStandardResource) unsetScmIpRestriction(data acceptance.TestData) string {
-	if !features.FourPointOhBeta() {
-		return fmt.Sprintf(`
+	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -1824,25 +1815,6 @@ resource "azurerm_logic_app_standard" "test" {
   site_config {
     scm_ip_restriction = []
   }
-}
-`, r.template(data), data.RandomInteger)
-	}
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_logic_app_standard" "test" {
-  name                       = "acctest-%d-func"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
-
-  site_config {}
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -2101,10 +2073,6 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-
-  lifecycle {
-    ignore_changes = [subnet]
-  }
 }
 
 resource "azurerm_subnet" "test1" {
@@ -2186,10 +2154,6 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-
-  lifecycle {
-    ignore_changes = [subnet]
-  }
 }
 
 resource "azurerm_subnet" "test1" {
@@ -2272,10 +2236,6 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-
-  lifecycle {
-    ignore_changes = [subnet]
-  }
 }
 
 resource "azurerm_subnet" "test1" {

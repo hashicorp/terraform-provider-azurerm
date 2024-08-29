@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-09-02-preview/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-05-01/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -321,14 +321,6 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 							Computed: true,
 						},
 					},
-				},
-			},
-
-			"custom_ca_trust_certificates_base64": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
 				},
 			},
 
@@ -654,10 +646,6 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeBool,
 							Computed: true,
 						},
-						"disk_driver_version": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
 						"file_driver_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Computed: true,
@@ -745,6 +733,21 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 			Computed:   true,
 			Deprecated: "This property is deprecated and will be removed in v4.0 of the AzureRM Provider in favour of the `node_public_ip_enabled` property.",
 		}
+		resource.Schema["storage_profile"].Elem.(*pluginsdk.Resource).Schema["disk_driver_version"] = &pluginsdk.Schema{
+			Deprecated: "This property is not available in the stable API and will be removed in v4.0 of the Azure Provider. Please see https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/4.0-upgrade-guide#aks-migration-to-stable-api for more details.",
+			Type:       pluginsdk.TypeString,
+			Computed:   true,
+		}
+
+		resource.Schema["custom_ca_trust_certificates_base64"] = &pluginsdk.Schema{
+			Deprecated: "This property is not available in the stable API and will be removed in v4.0 of the Azure Provider. Please see https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/4.0-upgrade-guide#aks-migration-to-stable-api for more details.",
+			Type:       pluginsdk.TypeList,
+			Computed:   true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		}
+
 		resource.Schema["azure_active_directory_role_based_access_control"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeList,
 			Computed: true,
@@ -863,11 +866,6 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 			azureKeyVaultKms := flattenKubernetesClusterDataSourceKeyVaultKms(props.SecurityProfile)
 			if err := d.Set("key_management_service", azureKeyVaultKms); err != nil {
 				return fmt.Errorf("setting `key_management_service`: %+v", err)
-			}
-
-			customCaTrustCertList := flattenCustomCaTrustCerts(props.SecurityProfile)
-			if err := d.Set("custom_ca_trust_certificates_base64", customCaTrustCertList); err != nil {
-				return fmt.Errorf("setting `custom_ca_trust_certificates_base64`: %+v", err)
 			}
 
 			serviceMeshProfile := flattenKubernetesClusterAzureServiceMeshProfile(props.ServiceMeshProfile)
@@ -1018,11 +1016,6 @@ func flattenKubernetesClusterDataSourceStorageProfile(input *managedclusters.Man
 			diskEnabled = *input.DiskCSIDriver.Enabled
 		}
 
-		diskVersion := ""
-		if input.DiskCSIDriver != nil && input.DiskCSIDriver.Version != nil {
-			diskVersion = *input.DiskCSIDriver.Version
-		}
-
 		fileEnabled := true
 		if input.FileCSIDriver != nil && input.FileCSIDriver.Enabled != nil {
 			fileEnabled = *input.FileCSIDriver.Enabled
@@ -1036,7 +1029,6 @@ func flattenKubernetesClusterDataSourceStorageProfile(input *managedclusters.Man
 		storageProfile = append(storageProfile, map[string]interface{}{
 			"blob_driver_enabled":         blobEnabled,
 			"disk_driver_enabled":         diskEnabled,
-			"disk_driver_version":         diskVersion,
 			"file_driver_enabled":         fileEnabled,
 			"snapshot_controller_enabled": snapshotController,
 		})
@@ -1568,18 +1560,4 @@ func flattenKubernetesClusterDataSourceUpgradeSettings(input *managedclusters.Ag
 	}
 
 	return []interface{}{values}
-}
-
-func flattenCustomCaTrustCerts(input *managedclusters.ManagedClusterSecurityProfile) []interface{} {
-	if input == nil || input.CustomCATrustCertificates == nil {
-		return make([]interface{}, 0)
-	}
-
-	customCaTrustCertInterface := make([]interface{}, len(*input.CustomCATrustCertificates))
-
-	for index, value := range *input.CustomCATrustCertificates {
-		customCaTrustCertInterface[index] = value
-	}
-
-	return customCaTrustCertInterface
 }

@@ -263,10 +263,6 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-
-  lifecycle {
-    ignore_changes = [subnet]
-  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -290,6 +286,7 @@ resource "azurerm_nginx_deployment" "test" {
   name                = "acctest-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "standard_Monthly"
+  capacity            = 10
   location            = azurerm_resource_group.test.location
 
   diagnose_support_enabled = false
@@ -301,6 +298,7 @@ resource "azurerm_nginx_deployment" "test" {
   network_interface {
     subnet_id = azurerm_subnet.test.id
   }
+
   tags = {
     foo = "bar"
   }

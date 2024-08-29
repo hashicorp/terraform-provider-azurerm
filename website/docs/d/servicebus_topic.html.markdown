@@ -29,12 +29,6 @@ The following arguments are supported:
 
 * `name` - (Required) The name of this Service Bus Topic.
 
-* `namespace_name` - (Required) The name of the Service Bus Namespace.
-
-* `resource_group_name` - (Required) The name of the Resource Group where the Service Bus Topic exists.
-
-~> **Note:** `namespace_name` and `resource_group_name` has been deprecated and will be removed in version 4.0 of the provider in favour of `namespace_id`.
-
 * `namespace_id` - (Required) The ID of the ServiceBus Namespace where the Service Bus Topic exists.
 
 ## Attributes Reference

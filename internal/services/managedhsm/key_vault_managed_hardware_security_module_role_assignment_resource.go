@@ -36,7 +36,7 @@ type KeyVaultManagedHSMRoleAssignmentModel struct {
 	ResourceId       string `tfschema:"resource_id"`
 
 	// TODO: remove in v4.0
-	VaultBaseUrl string `tfschema:"vault_base_url"`
+	VaultBaseUrl string `tfschema:"vault_base_url,removedInNextMajorVersion"`
 }
 
 var _ sdk.ResourceWithStateMigration = KeyVaultManagedHSMRoleAssignmentResource{}
@@ -159,14 +159,14 @@ func (r KeyVaultManagedHSMRoleAssignmentResource) Create() sdk.ResourceFunc {
 				}
 				endpoint, err = parse.ManagedHSMEndpoint(*baseUri, domainSuffix)
 				if err != nil {
-					return fmt.Errorf("parsing the Data Plane Endpoint %q: %+v", *endpoint, err)
+					return fmt.Errorf("parsing the Data Plane Endpoint %q: %+v", pointer.From(endpoint), err)
 				}
 			}
 
 			if managedHsmId == nil && !features.FourPointOhBeta() {
 				endpoint, err = parse.ManagedHSMEndpoint(config.VaultBaseUrl, domainSuffix)
 				if err != nil {
-					return fmt.Errorf("parsing the Data Plane Endpoint %q: %+v", *endpoint, err)
+					return fmt.Errorf("parsing the Data Plane Endpoint %q: %+v", pointer.From(endpoint), err)
 				}
 				subscriptionId := commonids.NewSubscriptionID(metadata.Client.Account.SubscriptionId)
 				managedHsmId, err = metadata.Client.ManagedHSMs.ManagedHSMIDFromBaseUrl(ctx, subscriptionId, endpoint.BaseURI(), domainSuffix)

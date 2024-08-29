@@ -168,9 +168,10 @@ func resourceBatchPool() *pluginsdk.Resource {
 							AtLeastOneOf: []string{"container_configuration.0.type", "container_configuration.0.container_image_names", "container_configuration.0.container_registries"},
 						},
 						"container_registries": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							ForceNew: true,
+							Type:       pluginsdk.TypeList,
+							Optional:   true,
+							ForceNew:   true,
+							ConfigMode: pluginsdk.SchemaConfigModeAttr,
 							Elem: &pluginsdk.Resource{
 								Schema: containerRegistry(),
 							},

@@ -41,11 +41,13 @@ func (td TestData) DataSourceTestInSequence(t *testing.T, steps []TestStep) {
 	td.runAcceptanceSequentialTest(t, testCase)
 }
 
-var refreshStep = TestStep{
-	RefreshState: true,
-}
-
 func (td TestData) ResourceTest(t *testing.T, testResource types.TestResource, steps []TestStep) {
+	// Testing framework as of 1.6.0 no longer auto-refreshes state, so adding it back in here for all steps that update
+	// the config rather than having to modify 1000's of tests individually to add a refresh-only step
+	var refreshStep = TestStep{
+		RefreshState: true,
+	}
+
 	newSteps := make([]TestStep, 0)
 	for _, step := range steps {
 		if !step.ImportState {

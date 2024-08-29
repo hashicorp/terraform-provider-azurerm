@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2023-04-15/cosmosdb"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-05-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -1293,6 +1293,30 @@ func TestAccCosmosDBAccount_localAuthenticationDisabled(t *testing.T) {
 	})
 }
 
+func TestAccCosmosDBAccount_updateBurstCapacity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	r := CosmosDBAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, cosmosdb.DefaultConsistencyLevelEventual),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("burst_capacity_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicWithBurstCapacityEnabled(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, cosmosdb.DefaultConsistencyLevelEventual),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("burst_capacity_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccCosmosDBAccount_defaultCreateMode(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
@@ -1697,10 +1721,6 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   dns_servers         = ["10.0.0.4", "10.0.0.5"]
-
-  lifecycle {
-    ignore_changes = ["subnet"]
-  }
 }
 
 resource "azurerm_subnet" "subnet1" {
@@ -2496,10 +2516,6 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   dns_servers         = ["10.0.0.4", "10.0.0.5"]
-
-  lifecycle {
-    ignore_changes = ["subnet"]
-  }
 }
 
 resource "azurerm_subnet" "subnet1" {
@@ -3793,12 +3809,6 @@ resource "azurerm_cosmosdb_account" "test" {
     location          = azurerm_resource_group.test.location
     failover_priority = 0
   }
-
-  lifecycle {
-    ignore_changes = [
-      capabilities
-    ]
-  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(consistency))
 }
@@ -3869,13 +3879,6 @@ resource "azurerm_cosmosdb_account" "test" {
     location          = azurerm_resource_group.test.location
     failover_priority = 0
   }
-
-  lifecycle {
-    ignore_changes = [
-      capabilities
-    ]
-  }
-
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(consistency))
 }
@@ -3923,10 +3926,6 @@ resource "azurerm_cosmosdb_account" "test" {
     name = "EnableTtlOnCustomPath"
   }
 
-  capabilities {
-    name = "EnablePartialUniqueIndex"
-  }
-
   consistency_policy {
     consistency_level = "%s"
   }
@@ -3934,12 +3933,6 @@ resource "azurerm_cosmosdb_account" "test" {
   geo_location {
     location          = azurerm_resource_group.test.location
     failover_priority = 0
-  }
-
-  lifecycle {
-    ignore_changes = [
-      capabilities
-    ]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(consistency))
@@ -3976,12 +3969,6 @@ resource "azurerm_cosmosdb_account" "test" {
     location          = azurerm_resource_group.test.location
     failover_priority = 0
   }
-
-  lifecycle {
-    ignore_changes = [
-      capabilities
-    ]
-  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(consistency))
 }
@@ -4014,6 +4001,38 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 
   local_authentication_disabled = true
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
+}
+
+func (CosmosDBAccountResource) basicWithBurstCapacityEnabled(data acceptance.TestData, kind cosmosdb.DatabaseAccountKind, consistency cosmosdb.DefaultConsistencyLevel) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cosmos-%d"
+  location = "%s"
+}
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-ca-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "%s"
+
+  consistency_policy {
+    consistency_level = "%s"
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+
+  burst_capacity_enabled = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
 }
@@ -4621,7 +4640,7 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 
   is_virtual_network_filter_enabled = true
-  ip_range_filter                   = ["55.0.1.0/24", "55.0.2.0/24"]
+  ip_range_filter                   = ["55.0.1.0/24", "55.0.2.0/24", "0.0.0.0"]
 
   virtual_network_rule {
     id                                   = azurerm_subnet.subnet1.id

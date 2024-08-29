@@ -32,7 +32,9 @@ func TestAccStreamAnalyticsJobSchedule_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		// todo framework
+		// `last_output_time` has different values between refresh steps so we'll ignore it until framework goes in
+		data.ImportStep("last_output_time"),
 	})
 }
 
@@ -47,7 +49,9 @@ func TestAccStreamAnalyticsJobSchedule_customTime(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		// todo framework
+		// `last_output_time` has different values between refresh steps so we'll ignore it until framework goes in
+		data.ImportStep("last_output_time"),
 	})
 }
 
@@ -62,14 +66,18 @@ func TestAccStreamAnalyticsJobSchedule_lastOutputEventTime(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		// todo framework
+		// `last_output_time` has different values between refresh steps so we'll ignore it until framework goes in
+		data.ImportStep("last_output_time"),
 		{
 			Config: r.lastOutputEventTime(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		// todo framework
+		// `last_output_time` has different values between refresh steps so we'll ignore it until framework goes in
+		data.ImportStep("last_output_time"),
 	})
 }
 

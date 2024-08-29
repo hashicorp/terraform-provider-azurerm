@@ -786,26 +786,6 @@ resource "azurerm_virtual_network" "test" {
 }
 
 func (VirtualNetworkResource) noSubnet(data acceptance.TestData) string {
-	if !features.FourPointOhBeta() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestvirtnet%[1]d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  subnet              = []
-}
-`, data.RandomInteger, data.Locations.Primary)
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -827,6 +807,7 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  subnet              = []
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -1030,7 +1011,6 @@ resource "azurerm_virtual_network" "test" {
     private_link_service_network_policies_enabled = true
     private_endpoint_network_policies             = "Enabled"
     service_endpoints                             = ["Microsoft.Storage"]
-    service_endpoint_policy_ids                   = [azurerm_subnet_service_endpoint_storage_policy.test.id]
 
     delegation {
       name = "first"
