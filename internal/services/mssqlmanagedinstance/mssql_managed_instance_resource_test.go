@@ -1642,11 +1642,11 @@ resource "azurerm_mssql_managed_instance" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
-  license_type           = "BasePrice"
-  sku_name               = "GP_Gen5"
-  storage_size_in_gb     = 32
-  subnet_id              = azurerm_subnet.test.id
-  vcores                 = 4
+  license_type       = "BasePrice"
+  sku_name           = "GP_Gen5"
+  storage_size_in_gb = 32
+  subnet_id          = azurerm_subnet.test.id
+  vcores             = 4
 
   administrator_login          = "missadministrator"
   administrator_login_password = "NCC-1701-D"
