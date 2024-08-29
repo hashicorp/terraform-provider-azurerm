@@ -512,10 +512,10 @@ resource "azurerm_kubernetes_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   default_node_pool {
-    name                   = "default"
-    node_count             = 1
-    vm_size                = "Standard_DS2_v2"
-    enable_host_encryption = true
+    name                    = "default"
+    node_count              = 1
+    vm_size                 = "Standard_DS2_v2"
+    host_encryption_enabled = true
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -632,7 +632,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     temporary_name_for_rotation = "temp"
     node_count                  = 1
     vm_size                     = "%s"
-    enable_host_encryption      = false
+    host_encryption_enabled     = false
     upgrade_settings {
       max_surge = "10%%"
     }

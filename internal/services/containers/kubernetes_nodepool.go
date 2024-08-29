@@ -1212,7 +1212,7 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 	if !features.FourPointOh() {
 		hostEncryption = raw["enable_host_encryption"].(bool)
 	} else {
-		nodePublicIp = raw["host_encryption_enabled"].(bool)
+		hostEncryption = raw["host_encryption_enabled"].(bool)
 	}
 
 	profile := managedclusters.ManagedClusterAgentPoolProfile{
