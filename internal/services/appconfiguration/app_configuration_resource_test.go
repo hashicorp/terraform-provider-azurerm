@@ -256,7 +256,7 @@ func TestAccAppConfiguration_replicaUpdate(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.complete(data),
+			Config: r.standard(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
