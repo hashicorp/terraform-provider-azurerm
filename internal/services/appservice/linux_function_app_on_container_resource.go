@@ -3,7 +3,6 @@ package appservice
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"strconv"
 	"strings"
 	"time"
@@ -12,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2024-03-01/managedenvironments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
@@ -231,7 +231,7 @@ func (r LinuxFunctionAppOnContainerResource) Create() sdk.ResourceFunc {
 				storageString = fmt.Sprintf(helpers.StorageStringFmt, linuxFunctionAppOnContainer.StorageAccountName, linuxFunctionAppOnContainer.StorageAccountKey, *storageDomainSuffix)
 			}
 
-			siteConfig, err := helpers.ExpandSiteConfigLinuxFunctionAppOnContainer(linuxFunctionAppOnContainer.SiteConfig, nil, metadata, linuxFunctionAppOnContainer.Registries[0], linuxFunctionAppOnContainer.FunctionExtensionsVersion, storageString)
+			siteConfig := helpers.ExpandSiteConfigLinuxFunctionAppOnContainer(linuxFunctionAppOnContainer.SiteConfig, nil, metadata, linuxFunctionAppOnContainer.Registries[0], linuxFunctionAppOnContainer.FunctionExtensionsVersion, storageString)
 			siteConfig.LinuxFxVersion = helpers.EncodeLinuxFunctionAppOnContainerRegistryImage(linuxFunctionAppOnContainer.Registries, linuxFunctionAppOnContainer.ContainerImage)
 
 			expandedIdentity, err := identity.ExpandSystemAndUserAssignedMapFromModel(linuxFunctionAppOnContainer.Identity)
@@ -256,8 +256,8 @@ func (r LinuxFunctionAppOnContainerResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating Linux Function On Container %s: %+v", id, err)
 			}
 
-			//the create api is a LRO with the polling status returned as 200 + object body, this is not regarded as a succeeded poll by current sdk
-			//issue: https://github.com/hashicorp/go-azure-sdk/issues/957
+			// the create api is a LRO with the polling status returned as 200 + object body, this is not regarded as a succeeded poll by current sdk
+			// issue: https://github.com/hashicorp/go-azure-sdk/issues/957
 			stateConf := &pluginsdk.StateChangeConf{
 				Delay:                     5 * time.Minute,
 				Pending:                   []string{"204"},
@@ -417,7 +417,7 @@ func (r LinuxFunctionAppOnContainerResource) Update() sdk.ResourceFunc {
 				storageString = fmt.Sprintf(helpers.StorageStringFmt, state.StorageAccountName, state.StorageAccountKey, *storageDomainSuffix)
 			}
 
-			siteConfig, err := helpers.ExpandSiteConfigLinuxFunctionAppOnContainer(state.SiteConfig, model.Properties.SiteConfig, metadata, state.Registries[0], state.FunctionExtensionsVersion, storageString)
+			siteConfig := helpers.ExpandSiteConfigLinuxFunctionAppOnContainer(state.SiteConfig, model.Properties.SiteConfig, metadata, state.Registries[0], state.FunctionExtensionsVersion, storageString)
 			if metadata.ResourceData.HasChange("site_config") {
 				model.Properties.SiteConfig = siteConfig
 			}
