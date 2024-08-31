@@ -148,14 +148,14 @@ func ExpandSiteConfigLinuxFunctionAppOnContainer(siteConfig []SiteConfigLinuxFun
 	return expanded
 }
 
-func FlattenSiteConfigLinuxFunctionAppOnContainer(functionAppOnContainer *webapps.SiteConfig) (*SiteConfigLinuxFunctionAppOnContainer, error) {
+func FlattenSiteConfigLinuxFunctionAppOnContainer(functionAppOnContainer *webapps.SiteConfig) *SiteConfigLinuxFunctionAppOnContainer {
 	result := &SiteConfigLinuxFunctionAppOnContainer{
 		ElasticInstanceMinimum: pointer.From(functionAppOnContainer.MinimumElasticInstanceCount),
 		AppScaleLimit:          pointer.From(functionAppOnContainer.FunctionAppScaleLimit),
 		LinuxFxVersion:         pointer.From(functionAppOnContainer.LinuxFxVersion),
 	}
 
-	return result, nil
+	return result
 }
 
 func EncodeLinuxFunctionAppOnContainerRegistryImage(input []Registry, image string) *string {

@@ -224,11 +224,9 @@ func (r LinuxFunctionAppOnContainerResource) Create() sdk.ResourceFunc {
 			}
 
 			// storage using MSI is currently not supported in function on container.
-			storageString := linuxFunctionAppOnContainer.StorageAccountName
+			storageString := fmt.Sprintf(helpers.StorageStringFmt, linuxFunctionAppOnContainer.StorageAccountName, linuxFunctionAppOnContainer.StorageAccountKey, *storageDomainSuffix)
 			if linuxFunctionAppOnContainer.StorageKeyVaultSecretID != "" {
 				storageString = fmt.Sprintf(helpers.StorageStringFmtKV, linuxFunctionAppOnContainer.StorageKeyVaultSecretID)
-			} else {
-				storageString = fmt.Sprintf(helpers.StorageStringFmt, linuxFunctionAppOnContainer.StorageAccountName, linuxFunctionAppOnContainer.StorageAccountKey, *storageDomainSuffix)
 			}
 
 			siteConfig := helpers.ExpandSiteConfigLinuxFunctionAppOnContainer(linuxFunctionAppOnContainer.SiteConfig, nil, metadata, linuxFunctionAppOnContainer.Registries[0], linuxFunctionAppOnContainer.FunctionExtensionsVersion, storageString)
@@ -330,7 +328,7 @@ func (r LinuxFunctionAppOnContainerResource) Read() sdk.ResourceFunc {
 
 					if configRespModel := configResp.Model; configRespModel != nil && configRespModel.Properties != nil {
 						state.Identity = pointer.From(flattenedIdentity)
-						siteConfig, err := helpers.FlattenSiteConfigLinuxFunctionAppOnContainer(configRespModel.Properties)
+						siteConfig := helpers.FlattenSiteConfigLinuxFunctionAppOnContainer(configRespModel.Properties)
 						state.SiteConfig = []helpers.SiteConfigLinuxFunctionAppOnContainer{*siteConfig}
 						state.ContainerImage, state.Registries, err = helpers.DecodeLinuxFunctionAppOnContainerRegistryImage(configRespModel.Properties.LinuxFxVersion, appSettingsResp.Model)
 						if err != nil {
@@ -410,11 +408,9 @@ func (r LinuxFunctionAppOnContainerResource) Update() sdk.ResourceFunc {
 			model.Properties.State = nil
 			model.Properties.ResourceConfig = nil
 
-			storageString := state.StorageAccountName
+			storageString := fmt.Sprintf(helpers.StorageStringFmt, state.StorageAccountName, state.StorageAccountKey, *storageDomainSuffix)
 			if state.StorageKeyVaultSecretID != "" {
 				storageString = fmt.Sprintf(helpers.StorageStringFmtKV, state.StorageKeyVaultSecretID)
-			} else {
-				storageString = fmt.Sprintf(helpers.StorageStringFmt, state.StorageAccountName, state.StorageAccountKey, *storageDomainSuffix)
 			}
 
 			siteConfig := helpers.ExpandSiteConfigLinuxFunctionAppOnContainer(state.SiteConfig, model.Properties.SiteConfig, metadata, state.Registries[0], state.FunctionExtensionsVersion, storageString)
