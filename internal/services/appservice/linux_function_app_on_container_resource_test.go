@@ -79,7 +79,7 @@ func (r LinuxFunctionAppOnContainerResource) Exists(ctx context.Context, client 
 func (r LinuxFunctionAppOnContainerResource) basicDocker(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features{}
+  features {}
 }
 
 %s
@@ -115,7 +115,7 @@ resource "azurerm_linux_function_app_on_container" "test" {
 func (r LinuxFunctionAppOnContainerResource) basicMCR(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features{}
+  features {}
 }
 
 %s
@@ -152,7 +152,7 @@ resource "azurerm_linux_function_app_on_container" "test" {
 func (r LinuxFunctionAppOnContainerResource) basicMcrUpdateAppSetting(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features{}
+  features {}
 }
 
 %s
