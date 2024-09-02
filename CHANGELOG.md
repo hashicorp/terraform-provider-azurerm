@@ -8,6 +8,7 @@ BUG FIXES:
 ENHANCEMENTS:
 
 * `azurerm_*_virtual_machine_scale_set` - upgrade api version from `2024-03-01` to `2024-07-01` [GH-27230]
+* `azurerm_api_management_logger` - support for the `application_insights.connection_string` property [GH-27137]
 
 ## 4.0.1 (August 23, 2024)
 
