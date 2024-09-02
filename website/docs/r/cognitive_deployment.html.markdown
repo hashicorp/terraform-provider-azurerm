@@ -36,7 +36,7 @@ resource "azurerm_cognitive_deployment" "example" {
   }
 
   sku {
-    type = "Standard"
+    name = "Standard"
   }
 }
 
