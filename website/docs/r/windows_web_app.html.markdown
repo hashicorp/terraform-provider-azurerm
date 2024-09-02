@@ -175,6 +175,8 @@ ASP.NET V4.8 | v4.0
 
 * `dotnet_core_version` - (Optional) The version of .NET to use when `current_stack` is set to `dotnetcore`. Possible values include `v4.0`.
 
+~> **NOTE:** `dotnet_core_version` has been deprecated in favour of `dotnet_version`.
+
 * `tomcat_version` - (Optional) The version of Tomcat the Java App should use. Conflicts with `java_embedded_server_enabled`
 
 ~> **NOTE:** See the official documentation for current supported versions.  Some example valuess include: `10.0`, `10.0.20`.
