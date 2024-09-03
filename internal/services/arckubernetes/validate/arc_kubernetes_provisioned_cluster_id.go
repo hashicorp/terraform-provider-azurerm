@@ -11,14 +11,14 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/arckubernetes/parse"
 )
 
-func ArcKubernetesProvisionedClusterInstanceID(input interface{}, key string) (warnings []string, errors []error) {
+func ArcKubernetesProvisionedClusterID(input interface{}, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
 		return
 	}
 
-	if _, err := parse.ArcKubernetesProvisionedClusterInstanceID(v); err != nil {
+	if _, err := parse.ArcKubernetesProvisionedClusterID(v); err != nil {
 		errors = append(errors, err)
 	}
 

@@ -22,18 +22,18 @@ const (
 	customLocationIdEnv = "ARM_TEST_STACK_HCI_CUSTOM_LOCATION_ID"
 )
 
-type ArcKubernetesProvisionedClusterInstanceResource struct{}
+type ArcKubernetesProvisionedClusterResource struct{}
 
-func TestAccArcKubernetesProvisionedClusterInstance(t *testing.T) {
+func TestAccArcKubernetesProvisionedCluster(t *testing.T) {
 	// NOTE: this is a combined test rather than separate split out tests due to
 	// the test environment network limitation
 	// (which our test suite can't easily work around)
 
 	testCases := map[string]func(t *testing.T){
-		"basic":          testAccArcKubernetesProvisionedClusterInstance_basic,
-		"complete":       testAccArcKubernetesProvisionedClusterInstance_complete,
-		"update":         testAccArcKubernetesProvisionedClusterInstance_update,
-		"requiresImport": testAccArcKubernetesProvisionedClusterInstance_requiresImport,
+		"basic":          testAccArcKubernetesProvisionedCluster_basic,
+		"complete":       testAccArcKubernetesProvisionedCluster_complete,
+		"update":         testAccArcKubernetesProvisionedCluster_update,
+		"requiresImport": testAccArcKubernetesProvisionedCluster_requiresImport,
 	}
 	for name, m := range testCases {
 		t.Run(name, func(t *testing.T) {
@@ -42,9 +42,9 @@ func TestAccArcKubernetesProvisionedClusterInstance(t *testing.T) {
 	}
 }
 
-func testAccArcKubernetesProvisionedClusterInstance_basic(t *testing.T) {
+func testAccArcKubernetesProvisionedCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_provisioned_cluster", "test")
-	r := ArcKubernetesProvisionedClusterInstanceResource{}
+	r := ArcKubernetesProvisionedClusterResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -56,9 +56,9 @@ func testAccArcKubernetesProvisionedClusterInstance_basic(t *testing.T) {
 	})
 }
 
-func testAccArcKubernetesProvisionedClusterInstance_complete(t *testing.T) {
+func testAccArcKubernetesProvisionedCluster_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_provisioned_cluster", "test")
-	r := ArcKubernetesProvisionedClusterInstanceResource{}
+	r := ArcKubernetesProvisionedClusterResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -70,9 +70,9 @@ func testAccArcKubernetesProvisionedClusterInstance_complete(t *testing.T) {
 	})
 }
 
-func testAccArcKubernetesProvisionedClusterInstance_update(t *testing.T) {
+func testAccArcKubernetesProvisionedCluster_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_provisioned_cluster", "test")
-	r := ArcKubernetesProvisionedClusterInstanceResource{}
+	r := ArcKubernetesProvisionedClusterResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -98,9 +98,9 @@ func testAccArcKubernetesProvisionedClusterInstance_update(t *testing.T) {
 	})
 }
 
-func testAccArcKubernetesProvisionedClusterInstance_requiresImport(t *testing.T) {
+func testAccArcKubernetesProvisionedCluster_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_provisioned_cluster", "test")
-	r := ArcKubernetesProvisionedClusterInstanceResource{}
+	r := ArcKubernetesProvisionedClusterResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -115,10 +115,10 @@ func testAccArcKubernetesProvisionedClusterInstance_requiresImport(t *testing.T)
 	})
 }
 
-func (r ArcKubernetesProvisionedClusterInstanceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r ArcKubernetesProvisionedClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	client := clients.ArcKubernetes.ProvisionedClusterInstancesClient
 
-	id, err := parse.ArcKubernetesProvisionedClusterInstanceID(state.ID)
+	id, err := parse.ArcKubernetesProvisionedClusterID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -134,7 +134,7 @@ func (r ArcKubernetesProvisionedClusterInstanceResource) Exists(ctx context.Cont
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r ArcKubernetesProvisionedClusterInstanceResource) basic(data acceptance.TestData) string {
+func (r ArcKubernetesProvisionedClusterResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %[1]s
@@ -179,7 +179,7 @@ resource "azurerm_arc_kubernetes_provisioned_cluster" "test" {
 `, template, data.RandomInteger, os.Getenv(customLocationIdEnv))
 }
 
-func (r ArcKubernetesProvisionedClusterInstanceResource) requiresImport(data acceptance.TestData) string {
+func (r ArcKubernetesProvisionedClusterResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 %s
@@ -224,7 +224,7 @@ resource "azurerm_arc_kubernetes_provisioned_cluster" "import" {
 `, config)
 }
 
-func (r ArcKubernetesProvisionedClusterInstanceResource) complete(data acceptance.TestData) string {
+func (r ArcKubernetesProvisionedClusterResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %[1]s
@@ -289,7 +289,7 @@ resource "azurerm_arc_kubernetes_provisioned_cluster" "test" {
 `, template, data.RandomInteger, os.Getenv(customLocationIdEnv))
 }
 
-func (r ArcKubernetesProvisionedClusterInstanceResource) template(data acceptance.TestData) string {
+func (r ArcKubernetesProvisionedClusterResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "tls_private_key" "rsaKey" {
   algorithm = "RSA"

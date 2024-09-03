@@ -12,15 +12,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-type ArcKubernetesProvisionedClusterInstanceId struct {
+type ArcKubernetesProvisionedClusterId struct {
 	SubscriptionId                 string
 	ResourceGroup                  string
 	ConnectedClusterName           string
 	ProvisionedClusterInstanceName string
 }
 
-func NewArcKubernetesProvisionedClusterInstanceID(subscriptionId, resourceGroup, connectedClusterName, provisionedClusterInstanceName string) ArcKubernetesProvisionedClusterInstanceId {
-	return ArcKubernetesProvisionedClusterInstanceId{
+func NewArcKubernetesProvisionedClusterID(subscriptionId, resourceGroup, connectedClusterName, provisionedClusterInstanceName string) ArcKubernetesProvisionedClusterId {
+	return ArcKubernetesProvisionedClusterId{
 		SubscriptionId:                 subscriptionId,
 		ResourceGroup:                  resourceGroup,
 		ConnectedClusterName:           connectedClusterName,
@@ -28,29 +28,29 @@ func NewArcKubernetesProvisionedClusterInstanceID(subscriptionId, resourceGroup,
 	}
 }
 
-func (id ArcKubernetesProvisionedClusterInstanceId) String() string {
+func (id ArcKubernetesProvisionedClusterId) String() string {
 	segments := []string{
 		fmt.Sprintf("Provisioned Cluster Instance Name %q", id.ProvisionedClusterInstanceName),
 		fmt.Sprintf("Connected Cluster Name %q", id.ConnectedClusterName),
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
 	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "Arc Kubernetes Provisioned Cluster Instance", segmentsStr)
+	return fmt.Sprintf("%s: (%s)", "Arc Kubernetes Provisioned Cluster", segmentsStr)
 }
 
-func (id ArcKubernetesProvisionedClusterInstanceId) ID() string {
+func (id ArcKubernetesProvisionedClusterId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Kubernetes/connectedClusters/%s/providers/Microsoft.HybridContainerService/provisionedClusterInstances/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ConnectedClusterName, id.ProvisionedClusterInstanceName)
 }
 
-// ArcKubernetesProvisionedClusterInstanceID parses a ArcKubernetesProvisionedClusterInstance ID into an ArcKubernetesProvisionedClusterInstanceId struct
-func ArcKubernetesProvisionedClusterInstanceID(input string) (*ArcKubernetesProvisionedClusterInstanceId, error) {
+// ArcKubernetesProvisionedClusterID parses a ArcKubernetesProvisionedCluster ID into an ArcKubernetesProvisionedClusterId struct
+func ArcKubernetesProvisionedClusterID(input string) (*ArcKubernetesProvisionedClusterId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as an ArcKubernetesProvisionedClusterInstance ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an ArcKubernetesProvisionedCluster ID: %+v", input, err)
 	}
 
-	resourceId := ArcKubernetesProvisionedClusterInstanceId{
+	resourceId := ArcKubernetesProvisionedClusterId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
 	}
@@ -77,19 +77,19 @@ func ArcKubernetesProvisionedClusterInstanceID(input string) (*ArcKubernetesProv
 	return &resourceId, nil
 }
 
-// ArcKubernetesProvisionedClusterInstanceIDInsensitively parses an ArcKubernetesProvisionedClusterInstance ID into an ArcKubernetesProvisionedClusterInstanceId struct, insensitively
-// This should only be used to parse an ID for rewriting, the ArcKubernetesProvisionedClusterInstanceID
+// ArcKubernetesProvisionedClusterIDInsensitively parses an ArcKubernetesProvisionedCluster ID into an ArcKubernetesProvisionedClusterId struct, insensitively
+// This should only be used to parse an ID for rewriting, the ArcKubernetesProvisionedClusterID
 // method should be used instead for validation etc.
 //
 // Whilst this may seem strange, this enables Terraform have consistent casing
 // which works around issues in Core, whilst handling broken API responses.
-func ArcKubernetesProvisionedClusterInstanceIDInsensitively(input string) (*ArcKubernetesProvisionedClusterInstanceId, error) {
+func ArcKubernetesProvisionedClusterIDInsensitively(input string) (*ArcKubernetesProvisionedClusterId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceId := ArcKubernetesProvisionedClusterInstanceId{
+	resourceId := ArcKubernetesProvisionedClusterId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
 	}

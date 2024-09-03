@@ -11,21 +11,21 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.Id = ArcKubernetesProvisionedClusterInstanceId{}
+var _ resourceids.Id = ArcKubernetesProvisionedClusterId{}
 
-func TestArcKubernetesProvisionedClusterInstanceIDFormatter(t *testing.T) {
-	actual := NewArcKubernetesProvisionedClusterInstanceID("12345678-1234-9876-4563-123456789012", "group1", "cluster1", "default").ID()
+func TestArcKubernetesProvisionedClusterIDFormatter(t *testing.T) {
+	actual := NewArcKubernetesProvisionedClusterID("12345678-1234-9876-4563-123456789012", "group1", "cluster1", "default").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Kubernetes/connectedClusters/cluster1/providers/Microsoft.HybridContainerService/provisionedClusterInstances/default"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
 }
 
-func TestArcKubernetesProvisionedClusterInstanceID(t *testing.T) {
+func TestArcKubernetesProvisionedClusterID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *ArcKubernetesProvisionedClusterInstanceId
+		Expected *ArcKubernetesProvisionedClusterId
 	}{
 
 		{
@@ -85,7 +85,7 @@ func TestArcKubernetesProvisionedClusterInstanceID(t *testing.T) {
 		{
 			// valid
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Kubernetes/connectedClusters/cluster1/providers/Microsoft.HybridContainerService/provisionedClusterInstances/default",
-			Expected: &ArcKubernetesProvisionedClusterInstanceId{
+			Expected: &ArcKubernetesProvisionedClusterId{
 				SubscriptionId:                 "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:                  "group1",
 				ConnectedClusterName:           "cluster1",
@@ -103,7 +103,7 @@ func TestArcKubernetesProvisionedClusterInstanceID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := ArcKubernetesProvisionedClusterInstanceID(v.Input)
+		actual, err := ArcKubernetesProvisionedClusterID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -130,11 +130,11 @@ func TestArcKubernetesProvisionedClusterInstanceID(t *testing.T) {
 	}
 }
 
-func TestArcKubernetesProvisionedClusterInstanceIDInsensitively(t *testing.T) {
+func TestArcKubernetesProvisionedClusterIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *ArcKubernetesProvisionedClusterInstanceId
+		Expected *ArcKubernetesProvisionedClusterId
 	}{
 
 		{
@@ -194,7 +194,7 @@ func TestArcKubernetesProvisionedClusterInstanceIDInsensitively(t *testing.T) {
 		{
 			// valid
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Kubernetes/connectedClusters/cluster1/providers/Microsoft.HybridContainerService/provisionedClusterInstances/default",
-			Expected: &ArcKubernetesProvisionedClusterInstanceId{
+			Expected: &ArcKubernetesProvisionedClusterId{
 				SubscriptionId:                 "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:                  "group1",
 				ConnectedClusterName:           "cluster1",
@@ -205,7 +205,7 @@ func TestArcKubernetesProvisionedClusterInstanceIDInsensitively(t *testing.T) {
 		{
 			// lower-cased segment names
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Kubernetes/connectedclusters/cluster1/providers/Microsoft.HybridContainerService/provisionedclusterinstances/default",
-			Expected: &ArcKubernetesProvisionedClusterInstanceId{
+			Expected: &ArcKubernetesProvisionedClusterId{
 				SubscriptionId:                 "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:                  "group1",
 				ConnectedClusterName:           "cluster1",
@@ -216,7 +216,7 @@ func TestArcKubernetesProvisionedClusterInstanceIDInsensitively(t *testing.T) {
 		{
 			// upper-cased segment names
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Kubernetes/CONNECTEDCLUSTERS/cluster1/providers/Microsoft.HybridContainerService/PROVISIONEDCLUSTERINSTANCES/default",
-			Expected: &ArcKubernetesProvisionedClusterInstanceId{
+			Expected: &ArcKubernetesProvisionedClusterId{
 				SubscriptionId:                 "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:                  "group1",
 				ConnectedClusterName:           "cluster1",
@@ -227,7 +227,7 @@ func TestArcKubernetesProvisionedClusterInstanceIDInsensitively(t *testing.T) {
 		{
 			// mixed-cased segment names
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Kubernetes/CoNnEcTeDcLuStErS/cluster1/providers/Microsoft.HybridContainerService/PrOvIsIoNeDcLuStErInStAnCeS/default",
-			Expected: &ArcKubernetesProvisionedClusterInstanceId{
+			Expected: &ArcKubernetesProvisionedClusterId{
 				SubscriptionId:                 "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:                  "group1",
 				ConnectedClusterName:           "cluster1",
@@ -239,7 +239,7 @@ func TestArcKubernetesProvisionedClusterInstanceIDInsensitively(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := ArcKubernetesProvisionedClusterInstanceIDInsensitively(v.Input)
+		actual, err := ArcKubernetesProvisionedClusterIDInsensitively(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
