@@ -97,7 +97,7 @@ func (r sqlManagedInstanceStartStopScheduleResource) basic(data acceptance.TestD
 
 resource "azurerm_mssql_managed_instance_start_stop_schedule" "test" {
   managed_instance_id = azurerm_mssql_managed_instance.test.id
-  schedule_list {
+  schedule {
     start_day  = "Wednesday"
     start_time = "11:00"
     stop_day   = "Wednesday"
@@ -117,7 +117,7 @@ resource "azurerm_mssql_managed_instance_start_stop_schedule" "test" {
   managed_instance_id = azurerm_mssql_managed_instance.test.id
   description         = "test description"
   timezone_id         = "Central European Standard Time"
-  schedule_list {
+  schedule {
     start_day  = "Wednesday"
     start_time = "11:00"
     stop_day   = "Wednesday"
@@ -137,14 +137,14 @@ resource "azurerm_mssql_managed_instance_start_stop_schedule" "test" {
   managed_instance_id = azurerm_mssql_managed_instance.test.id
   description         = "updated test description"
   timezone_id         = "Central European Standard Time"
-  schedule_list {
+  schedule {
     start_day  = "Wednesday"
     start_time = "10:00"
     stop_day   = "Wednesday"
     stop_time  = "22:00"
   }
 
-  schedule_list {
+  schedule {
     start_day  = "Thursday"
     start_time = "11:00"
     stop_day   = "Wednesday"

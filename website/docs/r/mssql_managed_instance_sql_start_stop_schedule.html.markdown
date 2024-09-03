@@ -203,14 +203,14 @@ resource "azurerm_mssql_managed_instance_start_stop_schedule" "example" {
   managed_instance_id = azurerm_mssql_managed_instance.example.id
   timezone_id         = "Central European Standard Time"
 
-  schedule_list {
+  schedule {
     start_day  = "Monday"
     start_time = "08:00"
     stop_day   = "Monday"
     stop_time  = "11:00"
   }
 
-  schedule_list {
+  schedule {
     start_day  = "Tuesday"
     start_time = "12:00"
     stop_day   = "Tuesday"
@@ -225,7 +225,7 @@ The following arguments are supported:
 
 * `managed_instance_id` - (Required) Specifies the ID of the Sql Start Stop Managed Instance Schedule. Changing this forces a new Sql Start Stop Managed Instance Schedule to be created.
 
-* `schedule_list` - (Required) A `schedule_list` block as defined below.
+* `schedule` - (Required) A `schedule` block as defined below.
 
 * `description` - (Optional) Specifies the description of the schedule.
 
@@ -233,7 +233,7 @@ The following arguments are supported:
 
 ---
 
-A `schedule_list` block supports the following:
+A `schedule` block supports the following:
 
 * `start_day` - (Required) Start day.
 

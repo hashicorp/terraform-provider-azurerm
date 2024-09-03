@@ -20,7 +20,7 @@ type SqlManagedInstanceStartStopScheduleModel struct {
 	Name                 string              `tfschema:"name"`
 	SqlManagedInstanceId string              `tfschema:"managed_instance_id"`
 	Description          string              `tfschema:"description"`
-	ScheduleList         []ScheduleItemModel `tfschema:"schedule_list"`
+	Schedule             []ScheduleItemModel `tfschema:"schedule"`
 	TimeZoneId           string              `tfschema:"timezone_id"`
 	NextExecutionTime    string              `tfschema:"next_execution_time"`
 	NextRunAction        string              `tfschema:"next_run_action"`
@@ -63,7 +63,7 @@ func (r MsSqlManagedInstanceStartStopScheduleResource) Arguments() map[string]*p
 			Optional: true,
 		},
 
-		"schedule_list": {
+		"schedule": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
 			MinItems: 1,
@@ -125,10 +125,6 @@ func (r MsSqlManagedInstanceStartStopScheduleResource) Create() sdk.ResourceFunc
 				return err
 			}
 
-			if managedInstanceId == nil {
-				return fmt.Errorf("managedInstanceId is nil")
-			}
-
 			id := *managedInstanceId
 
 			existing, err := client.Get(ctx, id)
@@ -148,7 +144,7 @@ func (r MsSqlManagedInstanceStartStopScheduleResource) Create() sdk.ResourceFunc
 				properties.Properties.Description = &model.Description
 			}
 
-			properties.Properties.ScheduleList = pointer.From(expandScheduleItemModelArray(model.ScheduleList))
+			properties.Properties.ScheduleList = pointer.From(expandScheduleItemModelArray(model.Schedule))
 
 			if model.TimeZoneId != "" {
 				properties.Properties.TimeZoneId = &model.TimeZoneId
@@ -188,11 +184,15 @@ func (r MsSqlManagedInstanceStartStopScheduleResource) Update() sdk.ResourceFunc
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", managedInstanceID, err)
 			}
+			
+			if resp.Model == nil {
+				return fmt.Errorf("retrieving %s:`model` was nil", managedInstanceID)
+			}
+			if resp.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s:`properties` was nil", managedInstanceID)
+			}
 
 			properties := resp.Model
-			if properties == nil {
-				return fmt.Errorf("retrieving %s: properties was nil", managedInstanceID)
-			}
 
 			if metadata.ResourceData.HasChange("description") {
 				if model.Description != "" {
@@ -202,8 +202,8 @@ func (r MsSqlManagedInstanceStartStopScheduleResource) Update() sdk.ResourceFunc
 				}
 			}
 
-			if metadata.ResourceData.HasChange("schedule_list") {
-				properties.Properties.ScheduleList = pointer.From(expandScheduleItemModelArray(model.ScheduleList))
+			if metadata.ResourceData.HasChange("schedule") {
+				properties.Properties.ScheduleList = pointer.From(expandScheduleItemModelArray(model.Schedule))
 			}
 
 			if metadata.ResourceData.HasChange("timezone_id") {
@@ -262,7 +262,7 @@ func (r MsSqlManagedInstanceStartStopScheduleResource) Read() sdk.ResourceFunc {
 					state.NextRunAction = pointer.From(properties.NextRunAction)
 
 					if properties.ScheduleList != nil {
-						state.ScheduleList = flattenScheduleItemModelArray(&properties.ScheduleList)
+						state.Schedule = flattenScheduleItemModelArray(&properties.ScheduleList)
 					}
 
 					state.TimeZoneId = pointer.From(properties.TimeZoneId)
