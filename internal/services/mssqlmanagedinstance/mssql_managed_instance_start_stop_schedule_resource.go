@@ -204,9 +204,7 @@ func (r MsSqlManagedInstanceStartStopScheduleResource) Update() sdk.ResourceFunc
 			if metadata.ResourceData.HasChange("timezone_id") {
 				properties.Properties.TimeZoneId = pointer.To(model.TimeZoneId)
 			}
-
-			properties.SystemData = nil
-
+			
 			if _, err := client.CreateOrUpdate(ctx, managedInstanceID, *properties); err != nil {
 				return fmt.Errorf("updating %s: %+v", managedInstanceID, err)
 			}
