@@ -83,9 +83,7 @@ func resourceSentinelAlertRuleNrt() *pluginsdk.Resource {
 			// lintignore:S013
 			"event_grouping": {
 				Type:     pluginsdk.TypeList,
-				Required: features.FourPointOhBeta(),
-				Optional: !features.FourPointOhBeta(),
-				Computed: !features.FourPointOhBeta(), // the service will default it to `SingleAlert`.
+				Required: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
