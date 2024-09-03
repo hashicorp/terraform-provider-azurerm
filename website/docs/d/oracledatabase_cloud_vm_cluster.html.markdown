@@ -14,7 +14,7 @@ Use this data source to access information about an existing Cloud VM Cluster.
 
 ```hcl
 data "azurerm_oracledatabase_cloud_vm_cluster" "example" {
-  name = "existing"
+  name                = "existing"
   resource_group_name = "existing"
 }
 

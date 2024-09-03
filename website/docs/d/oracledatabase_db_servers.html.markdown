@@ -14,7 +14,7 @@ Use this data source to access information about an existing DB Server.
 
 ```hcl
 data "azurerm_oracledatabase_db_servers" "example" {
-  resource_group_name = "existing"
+  resource_group_name               = "existing"
   cloud_exadata_infrastructure_name = "existing"
 }
 
