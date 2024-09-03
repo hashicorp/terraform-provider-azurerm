@@ -235,13 +235,13 @@ The following arguments are supported:
 
 A `schedule` block supports the following:
 
-* `start_day` - (Required) Start day.
+* `start_day` - (Required) Start day of the schedule. Possible values are `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, `Saturday`, `Sunday`.
 
-* `start_time` - (Required) Start time.
+* `start_time` - (Required) Start time of the schedule in 24-hour format (e.g., `08:00`).
 
-* `stop_day` - (Required) Stop day.
+* `stop_day` - (Required) Stop day of the schedule. Possible values are `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, `Saturday`, `Sunday`.
 
-* `stop_time` - (Required) Stop time.
+* `stop_time` - (Required) Stop time of the schedule in 24-hour format (e.g., `17:00`).
 
 ## Attributes Reference
 
