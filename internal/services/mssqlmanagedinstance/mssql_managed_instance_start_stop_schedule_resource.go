@@ -105,7 +105,17 @@ func (r MsSqlManagedInstanceStartStopScheduleResource) Arguments() map[string]*p
 }
 
 func (r MsSqlManagedInstanceStartStopScheduleResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{}
+	return map[string]*pluginsdk.Schema{
+		"next_execution_time": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"next_run_action": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+	}
 }
 
 func (r MsSqlManagedInstanceStartStopScheduleResource) Create() sdk.ResourceFunc {
