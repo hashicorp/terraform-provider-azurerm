@@ -1,12 +1,12 @@
 ---
 subcategory: "ArcKubernetes"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_arc_kubernetes_provisioned_cluster_instance"
+page_title: "Azure Resource Manager: azurerm_arc_kubernetes_provisioned_cluster"
 description: |-
   Manages an Arc Kubernetes Provisioned Cluster Instance.
 ---
 
-# azurerm_arc_kubernetes_provisioned_cluster_instance
+# azurerm_arc_kubernetes_provisioned_cluster
 
 Manages an Arc Kubernetes Provisioned Cluster Instance.
 
@@ -56,7 +56,7 @@ resource "azurerm_arc_kubernetes_cluster" "example" {
   }
 }
 
-resource "azurerm_arc_kubernetes_provisioned_cluster_instance" "example" {
+resource "azurerm_arc_kubernetes_provisioned_cluster" "example" {
   cluster_id         = azurerm_arc_kubernetes_cluster.example.id
   custom_location_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.ExtendedLocation/customLocations/cl1"
   kubernetes_version = "1.28.5"
@@ -151,7 +151,11 @@ A `agent_pool_profile` block supports the following:
 
 * `vm_size` - (Required) The VM sku size of the agent pool node VMs. Changing this forces a new Arc Kubernetes Provisioned Cluster Instance to be created.
 
-* `auto_scaling_enabled` - (Optional) Should the auto scaling be enabled? Defaults to `false`.
+* `os_sku` - (Required) The OS SKU used by the agent pool nodes. Possible values are `CBLMariner`, `Windows2019` and `Windows2022`. Changing this forces a new Arc Kubernetes Provisioned Cluster Instance to be created.
+
+* `os_type` - (Required) The OS type for the agent pool nodes. Possible values are `Windows` and `Linux`. Defaults to `Linux`. Changing this forces a new Arc Kubernetes Provisioned Cluster Instance to be created.
+
+* `auto_scaling_enabled` - (Optional) Whether to enable auto scaling. Defaults to `false`.
 
 * `count` - (Optional) The number of nodes in the agent pool. Defaults to `1`.
 
@@ -165,10 +169,6 @@ A `agent_pool_profile` block supports the following:
 
 * `node_taints` - (Optional) The taints added to new nodes during node pool create and scale. For example, `key=value:NoSchedule`.
 
-* `os_sku` - (Optional) The OS SKU used by the agent pool nodes. Possible values are `CBLMariner`, `Windows2019` and `Windows2022`. Changing this forces a new Arc Kubernetes Provisioned Cluster Instance to be created.
-
-* `os_type` - (Optional) The OS type for the agent pool nodes. Defaults to `Linux`. Changing this forces a new Arc Kubernetes Provisioned Cluster Instance to be created.
-
 ---
 
 A `cloud_provider_profile` block supports the following:
@@ -179,17 +179,17 @@ A `cloud_provider_profile` block supports the following:
 
 A `cluster_vm_access_profile` block supports the following:
 
-* `authorized_ip_ranges` - (Optional) The ranges of IP Address or CIDR for SSH access to VMs in the provisioned cluster. Changing this forces a new Arc Kubernetes Provisioned Cluster Instance to be created.
+* `authorized_ip_ranges` - (Required) The ranges of IP Address or CIDR for SSH access to VMs in the provisioned cluster. Changing this forces a new Arc Kubernetes Provisioned Cluster Instance to be created.
 
 ---
 
 A `control_plane_profile` block supports the following:
 
-* `vm_size` - (Required) VM sku size of the control plane nodes. Changing this forces a new Arc Kubernetes Provisioned Cluster Instance to be created.
+* `vm_size` - (Required) The VM sku size of the control plane nodes. Changing this forces a new Arc Kubernetes Provisioned Cluster Instance to be created.
 
 * `count` - (Optional) The number of control plane nodes. The count should be an odd number. Defaults to `1`.
 
-* `host_ip` - (Optional) The IP Address of the Kubernetes API server. Conflicts with `network_profile.0.load_balancer_profile`. Changing this forces a new Arc Kubernetes Provisioned Cluster Instance to be created.
+* `host_ip` - (Optional) The IP Address of the Kubernetes API server. Changing this forces a new Arc Kubernetes Provisioned Cluster Instance to be created.
 
 ~> **NOTE:** The `control_plane_profile.host_ip` and `load_balancer_profile` cannot be specified together.
 
@@ -197,7 +197,7 @@ A `control_plane_profile` block supports the following:
 
 A `infra_network_profile` block supports the following:
 
-* `vnet_subnet_ids` - (Required) Specifies a list of ARM resource IDs (maximum 1) for the infrastructure network object with `Microsoft.AzureStackHCI/logicalNetworks` or `Microsoft.HybridContainerService/virtualNetworks` resource type.
+* `vnet_subnet_ids` - (Required) Specifies a list of ARM resource IDs for the infrastructure network object with `Microsoft.AzureStackHCI/logicalNetworks` or `Microsoft.HybridContainerService/virtualNetworks` resource type.
 
 ---
 
@@ -209,7 +209,7 @@ A `license_profile` block supports the following:
 
 A `linux_profile` block supports the following:
 
-* `ssh_key` - (Required) A list of certificate public key used to authenticate with VMs through SSH. The certificate must be in PEM format with or without headers. Changing this forces a new Arc Kubernetes Provisioned Cluster Instance to be created.
+* `ssh_key` - (Required) A list of certificate public keys used to authenticate with VMs through SSH. The certificate must be in PEM format with or without headers. Changing this forces a new Arc Kubernetes Provisioned Cluster Instance to be created.
 
 ---
 
@@ -223,19 +223,19 @@ A `load_balancer_profile` block supports the following:
 
 A `network_profile` block supports the following:
 
-* `network_policy` - (Required) Network policy used for building Kubernetes network. Possible value is `calico`. Changing this forces a new Arc Kubernetes Provisioned Cluster Instance to be created.
+* `network_policy` - (Required) The network policy used for building Kubernetes network. The only possible value is `calico`. Changing this forces a new Arc Kubernetes Provisioned Cluster Instance to be created.
 
 * `pod_cidr` - (Required) A CIDR notation IP Address range from which to assign pod IPs. Changing this forces a new Arc Kubernetes Provisioned Cluster Instance to be created.
 
-* `load_balancer_profile` - (Optional) A `load_balancer_profile` block as defined above.Conflicts with `control_plane_profile.0.host_ip`. Changing this forces a new Arc Kubernetes Provisioned Cluster Instance to be created.
+* `load_balancer_profile` - (Optional) A `load_balancer_profile` block as defined above. Changing this forces a new Arc Kubernetes Provisioned Cluster Instance to be created.
 
 ---
 
 A `storage_profile` block supports the following:
 
-* `nfs_csi_driver_enabled` - (Optional) Should the NFS CSI Driver be enabled? Defaults to `true`.
+* `nfs_csi_driver_enabled` - (Optional) Whether to enable the NFS CSI Driver. Defaults to `true`.
 
-* `smb_csi_driver_enabled` - (Optional) Should the SMB CSI Driver be enabled? Defaults to `true`.
+* `smb_csi_driver_enabled` - (Optional) Whether to enable the SMB CSI Driver. Defaults to `true`.
 
 ## Attributes Reference
 
@@ -257,5 +257,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Arc Kubernetes Provisioned Cluster Instances can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_arc_kubernetes_provisioned_cluster_instance.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.Kubernetes/connectedClusters/cluster1/providers/Microsoft.HybridContainerService/provisionedClusterInstances/default
+terraform import azurerm_arc_kubernetes_provisioned_cluster.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.Kubernetes/connectedClusters/cluster1/providers/Microsoft.HybridContainerService/provisionedClusterInstances/default
 ```

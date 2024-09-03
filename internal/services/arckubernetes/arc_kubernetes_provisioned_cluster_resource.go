@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/logicalnetworks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/extendedlocation/2021-08-15/customlocations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridazurekubernetesservice/2024-01-01/provisionedclusterinstances"
@@ -33,7 +34,7 @@ func (ArcKubernetesProvisionedClusterInstanceResource) IDValidationFunc() plugin
 }
 
 func (ArcKubernetesProvisionedClusterInstanceResource) ResourceType() string {
-	return "azurerm_arc_kubernetes_provisioned_cluster_instance"
+	return "azurerm_arc_kubernetes_provisioned_cluster"
 }
 
 func (ArcKubernetesProvisionedClusterInstanceResource) ModelObject() interface{} {
@@ -111,19 +112,9 @@ type ProvisionedClusterInstanceStorageProfile struct {
 
 func (ArcKubernetesProvisionedClusterInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"cluster_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: connectedclusters.ValidateConnectedClusterID,
-		},
+		"cluster_id": commonschema.ResourceIDReferenceRequiredForceNew(&connectedclusters.ConnectedClusterId{}),
 
-		"custom_location_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: customlocations.ValidateCustomLocationID,
-		},
+		"custom_location_id": commonschema.ResourceIDReferenceRequiredForceNew(&customlocations.CustomLocationId{}),
 
 		"agent_pool_profile": {
 			Type:     pluginsdk.TypeList,
@@ -137,6 +128,25 @@ func (ArcKubernetesProvisionedClusterInstanceResource) Arguments() map[string]*p
 						ValidateFunc: validation.StringMatch(
 							regexp.MustCompile(`^[a-z][a-z0-9]{2,11}$`),
 							"`name` must start with lower cases characters and can only contains 3-12 lowercase alphanumberic characters"),
+					},
+					"os_sku": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ForceNew: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(provisionedclusterinstances.OSSKUCBLMariner),
+							string(provisionedclusterinstances.OSSKUWindowsTwoZeroOneNine),
+							string(provisionedclusterinstances.OSSKUWindowsTwoZeroTwoTwo),
+						}, false),
+					},
+					"os_type": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ForceNew: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(provisionedclusterinstances.OsTypeLinux),
+							string(provisionedclusterinstances.OsTypeWindows),
+						}, false),
 					},
 					"vm_size": {
 						Type:         pluginsdk.TypeString,
@@ -185,26 +195,6 @@ func (ArcKubernetesProvisionedClusterInstanceResource) Arguments() map[string]*p
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
-					"os_sku": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ForceNew: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(provisionedclusterinstances.OSSKUCBLMariner),
-							string(provisionedclusterinstances.OSSKUWindowsTwoZeroOneNine),
-							string(provisionedclusterinstances.OSSKUWindowsTwoZeroTwoTwo),
-						}, false),
-					},
-					"os_type": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ForceNew: true,
-						Default:  string(provisionedclusterinstances.OsTypeLinux),
-						ValidateFunc: validation.StringInSlice([]string{
-							string(provisionedclusterinstances.OsTypeLinux),
-							string(provisionedclusterinstances.OsTypeWindows),
-						}, false),
-					},
 				},
 			},
 		},
@@ -242,41 +232,24 @@ func (ArcKubernetesProvisionedClusterInstanceResource) Arguments() map[string]*p
 			},
 		},
 
-		"cluster_vm_access_profile": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			ForceNew: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"authorized_ip_ranges": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ForceNew:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-				},
-			},
-		},
-
 		"control_plane_profile": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
+					"vm_size": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
 					"host_ip": {
 						Type:          pluginsdk.TypeString,
 						Optional:      true,
 						ForceNew:      true,
 						ValidateFunc:  validation.IsIPv4Address,
 						ConflictsWith: []string{"network_profile.0.load_balancer_profile"},
-					},
-					"vm_size": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"count": {
 						Type:         pluginsdk.TypeInt,
@@ -293,47 +266,6 @@ func (ArcKubernetesProvisionedClusterInstanceResource) Arguments() map[string]*p
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
-		"linux_profile": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			ForceNew: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"ssh_key": {
-						Type:     pluginsdk.TypeList,
-						Required: true,
-						ForceNew: true,
-						MinItems: 1,
-						Elem: &pluginsdk.Schema{
-							Type:         pluginsdk.TypeString,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-					},
-				},
-			},
-		},
-
-		"license_profile": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"azure_hybrid_benefit": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  string(connectedclusters.AzureHybridBenefitNotApplicable),
-						ValidateFunc: validation.StringInSlice([]string{
-							string(provisionedclusterinstances.AzureHybridBenefitNotApplicable),
-							string(provisionedclusterinstances.AzureHybridBenefitFalse),
-							string(provisionedclusterinstances.AzureHybridBenefitTrue),
-						}, false),
-					},
-				},
-			},
 		},
 
 		"network_profile": {
@@ -373,6 +305,64 @@ func (ArcKubernetesProvisionedClusterInstanceResource) Arguments() map[string]*p
 								},
 							},
 						},
+					},
+				},
+			},
+		},
+
+		"cluster_vm_access_profile": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			ForceNew: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"authorized_ip_ranges": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+				},
+			},
+		},
+
+		"linux_profile": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			ForceNew: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"ssh_key": {
+						Type:     pluginsdk.TypeList,
+						Required: true,
+						ForceNew: true,
+						MinItems: 1,
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+			},
+		},
+
+		"license_profile": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"azure_hybrid_benefit": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Default:  string(connectedclusters.AzureHybridBenefitNotApplicable),
+						ValidateFunc: validation.StringInSlice([]string{
+							string(provisionedclusterinstances.AzureHybridBenefitNotApplicable),
+							string(provisionedclusterinstances.AzureHybridBenefitFalse),
+							string(provisionedclusterinstances.AzureHybridBenefitTrue),
+						}, false),
 					},
 				},
 			},
@@ -548,28 +538,12 @@ func (r ArcKubernetesProvisionedClusterInstanceResource) Update() sdk.ResourceFu
 				parameters.Properties.AgentPoolProfiles = expandProvisionedClusterAgentPoolProfiles(config.AgentPoolProfile)
 			}
 
-			if metadata.ResourceData.HasChange("cloud_provider_profile") {
-				parameters.Properties.CloudProviderProfile = expandProvisionedClusterCloudProviderProfile(config.CloudProviderProfile)
-			}
-
 			if metadata.ResourceData.HasChange("control_plane_profile") {
 				parameters.Properties.ControlPlane = expandProvisionedClusterControlPlaneProfile(config.ControlPlaneProfile)
 			}
 
-			if metadata.ResourceData.HasChange("kubernetes_version") {
-				parameters.Properties.KubernetesVersion = pointer.To(config.KubernetesVersion)
-			}
-
-			if metadata.ResourceData.HasChange("linux_profile") {
-				parameters.Properties.LinuxProfile = expandProvisionedClusterLinuxProfile(config.LinuxProfile)
-			}
-
 			if metadata.ResourceData.HasChange("license_profile") {
 				parameters.Properties.LicenseProfile = expandProvisionedClusterLicenseProfile(config.LicenseProfile)
-			}
-
-			if metadata.ResourceData.HasChange("network_profile") {
-				parameters.Properties.NetworkProfile = expandProvisionedClusterNetworkProfile(config.NetworkProfile)
 			}
 
 			if metadata.ResourceData.HasChange("storage_profile") {
@@ -667,7 +641,7 @@ func flattenProvisionedClusterAgentPoolProfiles(input *[]provisionedclusterinsta
 }
 
 func expandProvisionedClusterCloudProviderProfile(input []ProvisionedClusterInstanceCloudProviderProfile) *provisionedclusterinstances.CloudProviderProfile {
-	if len(input) == 0 {
+	if len(input) == 0 || len(input[0].InfraNetworkProfile) == 0 {
 		return nil
 	}
 
@@ -680,7 +654,7 @@ func expandProvisionedClusterCloudProviderProfile(input []ProvisionedClusterInst
 }
 
 func flattenProvisionedClusterCloudProviderProfile(input *provisionedclusterinstances.CloudProviderProfile) []ProvisionedClusterInstanceCloudProviderProfile {
-	if input == nil {
+	if input == nil || input.InfraNetworkProfile == nil {
 		return make([]ProvisionedClusterInstanceCloudProviderProfile, 0)
 	}
 

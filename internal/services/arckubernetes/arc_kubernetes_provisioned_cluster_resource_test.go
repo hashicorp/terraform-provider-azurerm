@@ -43,7 +43,7 @@ func TestAccArcKubernetesProvisionedClusterInstance(t *testing.T) {
 }
 
 func testAccArcKubernetesProvisionedClusterInstance_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_provisioned_cluster_instance", "test")
+	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_provisioned_cluster", "test")
 	r := ArcKubernetesProvisionedClusterInstanceResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -57,7 +57,7 @@ func testAccArcKubernetesProvisionedClusterInstance_basic(t *testing.T) {
 }
 
 func testAccArcKubernetesProvisionedClusterInstance_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_provisioned_cluster_instance", "test")
+	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_provisioned_cluster", "test")
 	r := ArcKubernetesProvisionedClusterInstanceResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -71,7 +71,7 @@ func testAccArcKubernetesProvisionedClusterInstance_complete(t *testing.T) {
 }
 
 func testAccArcKubernetesProvisionedClusterInstance_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_provisioned_cluster_instance", "test")
+	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_provisioned_cluster", "test")
 	r := ArcKubernetesProvisionedClusterInstanceResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -99,7 +99,7 @@ func testAccArcKubernetesProvisionedClusterInstance_update(t *testing.T) {
 }
 
 func testAccArcKubernetesProvisionedClusterInstance_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_provisioned_cluster_instance", "test")
+	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_provisioned_cluster", "test")
 	r := ArcKubernetesProvisionedClusterInstanceResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -139,7 +139,7 @@ func (r ArcKubernetesProvisionedClusterInstanceResource) basic(data acceptance.T
 	return fmt.Sprintf(`
 %[1]s
 
-resource "azurerm_arc_kubernetes_provisioned_cluster_instance" "test" {
+resource "azurerm_arc_kubernetes_provisioned_cluster" "test" {
   cluster_id         = azurerm_arc_kubernetes_cluster.test.id
   custom_location_id = "%[3]s"
   kubernetes_version = "1.28.5"
@@ -184,9 +184,9 @@ func (r ArcKubernetesProvisionedClusterInstanceResource) requiresImport(data acc
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_arc_kubernetes_provisioned_cluster_instance" "import" {
-  cluster_id         = azurerm_arc_kubernetes_provisioned_cluster_instance.test.cluster_id
-  custom_location_id = azurerm_arc_kubernetes_provisioned_cluster_instance.test.custom_location_id
+resource "azurerm_arc_kubernetes_provisioned_cluster" "import" {
+  cluster_id         = azurerm_arc_kubernetes_provisioned_cluster.test.cluster_id
+  custom_location_id = azurerm_arc_kubernetes_provisioned_cluster.test.custom_location_id
   kubernetes_version = "1.28.5"
 
   agent_pool_profile {
@@ -229,7 +229,7 @@ func (r ArcKubernetesProvisionedClusterInstanceResource) complete(data acceptanc
 	return fmt.Sprintf(`
 %[1]s
 
-resource "azurerm_arc_kubernetes_provisioned_cluster_instance" "test" {
+resource "azurerm_arc_kubernetes_provisioned_cluster" "test" {
   cluster_id         = azurerm_arc_kubernetes_cluster.test.id
   custom_location_id = "%[3]s"
   kubernetes_version = "1.28.5"
