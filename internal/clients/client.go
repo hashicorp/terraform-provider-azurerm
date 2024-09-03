@@ -542,141 +542,139 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 		return fmt.Errorf("building clients for MSSQL: %+v", err)
 	}
 	if client.MSSQLManagedInstance, err = mssqlmanagedinstance.NewClient(o); err != nil {
-		if err != nil {
-			return fmt.Errorf("building clients for MSSQLManagedInstance: %+v", err)
-		}
-		if client.MySQL, err = mysql.NewClient(o); err != nil {
-			return fmt.Errorf("building clients for MySQL: %+v", err)
-		}
-		if client.NetApp, err = netapp.NewClient(o); err != nil {
-			return fmt.Errorf("building clients for NetApp: %+v", err)
-		}
-		if client.Network, err = network.NewClient(o); err != nil {
-			return fmt.Errorf("building clients for Network: %+v", err)
-		}
-		if client.NetworkFunction, err = networkfunction.NewClient(o); err != nil {
-			return fmt.Errorf("building clients for NetworkFunction: %+v", err)
-		}
-		if client.NewRelic, err = newrelic.NewClient(o); err != nil {
-			return fmt.Errorf("building clients for NewRelic: %+v", err)
-		}
-		if client.Nginx, err = nginx.NewClient(o); err != nil {
-			return fmt.Errorf("building clients for Nginx: %+v", err)
-		}
-		if client.NotificationHubs, err = notificationhub.NewClient(o); err != nil {
-			return fmt.Errorf("building clients for NotificationHubs: %+v", err)
-		}
-		if client.Orbital, err = orbital.NewClient(o); err != nil {
-			return fmt.Errorf("building clients for Orbital: %+v", err)
-		}
-		if client.Policy, err = policy.NewClient(o); err != nil {
-			return fmt.Errorf("building clients for Policy: %+v", err)
-		}
-		if client.PaloAlto, err = paloalto.NewClient(o); err != nil {
-			return fmt.Errorf("building clients for PaloAlto: %+v", err)
-		}
-		if client.Portal, err = portal.NewClient(o); err != nil {
-			return fmt.Errorf("building clients for Portal: %+v", err)
-		}
-		if client.Postgres, err = postgres.NewClient(o); err != nil {
-			return fmt.Errorf("building clients for Postgres: %+v", err)
-		}
-		if client.PowerBI, err = powerBI.NewClient(o); err != nil {
-			return fmt.Errorf("building clients for PowerBI: %+v", err)
-		}
-		if client.PrivateDns, err = privatedns.NewClient(o); err != nil {
-			return fmt.Errorf("building clients for PrivateDns: %+v", err)
-		}
-		if client.PrivateDnsResolver, err = dnsresolver.NewClient(o); err != nil {
-			return fmt.Errorf("building clients for PrivateDnsResolver: %+v", err)
-		}
-		if client.Purview, err = purview.NewClient(o); err != nil {
-			return fmt.Errorf("building clients for Purview: %+v", err)
-		}
-		if client.RecoveryServices, err = recoveryServices.NewClient(o); err != nil {
-			return fmt.Errorf("building clients for RecoveryServices: %+v", err)
-		}
-		if client.RedHatOpenShift, err = redhatopenshift.NewClient(o); err != nil {
-			return fmt.Errorf("building clients for RedHatOpenShift: %+v", err)
-		}
-		if client.Redis, err = redis.NewClient(o); err != nil {
-			return fmt.Errorf("building clients for Redis: %+v", err)
-		}
-		if client.RedisEnterprise, err = redisenterprise.NewClient(o); err != nil {
-			return fmt.Errorf("building clients for RedisEnterprise: %+v", err)
-		}
-		if client.Relay, err = relay.NewClient(o); err != nil {
-			return fmt.Errorf("building clients for Relay: %+v", err)
-		}
-		if client.Resource, err = resource.NewClient(o); err != nil {
-			return fmt.Errorf("building clients for Resource: %+v", err)
-		}
-		if client.Search, err = search.NewClient(o); err != nil {
-			return fmt.Errorf("building clients for Search: %+v", err)
-		}
-		if client.SecurityCenter, err = securityCenter.NewClient(o); err != nil {
-			return fmt.Errorf("building clients for Security Center: %+v", err)
-		}
-		if client.Sentinel, err = sentinel.NewClient(o); err != nil {
-			return fmt.Errorf("building clients for Sentinel: %+v", err)
-		}
-		if client.ServiceBus, err = serviceBus.NewClient(o); err != nil {
-			return fmt.Errorf("building clients for ServiceBus: %+v", err)
-		}
-		if client.ServiceConnector, err = serviceConnector.NewClient(o); err != nil {
-			return fmt.Errorf("building clients for ServiceConnector: %+v", err)
-		}
-		if client.ServiceFabric, err = serviceFabric.NewClient(o); err != nil {
-			return fmt.Errorf("building clients for ServiceConnector: %+v", err)
-		}
-		if client.ServiceFabricManaged, err = serviceFabricManaged.NewClient(o); err != nil {
-			return fmt.Errorf("building clients for ServiceFabric: %+v", err)
-		}
-		if client.ServiceNetworking, err = serviceNetworking.NewClient(o); err != nil {
-			return fmt.Errorf("building clients for ServiceNetworking: %+v", err)
-		}
-		if client.SignalR, err = signalr.NewClient(o); err != nil {
-			return fmt.Errorf("building clients for SignalR: %+v", err)
-		}
-		client.Sql = sql.NewClient(o)
-		if client.Storage, err = storage.NewClient(o); err != nil {
-			return fmt.Errorf("building clients for Storage: %+v", err)
-		}
-		if client.StorageCache, err = storageCache.NewClient(o); err != nil {
-			return fmt.Errorf("building clients for Storage Cache: %+v", err)
-		}
-		if client.StorageMover, err = storageMover.NewClient(o); err != nil {
-			return fmt.Errorf("building clients for StorageMover: %+v", err)
-		}
-		if client.StreamAnalytics, err = streamAnalytics.NewClient(o); err != nil {
-			return fmt.Errorf("building clients for StreamAnalytics: %+v", err)
-		}
-		if client.Subscription, err = subscription.NewClient(o); err != nil {
-			return fmt.Errorf("building clients for Subscription: %+v", err)
-		}
-
-		client.Synapse = synapse.NewClient(o)
-		if client.SystemCenterVirtualMachineManager, err = systemCenterVirtualMachineManager.NewClient(o); err != nil {
-			return fmt.Errorf("building clients for System Center Virtual Machine Manager: %+v", err)
-		}
-		if client.TrafficManager, err = trafficManager.NewClient(o); err != nil {
-			return fmt.Errorf("building clients for Traffic Manager: %+v", err)
-		}
-		if client.VideoAnalyzer, err = videoAnalyzer.NewClient(o); err != nil {
-			return fmt.Errorf("building clients for Video Analyzer: %+v", err)
-		}
-		if client.Vmware, err = vmware.NewClient(o); err != nil {
-			return fmt.Errorf("building clients for VMWare: %+v", err)
-		}
-		if client.VoiceServices, err = voiceServices.NewClient(o); err != nil {
-			return fmt.Errorf("building clients for Voice Services: %+v", err)
-		}
-		client.Web = web.NewClient(o)
-
-		if client.Workloads, err = workloads.NewClient(o); err != nil {
-			return fmt.Errorf("building clients for Workloads: %+v", err)
-		}
-
-		return nil
+		return fmt.Errorf("building clients for MSSQLManagedInstance: %+v", err)
 	}
+	if client.MySQL, err = mysql.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for MySQL: %+v", err)
+	}
+	if client.NetApp, err = netapp.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for NetApp: %+v", err)
+	}
+	if client.Network, err = network.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Network: %+v", err)
+	}
+	if client.NetworkFunction, err = networkfunction.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for NetworkFunction: %+v", err)
+	}
+	if client.NewRelic, err = newrelic.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for NewRelic: %+v", err)
+	}
+	if client.Nginx, err = nginx.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Nginx: %+v", err)
+	}
+	if client.NotificationHubs, err = notificationhub.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for NotificationHubs: %+v", err)
+	}
+	if client.Orbital, err = orbital.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Orbital: %+v", err)
+	}
+	if client.Policy, err = policy.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Policy: %+v", err)
+	}
+	if client.PaloAlto, err = paloalto.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for PaloAlto: %+v", err)
+	}
+	if client.Portal, err = portal.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Portal: %+v", err)
+	}
+	if client.Postgres, err = postgres.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Postgres: %+v", err)
+	}
+	if client.PowerBI, err = powerBI.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for PowerBI: %+v", err)
+	}
+	if client.PrivateDns, err = privatedns.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for PrivateDns: %+v", err)
+	}
+	if client.PrivateDnsResolver, err = dnsresolver.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for PrivateDnsResolver: %+v", err)
+	}
+	if client.Purview, err = purview.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Purview: %+v", err)
+	}
+	if client.RecoveryServices, err = recoveryServices.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for RecoveryServices: %+v", err)
+	}
+	if client.RedHatOpenShift, err = redhatopenshift.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for RedHatOpenShift: %+v", err)
+	}
+	if client.Redis, err = redis.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Redis: %+v", err)
+	}
+	if client.RedisEnterprise, err = redisenterprise.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for RedisEnterprise: %+v", err)
+	}
+	if client.Relay, err = relay.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Relay: %+v", err)
+	}
+	if client.Resource, err = resource.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Resource: %+v", err)
+	}
+	if client.Search, err = search.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Search: %+v", err)
+	}
+	if client.SecurityCenter, err = securityCenter.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Security Center: %+v", err)
+	}
+	if client.Sentinel, err = sentinel.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Sentinel: %+v", err)
+	}
+	if client.ServiceBus, err = serviceBus.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for ServiceBus: %+v", err)
+	}
+	if client.ServiceConnector, err = serviceConnector.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for ServiceConnector: %+v", err)
+	}
+	if client.ServiceFabric, err = serviceFabric.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for ServiceConnector: %+v", err)
+	}
+	if client.ServiceFabricManaged, err = serviceFabricManaged.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for ServiceFabric: %+v", err)
+	}
+	if client.ServiceNetworking, err = serviceNetworking.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for ServiceNetworking: %+v", err)
+	}
+	if client.SignalR, err = signalr.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for SignalR: %+v", err)
+	}
+	client.Sql = sql.NewClient(o)
+	if client.Storage, err = storage.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Storage: %+v", err)
+	}
+	if client.StorageCache, err = storageCache.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Storage Cache: %+v", err)
+	}
+	if client.StorageMover, err = storageMover.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for StorageMover: %+v", err)
+	}
+	if client.StreamAnalytics, err = streamAnalytics.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for StreamAnalytics: %+v", err)
+	}
+	if client.Subscription, err = subscription.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Subscription: %+v", err)
+	}
+
+	client.Synapse = synapse.NewClient(o)
+	if client.SystemCenterVirtualMachineManager, err = systemCenterVirtualMachineManager.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for System Center Virtual Machine Manager: %+v", err)
+	}
+	if client.TrafficManager, err = trafficManager.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Traffic Manager: %+v", err)
+	}
+	if client.VideoAnalyzer, err = videoAnalyzer.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Video Analyzer: %+v", err)
+	}
+	if client.Vmware, err = vmware.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for VMWare: %+v", err)
+	}
+	if client.VoiceServices, err = voiceServices.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Voice Services: %+v", err)
+	}
+	client.Web = web.NewClient(o)
+
+	if client.Workloads, err = workloads.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Workloads: %+v", err)
+	}
+
+	return nil
 }
