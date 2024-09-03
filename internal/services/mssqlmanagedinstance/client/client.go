@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstances"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstancevulnerabilityassessments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedserversecurityalertpolicies"
-	schedule "github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/startstopmanagedinstanceschedules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/startstopmanagedinstanceschedules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -34,7 +34,7 @@ type Client struct {
 	ManagedInstanceEncryptionProtectorClient         *managedinstanceencryptionprotectors.ManagedInstanceEncryptionProtectorsClient
 	ManagedInstanceFailoverGroupsClient              *instancefailovergroups.InstanceFailoverGroupsClient
 	ManagedInstanceKeysClient                        *managedinstancekeys.ManagedInstanceKeysClient
-	ManagedInstanceStartStopSchedulesClient          *schedule.StartStopManagedInstanceSchedulesClient
+	ManagedInstanceStartStopSchedulesClient          *startstopmanagedinstanceschedules.StartStopManagedInstanceSchedulesClient
 
 	options *common.ClientOptions
 }
@@ -107,7 +107,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(managedInstanceServerSecurityAlertPoliciesClient.Client, o.Authorizers.ResourceManager)
 
-	managedInstanceStartStopSchedulesClient, err := schedule.NewStartStopManagedInstanceSchedulesClientWithBaseURI(o.Environment.ResourceManager)
+	managedInstanceStartStopSchedulesClient, err := startstopmanagedinstanceschedules.NewStartStopManagedInstanceSchedulesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Managed Instance Start Stop Schedules Client: %+v", err)
 	}
