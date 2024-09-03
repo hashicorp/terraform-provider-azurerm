@@ -40,21 +40,6 @@ func TestAccSentinelAutomationRule_basic(t *testing.T) {
 	})
 }
 
-func TestAccSentinelAutomationRule_completeDeprecatedCondition(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_sentinel_automation_rule", "test")
-	r := SentinelAutomationRuleResource{uuid: uuid.New().String()}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.completeDeprecatedCondition(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccSentinelAutomationRule_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_automation_rule", "test")
 	r := SentinelAutomationRuleResource{uuid: uuid.New().String()}
@@ -84,13 +69,6 @@ func TestAccSentinelAutomationRule_update(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.completeDeprecatedCondition(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -189,59 +167,6 @@ resource "azurerm_sentinel_automation_rule" "test" {
   }
 }
 `, template, r.uuid, data.RandomInteger)
-}
-
-func (r SentinelAutomationRuleResource) completeDeprecatedCondition(data acceptance.TestData) string {
-	template := r.template(data)
-	expDate := time.Now().AddDate(0, 1, 0).UTC().Format(time.RFC3339)
-	return fmt.Sprintf(`
-%s
-
-data "azurerm_client_config" "current" {}
-
-resource "azurerm_sentinel_automation_rule" "test" {
-  name                       = "%s"
-  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
-  display_name               = "acctest-SentinelAutoRule-%d-update"
-  order                      = 2
-  enabled                    = false
-  expiration                 = "%s"
-  condition {
-    property = "IncidentTitle"
-    operator = "Contains"
-    values   = ["a", "b"]
-  }
-
-  condition {
-    property = "IncidentTitle"
-    operator = "Contains"
-    values   = ["c", "d"]
-  }
-
-  action_incident {
-    order                  = 1
-    status                 = "Closed"
-    classification         = "BenignPositive_SuspiciousButExpected"
-    classification_comment = "whatever reason"
-  }
-
-  action_incident {
-    order  = 3
-    labels = ["foo", "bar"]
-  }
-
-  action_incident {
-    order    = 2
-    severity = "High"
-  }
-
-  action_incident {
-    order    = 4
-    owner_id = data.azurerm_client_config.current.object_id
-  }
-
-}
-`, template, r.uuid, data.RandomInteger, expDate)
 }
 
 func (r SentinelAutomationRuleResource) complete(data acceptance.TestData) string {

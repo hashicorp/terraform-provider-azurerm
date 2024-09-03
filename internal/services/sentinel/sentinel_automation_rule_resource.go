@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/automationrules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -179,42 +178,6 @@ func resourceSentinelAutomationRule() *pluginsdk.Resource {
 			AtLeastOneOf: []string{"action_incident", "action_playbook"},
 		},
 	}
-
-	if !features.FourPointOhBeta() {
-		schema["condition"] = &pluginsdk.Schema{
-			Deprecated: "This is deprecated in favor of `condition_json`",
-			Type:       pluginsdk.TypeList,
-			Optional:   true,
-			Computed:   true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"property": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringInSlice(automationrules.PossibleValuesForAutomationRulePropertyConditionSupportedProperty(), false),
-					},
-
-					"operator": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringInSlice(automationrules.PossibleValuesForAutomationRulePropertyConditionSupportedOperator(), false),
-					},
-
-					"values": {
-						Type:     pluginsdk.TypeList,
-						Required: true,
-						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeString,
-						},
-					},
-				},
-			},
-			ConflictsWith: []string{"condition_json"},
-		}
-		schema["condition_json"].Computed = true
-		schema["condition_json"].ConflictsWith = []string{"condition"}
-	}
-
 	return &pluginsdk.Resource{
 		Create: resourceSentinelAutomationRuleCreateOrUpdate,
 		Read:   resourceSentinelAutomationRuleRead,
@@ -280,7 +243,6 @@ func resourceSentinelAutomationRuleCreateOrUpdate(d *pluginsdk.ResourceData, met
 				IsEnabled:    d.Get("enabled").(bool),
 				TriggersOn:   automationrules.TriggersOn(d.Get("triggers_on").(string)),
 				TriggersWhen: automationrules.TriggersWhen(d.Get("triggers_when").(string)),
-				Conditions:   expandAutomationRuleConditions(d.Get("condition").([]interface{})),
 			},
 			Actions: actions,
 		},
@@ -292,8 +254,6 @@ func resourceSentinelAutomationRuleCreateOrUpdate(d *pluginsdk.ResourceData, met
 			return fmt.Errorf("expanding `condition_json`: %v", err)
 		}
 		params.Properties.TriggeringLogic.Conditions = conditions
-	} else if !features.FourPointOhBeta() {
-		params.Properties.TriggeringLogic.Conditions = expandAutomationRuleConditions(d.Get("condition").([]interface{}))
 	}
 
 	if expiration := d.Get("expiration").(string); expiration != "" {
@@ -344,12 +304,6 @@ func resourceSentinelAutomationRuleRead(d *pluginsdk.ResourceData, meta interfac
 		d.Set("triggers_on", string(tl.TriggersOn))
 		d.Set("triggers_when", string(tl.TriggersWhen))
 		d.Set("expiration", tl.ExpirationTimeUtc)
-
-		if !features.FourPointOhBeta() {
-			if err := d.Set("condition", flattenAutomationRuleConditions(tl.Conditions)); err != nil {
-				return fmt.Errorf("setting `condition`: %v", err)
-			}
-		}
 
 		conditionJSON, err := flattenAutomationRuleConditionsToJSON(tl.Conditions)
 		if err != nil {
