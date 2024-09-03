@@ -14,7 +14,7 @@ Use this data source to access information about an existing Exadata Infrastruct
 
 ```hcl
 data "azurerm_oracledatabase_exadata_infrastructure" "example" {
-  name = "existing"
+  name                = "existing"
   resource_group_name = "existing"
 }
 
