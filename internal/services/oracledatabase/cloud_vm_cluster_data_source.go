@@ -77,6 +77,15 @@ type CloudVmClusterDataModel struct {
 	ZoneId                       string                       `tfschema:"zone_id"`
 }
 
+type SystemDataModel struct {
+	CreatedBy          string `tfschema:"created_by"`
+	CreatedByType      string `tfschema:"created_by_type"`
+	CreatedAt          string `tfschema:"created_at"`
+	LastModifiedBy     string `tfschema:"last_modified_by"`
+	LastModifiedbyType string `tfschema:"last_modified_by_type"`
+	LastModifiedAt     string `tfschema:"last_modified_at"`
+}
+
 type DataCollectionOptionsModel struct {
 	IsDiagnosticsEventsEnabled bool `tfschema:"is_diagnostics_events_enabled"`
 	IsHealthMonitoringEnabled  bool `tfschema:"is_health_monitoring_enabled"`

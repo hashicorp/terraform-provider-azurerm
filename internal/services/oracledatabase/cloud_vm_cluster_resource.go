@@ -209,7 +209,7 @@ func (CloudVmClusterResource) Attributes() map[string]*pluginsdk.Schema {
 }
 
 func (CloudVmClusterResource) ModelObject() interface{} {
-	return &ExadataInfraResource{}
+	return &CloudVmClusterResource{}
 }
 
 func (CloudVmClusterResource) ResourceType() string {
