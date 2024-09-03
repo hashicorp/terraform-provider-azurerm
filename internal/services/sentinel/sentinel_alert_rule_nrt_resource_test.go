@@ -274,6 +274,9 @@ resource "azurerm_sentinel_alert_rule_nrt" "import" {
   display_name               = azurerm_sentinel_alert_rule_nrt.test.display_name
   severity                   = azurerm_sentinel_alert_rule_nrt.test.severity
   query                      = azurerm_sentinel_alert_rule_nrt.test.query
+  event_grouping {
+    aggregation_method = "SingleAlert"
+  }
 }
 `, r.basic(data))
 }
