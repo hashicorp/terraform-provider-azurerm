@@ -240,7 +240,7 @@ A `additional_capabilities` block supports the following:
 
 A `admin_ssh_key` block supports the following:
 
-* `public_key` - (Required) The Public Key which should be used for authentication, which needs to be at least 2048-bit and in `ssh-rsa` format. Changing this forces a new resource to be created.
+* `public_key` - (Required) The Public Key which should be used for authentication, which needs to be in `ssh-rsa` format with at least 2048-bit or in `ssh-ed25519` format. Changing this forces a new resource to be created.
 
 * `username` - (Required) The Username for which this Public SSH Key should be configured. Changing this forces a new resource to be created.
 
