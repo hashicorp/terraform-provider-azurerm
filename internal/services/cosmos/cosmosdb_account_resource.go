@@ -1032,8 +1032,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			networkByPass = cosmosdb.NetworkAclBypassAzureServices
 		}
 
-		var ipRangeFilter *[]cosmosdb.IPAddressOrRange
-		ipRangeFilter = common.CosmosDBIpRangeFilterToIpRules(*utils.ExpandStringSlice(d.Get("ip_range_filter").(*pluginsdk.Set).List()))
+		ipRangeFilter := common.CosmosDBIpRangeFilterToIpRules(*utils.ExpandStringSlice(d.Get("ip_range_filter").(*pluginsdk.Set).List()))
 
 		publicNetworkAccess := cosmosdb.PublicNetworkAccessEnabled
 		if enabled := d.Get("public_network_access_enabled").(bool); !enabled {
