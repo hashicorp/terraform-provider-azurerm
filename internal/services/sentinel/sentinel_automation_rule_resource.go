@@ -248,13 +248,11 @@ func resourceSentinelAutomationRuleCreateOrUpdate(d *pluginsdk.ResourceData, met
 		},
 	}
 
-	if v, ok := d.GetOk("condition_json"); ok {
-		conditions, err := expandAutomationRuleConditionsFromJSON(v.(string))
-		if err != nil {
-			return fmt.Errorf("expanding `condition_json`: %v", err)
-		}
-		params.Properties.TriggeringLogic.Conditions = conditions
+	conditions, err := expandAutomationRuleConditionsFromJSON(d.Get("condition_json").(string))
+	if err != nil {
+		return fmt.Errorf("expanding `condition_json`: %v", err)
 	}
+	params.Properties.TriggeringLogic.Conditions = conditions
 
 	if expiration := d.Get("expiration").(string); expiration != "" {
 		t, _ := time.Parse(time.RFC3339, expiration)
@@ -342,65 +340,6 @@ func resourceSentinelAutomationRuleDelete(d *pluginsdk.ResourceData, meta interf
 	return nil
 }
 
-func expandAutomationRuleConditions(input []interface{}) *[]automationrules.AutomationRuleCondition {
-	if len(input) == 0 {
-		return nil
-	}
-
-	out := make([]automationrules.AutomationRuleCondition, 0, len(input))
-	for _, b := range input {
-		b := b.(map[string]interface{})
-
-		propertyName := automationrules.AutomationRulePropertyConditionSupportedProperty(b["property"].(string))
-		operator := automationrules.AutomationRulePropertyConditionSupportedOperator(b["operator"].(string))
-		out = append(out, &automationrules.PropertyConditionProperties{
-			ConditionProperties: &automationrules.AutomationRulePropertyValuesCondition{
-				PropertyName:   &propertyName,
-				Operator:       &operator,
-				PropertyValues: utils.ExpandStringSlice(b["values"].([]interface{})),
-			},
-		})
-	}
-	return &out
-}
-
-func flattenAutomationRuleConditions(conditions *[]automationrules.AutomationRuleCondition) interface{} {
-	if conditions == nil {
-		return nil
-	}
-
-	out := make([]interface{}, 0, len(*conditions))
-	for _, condition := range *conditions {
-		// "condition" only applies to the Property condition
-		condition, ok := condition.(automationrules.PropertyConditionProperties)
-		if !ok {
-			continue
-		}
-
-		var (
-			property string
-			operator string
-			values   []interface{}
-		)
-		if p := condition.ConditionProperties; p != nil {
-			if p.PropertyName != nil {
-				property = string(*p.PropertyName)
-			}
-			if p.Operator != nil {
-				operator = string(*p.Operator)
-			}
-			values = utils.FlattenStringSlice(p.PropertyValues)
-		}
-
-		out = append(out, map[string]interface{}{
-			"property": property,
-			"operator": operator,
-			"values":   values,
-		})
-	}
-	return out
-}
-
 func expandAutomationRuleConditionsFromJSON(input string) (*[]automationrules.AutomationRuleCondition, error) {
 	if input == "" {
 		return nil, nil
@@ -414,7 +353,7 @@ func expandAutomationRuleConditionsFromJSON(input string) (*[]automationrules.Au
 }
 
 func flattenAutomationRuleConditionsToJSON(input *[]automationrules.AutomationRuleCondition) (string, error) {
-	if input == nil {
+	if input == nil || len(*input) == 0 {
 		return "", nil
 	}
 	result, err := json.Marshal(input)
