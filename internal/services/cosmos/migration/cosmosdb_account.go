@@ -4,9 +4,6 @@ import (
 	"context"
 	"strings"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-05-15/cosmosdb"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -22,18 +19,13 @@ func (c CosmosDBAccountV0toV1) Schema() map[string]*pluginsdk.Schema {
 		},
 
 		"location": {
-			Type:             pluginsdk.TypeString,
-			Required:         true,
-			ForceNew:         true,
-			ValidateFunc:     location.EnhancedValidate,
-			StateFunc:        location.StateFunc,
-			DiffSuppressFunc: location.DiffSuppressFunc,
+			Type:     pluginsdk.TypeString,
+			Required: true,
 		},
 
 		"resource_group_name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
-			ForceNew: true,
 		},
 
 		"offer_type": {
@@ -44,8 +36,6 @@ func (c CosmosDBAccountV0toV1) Schema() map[string]*pluginsdk.Schema {
 		"analytical_storage": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
-			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"schema_type": {
@@ -60,7 +50,6 @@ func (c CosmosDBAccountV0toV1) Schema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			Computed: true,
-			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"total_throughput_limit": {
@@ -81,20 +70,16 @@ func (c CosmosDBAccountV0toV1) Schema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			Computed: true,
-			ForceNew: true,
 		},
 
 		"default_identity_type": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Default:  "FirstPartyIdentity",
 		},
 
 		"kind": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			ForceNew: true,
-			Default:  string(cosmosdb.DatabaseAccountKindGlobalDocumentDB),
 		},
 
 		"ip_range_filter": {
@@ -110,13 +95,11 @@ func (c CosmosDBAccountV0toV1) Schema() map[string]*pluginsdk.Schema {
 		"analytical_storage_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Default:  false,
 		},
 
 		"public_network_access_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Default:  true,
 		},
 
 		"automatic_failover_enabled": {
@@ -128,13 +111,11 @@ func (c CosmosDBAccountV0toV1) Schema() map[string]*pluginsdk.Schema {
 		"key_vault_key_id": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			ForceNew: true,
 		},
 
 		"consistency_policy": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
-			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"consistency_level": {
@@ -145,13 +126,11 @@ func (c CosmosDBAccountV0toV1) Schema() map[string]*pluginsdk.Schema {
 					"max_interval_in_seconds": {
 						Type:     pluginsdk.TypeInt,
 						Optional: true,
-						Default:  5,
 					},
 
 					"max_staleness_prefix": {
 						Type:     pluginsdk.TypeInt,
 						Optional: true,
-						Default:  100,
 					},
 				},
 			},
@@ -168,11 +147,8 @@ func (c CosmosDBAccountV0toV1) Schema() map[string]*pluginsdk.Schema {
 					},
 
 					"location": {
-						Type:             pluginsdk.TypeString,
-						Required:         true,
-						ValidateFunc:     location.EnhancedValidate,
-						StateFunc:        location.StateFunc,
-						DiffSuppressFunc: location.DiffSuppressFunc,
+						Type:     pluginsdk.TypeString,
+						Required: true,
 					},
 
 					"failover_priority": {
@@ -183,7 +159,6 @@ func (c CosmosDBAccountV0toV1) Schema() map[string]*pluginsdk.Schema {
 					"zone_redundant": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
-						Default:  false,
 					},
 				},
 			},
@@ -206,7 +181,6 @@ func (c CosmosDBAccountV0toV1) Schema() map[string]*pluginsdk.Schema {
 		"is_virtual_network_filter_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Default:  false,
 		},
 
 		"virtual_network_rule": {
@@ -215,14 +189,12 @@ func (c CosmosDBAccountV0toV1) Schema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"id": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: azure.ValidateResourceID,
+						Type:     pluginsdk.TypeString,
+						Required: true,
 					},
 					"ignore_missing_vnet_service_endpoint": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
-						Default:  false,
 					},
 				},
 			},
@@ -231,13 +203,11 @@ func (c CosmosDBAccountV0toV1) Schema() map[string]*pluginsdk.Schema {
 		"access_key_metadata_writes_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Default:  true,
 		},
 
 		"local_authentication_disabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Default:  false,
 		},
 
 		"mongo_server_version": {
@@ -255,7 +225,6 @@ func (c CosmosDBAccountV0toV1) Schema() map[string]*pluginsdk.Schema {
 		"network_acl_bypass_for_azure_services": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Default:  false,
 		},
 
 		"network_acl_bypass_ids": {
@@ -268,20 +237,17 @@ func (c CosmosDBAccountV0toV1) Schema() map[string]*pluginsdk.Schema {
 		"partition_merge_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Default:  false,
 		},
 
 		"burst_capacity_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Default:  false,
 		},
 
 		"backup": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			Computed: true,
-			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"type": {
@@ -319,7 +285,6 @@ func (c CosmosDBAccountV0toV1) Schema() map[string]*pluginsdk.Schema {
 		"identity": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"type": {
@@ -348,13 +313,11 @@ func (c CosmosDBAccountV0toV1) Schema() map[string]*pluginsdk.Schema {
 		"cors_rule": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"allowed_origins": {
 						Type:     pluginsdk.TypeList,
 						Required: true,
-						MaxItems: 64,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
@@ -363,7 +326,6 @@ func (c CosmosDBAccountV0toV1) Schema() map[string]*pluginsdk.Schema {
 					"exposed_headers": {
 						Type:     pluginsdk.TypeList,
 						Required: true,
-						MaxItems: 64,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
@@ -372,7 +334,6 @@ func (c CosmosDBAccountV0toV1) Schema() map[string]*pluginsdk.Schema {
 					"allowed_headers": {
 						Type:     pluginsdk.TypeList,
 						Required: true,
-						MaxItems: 64,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
@@ -381,7 +342,6 @@ func (c CosmosDBAccountV0toV1) Schema() map[string]*pluginsdk.Schema {
 					"allowed_methods": {
 						Type:     pluginsdk.TypeList,
 						Required: true,
-						MaxItems: 64,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
@@ -426,7 +386,6 @@ func (c CosmosDBAccountV0toV1) Schema() map[string]*pluginsdk.Schema {
 		"restore": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"source_cosmosdb_account_id": {
@@ -438,25 +397,21 @@ func (c CosmosDBAccountV0toV1) Schema() map[string]*pluginsdk.Schema {
 					"restore_timestamp_in_utc": {
 						Type:     pluginsdk.TypeString,
 						Required: true,
-						ForceNew: true,
 					},
 
 					"database": {
 						Type:     pluginsdk.TypeSet,
 						Optional: true,
-						ForceNew: true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"name": {
 									Type:     pluginsdk.TypeString,
 									Required: true,
-									ForceNew: true,
 								},
 
 								"collection_names": {
 									Type:     pluginsdk.TypeSet,
 									Optional: true,
-									ForceNew: true,
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
 									},
@@ -468,19 +423,16 @@ func (c CosmosDBAccountV0toV1) Schema() map[string]*pluginsdk.Schema {
 					"gremlin_database": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
-						ForceNew: true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"name": {
 									Type:     pluginsdk.TypeString,
 									Required: true,
-									ForceNew: true,
 								},
 
 								"graph_names": {
 									Type:     pluginsdk.TypeList,
 									Optional: true,
-									ForceNew: true,
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
 									},
@@ -492,7 +444,6 @@ func (c CosmosDBAccountV0toV1) Schema() map[string]*pluginsdk.Schema {
 					"tables_to_restore": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
-						ForceNew: true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
