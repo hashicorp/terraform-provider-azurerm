@@ -301,7 +301,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 						Optional: true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
-							ValidateFunc: validation.IsCIDR,
+							ValidateFunc: validation.Any(validation.IsCIDR, validation.IsIPv4Address),
 						},
 					}
 				}

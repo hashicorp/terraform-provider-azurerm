@@ -36,7 +36,7 @@ func TestAccDevTestLabDataSource_complete(t *testing.T) {
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("storage_type").HasValue("Standard"),
+				check.That(data.ResourceName).Key("storage_type").HasValue("Premium"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.Hello").HasValue("World"),
 			),

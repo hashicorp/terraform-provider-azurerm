@@ -163,6 +163,7 @@ resource "azurerm_spring_cloud_gateway_route_config" "test" {
   name                    = "acctest-agrc-%d"
   spring_cloud_gateway_id = azurerm_spring_cloud_gateway.test.id
   spring_cloud_app_id     = azurerm_spring_cloud_app.test.id
+  protocol                = "HTTPS"
 }
 `, template, data.RandomInteger)
 }
@@ -176,6 +177,7 @@ resource "azurerm_spring_cloud_gateway_route_config" "import" {
   name                    = azurerm_spring_cloud_gateway_route_config.test.name
   spring_cloud_gateway_id = azurerm_spring_cloud_gateway_route_config.test.spring_cloud_gateway_id
   spring_cloud_app_id     = azurerm_spring_cloud_gateway_route_config.test.spring_cloud_app_id
+  protocol                = "HTTPS"
 }
 `, config)
 }
@@ -220,6 +222,7 @@ resource "azurerm_spring_cloud_gateway_route_config" "test" {
   name                    = "acctest-agrc-%d"
   spring_cloud_gateway_id = azurerm_spring_cloud_gateway.test.id
   spring_cloud_app_id     = azurerm_spring_cloud_app.test.id
+  protocol                = "HTTPS"
   route {
     description            = "first route"
     filters                = ["StripPrefix=2", "RateLimit=1,1s"]

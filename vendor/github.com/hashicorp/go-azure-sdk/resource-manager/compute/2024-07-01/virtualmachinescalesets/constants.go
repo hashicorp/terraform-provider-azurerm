@@ -9,6 +9,47 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
+type AllocationStrategy string
+
+const (
+	AllocationStrategyCapacityOptimized AllocationStrategy = "CapacityOptimized"
+	AllocationStrategyLowestPrice       AllocationStrategy = "LowestPrice"
+)
+
+func PossibleValuesForAllocationStrategy() []string {
+	return []string{
+		string(AllocationStrategyCapacityOptimized),
+		string(AllocationStrategyLowestPrice),
+	}
+}
+
+func (s *AllocationStrategy) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseAllocationStrategy(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseAllocationStrategy(input string) (*AllocationStrategy, error) {
+	vals := map[string]AllocationStrategy{
+		"capacityoptimized": AllocationStrategyCapacityOptimized,
+		"lowestprice":       AllocationStrategyLowestPrice,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := AllocationStrategy(input)
+	return &out, nil
+}
+
 type CachingTypes string
 
 const (
@@ -1803,5 +1844,46 @@ func parseWindowsVMGuestPatchMode(input string) (*WindowsVMGuestPatchMode, error
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := WindowsVMGuestPatchMode(input)
+	return &out, nil
+}
+
+type ZonalPlatformFaultDomainAlignMode string
+
+const (
+	ZonalPlatformFaultDomainAlignModeAligned   ZonalPlatformFaultDomainAlignMode = "Aligned"
+	ZonalPlatformFaultDomainAlignModeUnaligned ZonalPlatformFaultDomainAlignMode = "Unaligned"
+)
+
+func PossibleValuesForZonalPlatformFaultDomainAlignMode() []string {
+	return []string{
+		string(ZonalPlatformFaultDomainAlignModeAligned),
+		string(ZonalPlatformFaultDomainAlignModeUnaligned),
+	}
+}
+
+func (s *ZonalPlatformFaultDomainAlignMode) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseZonalPlatformFaultDomainAlignMode(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseZonalPlatformFaultDomainAlignMode(input string) (*ZonalPlatformFaultDomainAlignMode, error) {
+	vals := map[string]ZonalPlatformFaultDomainAlignMode{
+		"aligned":   ZonalPlatformFaultDomainAlignModeAligned,
+		"unaligned": ZonalPlatformFaultDomainAlignModeUnaligned,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := ZonalPlatformFaultDomainAlignMode(input)
 	return &out, nil
 }
