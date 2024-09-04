@@ -786,8 +786,7 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	kind := d.Get("kind").(string)
 	offerType := d.Get("offer_type").(string)
 
-	var ipRangeFilter *[]cosmosdb.IPAddressOrRange
-	ipRangeFilter = common.CosmosDBIpRangeFilterToIpRules(*utils.ExpandStringSlice(d.Get("ip_range_filter").(*pluginsdk.Set).List()))
+	ipRangeFilter := common.CosmosDBIpRangeFilterToIpRules(*utils.ExpandStringSlice(d.Get("ip_range_filter").(*pluginsdk.Set).List()))
 	isVirtualNetworkFilterEnabled := d.Get("is_virtual_network_filter_enabled").(bool)
 
 	enableFreeTier := d.Get("free_tier_enabled").(bool)
