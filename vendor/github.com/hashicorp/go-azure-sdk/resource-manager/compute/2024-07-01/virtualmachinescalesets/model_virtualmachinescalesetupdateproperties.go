@@ -13,7 +13,9 @@ type VirtualMachineScaleSetUpdateProperties struct {
 	ResiliencyPolicy                       *ResiliencyPolicy                      `json:"resiliencyPolicy,omitempty"`
 	ScaleInPolicy                          *ScaleInPolicy                         `json:"scaleInPolicy,omitempty"`
 	SinglePlacementGroup                   *bool                                  `json:"singlePlacementGroup,omitempty"`
+	SkuProfile                             *SkuProfile                            `json:"skuProfile,omitempty"`
 	SpotRestorePolicy                      *SpotRestorePolicy                     `json:"spotRestorePolicy,omitempty"`
 	UpgradePolicy                          *UpgradePolicy                         `json:"upgradePolicy,omitempty"`
 	VirtualMachineProfile                  *VirtualMachineScaleSetUpdateVMProfile `json:"virtualMachineProfile,omitempty"`
+	ZonalPlatformFaultDomainAlignMode      *ZonalPlatformFaultDomainAlignMode     `json:"zonalPlatformFaultDomainAlignMode,omitempty"`
 }
