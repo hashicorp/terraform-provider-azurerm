@@ -34,7 +34,6 @@ func TestAccApiManagementApi_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("api_type").HasValue("http"),
-				check.That(data.ResourceName).Key("soap_pass_through").HasValue("false"),
 				check.That(data.ResourceName).Key("is_current").HasValue("true"),
 				check.That(data.ResourceName).Key("is_online").HasValue("false"),
 				check.That(data.ResourceName).Key("subscription_required").HasValue("true"),
@@ -70,7 +69,6 @@ func TestAccApiManagementApi_blankPath(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("api_type").HasValue("http"),
-				check.That(data.ResourceName).Key("soap_pass_through").HasValue("false"),
 				check.That(data.ResourceName).Key("is_current").HasValue("true"),
 				check.That(data.ResourceName).Key("is_online").HasValue("false"),
 				check.That(data.ResourceName).Key("path").HasValue(""),
@@ -608,7 +606,7 @@ resource "azurerm_api_management_api" "test" {
   path                = "api1"
   protocols           = ["https"]
   revision            = "1"
-  soap_pass_through   = true
+  api_type            = "soap"
 }
 `, r.template(data, SkuNameConsumption), data.RandomInteger)
 }

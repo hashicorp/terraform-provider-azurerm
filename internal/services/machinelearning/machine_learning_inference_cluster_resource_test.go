@@ -178,7 +178,6 @@ resource "azurerm_machine_learning_inference_cluster" "test" {
   kubernetes_cluster_id         = azurerm_kubernetes_cluster.test.id
   cluster_purpose               = "DevTest"
 
-
   tags = {
     ENV = "Test"
   }
@@ -542,11 +541,11 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "test" {
-  name                                           = "acctestsubnet%[7]d"
-  resource_group_name                            = azurerm_resource_group.test.name
-  virtual_network_name                           = azurerm_virtual_network.test.name
-  enforce_private_link_endpoint_network_policies = true
-  address_prefixes                               = ["10.1.0.0/24"]
+  name                              = "acctestsubnet%[7]d"
+  resource_group_name               = azurerm_resource_group.test.name
+  virtual_network_name              = azurerm_virtual_network.test.name
+  private_endpoint_network_policies = "Enabled"
+  address_prefixes                  = ["10.1.0.0/24"]
 }
 
 resource "azurerm_kubernetes_cluster" "test" {

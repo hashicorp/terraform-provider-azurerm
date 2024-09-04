@@ -11,11 +11,16 @@ import (
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 type HybridComputeMachineDataSource struct{}
 
 func TestAccHybridComputeMachine_basic(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("Data source has been removed in 4.0")
+	}
+
 	data := acceptance.BuildTestData(t, "data.azurerm_hybrid_compute_machine", "test")
 	d := HybridComputeMachineDataSource{}
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")

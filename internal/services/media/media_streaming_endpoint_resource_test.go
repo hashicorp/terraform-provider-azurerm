@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -20,6 +21,9 @@ import (
 type MediaStreamingEndpointResource struct{}
 
 func TestAccMediaStreamingEndpoint_basic(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("The `azurerm_media_streaming_endpoint` resource is deprecated and will be removed in v4.0 of the AzureRM Provider.")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_media_streaming_endpoint", "test")
 	r := MediaStreamingEndpointResource{}
 
@@ -36,6 +40,9 @@ func TestAccMediaStreamingEndpoint_basic(t *testing.T) {
 }
 
 func TestAccMediaStreamingEndpoint_CDN(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("The `azurerm_media_streaming_endpoint` resource is deprecated and will be removed in v4.0 of the AzureRM Provider.")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_media_streaming_endpoint", "test")
 	r := MediaStreamingEndpointResource{}
 
@@ -52,6 +59,9 @@ func TestAccMediaStreamingEndpoint_CDN(t *testing.T) {
 }
 
 func TestAccMediaStreamingEndpoint_MaxCacheAge(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("The `azurerm_media_streaming_endpoint` resource is deprecated and will be removed in v4.0 of the AzureRM Provider.")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_media_streaming_endpoint", "test")
 	r := MediaStreamingEndpointResource{}
 
@@ -67,6 +77,9 @@ func TestAccMediaStreamingEndpoint_MaxCacheAge(t *testing.T) {
 }
 
 func TestAccMediaStreamingEndpoint_shouldStopWhenStarted(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("The `azurerm_media_streaming_endpoint` resource is deprecated and will be removed in v4.0 of the AzureRM Provider.")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_media_streaming_endpoint", "test")
 	r := MediaStreamingEndpointResource{}
 
@@ -84,6 +97,9 @@ func TestAccMediaStreamingEndpoint_shouldStopWhenStarted(t *testing.T) {
 }
 
 func TestAccMediaStreamingEndpoint_update(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("The `azurerm_media_streaming_endpoint` resource is deprecated and will be removed in v4.0 of the AzureRM Provider.")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_media_streaming_endpoint", "test")
 	r := MediaStreamingEndpointResource{}
 
@@ -106,6 +122,9 @@ func TestAccMediaStreamingEndpoint_update(t *testing.T) {
 }
 
 func TestAccMediaStreamingEndpoint_standard(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("The `azurerm_media_streaming_endpoint` resource is deprecated and will be removed in v4.0 of the AzureRM Provider.")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_media_streaming_endpoint", "test")
 	r := MediaStreamingEndpointResource{}
 
