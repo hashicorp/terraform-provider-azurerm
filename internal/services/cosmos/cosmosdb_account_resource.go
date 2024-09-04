@@ -27,6 +27,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/common"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
@@ -182,6 +183,12 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			Update: pluginsdk.DefaultTimeout(180 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(180 * time.Minute),
 		},
+
+		SchemaVersion: 1,
+
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.CosmosDBAccountV0toV1{},
+		}),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
