@@ -4,11 +4,9 @@ import (
 	"context"
 	"strings"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-05-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -23,9 +21,20 @@ func (c CosmosDBAccountV0toV1) Schema() map[string]*pluginsdk.Schema {
 			Required: true,
 		},
 
-		"location": commonschema.Location(),
+		"location": {
+			Type:             pluginsdk.TypeString,
+			Required:         true,
+			ForceNew:         true,
+			ValidateFunc:     location.EnhancedValidate,
+			StateFunc:        location.StateFunc,
+			DiffSuppressFunc: location.DiffSuppressFunc,
+		},
 
-		"resource_group_name": commonschema.ResourceGroupName(),
+		"resource_group_name": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
 
 		"offer_type": {
 			Type:     pluginsdk.TypeString,
@@ -62,7 +71,6 @@ func (c CosmosDBAccountV0toV1) Schema() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		// per Microsoft's documentation, as of April 1 2023 the default minimal TLS version for all new accounts is 1.2
 		"minimal_tls_version": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
@@ -76,8 +84,6 @@ func (c CosmosDBAccountV0toV1) Schema() map[string]*pluginsdk.Schema {
 			ForceNew: true,
 		},
 
-		// Per Documentation: "The default identity needs to be explicitly set by the users." This should not be optional without a default anymore.
-		// DOC: https://learn.microsoft.com/en-us/java/api/com.azure.resourcemanager.cosmos.models.databaseaccountupdateparameters?view=azure-java-stable#method-details
 		"default_identity_type": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
@@ -116,7 +122,7 @@ func (c CosmosDBAccountV0toV1) Schema() map[string]*pluginsdk.Schema {
 		"automatic_failover_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Computed: !features.FourPointOhBeta(),
+			Computed: true,
 		},
 
 		"key_vault_key_id": {
@@ -136,14 +142,12 @@ func (c CosmosDBAccountV0toV1) Schema() map[string]*pluginsdk.Schema {
 						Required: true,
 					},
 
-					// This value can only change if the 'consistency_level' is set to 'BoundedStaleness'
 					"max_interval_in_seconds": {
 						Type:     pluginsdk.TypeInt,
 						Optional: true,
 						Default:  5,
 					},
 
-					// This value can only change if the 'consistency_level' is set to 'BoundedStaleness'
 					"max_staleness_prefix": {
 						Type:     pluginsdk.TypeInt,
 						Optional: true,
@@ -163,7 +167,13 @@ func (c CosmosDBAccountV0toV1) Schema() map[string]*pluginsdk.Schema {
 						Computed: true,
 					},
 
-					"location": commonschema.LocationWithoutForceNew(),
+					"location": {
+						Type:             pluginsdk.TypeString,
+						Required:         true,
+						ValidateFunc:     location.EnhancedValidate,
+						StateFunc:        location.StateFunc,
+						DiffSuppressFunc: location.DiffSuppressFunc,
+					},
 
 					"failover_priority": {
 						Type:     pluginsdk.TypeInt,
@@ -279,7 +289,6 @@ func (c CosmosDBAccountV0toV1) Schema() map[string]*pluginsdk.Schema {
 						Required: true,
 					},
 
-					// Though `tier` has the default value `Continuous30Days` but `tier` is only for the backup type `Continuous`. So the default value isn't added in the property schema.
 					"tier": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
@@ -307,9 +316,84 @@ func (c CosmosDBAccountV0toV1) Schema() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+		"identity": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"type": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+					},
+					"identity_ids": {
+						Type:     pluginsdk.TypeSet,
+						Optional: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+					},
+					"principal_id": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"tenant_id": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+				},
+			},
+		},
 
-		"cors_rule": common.SchemaCorsRule(),
+		"cors_rule": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"allowed_origins": {
+						Type:     pluginsdk.TypeList,
+						Required: true,
+						MaxItems: 64,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+					},
+
+					"exposed_headers": {
+						Type:     pluginsdk.TypeList,
+						Required: true,
+						MaxItems: 64,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+					},
+
+					"allowed_headers": {
+						Type:     pluginsdk.TypeList,
+						Required: true,
+						MaxItems: 64,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+					},
+
+					"allowed_methods": {
+						Type:     pluginsdk.TypeList,
+						Required: true,
+						MaxItems: 64,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+					},
+
+					"max_age_in_seconds": {
+						Type:     pluginsdk.TypeInt,
+						Optional: true,
+					},
+				},
+			},
+		},
 
 		"connection_strings": {
 			Type:      pluginsdk.TypeList,
@@ -510,7 +594,13 @@ func (c CosmosDBAccountV0toV1) Schema() map[string]*pluginsdk.Schema {
 			Sensitive: true,
 		},
 
-		"tags": commonschema.Tags(),
+		"tags": {
+			Type:     pluginsdk.TypeMap,
+			Optional: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		},
 	}
 }
 
