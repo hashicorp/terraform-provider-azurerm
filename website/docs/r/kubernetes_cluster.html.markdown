@@ -482,7 +482,7 @@ A `kubelet_config` block supports the following:
 
 * `container_log_max_size_mb` - (Optional) Specifies the maximum size (e.g. 10MB) of container log file before it is rotated.
 
-* `cpu_cfs_quota_enabled` - (Optional) Is CPU CFS quota enforcement for containers enabled?
+* `cpu_cfs_quota_enabled` - (Optional) Is CPU CFS quota enforcement for containers enabled? Defaults to `true`.
 
 * `cpu_cfs_quota_period` - (Optional) Specifies the CPU CFS quota period value.
 
