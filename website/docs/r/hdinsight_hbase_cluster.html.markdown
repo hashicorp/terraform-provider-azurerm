@@ -33,11 +33,12 @@ resource "azurerm_storage_container" "example" {
 }
 
 resource "azurerm_hdinsight_hbase_cluster" "example" {
-  name                = "example-hdicluster"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
-  cluster_version     = "3.6"
-  tier                = "Standard"
+  name                       = "example-hdicluster"
+  resource_group_name        = azurerm_resource_group.example.name
+  location                   = azurerm_resource_group.example.location
+  cluster_version            = "3.6"
+  tier                       = "Standard"
+  accelerated_writes_enabled = true
 
   component_version {
     hbase = "1.1"
@@ -108,6 +109,8 @@ The following arguments are supported:
 * `storage_account_gen2` - (Optional) A `storage_account_gen2` block as defined below.
 
 * `tier` - (Required) Specifies the Tier which should be used for this HDInsight HBase Cluster. Possible values are `Standard` or `Premium`. Changing this forces a new resource to be created.
+
+* `accelerated_writes_enabled` - (Optional) enables the accelerated writes for `HBase`. Default is `false`. Changing this forces a new resource to be created.
 
 * `tls_min_version` - (Optional) The minimal supported TLS version. Possible values are 1.0, 1.1 or 1.2. Changing this forces a new resource to be created.
 

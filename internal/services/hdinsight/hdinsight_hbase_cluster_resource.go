@@ -40,6 +40,14 @@ var hdInsightHBaseClusterWorkerNodeDefinition = HDInsightNodeDefinition{
 	CanAutoScaleOnSchedule:  true,
 }
 
+var hdInsightHBaseClusterWorkerNodeDefinitionWithAcceleratedWrites = HDInsightNodeDefinition{
+	CanSpecifyInstanceCount: true,
+	MinInstanceCount:        1,
+	CanSpecifyDisks:         true,
+	CanAutoScaleOnSchedule:  true,
+	MaxNumberOfDisksPerNode: pointer.To(1),
+}
+
 var hdInsightHBaseClusterZookeeperNodeDefinition = HDInsightNodeDefinition{
 	CanSpecifyInstanceCount:  false,
 	MinInstanceCount:         3,
@@ -79,6 +87,13 @@ func resourceHDInsightHBaseCluster() *pluginsdk.Resource {
 			"tier": SchemaHDInsightTier(),
 
 			"tls_min_version": SchemaHDInsightTls(),
+
+			"accelerated_writes_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
+				Default:  false,
+			},
 
 			"component_version": {
 				Type:     pluginsdk.TypeList,
@@ -186,11 +201,9 @@ func resourceHDInsightHBaseClusterCreate(d *pluginsdk.ResourceData, meta interfa
 	privateLinkConfigurationsRaw := d.Get("private_link_configuration").([]interface{})
 	privateLinkConfigurations := ExpandHDInsightPrivateLinkConfigurations(privateLinkConfigurationsRaw)
 
-	hbaseRoles := hdInsightRoleDefinition{
-		HeadNodeDef:      hdInsightHBaseClusterHeadNodeDefinition,
-		WorkerNodeDef:    hdInsightHBaseClusterWorkerNodeDefinition,
-		ZookeeperNodeDef: hdInsightHBaseClusterZookeeperNodeDefinition,
-	}
+	enableAcceleratedWrites := d.Get("accelerated_writes_enabled").(bool)
+	hbaseRoles := createHDInsightRoles(enableAcceleratedWrites)
+
 	rolesRaw := d.Get("roles").([]interface{})
 	roles, err := expandHDInsightRoles(rolesRaw, hbaseRoles)
 	if err != nil {
@@ -380,6 +393,14 @@ func resourceHDInsightHBaseClusterRead(d *pluginsdk.ResourceData, meta interface
 				return fmt.Errorf("failure flattening `roles`: %+v", err)
 			}
 
+			// The only knowledge of accelerated writes being enabled is the existence of a data disk per worker node
+			if err := d.Set(
+				"accelerated_writes_enabled",
+				utils.Bool(FindHDInsightRole(props.ComputeProfile.Roles, "workernode").DataDisksGroups != nil),
+			); err != nil {
+				return fmt.Errorf("failure setting `accelerated_writes_enabled`: %+v", err)
+			}
+
 			if err := d.Set("compute_isolation", flattenHDInsightComputeIsolationProperties(props.ComputeIsolationProperties)); err != nil {
 				return fmt.Errorf("failed setting `compute_isolation`: %+v", err)
 			}
@@ -425,4 +446,22 @@ func flattenHDInsightHBaseComponentVersion(input *map[string]string) []interface
 		})
 	}
 	return output
+}
+
+func createHDInsightRoles(enableAcceleratedWrites bool) hdInsightRoleDefinition {
+	var hbaseRoles hdInsightRoleDefinition
+	if enableAcceleratedWrites {
+		hbaseRoles = hdInsightRoleDefinition{
+			HeadNodeDef:      hdInsightHBaseClusterHeadNodeDefinition,
+			WorkerNodeDef:    hdInsightHBaseClusterWorkerNodeDefinitionWithAcceleratedWrites,
+			ZookeeperNodeDef: hdInsightHBaseClusterZookeeperNodeDefinition,
+		}
+	} else {
+		hbaseRoles = hdInsightRoleDefinition{
+			HeadNodeDef:      hdInsightHBaseClusterHeadNodeDefinition,
+			WorkerNodeDef:    hdInsightHBaseClusterWorkerNodeDefinition,
+			ZookeeperNodeDef: hdInsightHBaseClusterZookeeperNodeDefinition,
+		}
+	}
+	return hbaseRoles
 }
