@@ -90,7 +90,8 @@ func resourceRouteTable() *pluginsdk.Resource {
 						"next_hop_in_ip_address": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							Default:      "",
+							ValidateFunc: validation.IsIPv4Address,
 						},
 					},
 				},
