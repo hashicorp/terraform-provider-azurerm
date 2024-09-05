@@ -15,10 +15,14 @@ ENHANCEMENTS:
 * `azurerm_*_virtual_machine_scale_set` - upgrade api version from `2024-03-01` to `2024-07-01` [GH-27230]
 * `azurerm_api_management_logger` - support for the `application_insights.connection_string` property [GH-27137]
 
+BUG FIXES:
+
+* `azurerm_mysql_flexible_server` - correctly set `source_server_id` in the state file [GH-27295]
+
+
 ## 4.0.1 (August 23, 2024)
 
 BUG FIXES:
-
 
 * provider: fix a validation bug that prevents `terraform validate` from working when `subscription_id` is not specified ([#27178](https://github.com/hashicorp/terraform-provider-azurerm/issues/27178))
 * `azurerm_cognitive_deployment` - fixed replacement of `scale` block with `sku` ([#27173](https://github.com/hashicorp/terraform-provider-azurerm/issues/27173))
