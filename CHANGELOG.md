@@ -6,6 +6,7 @@ BUG FIXES:
 * `azurerm_cosmosdb_account` - added state migration for `ip_range_filter` underlying type change from `string` to `set` [GH-27276]
 * `azurerm_linux_virtual_machine` - the `admin_ssh_key.public_key` property now supports ed25519 ssh keys [GH-27202]
 * `azurerm_sentinel_automation_rule` - no longer panics when using `condition_json`  [GH-27269]
+* `azurerm_kubernetes_cluster` -  the `host_encryption_enabled` and `node_public_ip_enabled` properties are now set correctly [GH-27218]
 
 ENHANCEMENTS:
 
