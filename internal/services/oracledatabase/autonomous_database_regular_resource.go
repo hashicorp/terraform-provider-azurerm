@@ -84,8 +84,9 @@ func (AdbsRegularResource) Arguments() map[string]*pluginsdk.Schema {
 			Required: true,
 		},
 		"admin_password": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Type:      pluginsdk.TypeString,
+			Required:  true,
+			Sensitive: true,
 		},
 		"db_version": {
 			Type:     pluginsdk.TypeString,
@@ -120,7 +121,7 @@ func (AdbsRegularResource) ResourceType() string {
 
 func (r AdbsRegularResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.OracleDatabase.OracleDatabaseClient.AutonomousDatabases
 			subscriptionId := metadata.Client.Account.SubscriptionId
@@ -196,11 +197,16 @@ func (r AdbsRegularResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving as nil when updating for %v", *id)
 			}
 
-			upd := existing.Model
-
-			err = client.CreateOrUpdateThenPoll(ctx, *id, *upd)
-			if err != nil {
-				return fmt.Errorf("updating %s: %v", id, err)
+			if metadata.ResourceData.HasChange("tags") {
+				update := &autonomousdatabases.AutonomousDatabaseUpdate{
+					Tags: tags.Expand(model.Tags),
+				}
+				err = client.UpdateThenPoll(ctx, *id, *update)
+				if err != nil {
+					return fmt.Errorf("updating %s: %v", id, err)
+				}
+			} else if metadata.ResourceData.HasChangesExcept("tags") {
+				return fmt.Errorf("only `tags` currently support updates")
 			}
 			return nil
 		},
@@ -238,7 +244,6 @@ func (AdbsRegularResource) Read() sdk.ResourceFunc {
 				output.Tags = utils.FlattenPtrMapStringString(result.Model.Tags)
 				output.ResourceGroupName = id.ResourceGroupName
 				output.DisplayName = pointer.From(adbsPropModel.DisplayName)
-				output.AdminPassword = pointer.From(adbsPropModel.AdminPassword)
 				output.ComputeModel = string(pointer.From(adbsPropModel.ComputeModel))
 				output.ComputeCount = pointer.From(adbsPropModel.ComputeCount)
 				output.LicenseModel = string(pointer.From(adbsPropModel.LicenseModel))

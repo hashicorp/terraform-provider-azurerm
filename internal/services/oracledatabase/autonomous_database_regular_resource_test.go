@@ -110,6 +110,11 @@ resource "azurerm_oracledatabase_autonomous_database_regular" "test" {
   ncharacter_set = "AL16UTF16"
   subnet_id = azurerm_subnet.virtual_network_subnet.id
   vnet_id = azurerm_virtual_network.virtual_network.id
+  lifecycle {
+    ignore_changes = [
+      admin_password
+    ]
+  }
 }
 `, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
@@ -138,6 +143,11 @@ resource "azurerm_oracledatabase_autonomous_database_regular" "test" {
   tags = {
     test = "test1"
   }
+  lifecycle {
+    ignore_changes = [
+      admin_password
+    ]
+  }
 }
 `, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
@@ -162,6 +172,11 @@ resource "azurerm_oracledatabase_autonomous_database_regular" "import" {
   ncharacter_set = azurerm_oracledatabase_autonomous_database_regular.test.ncharacter_set
   subnet_id = azurerm_oracledatabase_autonomous_database_regular.test.subnet_id
   vnet_id = azurerm_oracledatabase_autonomous_database_regular.test.vnet_id
+  lifecycle {
+    ignore_changes = [
+      admin_password
+    ]
+  }
 }
 `, a.basic(data))
 }
