@@ -48,7 +48,6 @@ Desktop Virtualization
 Dev Center
 Dev Test
 Digital Twins
-Disks
 Elastic
 Elastic SAN
 Extended Location
@@ -61,19 +60,16 @@ Hybrid Compute
 IoT Central
 IoT Hub
 Key Vault
-Lab Service
 Lighthouse
 Load Balancer
 Load Test
 Log Analytics
 Logic App
-Logz
 Machine Learning
 Maintenance
 Managed Applications
 Management
 Maps
-Media
 Messaging
 Mixed Reality
 Mobile Network
@@ -108,8 +104,6 @@ Stream Analytics
 Synapse
 System Center Virtual Machine Manager
 Template
-Time Series Insights
-Video Analyzer
 Voice Services
 Web PubSub
 Workloads
