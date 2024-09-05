@@ -535,7 +535,7 @@ resource "azurerm_resource_group" "test" {
   name     = "acctestRG-mysql-%d"
   location = "%s"
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Ternary)
 }
 
 func (r MySqlFlexibleServerResource) basic(data acceptance.TestData) string {
