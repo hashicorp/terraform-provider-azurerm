@@ -1337,34 +1337,34 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 
 		// Count must be set for the initial creation when using AutoScaling but cannot be updated
 		if d.HasChange("default_node_pool.0.node_count") && !d.IsNewResource() {
-			return nil, fmt.Errorf("cannot change `node_count` when `enable_auto_scaling` is set to `true`")
+			return nil, fmt.Errorf("cannot change `node_count` when `auto_scaling_enabled` is set to `true`")
 		}
 
 		if maxCount > 0 {
 			profile.MaxCount = utils.Int64(int64(maxCount))
 
 			if maxCount < count && d.IsNewResource() {
-				return nil, fmt.Errorf("`node_count`(%d) must be equal to or less than `max_count`(%d) when `enable_auto_scaling` is set to `true`", count, maxCount)
+				return nil, fmt.Errorf("`node_count`(%d) must be equal to or less than `max_count`(%d) when `auto_scaling_enabled` is set to `true`", count, maxCount)
 			}
 		} else {
-			return nil, fmt.Errorf("`max_count` must be configured when `enable_auto_scaling` is set to `true`")
+			return nil, fmt.Errorf("`max_count` must be configured when `auto_scaling_enabled` is set to `true`")
 		}
 
 		if minCount > 0 {
 			profile.MinCount = utils.Int64(int64(minCount))
 
 			if minCount > count && d.IsNewResource() {
-				return nil, fmt.Errorf("`node_count`(%d) must be equal to or greater than `min_count`(%d) when `enable_auto_scaling` is set to `true`", count, minCount)
+				return nil, fmt.Errorf("`node_count`(%d) must be equal to or greater than `min_count`(%d) when `auto_scaling_enabled` is set to `true`", count, minCount)
 			}
 		} else {
-			return nil, fmt.Errorf("`min_count` must be configured when `enable_auto_scaling` is set to `true`")
+			return nil, fmt.Errorf("`min_count` must be configured when `auto_scaling_enabled` is set to `true`")
 		}
 
 		if minCount > maxCount {
 			return nil, fmt.Errorf("`max_count` must be >= `min_count`")
 		}
 	} else if minCount > 0 || maxCount > 0 {
-		return nil, fmt.Errorf("`max_count`(%d) and `min_count`(%d) must be set to `null` when `enable_auto_scaling` is set to `false`", maxCount, minCount)
+		return nil, fmt.Errorf("`max_count`(%d) and `min_count`(%d) must be set to `null` when `auto_scaling_enabled` is set to `false`", maxCount, minCount)
 	}
 
 	if kubeletConfig := raw["kubelet_config"].([]interface{}); len(kubeletConfig) > 0 {
