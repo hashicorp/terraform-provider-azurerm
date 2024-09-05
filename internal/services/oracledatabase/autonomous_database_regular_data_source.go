@@ -20,16 +20,16 @@ import (
 type AutonomousDatabaseRegularDataSource struct{}
 
 type AutonomousDatabaseRegularModel struct {
-	Name string                 `tfschema:"name"`
-	Type string                 `tfschema:"type"`
-	Tags map[string]interface{} `tfschema:"tags"`
+	Location string                 `tfschema:"location"`
+	Name     string                 `tfschema:"name"`
+	Type     string                 `tfschema:"type"`
+	Tags     map[string]interface{} `tfschema:"tags"`
 
 	// SystemData
 	SystemData []SystemDataModel `tfschema:"system_data"`
 
 	// AutonomousDatabaseProperties
 	ActualUsedDataStorageSizeInTbs           float64  `tfschema:"actual_used_data_storage_size_in_tbs"`
-	AdminPassword                            string   `tfschema:"admin_password"`
 	AllocatedStorageSizeInTbs                float64  `tfschema:"allocated_storage_size_in_tbs"`
 	AutonomousDatabaseId                     string   `tfschema:"autonomous_database_id"`
 	AvailableUpgradeVersions                 []string `tfschema:"available_upgrade_versions"`
@@ -140,10 +140,6 @@ func (d AutonomousDatabaseRegularDataSource) Attributes() map[string]*pluginsdk.
 		// AutonomousDatabaseProperties
 		"actual_used_data_storage_size_in_tbs": {
 			Type:     pluginsdk.TypeFloat,
-			Computed: true,
-		},
-		"admin_password": {
-			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 		"allocated_storage_size_in_tbs": {
@@ -424,7 +420,6 @@ func (d AutonomousDatabaseRegularDataSource) Read() sdk.ResourceFunc {
 					case autonomousdatabases.AutonomousDatabaseProperties:
 						output = AutonomousDatabaseRegularModel{
 							ActualUsedDataStorageSizeInTbs:           pointer.From(adbsPropModel.ActualUsedDataStorageSizeInTbs),
-							AdminPassword:                            pointer.From(adbsPropModel.AdminPassword),
 							AllocatedStorageSizeInTbs:                pointer.From(adbsPropModel.AllocatedStorageSizeInTbs),
 							AutonomousDatabaseId:                     pointer.From(adbsPropModel.AutonomousDatabaseId),
 							AvailableUpgradeVersions:                 pointer.From(adbsPropModel.AvailableUpgradeVersions),

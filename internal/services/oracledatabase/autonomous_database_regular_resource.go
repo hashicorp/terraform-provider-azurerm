@@ -22,48 +22,59 @@ var _ sdk.Resource = AdbsRegularResource{}
 type AdbsRegularResource struct{}
 
 type AdbsRegularResourceModel struct {
+	// Azure
 	Location          string                 `tfschema:"location"`
 	Name              string                 `tfschema:"name"`
 	ResourceGroupName string                 `tfschema:"resource_group_name"`
 	Tags              map[string]interface{} `tfschema:"tags"`
 
-	DisplayName          string  `tfschema:"display_name"`
-	SubnetId             string  `tfschema:"subnet_id"`
-	ComputeModel         string  `tfschema:"compute_model"`
-	ComputeCount         float64 `tfschema:"compute_count"`
-	LicenseModel         string  `tfschema:"license_model"`
-	DataStorageSizeInGbs int64   `tfschema:"data_storage_size_in_gbs"`
-	DbWorkload           string  `tfschema:"db_workload"`
-	AdminPassword        string  `tfschema:"admin_password"`
-	DbVersion            string  `tfschema:"db_version"`
-	CharacterSet         string  `tfschema:"character_set"`
-	NcharacterSet        string  `tfschema:"ncharacter_set"`
-	VnetId               string  `tfschema:"vnet_id"`
+	// Required
+	AdminPassword                  string  `tfschema:"admin_password"`
+	BackupRetentionPeriodInDays    int64   `tfschema:"backup_retention_period_in_days"`
+	CharacterSet                   string  `tfschema:"character_set"`
+	ComputeCount                   float64 `tfschema:"compute_count"`
+	ComputeModel                   string  `tfschema:"compute_model"`
+	DataStorageSizeInGbs           int64   `tfschema:"data_storage_size_in_gbs"`
+	DbVersion                      string  `tfschema:"db_version"`
+	DbWorkload                     string  `tfschema:"db_workload"`
+	DisplayName                    string  `tfschema:"display_name"`
+	LicenseModel                   string  `tfschema:"license_model"`
+	IsAutoScalingEnabled           bool    `tfschema:"is_auto_scaling_enabled"`
+	IsAutoScalingForStorageEnabled bool    `tfschema:"is_auto_scaling_for_storage_enabled"`
+	IsMtlsConnectionRequired       bool    `tfschema:"is_mtls_connection_required"`
+	NcharacterSet                  string  `tfschema:"ncharacter_set"`
+	SubnetId                       string  `tfschema:"subnet_id"`
+	VnetId                         string  `tfschema:"vnet_id"`
+
+	// Optional
+	CustomerContacts []string `tfschema:"customer_contacts"`
 }
 
 func (AdbsRegularResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
+		// Azure
 		"location": commonschema.Location(),
-		"tags":     commonschema.Tags(),
-		"resource_group_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-		},
 		"name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 		},
+		"resource_group_name": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+		},
+		"tags": commonschema.Tags(),
 
-		// AdbsRegularResource
-		"display_name": {
-			Type:     pluginsdk.TypeString,
+		// Required
+		"admin_password": {
+			Type:      pluginsdk.TypeString,
+			Required:  true,
+			Sensitive: true,
+		},
+		"backup_retention_period_in_days": {
+			Type:     pluginsdk.TypeInt,
 			Required: true,
 		},
-		"subnet_id": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-		},
-		"compute_model": {
+		"character_set": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 		},
@@ -71,7 +82,7 @@ func (AdbsRegularResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeFloat,
 			Required: true,
 		},
-		"license_model": {
+		"compute_model": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 		},
@@ -79,20 +90,31 @@ func (AdbsRegularResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeInt,
 			Required: true,
 		},
-		"db_workload": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-		},
-		"admin_password": {
-			Type:      pluginsdk.TypeString,
-			Required:  true,
-			Sensitive: true,
-		},
 		"db_version": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 		},
-		"character_set": {
+		"db_workload": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+		},
+		"display_name": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+		},
+		"is_auto_scaling_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Required: true,
+		},
+		"is_auto_scaling_for_storage_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Required: true,
+		},
+		"is_mtls_connection_required": {
+			Type:     pluginsdk.TypeBool,
+			Required: true,
+		},
+		"license_model": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 		},
@@ -100,9 +122,23 @@ func (AdbsRegularResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 		},
+		"subnet_id": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+		},
 		"vnet_id": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
+		},
+
+		// Optional
+		"customer_contacts": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
 		},
 	}
 }
@@ -117,6 +153,28 @@ func (AdbsRegularResource) ModelObject() interface{} {
 
 func (AdbsRegularResource) ResourceType() string {
 	return "azurerm_oracledatabase_autonomous_database_regular"
+}
+
+func convertAdbsCustomerContactsToSDK(customerContactsList []string) []autonomousdatabases.CustomerContact {
+	var customerContacts []autonomousdatabases.CustomerContact
+	if customerContactsList != nil {
+		for _, customerContact := range customerContactsList {
+			customerContacts = append(customerContacts, autonomousdatabases.CustomerContact{
+				Email: customerContact,
+			})
+		}
+	}
+	return customerContacts
+}
+
+func convertAdbsCustomerContactsToInternalModel(customerContactsList *[]autonomousdatabases.CustomerContact) []string {
+	var customerContacts []string
+	if customerContactsList != nil {
+		for _, customerContact := range *customerContactsList {
+			customerContacts = append(customerContacts, customerContact.Email)
+		}
+	}
+	return customerContacts
 }
 
 func (r AdbsRegularResource) Create() sdk.ResourceFunc {
@@ -148,18 +206,23 @@ func (r AdbsRegularResource) Create() sdk.ResourceFunc {
 				Location: model.Location,
 				Tags:     tags.Expand(model.Tags),
 				Properties: &autonomousdatabases.AutonomousDatabaseProperties{
-					DisplayName:          pointer.To(model.DisplayName),
-					SubnetId:             pointer.To(model.SubnetId),
-					ComputeModel:         pointer.To(autonomousdatabases.ComputeModel(model.ComputeModel)),
-					ComputeCount:         pointer.To(model.ComputeCount),
-					LicenseModel:         pointer.To(autonomousdatabases.LicenseModel(model.LicenseModel)),
-					DataStorageSizeInGbs: pointer.To(model.DataStorageSizeInGbs),
-					DbWorkload:           pointer.To(autonomousdatabases.WorkloadType(model.DbWorkload)),
-					AdminPassword:        pointer.To(model.AdminPassword),
-					DbVersion:            pointer.To(model.DbVersion),
-					CharacterSet:         pointer.To(model.CharacterSet),
-					NcharacterSet:        pointer.To(model.NcharacterSet),
-					VnetId:               pointer.To(model.VnetId),
+					AdminPassword:                  pointer.To(model.AdminPassword),
+					BackupRetentionPeriodInDays:    pointer.To(model.BackupRetentionPeriodInDays),
+					CharacterSet:                   pointer.To(model.CharacterSet),
+					ComputeCount:                   pointer.To(model.ComputeCount),
+					ComputeModel:                   pointer.To(autonomousdatabases.ComputeModel(model.ComputeModel)),
+					CustomerContacts:               pointer.To(convertAdbsCustomerContactsToSDK(model.CustomerContacts)),
+					DataStorageSizeInGbs:           pointer.To(model.DataStorageSizeInGbs),
+					DbWorkload:                     pointer.To(autonomousdatabases.WorkloadType(model.DbWorkload)),
+					DbVersion:                      pointer.To(model.DbVersion),
+					DisplayName:                    pointer.To(model.DisplayName),
+					IsAutoScalingEnabled:           pointer.To(model.IsAutoScalingEnabled),
+					IsAutoScalingForStorageEnabled: pointer.To(model.IsAutoScalingForStorageEnabled),
+					IsMtlsConnectionRequired:       pointer.To(model.IsMtlsConnectionRequired),
+					LicenseModel:                   pointer.To(autonomousdatabases.LicenseModel(model.LicenseModel)),
+					NcharacterSet:                  pointer.To(model.NcharacterSet),
+					SubnetId:                       pointer.To(model.SubnetId),
+					VnetId:                         pointer.To(model.VnetId),
 				},
 			}
 
@@ -238,23 +301,26 @@ func (AdbsRegularResource) Read() sdk.ResourceFunc {
 			switch adbsPropModel := prop.(type) {
 			case autonomousdatabases.AutonomousDatabaseProperties:
 				var output AdbsRegularResourceModel
-				// Azure
-				output.Name = pointer.ToString(result.Model.Name)
-				output.Location = result.Model.Location
-				output.Tags = utils.FlattenPtrMapStringString(result.Model.Tags)
-				output.ResourceGroupName = id.ResourceGroupName
-				output.DisplayName = pointer.From(adbsPropModel.DisplayName)
-				output.ComputeModel = string(pointer.From(adbsPropModel.ComputeModel))
+				output.AdminPassword = pointer.From(adbsPropModel.AdminPassword)
+				output.BackupRetentionPeriodInDays = pointer.From(adbsPropModel.BackupRetentionPeriodInDays)
+				output.CharacterSet = pointer.From(adbsPropModel.CharacterSet)
 				output.ComputeCount = pointer.From(adbsPropModel.ComputeCount)
-				output.LicenseModel = string(pointer.From(adbsPropModel.LicenseModel))
+				output.ComputeModel = string(pointer.From(adbsPropModel.ComputeModel))
+				output.CustomerContacts = convertAdbsCustomerContactsToInternalModel(adbsPropModel.CustomerContacts)
 				output.DataStorageSizeInGbs = pointer.From(adbsPropModel.DataStorageSizeInGbs)
 				output.DbWorkload = string(pointer.From(adbsPropModel.DbWorkload))
-				output.AdminPassword = pointer.From(adbsPropModel.AdminPassword)
 				output.DbVersion = pointer.From(adbsPropModel.DbVersion)
-				output.CharacterSet = pointer.From(adbsPropModel.CharacterSet)
+				output.DisplayName = pointer.From(adbsPropModel.DisplayName)
+				output.IsAutoScalingEnabled = pointer.From(adbsPropModel.IsAutoScalingEnabled)
+				output.IsAutoScalingForStorageEnabled = pointer.From(adbsPropModel.IsAutoScalingForStorageEnabled)
+				output.Location = result.Model.Location
+				output.Name = pointer.ToString(result.Model.Name)
+				output.LicenseModel = string(pointer.From(adbsPropModel.LicenseModel))
 				output.NcharacterSet = pointer.From(adbsPropModel.NcharacterSet)
-				output.VnetId = pointer.From(adbsPropModel.VnetId)
+				output.ResourceGroupName = id.ResourceGroupName
 				output.SubnetId = pointer.From(adbsPropModel.SubnetId)
+				output.Tags = utils.FlattenPtrMapStringString(result.Model.Tags)
+				output.VnetId = pointer.From(adbsPropModel.VnetId)
 
 				return metadata.Encode(&output)
 			default:

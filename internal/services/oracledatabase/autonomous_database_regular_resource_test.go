@@ -96,12 +96,17 @@ func (a AdbsRegularResource) basic(data acceptance.TestData) string {
 
 resource "azurerm_oracledatabase_autonomous_database_regular" "test" {
   name = "OFake%[2]d"
+
   display_name = "OFake%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location = "%[3]s"
   compute_model = "ECPU"
   compute_count = "2"
   license_model = "BringYourOwnLicense"
+  backup_retention_period_in_days = 12
+  is_auto_scaling_enabled = false
+  is_auto_scaling_for_storage_enabled = false
+  is_mtls_connection_required = false
   data_storage_size_in_gbs = "32"
   db_workload = "OLTP"
   admin_password = "TestPass#2024#"
@@ -132,6 +137,10 @@ resource "azurerm_oracledatabase_autonomous_database_regular" "test" {
   compute_model = "ECPU"
   compute_count = "2"
   license_model = "BringYourOwnLicense"
+  backup_retention_period_in_days = 12
+  is_auto_scaling_enabled = false
+  is_auto_scaling_for_storage_enabled = false
+  is_mtls_connection_required = false
   data_storage_size_in_gbs = "32"
   db_workload = "OLTP"
   admin_password = "TestPass#2024#"
@@ -164,6 +173,10 @@ resource "azurerm_oracledatabase_autonomous_database_regular" "import" {
   compute_model = azurerm_oracledatabase_autonomous_database_regular.test.compute_model
   compute_count = azurerm_oracledatabase_autonomous_database_regular.test.compute_count
   license_model = azurerm_oracledatabase_autonomous_database_regular.test.license_model
+  backup_retention_period_in_days = azurerm_oracledatabase_autonomous_database_regular.test.backup_retention_period_in_days
+  is_auto_scaling_enabled = azurerm_oracledatabase_autonomous_database_regular.test.is_auto_scaling_enabled
+  is_auto_scaling_for_storage_enabled = azurerm_oracledatabase_autonomous_database_regular.test.is_auto_scaling_for_storage_enabled
+  is_mtls_connection_required = azurerm_oracledatabase_autonomous_database_regular.test.is_mtls_connection_required
   data_storage_size_in_gbs = azurerm_oracledatabase_autonomous_database_regular.test.data_storage_size_in_gbs
   db_workload = azurerm_oracledatabase_autonomous_database_regular.test.db_workload
   admin_password = azurerm_oracledatabase_autonomous_database_regular.test.admin_password
