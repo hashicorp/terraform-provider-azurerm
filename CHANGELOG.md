@@ -1,13 +1,5 @@
 ## 4.1.0 (Unreleased)
 
-BUG FIXES:
-
-* `azurerm_cosmosdb_account` - the `ip_range_filter` property now supports IPV4 addresses [GH-27208]
-* `azurerm_cosmosdb_account` - added state migration for `ip_range_filter` underlying type change from `string` to `set` [GH-27276]
-* `azurerm_linux_virtual_machine` - the `admin_ssh_key.public_key` property now supports ed25519 ssh keys [GH-27202]
-* `azurerm_sentinel_automation_rule` - no longer panics when using `condition_json`  [GH-27269]
-* `azurerm_kubernetes_cluster` -  the `host_encryption_enabled` and `node_public_ip_enabled` properties are now set correctly [GH-27218]
-
 ENHANCEMENTS:
 
 * dependencies - bump `hashicorp/go-azure-sdk` to `v0.20240903.1111904` [GH-27268]
@@ -15,12 +7,17 @@ ENHANCEMENTS:
 * `hdinsights` - Update the HDInsights Node definition validation of VM sizes to include new V5 types [GH-27270]
 * `azurerm_api_management_logger` - support for the `application_insights.connection_string` property [GH-27137]
 * `azurerm_bot_service_azure_bot` - will now send the value for the `developer_app_insights_api_key` property [GH-27280]
+* `azurerm_netapp_volume` - support for the `smb3_protocol_encryption_enabled` property [GH-7228]
 * `azurerm_subnet` - support `Microsoft.DevOpsInfrastructure` as delegation service [GH-27259]
 
 BUG FIXES:
 
 * `azurerm_mysql_flexible_server` - correctly set `source_server_id` in the state file [GH-27295]
-
+* `azurerm_cosmosdb_account` - the `ip_range_filter` property now supports IPV4 addresses [GH-27208]
+* `azurerm_cosmosdb_account` - added state migration for `ip_range_filter` underlying type change from `string` to `set` [GH-27276]
+* `azurerm_linux_virtual_machine` - the `admin_ssh_key.public_key` property now supports ed25519 ssh keys [GH-27202]
+* `azurerm_sentinel_automation_rule` - no longer panics when using `condition_json`  [GH-27269]
+* `azurerm_kubernetes_cluster` -  the `host_encryption_enabled` and `node_public_ip_enabled` properties are now set correctly [GH-27218]
 
 ## 4.0.1 (August 23, 2024)
 
