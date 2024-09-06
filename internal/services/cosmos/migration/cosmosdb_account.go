@@ -557,12 +557,13 @@ func (c CosmosDBAccountV0toV1) Schema() map[string]*pluginsdk.Schema {
 
 func (c CosmosDBAccountV0toV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
-		ipfString := rawState["ip_range_filter"].(string)
-		ipfSet := make([]string, 0)
-		if ipfString != "" {
-			ipfSet = strings.Split(ipfString, ",")
+		if ipfString, ok := rawState["ip_range_filter"].(string); ok {
+			ipfSet := make([]string, 0)
+			if ipfString != "" {
+				ipfSet = strings.Split(ipfString, ",")
+			}
+			rawState["ip_range_filter"] = ipfSet
 		}
-		rawState["ip_range_filter"] = ipfSet
 
 		return rawState, nil
 	}
