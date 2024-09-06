@@ -7,7 +7,7 @@ ENHANCEMENTS:
 * `hdinsights` - Update the HDInsights Node definition validation of VM sizes to include new V5 types [GH-27270]
 * `azurerm_api_management_logger` - support for the `application_insights.connection_string` property [GH-27137]
 * `azurerm_bot_service_azure_bot` - will now send the value for the `developer_app_insights_api_key` property [GH-27280]
-* `azurerm_netapp_volume` - support for the `smb3_protocol_encryption_enabled` property [GH-7228]
+* `azurerm_netapp_volume` - support for the `smb3_protocol_encryption_enabled` property [GH-27228]
 * `azurerm_subnet` - support `Microsoft.DevOpsInfrastructure` as delegation service [GH-27259]
 
 BUG FIXES:
