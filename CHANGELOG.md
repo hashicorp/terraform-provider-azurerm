@@ -11,10 +11,11 @@ BUG FIXES:
 ENHANCEMENTS:
 
 * dependencies - bump `hashicorp/go-azure-sdk` to `v0.20240903.1111904` [GH-27268]
+* Virtual Machine Scale Sets - upgrade api version from `2024-03-01` to `2024-07-01` [GH-27230]
 * `hdinsights` - Update the HDInsights Node definition validation of VM sizes to include new V5 types [GH-27270]
-* `azurerm_bot_service_azure_bot` - will now send the value for the `developer_app_insights_api_key` property [GH-27280]
-* `azurerm_*_virtual_machine_scale_set` - upgrade api version from `2024-03-01` to `2024-07-01` [GH-27230]
 * `azurerm_api_management_logger` - support for the `application_insights.connection_string` property [GH-27137]
+* `azurerm_bot_service_azure_bot` - will now send the value for the `developer_app_insights_api_key` property [GH-27280]
+* `azurerm_subnet` - support `Microsoft.DevOpsInfrastructure` as delegation service [GH-27259]
 
 BUG FIXES:
 
