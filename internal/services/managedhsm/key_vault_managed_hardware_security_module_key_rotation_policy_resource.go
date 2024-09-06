@@ -6,6 +6,7 @@ package managedhsm
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -26,16 +27,11 @@ func (r KeyVaultMHSMKeyRotationPolicyResource) ModelObject() interface{} {
 	return &MHSMKeyRotationPolicyResourceSchema{}
 }
 
-type RotateAutomatic struct {
+type MHSMKeyRotationPolicyResourceSchema struct {
+	ManagedHSMKeyID   string `tfschema:"managed_hsm_key_id"`
+	ExipreAfter       string `tfschema:"expire_after"`
 	TimeAfterCreation string `tfschema:"time_after_creation"`
 	TimeBeforeExpiry  string `tfschema:"time_before_expiry"`
-}
-
-type MHSMKeyRotationPolicyResourceSchema struct {
-	ManagedHSMKeyID    string            `tfschema:"managed_hsm_key_id"`
-	ExipreAfter        string            `tfschema:"expire_after"`
-	NotifyBeforeExpiry string            `tfschema:"notify_before_expiry"`
-	Automatic          []RotateAutomatic `tfschema:"automatic"`
 }
 
 func (r KeyVaultMHSMKeyRotationPolicyResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -56,54 +52,28 @@ func (r KeyVaultMHSMKeyRotationPolicyResource) Arguments() map[string]*pluginsdk
 
 		"expire_after": {
 			Type:         pluginsdk.TypeString,
-			Optional:     true,
+			Required:     true,
 			ValidateFunc: validate2.ISO8601DurationBetween("P28D", "P100Y"),
-			AtLeastOneOf: []string{
-				"expire_after",
-				"automatic",
-			},
-			RequiredWith: []string{
-				"expire_after",
-				"notify_before_expiry",
-			},
 		},
 
-		// <= expiry_time - 7, >=7
-		"notify_before_expiry": {
+		// notify not supported in HSM Key, only rotate is supported
+		"time_after_creation": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validate2.ISO8601DurationBetween("P7D", "P36493D"),
-			RequiredWith: []string{
-				"expire_after",
-				"notify_before_expiry",
+			ValidateFunc: validate2.ISO8601Duration,
+			ExactlyOneOf: []string{
+				"time_after_creation",
+				"time_before_expiry",
 			},
 		},
 
-		"automatic": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"time_after_creation": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validate2.ISO8601Duration,
-						AtLeastOneOf: []string{
-							"automatic.0.time_after_creation",
-							"automatic.0.time_before_expiry",
-						},
-					},
-					"time_before_expiry": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validate2.ISO8601Duration,
-						AtLeastOneOf: []string{
-							"automatic.0.time_after_creation",
-							"automatic.0.time_before_expiry",
-						},
-					},
-				},
+		"time_before_expiry": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validate2.ISO8601Duration,
+			ExactlyOneOf: []string{
+				"time_after_creation",
+				"time_before_expiry",
 			},
 		},
 	}
@@ -270,35 +240,19 @@ func expandKeyRotationPolicy(policy MHSMKeyRotationPolicyResourceSchema) keyvaul
 	}
 
 	lifetimeActions := make([]keyvault.LifetimeActions, 0)
-	if policy.NotifyBeforeExpiry != "" {
-		lifetimeActionNotify := keyvault.LifetimeActions{
-			Trigger: &keyvault.LifetimeActionsTrigger{
-				TimeBeforeExpiry: utils.String(policy.NotifyBeforeExpiry), // for Type: keyvault.Notify always TimeBeforeExpiry
-			},
-			Action: &keyvault.LifetimeActionsType{
-				Type: keyvault.ActionTypeNotify,
-			},
-		}
-		lifetimeActions = append(lifetimeActions, lifetimeActionNotify)
+
+	lifetimeActionRotate := keyvault.LifetimeActions{
+		Action: &keyvault.LifetimeActionsType{
+			Type: keyvault.ActionTypeRotate,
+		},
+		Trigger: &keyvault.LifetimeActionsTrigger{},
 	}
 
-	if len(policy.Automatic) == 1 {
-		lifetimeActionRotate := keyvault.LifetimeActions{
-			Action: &keyvault.LifetimeActionsType{
-				Type: keyvault.ActionTypeRotate,
-			},
-			Trigger: &keyvault.LifetimeActionsTrigger{},
-		}
-		autoItem := policy.Automatic[0]
-
-		if autoItem.TimeAfterCreation != "" {
-			lifetimeActionRotate.Trigger.TimeAfterCreate = pointer.To(autoItem.TimeAfterCreation)
-		}
-
-		if autoItem.TimeBeforeExpiry != "" {
-			lifetimeActionRotate.Trigger.TimeBeforeExpiry = pointer.To(autoItem.TimeBeforeExpiry)
-		}
-
+	if policy.TimeAfterCreation != "" {
+		lifetimeActionRotate.Trigger.TimeAfterCreate = pointer.To(policy.TimeAfterCreation)
+		lifetimeActions = append(lifetimeActions, lifetimeActionRotate)
+	} else if policy.TimeBeforeExpiry != "" {
+		lifetimeActionRotate.Trigger.TimeBeforeExpiry = pointer.To(policy.TimeBeforeExpiry)
 		lifetimeActions = append(lifetimeActions, lifetimeActionRotate)
 	}
 
@@ -322,15 +276,9 @@ func flattenKeyRotationPolicy(p keyvault.KeyRotationPolicy) MHSMKeyRotationPolic
 			trigger := ltAction.Trigger
 
 			if action != nil && trigger != nil {
-				switch action.Type {
-				case keyvault.ActionTypeNotify:
-					res.NotifyBeforeExpiry = pointer.From(trigger.TimeBeforeExpiry)
-				case keyvault.ActionTypeRotate:
-					rotate := RotateAutomatic{
-						TimeAfterCreation: pointer.From(trigger.TimeAfterCreate),
-						TimeBeforeExpiry:  pointer.From(trigger.TimeBeforeExpiry),
-					}
-					res.Automatic = append(res.Automatic, rotate)
+				if strings.EqualFold(string(action.Type), string(keyvault.ActionTypeRotate)) {
+					res.TimeAfterCreation = pointer.From(trigger.TimeAfterCreate)
+					res.TimeBeforeExpiry = pointer.From(trigger.TimeBeforeExpiry)
 				}
 			}
 		}
