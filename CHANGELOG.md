@@ -4,6 +4,10 @@ ENHANCEMENTS:
 
 * `recoveryservices` - upgrade `recoveryservicessiterecovery` from `2022-10-0`1 to `2024-04-01` [GH-27281]
 
+BUG FIXES:
+
+* `azurerm_cosmosdb_account` - fix crash during state migration [GH-27302]
+
 ## 4.1.0 (September 05, 2024)
 
 ENHANCEMENTS:
