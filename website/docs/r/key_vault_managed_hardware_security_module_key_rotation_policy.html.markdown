@@ -15,7 +15,7 @@ Manages a Managed HSM Key rotation policy.
 ```hcl
 resource "azurerm_key_vault_managed_hardware_security_module_key" "example" {
   name           = "example-key"
-  managed_hsm_id = <azurerm_key_vault_managed_hardware_security_module.example.id>
+  managed_hsm_id = azurerm_key_vault_managed_hardware_security_module.example.id
   key_type       = "EC-HSM"
   curve          = "P-521"
   key_opts       = ["sign"]
