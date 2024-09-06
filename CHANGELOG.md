@@ -2,6 +2,7 @@
 
 ENHANCEMENTS:
 
+* `network/bastionhosts` - upgrade api version from `2023-11-01` to `2024-01-01` [GH-27277]
 * `recoveryservices` - upgrade `recoveryservicessiterecovery` from `2022-10-0`1 to `2024-04-01` [GH-27281]
 
 BUG FIXES:
