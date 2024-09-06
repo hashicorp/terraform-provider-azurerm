@@ -23,9 +23,6 @@ func TestAccMHSMKeyRotationPolicy_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_hardware_security_module_key", "test")
 	r := MHSMKeyRotationPolicyTestResource{}
 
-	print(r.basic(data))
-	t.Skip()
-
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -80,14 +77,11 @@ provider "azurerm" {
 %s
 
 resource "azurerm_key_vault_managed_hardware_security_module_key_rotation_policy" "test" {
-    managed_hsm_key_id = azurerm_key_vault_managed_hardware_security_module_key.test.id
-    automatic {
-      time_before_expiry = "P30D"
-    }
-
-    expire_after         = "P60D"
-    notify_before_expiry = "P7D"
+  managed_hsm_key_id = azurerm_key_vault_managed_hardware_security_module_key.test.id
+  time_before_expiry = "P30D"
+  expire_after       = "P60D"
 }
+
 
 `, r.template(data))
 }
@@ -101,14 +95,13 @@ provider "azurerm" {
 %s
 
 resource "azurerm_key_vault_managed_hardware_security_module_key_rotation_policy" "test" {
-    managed_hsm_key_id = azurerm_key_vault_managed_hardware_security_module_key.test.id
-    automatic {
-      time_before_expiry = "P3D"
-    }
-
-    expire_after         = "P60D"
-    notify_before_expiry = "P7D"
+  managed_hsm_key_id  = azurerm_key_vault_managed_hardware_security_module_key.test.id
+  expire_after        = "P60D"
+  time_after_creation = "P3D"
 }
+
+
+
 
 `, r.template(data))
 }
@@ -222,7 +215,7 @@ resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "t
 }
 
 resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "test1" {
-  vault_base_url     = azurerm_key_vault_managed_hardware_security_module.test.hsm_uri
+  managed_hsm_id     = azurerm_key_vault_managed_hardware_security_module.test.id
   name               = "1e243909-064c-6ac3-84e9-1c8bf8d6ad23"
   scope              = "/keys"
   role_definition_id = "/Microsoft.KeyVault/providers/Microsoft.Authorization/roleDefinitions/515eb02d-2335-4d2d-92f2-b1cbdf9c3778"
