@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/cloudvmclusters"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracledatabase/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"time"
 
@@ -60,8 +61,9 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validate.Name,
 		},
 
 		"resource_group_name": {
@@ -104,8 +106,9 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"display_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validate.Name,
 		},
 
 		"gi_version": {
