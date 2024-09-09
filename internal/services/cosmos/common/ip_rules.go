@@ -10,8 +10,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-// CosmosDBIpRulesToIpRangeFilterThreePointOh todo Remove for 4.0
-func CosmosDBIpRulesToIpRangeFilterThreePointOh(ipRules *[]cosmosdb.IPAddressOrRange) string {
+// CosmosDBIpRulesToIpRangeFilterDataSource todo Remove for 4.0
+func CosmosDBIpRulesToIpRangeFilterDataSource(ipRules *[]cosmosdb.IPAddressOrRange) string {
 	ipRangeFilter := make([]string, 0)
 	if ipRules != nil {
 		for _, ipRule := range *ipRules {

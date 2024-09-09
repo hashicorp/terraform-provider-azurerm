@@ -553,8 +553,6 @@ A `waf_configuration` block supports the following:
 
 * `request_body_check` - (Optional) Is Request Body Inspection enabled? Defaults to `true`.
 
-* `request_body_enforcement` - (Optional) Whether the firewall should block a request with body size greater then `max_request_body_size_kb`. Defaults to `true`.
-
 * `max_request_body_size_kb` - (Optional) The Maximum Request Body Size in KB. Accepted values are in the range `1`KB to `128`KB. Defaults to `128`KB.
 
 * `exclusion` - (Optional) One or more `exclusion` blocks as defined below.
