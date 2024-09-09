@@ -52,8 +52,6 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 		},
-		"tags":  commonschema.Tags(),
-		"zones": commonschema.ZonesMultipleRequired(),
 
 		// Required
 		"compute_count": {
@@ -153,6 +151,9 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 				},
 			},
 		},
+
+		"tags":  commonschema.Tags(),
+		"zones": commonschema.ZonesMultipleRequired(),
 	}
 }
 
