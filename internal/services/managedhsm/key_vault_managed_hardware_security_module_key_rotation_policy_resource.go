@@ -60,7 +60,7 @@ func (r KeyVaultMHSMKeyRotationPolicyResource) Arguments() map[string]*pluginsdk
 		"time_after_creation": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validate2.ISO8601Duration,
+			ValidateFunc: validate2.ISO8601DurationBetween("P28D", "P100Y"),
 			ExactlyOneOf: []string{
 				"time_after_creation",
 				"time_before_expiry",

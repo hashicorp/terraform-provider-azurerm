@@ -97,7 +97,7 @@ provider "azurerm" {
 resource "azurerm_key_vault_managed_hardware_security_module_key_rotation_policy" "test" {
   managed_hsm_key_id  = azurerm_key_vault_managed_hardware_security_module_key.test.id
   expire_after        = "P60D"
-  time_after_creation = "P3D"
+  time_after_creation = "P28D"
 }
 
 
