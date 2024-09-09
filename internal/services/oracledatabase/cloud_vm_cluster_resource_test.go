@@ -55,7 +55,7 @@ func TestCloudVmClusterResource_basic(t *testing.T) {
 	})
 }
 
-func TestCloudVmClusterResource_allFields(t *testing.T) {
+func TestCloudVmClusterResource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracledatabase.CloudVmClusterResource{}.ResourceType(), "test")
 	r := CloudVmClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
