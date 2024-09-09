@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/cloudexadatainfrastructures"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracledatabase/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"time"
@@ -55,8 +56,9 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 
 		// Required
 		"compute_count": {
-			Type:     pluginsdk.TypeInt,
-			Required: true,
+			Type:         pluginsdk.TypeInt,
+			Required:     true,
+			ValidateFunc: validate.ComputeCount,
 		},
 		"display_name": {
 			Type:     pluginsdk.TypeString,
@@ -67,8 +69,9 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 			Required: true,
 		},
 		"storage_count": {
-			Type:     pluginsdk.TypeInt,
-			Required: true,
+			Type:         pluginsdk.TypeInt,
+			Required:     true,
+			ValidateFunc: validate.StorageCount,
 		},
 
 		// Optional
@@ -87,22 +90,25 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"custom_action_timeout_in_mins": {
-						Type:     pluginsdk.TypeInt,
-						Optional: true,
-						Computed: true,
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: validate.CustomActionTimeoutInMins,
 					},
 					"days_of_week": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						Computed: true,
+						Type:         pluginsdk.TypeList,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: validate.DaysOfWeek,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
 					},
 					"hours_of_day": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						Computed: true,
+						Type:         pluginsdk.TypeList,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: validate.HoursOfDay,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeInt,
 						},
@@ -118,14 +124,16 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 						Computed: true,
 					},
 					"lead_time_in_weeks": {
-						Type:     pluginsdk.TypeInt,
-						Optional: true,
-						Computed: true,
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: validate.LeadTimeInWeeks,
 					},
 					"months": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						Computed: true,
+						Type:         pluginsdk.TypeList,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: validate.Month,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
