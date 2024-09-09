@@ -19,7 +19,7 @@ import (
 
 type MHSMKeyRotationPolicyTestResource struct{}
 
-func TestAccMHSMKeyRotationPolicy_update(t *testing.T) {
+func testAccMHSMKeyRotationPolicy_all(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_hardware_security_module_key", "test")
 	r := MHSMKeyRotationPolicyTestResource{}
 
