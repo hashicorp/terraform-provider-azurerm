@@ -108,6 +108,7 @@ type DbIormConfigModel struct {
 func (d CloudVmClusterDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
+
 		"name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
@@ -118,11 +119,11 @@ func (d CloudVmClusterDataSource) Arguments() map[string]*pluginsdk.Schema {
 func (d CloudVmClusterDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.LocationComputed(),
+
 		"type": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
-		"tags": commonschema.TagsDataSource(),
 
 		// SystemData
 		"system_data": {
@@ -134,22 +135,27 @@ func (d CloudVmClusterDataSource) Attributes() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
+
 					"created_by_type": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
+
 					"created_at": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
+
 					"last_modified_by": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
+
 					"last_modified_by_type": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
+
 					"last_modified_at": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
@@ -163,18 +169,22 @@ func (d CloudVmClusterDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"cloud_exadata_infrastructure_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"cluster_name": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"compartment_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"compute_nodes": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
@@ -182,10 +192,12 @@ func (d CloudVmClusterDataSource) Attributes() map[string]*pluginsdk.Schema {
 				Type: pluginsdk.TypeString,
 			},
 		},
+
 		"cpu_core_count": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
+
 		"data_collection_options": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
@@ -195,10 +207,12 @@ func (d CloudVmClusterDataSource) Attributes() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeBool,
 						Computed: true,
 					},
+
 					"is_health_monitoring_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Computed: true,
 					},
+
 					"is_incident_logs_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Computed: true,
@@ -206,18 +220,22 @@ func (d CloudVmClusterDataSource) Attributes() map[string]*pluginsdk.Schema {
 				},
 			},
 		},
+
 		"data_storage_percentage": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
+
 		"data_storage_size_in_tbs": {
 			Type:     pluginsdk.TypeFloat,
 			Computed: true,
 		},
+
 		"db_node_storage_size_in_gbs": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
+
 		"db_servers": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
@@ -225,22 +243,27 @@ func (d CloudVmClusterDataSource) Attributes() map[string]*pluginsdk.Schema {
 				Type: pluginsdk.TypeString,
 			},
 		},
+
 		"disk_redundancy": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"display_name": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"domain": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"gi_version": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"hostname": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -260,10 +283,12 @@ func (d CloudVmClusterDataSource) Attributes() map[string]*pluginsdk.Schema {
 									Type:     pluginsdk.TypeString,
 									Computed: true,
 								},
+
 								"flash_cache_limit": {
 									Type:     pluginsdk.TypeString,
 									Computed: true,
 								},
+
 								"share": {
 									Type:     pluginsdk.TypeInt,
 									Computed: true,
@@ -271,14 +296,17 @@ func (d CloudVmClusterDataSource) Attributes() map[string]*pluginsdk.Schema {
 							},
 						},
 					},
+
 					"lifecycle_details": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
+
 					"lifecycle_state": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
+
 					"objective": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
@@ -291,66 +319,82 @@ func (d CloudVmClusterDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeBool,
 			Computed: true,
 		},
+
 		"is_sparse_diskgroup_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Computed: true,
 		},
+
 		"last_update_history_entry_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"license_model": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"lifecycle_details": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"lifecycle_state": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"listener_port": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
+
 		"memory_size_in_gbs": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
+
 		"node_count": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
+
 		"nsg_url": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"oci_url": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"ocid": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"ocpu_count": {
 			Type:     pluginsdk.TypeFloat,
 			Computed: true,
 		},
+
 		"provisioning_state": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"scan_dns_name": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"scan_dns_record_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"scan_ip_ids": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
@@ -358,18 +402,22 @@ func (d CloudVmClusterDataSource) Attributes() map[string]*pluginsdk.Schema {
 				Type: pluginsdk.TypeString,
 			},
 		},
+
 		"scan_listener_port_tcp": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
+
 		"scan_listener_port_tcp_ssl": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
+
 		"shape": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"ssh_public_keys": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
@@ -377,30 +425,37 @@ func (d CloudVmClusterDataSource) Attributes() map[string]*pluginsdk.Schema {
 				Type: pluginsdk.TypeString,
 			},
 		},
+
 		"storage_size_in_gbs": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
+
 		"subnet_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"subnet_ocid": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"system_version": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"time_created": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"time_zone": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"vip_ods": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
@@ -408,14 +463,18 @@ func (d CloudVmClusterDataSource) Attributes() map[string]*pluginsdk.Schema {
 				Type: pluginsdk.TypeString,
 			},
 		},
+
 		"vnet_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"zone_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
+		"tags": commonschema.TagsDataSource(),
 	}
 }
 
