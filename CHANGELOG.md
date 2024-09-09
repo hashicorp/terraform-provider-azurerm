@@ -9,6 +9,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_cosmosdb_account` - fix crash during state migration [GH-27302]
+* `azurerm_servicebus_queue` - fix defaults of the `default_message_ttl` and `auto_delete_on_idle` properties [GH-27305]
 
 ## 4.1.0 (September 05, 2024)
 
