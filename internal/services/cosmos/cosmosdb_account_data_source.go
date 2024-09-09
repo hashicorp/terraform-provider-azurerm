@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-05-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -249,35 +248,6 @@ func dataSourceCosmosDbAccount() *pluginsdk.Resource {
 		},
 	}
 
-	if !features.FourPointOhBeta() {
-		dataSource.Schema["connection_strings"] = &pluginsdk.Schema{
-			Type:      pluginsdk.TypeList,
-			Computed:  true,
-			Sensitive: true,
-			Elem: &pluginsdk.Schema{
-				Type:      pluginsdk.TypeString,
-				Sensitive: true,
-			},
-			Deprecated: "This property has been superseded by the primary and secondary connection strings for sql, mongodb and readonly and will be removed in v4.0 of the AzureRM provider",
-		}
-		dataSource.Schema["enable_free_tier"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeBool,
-			Computed:   true,
-			Deprecated: "This property has been renamed to `free_tier_enabled` and will be removed in v4.0 of the AzureRM provider",
-		}
-		dataSource.Schema["enable_automatic_failover"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeBool,
-			Computed:   true,
-			Deprecated: "This property has been renamed to `automatic_failover_enabled` and will be removed in v4.0 of the AzureRM provider",
-		}
-		dataSource.Schema["enable_multiple_write_locations"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeBool,
-			Computed:   true,
-			Deprecated: "This property has been renamed to `multiple_write_locations_enabled` and will be removed in v4.0 of the AzureRM provider",
-		}
-
-	}
-
 	return dataSource
 }
 
@@ -309,15 +279,9 @@ func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 		if props := model.Properties; props != nil {
 			d.Set("offer_type", string(pointer.From(props.DatabaseAccountOfferType)))
-			d.Set("ip_range_filter", common.CosmosDBIpRulesToIpRangeFilterThreePointOh(props.IPRules))
+			d.Set("ip_range_filter", common.CosmosDBIpRulesToIpRangeFilterDataSource(props.IPRules))
 			d.Set("endpoint", props.DocumentEndpoint)
 			d.Set("is_virtual_network_filter_enabled", props.IsVirtualNetworkFilterEnabled)
-			if !features.FourPointOhBeta() {
-				d.Set("enable_free_tier", props.EnableFreeTier)
-				d.Set("enable_automatic_failover", props.EnableAutomaticFailover)
-				d.Set("enable_multiple_write_locations", props.EnableMultipleWriteLocations)
-			}
-
 			d.Set("free_tier_enabled", props.EnableFreeTier)
 			d.Set("automatic_failover_enabled", props.EnableAutomaticFailover)
 			d.Set("multiple_write_locations_enabled", props.EnableMultipleWriteLocations)
@@ -439,10 +403,6 @@ func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 						d.Set(propertyName, v.ConnectionString) // lintignore:R001
 					}
 				}
-			}
-
-			if !features.FourPointOhBeta() {
-				d.Set("connection_strings", connStrings)
 			}
 		}
 	}

@@ -49,6 +49,7 @@ type MsSqlManagedInstanceModel struct {
 	ProxyOverride                string                              `tfschema:"proxy_override"`
 	PublicDataEndpointEnabled    bool                                `tfschema:"public_data_endpoint_enabled"`
 	ResourceGroupName            string                              `tfschema:"resource_group_name"`
+	ServicePrincipalType         string                              `tfschema:"service_principal_type"`
 	SkuName                      string                              `tfschema:"sku_name"`
 	StorageAccountType           string                              `tfschema:"storage_account_type"`
 	StorageSizeInGb              int64                               `tfschema:"storage_size_in_gb"`
@@ -220,6 +221,14 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 			Default:  false,
 		},
 
+		"service_principal_type": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(managedinstances.ServicePrincipalTypeSystemAssigned),
+			}, false),
+		},
+
 		"storage_account_type": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
@@ -351,6 +360,12 @@ func (r MsSqlManagedInstanceResource) Create() sdk.ResourceFunc {
 				}
 			}
 
+			if model.ServicePrincipalType != "" {
+				parameters.Properties.ServicePrincipal = &managedinstances.ServicePrincipal{
+					Type: pointer.To(managedinstances.ServicePrincipalType(model.ServicePrincipalType)),
+				}
+			}
+
 			metadata.Logger.Infof("Creating %s", id)
 
 			err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
@@ -419,6 +434,15 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("administrator_login_password") {
 				properties.Properties.AdministratorLoginPassword = pointer.To(state.AdministratorLoginPassword)
+			}
+
+			if metadata.ResourceData.HasChange("service_principal_type") {
+				properties.Properties.ServicePrincipal = &managedinstances.ServicePrincipal{}
+				if state.ServicePrincipalType == "" {
+					properties.Properties.ServicePrincipal.Type = pointer.To(managedinstances.ServicePrincipalTypeNone)
+				} else {
+					properties.Properties.ServicePrincipal.Type = pointer.To(managedinstances.ServicePrincipalType(state.ServicePrincipalType))
+				}
 			}
 
 			metadata.Logger.Infof("Updating %s", id)
@@ -503,8 +527,12 @@ func (r MsSqlManagedInstanceResource) Read() sdk.ResourceFunc {
 					model.TimezoneId = pointer.From(props.TimezoneId)
 					model.VCores = pointer.From(props.VCores)
 					model.ZoneRedundantEnabled = pointer.From(props.ZoneRedundant)
-				}
 
+					model.ServicePrincipalType = ""
+					if props.ServicePrincipal != nil {
+						model.ServicePrincipalType = string(pointer.From(props.ServicePrincipal.Type))
+					}
+				}
 			}
 			return metadata.Encode(&model)
 		},
