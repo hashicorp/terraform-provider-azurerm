@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-01-01-preview/nginxdeployment"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-06-01-preview/nginxdeployment"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -314,6 +314,49 @@ resource "azurerm_nginx_deployment" "test" {
   email = "test@test.com"
 }
 `, a.template(data), data.RandomInteger)
+}
+
+func (a DeploymentResource) basicNginxAppProtect(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+
+%s
+
+resource "azurerm_nginx_deployment" "test" {
+  name                      = "acctest-%[2]d"
+  resource_group_name       = azurerm_resource_group.test.name
+  sku                       = "standard_Monthly"
+  location                  = azurerm_resource_group.test.location
+  diagnose_support_enabled  = false
+  automatic_upgrade_channel = "stable"
+
+  frontend_public {
+    ip_address = [azurerm_public_ip.test.id]
+  }
+
+  network_interface {
+    subnet_id = azurerm_subnet.test.id
+  }
+
+  nginx_app_protect {
+    web_application_firewall_settings {
+      activation_state = "Enabled"
+    }
+  }
+
+  email = "test@test.com"
+
+  tags = {
+    foo = "bar"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      capacity,
+    ]
+  }
+}
+`, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
 func (a DeploymentResource) template(data acceptance.TestData) string {

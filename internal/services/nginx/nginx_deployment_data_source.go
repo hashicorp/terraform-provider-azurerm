@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-01-01-preview/nginxdeployment"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-06-01-preview/nginxdeployment"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -36,6 +36,7 @@ type DeploymentDataSourceModel struct {
 	FrontendPrivate        []FrontendPrivate                          `tfschema:"frontend_private"`
 	NetworkInterface       []NetworkInterface                         `tfschema:"network_interface"`
 	UpgradeChannel         string                                     `tfschema:"automatic_upgrade_channel"`
+	NginxAppProtect        []NginxAppProtect                          `tfschema:"nginx_app_protect"`
 	Tags                   map[string]string                          `tfschema:"tags"`
 }
 
@@ -192,6 +193,27 @@ func (m DeploymentDataSource) Attributes() map[string]*pluginsdk.Schema {
 		"automatic_upgrade_channel": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
+		},
+
+		"nginx_app_protect": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"web_application_firewall_settings": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"activation_state": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+							},
+						},
+					},
+				},
+			},
 		},
 
 		"tags": commonschema.TagsDataSource(),

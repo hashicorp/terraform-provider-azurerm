@@ -6,7 +6,7 @@ package client
 import (
 	"fmt"
 
-	nginx_2024_01_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-01-01-preview"
+	nginx_2024_01_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-06-01-preview"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )

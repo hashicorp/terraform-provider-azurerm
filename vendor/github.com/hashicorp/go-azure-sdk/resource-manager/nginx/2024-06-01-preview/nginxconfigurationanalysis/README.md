@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-01-01-preview/nginxconfigurationanalysis` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-06-01-preview/nginxconfigurationanalysis` Documentation
 
-The `nginxconfigurationanalysis` SDK allows for interaction with the Azure Resource Manager Service `nginx` (API Version `2024-01-01-preview`).
+The `nginxconfigurationanalysis` SDK allows for interaction with the Azure Resource Manager Service `nginx` (API Version `2024-06-01-preview`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-01-01-preview/nginxconfigurationanalysis"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-06-01-preview/nginxconfigurationanalysis"
 ```
 
 
