@@ -26,7 +26,7 @@ resource "azurerm_oracledatabase_exadata_infrastructure" "example" {
   shape               = "Exadata.X9M"
   storage_count       = "3"
   compute_count       = "2"
-  zones = ["3"]
+  zones               = ["3"]
 }
 
 resource "azurerm_virtual_network" "example" {
@@ -40,7 +40,7 @@ resource "azurerm_subnet" "example" {
   name                 = "example-subnet"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefixes      = ["10.0.1.0/24"]
+  address_prefixes     = ["10.0.1.0/24"]
 
   delegation {
     name = "delegation"
@@ -56,24 +56,24 @@ resource "azurerm_subnet" "example" {
 }
 
 data "azurerm_oracledatabase_db_servers" "example" {
-  resource_group_name = azurerm_resource_group.example.name
+  resource_group_name               = azurerm_resource_group.example.name
   cloud_exadata_infrastructure_name = azurerm_oracledatabase_exadata_infrastructure.example.name
 }
 
 resource "azurerm_oracledatabase_cloud_vm_cluster" "example" {
-  name = "example-cloud-vm-cluster"
-  resource_group_name = azurerm_resource_group.example.name
-  location = azurerm_resource_group.example.location
-  gi_version = "23.0.0.0"
-  vnet_id = azurerm_virtual_network.example.id
-  license_model = "BringYourOwnLicense"
-  db_servers = [for obj in data.azurerm_oracledatabase_db_servers.example.db_servers : obj.ocid]
-  ssh_public_keys = [ file("~/.ssh/id_rsa.pub") ]
-  display_name = "example-cloud-vm-cluster"
+  name                            = "example-cloud-vm-cluster"
+  resource_group_name             = azurerm_resource_group.example.name
+  location                        = azurerm_resource_group.example.location
+  gi_version                      = "23.0.0.0"
+  vnet_id                         = azurerm_virtual_network.example.id
+  license_model                   = "BringYourOwnLicense"
+  db_servers                      = [for obj in data.azurerm_oracledatabase_db_servers.example.db_servers : obj.ocid]
+  ssh_public_keys                 = [file("~/.ssh/id_rsa.pub")]
+  display_name                    = "example-cloud-vm-cluster"
   cloud_exadata_infrastructure_id = azurerm_oracledatabase_exadata_infrastructure.example.id
-  cpu_core_count = 2
-  hostname = "hostname"
-  subnet_id = azurerm_subnet.example.id
+  cpu_core_count                  = 2
+  hostname                        = "hostname"
+  subnet_id                       = azurerm_subnet.example.id
 }
 ```
 
