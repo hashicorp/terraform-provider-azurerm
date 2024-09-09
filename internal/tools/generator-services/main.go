@@ -266,6 +266,8 @@ v/2.x (legacy):
   - '### AzureRM Provider Version\s+(|azurerm |AzureRM )(|v|V)2\.\d+'
 v/3.x:
   - '### AzureRM Provider Version\s+(|azurerm |AzureRM )(|v|V)3\.\d+'
+v/4.x:
+  - '### AzureRM Provider Version\s+(|azurerm |AzureRM )(|v|V)4\.\d+'
 `
 
 const azurerm = "azurerm_"
@@ -392,16 +394,16 @@ func (githubIssueLabelsGenerator) run(outputFileName string, _ map[string]struct
 			}
 		}
 
-		if len(prefixes) > 1 {
-			out = append(out, fmt.Sprintf("  - '### (|New or )Affected Resource\\(s\\)\\/Data Source\\(s\\)((.|\\n)*)azurerm_(%s)((.|\\n)*)###'", strings.Join(prefixes, "|")))
+		if len(prefixes) > 0 {
+			if len(prefixes) > 1 {
+				out = append(out, fmt.Sprintf("  - '### (|New or )Affected Resource\\(s\\)\\/Data Source\\(s\\)((.|\\n)*)azurerm_(%s)((.|\\n)*)###'", strings.Join(prefixes, "|")))
+			}
+			if len(prefixes) == 1 {
+				out = append(out, fmt.Sprintf("  - '### (|New or )Affected Resource\\(s\\)\\/Data Source\\(s\\)((.|\\n)*)azurerm_%s((.|\\n)*)###'", prefixes[0]))
+			}
+			out = append(out, "")
+			output += fmt.Sprintf("\n%s", strings.Join(out, "\n"))
 		}
-		if len(prefixes) == 1 {
-			out = append(out, fmt.Sprintf("  - '### (|New or )Affected Resource\\(s\\)\\/Data Source\\(s\\)((.|\\n)*)azurerm_%s((.|\\n)*)###'", prefixes[0]))
-		}
-		// NOTE: it's possible for a Service to contain 0 Data Sources/Resources (during initial generation)
-
-		out = append(out, "")
-		output += fmt.Sprintf("\n%s", strings.Join(out, "\n"))
 	}
 
 	return writeToFile(outputFileName, output)
