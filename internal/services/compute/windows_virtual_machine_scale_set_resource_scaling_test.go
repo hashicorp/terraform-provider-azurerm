@@ -283,13 +283,6 @@ func TestAccWindowsVirtualMachineScaleSet_scalingZonesUpdate(t *testing.T) {
 			),
 		},
 		data.ImportStep("admin_password"),
-		{
-			Config: r.scalingZonesSingle(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("admin_password"),
 	})
 }
 

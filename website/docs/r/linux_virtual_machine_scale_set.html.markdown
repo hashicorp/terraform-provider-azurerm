@@ -234,7 +234,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
 
 * `zones` - (Optional) Specifies a list of Availability Zones in which this Linux Virtual Machine Scale Set should be located.
 
--> **Note:** Removing existing zones from existing Virtual Machine Scale Set is currently not supported.
+-> **Note:** Updating `zones` to remove an existing zone forces a new Virtual Machine Scale Set to be created.
 
 ---
 

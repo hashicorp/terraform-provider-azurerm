@@ -45,12 +45,6 @@ func TestAccOrchestratedVirtualMachineScaleSet_zoneUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		{
-			Config: r.singleZone(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
 	})
 }
 

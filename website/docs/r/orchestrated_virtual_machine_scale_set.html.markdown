@@ -115,7 +115,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "example" {
 
 * `zones` - (Optional) Specifies a list of Availability Zones across which the Virtual Machine Scale Set will create instances.
 
--> **Note:** Removing existing zones from existing Virtual Machine Scale Set is currently not supported.
+-> **Note:** Updating `zones` to remove an existing zone forces a new Virtual Machine Scale Set to be created.
 
 -> **Note:** Availability Zones are [only supported in several regions at this time](https://docs.microsoft.com/azure/availability-zones/az-overview).
 
