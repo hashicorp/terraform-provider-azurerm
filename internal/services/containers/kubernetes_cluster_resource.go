@@ -1554,10 +1554,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	var azureADProfile *managedclusters.ManagedClusterAADProfile
 	if v, ok := d.GetOk("azure_active_directory_role_based_access_control"); ok {
-		azureADProfile, err = expandKubernetesClusterAzureActiveDirectoryRoleBasedAccessControl(v.([]interface{}))
-		if err != nil {
-			return err
-		}
+		azureADProfile = expandKubernetesClusterAzureActiveDirectoryRoleBasedAccessControl(v.([]interface{}))
 	}
 
 	t := d.Get("tags").(map[string]interface{})
@@ -1872,10 +1869,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	if d.HasChange("azure_active_directory_role_based_access_control") {
 		azureADRaw := d.Get("azure_active_directory_role_based_access_control").([]interface{})
-		azureADProfile, err := expandKubernetesClusterAzureActiveDirectoryRoleBasedAccessControl(azureADRaw)
-		if err != nil {
-			return err
-		}
+		azureADProfile := expandKubernetesClusterAzureActiveDirectoryRoleBasedAccessControl(azureADRaw)
 
 		props.AadProfile = azureADProfile
 		if props.AadProfile != nil && (props.AadProfile.Managed == nil || !*props.AadProfile.Managed) {
@@ -3472,9 +3466,9 @@ func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerSe
 	return []interface{}{result}
 }
 
-func expandKubernetesClusterAzureActiveDirectoryRoleBasedAccessControl(input []interface{}) (*managedclusters.ManagedClusterAADProfile, error) {
+func expandKubernetesClusterAzureActiveDirectoryRoleBasedAccessControl(input []interface{}) *managedclusters.ManagedClusterAADProfile {
 	if len(input) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	azureAdRaw := input[0].(map[string]interface{})
@@ -3486,7 +3480,7 @@ func expandKubernetesClusterAzureActiveDirectoryRoleBasedAccessControl(input []i
 		Managed:             pointer.To(true),
 		AdminGroupObjectIDs: adminGroupObjectIds,
 		EnableAzureRBAC:     pointer.To(azureAdRaw["azure_rbac_enabled"].(bool)),
-	}, nil
+	}
 }
 
 func expandKubernetesClusterManagedClusterIdentity(input []interface{}) (*identity.SystemOrUserAssignedMap, error) {
