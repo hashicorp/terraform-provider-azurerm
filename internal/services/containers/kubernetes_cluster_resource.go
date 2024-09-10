@@ -1484,7 +1484,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 
 func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	tenantId := meta.(*clients.Client).Account.TenantId
 	client := meta.(*clients.Client).Containers.KubernetesClustersClient
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	env := meta.(*clients.Client).Containers.Environment
@@ -1555,7 +1554,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	var azureADProfile *managedclusters.ManagedClusterAADProfile
 	if v, ok := d.GetOk("azure_active_directory_role_based_access_control"); ok {
-		azureADProfile, err = expandKubernetesClusterAzureActiveDirectoryRoleBasedAccessControl(v.([]interface{}), tenantId)
+		azureADProfile, err = expandKubernetesClusterAzureActiveDirectoryRoleBasedAccessControl(v.([]interface{}))
 		if err != nil {
 			return err
 		}
@@ -1872,9 +1871,8 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if d.HasChange("azure_active_directory_role_based_access_control") {
-		tenantId := meta.(*clients.Client).Account.TenantId
 		azureADRaw := d.Get("azure_active_directory_role_based_access_control").([]interface{})
-		azureADProfile, err := expandKubernetesClusterAzureActiveDirectoryRoleBasedAccessControl(azureADRaw, tenantId)
+		azureADProfile, err := expandKubernetesClusterAzureActiveDirectoryRoleBasedAccessControl(azureADRaw)
 		if err != nil {
 			return err
 		}
@@ -2648,8 +2646,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 				return fmt.Errorf("setting `linux_profile`: %+v", err)
 			}
 
-			networkProfileRaw := d.Get("network_profile").([]interface{})
-			networkProfile := flattenKubernetesClusterNetworkProfile(props.NetworkProfile, networkProfileRaw)
+			networkProfile := flattenKubernetesClusterNetworkProfile(props.NetworkProfile)
 			if err := d.Set("network_profile", networkProfile); err != nil {
 				return fmt.Errorf("setting `network_profile`: %+v", err)
 			}
@@ -2665,7 +2662,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			}
 			d.Set("role_based_access_control_enabled", rbacEnabled)
 
-			aadRbac := flattenKubernetesClusterAzureActiveDirectoryRoleBasedAccessControl(props, d)
+			aadRbac := flattenKubernetesClusterAzureActiveDirectoryRoleBasedAccessControl(props)
 			if err := d.Set("azure_active_directory_role_based_access_control", aadRbac); err != nil {
 				return fmt.Errorf("setting `azure_active_directory_role_based_access_control`: %+v", err)
 			}
@@ -2718,7 +2715,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 				return fmt.Errorf("setting `microsoft_defender`: %+v", err)
 			}
 
-			ingressProfile := flattenKubernetesClusterIngressProfile(props.IngressProfile, d.Get("web_app_routing").([]interface{}))
+			ingressProfile := flattenKubernetesClusterIngressProfile(props.IngressProfile)
 			if err := d.Set("web_app_routing", ingressProfile); err != nil {
 				return fmt.Errorf("setting `web_app_routing`: %+v", err)
 			}
@@ -3322,7 +3319,7 @@ func resourceReferencesToIds(refs *[]managedclusters.ResourceReference) []string
 	return nil
 }
 
-func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerServiceNetworkProfile, raw []interface{}) []interface{} {
+func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerServiceNetworkProfile) []interface{} {
 	if profile == nil {
 		return []interface{}{}
 	}
@@ -3475,7 +3472,7 @@ func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerSe
 	return []interface{}{result}
 }
 
-func expandKubernetesClusterAzureActiveDirectoryRoleBasedAccessControl(input []interface{}, providerTenantId string) (*managedclusters.ManagedClusterAADProfile, error) {
+func expandKubernetesClusterAzureActiveDirectoryRoleBasedAccessControl(input []interface{}) (*managedclusters.ManagedClusterAADProfile, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
@@ -3512,7 +3509,7 @@ func expandKubernetesClusterManagedClusterIdentity(input []interface{}) (*identi
 	return &out, nil
 }
 
-func flattenKubernetesClusterAzureActiveDirectoryRoleBasedAccessControl(input *managedclusters.ManagedClusterProperties, d *pluginsdk.ResourceData) []interface{} {
+func flattenKubernetesClusterAzureActiveDirectoryRoleBasedAccessControl(input *managedclusters.ManagedClusterProperties) []interface{} {
 	results := make([]interface{}, 0)
 
 	if profile := input.AadProfile; profile != nil {
@@ -4357,7 +4354,7 @@ func expandKubernetesClusterIngressProfile(d *pluginsdk.ResourceData, input []in
 	return &out
 }
 
-func flattenKubernetesClusterIngressProfile(input *managedclusters.ManagedClusterIngressProfile, old []interface{}) []interface{} {
+func flattenKubernetesClusterIngressProfile(input *managedclusters.ManagedClusterIngressProfile) []interface{} {
 	if input == nil || input.WebAppRouting == nil || (input.WebAppRouting.Enabled != nil && !*input.WebAppRouting.Enabled) {
 		return []interface{}{}
 	}
