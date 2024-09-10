@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -339,9 +338,6 @@ func TestAccLinuxFunctionAppSlot_consumptionCompleteUpdate(t *testing.T) {
 }
 
 func TestAccLinuxFunctionAppSlot_elasticPremiumCompleteWithVnetProperties(t *testing.T) {
-	if !features.FourPointOhBeta() {
-		t.Skip("this test requires 4.0 mode")
-	}
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
 	r := LinuxFunctionAppSlotResource{}
 
@@ -373,9 +369,6 @@ func TestAccLinuxFunctionAppSlot_elasticPremiumComplete(t *testing.T) {
 }
 
 func TestAccLinuxFunctionAppSlot_standardCompleteWithVnetProperties(t *testing.T) {
-	if !features.FourPointOhBeta() {
-		t.Skip("this test requires 4.0 mode")
-	}
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
 	r := LinuxFunctionAppSlotResource{}
 
@@ -425,9 +418,6 @@ func TestAccLinuxFunctionAppSlot_withAuthSettingsStandard(t *testing.T) {
 }
 
 func TestAccLinuxFunctionAppSlot_scmIpRestrictionSubnetWithVnetProperties(t *testing.T) {
-	if !features.FourPointOhBeta() {
-		t.Skip("this test requires 4.0 mode")
-	}
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
 	r := LinuxFunctionAppSlotResource{}
 
@@ -1233,11 +1223,7 @@ func TestAccLinuxFunctionAppSlot_vNetIntegration(t *testing.T) {
 	r := LinuxFunctionAppSlotResource{}
 
 	var vnetIntegrationProperties string
-	if features.FourPointOhBeta() {
-		vnetIntegrationProperties = r.vNetIntegration_subnet1WithVnetProperties(data, SkuStandardPlan)
-	} else {
-		vnetIntegrationProperties = r.vNetIntegration_subnet1(data, SkuStandardPlan)
-	}
+	vnetIntegrationProperties = r.vNetIntegration_subnet1WithVnetProperties(data, SkuStandardPlan)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -1297,9 +1283,6 @@ func TestAccLinuxFunctionAppSlot_vNetIntegrationUpdate(t *testing.T) {
 }
 
 func TestAccLinuxFunctionAppSlot_vNetIntegrationUpdateWithVnetProperties(t *testing.T) {
-	if !features.FourPointOhBeta() {
-		t.Skip("this test requires 4.0 mode")
-	}
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
 	r := LinuxFunctionAppSlotResource{}
 
@@ -1358,9 +1341,6 @@ func TestAccLinuxFunctionAppSlotASEv3_basic(t *testing.T) {
 }
 
 func TestAccLinuxFunctionAppSlotASEv3_basicWithVnetProperties(t *testing.T) {
-	if !features.FourPointOhBeta() {
-		t.Skip("this test requires 4.0 mode")
-	}
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
 	r := LinuxFunctionAppSlotResource{}
 
@@ -1552,6 +1532,7 @@ resource "azurerm_linux_function_app_slot" "test" {
 
   site_config {
     health_check_path = "/health"
+    health_check_eviction_time_in_min = 3
   }
 }
 `, r.template(data, planSku), data.RandomInteger)
@@ -2383,6 +2364,7 @@ resource "azurerm_linux_function_app_slot" "test" {
     websockets_enabled = true
     ftps_state         = "FtpsOnly"
     health_check_path  = "/health-check"
+    health_check_eviction_time_in_min = 3
 
     application_stack {
       python_version = "3.9"
@@ -2574,6 +2556,7 @@ resource "azurerm_linux_function_app_slot" "test" {
     websockets_enabled = true
     ftps_state         = "FtpsOnly"
     health_check_path  = "/health-check"
+    health_check_eviction_time_in_min = 3
     worker_count       = 3
 
     minimum_tls_version     = "1.1"
@@ -2764,6 +2747,7 @@ resource "azurerm_linux_function_app_slot" "test" {
     websockets_enabled = true
     ftps_state         = "FtpsOnly"
     health_check_path  = "/health-check"
+    health_check_eviction_time_in_min = 3
     worker_count       = 3
 
     minimum_tls_version     = "1.1"
@@ -2984,6 +2968,7 @@ resource "azurerm_linux_function_app_slot" "test" {
     websockets_enabled = true
     ftps_state         = "FtpsOnly"
     health_check_path  = "/health-check"
+    health_check_eviction_time_in_min = 3
     worker_count       = 3
 
     minimum_tls_version     = "1.1"
@@ -3124,6 +3109,7 @@ resource "azurerm_linux_function_app_slot" "test" {
     websockets_enabled = true
     ftps_state         = "FtpsOnly"
     health_check_path  = "/health-check"
+    health_check_eviction_time_in_min = 3
     worker_count       = 3
 
     minimum_tls_version     = "1.1"

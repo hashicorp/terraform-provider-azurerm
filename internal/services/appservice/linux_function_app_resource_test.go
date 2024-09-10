@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -606,9 +605,6 @@ func TestAccLinuxFunctionApp_consumptionCompleteUpdate(t *testing.T) {
 }
 
 func TestAccLinuxFunctionApp_elasticPremiumCompleteWithVnetProperties(t *testing.T) {
-	if !features.FourPointOhBeta() {
-		t.Skip("this test requires 4.0 mode")
-	}
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
 	r := LinuxFunctionAppResource{}
 
@@ -1555,30 +1551,7 @@ func TestAccLinuxFunctionApp_storageAccountKeyVaultSecretVersionless(t *testing.
 	})
 }
 
-// TODO 4.0 remove post 4.0
-func TestAccLinuxFunctionAppASEv3_basic(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skip("skipped as test not valid in 4.0 mode")
-	}
-
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
-	r := LinuxFunctionAppResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.withASEV3(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("site_credential.0.password"),
-	})
-}
-
 func TestAccLinuxFunctionAppASEv3_basicWithVnetProperties(t *testing.T) {
-	if !features.FourPointOhBeta() {
-		t.Skip("this test requires 4.0 mode")
-	}
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
 	r := LinuxFunctionAppResource{}
 
@@ -1723,9 +1696,6 @@ func TestAccLinuxFunctionApp_basicPlanBackupShouldError(t *testing.T) {
 }
 
 func TestAccLinuxFunctionApp_vNetIntegrationWithVnetProperties(t *testing.T) {
-	if !features.FourPointOhBeta() {
-		t.Skip("this test requires 4.0 mode")
-	}
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
 	r := LinuxFunctionAppResource{}
 
@@ -1737,74 +1707,6 @@ func TestAccLinuxFunctionApp_vNetIntegrationWithVnetProperties(t *testing.T) {
 				check.That(data.ResourceName).Key("virtual_network_subnet_id").MatchesOtherKey(
 					check.That("azurerm_subnet.test1").Key("id"),
 				),
-			),
-		},
-		data.ImportStep("site_credential.0.password"),
-	})
-}
-
-// TODO 4.0 remove post 4.0
-func TestAccLinuxFunctionApp_vNetIntegration(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
-	r := LinuxFunctionAppResource{}
-
-	var vnetIntegrationProperties string
-	if features.FourPointOhBeta() {
-		vnetIntegrationProperties = r.vNetIntegration_subnet1WithVnetProperties(data, SkuStandardPlan)
-	} else {
-		vnetIntegrationProperties = r.vNetIntegration_subnet1(data, SkuStandardPlan)
-	}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: vnetIntegrationProperties,
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("virtual_network_subnet_id").MatchesOtherKey(
-					check.That("azurerm_subnet.test1").Key("id"),
-				),
-			),
-		},
-		data.ImportStep("site_credential.0.password"),
-	})
-}
-
-// TODO 4.0 remove post 4.0
-func TestAccLinuxFunctionApp_vNetIntegrationUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
-	r := LinuxFunctionAppResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.vNetIntegration_basic(data, SkuStandardPlan),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("site_credential.0.password"),
-		{
-			Config: r.vNetIntegration_subnet1(data, SkuStandardPlan),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("virtual_network_subnet_id").MatchesOtherKey(
-					check.That("azurerm_subnet.test1").Key("id"),
-				),
-			),
-		},
-		data.ImportStep("site_credential.0.password"),
-		{
-			Config: r.vNetIntegration_subnet2(data, SkuStandardPlan),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("virtual_network_subnet_id").MatchesOtherKey(
-					check.That("azurerm_subnet.test2").Key("id"),
-				),
-			),
-		},
-		data.ImportStep("site_credential.0.password"),
-		{
-			Config: r.vNetIntegration_basic(data, SkuStandardPlan),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("site_credential.0.password"),

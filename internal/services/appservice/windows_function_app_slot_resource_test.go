@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -1096,11 +1095,7 @@ func TestAccWindowsFunctionAppSlot_vNetIntegration(t *testing.T) {
 	r := WindowsFunctionAppSlotResource{}
 
 	var vnetIntegrationProperties string
-	if features.FourPointOhBeta() {
-		vnetIntegrationProperties = r.vNetIntegration_subnet1WithVnetProperties(data, SkuStandardPlan)
-	} else {
-		vnetIntegrationProperties = r.vNetIntegration_subnet1(data, SkuStandardPlan)
-	}
+	vnetIntegrationProperties = r.vNetIntegration_subnet1WithVnetProperties(data, SkuStandardPlan)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -1699,6 +1694,7 @@ resource "azurerm_windows_function_app_slot" "test" {
     websockets_enabled = true
     ftps_state         = "FtpsOnly"
     health_check_path  = "/health-check"
+    health_check_eviction_time_in_min = 3
 
     application_stack {
       powershell_core_version = "7"
@@ -1886,6 +1882,7 @@ resource "azurerm_windows_function_app_slot" "test" {
     websockets_enabled = true
     ftps_state         = "FtpsOnly"
     health_check_path  = "/health-check"
+    health_check_eviction_time_in_min = 3
     worker_count       = 3
 
     minimum_tls_version     = "1.1"
@@ -2020,6 +2017,7 @@ resource "azurerm_windows_function_app_slot" "test" {
     websockets_enabled = true
     ftps_state         = "FtpsOnly"
     health_check_path  = "/health-check"
+    health_check_eviction_time_in_min = 3
     worker_count       = 3
 
     minimum_tls_version     = "1.1"
@@ -2199,6 +2197,7 @@ resource "azurerm_windows_function_app_slot" "test" {
 
   site_config {
     health_check_path = "/health"
+    health_check_eviction_time_in_min = 3
   }
 }
 `, r.template(data, planSku), data.RandomInteger)
@@ -3165,47 +3164,6 @@ resource "azurerm_windows_function_app_slot" "test" {
 }
 
 func (r WindowsFunctionAppSlotResource) withASEV3(data acceptance.TestData) string {
-	if !features.FourPointOhBeta() {
-		return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%[2]s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_windows_function_app" "test" {
-  name                = "acctest-WFA-%[3]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
-
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
-
-  vnet_image_pull_enabled = true
-  site_config {
-    vnet_route_all_enabled = true
-  }
-}
-
-resource "azurerm_windows_function_app_slot" "test" {
-  name                       = "acctest-WFAS-%[3]d"
-  function_app_id            = azurerm_windows_function_app.test.id
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
-
-  site_config {
-    vnet_route_all_enabled = true
-  }
-}
-
-`, ServicePlanResource{}.aseV3(data), data.RandomString, data.RandomInteger)
-	}
-
 	return fmt.Sprintf(`
 %[1]s
 

@@ -847,6 +847,8 @@ resource "azurerm_windows_function_app_slot" "test" {
     websockets_enabled = true
     ftps_state         = "FtpsOnly"
     health_check_path  = "/health-check"
+    health_check_eviction_time_in_min = 3
+
     worker_count       = 3
 
     minimum_tls_version     = "1.1"

@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -1000,70 +999,6 @@ func TestAccWindowsWebApp_withJava110414Tomcat10020(t *testing.T) {
 			Config: r.javaTomcat(data, "11.0.14", "10.0.20"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("site_credential.0.password"),
-	})
-}
-
-func TestAccWindowsWebApp_dockerHub(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skipf("Skippped as deprecated property removed in 4.0")
-	}
-
-	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
-	r := WindowsWebAppResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.dockerHub(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.windows_fx_version").HasValue("DOCKER|traefik:windowsservercore-1809"),
-			),
-		},
-		data.ImportStep("app_settings.%",
-			"site_config.0.application_stack.0.docker_container_name",
-			"site_config.0.application_stack.0.docker_container_tag",
-			"site_config.0.application_stack.0.docker_image_name",
-			"site_config.0.application_stack.0.docker_registry_url",
-			"app_settings.DOCKER_REGISTRY_SERVER_PASSWORD",
-			"app_settings.DOCKER_REGISTRY_SERVER_URL",
-			"app_settings.DOCKER_REGISTRY_SERVER_USERNAME",
-			"site_credential.0.password"),
-	})
-}
-
-func TestAccWindowsWebApp_withDockerDeprecatedUpgrade(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skipf("Skippped as deprecated property removed in 4.0")
-	}
-
-	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
-	r := WindowsWebAppResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.dockerHub(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.windows_fx_version").HasValue("DOCKER|traefik:windowsservercore-1809"),
-			),
-		},
-		data.ImportStep("app_settings.%",
-			"site_config.0.application_stack.0.docker_container_name",
-			"site_config.0.application_stack.0.docker_container_tag",
-			"site_config.0.application_stack.0.docker_image_name",
-			"site_config.0.application_stack.0.docker_registry_url",
-			"app_settings.DOCKER_REGISTRY_SERVER_PASSWORD",
-			"app_settings.DOCKER_REGISTRY_SERVER_URL",
-			"app_settings.DOCKER_REGISTRY_SERVER_USERNAME",
-			"site_credential.0.password"),
-		{
-			Config: r.dockerImageName(data, "https://index.docker.io", "traefik:windowsservercore-1809"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.windows_fx_version").HasValue("DOCKER|traefik:windowsservercore-1809"),
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
