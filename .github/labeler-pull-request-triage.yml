@@ -374,16 +374,6 @@ service/maps:
   - any-glob-to-any-file:
     - internal/services/maps/**/*
 
-service/maria-db:
-- changed-files:
-  - any-glob-to-any-file:
-    - internal/services/mariadb/**/*
-
-service/media:
-- changed-files:
-  - any-glob-to-any-file:
-    - internal/services/media/**/*
-
 service/mixed-reality:
 - changed-files:
   - any-glob-to-any-file:
