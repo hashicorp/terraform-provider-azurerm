@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	mariadbServers "github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2017-12-01/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/privatednszonegroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/privateendpoints"
@@ -1141,11 +1140,6 @@ func normalizePrivateConnectionId(privateConnectionId string) string {
 	}
 	if strings.Contains(strings.ToLower(privateConnectionId), "microsoft.dbformysql") {
 		if serverId, err := servers.ParseServerIDInsensitively(privateConnectionId); err == nil {
-			privateConnectionId = serverId.ID()
-		}
-	}
-	if strings.Contains(strings.ToLower(privateConnectionId), "microsoft.dbformariadb") {
-		if serverId, err := mariadbServers.ParseServerIDInsensitively(privateConnectionId); err == nil {
 			privateConnectionId = serverId.ID()
 		}
 	}

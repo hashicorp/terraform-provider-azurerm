@@ -99,8 +99,6 @@ import (
 	managedhsm "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/client"
 	managementgroup "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/client"
 	maps "github.com/hashicorp/terraform-provider-azurerm/internal/services/maps/client"
-	mariadb "github.com/hashicorp/terraform-provider-azurerm/internal/services/mariadb/client"
-	media "github.com/hashicorp/terraform-provider-azurerm/internal/services/media/client"
 	mixedreality "github.com/hashicorp/terraform-provider-azurerm/internal/services/mixedreality/client"
 	mobilenetwork "github.com/hashicorp/terraform-provider-azurerm/internal/services/mobilenetwork/client"
 	monitor "github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/client"
@@ -237,8 +235,6 @@ type Client struct {
 	ManagementGroups                  *managementgroup.Client
 	ManagedHSMs                       *managedhsm.Client
 	Maps                              *maps.Client
-	MariaDB                           *mariadb.Client
-	Media                             *media.Client
 	MixedReality                      *mixedreality.Client
 	Monitor                           *monitor.Client
 	MobileNetwork                     *mobilenetwork.Client
@@ -522,12 +518,6 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	}
 	if client.Maps, err = maps.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Maps: %+v", err)
-	}
-	if client.MariaDB, err = mariadb.NewClient(o); err != nil {
-		return fmt.Errorf("building clients for Maria DB: %+v", err)
-	}
-	if client.Media, err = media.NewClient(o); err != nil {
-		return fmt.Errorf("building clients for Media: %+v", err)
 	}
 	if client.MixedReality, err = mixedreality.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Mixed Reality: %+v", err)

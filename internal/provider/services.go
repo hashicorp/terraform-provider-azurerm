@@ -82,8 +82,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedidentity"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maps"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mariadb"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mixedreality"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mobilenetwork"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor"
@@ -187,7 +185,6 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		machinelearning.Registration{},
 		maintenance.Registration{},
 		managedhsm.Registration{},
-		media.Registration{},
 		mobilenetwork.Registration{},
 		monitor.Registration{},
 		mssql.Registration{},
@@ -295,8 +292,6 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 			managedidentity.Registration{},
 			managementgroup.Registration{},
 			maps.Registration{},
-			mariadb.Registration{},
-			media.Registration{},
 			mixedreality.Registration{},
 			monitor.Registration{},
 			mssql.Registration{},
