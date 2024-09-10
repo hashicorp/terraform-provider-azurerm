@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2024-05-20-preview/machines"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2024-07-10/machines"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -70,7 +70,7 @@ func (r ArcMachineResource) Create() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			subscriptionId := metadata.Client.Account.SubscriptionId
-			client := metadata.Client.HybridCompute.HybridComputeClient_v2024_05_20_preview.Machines
+			client := metadata.Client.HybridCompute.HybridComputeClient_v2024_07_10.Machines
 
 			var model ArcMachineResourceModel
 			if err := metadata.Decode(&model); err != nil {
@@ -108,7 +108,7 @@ func (r ArcMachineResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.HybridCompute.HybridComputeClient_v2024_05_20_preview.Machines
+			client := metadata.Client.HybridCompute.HybridComputeClient_v2024_07_10.Machines
 
 			id, err := machines.ParseMachineID(metadata.ResourceData.Id())
 			if err != nil {
@@ -141,7 +141,7 @@ func (r ArcMachineResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.HybridCompute.HybridComputeClient_v2024_05_20_preview.Machines
+			client := metadata.Client.HybridCompute.HybridComputeClient_v2024_07_10.Machines
 
 			id, err := machines.ParseMachineID(metadata.ResourceData.Id())
 			if err != nil {

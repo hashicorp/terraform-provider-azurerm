@@ -10,21 +10,21 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-11-10/machines"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-11-10/privateendpointconnections"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-11-10/privatelinkscopes"
-	hybridcompute_v2024_05_20_preview "github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2024-05-20-preview"
+	hybridcompute_v2024_07_10 "github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2024-07-10"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-	HybridComputeClient_v2024_05_20_preview *hybridcompute_v2024_05_20_preview.Client
-	MachineExtensionsClient                 *machineextensions.MachineExtensionsClient
-	MachinesClient                          *machines.MachinesClient
-	PrivateEndpointConnectionsClient        *privateendpointconnections.PrivateEndpointConnectionsClient
-	PrivateLinkScopesClient                 *privatelinkscopes.PrivateLinkScopesClient
+	HybridComputeClient_v2024_07_10  *hybridcompute_v2024_07_10.Client
+	MachineExtensionsClient          *machineextensions.MachineExtensionsClient
+	MachinesClient                   *machines.MachinesClient
+	PrivateEndpointConnectionsClient *privateendpointconnections.PrivateEndpointConnectionsClient
+	PrivateLinkScopesClient          *privatelinkscopes.PrivateLinkScopesClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
-	hybridComputeClient_v2024_05_20_preview, err := hybridcompute_v2024_05_20_preview.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
+	hybridComputeClient_v2024_07_10, err := hybridcompute_v2024_07_10.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
 		o.Configure(c, o.Authorizers.ResourceManager)
 	})
 	if err != nil {
@@ -56,10 +56,10 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	o.Configure(privateLinkScopesClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
-		HybridComputeClient_v2024_05_20_preview: hybridComputeClient_v2024_05_20_preview,
-		MachineExtensionsClient:                 machineExtensionsClient,
-		MachinesClient:                          machinesClient,
-		PrivateEndpointConnectionsClient:        privateEndpointConnectionsClient,
-		PrivateLinkScopesClient:                 privateLinkScopesClient,
+		HybridComputeClient_v2024_07_10:  hybridComputeClient_v2024_07_10,
+		MachineExtensionsClient:          machineExtensionsClient,
+		MachinesClient:                   machinesClient,
+		PrivateEndpointConnectionsClient: privateEndpointConnectionsClient,
+		PrivateLinkScopesClient:          privateLinkScopesClient,
 	}, nil
 }

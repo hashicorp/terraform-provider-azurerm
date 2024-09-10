@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2024-05-20-preview/machines"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2024-07-10/machines"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -54,7 +54,7 @@ func (r ArcMachineResource) Exists(ctx context.Context, clients *clients.Client,
 		return nil, err
 	}
 
-	resp, err := clients.HybridCompute.HybridComputeClient_v2024_05_20_preview.Machines.Get(ctx, *id, machines.DefaultGetOperationOptions())
+	resp, err := clients.HybridCompute.HybridComputeClient_v2024_07_10.Machines.Get(ctx, *id, machines.DefaultGetOperationOptions())
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
