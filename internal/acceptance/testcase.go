@@ -52,7 +52,7 @@ func (td TestData) ResourceTest(t *testing.T, testResource types.TestResource, s
 	newSteps := make([]TestStep, 0)
 	for _, step := range steps {
 		// This block adds a check to make sure tests aren't recreating a resource
-		if step.Config != "" || step.ConfigDirectory != nil || step.ConfigFile != nil {
+		if (step.Config != "" || step.ConfigDirectory != nil || step.ConfigFile != nil) && !step.PlanOnly {
 			step.ConfigPlanChecks = resource.ConfigPlanChecks{
 				PreApply: []plancheck.PlanCheck{
 					helpers.IsNotResourceAction(td.ResourceName, plancheck.ResourceActionReplace),
