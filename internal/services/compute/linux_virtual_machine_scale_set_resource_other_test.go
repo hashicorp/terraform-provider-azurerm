@@ -2406,7 +2406,6 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   instances                       = 1
   admin_username                  = "adminuser"
   admin_password                  = "P@ssword1234!"
-  health_probe_id                 = azurerm_lb_probe.test.id
   disable_password_authentication = false
 
   source_image_reference {
@@ -2438,6 +2437,18 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
       load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
       load_balancer_inbound_nat_rules_ids    = [azurerm_lb_nat_pool.test.id]
     }
+  }
+
+  extension {
+    name                       = "HealthExtension"
+    publisher                  = "Microsoft.ManagedServices"
+    type                       = "ApplicationHealthLinux"
+    type_handler_version       = "1.0"
+    auto_upgrade_minor_version = true
+    settings = jsonencode({
+      protocol = "https"
+      port     = 443
+    })
   }
 
   automatic_instance_repair {
@@ -2516,7 +2527,6 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   instances                       = 1
   admin_username                  = "adminuser"
   admin_password                  = "P@ssword1234!"
-  health_probe_id                 = azurerm_lb_probe.test.id
   disable_password_authentication = false
   source_image_reference {
     publisher = "Canonical"
@@ -2549,6 +2559,18 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
   }
 
+  extension {
+    name                       = "HealthExtension"
+    publisher                  = "Microsoft.ManagedServices"
+    type                       = "ApplicationHealthLinux"
+    type_handler_version       = "1.0"
+    auto_upgrade_minor_version = true
+    settings = jsonencode({
+      protocol = "https"
+      port     = 443
+    })
+  }
+
   automatic_instance_repair {
     enabled      = true
     grace_period = "PT30M"
@@ -2568,6 +2590,7 @@ resource "azurerm_public_ip" "test" {
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
   allocation_method       = "Dynamic"
+  sku                     = "Basic"
   idle_timeout_in_minutes = 4
 }
 resource "azurerm_lb" "test" {
@@ -2618,7 +2641,6 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   instances                       = 1
   admin_username                  = "adminuser"
   admin_password                  = "P@ssword1234!"
-  health_probe_id                 = azurerm_lb_probe.test.id
   disable_password_authentication = false
   source_image_reference {
     publisher = "Canonical"
@@ -2646,6 +2668,17 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
       load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
       load_balancer_inbound_nat_rules_ids    = [azurerm_lb_nat_pool.test.id]
     }
+  }
+  extension {
+    name                       = "HealthExtension"
+    publisher                  = "Microsoft.ManagedServices"
+    type                       = "ApplicationHealthLinux"
+    type_handler_version       = "1.0"
+    auto_upgrade_minor_version = true
+    settings = jsonencode({
+      protocol = "https"
+      port     = 443
+    })
   }
   automatic_instance_repair {
     enabled = false

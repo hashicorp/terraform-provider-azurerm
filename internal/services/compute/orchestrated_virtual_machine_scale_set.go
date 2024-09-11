@@ -1433,15 +1433,21 @@ func expandOrchestratedVirtualMachineScaleSetExtensions(input []interface{}) (ex
 		extensionType := extensionRaw["type"].(string)
 
 		extensionProps := virtualmachinescalesets.VirtualMachineScaleSetExtensionProperties{
-			Publisher:                pointer.To(extensionRaw["publisher"].(string)),
-			Type:                     &extensionType,
-			TypeHandlerVersion:       pointer.To(extensionRaw["type_handler_version"].(string)),
-			AutoUpgradeMinorVersion:  pointer.To(extensionRaw["auto_upgrade_minor_version_enabled"].(bool)),
-			ProvisionAfterExtensions: utils.ExpandStringSlice(extensionRaw["extensions_to_provision_after_vm_creation"].([]interface{})),
+			Publisher:          pointer.To(extensionRaw["publisher"].(string)),
+			Type:               &extensionType,
+			TypeHandlerVersion: pointer.To(extensionRaw["type_handler_version"].(string)),
 		}
 
 		if extensionType == "ApplicationHealthLinux" || extensionType == "ApplicationHealthWindows" {
 			hasHealthExtension = true
+		}
+
+		if val, ok := extensionRaw["auto_upgrade_minor_version_enabled"]; ok {
+			extensionProps.AutoUpgradeMinorVersion = pointer.To(val.(bool))
+		}
+
+		if val, ok := extensionRaw["extensions_to_provision_after_vm_creation"]; ok {
+			extensionProps.ProvisionAfterExtensions = utils.ExpandStringSlice(val.([]interface{}))
 		}
 
 		if val, ok := extensionRaw["failure_suppression_enabled"]; ok {

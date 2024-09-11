@@ -2795,7 +2795,6 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
-  health_probe_id     = azurerm_lb_probe.test.id
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
     offer     = "WindowsServer"
@@ -2825,6 +2824,19 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
       load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
       load_balancer_inbound_nat_rules_ids    = [azurerm_lb_nat_pool.test.id]
     }
+  }
+
+  extension {
+    name                       = "HealthExtension"
+    publisher                  = "Microsoft.ManagedServices"
+    type                       = "ApplicationHealthWindows"
+    type_handler_version       = "1.0"
+    auto_upgrade_minor_version = true
+    settings = jsonencode({
+      protocol    = "https"
+      port        = 443
+      requestPath = "/"
+    })
   }
 
   automatic_instance_repair {
@@ -2904,7 +2916,6 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
-  health_probe_id     = azurerm_lb_probe.test.id
 
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
@@ -2936,6 +2947,19 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
       load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
       load_balancer_inbound_nat_rules_ids    = [azurerm_lb_nat_pool.test.id]
     }
+  }
+
+  extension {
+    name                       = "HealthExtension"
+    publisher                  = "Microsoft.ManagedServices"
+    type                       = "ApplicationHealthWindows"
+    type_handler_version       = "1.0"
+    auto_upgrade_minor_version = true
+    settings = jsonencode({
+      protocol    = "https"
+      port        = 443
+      requestPath = "/"
+    })
   }
 
   automatic_instance_repair {
@@ -3014,7 +3038,6 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
-  health_probe_id     = azurerm_lb_probe.test.id
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
     offer     = "WindowsServer"
@@ -3044,6 +3067,19 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
       load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
       load_balancer_inbound_nat_rules_ids    = [azurerm_lb_nat_pool.test.id]
     }
+  }
+
+  extension {
+    name                       = "HealthExtension"
+    publisher                  = "Microsoft.ManagedServices"
+    type                       = "ApplicationHealthWindows"
+    type_handler_version       = "1.0"
+    auto_upgrade_minor_version = true
+    settings = jsonencode({
+      protocol    = "https"
+      port        = 443
+      requestPath = "/"
+    })
   }
 
   automatic_instance_repair {

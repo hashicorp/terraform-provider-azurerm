@@ -1968,10 +1968,13 @@ func ExpandVirtualMachineScaleSetAutomaticRepairsPolicy(input []interface{}) *vi
 	result := virtualmachinescalesets.AutomaticRepairsPolicy{}
 
 	result.Enabled = pointer.To(v["enabled"].(bool))
-	result.GracePeriod = pointer.To(v["grace_period"].(string))
 
 	if v["action"].(string) != "" {
 		result.RepairAction = pointer.To(virtualmachinescalesets.RepairAction(v["action"].(string)))
+	}
+
+	if v["grace_period"].(string) != "" {
+		result.GracePeriod = pointer.To(v["grace_period"].(string))
 	}
 
 	return &result
