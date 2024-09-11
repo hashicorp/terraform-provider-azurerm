@@ -63,7 +63,7 @@ func Default() UserFeatures {
 			ScaleToZeroOnDelete:       true,
 		},
 		Storage: StorageFeatures{
-			DataPlaneAccessEnabled: true,
+			DataPlaneAccessOnReadEnabled: true,
 		},
 		Subscription: SubscriptionFeatures{
 			PreventCancellationOnDestroy: false,

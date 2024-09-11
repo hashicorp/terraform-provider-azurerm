@@ -207,7 +207,7 @@ var ManagedDiskAttributes = map[string]attr.Type{
 }
 
 type Storage struct {
-	DataPlaneAccessEnabled types.Bool `tfsdk:"data_plane_access_enabled"`
+	DataPlaneAccessOnReadEnabled types.Bool `tfsdk:"data_plane_access_enabled"`
 }
 
 var StorageAttributes = map[string]attr.Type{

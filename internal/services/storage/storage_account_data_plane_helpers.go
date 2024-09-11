@@ -4,16 +4,9 @@
 package storage
 
 import (
-	"context"
-	"fmt"
-	"log"
 	"slices"
-	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/storageaccounts"
-	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/custompollers"
 )
 
 type storageAccountServiceSupportLevel struct {
@@ -52,58 +45,4 @@ func availableFunctionalityForAccount(kind storageaccounts.Kind, tier storageacc
 		supportShare:         supportShare,
 		supportStaticWebsite: supportStaticWebSite,
 	}
-}
-
-func waitForDataPlaneToBecomeAvailableForAccount(ctx context.Context, client *client.Client, account *client.AccountDetails, supportLevel storageAccountServiceSupportLevel) error {
-	initialDelayDuration := 10 * time.Second
-
-	if supportLevel.supportBlob {
-		log.Printf("[DEBUG] waiting for the Blob Service to become available")
-		pollerType, err := custompollers.NewDataPlaneBlobContainersAvailabilityPoller(ctx, client, account)
-		if err != nil {
-			return fmt.Errorf("building Blob Service Poller: %+v", err)
-		}
-		poller := pollers.NewPoller(pollerType, initialDelayDuration, pollers.DefaultNumberOfDroppedConnectionsToAllow)
-		if err := poller.PollUntilDone(ctx); err != nil {
-			return fmt.Errorf("waiting for the Blob Service to become available: %+v", err)
-		}
-	}
-
-	if supportLevel.supportQueue {
-		log.Printf("[DEBUG] waiting for the Queues Service to become available")
-		pollerType, err := custompollers.NewDataPlaneQueuesAvailabilityPoller(ctx, client, account)
-		if err != nil {
-			return fmt.Errorf("building Queues Poller: %+v", err)
-		}
-		poller := pollers.NewPoller(pollerType, initialDelayDuration, pollers.DefaultNumberOfDroppedConnectionsToAllow)
-		if err := poller.PollUntilDone(ctx); err != nil {
-			return fmt.Errorf("waiting for the Queues Service to become available: %+v", err)
-		}
-	}
-
-	if supportLevel.supportShare {
-		log.Printf("[DEBUG] waiting for the File Service to become available")
-		pollerType, err := custompollers.NewDataPlaneFileShareAvailabilityPoller(client, account)
-		if err != nil {
-			return fmt.Errorf("building File Share Poller: %+v", err)
-		}
-		poller := pollers.NewPoller(pollerType, initialDelayDuration, pollers.DefaultNumberOfDroppedConnectionsToAllow)
-		if err := poller.PollUntilDone(ctx); err != nil {
-			return fmt.Errorf("waiting for the File Service to become available: %+v", err)
-		}
-	}
-
-	if supportLevel.supportStaticWebsite {
-		log.Printf("[DEBUG] waiting for the Static Website to become available")
-		pollerType, err := custompollers.NewDataPlaneStaticWebsiteAvailabilityPoller(ctx, client, account)
-		if err != nil {
-			return fmt.Errorf("building Static Website Poller: %+v", err)
-		}
-		poller := pollers.NewPoller(pollerType, initialDelayDuration, pollers.DefaultNumberOfDroppedConnectionsToAllow)
-		if err := poller.PollUntilDone(ctx); err != nil {
-			return fmt.Errorf("waiting for the Static Website to become available: %+v", err)
-		}
-	}
-
-	return nil
 }

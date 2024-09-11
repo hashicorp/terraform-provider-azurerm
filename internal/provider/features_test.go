@@ -76,7 +76,7 @@ func TestExpandFeatures(t *testing.T) {
 					RecoverSoftDeletedBackupProtectedVM: true,
 				},
 				Storage: features.StorageFeatures{
-					DataPlaneAccessEnabled: true,
+					DataPlaneAccessOnReadEnabled: true,
 				},
 				Subscription: features.SubscriptionFeatures{
 					PreventCancellationOnDestroy: false,
@@ -244,7 +244,7 @@ func TestExpandFeatures(t *testing.T) {
 					RecoverSoftDeletedBackupProtectedVM: true,
 				},
 				Storage: features.StorageFeatures{
-					DataPlaneAccessEnabled: true,
+					DataPlaneAccessOnReadEnabled: true,
 				},
 				Subscription: features.SubscriptionFeatures{
 					PreventCancellationOnDestroy: true,
@@ -427,7 +427,7 @@ func TestExpandFeatures(t *testing.T) {
 					RecoverSoftDeletedBackupProtectedVM: false,
 				},
 				Storage: features.StorageFeatures{
-					DataPlaneAccessEnabled: false,
+					DataPlaneAccessOnReadEnabled: false,
 				},
 				Subscription: features.SubscriptionFeatures{
 					PreventCancellationOnDestroy: false,
@@ -1466,7 +1466,7 @@ func TestExpandFeaturesStorage(t *testing.T) {
 			},
 			Expected: features.UserFeatures{
 				Storage: features.StorageFeatures{
-					DataPlaneAccessEnabled: true,
+					DataPlaneAccessOnReadEnabled: true,
 				},
 			},
 		},
@@ -1483,7 +1483,7 @@ func TestExpandFeaturesStorage(t *testing.T) {
 			},
 			Expected: features.UserFeatures{
 				Storage: features.StorageFeatures{
-					DataPlaneAccessEnabled: false,
+					DataPlaneAccessOnReadEnabled: false,
 				},
 			},
 		},

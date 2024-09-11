@@ -211,8 +211,8 @@ func TestProviderConfig_LoadDefault(t *testing.T) {
 		t.Errorf("expected recovery_service.PurgeProtectedItemsFromVaultOnDestroy to be false")
 	}
 
-	if !features.Storage.DataPlaneAccessEnabled {
-		t.Errorf("expected storage.DataPlaneAccessEnabled to be true")
+	if !features.Storage.DataPlaneAccessOnReadEnabled {
+		t.Errorf("expected storage.DataPlaneAccessOnReadEnabled to be true")
 	}
 }
 

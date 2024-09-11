@@ -601,7 +601,7 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 		if len(items) > 0 {
 			storageRaw := items[0].(map[string]interface{})
 			if v, ok := storageRaw["data_plane_access_enabled"]; ok {
-				featuresMap.Storage.DataPlaneAccessEnabled = v.(bool)
+				featuresMap.Storage.DataPlaneAccessOnReadEnabled = v.(bool)
 			}
 		}
 	}

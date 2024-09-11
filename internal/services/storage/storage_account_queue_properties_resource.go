@@ -5,6 +5,8 @@ package storage
 
 import (
 	"fmt"
+	"log"
+	"slices"
 	"strings"
 	"time"
 
@@ -12,8 +14,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/storageaccounts"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -169,8 +173,8 @@ func resourceStorageAccountQueuePropertiesCreate(d *pluginsdk.ResourceData, meta
 		return err
 	}
 
-	locks.ByName(id.StorageAccountName, storageAccountQueuePropertiesResourceName)
-	defer locks.UnlockByName(id.StorageAccountName, storageAccountQueuePropertiesResourceName)
+	locks.ByName(id.StorageAccountName, storageAccountResourceName)
+	defer locks.UnlockByName(id.StorageAccountName, storageAccountResourceName)
 
 	existing, err := client.GetProperties(ctx, *id, storageaccounts.DefaultGetPropertiesOperationOptions())
 	if err != nil {
@@ -179,49 +183,54 @@ func resourceStorageAccountQueuePropertiesCreate(d *pluginsdk.ResourceData, meta
 		}
 	}
 
-	// NOTE: Import error cannot be supported for this resource...
-
-	if existing.Model == nil {
-		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	model := existing.Model
+	if err := validateExistingModel(model, id); err != nil {
+		return err
 	}
 
-	if existing.Model.Kind == nil {
-		return fmt.Errorf("retrieving %s: `model.Kind` was nil", id)
+	// TODO: Add Import error support
+
+	accountTier := pointer.From(model.Sku.Tier)
+	accountKind := pointer.From(model.Kind)
+	replicationType := strings.ToUpper(strings.Split(string(model.Sku.Name), "_")[1])
+	queueSupportedReplicationTypes := []string{"LRS", "GRS", "RAGRS"}
+
+	supportQueue := accountTier == storageaccounts.SkuTierStandard && (accountKind == storageaccounts.KindStorageVTwo ||
+		(accountKind == storageaccounts.KindStorage &&
+			// Per local test, only LRS/GRS/RAGRS Storage V1 accounts support queue endpoint.
+			// GZRS and RAGZRS is invalid, while ZRS is valid but has no queue endpoint.
+			slices.Contains(queueSupportedReplicationTypes, replicationType)))
+
+	if !supportQueue {
+		return fmt.Errorf("%q are not supported for account kind %q in sku tier %q", storageAccountQueuePropertiesResourceName, accountKind, accountTier)
 	}
 
-	if existing.Model.Properties == nil {
-		return fmt.Errorf("retrieving %s: `model.Properties` was nil", id)
-	}
-
-	if existing.Model.Sku == nil {
-		return fmt.Errorf("retrieving %s: `model.Sku` was nil", id)
-	}
-
-	var accountKind storageaccounts.Kind
-	var accountTier storageaccounts.SkuTier
-	accountReplicationType := ""
-
-	accountKind = *existing.Model.Kind
-	accountReplicationType = strings.Split(string(existing.Model.Sku.Name), "_")[1]
-	if existing.Model.Sku.Tier != nil {
-		accountTier = *existing.Model.Sku.Tier
-	}
-
+	// NOTE: Wait for the data plane queue container to become available...
+	log.Printf("[DEBUG] [CREATE] Calling 'storageClient.FindAccount'")
 	dataPlaneAccount, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
+
 	if dataPlaneAccount == nil {
 		return fmt.Errorf("unable to locate %q", id)
 	}
 
-	supportLevel := availableFunctionalityForAccount(accountKind, accountTier, accountReplicationType)
-
-	if !supportLevel.supportQueue {
-		return fmt.Errorf("`properties` are not supported for account kind %q in sku tier %q", accountKind, accountTier)
+	log.Printf("[DEBUG] [CREATE] Calling 'custompollers.NewDataPlaneQueuesAvailabilityPoller' building Queues Poller for %s", id)
+	pollerType, err := custompollers.NewDataPlaneQueuesAvailabilityPoller(ctx, storageClient, dataPlaneAccount)
+	if err != nil {
+		return fmt.Errorf("building Queues Poller: %+v", err)
 	}
 
-	queueClient, err := storageClient.QueuesDataPlaneClient(ctx, *dataPlaneAccount, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
+	log.Printf("[DEBUG] [CREATE] Calling 'poller.PollUntilDone' waiting for the Queues Service to become available for %s", id)
+	poller := pollers.NewPoller(pollerType, initialDelayDuration, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+	if err := poller.PollUntilDone(ctx); err != nil {
+		return fmt.Errorf("waiting for the Queues Service to become available: %+v", err)
+	}
+
+	// NOTE: Now that we know the data plane container is available, we can now set the properties on the resource...
+	log.Printf("[DEBUG] [CREATE] Calling 'storageClient.QueuesDataPlaneClient' building Queues Client for %s", id)
+	queuesDataPlaneClient, err := storageClient.QueuesDataPlaneClient(ctx, *dataPlaneAccount, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
 	if err != nil {
 		return fmt.Errorf("building Queues Client: %s", err)
 	}
@@ -231,7 +240,8 @@ func resourceStorageAccountQueuePropertiesCreate(d *pluginsdk.ResourceData, meta
 		return fmt.Errorf("expanding `properties`: %+v", err)
 	}
 
-	if err = queueClient.UpdateServiceProperties(ctx, *queueProperties); err != nil {
+	log.Printf("[DEBUG] [CREATE] Calling 'queuesDataPlaneClient.UpdateServiceProperties' for %s", id)
+	if err = queuesDataPlaneClient.UpdateServiceProperties(ctx, *queueProperties); err != nil {
 		return fmt.Errorf("creating `properties`: %+v", err)
 	}
 

@@ -5,14 +5,17 @@ package storage
 
 import (
 	"fmt"
-	"strings"
+	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/storageaccounts"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -50,7 +53,7 @@ func resourceStorageAccountStaticWebSiteProperties() *pluginsdk.Resource {
 
 			"properties": {
 				Type:     pluginsdk.TypeList,
-				Optional: true,
+				Required: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -82,8 +85,8 @@ func resourceStorageAccountStaticWebSitePropertiesCreate(d *pluginsdk.ResourceDa
 		return err
 	}
 
-	locks.ByName(id.StorageAccountName, storageAccountStaticWebSitePropertiesResourceName)
-	defer locks.UnlockByName(id.StorageAccountName, storageAccountStaticWebSitePropertiesResourceName)
+	locks.ByName(id.StorageAccountName, storageAccountResourceName)
+	defer locks.UnlockByName(id.StorageAccountName, storageAccountResourceName)
 
 	existing, err := client.GetProperties(ctx, *id, storageaccounts.DefaultGetPropertiesOperationOptions())
 	if err != nil {
@@ -92,24 +95,22 @@ func resourceStorageAccountStaticWebSitePropertiesCreate(d *pluginsdk.ResourceDa
 		}
 	}
 
-	// NOTE: Import error cannot be supported for this resource...
+	// TODO: Add Import error supported for this resource...
 
-	if existing.Model == nil {
-		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	model := existing.Model
+	if err := validateExistingModel(model, id); err != nil {
+		return err
 	}
 
-	if existing.Model.Kind == nil {
-		return fmt.Errorf("retrieving %s: `model.Kind` was nil", id)
+	accountKind := pointer.From(model.Kind)
+	supportStaticWebSite := accountKind == storageaccounts.KindStorageVTwo || accountKind == storageaccounts.KindBlockBlobStorage
+
+	if !supportStaticWebSite {
+		return fmt.Errorf("%q are not supported for account kind %q", storageAccountStaticWebSitePropertiesResourceName, accountKind)
 	}
 
-	if existing.Model.Properties == nil {
-		return fmt.Errorf("retrieving %s: `model.Properties` was nil", id)
-	}
-
-	if existing.Model.Sku == nil {
-		return fmt.Errorf("retrieving %s: `model.Sku` was nil", id)
-	}
-
+	// NOTE: Wait for the static website data plane container to become available...
+	log.Printf("[DEBUG] [CREATE] Calling 'storageClient.FindAccount' for %s", id)
 	dataPlaneAccount, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
@@ -119,36 +120,30 @@ func resourceStorageAccountStaticWebSitePropertiesCreate(d *pluginsdk.ResourceDa
 		return fmt.Errorf("unable to locate %q", id)
 	}
 
-	var accountKind storageaccounts.Kind
-	var accountTier storageaccounts.SkuTier
-	accountReplicationType := ""
-
-	accountKind = *existing.Model.Kind
-	accountReplicationType = strings.Split(string(existing.Model.Sku.Name), "_")[1]
-	if existing.Model.Sku.Tier != nil {
-		accountTier = *existing.Model.Sku.Tier
+	log.Printf("[DEBUG] [CREATE] Calling 'custompollers.NewDataPlaneStaticWebsiteAvailabilityPoller' building Static Website Poller for %s", id)
+	pollerType, err := custompollers.NewDataPlaneStaticWebsiteAvailabilityPoller(ctx, storageClient, dataPlaneAccount)
+	if err != nil {
+		return fmt.Errorf("waiting for the Data Plane for %s to become available: building Static Website Poller: %+v", id, err)
 	}
 
-	supportLevel := availableFunctionalityForAccount(accountKind, accountTier, accountReplicationType)
-	if err := waitForDataPlaneToBecomeAvailableForAccount(ctx, storageClient, dataPlaneAccount, supportLevel); err != nil {
-		return fmt.Errorf("waiting for the Data Plane for %s to become available: %+v", id, err)
+	log.Printf("[DEBUG] [CREATE] Calling 'pollers.NewPoller' for %s", id)
+	poller := pollers.NewPoller(pollerType, initialDelayDuration, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+	if err := poller.PollUntilDone(ctx); err != nil {
+		return fmt.Errorf("waiting for the Data Plane for %s to become available: waiting for the Static Website to become available: %+v", id, err)
 	}
 
-	if val, ok := d.GetOk("properties"); ok {
-		if !supportLevel.supportStaticWebsite {
-			return fmt.Errorf("static websites are not supported for account kind %q in sku tier %q", accountKind, accountTier)
-		}
+	log.Printf("[DEBUG] [CREATE] Calling 'storageClient.AccountsDataPlaneClient' building Accounts Data Plane Client for %s", id)
+	accountsDataPlaneClient, err := storageClient.AccountsDataPlaneClient(ctx, *dataPlaneAccount, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
+	if err != nil {
+		return fmt.Errorf("building Accounts Data Plane Client: %s", err)
+	}
 
-		accountsClient, err := storageClient.AccountsDataPlaneClient(ctx, *dataPlaneAccount, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
-		if err != nil {
-			return fmt.Errorf("building Accounts Data Plane Client: %s", err)
-		}
+	// NOTE: Now that we know the data plane container is available, we can now set the properties on the resource...
+	staticWebsiteProps := expandAccountStaticWebsiteProperties(d.Get("properties").([]interface{}))
 
-		staticWebsiteProps := expandAccountStaticWebsiteProperties(val.([]interface{}))
-
-		if _, err = accountsClient.SetServiceProperties(ctx, id.StorageAccountName, staticWebsiteProps); err != nil {
-			return fmt.Errorf("updating %s: %+v", id, err)
-		}
+	log.Printf("[DEBUG] [CREATE] Calling 'accountsDataPlaneClient.SetServiceProperties' for %s", id)
+	if _, err = accountsDataPlaneClient.SetServiceProperties(ctx, id.StorageAccountName, staticWebsiteProps); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -172,40 +167,22 @@ func resourceStorageAccountStaticWebSitePropertiesUpdate(d *pluginsdk.ResourceDa
 
 	existing, err := client.GetProperties(ctx, *id, storageaccounts.DefaultGetPropertiesOperationOptions())
 	if err != nil {
-		return fmt.Errorf("retrieving %s: %+v", id, err)
+		if !response.WasNotFound(existing.HttpResponse) {
+			return fmt.Errorf("checking for existing %s: %+v", id, err)
+		}
 	}
 
-	if existing.Model == nil {
-		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	model := existing.Model
+	if err := validateExistingModel(model, id); err != nil {
+		return err
 	}
 
-	if existing.Model.Kind == nil {
-		return fmt.Errorf("retrieving %s: `model.Kind` was nil", id)
-	}
-
-	if existing.Model.Properties == nil {
-		return fmt.Errorf("retrieving %s: `model.Properties` was nil", id)
-	}
-
-	if existing.Model.Sku == nil {
-		return fmt.Errorf("retrieving %s: `model.Sku` was nil", id)
-	}
-
-	var accountKind storageaccounts.Kind
-	var accountTier storageaccounts.SkuTier
-	accountReplicationType := ""
-
-	accountKind = *existing.Model.Kind
-	accountReplicationType = strings.Split(string(existing.Model.Sku.Name), "_")[1]
-	if existing.Model.Sku.Tier != nil {
-		accountTier = *existing.Model.Sku.Tier
-	}
-
-	supportLevel := availableFunctionalityForAccount(accountKind, accountTier, accountReplicationType)
+	accountKind := pointer.From(model.Kind)
+	supportStaticWebSite := accountKind == storageaccounts.KindStorageVTwo || accountKind == storageaccounts.KindBlockBlobStorage
 
 	if d.HasChange("properties") {
-		if !supportLevel.supportStaticWebsite {
-			return fmt.Errorf("static website properties are not supported for a storage account with the account kind %q in sku tier %q", accountKind, accountTier)
+		if !supportStaticWebSite {
+			return fmt.Errorf("%q are not supported for account kind %q", storageAccountStaticWebSitePropertiesResourceName, accountKind)
 		}
 
 		account, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
@@ -216,14 +193,14 @@ func resourceStorageAccountStaticWebSitePropertiesUpdate(d *pluginsdk.ResourceDa
 			return fmt.Errorf("unable to locate %s", *id)
 		}
 
-		accountsClient, err := storageClient.AccountsDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
+		accountsDataPlaneClient, err := storageClient.AccountsDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
 		if err != nil {
 			return fmt.Errorf("building Data Plane client for %s: %+v", *id, err)
 		}
 
 		staticWebsiteProps := expandAccountStaticWebsiteProperties(d.Get("properties").([]interface{}))
 
-		if _, err = accountsClient.SetServiceProperties(ctx, id.StorageAccountName, staticWebsiteProps); err != nil {
+		if _, err = accountsDataPlaneClient.SetServiceProperties(ctx, id.StorageAccountName, staticWebsiteProps); err != nil {
 			return fmt.Errorf("updating Static Website Properties for %s: %+v", *id, err)
 		}
 	}
@@ -261,12 +238,12 @@ func resourceStorageAccountStaticWebSitePropertiesRead(d *pluginsdk.ResourceData
 		return fmt.Errorf("unable to locate %q", id)
 	}
 
-	accountsClient, err := storageClient.AccountsDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
+	accountsDataPlaneClient, err := storageClient.AccountsDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
 	if err != nil {
 		return fmt.Errorf("building Accounts Data Plane Client: %s", err)
 	}
 
-	staticWebsiteProps, err := accountsClient.GetServiceProperties(ctx, id.StorageAccountName)
+	staticWebsiteProps, err := accountsDataPlaneClient.GetServiceProperties(ctx, id.StorageAccountName)
 	if err != nil {
 		return fmt.Errorf("retrieving static website properties for %s: %+v", *id, err)
 	}

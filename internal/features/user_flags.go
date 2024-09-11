@@ -86,7 +86,7 @@ type AppConfigurationFeatures struct {
 }
 
 type StorageFeatures struct {
-	DataPlaneAccessEnabled bool
+	DataPlaneAccessOnReadEnabled bool
 }
 
 type SubscriptionFeatures struct {

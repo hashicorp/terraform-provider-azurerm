@@ -416,9 +416,9 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 			if diags.HasError() {
 				return
 			}
-			f.Storage.DataPlaneAccessEnabled = true
-			if !feature[0].DataPlaneAccessEnabled.IsNull() && !feature[0].DataPlaneAccessEnabled.IsUnknown() {
-				f.Storage.DataPlaneAccessEnabled = feature[0].DataPlaneAccessEnabled.ValueBool()
+			f.Storage.DataPlaneAccessOnReadEnabled = true
+			if !feature[0].DataPlaneAccessOnReadEnabled.IsNull() && !feature[0].DataPlaneAccessOnReadEnabled.IsUnknown() {
+				f.Storage.DataPlaneAccessOnReadEnabled = feature[0].DataPlaneAccessOnReadEnabled.ValueBool()
 			}
 		}
 
