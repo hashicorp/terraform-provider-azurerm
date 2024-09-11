@@ -2520,67 +2520,6 @@ resource "azurerm_linux_web_app_slot" "test" {
 `, r.premiumV3PlanTemplate(data), data.RandomInteger, javaVersion, javaServer, javaServerVersion)
 }
 
-func (r LinuxWebAppSlotResource) docker(data acceptance.TestData, containerImage, containerTag string) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_linux_web_app_slot" "test" {
-  name           = "acctestWAS-%d"
-  app_service_id = azurerm_linux_web_app.test.id
-
-  app_settings = {
-    "DOCKER_REGISTRY_SERVER_URL"          = "https://mcr.microsoft.com"
-    "DOCKER_REGISTRY_SERVER_USERNAME"     = ""
-    "DOCKER_REGISTRY_SERVER_PASSWORD"     = ""
-    "WEBSITES_ENABLE_APP_SERVICE_STORAGE" = "false"
-
-  }
-
-  site_config {
-    application_stack {
-      docker_image     = "%s"
-      docker_image_tag = "%s"
-    }
-  }
-}
-
-`, r.baseTemplate(data), data.RandomInteger, containerImage, containerTag)
-}
-
-func (r LinuxWebAppSlotResource) dockerHub(data acceptance.TestData, containerImage, containerTag string) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_linux_web_app_slot" "test" {
-  name           = "acctestWAS-%d"
-  app_service_id = azurerm_linux_web_app.test.id
-
-  app_settings = {
-    "DOCKER_REGISTRY_SERVER_URL"          = "https://index.docker.io"
-    "DOCKER_REGISTRY_SERVER_USERNAME"     = ""
-    "DOCKER_REGISTRY_SERVER_PASSWORD"     = ""
-    "WEBSITES_ENABLE_APP_SERVICE_STORAGE" = "false"
-  }
-
-  site_config {
-    application_stack {
-      docker_image     = "%s"
-      docker_image_tag = "%s"
-    }
-  }
-}
-
-`, r.baseTemplate(data), data.RandomInteger, containerImage, containerTag)
-}
-
 func (r LinuxWebAppSlotResource) dockerImageName(data acceptance.TestData, registryUrl, containerImage string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {

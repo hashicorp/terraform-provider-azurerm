@@ -2203,35 +2203,6 @@ resource "azurerm_windows_web_app_slot" "test" {
 `, r.baseTemplate(data), data.RandomInteger, javaVersion, tomcatVersion)
 }
 
-func (r WindowsWebAppSlotResource) dockerHub(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_windows_web_app_slot" "test" {
-  name           = "acctestWAS-%d"
-  app_service_id = azurerm_windows_web_app.test.id
-
-  app_settings = {
-    "DOCKER_REGISTRY_SERVER_URL"          = "https://index.docker.io"
-    "DOCKER_REGISTRY_SERVER_USERNAME"     = ""
-    "DOCKER_REGISTRY_SERVER_PASSWORD"     = ""
-    "WEBSITES_ENABLE_APP_SERVICE_STORAGE" = "false"
-  }
-
-  site_config {
-    application_stack {
-      docker_container_name = "traefik"
-      docker_container_tag  = "windowsservercore-1809"
-    }
-  }
-}
-`, r.premiumV3PlanContainerTemplateDocker(data), data.RandomInteger)
-}
-
 func (r WindowsWebAppSlotResource) dockerImageName(data acceptance.TestData, registryUrl, containerImage string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -2679,45 +2650,6 @@ resource "azurerm_windows_web_app" "test" {
   service_plan_id     = azurerm_service_plan.test.id
 
   site_config {}
-}
-`, data.RandomInteger, data.Locations.Primary)
-}
-
-func (WindowsWebAppSlotResource) premiumV3PlanContainerTemplateDocker(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_service_plan" "test" {
-  name                = "acctestASP-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku_name            = "P1v3"
-  os_type             = "WindowsContainer"
-}
-
-resource "azurerm_windows_web_app" "test" {
-  name                = "acctestWA-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
-
-  app_settings = {
-    "DOCKER_REGISTRY_SERVER_URL"          = "https://index.docker.io"
-    "DOCKER_REGISTRY_SERVER_USERNAME"     = ""
-    "DOCKER_REGISTRY_SERVER_PASSWORD"     = ""
-    "WEBSITES_ENABLE_APP_SERVICE_STORAGE" = "false"
-  }
-
-  site_config {
-    application_stack {
-      docker_container_name = "traefik"
-      docker_container_tag  = "windowsservercore-1809"
-    }
-  }
 }
 `, data.RandomInteger, data.Locations.Primary)
 }

@@ -1690,10 +1690,10 @@ resource "azurerm_windows_function_app_slot" "test" {
       }
     }
 
-    use_32_bit_worker  = true
-    websockets_enabled = true
-    ftps_state         = "FtpsOnly"
-    health_check_path  = "/health-check"
+    use_32_bit_worker                 = true
+    websockets_enabled                = true
+    ftps_state                        = "FtpsOnly"
+    health_check_path                 = "/health-check"
     health_check_eviction_time_in_min = 3
 
     application_stack {
@@ -1878,12 +1878,12 @@ resource "azurerm_windows_function_app_slot" "test" {
       }
     }
 
-    use_32_bit_worker  = true
-    websockets_enabled = true
-    ftps_state         = "FtpsOnly"
-    health_check_path  = "/health-check"
+    use_32_bit_worker                 = true
+    websockets_enabled                = true
+    ftps_state                        = "FtpsOnly"
+    health_check_path                 = "/health-check"
     health_check_eviction_time_in_min = 3
-    worker_count       = 3
+    worker_count                      = 3
 
     minimum_tls_version     = "1.1"
     scm_minimum_tls_version = "1.1"
@@ -2013,12 +2013,12 @@ resource "azurerm_windows_function_app_slot" "test" {
       }
     }
 
-    use_32_bit_worker  = true
-    websockets_enabled = true
-    ftps_state         = "FtpsOnly"
-    health_check_path  = "/health-check"
+    use_32_bit_worker                 = true
+    websockets_enabled                = true
+    ftps_state                        = "FtpsOnly"
+    health_check_path                 = "/health-check"
     health_check_eviction_time_in_min = 3
-    worker_count       = 3
+    worker_count                      = 3
 
     minimum_tls_version     = "1.1"
     scm_minimum_tls_version = "1.1"
@@ -2196,7 +2196,7 @@ resource "azurerm_windows_function_app_slot" "test" {
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   site_config {
-    health_check_path = "/health"
+    health_check_path                 = "/health"
     health_check_eviction_time_in_min = 3
   }
 }

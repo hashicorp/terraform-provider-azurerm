@@ -3030,68 +3030,6 @@ resource "azurerm_linux_web_app" "test" {
 `, r.premiumV3PlanTemplate(data), data.RandomInteger, javaVersion, javaServer, javaServerVersion)
 }
 
-func (r LinuxWebAppResource) dockerMCR(data acceptance.TestData, containerImage, containerTag string) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_linux_web_app" "test" {
-  name                = "acctestWA-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
-
-  app_settings = {
-    "DOCKER_REGISTRY_SERVER_URL"          = "https://mcr.microsoft.com"
-    "DOCKER_REGISTRY_SERVER_USERNAME"     = ""
-    "DOCKER_REGISTRY_SERVER_PASSWORD"     = ""
-    "WEBSITES_ENABLE_APP_SERVICE_STORAGE" = "false"
-  }
-
-  site_config {
-    application_stack {
-      docker_image     = "%s"
-      docker_image_tag = "%s"
-    }
-  }
-}
-`, r.baseTemplate(data), data.RandomInteger, containerImage, containerTag)
-}
-
-func (r LinuxWebAppResource) dockerHub(data acceptance.TestData, containerImage, containerTag string) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_linux_web_app" "test" {
-  name                = "acctestWA-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
-
-  app_settings = {
-    "DOCKER_REGISTRY_SERVER_URL"          = "https://index.docker.io"
-    "DOCKER_REGISTRY_SERVER_USERNAME"     = ""
-    "DOCKER_REGISTRY_SERVER_PASSWORD"     = ""
-    "WEBSITES_ENABLE_APP_SERVICE_STORAGE" = "false"
-  }
-
-  site_config {
-    application_stack {
-      docker_image     = "%s"
-      docker_image_tag = "%s"
-    }
-  }
-}
-`, r.baseTemplate(data), data.RandomInteger, containerImage, containerTag)
-}
-
 func (r LinuxWebAppResource) dockerImageName(data acceptance.TestData, registryUrl, containerImage string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
