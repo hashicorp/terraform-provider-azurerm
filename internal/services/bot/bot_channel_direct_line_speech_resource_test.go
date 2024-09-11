@@ -7,7 +7,6 @@ import (
 	"context"
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -26,11 +25,7 @@ func TestAccBotChannelDirectLineSpeech_basic(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.cognitiveAccount(data),
-		},
-		{
-			PreConfig: func() { time.Sleep(5 * time.Minute) },
-			Config:    r.basic(data),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -45,11 +40,7 @@ func TestAccBotChannelDirectLineSpeech_requiresImport(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.cognitiveAccount(data),
-		},
-		{
-			PreConfig: func() { time.Sleep(5 * time.Minute) },
-			Config:    r.basic(data),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -64,11 +55,7 @@ func TestAccBotChannelDirectLineSpeech_complete(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.cognitiveAccount(data),
-		},
-		{
-			PreConfig: func() { time.Sleep(5 * time.Minute) },
-			Config:    r.complete(data),
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -83,22 +70,14 @@ func TestAccBotChannelDirectLineSpeech_update(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.cognitiveAccount(data),
-		},
-		{
-			PreConfig: func() { time.Sleep(5 * time.Minute) },
-			Config:    r.complete(data),
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("cognitive_service_location", "cognitive_service_access_key"), // not returned from API
 		{
-			Config: r.cognitiveAccountForUpdate(data),
-		},
-		{
-			PreConfig: func() { time.Sleep(5 * time.Minute) },
-			Config:    r.update(data),
+			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -139,12 +118,20 @@ func (BotChannelDirectLineSpeechResource) basic(data acceptance.TestData) string
 	return fmt.Sprintf(`
 %s
 
+resource "time_sleep" "wait_5_minute" {
+  depends_on = [azurerm_cognitive_account.test]
+
+  create_duration = "5m"
+}
+
 resource "azurerm_bot_channel_direct_line_speech" "test" {
   bot_name                     = azurerm_bot_channels_registration.test.name
   location                     = azurerm_bot_channels_registration.test.location
   resource_group_name          = azurerm_resource_group.test.name
   cognitive_service_location   = azurerm_cognitive_account.test.location
   cognitive_service_access_key = azurerm_cognitive_account.test.primary_access_key
+
+  depends_on = [time_sleep.wait_5_minute]
 }
 `, BotChannelDirectLineSpeechResource{}.cognitiveAccount(data))
 }
@@ -167,6 +154,12 @@ func (BotChannelDirectLineSpeechResource) complete(data acceptance.TestData) str
 	return fmt.Sprintf(`
 %s
 
+resource "time_sleep" "wait_5_minute" {
+  depends_on = [azurerm_cognitive_account.test]
+
+  create_duration = "5m"
+}
+
 resource "azurerm_bot_channel_direct_line_speech" "test" {
   bot_name                     = azurerm_bot_channels_registration.test.name
   location                     = azurerm_bot_channels_registration.test.location
@@ -176,6 +169,8 @@ resource "azurerm_bot_channel_direct_line_speech" "test" {
   cognitive_service_access_key = azurerm_cognitive_account.test.primary_access_key
   custom_speech_model_id       = "a9316355-7b04-4468-9f6e-114419e6c9cc"
   custom_voice_deployment_id   = "58dd86d4-31e3-4cf7-9b17-ee1d3dd77695"
+
+  depends_on = [time_sleep.wait_5_minute]
 }
 `, BotChannelDirectLineSpeechResource{}.cognitiveAccount(data))
 }
@@ -203,6 +198,12 @@ func (BotChannelDirectLineSpeechResource) update(data acceptance.TestData) strin
 	return fmt.Sprintf(`
 %s
 
+resource "time_sleep" "wait_5_minute" {
+  depends_on = [azurerm_cognitive_account.test, azurerm_cognitive_account.test2]
+
+  create_duration = "5m"
+}
+
 resource "azurerm_bot_channel_direct_line_speech" "test" {
   bot_name                     = azurerm_bot_channels_registration.test.name
   location                     = azurerm_bot_channels_registration.test.location
@@ -212,6 +213,8 @@ resource "azurerm_bot_channel_direct_line_speech" "test" {
   cognitive_service_access_key = azurerm_cognitive_account.test2.primary_access_key
   custom_speech_model_id       = "cf7a4202-9be3-4195-9619-5a747260626d"
   custom_voice_deployment_id   = "b815f623-c217-4327-b765-f6e0fd7dceef"
+
+  depends_on = [time_sleep.wait_5_minute]
 }
 `, BotChannelDirectLineSpeechResource{}.cognitiveAccountForUpdate(data))
 }
