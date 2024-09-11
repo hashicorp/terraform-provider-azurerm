@@ -224,13 +224,31 @@ func (s LogAnalyticsSolutionResource) Read() sdk.ResourceFunc {
 				// expecting resp.Name to be in format "SolutionName(WorkspaceName)".
 				if v := model.Name; v != nil {
 					val := pointer.From(v)
-					segments := strings.Split(val, "(")
-					if len(segments) != 2 {
-						return fmt.Errorf("expected %q to match 'Solution(WorkspaceName)'", val)
+
+					var segments []string
+					var solutionName, workspaceName string
+
+					if strings.Contains(val, "(") && strings.Contains(val, ")") {
+						// Handle case with parentheses
+						segments = strings.Split(val, "(")
+						if len(segments) != 2 {
+							return fmt.Errorf("expected %q to match 'Solution(WorkspaceName)'", val)
+						}
+						solutionName = segments[0]
+						workspaceName = strings.TrimSuffix(segments[1], ")")
+					} else if strings.Contains(val, "[") && strings.Contains(val, "]") {
+						// Handle case with square brackets
+						segments = strings.Split(val, "[")
+						if len(segments) != 2 {
+							return fmt.Errorf("expected %q to match 'Solution[WorkspaceName]'", val)
+						}
+						solutionName = segments[0]
+						workspaceName = strings.TrimSuffix(segments[1], "]")
+					} else {
+						return fmt.Errorf("expected %q to match either 'Solution(WorkspaceName)' or 'Solution[WorkspaceName]'", val)
 					}
 
-					solutionName := segments[0]
-					workspaceName := strings.TrimSuffix(segments[1], ")")
+					// Set extracted values
 					state.SolutionName = solutionName
 					state.WorkspaceName = workspaceName
 				}
