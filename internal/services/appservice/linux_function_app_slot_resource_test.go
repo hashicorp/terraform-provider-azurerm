@@ -1222,12 +1222,9 @@ func TestAccLinuxFunctionAppSlot_vNetIntegration(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
 	r := LinuxFunctionAppSlotResource{}
 
-	var vnetIntegrationProperties string
-	vnetIntegrationProperties = r.vNetIntegration_subnet1WithVnetProperties(data, SkuStandardPlan)
-
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: vnetIntegrationProperties,
+			Config: r.vNetIntegration_subnet1WithVnetProperties(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("virtual_network_subnet_id").MatchesOtherKey(
@@ -3658,66 +3655,6 @@ resource "azurerm_user_assigned_identity" "test" {
 `, r.template(data, planSku), data.RandomInteger)
 }
 
-// TODO 4.0 remove this test case as it's replaced by vNetIntegration_basicWithVnetProperties
-func (r LinuxFunctionAppSlotResource) vNetIntegration_basic(data acceptance.TestData, planSku string) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_virtual_network" "test" {
-  name                = "vnet-%d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test1" {
-  name                 = "subnet1"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.1.0/24"]
-
-  delegation {
-    name = "delegation"
-
-    service_delegation {
-      name    = "Microsoft.Web/serverFarms"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
-    }
-  }
-}
-
-resource "azurerm_subnet" "test2" {
-  name                 = "subnet2"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/24"]
-
-  delegation {
-    name = "delegation"
-
-    service_delegation {
-      name    = "Microsoft.Web/serverFarms"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
-    }
-  }
-}
-
-resource "azurerm_linux_function_app_slot" "test" {
-  name                       = "acctest-LFAS-%d"
-  function_app_id            = azurerm_linux_function_app.test.id
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
-
-  site_config {}
-}
-
-`, r.template(data, planSku), data.RandomInteger, data.RandomInteger)
-}
-
 func (r LinuxFunctionAppSlotResource) vNetIntegration_basicWithVnetProperties(data acceptance.TestData, planSku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3776,66 +3713,6 @@ resource "azurerm_linux_function_app_slot" "test" {
   vnet_image_pull_enabled = true
 }
 
-`, r.template(data, planSku), data.RandomInteger, data.RandomInteger)
-}
-
-// TODO 4.0 remove this test case as it's replaced by vNetIntegration_subnet1WithVnetProperties
-func (r LinuxFunctionAppSlotResource) vNetIntegration_subnet1(data acceptance.TestData, planSku string) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_virtual_network" "test" {
-  name                = "vnet-%d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test1" {
-  name                 = "subnet1"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.1.0/24"]
-
-  delegation {
-    name = "delegation"
-
-    service_delegation {
-      name    = "Microsoft.Web/serverFarms"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
-    }
-  }
-}
-
-resource "azurerm_subnet" "test2" {
-  name                 = "subnet2"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/24"]
-
-  delegation {
-    name = "delegation"
-
-    service_delegation {
-      name    = "Microsoft.Web/serverFarms"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
-    }
-  }
-}
-
-resource "azurerm_linux_function_app_slot" "test" {
-  name                       = "acctest-LFAS-%d"
-  function_app_id            = azurerm_linux_function_app.test.id
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
-  virtual_network_subnet_id  = azurerm_subnet.test1.id
-
-  site_config {}
-}
 `, r.template(data, planSku), data.RandomInteger, data.RandomInteger)
 }
 
@@ -3899,66 +3776,6 @@ resource "azurerm_linux_function_app_slot" "test" {
 `, r.template(data, planSku), data.RandomInteger, data.RandomInteger)
 }
 
-// TODO 4.0 remove this test case as it's replaced by vNetIntegration_subnet2WithVnetProperties
-func (r LinuxFunctionAppSlotResource) vNetIntegration_subnet2(data acceptance.TestData, planSku string) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_virtual_network" "test" {
-  name                = "vnet-%d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test1" {
-  name                 = "subnet1"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.1.0/24"]
-
-  delegation {
-    name = "delegation"
-
-    service_delegation {
-      name    = "Microsoft.Web/serverFarms"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
-    }
-  }
-}
-
-resource "azurerm_subnet" "test2" {
-  name                 = "subnet2"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/24"]
-
-  delegation {
-    name = "delegation"
-
-    service_delegation {
-      name    = "Microsoft.Web/serverFarms"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
-    }
-  }
-}
-
-resource "azurerm_linux_function_app_slot" "test" {
-  name                       = "acctest-LFAS-%d"
-  function_app_id            = azurerm_linux_function_app.test.id
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
-  virtual_network_subnet_id  = azurerm_subnet.test2.id
-
-  site_config {}
-}
-`, r.template(data, planSku), data.RandomInteger, data.RandomInteger)
-}
-
 func (r LinuxFunctionAppSlotResource) vNetIntegration_subnet2WithVnetProperties(data acceptance.TestData, planSku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -4017,47 +3834,6 @@ resource "azurerm_linux_function_app_slot" "test" {
   site_config {}
 }
 `, r.template(data, planSku), data.RandomInteger, data.RandomInteger)
-}
-
-// TODO 4.0 remove this test case as it's replaced by withASEV3WithVnetProperties
-func (r LinuxFunctionAppSlotResource) withASEV3(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%[2]s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-LFA-%[3]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
-
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
-
-  site_config {
-    vnet_route_all_enabled = true
-  }
-}
-
-resource "azurerm_linux_function_app_slot" "test" {
-  name                       = "acctest-LFAS-%[3]d"
-  function_app_id            = azurerm_linux_function_app.test.id
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
-
-  site_config {
-    vnet_route_all_enabled = true
-  }
-}
-
-`, ServicePlanResource{}.aseV3Linux(data), data.RandomString, data.RandomInteger)
 }
 
 func (r LinuxFunctionAppSlotResource) withASEV3WithVnetProperties(data acceptance.TestData) string {
