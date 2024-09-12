@@ -89,8 +89,6 @@ func (r MachineLearningWorkspaceHubResource) Arguments() map[string]*pluginsdk.S
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: commonids.ValidateKeyVaultID,
-			// TODO -- remove when issue https://github.com/Azure/azure-rest-api-specs/issues/8323 is addressed
-			DiffSuppressFunc: suppress.CaseDifference,
 		},
 
 		"storage_account_id": {
@@ -98,8 +96,6 @@ func (r MachineLearningWorkspaceHubResource) Arguments() map[string]*pluginsdk.S
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: commonids.ValidateStorageAccountID,
-			// TODO -- remove when issue https://github.com/Azure/azure-rest-api-specs/issues/8323 is addressed
-			DiffSuppressFunc: suppress.CaseDifference,
 		},
 
 		"application_insights_id": {
@@ -107,8 +103,6 @@ func (r MachineLearningWorkspaceHubResource) Arguments() map[string]*pluginsdk.S
 			Optional:     true,
 			ForceNew:     true,
 			ValidateFunc: components.ValidateComponentID,
-			// TODO -- remove when issue https://github.com/Azure/azure-rest-api-specs/issues/8323 is addressed
-			DiffSuppressFunc: suppress.CaseDifference,
 		},
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityRequired(),
@@ -118,8 +112,6 @@ func (r MachineLearningWorkspaceHubResource) Arguments() map[string]*pluginsdk.S
 			Optional:     true,
 			ForceNew:     true,
 			ValidateFunc: registries.ValidateRegistryID,
-			// TODO -- remove when issue https://github.com/Azure/azure-rest-api-specs/issues/8323 is addressed
-			DiffSuppressFunc: suppress.CaseDifference,
 		},
 
 		"encryption": {
