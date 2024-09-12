@@ -161,7 +161,7 @@ func TestExpandFeatures(t *testing.T) {
 					},
 					"storage": []interface{}{
 						map[string]interface{}{
-							"data_plane_access_enabled": true,
+							"data_plane_access_on_read_enabled": true,
 						},
 					},
 					"subscription": []interface{}{
@@ -344,7 +344,7 @@ func TestExpandFeatures(t *testing.T) {
 					},
 					"storage": []interface{}{
 						map[string]interface{}{
-							"data_plane_access_enabled": false,
+							"data_plane_access_on_read_enabled": false,
 						},
 					},
 					"subscription": []interface{}{
@@ -1471,12 +1471,12 @@ func TestExpandFeaturesStorage(t *testing.T) {
 			},
 		},
 		{
-			Name: "Storage Data Plane on Create is Disabled",
+			Name: "Storage Data Plane on Read is Disabled",
 			Input: []interface{}{
 				map[string]interface{}{
 					"storage": []interface{}{
 						map[string]interface{}{
-							"data_plane_access_enabled": false,
+							"data_plane_access_on_read_enabled": false,
 						},
 					},
 				},

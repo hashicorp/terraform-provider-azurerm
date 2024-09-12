@@ -138,7 +138,7 @@ func resourceStorageAccountBlobProperties() *pluginsdk.Resource {
 									},
 								},
 							},
-							RequiredWith: []string{"blob_properties.0.delete_retention_policy"},
+							RequiredWith: []string{"properties.0.delete_retention_policy"},
 						},
 
 						"versioning_enabled": {
