@@ -1577,8 +1577,8 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	if !features.FourPointOh() {
 		// NOTE: We want to block creation of all new storage accounts in v3.x that have 'blob_properties'
-		// 'queue_properties', 'share_properties' and/or 'static_website' fields defined
-		// within the configuration file...
+		// 'queue_properties', 'share_properties' and/or 'static_website' fields defined within the
+		// configuration file...
 		if _, ok := d.GetOk("blob_properties"); ok {
 			return fmt.Errorf(dataPlaneDependentPropertyError, "blob_properties", storageAccountBlobPropertiesResourceName)
 		}
@@ -1780,7 +1780,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	d.SetId(id.ID())
 
-	log.Printf("[DEBUG] [CREATE] Calling 'client.GetProperties' for %s", id)
+	log.Printf("[DEBUG] [%s:CREATE] Calling 'client.GetProperties': %s", strings.ToUpper(storageAccountResourceName), id)
 	account, err := client.GetProperties(ctx, id, storageaccounts.DefaultGetPropertiesOperationOptions())
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
@@ -1790,7 +1790,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("retrieving %s: `model` was nil", id)
 	}
 
-	log.Printf("[DEBUG] [CREATE] Calling 'storageClient.AddToCache' for %s", id)
+	log.Printf("[DEBUG] [%s:CREATE] Calling 'storageClient.AddToCache': %s", strings.ToUpper(storageAccountResourceName), id)
 	if err := storageClient.AddToCache(id, *account.Model); err != nil {
 		return fmt.Errorf("populating cache for %s: %+v", id, err)
 	}
@@ -2056,6 +2056,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	if !features.FourPointOhBeta() {
 		if dataPlaneEnabled {
 			if d.HasChange("blob_properties") {
+				log.Printf("[DEBUG] [%s:UPDATE] 'blob_properties': %s", strings.ToUpper(storageAccountResourceName), id)
 				if !supportLevel.supportBlob {
 					return fmt.Errorf("`blob_properties` are not supported for account kind %q in sku tier %q", accountKind, accountTier)
 				}
@@ -2072,13 +2073,14 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 				// Disable restore_policy first. Disabling restore_policy and while setting delete_retention_policy.allow_permanent_delete to true cause error.
 				// Issue : https://github.com/Azure/azure-rest-api-specs/issues/11237
 				if v := d.Get("blob_properties.0.restore_policy"); d.HasChange("blob_properties.0.restore_policy") && len(v.([]interface{})) == 0 {
-					log.Print("[DEBUG] Disabling RestorePolicy prior to changing DeleteRetentionPolicy")
+					log.Printf("[DEBUG] [%s:UPDATE] Disabling 'RestorePolicy' prior to changing 'DeleteRetentionPolicy': %s", strings.ToUpper(storageAccountResourceName), id)
 					blobPayload := blobservice.BlobServiceProperties{
 						Properties: &blobservice.BlobServicePropertiesProperties{
 							RestorePolicy: expandAccountBlobPropertiesRestorePolicy(v.([]interface{})),
 						},
 					}
 
+					log.Printf("[DEBUG] [%s:UPDATE] Calling 'storageClient.ResourceManager.BlobService.SetServiceProperties' to disable 'RestorePolicy': %s", strings.ToUpper(storageAccountResourceName), id)
 					if _, err := storageClient.ResourceManager.BlobService.SetServiceProperties(ctx, *id, blobPayload); err != nil {
 						return fmt.Errorf("updating Azure Storage Account blob restore policy %q: %+v", id.StorageAccountName, err)
 					}
@@ -2093,16 +2095,19 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 					}
 				}
 
+				log.Printf("[DEBUG] [%s:UPDATE] Calling 'storageClient.ResourceManager.BlobService.SetServiceProperties': %s", strings.ToUpper(storageAccountResourceName), id)
 				if _, err = storageClient.ResourceManager.BlobService.SetServiceProperties(ctx, *id, *blobProperties); err != nil {
 					return fmt.Errorf("updating `blob_properties` for %s: %+v", *id, err)
 				}
 			}
 
 			if d.HasChange("queue_properties") {
+				log.Printf("[DEBUG] [%s:UPDATE] 'queue_properties': %s", strings.ToUpper(storageAccountResourceName), id)
 				if !supportLevel.supportQueue {
 					return fmt.Errorf("`queue_properties` are not supported for account kind %q in sku tier %q", accountKind, accountTier)
 				}
 
+				log.Printf("[DEBUG] [%s:UPDATE] Calling 'storageClient.FindAccount': %s", strings.ToUpper(storageAccountResourceName), id)
 				account, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
 				if err != nil {
 					return fmt.Errorf("retrieving %s: %+v", *id, err)
@@ -2111,7 +2116,8 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 					return fmt.Errorf("unable to locate %s", *id)
 				}
 
-				queueClient, err := storageClient.QueuesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
+				log.Printf("[DEBUG] [%s:UPDATE] Calling 'storageClient.QueuesDataPlaneClient': %s", strings.ToUpper(storageAccountResourceName), id)
+				queueDataPlaneClient, err := storageClient.QueuesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
 				if err != nil {
 					return fmt.Errorf("building Queues Client: %s", err)
 				}
@@ -2121,12 +2127,14 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 					return fmt.Errorf("expanding `queue_properties` for %s: %+v", *id, err)
 				}
 
-				if err = queueClient.UpdateServiceProperties(ctx, *queueProperties); err != nil {
+				log.Printf("[DEBUG] [%s:UPDATE] Calling 'queueDataPlaneClient.UpdateServiceProperties': %s", strings.ToUpper(storageAccountResourceName), id)
+				if err = queueDataPlaneClient.UpdateServiceProperties(ctx, *queueProperties); err != nil {
 					return fmt.Errorf("updating Queue Properties for %s: %+v", *id, err)
 				}
 			}
 
 			if d.HasChange("share_properties") {
+				log.Printf("[DEBUG] [%s:UPDATE] 'share_properties': %s", strings.ToUpper(storageAccountResourceName), id)
 				if !supportLevel.supportShare {
 					return fmt.Errorf("`share_properties` are not supported for account kind %q in sku tier %q", accountKind, accountTier)
 				}
@@ -2144,16 +2152,19 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 					sharePayload.Properties.ProtocolSettings.Smb.Multichannel = nil
 				}
 
+				log.Printf("[DEBUG] [%s:UPDATE] Calling 'storageClient.ResourceManager.FileService.SetServiceProperties': %s", strings.ToUpper(storageAccountResourceName), id)
 				if _, err = storageClient.ResourceManager.FileService.SetServiceProperties(ctx, *id, sharePayload); err != nil {
 					return fmt.Errorf("updating File Share Properties for %s: %+v", *id, err)
 				}
 			}
 
 			if d.HasChange("static_website") {
+				log.Printf("[DEBUG] [%s:UPDATE] 'static_website': %s", strings.ToUpper(storageAccountResourceName), id)
 				if !supportLevel.supportStaticWebsite {
 					return fmt.Errorf("`static_website` are not supported for account kind %q in sku tier %q", accountKind, accountTier)
 				}
 
+				log.Printf("[DEBUG] [%s:UPDATE] Calling 'storageClient.FindAccount': %s", strings.ToUpper(storageAccountResourceName), id)
 				account, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
 				if err != nil {
 					return fmt.Errorf("retrieving %s: %+v", *id, err)
@@ -2162,19 +2173,21 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 					return fmt.Errorf("unable to locate %s", *id)
 				}
 
-				accountsClient, err := storageClient.AccountsDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
+				log.Printf("[DEBUG] [%s:UPDATE] Calling 'storageClient.AccountsDataPlaneClient': %s", strings.ToUpper(storageAccountResourceName), id)
+				accountsDataPlaneClient, err := storageClient.AccountsDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
 				if err != nil {
 					return fmt.Errorf("building Data Plane client for %s: %+v", *id, err)
 				}
 
 				staticWebsiteProps := expandAccountStaticWebsiteProperties(d.Get("static_website").([]interface{}))
 
-				if _, err = accountsClient.SetServiceProperties(ctx, id.StorageAccountName, staticWebsiteProps); err != nil {
+				log.Printf("[DEBUG] [%s:UPDATE] Calling 'accountsDataPlaneClient.SetServiceProperties': %s", strings.ToUpper(storageAccountResourceName), id)
+				if _, err = accountsDataPlaneClient.SetServiceProperties(ctx, id.StorageAccountName, staticWebsiteProps); err != nil {
 					return fmt.Errorf("updating `static_website` for %s: %+v", *id, err)
 				}
 			}
 		} else {
-			log.Printf("[DEBUG] storage account update for 'blob_properties', 'queue_properties', 'share_properties' and 'static_website' skipped due to 'DataPlaneAccessOnReadEnabled' feature flag being set to 'false'.")
+			log.Printf("[DEBUG] [%s:UPDATE] storage account update for 'blob_properties', 'queue_properties', 'share_properties' and 'static_website' skipped due to 'DataPlaneAccessOnReadEnabled' feature flag being set to 'false'.", strings.ToUpper(storageAccountResourceName))
 		}
 	}
 
@@ -2470,7 +2483,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 			return fmt.Errorf("setting `static_website`: %+v", err)
 		}
 	} else {
-		log.Printf("[DEBUG] [READ] Setting 'blob_properties', 'queue_properties', 'share_properties' and 'static_website' skipped due to 'DataPlaneAccessOnReadEnabled' feature flag being set to 'false'.")
+		log.Printf("[DEBUG] [%s:READ] Setting 'blob_properties', 'queue_properties', 'share_properties' and 'static_website' skipped due to 'DataPlaneAccessOnReadEnabled' feature flag being set to 'false'.", strings.ToUpper(storageAccountResourceName))
 		d.Set("blob_properties", d.Get("blob_properties"))
 		d.Set("queue_properties", d.Get("queue_properties"))
 		d.Set("share_properties", d.Get("share_properties"))

@@ -6,6 +6,7 @@ package storage
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -168,6 +169,7 @@ func resourceStorageAccountBlobPropertiesCreate(d *pluginsdk.ResourceData, meta 
 	locks.ByName(id.StorageAccountName, storageAccountResourceName)
 	defer locks.UnlockByName(id.StorageAccountName, storageAccountResourceName)
 
+	log.Printf("[DEBUG] [%s:CREATE] Calling 'client.GetProperties': %s", strings.ToUpper(storageAccountBlobPropertiesResourceName), id)
 	existing, err := client.GetProperties(ctx, *id, storageaccounts.DefaultGetPropertiesOperationOptions())
 	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
@@ -180,32 +182,34 @@ func resourceStorageAccountBlobPropertiesCreate(d *pluginsdk.ResourceData, meta 
 		return err
 	}
 
-	if !response.WasNotFound(existing.HttpResponse) && existing.Model != nil && existing.Model.Properties.PrimaryEndpoints.Blob != nil {
+	if !response.WasNotFound(existing.HttpResponse) && model.Properties.PrimaryEndpoints.Blob != nil {
 		return tf.ImportAsExistsError(storageAccountBlobPropertiesResourceName, id.ID())
 	}
 
-	accountKind := *model.Kind
-	dnsEndpointType := *model.Properties.DnsEndpointType
-	supportBlob := (accountKind != storageaccounts.KindFileStorage)
+	accountKind := pointer.From(model.Kind)
+	dnsEndpointType := pointer.From(model.Properties.DnsEndpointType)
+	accountReplicationType := strings.ToUpper(strings.Split(string(model.Sku.Name), "_")[1])
+	accountTier := pointer.From(model.Sku.Tier)
+	supportLevel := availableFunctionalityForAccount(accountKind, accountTier, accountReplicationType)
 
-	if !supportBlob {
+	if !supportLevel.supportBlob {
 		return fmt.Errorf("%q are not supported for account kind %q", storageAccountBlobPropertiesResourceName, accountKind)
 	}
 
 	// NOTE: Wait for the blob data plane container to become available...
-	log.Printf("[DEBUG] [CREATE] Calling 'storageClient.FindAccount' for %s", id)
+	log.Printf("[DEBUG] [%s:CREATE] Calling 'storageClient.FindAccount': %s", strings.ToUpper(storageAccountBlobPropertiesResourceName), id)
 	accountDetails, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	log.Printf("[DEBUG] [CREATE] Calling 'custompollers.NewDataPlaneBlobContainersAvailabilityPoller' for %s", id)
+	log.Printf("[DEBUG] [%s:CREATE] Calling 'custompollers.NewDataPlaneBlobContainersAvailabilityPoller': %s", strings.ToUpper(storageAccountBlobPropertiesResourceName), id)
 	pollerType, err := custompollers.NewDataPlaneBlobContainersAvailabilityPoller(ctx, storageClient, accountDetails)
 	if err != nil {
 		return fmt.Errorf("building Blob Service Poller: %+v", err)
 	}
 
-	log.Printf("[DEBUG] [CREATE] Calling 'pollers.NewPoller' for %s", id)
+	log.Printf("[DEBUG] [%s:CREATE] Calling 'pollers.NewPoller': %s", strings.ToUpper(storageAccountBlobPropertiesResourceName), id)
 	poller := pollers.NewPoller(pollerType, initialDelayDuration, pollers.DefaultNumberOfDroppedConnectionsToAllow)
 	if err := poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for the Blob Service to become available: %+v", err)
@@ -223,13 +227,13 @@ func resourceStorageAccountBlobPropertiesCreate(d *pluginsdk.ResourceData, meta 
 	isVersioningEnabled := pointer.From(blobProperties.Properties.IsVersioningEnabled)
 	isHnsEnabled := pointer.From(model.Properties.IsHnsEnabled)
 	if isVersioningEnabled && isHnsEnabled {
-		return fmt.Errorf("`versioning_enabled` cannot be true when `is_hns_enabled` is true")
+		return fmt.Errorf("`versioning_enabled` cannot be 'true' when `is_hns_enabled` is true")
 	}
 
 	if !isVersioningEnabled {
 		if blobProperties.Properties.RestorePolicy != nil && blobProperties.Properties.RestorePolicy.Enabled {
 			// Otherwise, API returns: "Conflicting feature 'restorePolicy' is enabled. Please disable it and retry."
-			return fmt.Errorf("`blob_properties.restore_policy` cannot be set when `versioning_enabled` is false")
+			return fmt.Errorf("`properties.restore_policy` cannot be set when `versioning_enabled` is 'false'")
 		}
 
 		immutableStorageWithVersioningEnabled := false
@@ -242,7 +246,7 @@ func resourceStorageAccountBlobPropertiesCreate(d *pluginsdk.ResourceData, meta 
 		if immutableStorageWithVersioningEnabled {
 			// Otherwise, API returns: "Conflicting feature 'Account level WORM' is enabled. Please disable it and retry."
 			// See: https://learn.microsoft.com/en-us/azure/storage/blobs/immutable-policy-configure-version-scope?tabs=azure-portal#prerequisites
-			return fmt.Errorf("`immutability_policy` cannot be set when `versioning_enabled` is false")
+			return fmt.Errorf("`immutability_policy` cannot be set when `versioning_enabled` is 'false'")
 		}
 	}
 
@@ -253,13 +257,13 @@ func resourceStorageAccountBlobPropertiesCreate(d *pluginsdk.ResourceData, meta 
 			// Otherwise, API returns: "Required feature Global Dns is disabled"
 			// This is confirmed with the SRP team, where they said:
 			// > restorePolicy feature is incompatible with partitioned DNS
-			return fmt.Errorf("`properties.restore_policy` cannot be set when `dns_endpoint_type` is set to `%s`", storageaccounts.DnsEndpointTypeAzureDnsZone)
+			return fmt.Errorf("`properties.restore_policy` cannot be set when `dns_endpoint_type` is set to %q", storageaccounts.DnsEndpointTypeAzureDnsZone)
 		}
 	}
 
-	log.Printf("[DEBUG] [CREATE] Calling 'storageClient.ResourceManager.BlobService.SetServiceProperties' for %s", id)
+	log.Printf("[DEBUG] [%s:CREATE] Calling 'storageClient.ResourceManager.BlobService.SetServiceProperties': %s", strings.ToUpper(storageAccountBlobPropertiesResourceName), id)
 	if _, err = storageClient.ResourceManager.BlobService.SetServiceProperties(ctx, *id, *blobProperties); err != nil {
-		return fmt.Errorf("creating `blob_properties`: %+v", err)
+		return fmt.Errorf("creating `properties`: %+v", err)
 	}
 
 	d.SetId(id.ID())
@@ -281,30 +285,24 @@ func resourceStorageAccountBlobPropertiesUpdate(d *pluginsdk.ResourceData, meta 
 	locks.ByName(id.StorageAccountName, storageAccountResourceName)
 	defer locks.UnlockByName(id.StorageAccountName, storageAccountResourceName)
 
+	log.Printf("[DEBUG] [%s:UPDATE] Calling 'client.GetProperties': %s", strings.ToUpper(storageAccountBlobPropertiesResourceName), id)
 	existing, err := client.GetProperties(ctx, *id, storageaccounts.DefaultGetPropertiesOperationOptions())
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	model := existing.Model
-	if model == nil {
-		return fmt.Errorf("retrieving %s: `model` was nil", id)
-	}
-	if model.Kind == nil {
-		return fmt.Errorf("retrieving %s: `model.Kind` was nil", id)
-	}
-	if model.Properties == nil {
-		return fmt.Errorf("retrieving %s: `model.Properties` was nil", id)
-	}
-	if model.Sku == nil {
-		return fmt.Errorf("retrieving %s: `model.Sku` was nil", id)
+	if err := validateExistingModel(model, id); err != nil {
+		return err
 	}
 
-	accountTier := model.Sku.Tier
+	accountTier := pointer.From(model.Sku.Tier)
 	accountKind := pointer.From(model.Kind)
-	dnsEndpointType := pointer.From(model.Properties.DnsEndpointType)
+	accountReplicationType := strings.ToUpper(strings.Split(string(model.Sku.Name), "_")[1])
 	storageType := model.Sku.Name
+	dnsEndpointType := pointer.From(model.Properties.DnsEndpointType)
 	isHnsEnabled := pointer.From(model.Properties.IsHnsEnabled)
+	supportLevel := availableFunctionalityForAccount(accountKind, accountTier, accountReplicationType)
 
 	if accountKind == storageaccounts.KindBlobStorage || accountKind == storageaccounts.KindStorage {
 		if storageType == storageaccounts.SkuNameStandardZRS {
@@ -313,8 +311,8 @@ func resourceStorageAccountBlobPropertiesUpdate(d *pluginsdk.ResourceData, meta 
 	}
 
 	if d.HasChange("properties") {
-		if supportBlob := (accountKind != storageaccounts.KindFileStorage); !supportBlob {
-			return fmt.Errorf("%q are not supported for account kind %q in sku tier %q", storageAccountBlobPropertiesResourceName, accountKind, *accountTier)
+		if !supportLevel.supportBlob {
+			return fmt.Errorf("%q are not supported for account kind %q in sku tier %q", storageAccountBlobPropertiesResourceName, accountKind, accountTier)
 		}
 
 		blobProperties, err := expandAccountBlobServiceProperties(accountKind, d.Get("properties").([]interface{}))
@@ -329,13 +327,14 @@ func resourceStorageAccountBlobPropertiesUpdate(d *pluginsdk.ResourceData, meta 
 		// Disable restore_policy first. Disabling restore_policy and while setting delete_retention_policy.allow_permanent_delete to true cause error.
 		// Issue : https://github.com/Azure/azure-rest-api-specs/issues/11237
 		if v := d.Get("properties.0.restore_policy"); d.HasChange("properties.0.restore_policy") && len(v.([]interface{})) == 0 {
-			log.Print("[DEBUG] Disabling RestorePolicy prior to changing DeleteRetentionPolicy")
+			log.Printf("[DEBUG] [%s:UPDATE] Disabling 'RestorePolicy' prior to changing 'DeleteRetentionPolicy': %s", strings.ToUpper(storageAccountBlobPropertiesResourceName), id)
 			blobPayload := blobservice.BlobServiceProperties{
 				Properties: &blobservice.BlobServicePropertiesProperties{
 					RestorePolicy: expandAccountBlobPropertiesRestorePolicy(v.([]interface{})),
 				},
 			}
 
+			log.Printf("[DEBUG] [%s:UPDATE] Calling 'storageClient.ResourceManager.BlobService.SetServiceProperties' to disable 'RestorePolicy': %s", strings.ToUpper(storageAccountBlobPropertiesResourceName), id)
 			if _, err := storageClient.ResourceManager.BlobService.SetServiceProperties(ctx, *id, blobPayload); err != nil {
 				return fmt.Errorf("updating Azure Storage Account blob restore policy %q: %+v", id.StorageAccountName, err)
 			}
@@ -350,6 +349,7 @@ func resourceStorageAccountBlobPropertiesUpdate(d *pluginsdk.ResourceData, meta 
 			}
 		}
 
+		log.Printf("[DEBUG] [%s:UPDATE] Calling 'storageClient.ResourceManager.BlobService.SetServiceProperties': %s", strings.ToUpper(storageAccountBlobPropertiesResourceName), id)
 		if _, err = storageClient.ResourceManager.BlobService.SetServiceProperties(ctx, *id, *blobProperties); err != nil {
 			return fmt.Errorf("updating `properties` for %s: %+v", *id, err)
 		}
@@ -369,6 +369,7 @@ func resourceStorageAccountBlobPropertiesRead(d *pluginsdk.ResourceData, meta in
 	}
 
 	// we then need to find the storage account
+	log.Printf("[DEBUG] [%s:READ] Calling 'storageClient.FindAccount': %s", strings.ToUpper(storageAccountBlobPropertiesResourceName), id)
 	account, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
@@ -378,6 +379,7 @@ func resourceStorageAccountBlobPropertiesRead(d *pluginsdk.ResourceData, meta in
 		return fmt.Errorf("unable to locate %q", id)
 	}
 
+	log.Printf("[DEBUG] [%s:READ] Calling 'storageClient.ResourceManager.BlobService.GetServiceProperties': %s", strings.ToUpper(storageAccountBlobPropertiesResourceName), id)
 	blobProps, err := storageClient.ResourceManager.BlobService.GetServiceProperties(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("reading blob properties for %s: %+v", *id, err)
@@ -406,26 +408,15 @@ func resourceStorageAccountBlobPropertiesDelete(d *pluginsdk.ResourceData, meta 
 	locks.ByName(id.StorageAccountName, storageAccountResourceName)
 	defer locks.UnlockByName(id.StorageAccountName, storageAccountResourceName)
 
+	log.Printf("[DEBUG] [%s:DELETE] Calling 'client.GetProperties': %s", strings.ToUpper(storageAccountBlobPropertiesResourceName), id)
 	existing, err := client.GetProperties(ctx, *id, storageaccounts.DefaultGetPropertiesOperationOptions())
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	model := existing.Model
-	if model == nil {
-		return fmt.Errorf("retrieving %s: `model` was nil", id)
-	}
-
-	if model.Kind == nil {
-		return fmt.Errorf("retrieving %s: `model.Kind` was nil", id)
-	}
-
-	if model.Properties == nil {
-		return fmt.Errorf("retrieving %s: `model.Properties` was nil", id)
-	}
-
-	if model.Sku == nil {
-		return fmt.Errorf("retrieving %s: `model.Sku` was nil", id)
+	if err := validateExistingModel(model, id); err != nil {
+		return err
 	}
 
 	accountKind := pointer.From(model.Kind)
@@ -440,17 +431,18 @@ func resourceStorageAccountBlobPropertiesDelete(d *pluginsdk.ResourceData, meta 
 	// Disabling restore_policy while setting the delete_retention_policy.allow_permanent_delete to true causes an error.
 	// Issue : https://github.com/Azure/azure-rest-api-specs/issues/11237
 	//
-	// log.Print("[DEBUG] Disabling RestorePolicy prior to deleting DeleteRetentionPolicy")
 	// blobPayload := blobservice.BlobServiceProperties{
 	// 	Properties: &blobservice.BlobServicePropertiesProperties{
 	// 		RestorePolicy: expandAccountBlobPropertiesRestorePolicy(make([]interface{}, 0)),
 	// 	},
 	// }
-
+	//
+	// log.Printf("[DEBUG] [%s:DELETE] Calling 'storageClient.ResourceManager.BlobService.SetServiceProperties' to disable 'RestorePolicy': %s", strings.ToUpper(storageAccountBlobPropertiesResourceName), id)
 	// if _, err := storageClient.ResourceManager.BlobService.SetServiceProperties(ctx, *id, blobPayload); err != nil {
 	// 	return fmt.Errorf("updating the Azure Storage Account %q 'RestorePolicy' prior to the deletion of %q: %+v", id.StorageAccountName, storageAccountBlobPropertiesResourceName, err)
 	// }
 
+	log.Printf("[DEBUG] [%s:DELETE] Calling 'storageClient.ResourceManager.BlobService.SetServiceProperties': %s", strings.ToUpper(storageAccountBlobPropertiesResourceName), id)
 	if _, err = storageClient.ResourceManager.BlobService.SetServiceProperties(ctx, *id, *blobProperties); err != nil {
 		return fmt.Errorf("deleting %q for %s: %+v", storageAccountBlobPropertiesResourceName, *id, err)
 	}

@@ -6,6 +6,7 @@ package storage
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -88,6 +89,7 @@ func resourceStorageAccountStaticWebSitePropertiesCreate(d *pluginsdk.ResourceDa
 	locks.ByName(id.StorageAccountName, storageAccountResourceName)
 	defer locks.UnlockByName(id.StorageAccountName, storageAccountResourceName)
 
+	log.Printf("[DEBUG] [%s:CREATE] Calling 'client.GetProperties': %s", strings.ToUpper(storageAccountStaticWebSitePropertiesResourceName), id)
 	existing, err := client.GetProperties(ctx, *id, storageaccounts.DefaultGetPropertiesOperationOptions())
 	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
@@ -110,7 +112,7 @@ func resourceStorageAccountStaticWebSitePropertiesCreate(d *pluginsdk.ResourceDa
 	}
 
 	// NOTE: Wait for the static website data plane container to become available...
-	log.Printf("[DEBUG] [CREATE] Calling 'storageClient.FindAccount' for %s", id)
+	log.Printf("[DEBUG] [%s:CREATE] Calling 'storageClient.FindAccount': %s", strings.ToUpper(storageAccountStaticWebSitePropertiesResourceName), id)
 	dataPlaneAccount, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
@@ -120,19 +122,21 @@ func resourceStorageAccountStaticWebSitePropertiesCreate(d *pluginsdk.ResourceDa
 		return fmt.Errorf("unable to locate %q", id)
 	}
 
-	log.Printf("[DEBUG] [CREATE] Calling 'custompollers.NewDataPlaneStaticWebsiteAvailabilityPoller' building Static Website Poller for %s", id)
+	log.Printf("[DEBUG] [%s:CREATE] Calling 'custompollers.NewDataPlaneStaticWebsiteAvailabilityPoller' building Static Website Poller: %s", strings.ToUpper(storageAccountStaticWebSitePropertiesResourceName), id)
 	pollerType, err := custompollers.NewDataPlaneStaticWebsiteAvailabilityPoller(ctx, storageClient, dataPlaneAccount)
 	if err != nil {
 		return fmt.Errorf("waiting for the Data Plane for %s to become available: building Static Website Poller: %+v", id, err)
 	}
 
-	log.Printf("[DEBUG] [CREATE] Calling 'pollers.NewPoller' for %s", id)
+	log.Printf("[DEBUG] [%s:CREATE] Calling 'pollers.NewPoller: %s", strings.ToUpper(storageAccountStaticWebSitePropertiesResourceName), id)
 	poller := pollers.NewPoller(pollerType, initialDelayDuration, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+
+	log.Printf("[DEBUG] [%s:CREATE] Calling 'poller.PollUntilDone' building Accounts Data Plane Client: %s", strings.ToUpper(storageAccountStaticWebSitePropertiesResourceName), id)
 	if err := poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for the Data Plane for %s to become available: waiting for the Static Website to become available: %+v", id, err)
 	}
 
-	log.Printf("[DEBUG] [CREATE] Calling 'storageClient.AccountsDataPlaneClient' building Accounts Data Plane Client for %s", id)
+	log.Printf("[DEBUG] [%s:CREATE] Calling 'storageClient.AccountsDataPlaneClient' building Accounts Data Plane Client: %s", strings.ToUpper(storageAccountStaticWebSitePropertiesResourceName), id)
 	accountsDataPlaneClient, err := storageClient.AccountsDataPlaneClient(ctx, *dataPlaneAccount, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
 	if err != nil {
 		return fmt.Errorf("building Accounts Data Plane Client: %s", err)
@@ -141,7 +145,7 @@ func resourceStorageAccountStaticWebSitePropertiesCreate(d *pluginsdk.ResourceDa
 	// NOTE: Now that we know the data plane container is available, we can now set the properties on the resource...
 	staticWebsiteProps := expandAccountStaticWebsiteProperties(d.Get("properties").([]interface{}))
 
-	log.Printf("[DEBUG] [CREATE] Calling 'accountsDataPlaneClient.SetServiceProperties' for %s", id)
+	log.Printf("[DEBUG] [%s:CREATE] Calling 'accountsDataPlaneClient.SetServiceProperties': %s", strings.ToUpper(storageAccountStaticWebSitePropertiesResourceName), id)
 	if _, err = accountsDataPlaneClient.SetServiceProperties(ctx, id.StorageAccountName, staticWebsiteProps); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
@@ -165,6 +169,7 @@ func resourceStorageAccountStaticWebSitePropertiesUpdate(d *pluginsdk.ResourceDa
 	locks.ByName(id.StorageAccountName, storageAccountStaticWebSitePropertiesResourceName)
 	defer locks.UnlockByName(id.StorageAccountName, storageAccountStaticWebSitePropertiesResourceName)
 
+	log.Printf("[DEBUG] [%s:UPDATE] Calling 'client.GetProperties': %s", strings.ToUpper(storageAccountStaticWebSitePropertiesResourceName), id)
 	existing, err := client.GetProperties(ctx, *id, storageaccounts.DefaultGetPropertiesOperationOptions())
 	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
@@ -185,6 +190,7 @@ func resourceStorageAccountStaticWebSitePropertiesUpdate(d *pluginsdk.ResourceDa
 			return fmt.Errorf("%q are not supported for account kind %q", storageAccountStaticWebSitePropertiesResourceName, accountKind)
 		}
 
+		log.Printf("[DEBUG] [%s:UPDATE] Calling 'storageClient.FindAccount': %s", strings.ToUpper(storageAccountStaticWebSitePropertiesResourceName), id)
 		account, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
 		if err != nil {
 			return fmt.Errorf("retrieving %s: %+v", *id, err)
@@ -193,6 +199,7 @@ func resourceStorageAccountStaticWebSitePropertiesUpdate(d *pluginsdk.ResourceDa
 			return fmt.Errorf("unable to locate %s", *id)
 		}
 
+		log.Printf("[DEBUG] [%s:UPDATE] Calling 'storageClient.AccountsDataPlaneClient': %s", strings.ToUpper(storageAccountStaticWebSitePropertiesResourceName), id)
 		accountsDataPlaneClient, err := storageClient.AccountsDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
 		if err != nil {
 			return fmt.Errorf("building Data Plane client for %s: %+v", *id, err)
@@ -200,6 +207,7 @@ func resourceStorageAccountStaticWebSitePropertiesUpdate(d *pluginsdk.ResourceDa
 
 		staticWebsiteProps := expandAccountStaticWebsiteProperties(d.Get("properties").([]interface{}))
 
+		log.Printf("[DEBUG] [%s:UPDATE] Calling 'accountsDataPlaneClient.SetServiceProperties': %s", strings.ToUpper(storageAccountStaticWebSitePropertiesResourceName), id)
 		if _, err = accountsDataPlaneClient.SetServiceProperties(ctx, id.StorageAccountName, staticWebsiteProps); err != nil {
 			return fmt.Errorf("updating Static Website Properties for %s: %+v", *id, err)
 		}
@@ -219,6 +227,7 @@ func resourceStorageAccountStaticWebSitePropertiesRead(d *pluginsdk.ResourceData
 		return err
 	}
 
+	log.Printf("[DEBUG] [%s:READ] Calling 'client.GetProperties': %s", strings.ToUpper(storageAccountStaticWebSitePropertiesResourceName), id)
 	resp, err := client.GetProperties(ctx, *id, storageaccounts.DefaultGetPropertiesOperationOptions())
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
@@ -230,6 +239,7 @@ func resourceStorageAccountStaticWebSitePropertiesRead(d *pluginsdk.ResourceData
 	}
 
 	// we then need to find the storage account
+	log.Printf("[DEBUG] [%s:READ] Calling 'storageClient.FindAccount': %s", strings.ToUpper(storageAccountStaticWebSitePropertiesResourceName), id)
 	account, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
@@ -238,11 +248,13 @@ func resourceStorageAccountStaticWebSitePropertiesRead(d *pluginsdk.ResourceData
 		return fmt.Errorf("unable to locate %q", id)
 	}
 
+	log.Printf("[DEBUG] [%s:READ] Calling 'storageClient.AccountsDataPlaneClient': %s", strings.ToUpper(storageAccountStaticWebSitePropertiesResourceName), id)
 	accountsDataPlaneClient, err := storageClient.AccountsDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
 	if err != nil {
 		return fmt.Errorf("building Accounts Data Plane Client: %s", err)
 	}
 
+	log.Printf("[DEBUG] [%s:READ] Calling 'accountsDataPlaneClient.GetServiceProperties': %s", strings.ToUpper(storageAccountStaticWebSitePropertiesResourceName), id)
 	staticWebsiteProps, err := accountsDataPlaneClient.GetServiceProperties(ctx, id.StorageAccountName)
 	if err != nil {
 		return fmt.Errorf("retrieving static website properties for %s: %+v", *id, err)
@@ -268,9 +280,10 @@ func resourceStorageAccountStaticWebSitePropertiesDelete(d *pluginsdk.ResourceDa
 		return err
 	}
 
-	locks.ByName(id.StorageAccountName, storageAccountStaticWebSitePropertiesResourceName)
-	defer locks.UnlockByName(id.StorageAccountName, storageAccountStaticWebSitePropertiesResourceName)
+	locks.ByName(id.StorageAccountName, storageAccountResourceName)
+	defer locks.UnlockByName(id.StorageAccountName, storageAccountResourceName)
 
+	log.Printf("[DEBUG] [%s:DELETE] Calling 'client.GetProperties': %s", strings.ToUpper(storageAccountStaticWebSitePropertiesResourceName), id)
 	_, err = client.GetProperties(ctx, *id, storageaccounts.DefaultGetPropertiesOperationOptions())
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
@@ -284,6 +297,7 @@ func resourceStorageAccountStaticWebSitePropertiesDelete(d *pluginsdk.ResourceDa
 		},
 	}
 
+	log.Printf("[DEBUG] [%s:DELETE] Calling 'storageClient.FindAccount': %s", strings.ToUpper(storageAccountStaticWebSitePropertiesResourceName), id)
 	dataPlaneAccount, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
@@ -293,11 +307,13 @@ func resourceStorageAccountStaticWebSitePropertiesDelete(d *pluginsdk.ResourceDa
 		return fmt.Errorf("unable to locate %s", *id)
 	}
 
+	log.Printf("[DEBUG] [%s:DELETE] Calling 'storageClient.AccountsDataPlaneClient': %s", strings.ToUpper(storageAccountStaticWebSitePropertiesResourceName), id)
 	accountsClient, err := storageClient.AccountsDataPlaneClient(ctx, *dataPlaneAccount, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
 	if err != nil {
 		return fmt.Errorf("building Data Plane Accounts Client %s: %+v", *id, err)
 	}
 
+	log.Printf("[DEBUG] [%s:DELETE] Calling 'accountsClient.SetServiceProperties': %s", strings.ToUpper(storageAccountStaticWebSitePropertiesResourceName), id)
 	if _, err = accountsClient.SetServiceProperties(ctx, id.StorageAccountName, staticWebsiteProps); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}

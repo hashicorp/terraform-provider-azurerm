@@ -6,7 +6,6 @@ package storage
 import (
 	"fmt"
 	"log"
-	"slices"
 	"strings"
 	"time"
 
@@ -176,6 +175,7 @@ func resourceStorageAccountQueuePropertiesCreate(d *pluginsdk.ResourceData, meta
 	locks.ByName(id.StorageAccountName, storageAccountResourceName)
 	defer locks.UnlockByName(id.StorageAccountName, storageAccountResourceName)
 
+	log.Printf("[DEBUG] [%s:CREATE] Calling 'client.GetProperties': %s", strings.ToUpper(storageAccountQueuePropertiesResourceName), id)
 	existing, err := client.GetProperties(ctx, *id, storageaccounts.DefaultGetPropertiesOperationOptions())
 	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
@@ -193,20 +193,14 @@ func resourceStorageAccountQueuePropertiesCreate(d *pluginsdk.ResourceData, meta
 	accountTier := pointer.From(model.Sku.Tier)
 	accountKind := pointer.From(model.Kind)
 	replicationType := strings.ToUpper(strings.Split(string(model.Sku.Name), "_")[1])
-	queueSupportedReplicationTypes := []string{"LRS", "GRS", "RAGRS"}
+	supportLevel := availableFunctionalityForAccount(accountKind, accountTier, replicationType)
 
-	supportQueue := accountTier == storageaccounts.SkuTierStandard && (accountKind == storageaccounts.KindStorageVTwo ||
-		(accountKind == storageaccounts.KindStorage &&
-			// Per local test, only LRS/GRS/RAGRS Storage V1 accounts support queue endpoint.
-			// GZRS and RAGZRS is invalid, while ZRS is valid but has no queue endpoint.
-			slices.Contains(queueSupportedReplicationTypes, replicationType)))
-
-	if !supportQueue {
+	if !supportLevel.supportQueue {
 		return fmt.Errorf("%q are not supported for account kind %q in sku tier %q", storageAccountQueuePropertiesResourceName, accountKind, accountTier)
 	}
 
 	// NOTE: Wait for the data plane queue container to become available...
-	log.Printf("[DEBUG] [CREATE] Calling 'storageClient.FindAccount'")
+	log.Printf("[DEBUG] [%s:CREATE] Calling 'storageClient.FindAccount': %s", strings.ToUpper(storageAccountQueuePropertiesResourceName), id)
 	dataPlaneAccount, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
@@ -216,20 +210,20 @@ func resourceStorageAccountQueuePropertiesCreate(d *pluginsdk.ResourceData, meta
 		return fmt.Errorf("unable to locate %q", id)
 	}
 
-	log.Printf("[DEBUG] [CREATE] Calling 'custompollers.NewDataPlaneQueuesAvailabilityPoller' building Queues Poller for %s", id)
+	log.Printf("[DEBUG] [%s:CREATE] Calling 'custompollers.NewDataPlaneQueuesAvailabilityPoller' building Queues Poller: %s", strings.ToUpper(storageAccountQueuePropertiesResourceName), id)
 	pollerType, err := custompollers.NewDataPlaneQueuesAvailabilityPoller(ctx, storageClient, dataPlaneAccount)
 	if err != nil {
 		return fmt.Errorf("building Queues Poller: %+v", err)
 	}
 
-	log.Printf("[DEBUG] [CREATE] Calling 'poller.PollUntilDone' waiting for the Queues Service to become available for %s", id)
+	log.Printf("[DEBUG] [%s:CREATE] Calling 'poller.PollUntilDone' waiting for the Queues Service to become available: %s", strings.ToUpper(storageAccountQueuePropertiesResourceName), id)
 	poller := pollers.NewPoller(pollerType, initialDelayDuration, pollers.DefaultNumberOfDroppedConnectionsToAllow)
 	if err := poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for the Queues Service to become available: %+v", err)
 	}
 
 	// NOTE: Now that we know the data plane container is available, we can now set the properties on the resource...
-	log.Printf("[DEBUG] [CREATE] Calling 'storageClient.QueuesDataPlaneClient' building Queues Client for %s", id)
+	log.Printf("[DEBUG] [%s:CREATE] Calling 'storageClient.QueuesDataPlaneClient' building Queues Client: %s", strings.ToUpper(storageAccountQueuePropertiesResourceName), id)
 	queuesDataPlaneClient, err := storageClient.QueuesDataPlaneClient(ctx, *dataPlaneAccount, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
 	if err != nil {
 		return fmt.Errorf("building Queues Client: %s", err)
@@ -240,7 +234,7 @@ func resourceStorageAccountQueuePropertiesCreate(d *pluginsdk.ResourceData, meta
 		return fmt.Errorf("expanding `properties`: %+v", err)
 	}
 
-	log.Printf("[DEBUG] [CREATE] Calling 'queuesDataPlaneClient.UpdateServiceProperties' for %s", id)
+	log.Printf("[DEBUG] [CREATE] Calling 'queuesDataPlaneClient.UpdateServiceProperties': %s", id)
 	if err = queuesDataPlaneClient.UpdateServiceProperties(ctx, *queueProperties); err != nil {
 		return fmt.Errorf("creating `properties`: %+v", err)
 	}
@@ -261,44 +255,31 @@ func resourceStorageAccountQueuePropertiesUpdate(d *pluginsdk.ResourceData, meta
 		return err
 	}
 
-	locks.ByName(id.StorageAccountName, storageAccountQueuePropertiesResourceName)
-	defer locks.UnlockByName(id.StorageAccountName, storageAccountQueuePropertiesResourceName)
+	locks.ByName(id.StorageAccountName, storageAccountResourceName)
+	defer locks.UnlockByName(id.StorageAccountName, storageAccountResourceName)
 
+	log.Printf("[DEBUG] [%s:UPDATE] Calling 'client.GetProperties': %s", strings.ToUpper(storageAccountQueuePropertiesResourceName), id)
 	existing, err := client.GetProperties(ctx, *id, storageaccounts.DefaultGetPropertiesOperationOptions())
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if existing.Model == nil {
-		return fmt.Errorf("retrieving %s: `model` was nil", id)
-	}
-	if existing.Model.Kind == nil {
-		return fmt.Errorf("retrieving %s: `model.Kind` was nil", id)
-	}
-	if existing.Model.Properties == nil {
-		return fmt.Errorf("retrieving %s: `model.Properties` was nil", id)
-	}
-	if existing.Model.Sku == nil {
-		return fmt.Errorf("retrieving %s: `model.Sku` was nil", id)
+	model := existing.Model
+	if err := validateExistingModel(model, id); err != nil {
+		return err
 	}
 
-	var accountKind storageaccounts.Kind
-	var accountTier storageaccounts.SkuTier
-	accountReplicationType := ""
-
-	accountKind = *existing.Model.Kind
-	accountReplicationType = strings.Split(string(existing.Model.Sku.Name), "_")[1]
-	if existing.Model.Sku.Tier != nil {
-		accountTier = *existing.Model.Sku.Tier
-	}
-
+	accountKind := pointer.From(model.Kind)
+	accountReplicationType := strings.ToUpper(strings.Split(string(model.Sku.Name), "_")[1])
+	accountTier := pointer.From(model.Sku.Tier)
 	supportLevel := availableFunctionalityForAccount(accountKind, accountTier, accountReplicationType)
 
 	if d.HasChange("properties") {
 		if !supportLevel.supportQueue {
-			return fmt.Errorf("queue properties are not supported for a storage account with the account kind %q in sku tier %q", accountKind, accountTier)
+			return fmt.Errorf("%q are not supported for a storage account with the account kind %q in sku tier %q", storageAccountQueuePropertiesResourceName, accountKind, accountTier)
 		}
 
+		log.Printf("[DEBUG] [%s:UPDATE] Calling 'storageClient.FindAccount': %s", strings.ToUpper(storageAccountQueuePropertiesResourceName), id)
 		account, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
 		if err != nil {
 			return fmt.Errorf("retrieving %s: %+v", *id, err)
@@ -308,7 +289,8 @@ func resourceStorageAccountQueuePropertiesUpdate(d *pluginsdk.ResourceData, meta
 			return fmt.Errorf("unable to locate %s", *id)
 		}
 
-		queueClient, err := storageClient.QueuesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
+		log.Printf("[DEBUG] [%s:UPDATE] Calling 'storageClient.QueuesDataPlaneClient': %s", strings.ToUpper(storageAccountQueuePropertiesResourceName), id)
+		queueDataPlaneClient, err := storageClient.QueuesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
 		if err != nil {
 			return fmt.Errorf("building Queues Client: %s", err)
 		}
@@ -318,7 +300,8 @@ func resourceStorageAccountQueuePropertiesUpdate(d *pluginsdk.ResourceData, meta
 			return fmt.Errorf("expanding `properties` for %s: %+v", *id, err)
 		}
 
-		if err = queueClient.UpdateServiceProperties(ctx, *queueProperties); err != nil {
+		log.Printf("[DEBUG] [%s:UPDATE] Calling 'queueClient.UpdateServiceProperties': %s", strings.ToUpper(storageAccountQueuePropertiesResourceName), id)
+		if err = queueDataPlaneClient.UpdateServiceProperties(ctx, *queueProperties); err != nil {
 			return fmt.Errorf("updating `properties` for %s: %+v", *id, err)
 		}
 	}
@@ -337,6 +320,7 @@ func resourceStorageAccountQueuePropertiesRead(d *pluginsdk.ResourceData, meta i
 		return err
 	}
 
+	log.Printf("[DEBUG] [%s:READ] Calling 'client.GetProperties': %s", strings.ToUpper(storageAccountQueuePropertiesResourceName), id)
 	resp, err := client.GetProperties(ctx, *id, storageaccounts.DefaultGetPropertiesOperationOptions())
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
@@ -347,6 +331,7 @@ func resourceStorageAccountQueuePropertiesRead(d *pluginsdk.ResourceData, meta i
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
+	log.Printf("[DEBUG] [%s:READ] Calling 'storageClient.FindAccount': %s", strings.ToUpper(storageAccountQueuePropertiesResourceName), id)
 	account, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
@@ -355,12 +340,14 @@ func resourceStorageAccountQueuePropertiesRead(d *pluginsdk.ResourceData, meta i
 		return fmt.Errorf("unable to locate %q", id)
 	}
 
-	queueClient, err := storageClient.QueuesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
+	log.Printf("[DEBUG] [%s:READ] Calling 'storageClient.QueuesDataPlaneClient': %s", strings.ToUpper(storageAccountQueuePropertiesResourceName), id)
+	queueDataPlaneClient, err := storageClient.QueuesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
 	if err != nil {
 		return fmt.Errorf("building Queues Client: %s", err)
 	}
 
-	queueProps, err := queueClient.GetServiceProperties(ctx)
+	log.Printf("[DEBUG] [%s:READ] Calling 'queueDataPlaneClient.GetServiceProperties': %s", strings.ToUpper(storageAccountQueuePropertiesResourceName), id)
+	queueProps, err := queueDataPlaneClient.GetServiceProperties(ctx)
 	if err != nil {
 		return fmt.Errorf("retrieving queue properties for %s: %+v", *id, err)
 	}
@@ -385,14 +372,16 @@ func resourceStorageAccountQueuePropertiesDelete(d *pluginsdk.ResourceData, meta
 		return err
 	}
 
-	locks.ByName(id.StorageAccountName, storageAccountQueuePropertiesResourceName)
-	defer locks.UnlockByName(id.StorageAccountName, storageAccountQueuePropertiesResourceName)
+	locks.ByName(id.StorageAccountName, storageAccountResourceName)
+	defer locks.UnlockByName(id.StorageAccountName, storageAccountResourceName)
 
+	log.Printf("[DEBUG] [%s:DELETE] Calling 'client.GetProperties': %s", strings.ToUpper(storageAccountQueuePropertiesResourceName), id)
 	_, err = client.GetProperties(ctx, *id, storageaccounts.DefaultGetPropertiesOperationOptions())
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
+	log.Printf("[DEBUG] [%s:DELETE] Calling 'storageClient.FindAccount': %s", strings.ToUpper(storageAccountQueuePropertiesResourceName), id)
 	dataPlaneAccount, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
@@ -402,7 +391,8 @@ func resourceStorageAccountQueuePropertiesDelete(d *pluginsdk.ResourceData, meta
 		return fmt.Errorf("unable to locate %s", *id)
 	}
 
-	queueClient, err := storageClient.QueuesDataPlaneClient(ctx, *dataPlaneAccount, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
+	log.Printf("[DEBUG] [%s:DELETE] Calling 'storageClient.QueuesDataPlaneClient': %s", strings.ToUpper(storageAccountQueuePropertiesResourceName), id)
+	queueDataPlaneClient, err := storageClient.QueuesDataPlaneClient(ctx, *dataPlaneAccount, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
 	if err != nil {
 		return fmt.Errorf("building Data Plane Queues Client: %s", err)
 	}
@@ -414,7 +404,8 @@ func resourceStorageAccountQueuePropertiesDelete(d *pluginsdk.ResourceData, meta
 		return fmt.Errorf("expanding %s: %+v", *id, err)
 	}
 
-	if err = queueClient.UpdateServiceProperties(ctx, *queueProperties); err != nil {
+	log.Printf("[DEBUG] [%s:DELETE] Calling 'queueDataPlaneClient.UpdateServiceProperties': %s", strings.ToUpper(storageAccountQueuePropertiesResourceName), id)
+	if err = queueDataPlaneClient.UpdateServiceProperties(ctx, *queueProperties); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
