@@ -23,6 +23,18 @@ type ListByRouteFilterCompleteResult struct {
 	Items              []RouteFilterRule
 }
 
+type ListByRouteFilterCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByRouteFilterCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByRouteFilter ...
 func (c RouteFilterRulesClient) ListByRouteFilter(ctx context.Context, id RouteFilterId) (result ListByRouteFilterOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c RouteFilterRulesClient) ListByRouteFilter(ctx context.Context, id RouteF
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByRouteFilterCustomPager{},
 		Path:       fmt.Sprintf("%s/routeFilterRules", id.ID()),
 	}
 

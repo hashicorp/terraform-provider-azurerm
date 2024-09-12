@@ -50,6 +50,18 @@ func (o ListByGalleryOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListByGalleryCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByGalleryCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByGallery ...
 func (c ImagesClient) ListByGallery(ctx context.Context, id GalleryId, options ListByGalleryOperationOptions) (result ListByGalleryOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -58,8 +70,9 @@ func (c ImagesClient) ListByGallery(ctx context.Context, id GalleryId, options L
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/images", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListByGalleryCustomPager{},
+		Path:          fmt.Sprintf("%s/images", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

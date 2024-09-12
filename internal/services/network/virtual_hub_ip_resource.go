@@ -22,9 +22,9 @@ import (
 
 func resourceVirtualHubIP() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceVirtualHubIPCreateUpdate,
+		Create: resourceVirtualHubIPCreate,
 		Read:   resourceVirtualHubIPRead,
-		Update: resourceVirtualHubIPCreateUpdate,
+		Update: resourceVirtualHubIPUpdate,
 		Delete: resourceVirtualHubIPDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -54,6 +54,13 @@ func resourceVirtualHubIP() *pluginsdk.Resource {
 				ValidateFunc: virtualwans.ValidateVirtualHubID,
 			},
 
+			"public_ip_address_id": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: commonids.ValidatePublicIPAddressID,
+			},
+
 			"subnet_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
@@ -76,21 +83,13 @@ func resourceVirtualHubIP() *pluginsdk.Resource {
 					string(virtualwans.IPAllocationMethodStatic),
 				}, false),
 			},
-
-			//lintignore: S013
-			"public_ip_address_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: commonids.ValidatePublicIPAddressID,
-			},
 		},
 	}
 }
 
-func resourceVirtualHubIPCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualHubIPCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	virtualHubId, err := virtualwans.ParseVirtualHubID(d.Get("virtual_hub_id").(string))
@@ -103,16 +102,14 @@ func resourceVirtualHubIPCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 
 	id := commonids.NewVirtualHubIPConfigurationID(virtualHubId.SubscriptionId, virtualHubId.ResourceGroupName, virtualHubId.VirtualHubName, d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.VirtualHubIPConfigurationGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of %s: %+v", id, err)
-			}
-		}
+	existing, err := client.VirtualHubIPConfigurationGet(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_virtual_hub_ip", id.ID())
+			return fmt.Errorf("checking for presence of %s: %+v", id, err)
 		}
+	}
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_virtual_hub_ip", id.ID())
 	}
 
 	parameters := virtualwans.HubIPConfiguration{
@@ -139,7 +136,56 @@ func resourceVirtualHubIPCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if err := client.VirtualHubIPConfigurationCreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+
+	return resourceVirtualHubIPRead(d, meta)
+}
+
+func resourceVirtualHubIPUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.VirtualWANs
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	virtualHubId, err := virtualwans.ParseVirtualHubID(d.Get("virtual_hub_id").(string))
+	if err != nil {
+		return err
+	}
+
+	locks.ByName(virtualHubId.VirtualHubName, virtualHubResourceName)
+	defer locks.UnlockByName(virtualHubId.VirtualHubName, virtualHubResourceName)
+
+	id, err := commonids.ParseVirtualHubIPConfigurationID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.VirtualHubIPConfigurationGet(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", id)
+	}
+
+	payload := existing.Model
+
+	if d.HasChange("private_ip_address") {
+		payload.Properties.PrivateIPAddress = pointer.To(d.Get("private_ip_address").(string))
+	}
+
+	if d.HasChange("private_ip_allocation_method") {
+		payload.Properties.PrivateIPAllocationMethod = pointer.To(virtualwans.IPAllocationMethod(d.Get("private_ip_allocation_method").(string)))
+	}
+
+	if err := client.VirtualHubIPConfigurationCreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())

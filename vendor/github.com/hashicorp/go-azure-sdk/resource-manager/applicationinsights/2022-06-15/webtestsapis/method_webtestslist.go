@@ -24,6 +24,18 @@ type WebTestsListCompleteResult struct {
 	Items              []WebTest
 }
 
+type WebTestsListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *WebTestsListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // WebTestsList ...
 func (c WebTestsAPIsClient) WebTestsList(ctx context.Context, id commonids.SubscriptionId) (result WebTestsListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c WebTestsAPIsClient) WebTestsList(ctx context.Context, id commonids.Subsc
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &WebTestsListCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.Insights/webTests", id.ID()),
 	}
 

@@ -51,6 +51,18 @@ func (o ListAtSubscriptionLevelOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListAtSubscriptionLevelCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListAtSubscriptionLevelCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListAtSubscriptionLevel ...
 func (c ManagementLocksClient) ListAtSubscriptionLevel(ctx context.Context, id commonids.SubscriptionId, options ListAtSubscriptionLevelOperationOptions) (result ListAtSubscriptionLevelOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -59,8 +71,9 @@ func (c ManagementLocksClient) ListAtSubscriptionLevel(ctx context.Context, id c
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/providers/Microsoft.Authorization/locks", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListAtSubscriptionLevelCustomPager{},
+		Path:          fmt.Sprintf("%s/providers/Microsoft.Authorization/locks", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

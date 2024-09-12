@@ -53,8 +53,8 @@ func (c IPAllocationsClient) Get(ctx context.Context, id IPAllocationId, options
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

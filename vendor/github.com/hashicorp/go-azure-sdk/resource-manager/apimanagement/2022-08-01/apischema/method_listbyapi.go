@@ -58,6 +58,18 @@ func (o ListByApiOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListByApiCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByApiCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByApi ...
 func (c ApiSchemaClient) ListByApi(ctx context.Context, id ApiId, options ListByApiOperationOptions) (result ListByApiOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -66,8 +78,9 @@ func (c ApiSchemaClient) ListByApi(ctx context.Context, id ApiId, options ListBy
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/schemas", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListByApiCustomPager{},
+		Path:          fmt.Sprintf("%s/schemas", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

@@ -35,8 +35,8 @@ resource "azurerm_cognitive_deployment" "example" {
     version = "1"
   }
 
-  scale {
-    type = "Standard"
+  sku {
+    name = "Standard"
   }
 }
 
@@ -52,7 +52,7 @@ The following arguments are supported:
 
 * `model` - (Required) A `model` block as defined below. Changing this forces a new resource to be created.
 
-* `scale` - (Required) A `scale` block as defined below.
+* `sku` - (Required) A `sku` block as defined below.
 
 * `rai_policy_name` - (Optional) The name of RAI policy.
 
@@ -70,9 +70,9 @@ A `model` block supports the following:
 
 ---
 
-A `scale` block supports the following:
+A `sku` block supports the following:
 
-* `type` - (Required) The name of the SKU. Ex - `Standard` or `P3`. It is typically a letter+number code. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the SKU. Possible values include `Standard`, `GlobalBatch`, `GlobalStandard` and `ProvisionedManaged`.
 
 * `tier` - (Optional) Possible values are `Free`, `Basic`, `Standard`, `Premium`, `Enterprise`. Changing this forces a new resource to be created.
 

@@ -23,6 +23,18 @@ type ListHostsCompleteResult struct {
 	Items              []VMInfo
 }
 
+type ListHostsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListHostsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListHosts ...
 func (c MonitorsClient) ListHosts(ctx context.Context, id MonitorId, input HostsGetRequest) (result ListHostsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c MonitorsClient) ListHosts(ctx context.Context, id MonitorId, input Hosts
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodPost,
+		Pager:      &ListHostsCustomPager{},
 		Path:       fmt.Sprintf("%s/listHosts", id.ID()),
 	}
 

@@ -54,6 +54,18 @@ func (o QueriesSearchOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type QueriesSearchCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *QueriesSearchCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // QueriesSearch ...
 func (c QueryPackQueriesClient) QueriesSearch(ctx context.Context, id QueryPackId, input LogAnalyticsQueryPackQuerySearchProperties, options QueriesSearchOperationOptions) (result QueriesSearchOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -62,8 +74,9 @@ func (c QueryPackQueriesClient) QueriesSearch(ctx context.Context, id QueryPackI
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPost,
-		Path:          fmt.Sprintf("%s/queries/search", id.ID()),
 		OptionsObject: options,
+		Pager:         &QueriesSearchCustomPager{},
+		Path:          fmt.Sprintf("%s/queries/search", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

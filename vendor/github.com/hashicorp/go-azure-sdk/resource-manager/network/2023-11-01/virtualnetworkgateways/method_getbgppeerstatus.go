@@ -57,8 +57,8 @@ func (c VirtualNetworkGatewaysClient) GetBgpPeerStatus(ctx context.Context, id V
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPost,
-		Path:          fmt.Sprintf("%s/getBgpPeerStatus", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/getBgpPeerStatus", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

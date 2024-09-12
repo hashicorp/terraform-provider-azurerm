@@ -51,6 +51,18 @@ func (o ListAtResourceGroupLevelOperationOptions) ToQuery() *client.QueryParams 
 	return &out
 }
 
+type ListAtResourceGroupLevelCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListAtResourceGroupLevelCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListAtResourceGroupLevel ...
 func (c ManagementLocksClient) ListAtResourceGroupLevel(ctx context.Context, id commonids.ResourceGroupId, options ListAtResourceGroupLevelOperationOptions) (result ListAtResourceGroupLevelOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -59,8 +71,9 @@ func (c ManagementLocksClient) ListAtResourceGroupLevel(ctx context.Context, id 
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/providers/Microsoft.Authorization/locks", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListAtResourceGroupLevelCustomPager{},
+		Path:          fmt.Sprintf("%s/providers/Microsoft.Authorization/locks", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

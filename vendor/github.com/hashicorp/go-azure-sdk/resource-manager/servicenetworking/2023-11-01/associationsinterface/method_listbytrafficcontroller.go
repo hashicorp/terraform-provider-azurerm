@@ -23,6 +23,18 @@ type ListByTrafficControllerCompleteResult struct {
 	Items              []Association
 }
 
+type ListByTrafficControllerCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByTrafficControllerCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByTrafficController ...
 func (c AssociationsInterfaceClient) ListByTrafficController(ctx context.Context, id TrafficControllerId) (result ListByTrafficControllerOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c AssociationsInterfaceClient) ListByTrafficController(ctx context.Context
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByTrafficControllerCustomPager{},
 		Path:       fmt.Sprintf("%s/associations", id.ID()),
 	}
 

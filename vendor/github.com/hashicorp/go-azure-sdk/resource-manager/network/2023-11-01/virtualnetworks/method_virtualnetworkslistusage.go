@@ -24,6 +24,18 @@ type VirtualNetworksListUsageCompleteResult struct {
 	Items              []VirtualNetworkUsage
 }
 
+type VirtualNetworksListUsageCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *VirtualNetworksListUsageCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // VirtualNetworksListUsage ...
 func (c VirtualNetworksClient) VirtualNetworksListUsage(ctx context.Context, id commonids.VirtualNetworkId) (result VirtualNetworksListUsageOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c VirtualNetworksClient) VirtualNetworksListUsage(ctx context.Context, id 
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &VirtualNetworksListUsageCustomPager{},
 		Path:       fmt.Sprintf("%s/usages", id.ID()),
 	}
 

@@ -6,6 +6,7 @@ package nginx
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -19,6 +20,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
+
+const defaultCapacity = 20 // TODO: remove this in v4.0
 
 type FrontendPrivate struct {
 	IpAddress        string `tfschema:"ip_address"`
@@ -123,7 +126,6 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:          pluginsdk.TypeInt,
 			Optional:      true,
 			ConflictsWith: []string{"auto_scale_profile"},
-			Default:       20,
 			ValidateFunc:  validation.IntPositive,
 		},
 
@@ -195,6 +197,7 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 					"ip_address": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
+						ForceNew: true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -214,17 +217,20 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 					"ip_address": {
 						Type:     pluginsdk.TypeString,
 						Required: true,
+						ForceNew: true,
 					},
 
 					"allocation_method": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
+						ForceNew:     true,
 						ValidateFunc: validation.StringInSlice(nginxdeployment.PossibleValuesForNginxPrivateIPAllocationMethod(), false),
 					},
 
 					"subnet_id": {
 						Type:     pluginsdk.TypeString,
 						Required: true,
+						ForceNew: true,
 					},
 				},
 			},
@@ -239,6 +245,7 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 					"subnet_id": {
 						Type:     pluginsdk.TypeString,
 						Required: true,
+						ForceNew: true,
 					},
 				},
 			},
@@ -259,6 +266,8 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 	}
 
 	if !features.FourPointOhBeta() {
+		resource["capacity"].Default = defaultCapacity
+
 		resource["configuration"] = &pluginsdk.Schema{
 			Deprecated: "The `configuration` block has been superseded by the `azurerm_nginx_configuration` resource and will be removed in v4.0 of the AzureRM Provider.",
 			Type:       pluginsdk.TypeList,
@@ -430,9 +439,30 @@ func (m DeploymentResource) Create() sdk.ResourceFunc {
 				prop.NetworkProfile.NetworkInterfaceConfiguration.SubnetId = pointer.FromString(model.NetworkInterface[0].SubnetId)
 			}
 
-			if model.Capacity > 0 {
-				prop.ScalingProperties = &nginxdeployment.NginxDeploymentScalingProperties{
-					Capacity: pointer.FromInt64(model.Capacity),
+			isBasicSKU := strings.HasPrefix(model.Sku, "basic")
+			if !features.FourPointOhBeta() {
+				if isBasicSKU && (model.Capacity != defaultCapacity || len(model.AutoScaleProfile) > 0) {
+					return fmt.Errorf("basic SKUs are incompatible with `capacity` or `auto_scale_profiles`")
+				}
+
+				if model.Capacity > 0 && !isBasicSKU {
+					prop.ScalingProperties = &nginxdeployment.NginxDeploymentScalingProperties{
+						Capacity: pointer.FromInt64(model.Capacity),
+					}
+				}
+			} else {
+				hasScaling := (model.Capacity > 0 || len(model.AutoScaleProfile) > 0)
+				if isBasicSKU && hasScaling {
+					return fmt.Errorf("basic SKUs are incompatible with `capacity` or `auto_scale_profiles`")
+				}
+				if !isBasicSKU && !hasScaling {
+					return fmt.Errorf("scaling is required for `sku` '%s', please provide `capacity` or `auto_scale_profiles`", model.Sku)
+				}
+
+				if model.Capacity > 0 {
+					prop.ScalingProperties = &nginxdeployment.NginxDeploymentScalingProperties{
+						Capacity: pointer.FromInt64(model.Capacity),
+					}
 				}
 			}
 
@@ -730,6 +760,10 @@ func (m DeploymentResource) Update() sdk.ResourceFunc {
 				req.Properties.AutoUpgradeProfile = &nginxdeployment.AutoUpgradeProfile{
 					UpgradeChannel: model.UpgradeChannel,
 				}
+			}
+
+			if strings.HasPrefix(model.Sku, "basic") && req.Properties.ScalingProperties != nil {
+				return fmt.Errorf("basic SKUs are incompatible with `capacity` or `auto_scale_profiles`")
 			}
 
 			if err := client.DeploymentsUpdateThenPoll(ctx, *id, req); err != nil {

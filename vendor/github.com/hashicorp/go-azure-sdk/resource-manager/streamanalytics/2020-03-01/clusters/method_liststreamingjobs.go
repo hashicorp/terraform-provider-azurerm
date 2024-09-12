@@ -23,6 +23,18 @@ type ListStreamingJobsCompleteResult struct {
 	Items              []ClusterJob
 }
 
+type ListStreamingJobsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListStreamingJobsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListStreamingJobs ...
 func (c ClustersClient) ListStreamingJobs(ctx context.Context, id ClusterId) (result ListStreamingJobsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c ClustersClient) ListStreamingJobs(ctx context.Context, id ClusterId) (re
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodPost,
+		Pager:      &ListStreamingJobsCustomPager{},
 		Path:       fmt.Sprintf("%s/listStreamingJobs", id.ID()),
 	}
 

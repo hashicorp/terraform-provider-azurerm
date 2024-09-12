@@ -24,6 +24,18 @@ type ListBasicPublishingCredentialsPoliciesCompleteResult struct {
 	Items              []CsmPublishingCredentialsPoliciesEntity
 }
 
+type ListBasicPublishingCredentialsPoliciesCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListBasicPublishingCredentialsPoliciesCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListBasicPublishingCredentialsPolicies ...
 func (c WebAppsClient) ListBasicPublishingCredentialsPolicies(ctx context.Context, id commonids.AppServiceId) (result ListBasicPublishingCredentialsPoliciesOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c WebAppsClient) ListBasicPublishingCredentialsPolicies(ctx context.Contex
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListBasicPublishingCredentialsPoliciesCustomPager{},
 		Path:       fmt.Sprintf("%s/basicPublishingCredentialsPolicies", id.ID()),
 	}
 

@@ -98,8 +98,8 @@ func (c AlertsManagementsClient) AlertsGetSummary(ctx context.Context, id common
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/providers/Microsoft.AlertsManagement/alertsSummary", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/providers/Microsoft.AlertsManagement/alertsSummary", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

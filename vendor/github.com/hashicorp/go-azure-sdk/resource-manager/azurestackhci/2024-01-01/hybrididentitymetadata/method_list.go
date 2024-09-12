@@ -24,6 +24,18 @@ type ListCompleteResult struct {
 	Items              []HybridIdentityMetadata
 }
 
+type ListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // List ...
 func (c HybridIdentityMetadataClient) List(ctx context.Context, id commonids.ScopeId) (result ListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c HybridIdentityMetadataClient) List(ctx context.Context, id commonids.Sco
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.AzureStackHCI/virtualMachineInstances/default/hybridIdentityMetadata", id.ID()),
 	}
 

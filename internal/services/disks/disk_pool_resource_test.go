@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -20,6 +21,10 @@ import (
 type DiskPoolResourceTest struct{}
 
 func TestAccDiskPool_basic(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("Resource has been removed in 4.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_disk_pool", "test")
 	r := DiskPoolResourceTest{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -34,6 +39,10 @@ func TestAccDiskPool_basic(t *testing.T) {
 }
 
 func TestAccDiskPool_requiresImport(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("Resource has been removed in 4.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_disk_pool", "test")
 	r := DiskPoolResourceTest{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -48,6 +57,10 @@ func TestAccDiskPool_requiresImport(t *testing.T) {
 }
 
 func TestAccDiskPool_complete(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("Resource has been removed in 4.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_disk_pool", "test")
 	r := DiskPoolResourceTest{}
 	data.ResourceTest(t, r, []acceptance.TestStep{

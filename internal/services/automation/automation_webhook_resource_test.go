@@ -103,7 +103,7 @@ func (t AutomationWebhookResource) Exists(ctx context.Context, clients *clients.
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (AutomationWebhookResource) ParentResources(data acceptance.TestData) string {
+func (AutomationWebhookResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -141,7 +141,7 @@ CONTENT
 }
 
 func (AutomationWebhookResource) basic(data acceptance.TestData) string {
-	template := AutomationWebhookResource{}.ParentResources(data)
+	template := AutomationWebhookResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -156,7 +156,7 @@ resource "azurerm_automation_webhook" "test" {
 }
 
 func (AutomationWebhookResource) complete(data acceptance.TestData) string {
-	template := AutomationWebhookResource{}.ParentResources(data)
+	template := AutomationWebhookResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 

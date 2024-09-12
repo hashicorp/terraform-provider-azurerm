@@ -23,6 +23,18 @@ type AvailableResourceGroupDelegationsListCompleteResult struct {
 	Items              []AvailableDelegation
 }
 
+type AvailableResourceGroupDelegationsListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *AvailableResourceGroupDelegationsListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // AvailableResourceGroupDelegationsList ...
 func (c AvailableDelegationsClient) AvailableResourceGroupDelegationsList(ctx context.Context, id ProviderLocationId) (result AvailableResourceGroupDelegationsListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c AvailableDelegationsClient) AvailableResourceGroupDelegationsList(ctx co
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &AvailableResourceGroupDelegationsListCustomPager{},
 		Path:       fmt.Sprintf("%s/availableDelegations", id.ID()),
 	}
 

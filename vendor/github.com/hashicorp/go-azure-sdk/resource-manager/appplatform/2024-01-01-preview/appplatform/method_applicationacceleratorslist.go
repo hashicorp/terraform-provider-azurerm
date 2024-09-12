@@ -24,6 +24,18 @@ type ApplicationAcceleratorsListCompleteResult struct {
 	Items              []ApplicationAcceleratorResource
 }
 
+type ApplicationAcceleratorsListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ApplicationAcceleratorsListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ApplicationAcceleratorsList ...
 func (c AppPlatformClient) ApplicationAcceleratorsList(ctx context.Context, id commonids.SpringCloudServiceId) (result ApplicationAcceleratorsListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c AppPlatformClient) ApplicationAcceleratorsList(ctx context.Context, id c
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ApplicationAcceleratorsListCustomPager{},
 		Path:       fmt.Sprintf("%s/applicationAccelerators", id.ID()),
 	}
 

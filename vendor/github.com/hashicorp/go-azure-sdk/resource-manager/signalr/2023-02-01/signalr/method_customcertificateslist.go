@@ -23,6 +23,18 @@ type CustomCertificatesListCompleteResult struct {
 	Items              []CustomCertificate
 }
 
+type CustomCertificatesListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *CustomCertificatesListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // CustomCertificatesList ...
 func (c SignalRClient) CustomCertificatesList(ctx context.Context, id SignalRId) (result CustomCertificatesListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c SignalRClient) CustomCertificatesList(ctx context.Context, id SignalRId)
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &CustomCertificatesListCustomPager{},
 		Path:       fmt.Sprintf("%s/customCertificates", id.ID()),
 	}
 

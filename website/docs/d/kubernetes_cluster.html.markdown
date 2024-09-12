@@ -114,8 +114,6 @@ The following attributes are exported:
 
 * `tags` - A mapping of tags assigned to this resource.
 
-* `custom_ca_trust_certificates_base64` - A list of custom base64 encoded CAs used by this Managed Kubernetes Cluster.
-
 ---
 
 An `aci_connector_linux` block exports the following:
@@ -132,9 +130,9 @@ An `agent_pool_profile` block exports the following:
 
 * `max_pods` - The maximum number of pods that can run on each agent.
 
-* `enable_auto_scaling` - If the auto-scaler is enabled.
+* `auto_scaling_enabled` - If the auto-scaler is enabled.
 
-* `enable_node_public_ip` - If the Public IPs for the nodes in this Agent Pool are enabled.
+* `node_public_ip_enabled` - If the Public IPs for the nodes in this Agent Pool are enabled.
 
 * `host_group_id` - The ID of a Dedicated Host Group that this Node Pool should be run on. Changing this forces a new resource to be created.
 
@@ -166,17 +164,11 @@ An `agent_pool_profile` block exports the following:
 
 An `azure_active_directory_role_based_access_control` block exports the following:
 
-* `managed` - Is the Azure Active Directory integration Managed, meaning that Azure will create/manage the Service Principal used for integration?
-
 * `tenant_id` - The Tenant ID used for Azure Active Directory Application.
 
 * `admin_group_object_ids` - A list of Object IDs of Azure Active Directory Groups which should have Admin Role on the Cluster.
 
 * `azure_rbac_enabled` - Is Role Based Access Control based on Azure AD enabled?
-
-* `client_app_id` - The Client ID of an Azure Active Directory Application.
-
-* `server_app_id` - The Server ID of an Azure Active Directory Application.
 
 ---
 
@@ -341,8 +333,6 @@ A `storage_profile` block exports the following:
 
 * `disk_driver_enabled` Is the Disk CSI driver enabled?
 
-* `disk_driver_version` The configured Disk CSI Driver version.
-
 * `file_driver_enabled` Is the File CSI driver enabled?
 
 * `snapshot_controller_enabled` Is the Snapshot Controller enabled?
@@ -381,9 +371,28 @@ A `service_mesh_profile` block exports the following:
 
 * `mode` - The mode of the service mesh.
 
+* `revisions` - List of revisions of the Istio control plane. When an upgrade is not in progress, this holds one value. When canary upgrade is in progress, this can only hold two consecutive values. [Learn More](
+  https://learn.microsoft.com/en-us/azure/aks/istio-upgrade).
+
 * `internal_ingress_gateway_enabled` - Is Istio Internal Ingress Gateway enabled?
 
 * `external_ingress_gateway_enabled` - Is Istio External Ingress Gateway enabled?
+
+* `certificate_authority` - A `certificate_authority` block as documented below.
+
+---
+
+A `certificate_authority` block exports the following:
+
+* `key_vault_id` - The resource ID of the Key Vault.
+
+* `root_cert_object_name` - The root certificate object name in Azure Key Vault.
+
+* `cert_chain_object_name` - The certificate chain object name in Azure Key Vault.
+
+* `cert_object_name` - The intermediate certificate object name in Azure Key Vault.
+
+* `key_object_name` - The intermediate certificate private key object name in Azure Key Vault.
 
 ---
 

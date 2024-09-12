@@ -23,6 +23,18 @@ type ListSiteExtensionsSlotCompleteResult struct {
 	Items              []SiteExtensionInfo
 }
 
+type ListSiteExtensionsSlotCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListSiteExtensionsSlotCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListSiteExtensionsSlot ...
 func (c WebAppsClient) ListSiteExtensionsSlot(ctx context.Context, id SlotId) (result ListSiteExtensionsSlotOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c WebAppsClient) ListSiteExtensionsSlot(ctx context.Context, id SlotId) (r
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListSiteExtensionsSlotCustomPager{},
 		Path:       fmt.Sprintf("%s/siteExtensions", id.ID()),
 	}
 

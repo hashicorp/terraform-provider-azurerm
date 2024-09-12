@@ -23,6 +23,18 @@ type GetUsagesInLocationlistCompleteResult struct {
 	Items              []CsmUsageQuota
 }
 
+type GetUsagesInLocationlistCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *GetUsagesInLocationlistCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // GetUsagesInLocationlist ...
 func (c ResourceProvidersClient) GetUsagesInLocationlist(ctx context.Context, id ProviderLocationId) (result GetUsagesInLocationlistOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c ResourceProvidersClient) GetUsagesInLocationlist(ctx context.Context, id
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &GetUsagesInLocationlistCustomPager{},
 		Path:       fmt.Sprintf("%s/usages", id.ID()),
 	}
 
