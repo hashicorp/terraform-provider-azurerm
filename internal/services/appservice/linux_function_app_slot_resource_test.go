@@ -1236,49 +1236,6 @@ func TestAccLinuxFunctionAppSlot_vNetIntegration(t *testing.T) {
 	})
 }
 
-// TODO 4.0 remove post 4.0
-func TestAccLinuxFunctionAppSlot_vNetIntegrationUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
-	r := LinuxFunctionAppSlotResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.vNetIntegration_basic(data, SkuStandardPlan),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("site_credential.0.password"),
-		{
-			Config: r.vNetIntegration_subnet1(data, SkuStandardPlan),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("virtual_network_subnet_id").MatchesOtherKey(
-					check.That("azurerm_subnet.test1").Key("id"),
-				),
-			),
-		},
-		data.ImportStep("site_credential.0.password"),
-		{
-			Config: r.vNetIntegration_subnet2(data, SkuStandardPlan),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("virtual_network_subnet_id").MatchesOtherKey(
-					check.That("azurerm_subnet.test2").Key("id"),
-				),
-			),
-		},
-		data.ImportStep("site_credential.0.password"),
-		{
-			Config: r.vNetIntegration_basic(data, SkuStandardPlan),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("site_credential.0.password"),
-	})
-}
-
 func TestAccLinuxFunctionAppSlot_vNetIntegrationUpdateWithVnetProperties(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
 	r := LinuxFunctionAppSlotResource{}
@@ -1313,22 +1270,6 @@ func TestAccLinuxFunctionAppSlot_vNetIntegrationUpdateWithVnetProperties(t *test
 		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.vNetIntegration_basicWithVnetProperties(data, SkuStandardPlan),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("site_credential.0.password"),
-	})
-}
-
-// TODO 4.0 remove post 4.0
-func TestAccLinuxFunctionAppSlotASEv3_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
-	r := LinuxFunctionAppSlotResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.withASEV3(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
