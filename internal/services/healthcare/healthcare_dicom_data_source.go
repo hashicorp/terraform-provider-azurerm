@@ -201,21 +201,19 @@ func dataSourceHealthcareApisDicomServiceRead(d *pluginsdk.ResourceData, meta in
 			d.Set("private_endpoint", flattenDicomServicePrivateEndpoint(props.PrivateEndpointConnections))
 			d.Set("service_url", props.ServiceUrl)
 
+			enableDataPartitions := false
 			if props.EnableDataPartitions != nil {
-				d.Set("data_partitions_enabled", pointer.From(props.EnableDataPartitions))
+				enableDataPartitions = pointer.From(props.EnableDataPartitions)
 			}
+			d.Set("data_partitions_enabled", enableDataPartitions)
 
-			if cors := props.CorsConfiguration; cors != nil {
-				d.Set("cors_configuration", flattenDicomServiceCorsConfiguration(cors))
-			}
+			d.Set("cors_configuration", flattenDicomServiceCorsConfiguration(props.CorsConfiguration))
 
 			if props.Encryption != nil && props.Encryption.CustomerManagedKeyEncryption != nil {
 				d.Set("encryption_key_url", pointer.From(props.Encryption.CustomerManagedKeyEncryption.KeyEncryptionKeyUrl))
 			}
 
-			if props.StorageConfiguration != nil {
-				d.Set("storage_configuration", flattenStorageConfiguration(props.StorageConfiguration))
-			}
+			d.Set("storage_configuration", flattenStorageConfiguration(props.StorageConfiguration))
 
 			if props.ProvisioningState != nil {
 				d.Set("provision_state", pointer.From(props.ProvisioningState))
