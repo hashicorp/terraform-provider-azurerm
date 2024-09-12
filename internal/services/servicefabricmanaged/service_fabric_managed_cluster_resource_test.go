@@ -322,6 +322,10 @@ resource "azurerm_service_fabric_managed_cluster" "test" {
       type       = "AdminClient"
     }
   }
+
+  tags = {
+    "SFRP.DisableDefaultOutboundAccess" = true
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, nodeTypeData)
 }
