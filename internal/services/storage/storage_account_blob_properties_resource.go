@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/blobservice"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/storageaccounts"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/custompollers"
@@ -182,9 +181,10 @@ func resourceStorageAccountBlobPropertiesCreate(d *pluginsdk.ResourceData, meta 
 		return err
 	}
 
-	if !response.WasNotFound(existing.HttpResponse) && model.Properties.PrimaryEndpoints.Blob != nil {
-		return tf.ImportAsExistsError(storageAccountBlobPropertiesResourceName, id.ID())
-	}
+	// TODO: Figure out how to implement the import error...
+	// if !response.WasNotFound(existing.HttpResponse) && model.Properties.PrimaryEndpoints.Blob != nil {
+	// 	return tf.ImportAsExistsError(storageAccountBlobPropertiesResourceName, id.ID())
+	// }
 
 	accountKind := pointer.From(model.Kind)
 	dnsEndpointType := pointer.From(model.Properties.DnsEndpointType)
@@ -420,27 +420,24 @@ func resourceStorageAccountBlobPropertiesDelete(d *pluginsdk.ResourceData, meta 
 	}
 
 	accountKind := pointer.From(model.Kind)
-
-	// TODO: Figure out the delete here...
 	blobProperties, err := expandAccountBlobServiceProperties(accountKind, make([]interface{}, 0))
 	if err != nil {
 		return err
 	}
 
-	// NOTE: Not sure if I need to do this here, since the blobProperties will already set this to 'false'. Disable restore_policy first.
-	// Disabling restore_policy while setting the delete_retention_policy.allow_permanent_delete to true causes an error.
+	// NOTE: You need to disable the 'restore_policy' before you can set the 'delete_retention_policy.allow_permanent_delete' to 'true'
+	// else you will get the "ConflictFeatureEnabled: Conflicting feature 'restorePolicy' is 'enabled' returned by the RP.
 	// Issue : https://github.com/Azure/azure-rest-api-specs/issues/11237
-	//
-	// blobPayload := blobservice.BlobServiceProperties{
-	// 	Properties: &blobservice.BlobServicePropertiesProperties{
-	// 		RestorePolicy: expandAccountBlobPropertiesRestorePolicy(make([]interface{}, 0)),
-	// 	},
-	// }
-	//
-	// log.Printf("[DEBUG] [%s:DELETE] Calling 'storageClient.ResourceManager.BlobService.SetServiceProperties' to disable 'RestorePolicy': %s", strings.ToUpper(storageAccountBlobPropertiesResourceName), id)
-	// if _, err := storageClient.ResourceManager.BlobService.SetServiceProperties(ctx, *id, blobPayload); err != nil {
-	// 	return fmt.Errorf("updating the Azure Storage Account %q 'RestorePolicy' prior to the deletion of %q: %+v", id.StorageAccountName, storageAccountBlobPropertiesResourceName, err)
-	// }
+	blobPayload := blobservice.BlobServiceProperties{
+		Properties: &blobservice.BlobServicePropertiesProperties{
+			RestorePolicy: expandAccountBlobPropertiesRestorePolicy(make([]interface{}, 0)),
+		},
+	}
+
+	log.Printf("[DEBUG] [%s:DELETE] Calling 'storageClient.ResourceManager.BlobService.SetServiceProperties' to disable 'RestorePolicy': %s", strings.ToUpper(storageAccountBlobPropertiesResourceName), id)
+	if _, err := storageClient.ResourceManager.BlobService.SetServiceProperties(ctx, *id, blobPayload); err != nil {
+		return fmt.Errorf("updating the Azure Storage Account %q 'RestorePolicy' prior to the deletion of %q: %+v", id.StorageAccountName, storageAccountBlobPropertiesResourceName, err)
+	}
 
 	log.Printf("[DEBUG] [%s:DELETE] Calling 'storageClient.ResourceManager.BlobService.SetServiceProperties': %s", strings.ToUpper(storageAccountBlobPropertiesResourceName), id)
 	if _, err = storageClient.ResourceManager.BlobService.SetServiceProperties(ctx, *id, *blobProperties); err != nil {
@@ -699,6 +696,7 @@ func expandAccountBlobPropertiesRestorePolicy(input []interface{}) *blobservice.
 	result := blobservice.RestorePolicyProperties{
 		Enabled: false,
 	}
+
 	if len(input) == 0 || input[0] == nil {
 		return &result
 	}

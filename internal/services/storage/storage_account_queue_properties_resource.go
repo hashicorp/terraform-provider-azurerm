@@ -234,7 +234,7 @@ func resourceStorageAccountQueuePropertiesCreate(d *pluginsdk.ResourceData, meta
 		return fmt.Errorf("expanding `properties`: %+v", err)
 	}
 
-	log.Printf("[DEBUG] [CREATE] Calling 'queuesDataPlaneClient.UpdateServiceProperties': %s", id)
+	log.Printf("[DEBUG] [%s:CREATE] Calling 'queuesDataPlaneClient.UpdateServiceProperties': %s", strings.ToUpper(storageAccountQueuePropertiesResourceName), id)
 	if err = queuesDataPlaneClient.UpdateServiceProperties(ctx, *queueProperties); err != nil {
 		return fmt.Errorf("creating `properties`: %+v", err)
 	}
