@@ -11,6 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -22,7 +23,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceHealthcareApisDicomService() *pluginsdk.Resource {
@@ -115,6 +118,86 @@ func resourceHealthcareApisDicomService() *pluginsdk.Resource {
 				Default:  true,
 			},
 
+			"cors_configuration": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"allowed_origins": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
+						"allowed_headers": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
+						"allowed_methods": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
+						"max_age_in_seconds": {
+							Type:     pluginsdk.TypeInt,
+							Optional: true,
+						},
+						"allow_credentials": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+					},
+				},
+			},
+
+			"data_partitions_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+				ForceNew: true,
+			},
+
+			"encryption_key_url": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.IsURLWithHTTPS,
+			},
+
+			"storage_configuration": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				ForceNew: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"file_system_name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"storage_account_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: commonids.ValidateStorageAccountID,
+						},
+					},
+				},
+			},
+
 			"tags": commonschema.Tags(),
 		},
 	}
@@ -153,10 +236,38 @@ func resourceHealthcareApisDicomServiceCreate(d *pluginsdk.ResourceData, meta in
 
 	t := d.Get("tags").(map[string]interface{})
 
+	var enableDataPartitions *bool
+	if v, ok := d.GetOk("data_partitions_enabled"); ok {
+		enableDataPartitions = pointer.To(v.(bool))
+	}
+
+	var corsConfiguration *dicomservices.CorsConfiguration
+	if v, ok := d.GetOk("cors_configuration"); ok {
+		corsConfiguration = expandDicomServiceCorsConfiguration(v.([]interface{}))
+	}
+
+	var encryption *dicomservices.Encryption
+	if v, ok := d.GetOk("encryption_key_url"); ok {
+		encryption = &dicomservices.Encryption{
+			CustomerManagedKeyEncryption: &dicomservices.EncryptionCustomerManagedKeyEncryption{
+				KeyEncryptionKeyUrl: pointer.To(v.(string)),
+			},
+		}
+	}
+
+	var storageConfiguration *dicomservices.StorageConfiguration
+	if v, ok := d.GetOk("storage_configuration"); ok {
+		storageConfiguration = expandStorageConfiguration(v.([]interface{}))
+	}
+
 	parameters := dicomservices.DicomService{
 		Identity: i,
 		Properties: &dicomservices.DicomServiceProperties{
-			PublicNetworkAccess: pointer.To(dicomservices.PublicNetworkAccessEnabled),
+			CorsConfiguration:    corsConfiguration,
+			EnableDataPartitions: enableDataPartitions,
+			Encryption:           encryption,
+			PublicNetworkAccess:  pointer.To(dicomservices.PublicNetworkAccessEnabled),
+			StorageConfiguration: storageConfiguration,
 		},
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Tags:     tags.Expand(t),
@@ -209,6 +320,20 @@ func resourceHealthcareApisDicomServiceRead(d *pluginsdk.ResourceData, meta inte
 			if pna := pointer.From(props.PublicNetworkAccess); pna != "" {
 				d.Set("public_network_access_enabled", pointer.From(props.PublicNetworkAccess) == dicomservices.PublicNetworkAccessEnabled)
 			}
+
+			enableDataPartitions := false
+			if props.EnableDataPartitions != nil {
+				enableDataPartitions = pointer.From(props.EnableDataPartitions)
+			}
+			d.Set("data_partitions_enabled", enableDataPartitions)
+
+			d.Set("cors_configuration", flattenDicomServiceCorsConfiguration(props.CorsConfiguration))
+
+			if props.Encryption != nil && props.Encryption.CustomerManagedKeyEncryption != nil {
+				d.Set("encryption_key_url", pointer.From(props.Encryption.CustomerManagedKeyEncryption.KeyEncryptionKeyUrl))
+			}
+
+			d.Set("storage_configuration", flattenStorageConfiguration(props.StorageConfiguration))
 		}
 
 		i, err := identity.FlattenLegacySystemAndUserAssignedMap(m.Identity)
@@ -239,10 +364,38 @@ func resourceHealthcareApisDicomServiceUpdate(d *pluginsdk.ResourceData, meta in
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
+	var enableDataPartitions *bool
+	if v, ok := d.GetOk("data_partitions_enabled"); ok {
+		enableDataPartitions = pointer.To(v.(bool))
+	}
+
+	var corsConfiguration *dicomservices.CorsConfiguration
+	if v, ok := d.GetOk("cors_configuration"); ok {
+		corsConfiguration = expandDicomServiceCorsConfiguration(v.([]interface{}))
+	}
+
+	var encryption *dicomservices.Encryption
+	if v, ok := d.GetOk("encryption_key_url"); ok {
+		encryption = &dicomservices.Encryption{
+			CustomerManagedKeyEncryption: &dicomservices.EncryptionCustomerManagedKeyEncryption{
+				KeyEncryptionKeyUrl: pointer.To(v.(string)),
+			},
+		}
+	}
+
+	var storageConfiguration *dicomservices.StorageConfiguration
+	if v, ok := d.GetOk("storage_configuration"); ok {
+		storageConfiguration = expandStorageConfiguration(v.([]interface{}))
+	}
+
 	parameters := dicomservices.DicomService{
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &dicomservices.DicomServiceProperties{
-			PublicNetworkAccess: pointer.To(dicomservices.PublicNetworkAccessEnabled),
+			CorsConfiguration:    corsConfiguration,
+			EnableDataPartitions: enableDataPartitions,
+			Encryption:           encryption,
+			PublicNetworkAccess:  pointer.To(dicomservices.PublicNetworkAccessEnabled),
+			StorageConfiguration: storageConfiguration,
 		},
 		Identity: i,
 	}
@@ -372,4 +525,104 @@ func flattenDicomServicePrivateEndpoint(input *[]dicomservices.PrivateEndpointCo
 		}
 	}
 	return results
+}
+
+func expandStorageConfiguration(input []interface{}) *dicomservices.StorageConfiguration {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+	storageSettings := input[0].(map[string]interface{})
+
+	var storageResourceId *string
+	if v, ok := storageSettings["storage_account_id"]; ok {
+		storageResourceId = pointer.To(v.(string))
+	}
+
+	var fileSystemName *string
+	if v, ok := storageSettings["file_system_name"]; ok {
+		fileSystemName = pointer.To(v.(string))
+	}
+
+	return &dicomservices.StorageConfiguration{
+		FileSystemName:    fileSystemName,
+		StorageResourceId: storageResourceId,
+	}
+}
+
+func flattenStorageConfiguration(configuration *dicomservices.StorageConfiguration) interface{} {
+	if configuration == nil {
+		return []interface{}{}
+	}
+
+	result := make(map[string]interface{})
+	if configuration.FileSystemName != nil {
+		result["file_system_name"] = *configuration.FileSystemName
+	}
+
+	if configuration.StorageResourceId != nil {
+		result["storage_account_id"] = *configuration.StorageResourceId
+	}
+
+	return []interface{}{result}
+}
+
+func expandDicomServiceCorsConfiguration(inputList []interface{}) *dicomservices.CorsConfiguration {
+	if len(inputList) == 0 {
+		return nil
+	}
+
+	input := inputList[0].(map[string]interface{})
+	output := dicomservices.CorsConfiguration{}
+
+	if v, ok := input["allowed_origins"]; ok {
+		output.Origins = utils.ExpandStringSlice(v.([]interface{}))
+	}
+
+	if v, ok := input["allowed_headers"]; ok {
+		output.Headers = utils.ExpandStringSlice(v.([]interface{}))
+	}
+
+	if v, ok := input["allowed_methods"]; ok {
+		output.Methods = utils.ExpandStringSlice(v.([]interface{}))
+	}
+
+	if v, ok := input["max_age_in_seconds"]; ok {
+		output.MaxAge = pointer.To(int64(v.(int)))
+	}
+
+	if v, ok := input["allow_credentials"]; ok {
+		output.AllowCredentials = pointer.To(v.(bool))
+	}
+
+	return &output
+}
+
+func flattenDicomServiceCorsConfiguration(input *dicomservices.CorsConfiguration) []interface{} {
+	outputList := make([]interface{}, 0)
+	if input == nil {
+		return outputList
+	}
+
+	output := make(map[string]interface{})
+	if input.AllowCredentials != nil {
+		output["allow_credentials"] = pointer.From(input.AllowCredentials)
+	}
+
+	if input.Headers != nil {
+		output["allowed_headers"] = utils.FlattenStringSlice(input.Headers)
+	}
+
+	if input.MaxAge != nil {
+		output["max_age_in_seconds"] = pointer.From(input.MaxAge)
+	}
+
+	if input.Methods != nil {
+		output["allowed_methods"] = utils.FlattenStringSlice(input.Methods)
+	}
+
+	if input.Origins != nil {
+		output["allowed_origins"] = utils.FlattenStringSlice(input.Origins)
+	}
+
+	return append(outputList, output)
 }

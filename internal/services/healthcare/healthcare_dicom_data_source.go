@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -86,6 +87,82 @@ func dataSourceHealthcareDicomService() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"data_partitions_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"cors_configuration": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"allowed_origins": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
+						"allowed_headers": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
+						"allowed_methods": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
+						"max_age_in_seconds": {
+							Type:     pluginsdk.TypeInt,
+							Computed: true,
+						},
+						"allow_credentials": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"encryption_key_url": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"storage_configuration": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"file_system_name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"storage_account_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"provision_state": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"event_state": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"tags": commonschema.TagsDataSource(),
 		},
 	}
@@ -123,6 +200,30 @@ func dataSourceHealthcareApisDicomServiceRead(d *pluginsdk.ResourceData, meta in
 			d.Set("authentication", flattenDicomAuthentication(props.AuthenticationConfiguration))
 			d.Set("private_endpoint", flattenDicomServicePrivateEndpoint(props.PrivateEndpointConnections))
 			d.Set("service_url", props.ServiceUrl)
+
+			if props.EnableDataPartitions != nil {
+				d.Set("data_partitions_enabled", pointer.From(props.EnableDataPartitions))
+			}
+
+			if cors := props.CorsConfiguration; cors != nil {
+				d.Set("cors_configuration", flattenDicomServiceCorsConfiguration(cors))
+			}
+
+			if props.Encryption != nil && props.Encryption.CustomerManagedKeyEncryption != nil {
+				d.Set("encryption_key_url", pointer.From(props.Encryption.CustomerManagedKeyEncryption.KeyEncryptionKeyUrl))
+			}
+
+			if props.StorageConfiguration != nil {
+				d.Set("storage_configuration", flattenStorageConfiguration(props.StorageConfiguration))
+			}
+
+			if props.ProvisioningState != nil {
+				d.Set("provision_state", pointer.From(props.ProvisioningState))
+			}
+
+			if props.EventState != nil {
+				d.Set("event_state", pointer.From(props.EventState))
+			}
 		}
 
 		i, err := identity.FlattenLegacySystemAndUserAssignedMap(m.Identity)
