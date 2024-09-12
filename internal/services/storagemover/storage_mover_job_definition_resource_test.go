@@ -230,11 +230,19 @@ provider "azurerm" {
 
 %s
 
+data "azurerm_arc_machine" "test2" {
+  name                =  "acctest-lvm2-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  depends_on = [
+    azurerm_linux_virtual_machine.test
+  ]
+}
+
 resource "azurerm_storage_mover_agent" "test2" {
   name                     = "acctest-sa2-%[2]d"
   storage_mover_id         = azurerm_storage_mover.test.id
-  arc_virtual_machine_id   = data.azurerm_arc_machine.test.id
-  arc_virtual_machine_uuid = data.azurerm_arc_machine.test.vm_uuid
+  arc_virtual_machine_id   = data.azurerm_arc_machine.test2.id
+  arc_virtual_machine_uuid = data.azurerm_arc_machine.test2.vm_uuid
 }
 
 resource "azurerm_storage_mover_job_definition" "test" {
