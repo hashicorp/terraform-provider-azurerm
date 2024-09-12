@@ -178,8 +178,8 @@ resource "azurerm_service_fabric_managed_cluster" "test" {
   %[4]s
 
   tags = {
-    Test                              = "value"
-    SFRP.DisableDefaultOutboundAccess = true
+    Test                                = "value"
+    "SFRP.DisableDefaultOutboundAccess" = true
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, nodeTypeData)
@@ -225,8 +225,8 @@ resource "azurerm_service_fabric_managed_cluster" "test" {
   %[4]s
 
   tags = {
-    Test                              = "value"
-    SFRP.DisableDefaultOutboundAccess = true
+    Test                                = "value"
+    "SFRP.DisableDefaultOutboundAccess" = true
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, nodeTypeData)
@@ -259,8 +259,8 @@ resource "azurerm_service_fabric_managed_cluster" "test1" {
   %[3]s
 
   tags = {
-    Test                              = "value"
-    SFRP.DisableDefaultOutboundAccess = true
+    Test                                = "value"
+    "SFRP.DisableDefaultOutboundAccess" = true
   }
 }
 `, r.basic(data, nt), data.RandomString, nt)
