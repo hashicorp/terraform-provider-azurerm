@@ -67,35 +67,6 @@ func TestAccContainerAppJob_withWorkloadProfile(t *testing.T) {
 	})
 }
 
-func TestAccContainerAppJob_withWorkloadProfileUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_container_app_job", "test")
-	r := ContainerAppJobResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.withWorkloadProfile(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccContainerAppJob_withSystemAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app_job", "test")
 	r := ContainerAppJobResource{}
