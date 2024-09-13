@@ -2,7 +2,8 @@
 
 FEATURES:
 
-* **New Resource**: `azurerm_arc_machine` [GH-26647] 
+* **New Resource**: `azurerm_arc_machine` [GH-26647]
+* **New Resource**: `azurerm_arc_machine_automanage_configuration_assignment` [GH-26657] 
 
 ENHANCEMENTS:
 
