@@ -25,7 +25,7 @@ func TestAccDataSourceKeyVaultSecretVersions_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("versions.#").HasValue("1"),
 				check.That(data.ResourceName).Key("versions.0.enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("versions.0.created_date").MatchesRegex(regexp.MustCompile(`^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$`)),
-				check.That(data.ResourceName).Key("versions.0.id").MatchesRegex(regexp.MustCompile(`^w+$`)),
+				check.That(data.ResourceName).Key("versions.0.id").MatchesRegex(regexp.MustCompile(`^\w+$`)),
 			),
 		},
 	})
@@ -45,7 +45,7 @@ func TestAccDataSourceKeyVaultSecretVersions_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("versions.0.not_before_date").HasValue("2019-01-01T01:02:03Z"),
 				check.That(data.ResourceName).Key("versions.0.expiration_date").HasValue("2020-01-01T01:02:03Z"),
 				check.That(data.ResourceName).Key("versions.0.updated_date").MatchesRegex(regexp.MustCompile(`^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$`)),
-				check.That(data.ResourceName).Key("versions.0.id").MatchesRegex(regexp.MustCompile(`^w+$`)),
+				check.That(data.ResourceName).Key("versions.0.id").MatchesRegex(regexp.MustCompile(`^\w+$`)),
 				check.That(data.ResourceName).Key("versions.0.uri").MatchesRegex(regexp.MustCompile(`^https://acctestkv-\w+.vault.azure.net/secrets/secret-\w+/\w+$`)),
 			),
 		},
