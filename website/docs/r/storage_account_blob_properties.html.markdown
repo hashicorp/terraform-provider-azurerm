@@ -12,9 +12,7 @@ Manages an Azure Storage Accounts Blob Properties.
 
 ## Disclaimers
 
-~> **NOTE on Storage Accounts and Blob Properties:** Terraform currently provides both a standalone [Blob Properties resource](storage_account_blob_properties.html), and allows for Blob Properties
-to be defined in-line within the [Storage Account resource](storage_account.html). At this time you cannot use a Storage Account with in-line Blob Properties in conjunction with any
-Blob Properties resource. Doing so will cause a conflict of Blob Properties configurations and will overwrite the Blob Properties.
+~> **NOTE on Storage Accounts and Blob Properties:** Terraform currently provides both a standalone [Blob Properties resource](storage_account_blob_properties.html), and allows for Blob Properties to be defined in-line within the [Storage Account resource](storage_account.html). At this time you cannot use a Storage Account with in-line Blob Properties in conjunction with any Blob Properties resource. Doing so will cause a conflict of Blob Properties configurations and will overwrite the Blob Properties.
 
 ## Example Usage
 
