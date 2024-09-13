@@ -242,7 +242,7 @@ func (r DataProtectionBackupPolicyMySQLFlexibleServerResource) Arguments() map[s
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validate.BackupPolicyMySQLFlexibleServerTimeZone(),
 		},
 	}
 	return arguments
