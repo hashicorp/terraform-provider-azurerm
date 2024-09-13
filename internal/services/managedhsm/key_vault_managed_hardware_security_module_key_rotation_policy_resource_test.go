@@ -20,7 +20,7 @@ import (
 type MHSMKeyRotationPolicyTestResource struct{}
 
 func testAccMHSMKeyRotationPolicy_all(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_hardware_security_module_key", "test")
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_hardware_security_module_key_rotation_policy", "test")
 	r := MHSMKeyRotationPolicyTestResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{

@@ -32,15 +32,13 @@ resource "azurerm_key_vault_managed_hardware_security_module_key_rotation_policy
 
 The following arguments are supported:
 
-* `expire_after` - (Required) Specify the expiration time of the key.
-
 * `managed_hsm_key_id` - (Required) The ID of the Managed HSM Key. Changing this forces a new Key Vault to be created.
 
----
+* `expire_after` - (Required) Specify the expiration duration on a newly rotated key as an [ISO 8601 duration](https://en.wikipedia.org/wiki/ISO_8601#Durations). The minumum duration is `P28D`.
 
-* `time_after_creation` - (Optional) Specify the rotation time after creation in the format of ISO86061. Exactly one of `time_after_creation` or `time_before_expiry` should be specified.
+* `time_after_creation` - (Optional) Rotate automatically at a duration after create as an [ISO 8601 duration](https://en.wikipedia.org/wiki/ISO_8601#Durations). Exactly one of `time_after_creation` or `time_before_expiry` should be specified.
 
-* `time_before_expiry` - (Optional) Specify the rotation time before expiration in the format of ISO86061. Exactly one of `time_after_creation` or `time_before_expiry` should be specified.
+* `time_before_expiry` - (Optional) Rotate automatically at a duration before expiry as an [ISO 8601 duration](https://en.wikipedia.org/wiki/ISO_8601#Durations). Exactly one of `time_after_creation` or `time_before_expiry` should be specified.
 
 ## Attributes Reference
 

@@ -10,12 +10,12 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	validate2 "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault"
 )
 
@@ -108,8 +108,7 @@ func (r KeyVaultMHSMKeyRotationPolicyResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("parsing Managed HSM Key ID: %+v", err)
 			}
 
-			_, err = client.GetKey(ctx, keyID.BaseUri(), keyID.KeyName, "")
-			if err != nil {
+			if _, err = client.GetKey(ctx, keyID.BaseUri(), keyID.KeyName, ""); err != nil {
 				return fmt.Errorf("checking for the presence of an existing %s: %+v", keyID, err)
 			}
 
@@ -117,11 +116,11 @@ func (r KeyVaultMHSMKeyRotationPolicyResource) Create() sdk.ResourceFunc {
 			respPolicy, err := client.GetKeyRotationPolicy(ctx, keyID.BaseUri(), keyID.KeyName)
 			if err != nil {
 				switch {
-				case utils.ResponseWasForbidden(respPolicy.Response):
+				case response.WasForbidden(respPolicy.Response.Response):
 					// If client is not authorized to access the policy:
 					return fmt.Errorf("current client lacks permissions to read Key Rotation Policy for Key %q: %v", keyID, err)
 
-				case utils.ResponseWasNotFound(respPolicy.Response):
+				case response.WasNotFound(respPolicy.Response.Response):
 					break
 				default:
 					return err
@@ -161,7 +160,7 @@ func (r KeyVaultMHSMKeyRotationPolicyResource) Read() sdk.ResourceFunc {
 
 			resp, err := client.GetKeyRotationPolicy(ctx, id.BaseUri(), id.KeyName)
 			if err != nil {
-				if utils.ResponseWasNotFound(resp.Response) {
+				if response.WasNotFound(resp.Response.Response) {
 					return metadata.MarkAsGone(*id)
 				}
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
@@ -236,7 +235,7 @@ func expandKeyRotationPolicy(policy MHSMKeyRotationPolicyResourceSchema) keyvaul
 
 	var expiryTime *string // = nil // needs to be set to nil if not set
 	if policy.ExipreAfter != "" {
-		expiryTime = utils.String(policy.ExipreAfter)
+		expiryTime = pointer.To(policy.ExipreAfter)
 	}
 
 	lifetimeActions := make([]keyvault.LifetimeActions, 0)
