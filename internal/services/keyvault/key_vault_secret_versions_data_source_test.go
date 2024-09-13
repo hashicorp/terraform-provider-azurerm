@@ -57,7 +57,7 @@ func (KeyVaultSecretVersionsDataSource) basic(data acceptance.TestData) string {
 %s
 
 data "azurerm_key_vault_secret_versions" "test" {
-  name		   = azurerm_key_vault_secret.test.name
+  name         = azurerm_key_vault_secret.test.name
   key_vault_id = azurerm_key_vault.test.id
 }
 `, KeyVaultSecretResource{}.basic(data))
@@ -68,7 +68,7 @@ func (KeyVaultSecretVersionsDataSource) complete(data acceptance.TestData) strin
 %s
 
 data "azurerm_key_vault_secret_versions" "test" {
-  name		   = azurerm_key_vault_secret.test.name
+  name         = azurerm_key_vault_secret.test.name
   key_vault_id = azurerm_key_vault.test.id
 }
 `, KeyVaultSecretResource{}.complete(data))

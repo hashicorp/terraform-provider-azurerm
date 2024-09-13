@@ -148,7 +148,6 @@ func (r KeyVaultSecretVersionsDataSource) Read() sdk.ResourceFunc {
 				for resp.NotDone() {
 					for _, v := range resp.Values() {
 						model.Versions = append(model.Versions, expandSecretVersion(&v))
-						//versions = append(versions, expandSecretVersion(&v))
 					}
 					err = resp.NextWithContext(ctx)
 					if err != nil {
