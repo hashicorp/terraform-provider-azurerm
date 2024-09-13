@@ -23,6 +23,18 @@ type GetDisableSoftDeleteRequestsObjectsCompleteResult struct {
 	Items              []DppBaseResource
 }
 
+type GetDisableSoftDeleteRequestsObjectsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *GetDisableSoftDeleteRequestsObjectsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // GetDisableSoftDeleteRequestsObjects ...
 func (c ResourceGuardsClient) GetDisableSoftDeleteRequestsObjects(ctx context.Context, id ResourceGuardId) (result GetDisableSoftDeleteRequestsObjectsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c ResourceGuardsClient) GetDisableSoftDeleteRequestsObjects(ctx context.Co
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &GetDisableSoftDeleteRequestsObjectsCustomPager{},
 		Path:       fmt.Sprintf("%s/disableSoftDeleteRequests", id.ID()),
 	}
 

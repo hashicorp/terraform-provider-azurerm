@@ -23,6 +23,18 @@ type PublicIPAddressesListCloudServicePublicIPAddressesCompleteResult struct {
 	Items              []PublicIPAddress
 }
 
+type PublicIPAddressesListCloudServicePublicIPAddressesCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *PublicIPAddressesListCloudServicePublicIPAddressesCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // PublicIPAddressesListCloudServicePublicIPAddresses ...
 func (c CloudServicePublicIPAddressesClient) PublicIPAddressesListCloudServicePublicIPAddresses(ctx context.Context, id ProviderCloudServiceId) (result PublicIPAddressesListCloudServicePublicIPAddressesOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c CloudServicePublicIPAddressesClient) PublicIPAddressesListCloudServicePu
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &PublicIPAddressesListCloudServicePublicIPAddressesCustomPager{},
 		Path:       fmt.Sprintf("%s/publicIPAddresses", id.ID()),
 	}
 

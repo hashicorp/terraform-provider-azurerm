@@ -23,6 +23,18 @@ type ListHealthDetailsCompleteResult struct {
 	Items              []HealthCheckStatusDetails
 }
 
+type ListHealthDetailsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListHealthDetailsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListHealthDetails ...
 func (c NetworkConnectionsClient) ListHealthDetails(ctx context.Context, id NetworkConnectionId) (result ListHealthDetailsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c NetworkConnectionsClient) ListHealthDetails(ctx context.Context, id Netw
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListHealthDetailsCustomPager{},
 		Path:       fmt.Sprintf("%s/healthChecks", id.ID()),
 	}
 

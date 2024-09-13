@@ -24,6 +24,18 @@ type AccountsListByResourceGroupCompleteResult struct {
 	Items              []Account
 }
 
+type AccountsListByResourceGroupCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *AccountsListByResourceGroupCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // AccountsListByResourceGroup ...
 func (c CognitiveServicesAccountsClient) AccountsListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (result AccountsListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c CognitiveServicesAccountsClient) AccountsListByResourceGroup(ctx context
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &AccountsListByResourceGroupCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.CognitiveServices/accounts", id.ID()),
 	}
 

@@ -23,6 +23,18 @@ type ArcSettingsListByClusterCompleteResult struct {
 	Items              []ArcSetting
 }
 
+type ArcSettingsListByClusterCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ArcSettingsListByClusterCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ArcSettingsListByCluster ...
 func (c ArcSettingsClient) ArcSettingsListByCluster(ctx context.Context, id ClusterId) (result ArcSettingsListByClusterOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c ArcSettingsClient) ArcSettingsListByCluster(ctx context.Context, id Clus
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ArcSettingsListByClusterCustomPager{},
 		Path:       fmt.Sprintf("%s/arcSettings", id.ID()),
 	}
 

@@ -192,7 +192,7 @@ func (r DashboardGrafanaResource) Arguments() map[string]*pluginsdk.Schema {
 			Required: true,
 			ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
-				"10",
+				"9", "10",
 			}, false),
 		},
 
@@ -389,6 +389,10 @@ func (r DashboardGrafanaResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("tags") {
 				properties.Tags = &model.Tags
+			}
+
+			if metadata.ResourceData.HasChange("smtp") {
+				properties.Properties.GrafanaConfigurations = expandSMTPConfigurationModel(model.SMTP)
 			}
 
 			if err := client.GrafanaCreateThenPoll(ctx, *id, *properties); err != nil {

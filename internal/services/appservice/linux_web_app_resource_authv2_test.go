@@ -274,6 +274,7 @@ resource "azurerm_linux_web_app" "test" {
         "activedirectorytokenaudiences",
       ]
       tenant_auth_endpoint = "https://sts.windows.net/%[5]s/v2.0"
+      allowed_applications = ["WhoopsMissedThisOne"]
     }
 
 
@@ -861,19 +862,20 @@ resource "azurerm_linux_web_app" "test" {
       "third.aspx",
       "hostingstart.html",
     ]
-    http2_enabled               = true
-    scm_use_main_ip_restriction = true
-    local_mysql_enabled         = true
-    managed_pipeline_mode       = "Integrated"
-    remote_debugging_enabled    = true
-    remote_debugging_version    = "VS2019"
-    use_32_bit_worker           = false
-    websockets_enabled          = true
-    ftps_state                  = "FtpsOnly"
-    health_check_path           = "/health"
-    worker_count                = 1
-    minimum_tls_version         = "1.1"
-    scm_minimum_tls_version     = "1.1"
+    http2_enabled                     = true
+    scm_use_main_ip_restriction       = true
+    local_mysql_enabled               = true
+    managed_pipeline_mode             = "Integrated"
+    remote_debugging_enabled          = true
+    remote_debugging_version          = "VS2022"
+    use_32_bit_worker                 = false
+    websockets_enabled                = true
+    ftps_state                        = "FtpsOnly"
+    health_check_path                 = "/health"
+    health_check_eviction_time_in_min = 7
+    worker_count                      = 1
+    minimum_tls_version               = "1.1"
+    scm_minimum_tls_version           = "1.1"
     cors {
       allowed_origins = [
         "http://www.contoso.com",
@@ -885,8 +887,6 @@ resource "azurerm_linux_web_app" "test" {
 
     container_registry_use_managed_identity       = true
     container_registry_managed_identity_client_id = azurerm_user_assigned_identity.test.client_id
-
-    auto_heal_enabled = true
 
     auto_heal_setting {
       trigger {

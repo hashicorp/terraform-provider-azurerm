@@ -23,6 +23,18 @@ type RolesListCompleteResult struct {
 	Items              []TrustedAccessRole
 }
 
+type RolesListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *RolesListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // RolesList ...
 func (c TrustedAccessClient) RolesList(ctx context.Context, id LocationId) (result RolesListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c TrustedAccessClient) RolesList(ctx context.Context, id LocationId) (resu
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &RolesListCustomPager{},
 		Path:       fmt.Sprintf("%s/trustedAccessRoles", id.ID()),
 	}
 

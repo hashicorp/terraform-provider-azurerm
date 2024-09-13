@@ -32,7 +32,7 @@ type KeyVaultMHSMRoleDefinitionDataSourceModel struct {
 	ResourceManagerId string       `tfschema:"resource_manager_id"`
 
 	// TODO: remove in v4.0
-	VaultBaseUrl string `tfschema:"vault_base_url"`
+	VaultBaseUrl string `tfschema:"vault_base_url,removedInNextMajorVersion"`
 }
 
 type KeyvaultMHSMRoleDefinitionDataSource struct{}

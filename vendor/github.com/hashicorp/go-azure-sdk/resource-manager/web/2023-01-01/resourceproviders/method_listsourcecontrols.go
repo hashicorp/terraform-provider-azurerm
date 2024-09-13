@@ -23,6 +23,18 @@ type ListSourceControlsCompleteResult struct {
 	Items              []SourceControl
 }
 
+type ListSourceControlsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListSourceControlsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListSourceControls ...
 func (c ResourceProvidersClient) ListSourceControls(ctx context.Context) (result ListSourceControlsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c ResourceProvidersClient) ListSourceControls(ctx context.Context) (result
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListSourceControlsCustomPager{},
 		Path:       "/providers/Microsoft.Web/sourceControls",
 	}
 

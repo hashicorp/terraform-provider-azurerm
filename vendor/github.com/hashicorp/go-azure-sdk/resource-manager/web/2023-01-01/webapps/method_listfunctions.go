@@ -24,6 +24,18 @@ type ListFunctionsCompleteResult struct {
 	Items              []FunctionEnvelope
 }
 
+type ListFunctionsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListFunctionsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListFunctions ...
 func (c WebAppsClient) ListFunctions(ctx context.Context, id commonids.AppServiceId) (result ListFunctionsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c WebAppsClient) ListFunctions(ctx context.Context, id commonids.AppServic
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListFunctionsCustomPager{},
 		Path:       fmt.Sprintf("%s/functions", id.ID()),
 	}
 

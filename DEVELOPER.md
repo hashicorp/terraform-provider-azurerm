@@ -38,9 +38,9 @@ If you wish to work on the provider, you'll first need [Go](https://go.dev/) ins
 First clone the repository to: `$GOPATH/src/github.com/hashicorp/terraform-provider-azurerm`
 
 ```sh
-$ mkdir -p $GOPATH/src/github.com/hashicorp; cd $GOPATH/src/github.com/hashicorp
-$ git clone git@github.com:hashicorp/terraform-provider-azurerm
-$ cd $GOPATH/src/github.com/hashicorp/terraform-provider-azurerm
+mkdir -p $GOPATH/src/github.com/hashicorp; cd $GOPATH/src/github.com/hashicorp
+git clone git@github.com:hashicorp/terraform-provider-azurerm
+cd $GOPATH/src/github.com/hashicorp/terraform-provider-azurerm
 ```
 
 Once inside the provider directory, you can run `make tools` to install the dependent tooling required to compile the provider.
@@ -48,10 +48,11 @@ Once inside the provider directory, you can run `make tools` to install the depe
 At this point you can compile the provider by running `make build`, which will build the provider and put the provider binary in the `$GOPATH/bin` directory.
 
 ```sh
-$ make build
-...
-$ $GOPATH/bin/terraform-provider-azurerm
-...
+make build
+# ... make output omitted ...
+# The provider binary will be output to:
+#   $GOPATH/bin/terraform-provider-azurerm
+# ...
 ```
 
 You can also cross-compile if necessary:
@@ -63,7 +64,7 @@ GOOS=windows GOARCH=amd64 make build
 In order to run the `Unit Tests` for the provider, you can run:
 
 ```sh
-$ make test
+make test
 ```
 
 The majority of tests in the provider are `Acceptance Tests` - which provisions real resources in Azure. It's possible to run the entire acceptance test suite by running `make testacc` - however it's likely you'll want to run a subset, which you can do using a prefix, by running:
@@ -140,11 +141,11 @@ When `make generate` is run, this will then generate the following for this Reso
 You can scaffold the documentation for a Data Source by running:
 
 ```sh
-$ make scaffold-website BRAND_NAME="Resource Group" RESOURCE_NAME="azurerm_resource_group" RESOURCE_TYPE="data"
+make scaffold-website BRAND_NAME="Resource Group" RESOURCE_NAME="azurerm_resource_group" RESOURCE_TYPE="data"
 ```
 
 You can scaffold the documentation for a Resource by running:
 
 ```sh
-$ make scaffold-website BRAND_NAME="Resource Group" RESOURCE_NAME="azurerm_resource_group" RESOURCE_TYPE="resource" RESOURCE_ID="/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1"
+make scaffold-website BRAND_NAME="Resource Group" RESOURCE_NAME="azurerm_resource_group" RESOURCE_TYPE="resource" RESOURCE_ID="/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1"
 ```

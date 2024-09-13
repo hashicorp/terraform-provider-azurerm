@@ -50,6 +50,18 @@ func (o AttachedNetworksListByDevCenterOperationOptions) ToQuery() *client.Query
 	return &out
 }
 
+type AttachedNetworksListByDevCenterCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *AttachedNetworksListByDevCenterCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // AttachedNetworksListByDevCenter ...
 func (c AttachedNetworkConnectionsClient) AttachedNetworksListByDevCenter(ctx context.Context, id DevCenterId, options AttachedNetworksListByDevCenterOperationOptions) (result AttachedNetworksListByDevCenterOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -58,8 +70,9 @@ func (c AttachedNetworkConnectionsClient) AttachedNetworksListByDevCenter(ctx co
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/attachednetworks", id.ID()),
 		OptionsObject: options,
+		Pager:         &AttachedNetworksListByDevCenterCustomPager{},
+		Path:          fmt.Sprintf("%s/attachednetworks", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

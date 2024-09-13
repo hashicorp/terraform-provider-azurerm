@@ -24,6 +24,18 @@ type PublicIPAddressesListCloudServiceRoleInstancePublicIPAddressesCompleteResul
 	Items              []PublicIPAddress
 }
 
+type PublicIPAddressesListCloudServiceRoleInstancePublicIPAddressesCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *PublicIPAddressesListCloudServiceRoleInstancePublicIPAddressesCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // PublicIPAddressesListCloudServiceRoleInstancePublicIPAddresses ...
 func (c CloudServicePublicIPAddressesClient) PublicIPAddressesListCloudServiceRoleInstancePublicIPAddresses(ctx context.Context, id commonids.CloudServicesIPConfigurationId) (result PublicIPAddressesListCloudServiceRoleInstancePublicIPAddressesOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c CloudServicePublicIPAddressesClient) PublicIPAddressesListCloudServiceRo
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &PublicIPAddressesListCloudServiceRoleInstancePublicIPAddressesCustomPager{},
 		Path:       fmt.Sprintf("%s/publicIPAddresses", id.ID()),
 	}
 

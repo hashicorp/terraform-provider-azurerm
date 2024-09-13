@@ -52,8 +52,8 @@ func (c JobClient) Stop(ctx context.Context, id JobId, options StopOperationOpti
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPost,
-		Path:          fmt.Sprintf("%s/stop", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/stop", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

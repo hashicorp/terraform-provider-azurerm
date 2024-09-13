@@ -59,14 +59,14 @@ var serviceTestConfigurationOverrides = mapOf(
         "cognitive" to testConfiguration(daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "eastus", "southcentralus", true)),
 
         // Cosmos is only available in certain locations
-        "cosmos" to testConfiguration(locationOverride = LocationConfiguration("westus", "northeurope", "southcentralus", true)),
+        "cosmos" to testConfiguration(locationOverride = LocationConfiguration("westus", "northeurope", "eastus2", true)),
 
         // Confidential Ledger
         "confidentialledger" to testConfiguration(locationOverride = LocationConfiguration("eastus","southcentralus","westeurope", false)),
 
         // Container App Managed Environments are limited to 20 per location, using 10 as they can take some time to clear
         // Enable rotation test to mitigate resource burden in a single region
-        "containerapps" to testConfiguration(parallelism = 10, locationOverride = LocationConfiguration("eastus2","westus2","southcentralus", true)),
+        "containerapps" to testConfiguration(parallelism = 10, locationOverride = LocationConfiguration("eastus2","westus2","northcentralus", true)),
 
         // The AKS API has a low rate limit
         "containers" to testConfiguration(parallelism = 5, locationOverride = LocationConfiguration("eastus","westeurope","eastus2", false), timeout = 18),
@@ -129,7 +129,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "mssql" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false)),
 
         // MSSQL Managed Instance creation can impact the service so limit the frequency and number of tests
-        "mssqlmanagedinstance" to testConfiguration(parallelism = 4, daysOfWeek = "7", locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false)),
+        "mssqlmanagedinstance" to testConfiguration(parallelism = 4, daysOfWeek = "7", locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false), timeout = 18),
 
         // MySQL has quota available in certain locations
         "mysql" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false)),

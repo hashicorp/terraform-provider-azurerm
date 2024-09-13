@@ -235,11 +235,11 @@ resource "azurerm_storage_mover" "test" {
   ]
 }
 
-data "azurerm_hybrid_compute_machine" "test" {
+data "azurerm_arc_machine" "test" {
   name                = azurerm_linux_virtual_machine.test.name
   resource_group_name = azurerm_resource_group.test.name
   depends_on = [
-    azurerm_storage_mover.test
+    azurerm_linux_virtual_machine.test
   ]
 }
 
@@ -265,8 +265,8 @@ provider "azurerm" {
 resource "azurerm_storage_mover_agent" "test" {
   name                     = "acctest-sa-%d"
   storage_mover_id         = azurerm_storage_mover.test.id
-  arc_virtual_machine_id   = data.azurerm_hybrid_compute_machine.test.id
-  arc_virtual_machine_uuid = data.azurerm_hybrid_compute_machine.test.vm_uuid
+  arc_virtual_machine_id   = data.azurerm_arc_machine.test.id
+  arc_virtual_machine_uuid = data.azurerm_arc_machine.test.vm_uuid
 }
 `, template, data.RandomInteger)
 }
@@ -305,8 +305,8 @@ provider "azurerm" {
 resource "azurerm_storage_mover_agent" "test" {
   name                     = "acctest-sa-%d"
   storage_mover_id         = azurerm_storage_mover.test.id
-  arc_virtual_machine_id   = data.azurerm_hybrid_compute_machine.test.id
-  arc_virtual_machine_uuid = data.azurerm_hybrid_compute_machine.test.vm_uuid
+  arc_virtual_machine_id   = data.azurerm_arc_machine.test.id
+  arc_virtual_machine_uuid = data.azurerm_arc_machine.test.vm_uuid
   description              = "Example Agent Description"
 }
 `, template, data.RandomInteger)
@@ -330,8 +330,8 @@ provider "azurerm" {
 resource "azurerm_storage_mover_agent" "test" {
   name                     = "acctest-sa-%d"
   storage_mover_id         = azurerm_storage_mover.test.id
-  arc_virtual_machine_id   = data.azurerm_hybrid_compute_machine.test.id
-  arc_virtual_machine_uuid = data.azurerm_hybrid_compute_machine.test.vm_uuid
+  arc_virtual_machine_id   = data.azurerm_arc_machine.test.id
+  arc_virtual_machine_uuid = data.azurerm_arc_machine.test.vm_uuid
   description              = "Update Example Agent Description"
 
 }

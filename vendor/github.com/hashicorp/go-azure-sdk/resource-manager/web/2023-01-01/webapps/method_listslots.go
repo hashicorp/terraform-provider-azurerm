@@ -24,6 +24,18 @@ type ListSlotsCompleteResult struct {
 	Items              []Site
 }
 
+type ListSlotsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListSlotsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListSlots ...
 func (c WebAppsClient) ListSlots(ctx context.Context, id commonids.AppServiceId) (result ListSlotsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c WebAppsClient) ListSlots(ctx context.Context, id commonids.AppServiceId)
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListSlotsCustomPager{},
 		Path:       fmt.Sprintf("%s/slots", id.ID()),
 	}
 

@@ -24,6 +24,18 @@ type DevToolPortalsListCompleteResult struct {
 	Items              []DevToolPortalResource
 }
 
+type DevToolPortalsListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *DevToolPortalsListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // DevToolPortalsList ...
 func (c AppPlatformClient) DevToolPortalsList(ctx context.Context, id commonids.SpringCloudServiceId) (result DevToolPortalsListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c AppPlatformClient) DevToolPortalsList(ctx context.Context, id commonids.
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &DevToolPortalsListCustomPager{},
 		Path:       fmt.Sprintf("%s/devToolPortals", id.ID()),
 	}
 

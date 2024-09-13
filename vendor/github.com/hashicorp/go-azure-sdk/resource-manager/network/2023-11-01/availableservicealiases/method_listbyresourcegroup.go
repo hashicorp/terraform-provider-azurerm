@@ -23,6 +23,18 @@ type ListByResourceGroupCompleteResult struct {
 	Items              []AvailableServiceAlias
 }
 
+type ListByResourceGroupCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByResourceGroupCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByResourceGroup ...
 func (c AvailableServiceAliasesClient) ListByResourceGroup(ctx context.Context, id ProviderLocationId) (result ListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c AvailableServiceAliasesClient) ListByResourceGroup(ctx context.Context, 
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByResourceGroupCustomPager{},
 		Path:       fmt.Sprintf("%s/availableServiceAliases", id.ID()),
 	}
 

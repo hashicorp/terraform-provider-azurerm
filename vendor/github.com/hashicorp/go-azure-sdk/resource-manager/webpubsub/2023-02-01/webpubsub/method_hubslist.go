@@ -23,6 +23,18 @@ type HubsListCompleteResult struct {
 	Items              []WebPubSubHub
 }
 
+type HubsListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *HubsListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // HubsList ...
 func (c WebPubSubClient) HubsList(ctx context.Context, id WebPubSubId) (result HubsListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c WebPubSubClient) HubsList(ctx context.Context, id WebPubSubId) (result H
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &HubsListCustomPager{},
 		Path:       fmt.Sprintf("%s/hubs", id.ID()),
 	}
 

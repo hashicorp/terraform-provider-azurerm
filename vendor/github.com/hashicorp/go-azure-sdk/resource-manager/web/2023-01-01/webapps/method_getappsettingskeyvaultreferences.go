@@ -24,6 +24,18 @@ type GetAppSettingsKeyVaultReferencesCompleteResult struct {
 	Items              []ApiKVReference
 }
 
+type GetAppSettingsKeyVaultReferencesCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *GetAppSettingsKeyVaultReferencesCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // GetAppSettingsKeyVaultReferences ...
 func (c WebAppsClient) GetAppSettingsKeyVaultReferences(ctx context.Context, id commonids.AppServiceId) (result GetAppSettingsKeyVaultReferencesOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c WebAppsClient) GetAppSettingsKeyVaultReferences(ctx context.Context, id 
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &GetAppSettingsKeyVaultReferencesCustomPager{},
 		Path:       fmt.Sprintf("%s/config/configReferences/appSettings", id.ID()),
 	}
 

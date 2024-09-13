@@ -54,8 +54,8 @@ func (c ApiTagDescriptionClient) CreateOrUpdate(ctx context.Context, id TagDescr
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPut,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

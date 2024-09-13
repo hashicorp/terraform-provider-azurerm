@@ -26,6 +26,18 @@ type ExpressRouteCircuitsListRoutesTableSummaryCompleteResult struct {
 	Items              []ExpressRouteCircuitRoutesTableSummary
 }
 
+type ExpressRouteCircuitsListRoutesTableSummaryCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ExpressRouteCircuitsListRoutesTableSummaryCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ExpressRouteCircuitsListRoutesTableSummary ...
 func (c ExpressRouteCircuitRoutesTableSummaryClient) ExpressRouteCircuitsListRoutesTableSummary(ctx context.Context, id RouteTablesSummaryId) (result ExpressRouteCircuitsListRoutesTableSummaryOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -35,6 +47,7 @@ func (c ExpressRouteCircuitRoutesTableSummaryClient) ExpressRouteCircuitsListRou
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodPost,
+		Pager:      &ExpressRouteCircuitsListRoutesTableSummaryCustomPager{},
 		Path:       id.ID(),
 	}
 

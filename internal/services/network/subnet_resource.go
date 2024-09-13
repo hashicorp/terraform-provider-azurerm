@@ -59,6 +59,7 @@ var subnetDelegationServiceNames = []string{
 	"Microsoft.DBforPostgreSQL/singleServers",
 	"Microsoft.DelegatedNetwork/controller",
 	"Microsoft.DevCenter/networkConnection",
+	"Microsoft.DevOpsInfrastructure/pools",
 	"Microsoft.DocumentDB/cassandraClusters",
 	"Microsoft.Fidalgo/networkSettings",
 	"Microsoft.HardwareSecurityModules/dedicatedHSMs",
@@ -301,7 +302,7 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.Client.Subnets
 	vnetClient := meta.(*clients.Client).Network.VirtualNetworks
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Subnet creation.")

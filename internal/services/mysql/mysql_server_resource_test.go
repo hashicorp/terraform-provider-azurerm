@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -20,6 +21,9 @@ import (
 type MySQLServerResource struct{}
 
 func TestAccMySQLServer_basicFiveSeven(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skipf("Skipping since `azurerm_mysql_server` is deprecated and will be removed in 4.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
 	r := MySQLServerResource{}
 
@@ -35,6 +39,9 @@ func TestAccMySQLServer_basicFiveSeven(t *testing.T) {
 }
 
 func TestAccMySQLServer_basicEightZero(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skipf("Skipping since `azurerm_mysql_server` is deprecated and will be removed in 4.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
 	r := MySQLServerResource{}
 
@@ -50,6 +57,9 @@ func TestAccMySQLServer_basicEightZero(t *testing.T) {
 }
 
 func TestAccMySQLServer_autogrowOnly(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skipf("Skipping since `azurerm_mysql_server` is deprecated and will be removed in 4.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
 	r := MySQLServerResource{}
 	mysqlVersion := "5.7"
@@ -73,6 +83,9 @@ func TestAccMySQLServer_autogrowOnly(t *testing.T) {
 }
 
 func TestAccMySQLServer_requiresImport(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skipf("Skipping since `azurerm_mysql_server` is deprecated and will be removed in 4.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
 	r := MySQLServerResource{}
 
@@ -88,6 +101,9 @@ func TestAccMySQLServer_requiresImport(t *testing.T) {
 }
 
 func TestAccMySQLServer_complete(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skipf("Skipping since `azurerm_mysql_server` is deprecated and will be removed in 4.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
 	r := MySQLServerResource{}
 
@@ -103,6 +119,9 @@ func TestAccMySQLServer_complete(t *testing.T) {
 }
 
 func TestAccMySQLServer_update(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skipf("Skipping since `azurerm_mysql_server` is deprecated and will be removed in 4.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
 	r := MySQLServerResource{}
 	mysqlVersion := "8.0"
@@ -147,6 +166,9 @@ func TestAccMySQLServer_update(t *testing.T) {
 }
 
 func TestAccMySQLServer_updateSKU(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skipf("Skipping since `azurerm_mysql_server` is deprecated and will be removed in 4.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
 	r := MySQLServerResource{}
 
@@ -169,6 +191,9 @@ func TestAccMySQLServer_updateSKU(t *testing.T) {
 }
 
 func TestAccMySQLServer_createReplica(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skipf("Skipping since `azurerm_mysql_server` is deprecated and will be removed in 4.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
 	r := MySQLServerResource{}
 	mysqlVersion := "8.0"
@@ -192,6 +217,9 @@ func TestAccMySQLServer_createReplica(t *testing.T) {
 }
 
 func TestAccMySQLServer_createPointInTimeRestore(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skipf("Skipping since `azurerm_mysql_server` is deprecated and will be removed in 4.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
 	r := MySQLServerResource{}
 	restoreTime := time.Now().Add(11 * time.Minute)
@@ -217,6 +245,9 @@ func TestAccMySQLServer_createPointInTimeRestore(t *testing.T) {
 }
 
 func TestAccMySQLServer_infrastructureEncryption(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skipf("Skipping since `azurerm_mysql_server` is deprecated and will be removed in 4.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
 	r := MySQLServerResource{}
 

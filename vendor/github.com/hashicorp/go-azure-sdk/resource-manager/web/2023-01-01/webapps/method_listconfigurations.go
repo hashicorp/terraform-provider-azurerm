@@ -24,6 +24,18 @@ type ListConfigurationsCompleteResult struct {
 	Items              []SiteConfigResource
 }
 
+type ListConfigurationsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListConfigurationsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListConfigurations ...
 func (c WebAppsClient) ListConfigurations(ctx context.Context, id commonids.AppServiceId) (result ListConfigurationsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c WebAppsClient) ListConfigurations(ctx context.Context, id commonids.AppS
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListConfigurationsCustomPager{},
 		Path:       fmt.Sprintf("%s/config", id.ID()),
 	}
 

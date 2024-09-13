@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	components "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2021-08-01-preview/registries"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-06-01-preview/registries"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2024-04-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -186,14 +186,14 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 			"managed_network": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
+				Computed: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"isolation_mode": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Default:      string(workspaces.IsolationModeDisabled),
-							ForceNew:     true,
+							Computed:     true,
 							ValidateFunc: validation.StringInSlice(workspaces.PossibleValuesForIsolationMode(), false),
 						},
 					},
@@ -274,22 +274,6 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 			Optional:      true,
 			Computed:      true,
 			ConflictsWith: []string{"public_access_behind_virtual_network_enabled"},
-		}
-		resource.Schema["managed_network"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			Computed: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"isolation_mode": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						Computed:     true,
-						ValidateFunc: validation.StringInSlice(workspaces.PossibleValuesForIsolationMode(), false),
-					},
-				},
-			},
 		}
 	}
 
@@ -516,6 +500,7 @@ func resourceMachineLearningWorkspaceUpdate(d *pluginsdk.ResourceData, meta inte
 				}
 			}
 		}
+		payload.Properties.ServerlessComputeSettings = serverlessCompute
 	}
 
 	if d.HasChange("tags") {

@@ -897,7 +897,8 @@ func expandWorkspaceRepositoryConfiguration(d *pluginsdk.ResourceData) *synapse.
 		}
 	}
 
-	return nil
+	// API won't clear an existing repository config with nil
+	return &synapse.WorkspaceRepositoryConfiguration{}
 }
 
 func expandIdentityControlSQLSettings(enabled bool) *synapse.ManagedIdentitySQLControlSettingsModel {

@@ -23,6 +23,18 @@ type ListTriggeredWebJobHistoryCompleteResult struct {
 	Items              []TriggeredJobHistory
 }
 
+type ListTriggeredWebJobHistoryCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListTriggeredWebJobHistoryCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListTriggeredWebJobHistory ...
 func (c WebAppsClient) ListTriggeredWebJobHistory(ctx context.Context, id TriggeredWebJobId) (result ListTriggeredWebJobHistoryOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c WebAppsClient) ListTriggeredWebJobHistory(ctx context.Context, id Trigge
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListTriggeredWebJobHistoryCustomPager{},
 		Path:       fmt.Sprintf("%s/history", id.ID()),
 	}
 
