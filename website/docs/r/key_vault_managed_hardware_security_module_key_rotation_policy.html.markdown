@@ -34,7 +34,7 @@ The following arguments are supported:
 
 * `managed_hsm_key_id` - (Required) The ID of the Managed HSM Key. Changing this forces a new Key Vault to be created.
 
-* `expire_after` - (Required) Specify the expiration duration on a newly rotated key as an [ISO 8601 duration](https://en.wikipedia.org/wiki/ISO_8601#Durations). The minumum duration is `P28D`.
+* `expire_after` - (Required) Specify the expiration duration on a newly rotated key as an [ISO 8601 duration](https://en.wikipedia.org/wiki/ISO_8601#Durations). The minimum duration is `P28D`.
 
 * `time_after_creation` - (Optional) Rotate automatically at a duration after create as an [ISO 8601 duration](https://en.wikipedia.org/wiki/ISO_8601#Durations). Exactly one of `time_after_creation` or `time_before_expiry` should be specified.
 
