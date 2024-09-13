@@ -42,9 +42,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-const dataPlaneDependentPropertyError = `the '%[1]s' code block cannot be set on create for new storage accounts, this property has been deprecated and will become computed only in version 4.0 of the provider
+const dataPlaneDependentPropertyError = `the '%[1]s' code block cannot be set on create for new storage accounts, this property has been deprecated and will become computed only in version 5.0 of the provider
 New storage accounts must use the separate '%[2]s' resource to manage the '%[1]s' configuration values
-Existing storage accounts can continue to use the exposed '%[1]s' code block to manage (e.g., update) the resource in version 3.117.0 of the provider`
+Existing storage accounts can continue to use the exposed '%[1]s' code block to manage (e.g., update) the storage account resource in version 3.117.0 and version 4.0 of the provider`
 
 var (
 	storageAccountResourceName  = "azurerm_storage_account"
@@ -1803,7 +1803,6 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	storageClient := meta.(*clients.Client).Storage
 	client := storageClient.ResourceManager.StorageAccounts
 	keyVaultClient := meta.(*clients.Client).KeyVault
-	dataPlaneEnabled := meta.(*clients.Client).Features.Storage.DataPlaneAccessOnReadEnabled
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -2054,140 +2053,139 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	supportLevel := availableFunctionalityForAccount(accountKind, accountTier, replicationType)
 
 	if !features.FourPointOhBeta() {
-		if dataPlaneEnabled {
-			if d.HasChange("blob_properties") {
-				log.Printf("[DEBUG] [%s:UPDATE] 'blob_properties': %s", strings.ToUpper(storageAccountResourceName), id)
-				if !supportLevel.supportBlob {
-					return fmt.Errorf("`blob_properties` are not supported for account kind %q in sku tier %q", accountKind, accountTier)
+		// NOTE: Since this is an update operation, we no longer need to block on the feature flag
+		// because it is safe to assume that the private endpoint, if needed, has already been
+		// deployed...
+		if d.HasChange("blob_properties") {
+			log.Printf("[DEBUG] [%s:UPDATE] 'blob_properties': %s", strings.ToUpper(storageAccountResourceName), id)
+			if !supportLevel.supportBlob {
+				return fmt.Errorf("`blob_properties` are not supported for account kind %q in sku tier %q", accountKind, accountTier)
+			}
+
+			blobProperties, err := expandAccountBlobServiceProperties(accountKind, d.Get("blob_properties").([]interface{}))
+			if err != nil {
+				return err
+			}
+
+			if blobProperties.Properties.IsVersioningEnabled != nil && *blobProperties.Properties.IsVersioningEnabled && d.Get("is_hns_enabled").(bool) {
+				return fmt.Errorf("`versioning_enabled` cannot be true when `is_hns_enabled` is true")
+			}
+
+			// Disable restore_policy first. Disabling restore_policy and while setting delete_retention_policy.allow_permanent_delete to true cause error.
+			// Issue : https://github.com/Azure/azure-rest-api-specs/issues/11237
+			if v := d.Get("blob_properties.0.restore_policy"); d.HasChange("blob_properties.0.restore_policy") && len(v.([]interface{})) == 0 {
+				log.Printf("[DEBUG] [%s:UPDATE] Disabling 'RestorePolicy' prior to changing 'DeleteRetentionPolicy': %s", strings.ToUpper(storageAccountResourceName), id)
+				blobPayload := blobservice.BlobServiceProperties{
+					Properties: &blobservice.BlobServicePropertiesProperties{
+						RestorePolicy: expandAccountBlobPropertiesRestorePolicy(v.([]interface{})),
+					},
 				}
 
-				blobProperties, err := expandAccountBlobServiceProperties(accountKind, d.Get("blob_properties").([]interface{}))
-				if err != nil {
-					return err
-				}
-
-				if blobProperties.Properties.IsVersioningEnabled != nil && *blobProperties.Properties.IsVersioningEnabled && d.Get("is_hns_enabled").(bool) {
-					return fmt.Errorf("`versioning_enabled` cannot be true when `is_hns_enabled` is true")
-				}
-
-				// Disable restore_policy first. Disabling restore_policy and while setting delete_retention_policy.allow_permanent_delete to true cause error.
-				// Issue : https://github.com/Azure/azure-rest-api-specs/issues/11237
-				if v := d.Get("blob_properties.0.restore_policy"); d.HasChange("blob_properties.0.restore_policy") && len(v.([]interface{})) == 0 {
-					log.Printf("[DEBUG] [%s:UPDATE] Disabling 'RestorePolicy' prior to changing 'DeleteRetentionPolicy': %s", strings.ToUpper(storageAccountResourceName), id)
-					blobPayload := blobservice.BlobServiceProperties{
-						Properties: &blobservice.BlobServicePropertiesProperties{
-							RestorePolicy: expandAccountBlobPropertiesRestorePolicy(v.([]interface{})),
-						},
-					}
-
-					log.Printf("[DEBUG] [%s:UPDATE] Calling 'storageClient.ResourceManager.BlobService.SetServiceProperties' to disable 'RestorePolicy': %s", strings.ToUpper(storageAccountResourceName), id)
-					if _, err := storageClient.ResourceManager.BlobService.SetServiceProperties(ctx, *id, blobPayload); err != nil {
-						return fmt.Errorf("updating Azure Storage Account blob restore policy %q: %+v", id.StorageAccountName, err)
-					}
-				}
-
-				if d.Get("dns_endpoint_type").(string) == string(storageaccounts.DnsEndpointTypeAzureDnsZone) {
-					if blobProperties.Properties.RestorePolicy != nil && blobProperties.Properties.RestorePolicy.Enabled {
-						// Otherwise, API returns: "Required feature Global Dns is disabled"
-						// This is confirmed with the SRP team, where they said:
-						// > restorePolicy feature is incompatible with partitioned DNS
-						return fmt.Errorf("`blob_properties.restore_policy` cannot be set when `dns_endpoint_type` is set to `%s`", storageaccounts.DnsEndpointTypeAzureDnsZone)
-					}
-				}
-
-				log.Printf("[DEBUG] [%s:UPDATE] Calling 'storageClient.ResourceManager.BlobService.SetServiceProperties': %s", strings.ToUpper(storageAccountResourceName), id)
-				if _, err = storageClient.ResourceManager.BlobService.SetServiceProperties(ctx, *id, *blobProperties); err != nil {
-					return fmt.Errorf("updating `blob_properties` for %s: %+v", *id, err)
+				log.Printf("[DEBUG] [%s:UPDATE] Calling 'storageClient.ResourceManager.BlobService.SetServiceProperties' to disable 'RestorePolicy': %s", strings.ToUpper(storageAccountResourceName), id)
+				if _, err := storageClient.ResourceManager.BlobService.SetServiceProperties(ctx, *id, blobPayload); err != nil {
+					return fmt.Errorf("updating Azure Storage Account blob restore policy %q: %+v", id.StorageAccountName, err)
 				}
 			}
 
-			if d.HasChange("queue_properties") {
-				log.Printf("[DEBUG] [%s:UPDATE] 'queue_properties': %s", strings.ToUpper(storageAccountResourceName), id)
-				if !supportLevel.supportQueue {
-					return fmt.Errorf("`queue_properties` are not supported for account kind %q in sku tier %q", accountKind, accountTier)
-				}
-
-				log.Printf("[DEBUG] [%s:UPDATE] Calling 'storageClient.FindAccount': %s", strings.ToUpper(storageAccountResourceName), id)
-				account, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
-				if err != nil {
-					return fmt.Errorf("retrieving %s: %+v", *id, err)
-				}
-				if account == nil {
-					return fmt.Errorf("unable to locate %s", *id)
-				}
-
-				log.Printf("[DEBUG] [%s:UPDATE] Calling 'storageClient.QueuesDataPlaneClient': %s", strings.ToUpper(storageAccountResourceName), id)
-				queueDataPlaneClient, err := storageClient.QueuesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
-				if err != nil {
-					return fmt.Errorf("building Queues Client: %s", err)
-				}
-
-				queueProperties, err := expandAccountQueueProperties(d.Get("queue_properties").([]interface{}))
-				if err != nil {
-					return fmt.Errorf("expanding `queue_properties` for %s: %+v", *id, err)
-				}
-
-				log.Printf("[DEBUG] [%s:UPDATE] Calling 'queueDataPlaneClient.UpdateServiceProperties': %s", strings.ToUpper(storageAccountResourceName), id)
-				if err = queueDataPlaneClient.UpdateServiceProperties(ctx, *queueProperties); err != nil {
-					return fmt.Errorf("updating Queue Properties for %s: %+v", *id, err)
+			if d.Get("dns_endpoint_type").(string) == string(storageaccounts.DnsEndpointTypeAzureDnsZone) {
+				if blobProperties.Properties.RestorePolicy != nil && blobProperties.Properties.RestorePolicy.Enabled {
+					// Otherwise, API returns: "Required feature Global Dns is disabled"
+					// This is confirmed with the SRP team, where they said:
+					// > restorePolicy feature is incompatible with partitioned DNS
+					return fmt.Errorf("`blob_properties.restore_policy` cannot be set when `dns_endpoint_type` is set to `%s`", storageaccounts.DnsEndpointTypeAzureDnsZone)
 				}
 			}
 
-			if d.HasChange("share_properties") {
-				log.Printf("[DEBUG] [%s:UPDATE] 'share_properties': %s", strings.ToUpper(storageAccountResourceName), id)
-				if !supportLevel.supportShare {
-					return fmt.Errorf("`share_properties` are not supported for account kind %q in sku tier %q", accountKind, accountTier)
-				}
+			log.Printf("[DEBUG] [%s:UPDATE] Calling 'storageClient.ResourceManager.BlobService.SetServiceProperties': %s", strings.ToUpper(storageAccountResourceName), id)
+			if _, err = storageClient.ResourceManager.BlobService.SetServiceProperties(ctx, *id, *blobProperties); err != nil {
+				return fmt.Errorf("updating `blob_properties` for %s: %+v", *id, err)
+			}
+		}
 
-				sharePayload := expandAccountShareProperties(d.Get("share_properties").([]interface{}))
-				// The API complains if any multichannel info is sent on non premium fileshares. Even if multichannel is set to false
-				if accountTier != storageaccounts.SkuTierPremium {
-					// Error if the user has tried to enable multichannel on a standard tier storage account
-					if sharePayload.Properties.ProtocolSettings.Smb.Multichannel != nil && sharePayload.Properties.ProtocolSettings.Smb.Multichannel.Enabled != nil {
-						if *sharePayload.Properties.ProtocolSettings.Smb.Multichannel.Enabled {
-							return fmt.Errorf("`multichannel_enabled` isn't supported for Standard tier Storage accounts")
-						}
+		if d.HasChange("queue_properties") {
+			log.Printf("[DEBUG] [%s:UPDATE] 'queue_properties': %s", strings.ToUpper(storageAccountResourceName), id)
+			if !supportLevel.supportQueue {
+				return fmt.Errorf("`queue_properties` are not supported for account kind %q in sku tier %q", accountKind, accountTier)
+			}
+
+			log.Printf("[DEBUG] [%s:UPDATE] Calling 'storageClient.FindAccount': %s", strings.ToUpper(storageAccountResourceName), id)
+			account, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
+			if err != nil {
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+			if account == nil {
+				return fmt.Errorf("unable to locate %s", *id)
+			}
+
+			log.Printf("[DEBUG] [%s:UPDATE] Calling 'storageClient.QueuesDataPlaneClient': %s", strings.ToUpper(storageAccountResourceName), id)
+			queueDataPlaneClient, err := storageClient.QueuesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
+			if err != nil {
+				return fmt.Errorf("building Queues Client: %s", err)
+			}
+
+			queueProperties, err := expandAccountQueueProperties(d.Get("queue_properties").([]interface{}))
+			if err != nil {
+				return fmt.Errorf("expanding `queue_properties` for %s: %+v", *id, err)
+			}
+
+			log.Printf("[DEBUG] [%s:UPDATE] Calling 'queueDataPlaneClient.UpdateServiceProperties': %s", strings.ToUpper(storageAccountResourceName), id)
+			if err = queueDataPlaneClient.UpdateServiceProperties(ctx, *queueProperties); err != nil {
+				return fmt.Errorf("updating Queue Properties for %s: %+v", *id, err)
+			}
+		}
+
+		if d.HasChange("share_properties") {
+			log.Printf("[DEBUG] [%s:UPDATE] 'share_properties': %s", strings.ToUpper(storageAccountResourceName), id)
+			if !supportLevel.supportShare {
+				return fmt.Errorf("`share_properties` are not supported for account kind %q in sku tier %q", accountKind, accountTier)
+			}
+
+			sharePayload := expandAccountShareProperties(d.Get("share_properties").([]interface{}))
+			// The API complains if any multichannel info is sent on non premium fileshares. Even if multichannel is set to false
+			if accountTier != storageaccounts.SkuTierPremium {
+				// Error if the user has tried to enable multichannel on a standard tier storage account
+				if sharePayload.Properties.ProtocolSettings.Smb.Multichannel != nil && sharePayload.Properties.ProtocolSettings.Smb.Multichannel.Enabled != nil {
+					if *sharePayload.Properties.ProtocolSettings.Smb.Multichannel.Enabled {
+						return fmt.Errorf("`multichannel_enabled` isn't supported for Standard tier Storage accounts")
 					}
-
-					sharePayload.Properties.ProtocolSettings.Smb.Multichannel = nil
 				}
 
-				log.Printf("[DEBUG] [%s:UPDATE] Calling 'storageClient.ResourceManager.FileService.SetServiceProperties': %s", strings.ToUpper(storageAccountResourceName), id)
-				if _, err = storageClient.ResourceManager.FileService.SetServiceProperties(ctx, *id, sharePayload); err != nil {
-					return fmt.Errorf("updating File Share Properties for %s: %+v", *id, err)
-				}
+				sharePayload.Properties.ProtocolSettings.Smb.Multichannel = nil
 			}
 
-			if d.HasChange("static_website") {
-				log.Printf("[DEBUG] [%s:UPDATE] 'static_website': %s", strings.ToUpper(storageAccountResourceName), id)
-				if !supportLevel.supportStaticWebsite {
-					return fmt.Errorf("`static_website` are not supported for account kind %q in sku tier %q", accountKind, accountTier)
-				}
-
-				log.Printf("[DEBUG] [%s:UPDATE] Calling 'storageClient.FindAccount': %s", strings.ToUpper(storageAccountResourceName), id)
-				account, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
-				if err != nil {
-					return fmt.Errorf("retrieving %s: %+v", *id, err)
-				}
-				if account == nil {
-					return fmt.Errorf("unable to locate %s", *id)
-				}
-
-				log.Printf("[DEBUG] [%s:UPDATE] Calling 'storageClient.AccountsDataPlaneClient': %s", strings.ToUpper(storageAccountResourceName), id)
-				accountsDataPlaneClient, err := storageClient.AccountsDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
-				if err != nil {
-					return fmt.Errorf("building Data Plane client for %s: %+v", *id, err)
-				}
-
-				staticWebsiteProps := expandAccountStaticWebsiteProperties(d.Get("static_website").([]interface{}))
-
-				log.Printf("[DEBUG] [%s:UPDATE] Calling 'accountsDataPlaneClient.SetServiceProperties': %s", strings.ToUpper(storageAccountResourceName), id)
-				if _, err = accountsDataPlaneClient.SetServiceProperties(ctx, id.StorageAccountName, staticWebsiteProps); err != nil {
-					return fmt.Errorf("updating `static_website` for %s: %+v", *id, err)
-				}
+			log.Printf("[DEBUG] [%s:UPDATE] Calling 'storageClient.ResourceManager.FileService.SetServiceProperties': %s", strings.ToUpper(storageAccountResourceName), id)
+			if _, err = storageClient.ResourceManager.FileService.SetServiceProperties(ctx, *id, sharePayload); err != nil {
+				return fmt.Errorf("updating File Share Properties for %s: %+v", *id, err)
 			}
-		} else {
-			log.Printf("[DEBUG] [%s:UPDATE] storage account update for 'blob_properties', 'queue_properties', 'share_properties' and 'static_website' skipped due to 'DataPlaneAccessOnReadEnabled' feature flag being set to 'false'.", strings.ToUpper(storageAccountResourceName))
+		}
+
+		if d.HasChange("static_website") {
+			log.Printf("[DEBUG] [%s:UPDATE] 'static_website': %s", strings.ToUpper(storageAccountResourceName), id)
+			if !supportLevel.supportStaticWebsite {
+				return fmt.Errorf("`static_website` are not supported for account kind %q in sku tier %q", accountKind, accountTier)
+			}
+
+			log.Printf("[DEBUG] [%s:UPDATE] Calling 'storageClient.FindAccount': %s", strings.ToUpper(storageAccountResourceName), id)
+			account, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
+			if err != nil {
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+			if account == nil {
+				return fmt.Errorf("unable to locate %s", *id)
+			}
+
+			log.Printf("[DEBUG] [%s:UPDATE] Calling 'storageClient.AccountsDataPlaneClient': %s", strings.ToUpper(storageAccountResourceName), id)
+			accountsDataPlaneClient, err := storageClient.AccountsDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
+			if err != nil {
+				return fmt.Errorf("building Data Plane client for %s: %+v", *id, err)
+			}
+
+			staticWebsiteProps := expandAccountStaticWebsiteProperties(d.Get("static_website").([]interface{}))
+
+			log.Printf("[DEBUG] [%s:UPDATE] Calling 'accountsDataPlaneClient.SetServiceProperties': %s", strings.ToUpper(storageAccountResourceName), id)
+			if _, err = accountsDataPlaneClient.SetServiceProperties(ctx, id.StorageAccountName, staticWebsiteProps); err != nil {
+				return fmt.Errorf("updating `static_website` for %s: %+v", *id, err)
+			}
 		}
 	}
 
@@ -2198,7 +2196,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 	storageClient := meta.(*clients.Client).Storage
 	client := storageClient.ResourceManager.StorageAccounts
 	env := meta.(*clients.Client).Account.Environment
-	dataPlaneEnabled := meta.(*clients.Client).Features.Storage.DataPlaneAccessOnReadEnabled
+	dataPlaneOnReadEnabled := meta.(*clients.Client).Features.Storage.DataPlaneAccessOnReadEnabled
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -2418,7 +2416,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return err
 	}
 
-	if dataPlaneEnabled {
+	if dataPlaneOnReadEnabled {
 		blobProperties := make([]interface{}, 0)
 		queueProperties := make([]interface{}, 0)
 		shareProperties := make([]interface{}, 0)
@@ -2432,6 +2430,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 			blobProperties = flattenAccountBlobServiceProperties(blobProps.Model)
 		}
+
 		if err := d.Set("blob_properties", blobProperties); err != nil {
 			return fmt.Errorf("setting `blob_properties` for %s: %+v", *id, err)
 		}
@@ -2444,6 +2443,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 			shareProperties = flattenAccountShareProperties(shareProps.Model)
 		}
+
 		if err := d.Set("share_properties", shareProperties); err != nil {
 			return fmt.Errorf("setting `share_properties` for %s: %+v", *id, err)
 		}
@@ -2479,6 +2479,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 			staticWebsiteProperties = flattenAccountStaticWebsiteProperties(staticWebsiteProps)
 		}
+
 		if err := d.Set("static_website", staticWebsiteProperties); err != nil {
 			return fmt.Errorf("setting `static_website`: %+v", err)
 		}

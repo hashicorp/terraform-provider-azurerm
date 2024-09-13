@@ -12,7 +12,11 @@ Manages an Azure Storage Account.
 
 ## Disclaimers
 
--> **Note:** Beginning with version 3.117.0 of the Azure Provider, a new Feature Toggle will be introduced to block data plane calls of storage account resources. See [the Features block documentation](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block) for more information on Feature Toggles within Terraform.
+~> **Note:** Beginning with version 3.117.0 of the Azure Provider, a new Feature Toggle will be introduced to block data plane calls of the storage account resource during the read operation. See [the Features block documentation](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block) for more information on Feature Toggles within Terraform.
+
+~> **Note on Storage Accounts and Blob, Queue, Share and Static Web Site Properties:** Terraform currently provides both standalone [Blob Properties](storage_account_blob_properties.html), [Queue Properties](storage_account_queue_properties.html), [Share Properties](storage_account_share_properties.html) and [Static Web Site Properties](storage_account_static_website_properties.html) resources, and allows for Blob, Queue, Share and Static Web Site Properties to be defined in-line within the [Storage Account resource](storage_account.html). At this time you cannot use a Storage Account with in-line Blob, Queue, Share and/or Static Web Site Properties in conjunction with any Blob, Queue, Share and/or Static Web Site Properties resources. Doing so will cause a conflict of Blob, Queue, Share and/or Static Web Site Properties configurations and will overwrite the Blob, Queue, Share and/or Static Web Site Properties.
+
+~> **Note:** If you are setting up a private endpoint for a storage account please see the [product documentation](https://learn.microsoft.com/azure/private-link/private-endpoint-dns#storage) for more information on the Azure Private Endpoint private DNS zone values.
 
 ## Example Usage
 
@@ -78,13 +82,13 @@ resource "azurerm_storage_account" "example" {
 }
 ```
 
-## Example Usage with data_plane_access_enabled Features Flag
+## Example Usage with data_plane_access_on_read_enabled Features Flag
 
 ```hcl
 provider "azurerm" {
   features {
     storage {
-      data_plane_access_enabled = false
+      data_plane_access_on_read_enabled = false
     }
   }
 }
@@ -108,8 +112,6 @@ resource "azurerm_storage_account" "example" {
   }
 }
 ```
-
--> **Note:** If you are setting up a private endpoint for a storage account please see the [product documentation](https://learn.microsoft.com/azure/private-link/private-endpoint-dns#storage) for more information on the Azure Private Endpoint private DNS zone values.
 
 ## Argument Reference
 
@@ -171,18 +173,20 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
+<!-- TODO: Remove `blob_properties` in v5.0 but add them to the Attributes Reference since they will still be exposed as a computed field -->
 * `blob_properties` - (Optional) A `blob_properties` block as defined below.
 
-<!-- TODO: Remove `queue_properties` in v4.0 but add them to the Attributes Reference since they will still be exposed as a computed field -->
+<!-- TODO: Remove `queue_properties` in v5.0 but add them to the Attributes Reference since they will still be exposed as a computed field -->
 * `queue_properties` - (Optional) A `queue_properties` block as defined below.
 
 ~> **Note:** `queue_properties` can only be configured when `account_tier` is set to `Standard` and `account_kind` is set to either `Storage` or `StorageV2`.
 
-<!-- TODO: Remove `static_website` in v4.0 but add them to the Attributes Reference since they will still be exposed as a computed field -->
+<!-- TODO: Remove `static_website` in v5.0 but add them to the Attributes Reference since they will still be exposed as a computed field -->
 * `static_website` - (Optional) A `static_website` block as defined below.
 
 ~> **Note:** `static_website` can only be set when the `account_kind` is set to `StorageV2` or `BlockBlobStorage`.
 
+<!-- TODO: Remove `share_properties` in v5.0 but add them to the Attributes Reference since they will still be exposed as a computed field -->
 * `share_properties` - (Optional) A `share_properties` block as defined below.
 
 ~> **Note:** `share_properties` can only be configured when either `account_tier` is `Standard` and `account_kind` is either `Storage` or `StorageV2` - or when `account_tier` is `Premium` and `account_kind` is `FileStorage`.
@@ -665,6 +669,8 @@ An `identity` block exports the following:
 * `tenant_id` - The Tenant ID for the Service Principal associated with the Identity of this Storage Account.
 
 -> You can access the Principal ID via `${azurerm_storage_account.example.identity[0].principal_id}` and the Tenant ID via `${azurerm_storage_account.example.identity[0].tenant_id}`
+
+---
 
 ## Timeouts
 

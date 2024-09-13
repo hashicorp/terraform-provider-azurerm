@@ -80,7 +80,7 @@ provider "azurerm" {
     }
 
     storage {
-      data_plane_access_enabled = true
+      data_plane_access_on_read_enabled = true
     }
 
     subscription {
@@ -257,7 +257,7 @@ The `subscription` block supports the following:
 
 The `storage` block supports the following:
 
-* `data_plane_access_enabled` - (Optional) Should the `azurerm_storage_account` resource attempt data plane calls? Defaults to `true`.
+* `data_plane_access_on_read_enabled` - (Optional) Should the `azurerm_storage_account` resource attempt data plane calls during the read operation? Defaults to `true`.
 
 ---
 

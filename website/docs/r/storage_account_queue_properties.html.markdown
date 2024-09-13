@@ -10,6 +10,10 @@ description: |-
 
 Manages an Azure Storage Accounts Queue Properties.
 
+## Disclaimers
+
+~> **NOTE on Storage Accounts and Queue Properties:** Terraform currently provides both a standalone [Queue Properties resource](storage_account_queue_properties.html), and allows for Queue Properties to be defined in-line within the [Storage Account resource](storage_account.html). At this time you cannot use a Storage Account with in-line Queue Properties in conjunction with any Queue Properties resource. Doing so will cause a conflict of Queue Properties configurations and will overwrite the Queue Properties.
+
 ~> **Note:** An `azurerm_storage_account_queue_properties` resource can only be defined when the referenced storage accounts `account_tier` is set to `Standard` and `account_kind` is set to either `Storage` or `StorageV2`.
 
 ## Example Usage
