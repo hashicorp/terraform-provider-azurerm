@@ -64,7 +64,7 @@ func resourceNetworkWatcherFlowLog() *pluginsdk.Resource {
 
 			"resource_group_name": commonschema.ResourceGroupName(),
 
-			//lintignore: S013
+			// lintignore: S013
 			"name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
@@ -328,6 +328,10 @@ func resourceNetworkWatcherFlowLogUpdate(d *pluginsdk.ResourceData, meta interfa
 		} else {
 			payload.Properties.Format = &flowlogs.FlowLogFormatParameters{}
 		}
+	}
+
+	if d.HasChange("tags") {
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
