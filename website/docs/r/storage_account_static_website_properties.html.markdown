@@ -6,7 +6,7 @@ description: |-
   Manages an Azure Storage Accounts Static Website Properties.
 ---
 
-# azurerm_storage_account
+# azurerm_storage_account_static_website_properties
 
 Manages an Azure Storage Accounts Static Website Properties.
 
