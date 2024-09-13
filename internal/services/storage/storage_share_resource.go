@@ -372,7 +372,7 @@ func resourceStorageShareUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 			return nil
 		})
 		if err != nil {
-			return fmt.Errorf("recovering %s: %+v", id, err)
+			return fmt.Errorf("updating access tier %s: %+v", id, err)
 		}
 
 		log.Printf("[DEBUG] Updated Access Tier for %s", id)
