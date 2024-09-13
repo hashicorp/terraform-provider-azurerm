@@ -1176,7 +1176,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 					accountKind, changedKind := d.GetChange("account_kind")
 
 					if accountKind != string(storageaccounts.KindStorage) && changedKind != string(storageaccounts.KindStorageVTwo) {
-						log.Printf("[DEBUG] recreate storage account, could't be migrated from %q to %q", accountKind, changedKind)
+						log.Printf("[DEBUG] recreate storage account, could not be migrated from %q to %q", accountKind, changedKind)
 						d.ForceNew("account_kind")
 						return nil
 					} else {
@@ -2480,7 +2480,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 			return fmt.Errorf("setting `static_website`: %+v", err)
 		}
 	} else {
-		log.Printf("[DEBUG] [%s:READ] Setting 'blob_properties', 'queue_properties', 'share_properties' and 'static_website' skipped due to 'DataPlaneAccessOnReadEnabled' feature flag being set to 'false'.", strings.ToUpper(storageAccountResourceName))
+		log.Printf("[DEBUG] [%s:READ] Setting 'blob_properties', 'queue_properties', 'share_properties' and 'static_website' skipped due to 'DataPlaneAccessOnReadEnabled' feature flag being set to 'false'", strings.ToUpper(storageAccountResourceName))
 		d.Set("blob_properties", d.Get("blob_properties"))
 		d.Set("queue_properties", d.Get("queue_properties"))
 		d.Set("share_properties", d.Get("share_properties"))
