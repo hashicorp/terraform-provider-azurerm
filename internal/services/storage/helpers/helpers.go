@@ -86,8 +86,7 @@ func SchemaStorageAccountCorsRuleComputed() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeList,
 					Computed: true,
 					Elem: &pluginsdk.Schema{
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Type: pluginsdk.TypeString,
 					},
 				},
 
@@ -95,8 +94,7 @@ func SchemaStorageAccountCorsRuleComputed() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeList,
 					Computed: true,
 					Elem: &pluginsdk.Schema{
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Type: pluginsdk.TypeString,
 					},
 				},
 
@@ -104,8 +102,7 @@ func SchemaStorageAccountCorsRuleComputed() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeList,
 					Computed: true,
 					Elem: &pluginsdk.Schema{
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Type: pluginsdk.TypeString,
 					},
 				},
 
@@ -113,14 +110,12 @@ func SchemaStorageAccountCorsRuleComputed() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeList,
 					Computed: true,
 					Elem: &pluginsdk.Schema{
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Type: pluginsdk.TypeString,
 					},
 				},
 
 				"max_age_in_seconds": {
-					Type:     pluginsdk.TypeInt,
-					Computed: true,
+					Type: pluginsdk.TypeInt,
 				},
 			},
 		},

@@ -667,8 +667,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeSet,
 										Computed: true,
 										Elem: &pluginsdk.Schema{
-											Type:     pluginsdk.TypeString,
-											Computed: true,
+											Type: pluginsdk.TypeString,
 										},
 									},
 
@@ -676,8 +675,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeSet,
 										Computed: true,
 										Elem: &pluginsdk.Schema{
-											Type:     pluginsdk.TypeString,
-											Computed: true,
+											Type: pluginsdk.TypeString,
 										},
 									},
 
@@ -685,8 +683,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeSet,
 										Computed: true,
 										Elem: &pluginsdk.Schema{
-											Type:     pluginsdk.TypeString,
-											Computed: true,
+											Type: pluginsdk.TypeString,
 										},
 									},
 
@@ -699,8 +696,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeSet,
 										Computed: true,
 										Elem: &pluginsdk.Schema{
-											Type:     pluginsdk.TypeString,
-											Computed: true,
+											Type: pluginsdk.TypeString,
 										},
 									},
 								},
