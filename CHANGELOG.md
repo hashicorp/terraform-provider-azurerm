@@ -1,5 +1,9 @@
 ## 4.2.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource**: `azurerm_arc_machine` [GH-26647] 
+
 ENHANCEMENTS:
 
 * `network/bastionhosts` - upgrade api version from `2023-11-01` to `2024-01-01` [GH-27277]
