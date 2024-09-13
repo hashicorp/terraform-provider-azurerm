@@ -12,7 +12,7 @@ Manages an Azure Storage Accounts Share Properties.
 
 ## Disclaimers
 
-~> **NOTE on Storage Accounts and Share Properties:** Terraform currently provides both a standalone [Share Properties resource](storage_account_share_properties.html), and allows for Share Properties to be defined in-line within the [Storage Account resource](storage_account.html). At this time you cannot use a Storage Account with in-line Share Properties in conjunction with any Share Properties resource. Doing so will cause a conflict of Share Properties configurations and will overwrite the Share Properties.
+~> **Note on Storage Accounts and Share Properties:** Terraform currently provides both a standalone [Share Properties resource](storage_account_share_properties.html), and allows for Share Properties to be defined in-line within the [Storage Account resource](storage_account.html). At this time you cannot use a Storage Account with in-line Share Properties in conjunction with any Share Properties resource. Doing so will cause a conflict of Share Properties configurations and will overwrite the Share Properties.
 
 ## Example Usage
 
