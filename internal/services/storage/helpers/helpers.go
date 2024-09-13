@@ -115,7 +115,8 @@ func SchemaStorageAccountCorsRuleComputed() *pluginsdk.Schema {
 				},
 
 				"max_age_in_seconds": {
-					Type: pluginsdk.TypeInt,
+					Type:     pluginsdk.TypeInt,
+					Computed: true,
 				},
 			},
 		},
