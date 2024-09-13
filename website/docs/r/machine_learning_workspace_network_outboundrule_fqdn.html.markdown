@@ -54,11 +54,11 @@ resource "azurerm_machine_learning_workspace" "example" {
   application_insights_id = azurerm_application_insights.example.id
   key_vault_id            = azurerm_key_vault.example.id
   storage_account_id      = azurerm_storage_account.example.id
-  
+
   managed_network {
     isolation_mode = "AllowOnlyApprovedOutbound"
   }
-  
+
   identity {
     type = "SystemAssigned"
   }
