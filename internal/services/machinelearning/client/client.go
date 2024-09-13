@@ -41,9 +41,9 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	managedNetworkClient, err := managednetwork.NewManagedNetworkClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, fmt.Errorf("building MachineLearningComputes client: %+v", err)
+		return nil, fmt.Errorf("building MachineLearningNetwork client: %+v", err)
 	}
-	o.Configure(computesClient.Client, o.Authorizers.ResourceManager)
+	o.Configure(managedNetworkClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
 		MachineLearningComputes: computesClient,
