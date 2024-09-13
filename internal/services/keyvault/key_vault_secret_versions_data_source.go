@@ -6,6 +6,8 @@ package keyvault
 import (
 	"context"
 	"fmt"
+	"sort"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -13,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 var _ sdk.DataSource = KeyVaultSecretVersionsDataSource{}
@@ -23,7 +24,7 @@ type KeyVaultSecretVersionsDataSource struct{}
 type KeyVaultSecretVersionsDataSourceModel struct {
 	Name       string               `tfschema:"name"`
 	KeyVaultId string               `tfschema:"key_vault_id"`
-	MaxResults int32                `tfschema:"max_results"`
+	MaxResults int64                `tfschema:"max_results"`
 	Versions   []secretVersionModel `tfschema:"versions"`
 }
 
@@ -34,6 +35,7 @@ type secretVersionModel struct {
 	NotBeforeDate  string `tfschema:"not_before_date"`
 	ExpirationDate string `tfschema:"expiration_date"`
 	UpdatedDate    string `tfschema:"updated_date"`
+	Uri            string `tfschema:"uri"`
 }
 
 func (r KeyVaultSecretVersionsDataSource) Arguments() map[string]*schema.Schema {
@@ -94,6 +96,10 @@ func (r KeyVaultSecretVersionsDataSource) Attributes() map[string]*schema.Schema
 						Type:     schema.TypeString,
 						Computed: true,
 					},
+					"uri": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
 				},
 			},
 		},
@@ -131,7 +137,9 @@ func (r KeyVaultSecretVersionsDataSource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			resp, err := client.GetSecretVersions(ctx, *keyVaultUri, model.Name, &model.MaxResults)
+			maxResults32 := int32(model.MaxResults)
+
+			resp, err := client.GetSecretVersions(ctx, *keyVaultUri, model.Name, &maxResults32)
 			if err != nil {
 				return fmt.Errorf("making List Versions request on Azure KeyVault Secret %s: %+v", model.Name, err)
 			}
@@ -147,6 +155,12 @@ func (r KeyVaultSecretVersionsDataSource) Read() sdk.ResourceFunc {
 						return fmt.Errorf("iterating over Secret Versions: %+v", err)
 					}
 				}
+
+				var errors []error
+				model.Versions, errors = sortSecretVersions(model.Versions)
+				if len(errors) > 0 {
+					return fmt.Errorf("sorting Secret Versions: %+v", errors)
+				}
 			}
 
 			metadata.ResourceData.SetId(fmt.Sprintf("%s/%s", model.KeyVaultId, model.Name))
@@ -158,8 +172,8 @@ func (r KeyVaultSecretVersionsDataSource) Read() sdk.ResourceFunc {
 
 func expandSecretVersion(v *keyvault.SecretItem) secretVersionModel {
 	var item secretVersionModel
-	
-	item.ID = *v.ID
+	item.Uri = *v.ID
+	item.ID = (*v.ID)[strings.LastIndex(*v.ID, "/")+1:]
 	item.CreatedDate = time.Time(*v.Attributes.Created).Format(time.RFC3339)
 	item.Enabled = *v.Attributes.Enabled
 	if notBefore := v.Attributes.NotBefore; notBefore != nil {
@@ -173,4 +187,31 @@ func expandSecretVersion(v *keyvault.SecretItem) secretVersionModel {
 	}
 
 	return item
+}
+
+func sortSecretVersions(values []secretVersionModel) ([]secretVersionModel, []error) {
+	errors := make([]error, 0)
+	sort.Slice(values, func(i, j int) bool {
+		// Sort by CreatedDate in descending order
+		timeA, err := time.Parse(time.RFC3339, values[i].CreatedDate)
+		if err != nil {
+			errors = append(errors, err)
+			return false
+		}
+
+		timeB, err := time.Parse(time.RFC3339, values[j].CreatedDate)
+		if err != nil {
+			errors = append(errors, err)
+			return false
+		}
+
+		return timeA.After(timeB)
+
+	})
+
+	if len(errors) > 0 {
+		return values, errors
+	}
+
+	return values, nil
 }

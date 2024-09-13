@@ -3,23 +3,28 @@ subcategory: "Key Vault"
 layout: "azurerm"
 page_title: "Azure Resource Manager: Data Source: azurerm_key_vault_secret_versions"
 description: |-
-  Gets information about an existing Key Vault Secret Versions.
+  Get a list of versions for an existing Key Vault Secret.
 ---
 
 # Data Source: azurerm_key_vault_secret_versions
 
-Use this data source to access information about an existing Key Vault Secret Versions.
+Use this data source to access information about an existing Key Vault Secret's versions. The secret version values is not included. The `key_vault_secret` data source can be used to retrieve the value of a given secret version using it's `id`.
 
 ## Example Usage
 
 ```hcl
-data "azurerm_key_vault_secret_versions" "example" {
-  name = "existing"
-  key_vault_id = "TODO"
+data "azurerm_key_vault" "example" {
+  name                = "mykeyvault"
+  resource_group_name = "some-resource-group"
 }
 
-output "id" {
-  value = data.azurerm_key_vault_secret_versions.example.id
+data "azurerm_key_vault_secret_versions" "example" {
+  name         = "mysecret"
+  key_vault_id = data.azurerm_key_vault.example.id
+}
+
+output "versions" {
+  value = data.azurerm_key_vault_secret_versions.example.versions
 }
 ```
 
@@ -27,37 +32,39 @@ output "id" {
 
 The following arguments are supported:
 
-* `key_vault_id` - (Required) The ID of the TODO.
+* `key_vault_id` - (Required) The ID of the Key Vault containing the secret.
 
-* `name` - (Required) The name of this Key Vault Secret Versions.
+* `name` - (Required) The name of the Key Vault Secret to retrieve versions from.
 
 ---
 
-* `max_results` - (Optional) TODO. Defaults to `25`.
+* `max_results` - (Optional) Maximum number of versions to retrieve. Defaults to `25`.
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 
-* `id` - The ID of the Key Vault Secret Versions.
+* `id` - The ID of the Key Vault Secret.
 
-* `versions` - A `versions` block as defined below.
+* `versions` - A `versions` list as defined below. The list of versions are sorted by `created_date` descending, meaning the most recently created secret version will be first in the list.
 
 ---
 
-A `versions` block exports the following:
+The `versions` entries in the list export the following:
 
-* `created_date` - TODO.
+* `created_date` - The date and time when the Key Vault Secret version was created.
 
-* `enabled` - Is the TODO enabled?
+* `enabled` - Is the version enabled? Returns a `bool` value.
 
-* `expiration_date` - TODO.
+* `expiration_date` - The date and time at which the Key Vault Secret version expires and is no longer valid.
 
-* `id` - TODO.
+* `id` - The Key Vault Secret version ID.
 
-* `not_before_date` - TODO.
+* `not_before_date` - The earliest date and time at which the Key Vault Secret version can be used.
 
-* `updated_date` - TODO.
+* `updated_date` - The date and time when the Key Vault Secret version was last updated.
+
+* `uri` - The full URI of the secret version.
 
 ## Timeouts
 
