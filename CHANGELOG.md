@@ -1,21 +1,21 @@
-## 4.2.0 (Unreleased)
+## 4.2.0 (September 12, 2024)
 
 FEATURES:
 
-* **New Resource**: `azurerm_arc_machine` [GH-26647]
-* **New Resource**: `azurerm_arc_machine_automanage_configuration_assignment` [GH-26657] 
+* **New Resource**: `azurerm_arc_machine` ([#26647](https://github.com/hashicorp/terraform-provider-azurerm/issues/26647))
+* **New Resource**: `azurerm_arc_machine_automanage_configuration_assignment` ([#26657](https://github.com/hashicorp/terraform-provider-azurerm/issues/26657)) 
 
 ENHANCEMENTS:
 
-* `network/bastionhosts` - upgrade api version from `2023-11-01` to `2024-01-01` [GH-27277]
-* `recoveryservices` - upgrade `recoveryservicessiterecovery` from `2022-10-0`1 to `2024-04-01` [GH-27281]
-* `azurerm_data_protection_backup_vault` - support for the `property cross_region_restore_enabled` property [GH-27197]
-* `azurem_mssql_managed_instance` - support for the `service_principal_type` property [GH-27240]
+* `network/bastionhosts` - upgrade api version from `2023-11-01` to `2024-01-01` ([#27277](https://github.com/hashicorp/terraform-provider-azurerm/issues/27277))
+* `recoveryservices` - upgrade `recoveryservicessiterecovery` from `2022-10-0`1 to `2024-04-01` ([#27281](https://github.com/hashicorp/terraform-provider-azurerm/issues/27281))
+* `azurerm_data_protection_backup_vault` - support for the `property cross_region_restore_enabled` property ([#27197](https://github.com/hashicorp/terraform-provider-azurerm/issues/27197))
+* `azurem_mssql_managed_instance` - support for the `service_principal_type` property ([#27240](https://github.com/hashicorp/terraform-provider-azurerm/issues/27240))
 
 BUG FIXES:
 
-* `azurerm_cosmosdb_account` - fix crash during state migration [GH-27302]
-* `azurerm_servicebus_queue` - fix defaults of the `default_message_ttl` and `auto_delete_on_idle` properties [GH-27305]
+* `azurerm_cosmosdb_account` - fix crash during state migration ([#27302](https://github.com/hashicorp/terraform-provider-azurerm/issues/27302))
+* `azurerm_servicebus_queue` - fix defaults of the `default_message_ttl` and `auto_delete_on_idle` properties ([#27305](https://github.com/hashicorp/terraform-provider-azurerm/issues/27305))
 
 ## 4.1.0 (September 05, 2024)
 
