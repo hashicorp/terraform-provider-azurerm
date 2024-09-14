@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-11-10/machines"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resourceconnector/2022-10-27/appliances"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/storage/validate"
+	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -212,7 +212,7 @@ func (StackHCIDeploymentSettingResource) Arguments() map[string]*pluginsdk.Schem
 									Required: true,
 									ForceNew: true,
 									ValidateFunc: validation.StringMatch(
-										regex.MustCompile(`^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$`),
+										regexp.MustCompile(`^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$`),
 										"`azure_service_endpoint` must be a valid domain name, for example, \"core.windows.net\"",
 									),
 								},
@@ -249,7 +249,7 @@ func (StackHCIDeploymentSettingResource) Arguments() map[string]*pluginsdk.Schem
 						Required: true,
 						ForceNew: true,
 						ValidateFunc: validation.StringMatch(
-							regex.MustCompile(`^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$`),
+							regexp.MustCompile(`^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$`),
 							"`domain_fqdn` must be a valid domain name, for example, \"jumpstart.local\"",
 						),
 					},
@@ -866,7 +866,7 @@ func (StackHCIDeploymentSettingResource) Delete() sdk.ResourceFunc {
 					}
 				}
 
-				customLocationsClient := metadata.Client.ExtendedLocation.customLocationsClient
+				customLocationsClient := metadata.Client.ExtendedLocation.CustomLocationsClient
 				if err := customLocationsClient.DeleteThenPoll(ctx, customLocationId); err != nil {
 					return fmt.Errorf("deleting the Custom Location generated during deployment: deleting %s: %+v", customLocationId, err)
 				}

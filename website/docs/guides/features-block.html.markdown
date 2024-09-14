@@ -113,8 +113,6 @@ The `features` block supports the following:
 
 * `application_insights` - (Optional) An `application_insights` block as defined below.
 
-* `azure_stack_hci` - (Optional) An `azure_stack_hci` block as defined below.
-
 * `cognitive_account` - (Optional) A `cognitive_account` block as defined below.
 
 * `key_vault` - (Optional) A `key_vault` block as defined below.

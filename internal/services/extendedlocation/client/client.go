@@ -11,7 +11,7 @@ import (
 )
 
 type Client struct {
-	CustomLocationsClient *customlocations.Client
+	CustomLocationsClient *customlocations.CustomLocationsClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
