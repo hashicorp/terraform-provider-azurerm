@@ -120,6 +120,20 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Argumen
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
+					"system_center_virtual_machine_manager_cloud_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						RequiredWith: []string{"infrastructure.0.system_center_virtual_machine_manager_cloud_id", "infrastructure.0.system_center_virtual_machine_manager_template_id"},
+					},
+
+					"system_center_virtual_machine_manager_template_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						RequiredWith: []string{"infrastructure.0.system_center_virtual_machine_manager_cloud_id", "infrastructure.0.system_center_virtual_machine_manager_template_id"},
+					},
+
 					"bios_guid": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
@@ -137,19 +151,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Argumen
 						ForceNew: true,
 					},
 
-					"system_center_virtual_machine_manager_cloud_id": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ForceNew: true,
-					},
-
 					"system_center_virtual_machine_manager_inventory_item_id": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ForceNew: true,
-					},
-
-					"system_center_virtual_machine_manager_template_id": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
 						ForceNew: true,
@@ -576,17 +578,43 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceInfrastructure
 
 	infrastructureProfile := input[0]
 
-	return &virtualmachineinstances.InfrastructureProfile{
-		BiosGuid:           pointer.To(infrastructureProfile.BiosGuid),
-		CheckpointType:     pointer.To(infrastructureProfile.CheckpointType),
-		Generation:         pointer.To(infrastructureProfile.Generation),
-		CloudId:            pointer.To(infrastructureProfile.SystemCenterVirtualMachineManagerCloudId),
-		InventoryItemId:    pointer.To(infrastructureProfile.SystemCenterVirtualMachineManagerInventoryItemId),
-		TemplateId:         pointer.To(infrastructureProfile.SystemCenterVirtualMachineManagerTemplateId),
-		VirtualMachineName: pointer.To(infrastructureProfile.SystemCenterVirtualMachineManagerVirtualMachineName),
-		VMmServerId:        pointer.To(infrastructureProfile.SystemCenterVirtualMachineManagerVirtualMachineServerId),
-		Uuid:               pointer.To(infrastructureProfile.Uuid),
+	result := virtualmachineinstances.InfrastructureProfile{
+		Generation: pointer.To(infrastructureProfile.Generation),
 	}
+
+	if v := infrastructureProfile.BiosGuid; v != "" {
+		result.BiosGuid = pointer.To(v)
+	}
+
+	if v := infrastructureProfile.CheckpointType; v != "" {
+		result.CheckpointType = pointer.To(v)
+	}
+
+	if v := infrastructureProfile.SystemCenterVirtualMachineManagerCloudId; v != "" {
+		result.CloudId = pointer.To(v)
+	}
+
+	if v := infrastructureProfile.SystemCenterVirtualMachineManagerTemplateId; v != "" {
+		result.TemplateId = pointer.To(v)
+	}
+
+	if v := infrastructureProfile.SystemCenterVirtualMachineManagerVirtualMachineName; v != "" {
+		result.VirtualMachineName = pointer.To(v)
+	}
+
+	if v := infrastructureProfile.SystemCenterVirtualMachineManagerVirtualMachineServerId; v != "" {
+		result.VMmServerId = pointer.To(v)
+	}
+
+	if v := infrastructureProfile.SystemCenterVirtualMachineManagerInventoryItemId; v != "" {
+		result.InventoryItemId = pointer.To(v)
+	}
+
+	if v := infrastructureProfile.Uuid; v != "" {
+		result.Uuid = pointer.To(v)
+	}
+
+	return &result
 }
 
 func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfileForUpdate(input []Hardware) *virtualmachineinstances.HardwareProfileUpdate {
@@ -613,9 +641,13 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceInfrastructure
 
 	infrastructureProfile := input[0]
 
-	return &virtualmachineinstances.InfrastructureProfileUpdate{
-		CheckpointType: pointer.To(infrastructureProfile.CheckpointType),
+	result := virtualmachineinstances.InfrastructureProfileUpdate{}
+
+	if v := infrastructureProfile.CheckpointType; v != "" {
+		result.CheckpointType = pointer.To(v)
 	}
+
+	return &result
 }
 
 func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceNetworkInterfacesForCreate(input []NetworkInterface) *[]virtualmachineinstances.NetworkInterface {
@@ -625,14 +657,34 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceNetworkInterfa
 	}
 
 	for _, v := range input {
-		networkInterface := virtualmachineinstances.NetworkInterface{
-			NicId:            pointer.To(v.Id),
-			Name:             pointer.To(v.Name),
-			VirtualNetworkId: pointer.To(v.VirtualNetworkId),
-			IPv4AddressType:  pointer.To(virtualmachineinstances.AllocationMethod(v.Ipv4AddressType)),
-			IPv6AddressType:  pointer.To(virtualmachineinstances.AllocationMethod(v.Ipv6AddressType)),
-			MacAddress:       pointer.To(v.MacAddress),
-			MacAddressType:   pointer.To(virtualmachineinstances.AllocationMethod(v.MacAddressType)),
+		networkInterface := virtualmachineinstances.NetworkInterface{}
+
+		if nicId := v.Id; nicId != "" {
+			networkInterface.NicId = pointer.To(nicId)
+		}
+
+		if name := v.Name; name != "" {
+			networkInterface.Name = pointer.To(name)
+		}
+
+		if vnetId := v.VirtualNetworkId; vnetId != "" {
+			networkInterface.VirtualNetworkId = pointer.To(vnetId)
+		}
+
+		if ipv4AddressType := v.Ipv4AddressType; ipv4AddressType != "" {
+			networkInterface.IPv4AddressType = pointer.To(virtualmachineinstances.AllocationMethod(ipv4AddressType))
+		}
+
+		if ipv6AddressType := v.Ipv6AddressType; ipv6AddressType != "" {
+			networkInterface.IPv6AddressType = pointer.To(virtualmachineinstances.AllocationMethod(ipv6AddressType))
+		}
+
+		if macAddress := v.MacAddress; macAddress != "" {
+			networkInterface.MacAddress = pointer.To(macAddress)
+		}
+
+		if macAddressType := v.MacAddressType; macAddressType != "" {
+			networkInterface.MacAddressType = pointer.To(virtualmachineinstances.AllocationMethod(macAddressType))
 		}
 
 		result = append(result, networkInterface)
@@ -655,15 +707,30 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceStorageDisksFo
 
 		virtualDisk := virtualmachineinstances.VirtualDisk{
 			Bus:              pointer.To(v.Bus),
-			BusType:          pointer.To(v.BusType),
 			CreateDiffDisk:   pointer.To(createDiffDisk),
-			DiskId:           pointer.To(v.DiskId),
 			DiskSizeGB:       pointer.To(v.DiskSizeGB),
 			Lun:              pointer.To(v.Lun),
-			Name:             pointer.To(v.Name),
 			StorageQoSPolicy: expandSystemCenterVirtualMachineManagerVirtualMachineInstanceStorageQoSPolicy(v.StorageQoSPolicy),
-			TemplateDiskId:   pointer.To(v.TemplateDiskId),
-			VhdType:          pointer.To(v.VhdType),
+		}
+
+		if busType := v.BusType; busType != "" {
+			virtualDisk.BusType = pointer.To(busType)
+		}
+
+		if diskId := v.DiskId; diskId != "" {
+			virtualDisk.DiskId = pointer.To(diskId)
+		}
+
+		if name := v.Name; name != "" {
+			virtualDisk.Name = pointer.To(name)
+		}
+
+		if templateDiskId := v.TemplateDiskId; templateDiskId != "" {
+			virtualDisk.TemplateDiskId = pointer.To(templateDiskId)
+		}
+
+		if vhdType := v.VhdType; vhdType != "" {
+			virtualDisk.VhdType = pointer.To(vhdType)
 		}
 
 		result = append(result, virtualDisk)
@@ -679,10 +746,17 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceStorageQoSPoli
 
 	storageQoSPolicy := input[0]
 
-	return &virtualmachineinstances.StorageQosPolicyDetails{
-		Id:   pointer.To(storageQoSPolicy.Id),
-		Name: pointer.To(storageQoSPolicy.Name),
+	result := virtualmachineinstances.StorageQosPolicyDetails{}
+
+	if v := storageQoSPolicy.Id; v != "" {
+		result.Id = pointer.To(v)
 	}
+
+	if v := storageQoSPolicy.Name; v != "" {
+		result.Name = pointer.To(v)
+	}
+
+	return &result
 }
 
 func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceNetworkInterfacesForUpdate(input []NetworkInterface) *[]virtualmachineinstances.NetworkInterfaceUpdate {
@@ -692,14 +766,34 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceNetworkInterfa
 	}
 
 	for _, v := range input {
-		networkInterface := virtualmachineinstances.NetworkInterfaceUpdate{
-			NicId:            pointer.To(v.Id),
-			Name:             pointer.To(v.Name),
-			VirtualNetworkId: pointer.To(v.VirtualNetworkId),
-			IPv4AddressType:  pointer.To(virtualmachineinstances.AllocationMethod(v.Ipv4AddressType)),
-			IPv6AddressType:  pointer.To(virtualmachineinstances.AllocationMethod(v.Ipv6AddressType)),
-			MacAddress:       pointer.To(v.MacAddress),
-			MacAddressType:   pointer.To(virtualmachineinstances.AllocationMethod(v.MacAddressType)),
+		networkInterface := virtualmachineinstances.NetworkInterfaceUpdate{}
+
+		if nicId := v.Id; nicId != "" {
+			networkInterface.NicId = pointer.To(nicId)
+		}
+
+		if name := v.Name; name != "" {
+			networkInterface.Name = pointer.To(name)
+		}
+
+		if vnetId := v.VirtualNetworkId; vnetId != "" {
+			networkInterface.VirtualNetworkId = pointer.To(vnetId)
+		}
+
+		if ipv4AddressType := v.Ipv4AddressType; ipv4AddressType != "" {
+			networkInterface.IPv4AddressType = pointer.To(virtualmachineinstances.AllocationMethod(ipv4AddressType))
+		}
+
+		if ipv6AddressType := v.Ipv6AddressType; ipv6AddressType != "" {
+			networkInterface.IPv6AddressType = pointer.To(virtualmachineinstances.AllocationMethod(ipv6AddressType))
+		}
+
+		if macAddress := v.MacAddress; macAddress != "" {
+			networkInterface.MacAddress = pointer.To(macAddress)
+		}
+
+		if macAddressType := v.MacAddressType; macAddressType != "" {
+			networkInterface.MacAddressType = pointer.To(virtualmachineinstances.AllocationMethod(macAddressType))
 		}
 
 		result = append(result, networkInterface)
@@ -717,13 +811,25 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceStorageDisksFo
 	for _, v := range input {
 		virtualDisk := virtualmachineinstances.VirtualDiskUpdate{
 			Bus:              pointer.To(v.Bus),
-			BusType:          pointer.To(v.BusType),
-			DiskId:           pointer.To(v.DiskId),
 			DiskSizeGB:       pointer.To(v.DiskSizeGB),
 			Lun:              pointer.To(v.Lun),
-			Name:             pointer.To(v.Name),
 			StorageQoSPolicy: expandSystemCenterVirtualMachineManagerVirtualMachineInstanceStorageQoSPolicy(v.StorageQoSPolicy),
-			VhdType:          pointer.To(v.VhdType),
+		}
+
+		if busType := v.BusType; busType != "" {
+			virtualDisk.BusType = pointer.To(busType)
+		}
+
+		if diskId := v.DiskId; diskId != "" {
+			virtualDisk.DiskId = pointer.To(diskId)
+		}
+
+		if name := v.Name; name != "" {
+			virtualDisk.Name = pointer.To(name)
+		}
+
+		if vhdType := v.VhdType; vhdType != "" {
+			virtualDisk.VhdType = pointer.To(vhdType)
 		}
 
 		result = append(result, virtualDisk)
@@ -739,10 +845,17 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceOSProfile(inpu
 
 	osProfile := input[0]
 
-	return &virtualmachineinstances.OsProfileForVMInstance{
-		ComputerName:  pointer.To(osProfile.ComputerName),
-		AdminPassword: pointer.To(osProfile.AdminPassword),
+	result := virtualmachineinstances.OsProfileForVMInstance{}
+
+	if v := osProfile.ComputerName; v != "" {
+		result.ComputerName = pointer.To(v)
 	}
+
+	if v := osProfile.AdminPassword; v != "" {
+		result.AdminPassword = pointer.To(v)
+	}
+
+	return &result
 }
 
 func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceAvailabilitySets(input []string) (*[]virtualmachineinstances.AvailabilitySetListItem, error) {

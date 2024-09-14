@@ -69,17 +69,17 @@ The following arguments are supported:
 
 An `infrastructure` block supports the following:
 
+* `system_center_virtual_machine_manager_cloud_id` - (Required) The ID of the System Center Virtual Machine Manager Cloud resource to use for deploying the Virtual Machine. Changing this forces a new resource to be created.
+
+* `system_center_virtual_machine_manager_template_id` - (Required) The ID of the System Center Virtual Machine Manager Virtual Machine Template to use for deploying the Virtual Machine. Changing this forces a new resource to be created.
+
 * `bios_guid` - (Optional) The bios GUID for the Virtual Machine. Changing this forces a new resource to be created.
 
 * `checkpoint_type` - (Optional) The type of checkpoint supported for the Virtual Machine.
 
 * `generation` - (Optional) The generation for the Virtual Machine. Changing this forces a new resource to be created.
 
-* `system_center_virtual_machine_manager_cloud_id` - (Optional) The ID of the System Center Virtual Machine Manager Cloud resource to use for deploying the Virtual Machine. Changing this forces a new resource to be created.
-
 * `system_center_virtual_machine_manager_inventory_item_id` - (Optional) The ID of the System Center Virtual Machine Manager Inventory Item for System Center Virtual Machine Manager Virtual Machine Instance. Changing this forces a new resource to be created.
-
-* `system_center_virtual_machine_manager_template_id` - (Optional) The ID of the System Center Virtual Machine Manager Virtual Machine Template to use for deploying the Virtual Machine. Changing this forces a new resource to be created.
 
 * `system_center_virtual_machine_manager_virtual_machine_name` - (Optional) The name of the System Center Virtual Machine Manager Virtual Machine. Changing this forces a new resource to be created.
 
