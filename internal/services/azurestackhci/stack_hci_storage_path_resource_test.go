@@ -17,12 +17,12 @@ import (
 type StackHCIStoragePathResource struct{}
 
 func TestAccStackHCIStoragePath_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_stack_hci_storage_path", "test")
-	r := StackHCIStoragePathResource{}
-
 	if os.Getenv(customLocationIdEnv) == "" {
 		t.Skipf("skipping since %q has not been specified", customLocationIdEnv)
 	}
+
+	data := acceptance.BuildTestData(t, "azurerm_stack_hci_storage_path", "test")
+	r := StackHCIStoragePathResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -36,6 +36,10 @@ func TestAccStackHCIStoragePath_basic(t *testing.T) {
 }
 
 func TestAccStackHCIStoragePath_complete(t *testing.T) {
+	if os.Getenv(customLocationIdEnv) == "" {
+		t.Skipf("skipping since %q has not been specified", customLocationIdEnv)
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_stack_hci_storage_path", "test")
 	r := StackHCIStoragePathResource{}
 
@@ -51,12 +55,12 @@ func TestAccStackHCIStoragePath_complete(t *testing.T) {
 }
 
 func TestAccStackHCIStoragePath_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_stack_hci_storage_path", "test")
-	r := StackHCIStoragePathResource{}
-
 	if os.Getenv(customLocationIdEnv) == "" {
 		t.Skipf("skipping since %q has not been specified", customLocationIdEnv)
 	}
+
+	data := acceptance.BuildTestData(t, "azurerm_stack_hci_storage_path", "test")
+	r := StackHCIStoragePathResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -91,6 +95,10 @@ func TestAccStackHCIStoragePath_update(t *testing.T) {
 }
 
 func TestAccStackHCIStoragePath_requiresImport(t *testing.T) {
+	if os.Getenv(customLocationIdEnv) == "" {
+		t.Skipf("skipping since %q has not been specified", customLocationIdEnv)
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_stack_hci_storage_path", "test")
 	r := StackHCIStoragePathResource{}
 
