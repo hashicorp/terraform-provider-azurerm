@@ -437,7 +437,7 @@ func (r ContainerAppResource) CustomizeDiff() sdk.ResourceFunc {
 			if err := metadata.DecodeDiff(&app); err != nil {
 				return err
 			}
-			//Ingress traffic weight validations
+			// Ingress traffic weight validations
 			if len(app.Ingress) != 0 {
 				ingress := app.Ingress[0]
 
