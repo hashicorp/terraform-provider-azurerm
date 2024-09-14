@@ -120,13 +120,13 @@ resource "azurerm_stack_hci_deployment_setting" "test" {
   version              = "10.0.0.0"
 
   scale_unit {
-    adou_path                     = "OU=hci${var.random_string},DC=jumpstart,DC=local"
-    domain_fqdn                   = "jumpstart.local"
-    secrets_location              = azurerm_key_vault.DeploymentKeyVault.vault_uri
-    name_prefix                   = "hci${var.random_string}"
-    streaming_data_client_enabled = true
-    eu_location_enabled           = false
-    episodic_data_upload_enabled  = true
+    active_directory_organizational_unit_path = "OU=hci${var.random_string},DC=jumpstart,DC=local"
+    domain_fqdn                               = "jumpstart.local"
+    secrets_location                          = azurerm_key_vault.DeploymentKeyVault.vault_uri
+    name_prefix                               = "hci${var.random_string}"
+    streaming_data_client_enabled             = true
+    eu_location_enabled                       = false
+    episodic_data_upload_enabled              = true
 
     bitlocker_boot_volume_enabled   = true
     bitlocker_data_volume_enabled   = true
@@ -238,13 +238,13 @@ resource "azurerm_stack_hci_deployment_setting" "import" {
   version              = azurerm_stack_hci_deployment_setting.test.version
 
   scale_unit {
-    adou_path                     = azurerm_stack_hci_deployment_setting.test.scale_unit.0.adou_path
-    domain_fqdn                   = azurerm_stack_hci_deployment_setting.test.scale_unit.0.domain_fqdn
-    secrets_location              = azurerm_stack_hci_deployment_setting.test.scale_unit.0.secrets_location
-    name_prefix                   = azurerm_stack_hci_deployment_setting.test.scale_unit.0.name_prefix
-    streaming_data_client_enabled = azurerm_stack_hci_deployment_setting.test.scale_unit.0.streaming_data_client_enabled
-    eu_location_enabled           = azurerm_stack_hci_deployment_setting.test.scale_unit.0.eu_location_enabled
-    episodic_data_upload_enabled  = azurerm_stack_hci_deployment_setting.test.scale_unit.0.episodic_data_upload_enabled
+    active_directory_organizational_unit_path = azurerm_stack_hci_deployment_setting.test.scale_unit.0.active_directory_organizational_unit_path
+    domain_fqdn                               = azurerm_stack_hci_deployment_setting.test.scale_unit.0.domain_fqdn
+    secrets_location                          = azurerm_stack_hci_deployment_setting.test.scale_unit.0.secrets_location
+    name_prefix                               = azurerm_stack_hci_deployment_setting.test.scale_unit.0.name_prefix
+    streaming_data_client_enabled             = azurerm_stack_hci_deployment_setting.test.scale_unit.0.streaming_data_client_enabled
+    eu_location_enabled                       = azurerm_stack_hci_deployment_setting.test.scale_unit.0.eu_location_enabled
+    episodic_data_upload_enabled              = azurerm_stack_hci_deployment_setting.test.scale_unit.0.episodic_data_upload_enabled
 
     bitlocker_boot_volume_enabled   = azurerm_stack_hci_deployment_setting.test.scale_unit.0.bitlocker_boot_volume_enabled
     bitlocker_data_volume_enabled   = azurerm_stack_hci_deployment_setting.test.scale_unit.0.bitlocker_data_volume_enabled
@@ -352,23 +352,23 @@ resource "azurerm_stack_hci_deployment_setting" "test" {
   version              = "10.0.0.0"
 
   scale_unit {
-    adou_path                       = "OU=hci${var.random_string},DC=jumpstart,DC=local"
-    domain_fqdn                     = "jumpstart.local"
-    secrets_location                = azurerm_key_vault.DeploymentKeyVault.vault_uri
-    name_prefix                     = "hci${var.random_string}"
-    streaming_data_client_enabled   = true
-    eu_location_enabled             = false
-    episodic_data_upload_enabled    = true
-    bitlocker_boot_volume_enabled   = true
-    bitlocker_data_volume_enabled   = true
-    credential_guard_enabled        = true
-    drift_control_enabled           = true
-    drtm_protection_enabled         = true
-    hvci_protection_enabled         = true
-    side_channel_mitigation_enabled = true
-    smb_cluster_encryption_enabled  = false
-    smb_signing_enabled             = true
-    wdac_enabled                    = true
+    active_directory_organizational_unit_path = "OU=hci${var.random_string},DC=jumpstart,DC=local"
+    domain_fqdn                               = "jumpstart.local"
+    secrets_location                          = azurerm_key_vault.DeploymentKeyVault.vault_uri
+    name_prefix                               = "hci${var.random_string}"
+    streaming_data_client_enabled             = true
+    eu_location_enabled                       = false
+    episodic_data_upload_enabled              = true
+    bitlocker_boot_volume_enabled             = true
+    bitlocker_data_volume_enabled             = true
+    credential_guard_enabled                  = true
+    drift_control_enabled                     = true
+    drtm_protection_enabled                   = true
+    hvci_protection_enabled                   = true
+    side_channel_mitigation_enabled           = true
+    smb_cluster_encryption_enabled            = false
+    smb_signing_enabled                       = true
+    wdac_enabled                              = true
 
 
     cluster {

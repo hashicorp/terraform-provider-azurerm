@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-11-10/machines"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resourceconnector/2022-10-27/appliances"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -42,16 +43,16 @@ type StackHCIDeploymentSettingModel struct {
 }
 
 type ScaleUnitModel struct {
-	AdouPath              string                       `tfschema:"adou_path"`
-	Cluster               []ClusterModel               `tfschema:"cluster"`
-	DomainFqdn            string                       `tfschema:"domain_fqdn"`
-	HostNetwork           []HostNetworkModel           `tfschema:"host_network"`
-	InfrastructureNetwork []InfrastructureNetworkModel `tfschema:"infrastructure_network"`
-	NamePrefix            string                       `tfschema:"name_prefix"`
-	OptionalService       []OptionalServiceModel       `tfschema:"optional_service"`
-	PhysicalNode          []PhysicalNodeModel          `tfschema:"physical_node"`
-	SecretsLocation       string                       `tfschema:"secrets_location"`
-	Storage               []StorageModel               `tfschema:"storage"`
+	ActiveDirectoryOrganizationalUnitPath string                       `tfschema:"active_directory_organizational_unit_path"`
+	Cluster                               []ClusterModel               `tfschema:"cluster"`
+	DomainFqdn                            string                       `tfschema:"domain_fqdn"`
+	HostNetwork                           []HostNetworkModel           `tfschema:"host_network"`
+	InfrastructureNetwork                 []InfrastructureNetworkModel `tfschema:"infrastructure_network"`
+	NamePrefix                            string                       `tfschema:"name_prefix"`
+	OptionalService                       []OptionalServiceModel       `tfschema:"optional_service"`
+	PhysicalNode                          []PhysicalNodeModel          `tfschema:"physical_node"`
+	SecretsLocation                       string                       `tfschema:"secrets_location"`
+	Storage                               []StorageModel               `tfschema:"storage"`
 
 	// flatten 'observability' block, for API always return them
 	StreamingDataClientEnabled bool `tfschema:"streaming_data_client_enabled"`
@@ -182,7 +183,7 @@ func (StackHCIDeploymentSettingResource) Arguments() map[string]*pluginsdk.Schem
 			MinItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"adou_path": {
+					"active_directory_organizational_unit_path": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -207,17 +208,20 @@ func (StackHCIDeploymentSettingResource) Arguments() map[string]*pluginsdk.Schem
 								},
 
 								"azure_service_endpoint": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ForceNew:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ForceNew: true,
+									ValidateFunc: validation.StringMatch(
+										regex.MustCompile(`^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$`),
+										"`azure_service_endpoint` must be a valid domain name, for example, \"core.windows.net\"",
+									),
 								},
 
 								"cloud_account_name": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ForceNew:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
+									ValidateFunc: storageValidate.StorageAccountName,
 								},
 
 								"witness_type": {
@@ -241,10 +245,13 @@ func (StackHCIDeploymentSettingResource) Arguments() map[string]*pluginsdk.Schem
 					},
 
 					"domain_fqdn": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ForceNew: true,
+						ValidateFunc: validation.StringMatch(
+							regex.MustCompile(`^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$`),
+							"`domain_fqdn` must be a valid domain name, for example, \"jumpstart.local\"",
+						),
 					},
 
 					"host_network": {
@@ -733,9 +740,6 @@ func (r StackHCIDeploymentSettingResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			// the resource may exist even validation error
-			metadata.SetID(id)
-
 			// do validation
 			if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 				return fmt.Errorf("validating %s: %+v", id, err)
@@ -746,6 +750,8 @@ func (r StackHCIDeploymentSettingResource) Create() sdk.ResourceFunc {
 			if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 				return fmt.Errorf("deploying %s: %+v", id, err)
 			}
+
+			metadata.SetID(id)
 
 			return nil
 		},
@@ -880,7 +886,7 @@ func expandDeploymentSettingScaleUnits(input []ScaleUnitModel) []deploymentsetti
 	for _, item := range input {
 		results = append(results, deploymentsettings.ScaleUnits{
 			DeploymentData: deploymentsettings.DeploymentData{
-				AdouPath:              pointer.To(item.AdouPath),
+				AdouPath:              pointer.To(item.ActiveDirectoryOrganizationalUnitPath),
 				Cluster:               expandDeploymentSettingCluster(item.Cluster),
 				DomainFqdn:            pointer.To(item.DomainFqdn),
 				HostNetwork:           expandDeploymentSettingHostNetwork(item.HostNetwork),
@@ -907,16 +913,16 @@ func flattenDeploymentSettingScaleUnits(input []deploymentsettings.ScaleUnits) [
 	results := make([]ScaleUnitModel, 0, len(input))
 	for _, item := range input {
 		result := ScaleUnitModel{
-			AdouPath:              pointer.From(item.DeploymentData.AdouPath),
-			Cluster:               flattenDeploymentSettingCluster(item.DeploymentData.Cluster),
-			DomainFqdn:            pointer.From(item.DeploymentData.DomainFqdn),
-			HostNetwork:           flattenDeploymentSettingHostNetwork(item.DeploymentData.HostNetwork),
-			InfrastructureNetwork: flattenDeploymentSettingInfrastructureNetwork(item.DeploymentData.InfrastructureNetwork),
-			NamePrefix:            pointer.From(item.DeploymentData.NamingPrefix),
-			OptionalService:       flattenDeploymentSettingOptionalService(item.DeploymentData.OptionalServices),
-			PhysicalNode:          flattenDeploymentSettingPhysicalNode(item.DeploymentData.PhysicalNodes),
-			SecretsLocation:       pointer.From(item.DeploymentData.SecretsLocation),
-			Storage:               flattenDeploymentSettingStorage(item.DeploymentData.Storage),
+			ActiveDirectoryOrganizationalUnitPath: pointer.From(item.DeploymentData.AdouPath),
+			Cluster:                               flattenDeploymentSettingCluster(item.DeploymentData.Cluster),
+			DomainFqdn:                            pointer.From(item.DeploymentData.DomainFqdn),
+			HostNetwork:                           flattenDeploymentSettingHostNetwork(item.DeploymentData.HostNetwork),
+			InfrastructureNetwork:                 flattenDeploymentSettingInfrastructureNetwork(item.DeploymentData.InfrastructureNetwork),
+			NamePrefix:                            pointer.From(item.DeploymentData.NamingPrefix),
+			OptionalService:                       flattenDeploymentSettingOptionalService(item.DeploymentData.OptionalServices),
+			PhysicalNode:                          flattenDeploymentSettingPhysicalNode(item.DeploymentData.PhysicalNodes),
+			SecretsLocation:                       pointer.From(item.DeploymentData.SecretsLocation),
+			Storage:                               flattenDeploymentSettingStorage(item.DeploymentData.Storage),
 		}
 
 		if observability := item.DeploymentData.Observability; observability != nil {

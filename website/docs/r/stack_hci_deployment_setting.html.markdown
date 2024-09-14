@@ -236,10 +236,10 @@ resource "azurerm_stack_hci_deployment_setting" "example" {
   version              = "10.0.0.0"
 
   scale_unit {
-    adou_path        = "OU=hci,DC=jumpstart,DC=local"
-    domain_fqdn      = "jumpstart.local"
-    secrets_location = azurerm_key_vault.DeploymentKeyVault.vault_uri
-    name_prefix      = "hci"
+    active_directory_organizational_unit_path = "OU=hci,DC=jumpstart,DC=local"
+    domain_fqdn                               = "jumpstart.local"
+    secrets_location                          = azurerm_key_vault.DeploymentKeyVault.vault_uri
+    name_prefix                               = "hci"
 
     cluster {
       azure_service_endpoint = "core.windows.net"
@@ -499,7 +499,7 @@ A `qos_policy_override` block supports the following:
 
 A `scale_unit` block supports the following:
 
-* `adou_path` - (Required) Specify the full name of the Active Directory Organizational Unit container object prepared for the deployment, including the domain components. For example:`OU=HCI01,DC=contoso,DC=com`. Changing this forces a new Stack HCI Deployment Setting to be created.
+* `active_directory_organizational_unit_path` - (Required) Specify the full name of the Active Directory Organizational Unit container object prepared for the deployment, including the domain components. For example:`OU=HCI01,DC=contoso,DC=com`. Changing this forces a new Stack HCI Deployment Setting to be created.
 
 * `cluster` - (Required) A `cluster` block as defined above. Changing this forces a new Stack HCI Deployment Setting to be created.
 
