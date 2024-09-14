@@ -285,7 +285,7 @@ resource "azurerm_subnet" "test" {
 resource "azurerm_nginx_deployment" "test" {
   name                = "acctest-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "standard_Monthly"
+  sku                 = "standardv2_Monthly"
   capacity            = 10
   location            = azurerm_resource_group.test.location
 
