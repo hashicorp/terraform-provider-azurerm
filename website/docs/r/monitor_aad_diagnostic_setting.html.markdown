@@ -72,14 +72,8 @@ resource "azurerm_monitor_aad_diagnostic_setting" "example" {
 The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Monitor Azure Active Directory Diagnostic Setting. Changing this forces a new Monitor Azure Active Directory Diagnostic Setting to be created.
-  
-* `log` - (Optional) One or more `log` blocks as defined below.
-
--> **NOTE:** `log` is deprecated in favour of the `enabled_log` property and will be removed in version 4.0 of the AzureRM Provider.
 
 * `enabled_log` - (Optional) One or more `enabled_log` blocks as defined below.
-
--> **NOTE:** At least one `log` or `enabled_log` block must be specified. At least one type of Log must be enabled.
 
 ---
 
@@ -95,16 +89,6 @@ The following arguments are supported:
 
 -> **NOTE:** One of `eventhub_authorization_rule_id`, `log_analytics_workspace_id` and `storage_account_id` must be specified.
 
----
-
-A `log` block supports the following:
-
-* `category` - (Required) The log category for the Azure Active Directory Diagnostic.
-
-* `retention_policy` - (Required) A `retention_policy` block as defined below.
-
-* `enabled` - (Optional) Is this Diagnostic Log enabled? Defaults to `true`.
- 
 ---
 
 A `enabled_log` block supports the following:

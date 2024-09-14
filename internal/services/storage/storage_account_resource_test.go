@@ -47,7 +47,6 @@ func TestAccStorageAccount_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("account_replication_type").HasValue("GRS"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.environment").HasValue("staging"),
-				check.That(data.ResourceName).Key("cross_tenant_replication_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -914,13 +913,6 @@ func TestAccStorageAccount_largeFileShare(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-		{
-			Config: r.largeFileShareDisabled(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("large_file_share_enabled").HasValue("false"),
-			),
-		},
 	})
 }
 
@@ -3477,6 +3469,7 @@ resource "azurerm_storage_account" "test" {
       forest_name         = "adtest.com"
       netbios_domain_name = "adtest.com"
     }
+    default_share_level_permission = "StorageFileDataSmbShareReader"
   }
 
   tags = {
@@ -3514,6 +3507,7 @@ resource "azurerm_storage_account" "test" {
       forest_name         = "adtest2.com"
       netbios_domain_name = "adtest2.com"
     }
+    default_share_level_permission = "StorageFileDataSmbShareContributor"
   }
 
   tags = {
@@ -3542,7 +3536,8 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
 
   azure_files_authentication {
-    directory_type = "AADKERB"
+    directory_type                 = "AADKERB"
+    default_share_level_permission = "StorageFileDataSmbShareElevatedContributor"
   }
 
   tags = {
@@ -4119,7 +4114,6 @@ resource "azurerm_storage_account" "test" {
   account_tier                      = "Premium"
   account_replication_type          = "LRS"
   infrastructure_encryption_enabled = true
-  large_file_share_enabled          = true # defaulted on the API side
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
@@ -4609,7 +4603,6 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Premium"
   account_kind             = "FileStorage"
   account_replication_type = "ZRS"
-  large_file_share_enabled = true # defaulted in the API when FileStorage & Premium
 
   share_properties {
     smb {

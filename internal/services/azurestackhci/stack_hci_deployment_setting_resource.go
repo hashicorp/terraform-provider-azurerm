@@ -860,7 +860,7 @@ func (StackHCIDeploymentSettingResource) Delete() sdk.ResourceFunc {
 					}
 				}
 
-				customLocationsClient := metadata.Client.ExtendedLocation.CustomLocations
+				customLocationsClient := metadata.Client.ExtendedLocation.customLocationsClient
 				if err := customLocationsClient.DeleteThenPoll(ctx, customLocationId); err != nil {
 					return fmt.Errorf("deleting the Custom Location generated during deployment: deleting %s: %+v", customLocationId, err)
 				}

@@ -36,14 +36,12 @@ resource "azurerm_sentinel_log_analytics_workspace_onboarding" "example" {
 }
 
 resource "azurerm_sentinel_threat_intelligence_indicator" "example" {
-  workspace_id      = azurerm_log_analytics_workspace.example.id
+  workspace_id      = azurerm_sentinel_log_analytics_workspace_onboarding.example.workspace_id
   pattern_type      = "domain-name"
   pattern           = "http://example.com"
   source            = "Microsoft Sentinel"
   validate_from_utc = "2022-12-14T16:00:00Z"
   display_name      = "example-indicator"
-
-  depends_on = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
 }
 ```
 
