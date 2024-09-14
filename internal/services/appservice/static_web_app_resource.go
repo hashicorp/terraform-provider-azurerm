@@ -46,6 +46,11 @@ type StaticWebAppResourceModel struct {
 
 	ApiKey          string `tfschema:"api_key"`
 	DefaultHostName string `tfschema:"default_host_name"`
+
+	RepositoryUrl string `tfschema:repository_url`
+	RepositoryToken string `tfschema:repository_token`
+	RepositoryBranch string `tfschema:repository_branch`
+
 }
 
 func (r StaticWebAppResource) Arguments() map[string]*pluginsdk.Schema {
@@ -104,6 +109,23 @@ func (r StaticWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"basic_auth": helpers.BasicAuthSchema(),
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+
+		"repository_url": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+		},
+
+		"repository_token": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Sensitive: true,
+		},
+
+		"repository_branch": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+		},
 
 		"tags": tags.Schema(),
 	}
@@ -188,6 +210,17 @@ func (r StaticWebAppResource) Create() sdk.ResourceFunc {
 				props.StagingEnvironmentPolicy = pointer.To(staticsites.StagingEnvironmentPolicyDisabled)
 			}
 
+			// Check if repository URL, branch, or token are set
+			if model.RepositoryUrl != "" || model.RepositoryBranch != "" || model.RepositoryToken != "" {
+				// Make sure all three are set or throw an error
+				if model.RepositoryUrl == "" || model.RepositoryBranch == "" || model.RepositoryToken == "" {
+					return fmt.Errorf("repository_url, repository_branch, and repository_token must all be set")
+				}
+				props.Branch = pointer.To(model.RepositoryBranch)
+				props.RepositoryUrl = pointer.To(model.RepositoryUrl)
+				props.RepositoryToken = pointer.To(model.RepositoryToken)
+			}
+
 			envelope.Properties = props
 
 			if err := client.CreateOrUpdateStaticSiteThenPoll(ctx, id, envelope); err != nil {
@@ -267,6 +300,9 @@ func (r StaticWebAppResource) Read() sdk.ResourceFunc {
 					state.ConfigFileChanges = pointer.From(props.AllowConfigFileUpdates)
 					state.DefaultHostName = pointer.From(props.DefaultHostname)
 					state.PreviewEnvironments = pointer.From(props.StagingEnvironmentPolicy) == staticsites.StagingEnvironmentPolicyEnabled
+					state.RepositoryUrl = pointer.From(props.RepositoryUrl)
+					state.RepositoryBranch = pointer.From(props.Branch)
+					state.RepositoryToken = pointer.From(props.RepositoryToken)
 				}
 
 				if sku := model.Sku; sku != nil {
@@ -434,6 +470,28 @@ func (r StaticWebAppResource) Update() sdk.ResourceFunc {
 				if _, err := sdkHackClient.CreateOrUpdateBasicAuth(ctx, *id, authProps); err != nil {
 					return fmt.Errorf("setting basic auth on %s: %+v", *id, err)
 				}
+			}
+
+			if metadata.ResourceData.HasChange("repository_url") {
+			  // If the repository URL is being changes to nothing, make sure the branch and token are also empty
+				if config.RepositoryUrl == "" && (config.RepositoryBranch != "" || config.RepositoryToken != "") {
+					return fmt.Errorf("repository_url cannot be empty if repository_branch or repository_token are set")
+				}
+				model.Properties.RepositoryUrl = pointer.To(config.RepositoryUrl)
+			}
+
+			if metadata.ResourceData.HasChange("repository_branch") {
+				if config.RepositoryBranch == "" && (config.RepositoryUrl != "" || config.RepositoryToken != "") {
+					return fmt.Errorf("repository_branch cannot be empty if repository_url or repository_token are set")
+				}
+				model.Properties.Branch = pointer.To(config.RepositoryBranch)
+			}
+
+			if metadata.ResourceData.HasChange("repository_token") {
+				if config.RepositoryToken == "" && (config.RepositoryBranch != "" || config.RepositoryUrl != "") {
+					return fmt.Errorf("repository_token cannot be empty if repository_branch or repository_url are set")
+				}
+				model.Properties.RepositoryToken = pointer.To(config.RepositoryToken)
 			}
 
 			return nil
