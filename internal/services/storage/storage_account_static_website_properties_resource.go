@@ -52,24 +52,16 @@ func resourceStorageAccountStaticWebSiteProperties() *pluginsdk.Resource {
 				ValidateFunc: commonids.ValidateStorageAccountID,
 			},
 
-			"properties": {
-				Type:     pluginsdk.TypeList,
-				Required: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"error_404_document": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"index_document": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-					},
-				},
+			"error_404_document": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"index_document": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 		},
 	}
@@ -104,10 +96,12 @@ func resourceStorageAccountStaticWebSitePropertiesCreate(d *pluginsdk.ResourceDa
 		return err
 	}
 
+	accountTier := pointer.From(model.Sku.Tier)
 	accountKind := pointer.From(model.Kind)
-	supportStaticWebSite := accountKind == storageaccounts.KindStorageVTwo || accountKind == storageaccounts.KindBlockBlobStorage
+	replicationType := strings.ToUpper(strings.Split(string(model.Sku.Name), "_")[1])
+	supportLevel := availableFunctionalityForAccount(accountKind, accountTier, replicationType)
 
-	if !supportStaticWebSite {
+	if !supportLevel.supportStaticWebsite {
 		return fmt.Errorf("%q are not supported for account kind %q", storageAccountStaticWebSitePropertiesResourceName, accountKind)
 	}
 
@@ -143,7 +137,18 @@ func resourceStorageAccountStaticWebSitePropertiesCreate(d *pluginsdk.ResourceDa
 	}
 
 	// NOTE: Now that we know the data plane container is available, we can now set the properties on the resource...
-	staticWebsiteProps := expandAccountStaticWebsiteProperties(d.Get("properties").([]interface{}))
+	// Wrap the flattened properties into an interface slice to reuse the same expand/flatten functions...
+	properties := make(map[string]interface{})
+
+	if v, ok := d.GetOk("error_404_document"); ok {
+		properties["error_404_document"] = v.(string)
+	}
+
+	if v, ok := d.GetOk("index_document"); ok {
+		properties["index_document"] = v.(string)
+	}
+
+	staticWebsiteProps := expandAccountStaticWebsiteProperties([]interface{}{properties})
 
 	log.Printf("[DEBUG] [%s:CREATE] Calling 'accountsDataPlaneClient.SetServiceProperties': %s", strings.ToUpper(storageAccountStaticWebSitePropertiesResourceName), id)
 	if _, err = accountsDataPlaneClient.SetServiceProperties(ctx, id.StorageAccountName, staticWebsiteProps); err != nil {
@@ -182,11 +187,13 @@ func resourceStorageAccountStaticWebSitePropertiesUpdate(d *pluginsdk.ResourceDa
 		return err
 	}
 
+	accountTier := pointer.From(model.Sku.Tier)
 	accountKind := pointer.From(model.Kind)
-	supportStaticWebSite := accountKind == storageaccounts.KindStorageVTwo || accountKind == storageaccounts.KindBlockBlobStorage
+	replicationType := strings.ToUpper(strings.Split(string(model.Sku.Name), "_")[1])
+	supportLevel := availableFunctionalityForAccount(accountKind, accountTier, replicationType)
 
-	if d.HasChange("properties") {
-		if !supportStaticWebSite {
+	if d.HasChange("error_404_document") || d.HasChange("index_document") {
+		if !supportLevel.supportStaticWebsite {
 			return fmt.Errorf("%q are not supported for account kind %q", storageAccountStaticWebSitePropertiesResourceName, accountKind)
 		}
 
@@ -205,7 +212,18 @@ func resourceStorageAccountStaticWebSitePropertiesUpdate(d *pluginsdk.ResourceDa
 			return fmt.Errorf("building Data Plane client for %s: %+v", *id, err)
 		}
 
-		staticWebsiteProps := expandAccountStaticWebsiteProperties(d.Get("properties").([]interface{}))
+		// Wrap the flattened properties into an interface slice to reuse the same expand/flatten functions...
+		staticWebsiteProperties := make(map[string]interface{}, 0)
+
+		if v, ok := d.GetOk("error_404_document"); ok {
+			staticWebsiteProperties["error_404_document"] = v.(string)
+		}
+
+		if v, ok := d.GetOk("index_document"); ok {
+			staticWebsiteProperties["index_document"] = v.(string)
+		}
+
+		staticWebsiteProps := expandAccountStaticWebsiteProperties([]interface{}{staticWebsiteProperties})
 
 		log.Printf("[DEBUG] [%s:UPDATE] Calling 'accountsDataPlaneClient.SetServiceProperties': %s", strings.ToUpper(storageAccountStaticWebSitePropertiesResourceName), id)
 		if _, err = accountsDataPlaneClient.SetServiceProperties(ctx, id.StorageAccountName, staticWebsiteProps); err != nil {
@@ -262,8 +280,27 @@ func resourceStorageAccountStaticWebSitePropertiesRead(d *pluginsdk.ResourceData
 
 	staticWebsiteProperties := flattenAccountStaticWebsiteProperties(staticWebsiteProps)
 
-	if err := d.Set("properties", staticWebsiteProperties); err != nil {
-		return fmt.Errorf("setting `properties`: %+v", err)
+	var indexDocument string
+	var error404Document string
+
+	// Pull the values out of the flattened properties slice to set the individual flattened values to state...
+	if val := staticWebsiteProperties[0]; val != nil {
+		attr := val.(map[string]interface{})
+		if v, ok := attr["index_document"]; ok {
+			indexDocument = v.(string)
+		}
+
+		if v, ok := attr["error_404_document"]; ok {
+			error404Document = v.(string)
+		}
+	}
+
+	if err := d.Set("index_document", indexDocument); err != nil {
+		return fmt.Errorf("index_document `properties`: %+v", err)
+	}
+
+	if err := d.Set("error_404_document", error404Document); err != nil {
+		return fmt.Errorf("setting `error_404_document`: %+v", err)
 	}
 
 	return nil

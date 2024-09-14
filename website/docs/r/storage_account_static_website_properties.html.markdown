@@ -12,7 +12,7 @@ Manages an Azure Storage Accounts Static Website Properties.
 
 ## Disclaimers
 
-~> **Note on Storage Accounts and Static Web Site Properties:** Terraform currently provides both a standalone [Static Web Site Properties resource](storage_account_static_website_properties.html), and allows for Static Web Site Properties to be defined in-line within the [Storage Account resource](storage_account.html). At this time you cannot use a Storage Account with in-line Static Web Site Properties in conjunction with any Static Web Site Properties resource. Doing so will cause a conflict of Static Web Site Properties configurations and will overwrite the Static Web Site Properties.
+~> **Note on Storage Accounts and Static Web Site Properties:** Terraform currently provides both a standalone [Static Website Properties resource](storage_account_static_website_properties.html), and allows for Static Website Properties to be defined in-line within the [Storage Account resource](storage_account.html). At this time you cannot use a Storage Account with in-line Static Website Properties in conjunction with any Static Website Properties resource. Doing so will cause a conflict of Static Website Properties configurations and will overwrite the Static Website Properties.
 
 ~> **Note:** An `azurerm_storage_account_static_website_properties` resource can only be defined when the referenced storage accounts `account_kind` is set to `StorageV2` or `BlockBlobStorage`.
 
@@ -41,10 +41,8 @@ resource "azurerm_storage_account" "example" {
 resource "azurerm_storage_account_static_website_properties" "example" {
   storage_account_id = azurerm_storage_account.example.id
 
-  properties {
-    index_document     = "index.html"
-    error_404_document = "error.html"
-  }
+  index_document     = "index.html"
+  error_404_document = "error.html"
 }
 ```
 
@@ -53,12 +51,6 @@ resource "azurerm_storage_account_static_website_properties" "example" {
 The following arguments are supported:
 
 * `storage_account_id` - (Required) Specifies the resource id of the storage account.
-
-* `properties` - (Required) A `properties` block as defined below.
-
----
-
-A `properties` block supports the following:
 
 * `index_document` - (Optional) The webpage that Azure Storage serves for requests to the root of a website or any subfolder (e.g., `index.html`). The value is case-sensitive.
 
@@ -78,15 +70,15 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Storage Account.
-* `update` - (Defaults to 60 minutes) Used when updating the Storage Account.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Storage Account.
-* `delete` - (Defaults to 60 minutes) Used when deleting the Storage Account.
+* `create` - (Defaults to 60 minutes) Used when creating the Storage Account Static Website Properties.
+* `update` - (Defaults to 60 minutes) Used when updating the Storage Account Static Website Properties.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Storage Account Static Website Properties.
+* `delete` - (Defaults to 60 minutes) Used when deleting the Storage Account Static Website Properties.
 
 ## Import
 
-Storage Accounts can be imported using the `resource id`, e.g.
+Storage Accounts Static Website Properties can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_storage_account_static_website_properties.storageAcc1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.Storage/storageAccounts/myaccount
+terraform import azurerm_storage_account_static_website_properties.webSite1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.Storage/storageAccounts/myaccount
 ```
