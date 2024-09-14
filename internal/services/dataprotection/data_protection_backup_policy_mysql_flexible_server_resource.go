@@ -87,7 +87,7 @@ func (r DataProtectionBackupPolicyMySQLFlexibleServerResource) Arguments() map[s
 			MinItems: 1,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: azValidate.ISO8601RepeatingTime,
 			},
 		},
 
