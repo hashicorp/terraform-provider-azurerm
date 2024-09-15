@@ -136,8 +136,7 @@ func resourceStorageAccountStaticWebSitePropertiesCreate(d *pluginsdk.ResourceDa
 		return fmt.Errorf("building Accounts Data Plane Client: %s", err)
 	}
 
-	// NOTE: Now that we know the data plane container is available, we can now set the properties on the resource...
-	// Wrap the flattened properties into an interface slice to reuse the same expand/flatten functions...
+	// Wrap the flattened schema into an interface slice to reuse the same expand/flatten functions...
 	properties := make(map[string]interface{})
 
 	if v, ok := d.GetOk("error_404_document"); ok {
@@ -212,7 +211,7 @@ func resourceStorageAccountStaticWebSitePropertiesUpdate(d *pluginsdk.ResourceDa
 			return fmt.Errorf("building Data Plane client for %s: %+v", *id, err)
 		}
 
-		// Wrap the flattened properties into an interface slice to reuse the same expand/flatten functions...
+		// Wrap the flattened schema into an interface slice to reuse the existing legacy expand/flatten functions...
 		staticWebsiteProperties := make(map[string]interface{}, 0)
 
 		if v, ok := d.GetOk("error_404_document"); ok {

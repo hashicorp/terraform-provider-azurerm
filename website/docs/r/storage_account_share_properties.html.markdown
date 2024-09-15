@@ -12,7 +12,7 @@ Manages an Azure Storage Accounts Share Properties.
 
 ## Disclaimers
 
-~> **Note on Storage Accounts and Share Properties:** Terraform currently provides both a standalone [Share Properties resource](storage_account_share_properties.html), and allows for Share Properties to be defined in-line within the [Storage Account resource](storage_account.html). At this time you cannot use a Storage Account with in-line Share Properties in conjunction with any Share Properties resource. Doing so will cause a conflict of Share Properties configurations and will overwrite the Share Properties.
+~> **Note on Storage Accounts and Share Properties:** Terraform currently provides both a standalone [Share Properties resource](storage_account_share_properties.html), and allows for Share Properties to be defined in-line within the [Storage Account resource](storage_account.html). At this time you cannot use a Storage Account with in-line Share Properties in conjunction with any Share Properties resource. Doing so will cause a conflict of Share Properties configurations and will overwrite the in-line Share Properties.
 
 ## Example Usage
 
@@ -37,24 +37,22 @@ resource "azurerm_storage_account" "example" {
 resource "azurerm_storage_account_share_properties" "example" {
   storage_account_id = azurerm_storage_account.example.id
 
-  properties {
-    cors_rule {
-      allowed_origins    = ["http://www.example.com"]
-      exposed_headers    = ["x-tempo-*"]
-      allowed_headers    = ["x-tempo-*"]
-      allowed_methods    = ["GET", "PUT", "PATCH"]
-      max_age_in_seconds = "500"
-    }
+  cors_rule {
+    allowed_origins    = ["http://www.example.com"]
+    exposed_headers    = ["x-tempo-*"]
+    allowed_headers    = ["x-tempo-*"]
+    allowed_methods    = ["GET", "PUT", "PATCH"]
+    max_age_in_seconds = "500"
+  }
 
-    retention_policy {
-      days = 300
-    }
+  retention_policy {
+    days = 300
+  }
 
-    smb {
-      versions                        = ["SMB3.0"]
-      authentication_types            = ["NTLMv2"]
-      kerberos_ticket_encryption_type = ["AES-256"]
-    }
+  smb {
+    versions                        = ["SMB3.0"]
+    authentication_types            = ["NTLMv2"]
+    kerberos_ticket_encryption_type = ["AES-256"]
   }
 }
 ```
@@ -65,17 +63,25 @@ The following arguments are supported:
 
 * `storage_account_id` - (Required) Specifies the resource id of the storage account.
 
-* `properties` - (Required) A `properties` block as defined below.
-
----
-
-A `properties` block supports the following:
-
 * `cors_rule` - (Optional) A `cors_rule` block as defined below.
 
 * `retention_policy` - (Optional) A `retention_policy` block as defined below.
 
 * `smb` - (Optional) A `smb` block as defined below.
+
+---
+
+A `cors_rule` block supports the following:
+
+* `allowed_headers` - (Required) A list of headers that are allowed to be a part of the cross-origin request.
+
+* `allowed_methods` - (Required) A list of HTTP methods that are allowed to be executed by the origin. Valid options are `DELETE`, `GET`, `HEAD`, `MERGE`, `POST`, `OPTIONS`, `PUT` or `PATCH`.
+
+* `allowed_origins` - (Required) A list of origin domains that will be allowed by CORS.
+
+* `exposed_headers` - (Required) A list of response headers that are exposed to CORS clients.
+
+* `max_age_in_seconds` - (Required) The number of seconds the client should cache a preflight response.
 
 ---
 

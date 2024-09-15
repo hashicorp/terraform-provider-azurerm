@@ -12,7 +12,7 @@ Manages an Azure Storage Accounts Static Website Properties.
 
 ## Disclaimers
 
-~> **Note on Storage Accounts and Static Web Site Properties:** Terraform currently provides both a standalone [Static Website Properties resource](storage_account_static_website_properties.html), and allows for Static Website Properties to be defined in-line within the [Storage Account resource](storage_account.html). At this time you cannot use a Storage Account with in-line Static Website Properties in conjunction with any Static Website Properties resource. Doing so will cause a conflict of Static Website Properties configurations and will overwrite the Static Website Properties.
+~> **Note on Storage Accounts and Static Web Site Properties:** Terraform currently provides both a standalone [Static Website Properties resource](storage_account_static_website_properties.html), and allows for Static Website Properties to be defined in-line within the [Storage Account resource](storage_account.html). At this time you cannot use a Storage Account with in-line Static Website Properties in conjunction with any Static Website Properties resource. Doing so will cause a conflict of Static Website Properties configurations and will overwrite the in-line Static Website Properties.
 
 ~> **Note:** An `azurerm_storage_account_static_website_properties` resource can only be defined when the referenced storage accounts `account_kind` is set to `StorageV2` or `BlockBlobStorage`.
 

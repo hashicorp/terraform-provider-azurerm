@@ -54,92 +54,83 @@ func resourceStorageAccountShareProperties() *pluginsdk.Resource {
 				ValidateFunc: commonids.ValidateStorageAccountID,
 			},
 
-			"properties": {
+			"cors_rule": helpers.SchemaStorageAccountCorsRule(true),
+
+			"retention_policy": {
 				Type:     pluginsdk.TypeList,
-				Required: true,
+				Optional: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"cors_rule": helpers.SchemaStorageAccountCorsRule(true),
+						"days": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							Default:      7,
+							ValidateFunc: validation.IntBetween(1, 365),
+						},
+					},
+				},
+			},
 
-						"retention_policy": {
-							Type:     pluginsdk.TypeList,
+			"smb": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"authentication_types": {
+							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							MaxItems: 1,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"days": {
-										Type:         pluginsdk.TypeInt,
-										Optional:     true,
-										Default:      7,
-										ValidateFunc: validation.IntBetween(1, 365),
-									},
-								},
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+								ValidateFunc: validation.StringInSlice([]string{
+									"Kerberos",
+									"NTLMv2",
+								}, false),
 							},
 						},
 
-						"smb": {
-							Type:     pluginsdk.TypeList,
+						"channel_encryption_type": {
+							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							MaxItems: 1,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"authentication_types": {
-										Type:     pluginsdk.TypeSet,
-										Optional: true,
-										Elem: &pluginsdk.Schema{
-											Type: pluginsdk.TypeString,
-											ValidateFunc: validation.StringInSlice([]string{
-												"Kerberos",
-												"NTLMv2",
-											}, false),
-										},
-									},
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+								ValidateFunc: validation.StringInSlice([]string{
+									"AES-128-CCM",
+									"AES-128-GCM",
+									"AES-256-GCM",
+								}, false),
+							},
+						},
 
-									"channel_encryption_type": {
-										Type:     pluginsdk.TypeSet,
-										Optional: true,
-										Elem: &pluginsdk.Schema{
-											Type: pluginsdk.TypeString,
-											ValidateFunc: validation.StringInSlice([]string{
-												"AES-128-CCM",
-												"AES-128-GCM",
-												"AES-256-GCM",
-											}, false),
-										},
-									},
+						"kerberos_ticket_encryption_type": {
+							Type:     pluginsdk.TypeSet,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+								ValidateFunc: validation.StringInSlice([]string{
+									"AES-256",
+									"RC4-HMAC",
+								}, false),
+							},
+						},
 
-									"kerberos_ticket_encryption_type": {
-										Type:     pluginsdk.TypeSet,
-										Optional: true,
-										Elem: &pluginsdk.Schema{
-											Type: pluginsdk.TypeString,
-											ValidateFunc: validation.StringInSlice([]string{
-												"AES-256",
-												"RC4-HMAC",
-											}, false),
-										},
-									},
+						"multichannel_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
 
-									"multichannel_enabled": {
-										Type:     pluginsdk.TypeBool,
-										Optional: true,
-										Default:  false,
-									},
-
-									"versions": {
-										Type:     pluginsdk.TypeSet,
-										Optional: true,
-										Elem: &pluginsdk.Schema{
-											Type: pluginsdk.TypeString,
-											ValidateFunc: validation.StringInSlice([]string{
-												"SMB2.1",
-												"SMB3.0",
-												"SMB3.1.1",
-											}, false),
-										},
-									},
-								},
+						"versions": {
+							Type:     pluginsdk.TypeSet,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+								ValidateFunc: validation.StringInSlice([]string{
+									"SMB2.1",
+									"SMB3.0",
+									"SMB3.1.1",
+								}, false),
 							},
 						},
 					},
@@ -215,9 +206,7 @@ func resourceStorageAccountSharePropertiesCreate(d *pluginsdk.ResourceData, meta
 		return fmt.Errorf("waiting for the File Service to become available: %+v", err)
 	}
 
-	// NOTE: Now that we know the data plane container is available, we can now set the properties on the resource
-	// after a bit more validation of the resource...
-	sharePayload := expandAccountShareProperties(d.Get("properties").([]interface{}))
+	sharePayload := expandAccountShareResourceProperties(d)
 
 	// The API complains if any multichannel info is sent on non premium file shares. Even if multichannel is set to false
 	if accountTier != storageaccounts.SkuTierPremium && sharePayload.Properties != nil && sharePayload.Properties.ProtocolSettings != nil {
@@ -272,22 +261,24 @@ func resourceStorageAccountSharePropertiesUpdate(d *pluginsdk.ResourceData, meta
 	replicationType := strings.ToUpper(strings.Split(string(model.Sku.Name), "_")[1])
 	supportLevel := availableFunctionalityForAccount(accountKind, accountTier, replicationType)
 
-	if d.HasChange("properties") {
+	if d.HasChange("cors_rule") || d.HasChange("retention_policy") || d.HasChange("smb") {
 		if !supportLevel.supportShare {
 			return fmt.Errorf("%q are not supported for account kind %q in sku tier %q", storageAccountSharePropertiesResourceName, accountKind, accountTier)
 		}
 
-		sharePayload := expandAccountShareProperties(d.Get("properties").([]interface{}))
-		// The API complains if any multichannel info is sent on non premium fileshares. Even if multichannel is set to false
-		if accountTier != storageaccounts.SkuTierPremium {
+		sharePayload := expandAccountShareResourceProperties(d)
+
+		// The API complains if any multichannel info is sent on non premium file shares. Even if multichannel is set to false
+		if accountTier != storageaccounts.SkuTierPremium && sharePayload.Properties != nil && sharePayload.Properties.ProtocolSettings != nil {
 			// Error if the user has tried to enable multichannel on a standard tier storage account
-			if sharePayload.Properties.ProtocolSettings.Smb.Multichannel != nil && sharePayload.Properties.ProtocolSettings.Smb.Multichannel.Enabled != nil {
-				if *sharePayload.Properties.ProtocolSettings.Smb.Multichannel.Enabled {
+			smb := sharePayload.Properties.ProtocolSettings.Smb
+			if smb != nil && smb.Multichannel != nil {
+				if smb.Multichannel.Enabled != nil && *smb.Multichannel.Enabled {
 					return fmt.Errorf("`multichannel_enabled` isn't supported for Standard tier Storage accounts")
 				}
-			}
 
-			sharePayload.Properties.ProtocolSettings.Smb.Multichannel = nil
+				sharePayload.Properties.ProtocolSettings.Smb.Multichannel = nil
+			}
 		}
 
 		log.Printf("[DEBUG] [%s:UPDATE] Calling 'storageClient.ResourceManager.FileService.SetServiceProperties': %s", strings.ToUpper(storageAccountSharePropertiesResourceName), id)
@@ -338,14 +329,23 @@ func resourceStorageAccountSharePropertiesRead(d *pluginsdk.ResourceData, meta i
 	}
 
 	log.Printf("[DEBUG] [%s:READ] Calling 'storageClient.ResourceManager.FileService.GetServiceProperties': %s", strings.ToUpper(storageAccountSharePropertiesResourceName), id)
-	shareProps, err := storageClient.ResourceManager.FileService.GetServiceProperties(ctx, *id)
+	shareProperties, err := storageClient.ResourceManager.FileService.GetServiceProperties(ctx, *id)
 	if err != nil {
-		return fmt.Errorf("retrieving properties for %s: %+v", *id, err)
+		return fmt.Errorf("retrieving storage account share properties for %s: %+v", *id, err)
 	}
 
-	shareProperties := flattenAccountShareProperties(shareProps.Model)
-	if err := d.Set("properties", shareProperties); err != nil {
-		return fmt.Errorf("setting `properties` for %s: %+v", *id, err)
+	if props := shareProperties.Model.Properties; props != nil {
+		if err := d.Set("cors_rule", flattenAccountSharePropertiesCorsRule(props.Cors)); err != nil {
+			return fmt.Errorf("setting 'cors_rule': %+v", err)
+		}
+
+		if err := d.Set("retention_policy", flattenAccountShareDeleteRetentionPolicy(props.ShareDeleteRetentionPolicy)); err != nil {
+			return fmt.Errorf("setting 'retention_policy': %+v", err)
+		}
+
+		if err := d.Set("smb", flattenAccountSharePropertiesSMB(props.ProtocolSettings)); err != nil {
+			return fmt.Errorf("setting 'smb': %+v", err)
+		}
 	}
 
 	return nil
@@ -388,6 +388,45 @@ func resourceStorageAccountSharePropertiesDelete(d *pluginsdk.ResourceData, meta
 	return nil
 }
 
+func expandAccountShareResourceProperties(d *pluginsdk.ResourceData) fileservice.FileServiceProperties {
+	props := fileservice.FileServiceProperties{
+		Properties: &fileservice.FileServicePropertiesProperties{
+			Cors: &fileservice.CorsRules{
+				CorsRules: &[]fileservice.CorsRule{},
+			},
+			ShareDeleteRetentionPolicy: &fileservice.DeleteRetentionPolicy{
+				Enabled: pointer.To(false),
+			},
+			ProtocolSettings: &fileservice.ProtocolSettings{
+				Smb: &fileservice.SmbSetting{
+					AuthenticationMethods:    pointer.To(""),
+					ChannelEncryption:        pointer.To(""),
+					KerberosTicketEncryption: pointer.To(""),
+					Versions:                 pointer.To(""),
+					Multichannel:             nil,
+				},
+			},
+		},
+	}
+
+	if corsRule := d.Get("cors_rule").([]interface{}); len(corsRule) > 0 {
+		props.Properties.Cors = expandAccountSharePropertiesCorsRule(corsRule)
+	}
+
+	if retentionPolicy := d.Get("retention_policy").([]interface{}); len(retentionPolicy) > 0 {
+		props.Properties.ShareDeleteRetentionPolicy = expandAccountShareDeleteRetentionPolicy(retentionPolicy)
+	}
+
+	if smb := d.Get("smb").([]interface{}); len(smb) > 0 {
+		props.Properties.ProtocolSettings = &fileservice.ProtocolSettings{
+			Smb: expandAccountSharePropertiesSMB(smb),
+		}
+	}
+
+	return props
+}
+
+// TODO: Remove in v5.0, this is only here for legacy support of existing Storage Accounts...
 func expandAccountShareProperties(input []interface{}) fileservice.FileServiceProperties {
 	props := fileservice.FileServiceProperties{
 		Properties: &fileservice.FileServicePropertiesProperties{
