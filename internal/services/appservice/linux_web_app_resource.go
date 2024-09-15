@@ -781,6 +781,12 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 				}
 			}
 
+			webAppSiteConfig, err := client.GetConfiguration(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("reading Site Config for Linux %s: %+v", id, err)
+			}
+			model.Properties.SiteConfig = webAppSiteConfig.Model.Properties
+
 			if metadata.ResourceData.HasChange("enabled") {
 				model.Properties.Enabled = pointer.To(state.Enabled)
 			}

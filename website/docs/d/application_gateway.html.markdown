@@ -507,8 +507,6 @@ A `waf_configuration` block exports the following:
 
 * `request_body_check` - Is Request Body Inspection enabled?
 
-* `request_body_enforcement` - Is Request Body limit enabled?
-
 * `max_request_body_size_kb` - The Maximum Request Body Size in KB.
 
 * `exclusion` - One or more `exclusion` blocks as defined below.
