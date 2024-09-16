@@ -47,9 +47,9 @@ type StaticWebAppResourceModel struct {
 	ApiKey          string `tfschema:"api_key"`
 	DefaultHostName string `tfschema:"default_host_name"`
 
-	RepositoryUrl string `tfschema:repository_url`
-	RepositoryToken string `tfschema:repository_token`
-	RepositoryBranch string `tfschema:repository_branch`
+	RepositoryUrl string `tfschema:"repository_url"`
+	RepositoryToken string `tfschema:"repository_token"`
+	RepositoryBranch string `tfschema:"repository_branch"`
 
 }
 

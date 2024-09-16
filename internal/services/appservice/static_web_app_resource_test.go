@@ -315,6 +315,27 @@ func (r StaticWebAppResource) Exists(ctx context.Context, clients *clients.Clien
 	return pointer.To(resp.Model != nil), nil
 }
 
+func TestAccAzureStaticWebApp_withRepository(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_static_web_app", "test")
+	r := StaticWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withRepository(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_host_name").Exists(),
+				check.That(data.ResourceName).Key("api_key").Exists(),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("acceptance"),
+				check.That(data.ResourceName).Key("repository_url").Exists(),
+				check.That(data.ResourceName).Key("repository_branch").HasValue("main"),
+				check.That(data.ResourceName).Key("repository_token").HasValue("token"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r StaticWebAppResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -636,6 +657,32 @@ resource "azurerm_static_web_app" "test" {
     password     = "Super$3cretPassW0rd"
     environments = "AllEnvironments"
   }
+
+  tags = {
+    environment = "acceptance"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r StaticWebAppResource) withRepository(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_static_web_app" "test" {
+  name                = "acctestSS-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  repository_branch   = "main"
+  repository_url      = "https://github.com/hashicorp/terraform-provider-azurerm"
+  repository_token	  = "token"
 
   tags = {
     environment = "acceptance"
