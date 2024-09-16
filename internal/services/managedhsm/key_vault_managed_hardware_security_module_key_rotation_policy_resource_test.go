@@ -81,8 +81,6 @@ resource "azurerm_key_vault_managed_hardware_security_module_key_rotation_policy
   time_before_expiry = "P30D"
   expire_after       = "P60D"
 }
-
-
 `, r.template(data))
 }
 
@@ -99,10 +97,6 @@ resource "azurerm_key_vault_managed_hardware_security_module_key_rotation_policy
   expire_after        = "P60D"
   time_after_creation = "P28D"
 }
-
-
-
-
 `, r.template(data))
 }
 
@@ -153,6 +147,7 @@ resource "azurerm_key_vault" "test" {
     environment = "Production"
   }
 }
+
 resource "azurerm_key_vault_certificate" "cert" {
   count        = 3
   name         = "acchsmcert${count.index}"
@@ -193,6 +188,7 @@ resource "azurerm_key_vault_certificate" "cert" {
     }
   }
 }
+
 resource "azurerm_key_vault_managed_hardware_security_module" "test" {
   name                     = "kvHsm%[3]d"
   resource_group_name      = azurerm_resource_group.test.name

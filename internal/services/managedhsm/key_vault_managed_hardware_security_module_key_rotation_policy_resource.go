@@ -29,7 +29,7 @@ func (r KeyVaultMHSMKeyRotationPolicyResource) ModelObject() interface{} {
 
 type MHSMKeyRotationPolicyResourceSchema struct {
 	ManagedHSMKeyID   string `tfschema:"managed_hsm_key_id"`
-	ExipreAfter       string `tfschema:"expire_after"`
+	ExpireAfter       string `tfschema:"expire_after"`
 	TimeAfterCreation string `tfschema:"time_after_creation"`
 	TimeBeforeExpiry  string `tfschema:"time_before_expiry"`
 }
@@ -218,7 +218,7 @@ func (r KeyVaultMHSMKeyRotationPolicyResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			// settign a blank policy to delete the existing policy
+			// setting a blank policy to delete the existing policy
 			if _, err := client.UpdateKeyRotationPolicy(ctx, id.BaseUri(), id.KeyName, keyvault.KeyRotationPolicy{
 				LifetimeActions: pointer.To([]keyvault.LifetimeActions{}),
 				Attributes:      &keyvault.KeyRotationPolicyAttributes{},
@@ -234,8 +234,8 @@ func (r KeyVaultMHSMKeyRotationPolicyResource) Delete() sdk.ResourceFunc {
 func expandKeyRotationPolicy(policy MHSMKeyRotationPolicyResourceSchema) keyvault.KeyRotationPolicy {
 
 	var expiryTime *string // = nil // needs to be set to nil if not set
-	if policy.ExipreAfter != "" {
-		expiryTime = pointer.To(policy.ExipreAfter)
+	if policy.ExpireAfter != "" {
+		expiryTime = pointer.To(policy.ExpireAfter)
 	}
 
 	lifetimeActions := make([]keyvault.LifetimeActions, 0)
@@ -266,7 +266,7 @@ func expandKeyRotationPolicy(policy MHSMKeyRotationPolicyResourceSchema) keyvaul
 func flattenKeyRotationPolicy(p keyvault.KeyRotationPolicy) MHSMKeyRotationPolicyResourceSchema {
 	var res MHSMKeyRotationPolicyResourceSchema
 	if p.Attributes != nil {
-		res.ExipreAfter = pointer.From(p.Attributes.ExpiryTime)
+		res.ExpireAfter = pointer.From(p.Attributes.ExpiryTime)
 	}
 
 	if p.LifetimeActions != nil {
