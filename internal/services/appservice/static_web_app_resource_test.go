@@ -329,10 +329,9 @@ func TestAccAzureStaticWebApp_withRepository(t *testing.T) {
 				check.That(data.ResourceName).Key("tags.environment").HasValue("acceptance"),
 				check.That(data.ResourceName).Key("repository_url").Exists(),
 				check.That(data.ResourceName).Key("repository_branch").HasValue("main"),
-				check.That(data.ResourceName).Key("repository_token").HasValue("token"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("repository_token"),
 	})
 }
 
@@ -681,8 +680,8 @@ resource "azurerm_static_web_app" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   repository_branch   = "main"
-  repository_url      = "https://github.com/hashicorp/terraform-provider-azurerm"
-  repository_token	  = "token"
+  repository_url      = "https://github.com/ned1313/static-site-test"
+  repository_token    = "dummy_token"
 
   tags = {
     environment = "acceptance"

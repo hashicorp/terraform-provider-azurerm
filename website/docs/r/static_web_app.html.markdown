@@ -49,6 +49,12 @@ The following arguments are supported:
 
 * `app_settings` - (Optional) A key-value pair of App Settings.
 
+* `repository_branch` - (Optional) Repository branch to use for the Static Web App. `repository_url` and `repository_token` must also be set.
+
+* `repository_url` - (Optional) Repository URL to use for the Static Web App. `repository_branch` and `repository_token` must also be set.
+
+* `reposistory_token` - (Optional) Repository Token with `admin` privileges to use for the Static Web App. `repository_branch` and `repository_url` must also be set.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---

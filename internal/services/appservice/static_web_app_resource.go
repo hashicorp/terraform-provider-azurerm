@@ -47,10 +47,9 @@ type StaticWebAppResourceModel struct {
 	ApiKey          string `tfschema:"api_key"`
 	DefaultHostName string `tfschema:"default_host_name"`
 
-	RepositoryUrl string `tfschema:"repository_url"`
-	RepositoryToken string `tfschema:"repository_token"`
+	RepositoryUrl    string `tfschema:"repository_url"`
+	RepositoryToken  string `tfschema:"repository_token"`
 	RepositoryBranch string `tfschema:"repository_branch"`
-
 }
 
 func (r StaticWebAppResource) Arguments() map[string]*pluginsdk.Schema {
@@ -111,14 +110,14 @@ func (r StaticWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"repository_url": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
 			ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 		},
 
 		"repository_token": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Type:      pluginsdk.TypeString,
+			Optional:  true,
 			Sensitive: true,
 		},
 
@@ -302,7 +301,11 @@ func (r StaticWebAppResource) Read() sdk.ResourceFunc {
 					state.PreviewEnvironments = pointer.From(props.StagingEnvironmentPolicy) == staticsites.StagingEnvironmentPolicyEnabled
 					state.RepositoryUrl = pointer.From(props.RepositoryUrl)
 					state.RepositoryBranch = pointer.From(props.Branch)
-					state.RepositoryToken = pointer.From(props.RepositoryToken)
+
+					// Token isn't returned in the response, so we need to grab it from the config
+					if repositoryToken, ok := metadata.ResourceData.GetOk("repository_token"); ok {
+						state.RepositoryToken = repositoryToken.(string)
+					}
 				}
 
 				if sku := model.Sku; sku != nil {
@@ -473,7 +476,7 @@ func (r StaticWebAppResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("repository_url") {
-			  // If the repository URL is being changes to nothing, make sure the branch and token are also empty
+				// If the repository URL is being changes to nothing, make sure the branch and token are also empty
 				if config.RepositoryUrl == "" && (config.RepositoryBranch != "" || config.RepositoryToken != "") {
 					return fmt.Errorf("repository_url cannot be empty if repository_branch or repository_token are set")
 				}

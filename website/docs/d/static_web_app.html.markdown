@@ -49,6 +49,10 @@ The following arguments are supported:
 
 * `identity` - An `identity` block as defined below.
 
+* `repository_branch` - Repository branch of the Static Web App.
+
+* `repository_url` - Repository URL of the Static Web App.
+
 * `tags` - The mapping of tags assigned to the resource.
 
 --- 
