@@ -1,7 +1,7 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-package cognitive_test
+package aiservices_test
 
 import (
 	"context"
@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type AzureAIServicesResource struct{}
+type AIServices struct{}
 
-func TestAccCognitiveAzureAIServices_basic(t *testing.T) {
+func TestAccAIServices_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_ai_services", "test")
-	r := AzureAIServicesResource{}
+	r := AIServices{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -37,9 +37,9 @@ func TestAccCognitiveAzureAIServices_basic(t *testing.T) {
 	})
 }
 
-func TestAccCognitiveAzureAIServices_requiresImport(t *testing.T) {
+func TestAccAIServices_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_ai_services", "test")
-	r := AzureAIServicesResource{}
+	r := AIServices{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -55,9 +55,9 @@ func TestAccCognitiveAzureAIServices_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccCognitiveAzureAIServices_complete(t *testing.T) {
+func TestAccAIServices_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_ai_services", "test")
-	r := AzureAIServicesResource{}
+	r := AIServices{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -72,9 +72,9 @@ func TestAccCognitiveAzureAIServices_complete(t *testing.T) {
 	})
 }
 
-func TestAccCognitiveAzureAIServices_update(t *testing.T) {
+func TestAccAIServices_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_ai_services", "test")
-	r := AzureAIServicesResource{}
+	r := AIServices{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -97,9 +97,9 @@ func TestAccCognitiveAzureAIServices_update(t *testing.T) {
 	})
 }
 
-func TestAccCognitiveAzureAIServices_networkACLs(t *testing.T) {
+func TestAccAIServices_networkACLs(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_ai_services", "test")
-	r := AzureAIServicesResource{}
+	r := AIServices{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -119,9 +119,9 @@ func TestAccCognitiveAzureAIServices_networkACLs(t *testing.T) {
 	})
 }
 
-func TestAccCognitiveAzureAIServices_identity(t *testing.T) {
+func TestAccAIServices_identity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_ai_services", "test")
-	r := AzureAIServicesResource{}
+	r := AIServices{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -159,9 +159,9 @@ func TestAccCognitiveAzureAIServices_identity(t *testing.T) {
 	})
 }
 
-func TestAccCognitiveAzureAIServices_customerManagedKey_update(t *testing.T) {
+func TestAccAIServices_customerManagedKey_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_ai_services", "test")
-	r := AzureAIServicesResource{}
+	r := AIServices{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -192,13 +192,13 @@ func TestAccCognitiveAzureAIServices_customerManagedKey_update(t *testing.T) {
 	})
 }
 
-func TestAccCognitiveAzureAIServices_KVHsmManagedKey(t *testing.T) {
+func TestAccAIServices_KVHsmManagedKey(t *testing.T) {
 	if os.Getenv("ARM_TEST_HSM_KEY") == "" {
 		t.Skip("Skipping as ARM_TEST_HSM_KEY is not specified")
 		return
 	}
 	data := acceptance.BuildTestData(t, "azurerm_ai_services", "test")
-	r := AzureAIServicesResource{}
+	r := AIServices{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -213,7 +213,7 @@ func TestAccCognitiveAzureAIServices_KVHsmManagedKey(t *testing.T) {
 	})
 }
 
-func (AzureAIServicesResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (AIServices) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := cognitiveservicesaccounts.ParseAccountID(state.ID)
 	if err != nil {
 		return nil, err
@@ -227,7 +227,7 @@ func (AzureAIServicesResource) Exists(ctx context.Context, clients *clients.Clie
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (AzureAIServicesResource) basic(data acceptance.TestData) string {
+func (AIServices) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -247,7 +247,7 @@ resource "azurerm_ai_services" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (AzureAIServicesResource) identitySystemAssigned(data acceptance.TestData) string {
+func (AIServices) identitySystemAssigned(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -270,7 +270,7 @@ resource "azurerm_ai_services" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (AzureAIServicesResource) identityUserAssigned(data acceptance.TestData) string {
+func (AIServices) identityUserAssigned(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -302,7 +302,7 @@ resource "azurerm_ai_services" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (AzureAIServicesResource) identitySystemAssignedUserAssigned(data acceptance.TestData) string {
+func (AIServices) identitySystemAssignedUserAssigned(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -334,8 +334,8 @@ resource "azurerm_ai_services" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (AzureAIServicesResource) requiresImport(data acceptance.TestData) string {
-	template := AzureAIServicesResource{}.basic(data)
+func (AIServices) requiresImport(data acceptance.TestData) string {
+	template := AIServices{}.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -348,7 +348,7 @@ resource "azurerm_ai_services" "import" {
 `, template)
 }
 
-func (AzureAIServicesResource) complete(data acceptance.TestData) string {
+func (AIServices) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -469,7 +469,7 @@ resource "azurerm_ai_services" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomIntOfLength(8))
 }
 
-func (r AzureAIServicesResource) networkACLs(data acceptance.TestData) string {
+func (r AIServices) networkACLs(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -493,7 +493,7 @@ resource "azurerm_ai_services" "test" {
 `, r.networkACLsTemplate(data), data.RandomInteger, data.RandomInteger)
 }
 
-func (r AzureAIServicesResource) networkACLsUpdated(data acceptance.TestData) string {
+func (r AIServices) networkACLsUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_ai_services" "test" {
@@ -517,7 +517,7 @@ resource "azurerm_ai_services" "test" {
 `, r.networkACLsTemplate(data), data.RandomInteger, data.RandomInteger)
 }
 
-func (AzureAIServicesResource) networkACLsTemplate(data acceptance.TestData) string {
+func (AIServices) networkACLsTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -556,7 +556,7 @@ resource "azurerm_subnet" "test_b" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (AzureAIServicesResource) customerManagedKey(data acceptance.TestData) string {
+func (AIServices) customerManagedKey(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -642,7 +642,7 @@ resource "azurerm_ai_services" "test" {
 `, data.RandomInteger, data.Locations.Secondary, data.RandomString, data.RandomString, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
-func (AzureAIServicesResource) customerManagedKeyUpdate(data acceptance.TestData) string {
+func (AIServices) customerManagedKeyUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -723,7 +723,7 @@ resource "azurerm_ai_services" "test" {
 `, data.RandomInteger, data.Locations.Secondary, data.RandomString, data.RandomString, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
-func (AzureAIServicesResource) kvHsmManagedKey(data acceptance.TestData) string {
+func (AIServices) kvHsmManagedKey(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
