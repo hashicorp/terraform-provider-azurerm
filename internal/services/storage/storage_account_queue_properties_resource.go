@@ -54,105 +54,95 @@ func resourceStorageAccountQueueProperties() *pluginsdk.Resource {
 				ValidateFunc: commonids.ValidateStorageAccountID,
 			},
 
-			"properties": {
+			"cors_rule": helpers.SchemaStorageAccountCorsRule(false),
+
+			"hour_metrics": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"version": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						// TODO 4.0: Remove this property and determine whether to enable based on existence of the out side block.
+						"enabled": {
+							Type:     pluginsdk.TypeBool,
+							Required: true,
+						},
+						"include_apis": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
+						"retention_policy_days": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(1, 365),
+						},
+					},
+				},
+			},
+
+			"logging": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Computed: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"cors_rule": helpers.SchemaStorageAccountCorsRule(false),
-
-						"hour_metrics": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							MaxItems: 1,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"version": {
-										Type:         pluginsdk.TypeString,
-										Required:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-									// TODO 4.0: Remove this property and determine whether to enable based on existence of the out side block.
-									"enabled": {
-										Type:     pluginsdk.TypeBool,
-										Required: true,
-									},
-									"include_apis": {
-										Type:     pluginsdk.TypeBool,
-										Optional: true,
-									},
-									"retention_policy_days": {
-										Type:         pluginsdk.TypeInt,
-										Optional:     true,
-										ValidateFunc: validation.IntBetween(1, 365),
-									},
-								},
-							},
+						"version": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
-
-						"logging": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							Computed: true,
-							MaxItems: 1,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"version": {
-										Type:         pluginsdk.TypeString,
-										Required:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-									"delete": {
-										Type:     pluginsdk.TypeBool,
-										Required: true,
-									},
-									"read": {
-										Type:     pluginsdk.TypeBool,
-										Required: true,
-									},
-									"write": {
-										Type:     pluginsdk.TypeBool,
-										Required: true,
-									},
-									"retention_policy_days": {
-										Type:         pluginsdk.TypeInt,
-										Optional:     true,
-										ValidateFunc: validation.IntBetween(1, 365),
-									},
-								},
-							},
+						"delete": {
+							Type:     pluginsdk.TypeBool,
+							Required: true,
 						},
+						"read": {
+							Type:     pluginsdk.TypeBool,
+							Required: true,
+						},
+						"write": {
+							Type:     pluginsdk.TypeBool,
+							Required: true,
+						},
+						"retention_policy_days": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(1, 365),
+						},
+					},
+				},
+			},
 
-						"minute_metrics": {
-							Type:     pluginsdk.TypeList,
+			"minute_metrics": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"version": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						// TODO 4.0: Remove this property and determine whether to enable based on existence of the out side block.
+						"enabled": {
+							Type:     pluginsdk.TypeBool,
+							Required: true,
+						},
+						"include_apis": {
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
-							Computed: true,
-							MaxItems: 1,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"version": {
-										Type:         pluginsdk.TypeString,
-										Required:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-									// TODO 4.0: Remove this property and determine whether to enable based on existence of the out side block.
-									"enabled": {
-										Type:     pluginsdk.TypeBool,
-										Required: true,
-									},
-									"include_apis": {
-										Type:     pluginsdk.TypeBool,
-										Optional: true,
-									},
-									"retention_policy_days": {
-										Type:         pluginsdk.TypeInt,
-										Optional:     true,
-										ValidateFunc: validation.IntBetween(1, 365),
-									},
-								},
-							},
+						},
+						"retention_policy_days": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(1, 365),
 						},
 					},
 				},
@@ -229,7 +219,9 @@ func resourceStorageAccountQueuePropertiesCreate(d *pluginsdk.ResourceData, meta
 		return fmt.Errorf("building Queues Client: %s", err)
 	}
 
-	queueProperties, err := expandAccountQueueProperties(d.Get("properties").([]interface{}))
+	// Wrap the flattened schema into an interface slice to reuse the same expand/flatten functions...
+	queueProps := expandAccountQueueResouceProperties(d)
+	queueProperties, err := expandAccountQueueProperties(queueProps)
 	if err != nil {
 		return fmt.Errorf("expanding `properties`: %+v", err)
 	}
@@ -274,7 +266,7 @@ func resourceStorageAccountQueuePropertiesUpdate(d *pluginsdk.ResourceData, meta
 	accountTier := pointer.From(model.Sku.Tier)
 	supportLevel := availableFunctionalityForAccount(accountKind, accountTier, accountReplicationType)
 
-	if d.HasChange("properties") {
+	if d.HasChange("cors_rule") || d.HasChange("logging") || d.HasChange("minute_metrics") || d.HasChange("hour_metrics") {
 		if !supportLevel.supportQueue {
 			return fmt.Errorf("%q are not supported for a storage account with the account kind %q in sku tier %q", storageAccountQueuePropertiesResourceName, accountKind, accountTier)
 		}
@@ -295,7 +287,8 @@ func resourceStorageAccountQueuePropertiesUpdate(d *pluginsdk.ResourceData, meta
 			return fmt.Errorf("building Queues Client: %s", err)
 		}
 
-		queueProperties, err := expandAccountQueueProperties(d.Get("properties").([]interface{}))
+		queueProps := expandAccountQueueResouceProperties(d)
+		queueProperties, err := expandAccountQueueProperties(queueProps)
 		if err != nil {
 			return fmt.Errorf("expanding `properties` for %s: %+v", *id, err)
 		}
@@ -352,10 +345,26 @@ func resourceStorageAccountQueuePropertiesRead(d *pluginsdk.ResourceData, meta i
 		return fmt.Errorf("retrieving queue properties for %s: %+v", *id, err)
 	}
 
-	queueProperties := flattenAccountQueueProperties(queueProps)
+	if err := d.Set("cors_rule", flattenAccountQueuePropertiesCors(queueProps.Cors)); err != nil {
+		return fmt.Errorf("setting `cors_rule`: %+v", err)
+	}
 
-	if err := d.Set("properties", queueProperties); err != nil {
-		return fmt.Errorf("setting `properties`: %+v", err)
+	if queueProps.Logging != nil {
+		if err := d.Set("logging", flattenAccountQueuePropertiesResourceLogging(queueProps.Logging)); err != nil {
+			return fmt.Errorf("setting `logging`: %+v", err)
+		}
+	}
+
+	if queueProps.HourMetrics != nil {
+		if err := d.Set("hour_metrics", flattenAccountQueuePropertiesResourceMetrics(queueProps.HourMetrics)); err != nil {
+			return fmt.Errorf("setting `hour_metrics`: %+v", err)
+		}
+	}
+
+	if queueProps.MinuteMetrics != nil {
+		if err := d.Set("minute_metrics", flattenAccountQueuePropertiesMetrics(queueProps.MinuteMetrics)); err != nil {
+			return fmt.Errorf("setting `minute_metrics`: %+v", err)
+		}
 	}
 
 	return nil
@@ -412,6 +421,21 @@ func resourceStorageAccountQueuePropertiesDelete(d *pluginsdk.ResourceData, meta
 	return nil
 }
 
+func expandAccountQueueResouceProperties(d *pluginsdk.ResourceData) []interface{} {
+	// queueProperties, err := expandAccountQueueProperties(d.Get("queue_properties").([]interface{}))
+	corsRule := make(map[string]interface{}, 0)
+	logging := make(map[string]interface{}, 0)
+	minuteMetrics := make(map[string]interface{}, 0)
+	hourMetrics := make(map[string]interface{}, 0)
+
+	corsRule["cors_rule"] = d.Get("cors_rule")
+	logging["logging"] = d.Get("logging")
+	minuteMetrics["minute_metrics"] = d.Get("minute_metrics")
+	hourMetrics["hour_metrics"] = d.Get("hour_metrics")
+
+	return []interface{}{corsRule, logging, minuteMetrics, hourMetrics}
+}
+
 func expandAccountQueueProperties(input []interface{}) (*queues.StorageServiceProperties, error) {
 	var err error
 	properties := queues.StorageServiceProperties{
@@ -442,26 +466,43 @@ func expandAccountQueueProperties(input []interface{}) (*queues.StorageServicePr
 			},
 		},
 	}
+	log.Printf("********************************  expandAccountQueueProperties  *************************************")
+	log.Printf("  len: %d", len(input))
 
 	if len(input) == 0 {
 		return &properties, nil
 	}
 
 	attrs := input[0].(map[string]interface{})
+	log.Printf("  attrs: %+v", attrs)
 
-	properties.Cors = expandAccountQueuePropertiesCors(attrs["cors_rule"].([]interface{}))
-	properties.Logging = expandAccountQueuePropertiesLogging(attrs["logging"].([]interface{}))
+	log.Printf("  attrs[cors_rule]     : %+v", attrs["cors_rule"])
+	log.Printf("  attrs[logging]       : %+v", attrs["logging"])
+	log.Printf("  attrs[minute_metrics]: %+v", attrs["minute_metrics"])
+	log.Printf("  attrs[hour_metrics]  : %+v", attrs["hour_metrics"])
 
-	properties.MinuteMetrics, err = expandAccountQueuePropertiesMetrics(attrs["minute_metrics"].([]interface{}))
-	if err != nil {
-		return nil, fmt.Errorf("expanding `minute_metrics`: %+v", err)
+	if attrs["cors_rule"] != nil {
+		properties.Cors = expandAccountQueuePropertiesCors(attrs["cors_rule"].([]interface{}))
 	}
 
-	properties.HourMetrics, err = expandAccountQueuePropertiesMetrics(attrs["hour_metrics"].([]interface{}))
-	if err != nil {
-		return nil, fmt.Errorf("expanding `hour_metrics`: %+v", err)
+	if attrs["logging"] != nil {
+		properties.Logging = expandAccountQueuePropertiesLogging(attrs["logging"].([]interface{}))
 	}
 
+	if attrs["minute_metrics"] != nil {
+		properties.MinuteMetrics, err = expandAccountQueuePropertiesMetrics(attrs["minute_metrics"].([]interface{}))
+		if err != nil {
+			return nil, fmt.Errorf("expanding `minute_metrics`: %+v", err)
+		}
+	}
+
+	if attrs["hour_metrics"] != nil {
+		properties.HourMetrics, err = expandAccountQueuePropertiesMetrics(attrs["hour_metrics"].([]interface{}))
+		if err != nil {
+			return nil, fmt.Errorf("expanding `hour_metrics`: %+v", err)
+		}
+	}
+	log.Printf("*********************************************************************")
 	return &properties, nil
 }
 
@@ -477,8 +518,8 @@ func flattenAccountQueueProperties(input *queues.StorageServiceProperties) []int
 		if len(corsRules) > 0 || len(logging) > 0 || len(hourMetrics) > 0 || len(minuteMetrics) > 0 {
 			output = append(output, map[string]interface{}{
 				"cors_rule":      corsRules,
-				"hour_metrics":   hourMetrics,
 				"logging":        logging,
+				"hour_metrics":   hourMetrics,
 				"minute_metrics": minuteMetrics,
 			})
 		}
@@ -520,6 +561,26 @@ func expandAccountQueuePropertiesLogging(input []interface{}) *queues.LoggingCon
 	return logging
 }
 
+func flattenAccountQueuePropertiesResourceLogging(input *queues.LoggingConfig) []interface{} {
+	output := []interface{}{}
+
+	if input == nil || (input.Version == "1.0" && !input.Delete && !input.Read && !input.Write && input.RetentionPolicy.Days == 0) {
+		return output
+	}
+
+	retentionPolicyDays := input.RetentionPolicy.Days
+
+	return []interface{}{
+		map[string]interface{}{
+			"delete":                input.Delete,
+			"read":                  input.Read,
+			"retention_policy_days": retentionPolicyDays,
+			"version":               input.Version,
+			"write":                 input.Write,
+		},
+	}
+}
+
 func flattenAccountQueuePropertiesLogging(input *queues.LoggingConfig) []interface{} {
 	if input == nil {
 		return []interface{}{}
@@ -542,6 +603,9 @@ func flattenAccountQueuePropertiesLogging(input *queues.LoggingConfig) []interfa
 }
 
 func expandAccountQueuePropertiesMetrics(input []interface{}) (*queues.MetricsConfig, error) {
+	log.Printf("*********************************************************************")
+	log.Printf("  len: %d", len(input))
+
 	if len(input) == 0 {
 		return &queues.MetricsConfig{
 			Version: "1.0",
@@ -553,6 +617,8 @@ func expandAccountQueuePropertiesMetrics(input []interface{}) (*queues.MetricsCo
 	}
 
 	metricsAttr := input[0].(map[string]interface{})
+
+	log.Printf("  metricsAttr: %+v", metricsAttr)
 
 	metrics := &queues.MetricsConfig{
 		Enabled: metricsAttr["enabled"].(bool),
@@ -576,8 +642,28 @@ func expandAccountQueuePropertiesMetrics(input []interface{}) (*queues.MetricsCo
 			return nil, fmt.Errorf("`include_apis` may only be set when `enabled` is true")
 		}
 	}
+	log.Printf("*********************************************************************")
 
 	return metrics, nil
+}
+
+func flattenAccountQueuePropertiesResourceMetrics(input *queues.MetricsConfig) []interface{} {
+	output := make([]interface{}, 0)
+
+	if input.Version == "1.0" && !input.Enabled && !input.RetentionPolicy.Enabled && input.RetentionPolicy.Days == 0 && input.IncludeAPIs == nil {
+		return output
+	}
+
+	retentionPolicyDays := input.RetentionPolicy.Days
+
+	output = append(output, map[string]interface{}{
+		"enabled":               input.Enabled,
+		"include_apis":          pointer.From(input.IncludeAPIs),
+		"retention_policy_days": retentionPolicyDays,
+		"version":               input.Version,
+	})
+
+	return output
 }
 
 func flattenAccountQueuePropertiesMetrics(input *queues.MetricsConfig) []interface{} {

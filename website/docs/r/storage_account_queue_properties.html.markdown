@@ -40,34 +40,32 @@ resource "azurerm_storage_account" "example" {
 resource "azurerm_storage_account_queue_properties" "example" {
   storage_account_id = azurerm_storage_account.example.id
 
-  properties {
-    cors_rule {
-      allowed_origins    = ["http://www.example.com"]
-      exposed_headers    = ["x-tempo-*"]
-      allowed_headers    = ["x-tempo-*"]
-      allowed_methods    = ["GET", "PUT"]
-      max_age_in_seconds = "500"
-    }
+  cors_rule {
+    allowed_origins    = ["http://www.example.com"]
+    exposed_headers    = ["x-tempo-*"]
+    allowed_headers    = ["x-tempo-*"]
+    allowed_methods    = ["GET", "PUT"]
+    max_age_in_seconds = "500"
+  }
 
-    logging {
-      version               = "1.0"
-      delete                = true
-      read                  = true
-      write                 = true
-      retention_policy_days = 7
-    }
+  logging {
+    version               = "1.0"
+    delete                = true
+    read                  = true
+    write                 = true
+    retention_policy_days = 7
+  }
 
-    minute_metrics {
-      version               = "1.0"
-      enabled               = false
-      retention_policy_days = 7
-    }
+  minute_metrics {
+    version               = "1.0"
+    enabled               = false
+    retention_policy_days = 7
+  }
 
-    hour_metrics {
-      version               = "1.0"
-      enabled               = false
-      retention_policy_days = 7
-    }
+  hour_metrics {
+    version               = "1.0"
+    enabled               = false
+    retention_policy_days = 7
   }
 }
 ```
@@ -79,10 +77,6 @@ The following arguments are supported:
 * `storage_account_id` - (Required) Specifies the resource id of the storage account.
 
 * `properties` - (Required) A `properties` block as defined below.
-
----
-
-A `properties` block supports the following:
 
 * `cors_rule` - (Optional) A `cors_rule` block as defined below.
 
@@ -166,8 +160,8 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 ## Import
 
-Storage Accounts can be imported using the `resource id`, e.g.
+Storage Accounts Queue Properties can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_storage_account_queue_properties.storageAcc1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.Storage/storageAccounts/myaccount
+terraform import azurerm_storage_account_queue_properties.queue1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.Storage/storageAccounts/myaccount
 ```
