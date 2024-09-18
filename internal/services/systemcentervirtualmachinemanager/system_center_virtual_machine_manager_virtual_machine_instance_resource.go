@@ -257,10 +257,9 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Argumen
 				Schema: map[string]*pluginsdk.Schema{
 					"computer_name": {
 						Type:         pluginsdk.TypeString,
-						Optional:     true,
+						Required:     true,
 						ForceNew:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
-						AtLeastOneOf: []string{"os.0.computer_name", "os.0.admin_password"},
 					},
 
 					"admin_password": {
@@ -269,7 +268,6 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Argumen
 						ForceNew:     true,
 						Sensitive:    true,
 						ValidateFunc: validation.StringIsNotEmpty,
-						AtLeastOneOf: []string{"os.0.computer_name", "os.0.admin_password"},
 					},
 				},
 			},
