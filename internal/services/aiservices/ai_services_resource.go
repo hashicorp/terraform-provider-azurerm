@@ -55,7 +55,7 @@ func (r AIServices) CustomImporter() sdk.ResourceRunFunc {
 		}
 
 		if !strings.EqualFold(*resp.Model.Kind, "AIServices") {
-			return fmt.Errorf("importing %s: specified account is not of kind `AIServices`", id)
+			return fmt.Errorf("importing %s: specified account is not of kind `AIServices`, got `%s`", id, *resp.Model.Kind)
 		}
 
 		return nil
@@ -360,15 +360,17 @@ func (AIServices) Create() sdk.ResourceFunc {
 			}
 
 			// creating with KV HSM takes more time than expected, at least hours in most cases and eventually terminated by service
-			customerManagedKey, err := expandCustomerManagedKey(model.CustomerManagedKey)
-			if err != nil {
-				return fmt.Errorf("expanding `customer_managed_key`: %+v", err)
-			}
+			if len(model.CustomerManagedKey) > 0 {
+				customerManagedKey, err := expandCustomerManagedKey(model.CustomerManagedKey)
+				if err != nil {
+					return fmt.Errorf("expanding `customer_managed_key`: %+v", err)
+				}
 
-			if customerManagedKey != nil {
-				props.Properties.Encryption = customerManagedKey
-				if err := client.AccountsUpdateThenPoll(ctx, id, props); err != nil {
-					return fmt.Errorf("updating %s: %+v", id, err)
+				if customerManagedKey != nil {
+					props.Properties.Encryption = customerManagedKey
+					if err := client.AccountsUpdateThenPoll(ctx, id, props); err != nil {
+						return fmt.Errorf("updating %s: %+v", id, err)
+					}
 				}
 			}
 

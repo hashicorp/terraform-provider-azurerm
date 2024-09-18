@@ -48,10 +48,7 @@ func TestAccAIServices_requiresImport(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		{
-			Config:      r.requiresImport(data),
-			ExpectError: acceptance.RequiresImportError("azurerm_ai_services"),
-		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
