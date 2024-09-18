@@ -80,12 +80,7 @@ func (r KeyVaultMHSMKeyRotationPolicyResource) Arguments() map[string]*pluginsdk
 }
 
 func (r KeyVaultMHSMKeyRotationPolicyResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
-		"versioned_id": {
-			Computed: true,
-			Type:     pluginsdk.TypeString,
-		},
-	}
+	return map[string]*pluginsdk.Schema{}
 }
 
 func (r KeyVaultMHSMKeyRotationPolicyResource) Create() sdk.ResourceFunc {
