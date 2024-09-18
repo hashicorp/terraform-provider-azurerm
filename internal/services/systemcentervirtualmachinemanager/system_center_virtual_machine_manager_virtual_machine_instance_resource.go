@@ -13,11 +13,16 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/extendedlocation/2021-08-15/customlocations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-11-10/machines"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/availabilitysets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/clouds"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/inventoryitems"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/virtualmachineinstances"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/virtualmachinetemplates"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/vmmservers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/systemcentervirtualmachinemanager/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/systemcentervirtualmachinemanager/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
@@ -42,15 +47,11 @@ type Hardware struct {
 }
 
 type Infrastructure struct {
-	BiosGuid                                                string `tfschema:"bios_guid"`
 	CheckpointType                                          string `tfschema:"checkpoint_type"`
-	Generation                                              int64  `tfschema:"generation"`
 	SystemCenterVirtualMachineManagerCloudId                string `tfschema:"system_center_virtual_machine_manager_cloud_id"`
 	SystemCenterVirtualMachineManagerInventoryItemId        string `tfschema:"system_center_virtual_machine_manager_inventory_item_id"`
 	SystemCenterVirtualMachineManagerTemplateId             string `tfschema:"system_center_virtual_machine_manager_template_id"`
-	SystemCenterVirtualMachineManagerVirtualMachineName     string `tfschema:"system_center_virtual_machine_manager_virtual_machine_name"`
 	SystemCenterVirtualMachineManagerVirtualMachineServerId string `tfschema:"system_center_virtual_machine_manager_virtual_machine_server_id"`
-	Uuid                                                    string `tfschema:"uuid"`
 }
 
 type NetworkInterface struct {
@@ -116,61 +117,50 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Argumen
 
 		"infrastructure": {
 			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Required: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"bios_guid": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ForceNew: true,
-					},
-
 					"checkpoint_type": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
-					},
-
-					"generation": {
-						Type:     pluginsdk.TypeInt,
-						Optional: true,
-						ForceNew: true,
+						Default:  "Production",
+						ValidateFunc: validation.StringInSlice([]string{
+							"Disabled",
+							"Production",
+							"ProductionOnly",
+							"Standard",
+						}, false),
 					},
 
 					"system_center_virtual_machine_manager_cloud_id": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ForceNew: true,
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: clouds.ValidateCloudID,
+						RequiredWith: []string{"infrastructure.0.system_center_virtual_machine_manager_template_id"},
 					},
 
 					"system_center_virtual_machine_manager_inventory_item_id": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ForceNew: true,
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: inventoryitems.ValidateInventoryItemID,
 					},
 
 					"system_center_virtual_machine_manager_template_id": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ForceNew: true,
-					},
-
-					"system_center_virtual_machine_manager_virtual_machine_name": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ForceNew: true,
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: virtualmachinetemplates.ValidateVirtualMachineTemplateID,
+						RequiredWith: []string{"infrastructure.0.system_center_virtual_machine_manager_cloud_id"},
 					},
 
 					"system_center_virtual_machine_manager_virtual_machine_server_id": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ForceNew: true,
-					},
-
-					"uuid": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ForceNew: true,
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: vmmservers.ValidateVMmServerID,
 					},
 				},
 			},
@@ -266,16 +256,20 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Argumen
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"computer_name": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ForceNew: true,
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+						AtLeastOneOf: []string{"os.0.computer_name", "os.0.admin_password"},
 					},
 
 					"admin_password": {
-						Type:      pluginsdk.TypeString,
-						Optional:  true,
-						ForceNew:  true,
-						Sensitive: true,
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						Sensitive:    true,
+						ValidateFunc: validation.StringIsNotEmpty,
+						AtLeastOneOf: []string{"os.0.computer_name", "os.0.admin_password"},
 					},
 				},
 			},
@@ -358,7 +352,6 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Argumen
 		"system_center_virtual_machine_manager_availability_set_ids": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			ForceNew: true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: availabilitysets.ValidateAvailabilitySetID,
@@ -455,7 +448,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Read() 
 				state.CustomLocationId = pointer.From(model.ExtendedLocation.Name)
 				state.Hardware = flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfile(model.Properties.HardwareProfile)
 				state.Infrastructure = flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceInfrastructureProfile(model.Properties.InfrastructureProfile)
-				state.OS = flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceOSProfile(model.Properties.OsProfile)
+				state.OS = flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceOSProfile(model.Properties.OsProfile, metadata.ResourceData.Get("os.0.admin_password").(string))
 				state.SystemCenterVirtualMachineManagerAvailabilitySetIds = flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceAvailabilitySets(model.Properties.AvailabilitySets)
 
 				if v := model.Properties.NetworkProfile; v != nil {
@@ -576,13 +569,7 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceInfrastructure
 
 	infrastructureProfile := input[0]
 
-	result := virtualmachineinstances.InfrastructureProfile{
-		Generation: pointer.To(infrastructureProfile.Generation),
-	}
-
-	if v := infrastructureProfile.BiosGuid; v != "" {
-		result.BiosGuid = pointer.To(v)
-	}
+	result := virtualmachineinstances.InfrastructureProfile{}
 
 	if v := infrastructureProfile.CheckpointType; v != "" {
 		result.CheckpointType = pointer.To(v)
@@ -596,20 +583,12 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceInfrastructure
 		result.TemplateId = pointer.To(v)
 	}
 
-	if v := infrastructureProfile.SystemCenterVirtualMachineManagerVirtualMachineName; v != "" {
-		result.VirtualMachineName = pointer.To(v)
-	}
-
 	if v := infrastructureProfile.SystemCenterVirtualMachineManagerVirtualMachineServerId; v != "" {
 		result.VMmServerId = pointer.To(v)
 	}
 
 	if v := infrastructureProfile.SystemCenterVirtualMachineManagerInventoryItemId; v != "" {
 		result.InventoryItemId = pointer.To(v)
-	}
-
-	if v := infrastructureProfile.Uuid; v != "" {
-		result.Uuid = pointer.To(v)
 	}
 
 	return &result
@@ -900,15 +879,11 @@ func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceInfrastructur
 	}
 
 	return append(result, Infrastructure{
-		BiosGuid:                                 pointer.From(input.BiosGuid),
-		CheckpointType:                           pointer.From(input.CheckpointType),
-		Generation:                               pointer.From(input.Generation),
-		SystemCenterVirtualMachineManagerCloudId: pointer.From(input.CloudId),
+		CheckpointType:                                          pointer.From(input.CheckpointType),
+		SystemCenterVirtualMachineManagerCloudId:                pointer.From(input.CloudId),
 		SystemCenterVirtualMachineManagerInventoryItemId:        pointer.From(input.InventoryItemId),
 		SystemCenterVirtualMachineManagerTemplateId:             pointer.From(input.TemplateId),
-		SystemCenterVirtualMachineManagerVirtualMachineName:     pointer.From(input.VirtualMachineName),
 		SystemCenterVirtualMachineManagerVirtualMachineServerId: pointer.From(input.VMmServerId),
-		Uuid: pointer.From(input.Uuid),
 	})
 }
 
@@ -969,7 +944,7 @@ func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceStorageQoSPol
 	})
 }
 
-func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceOSProfile(input *virtualmachineinstances.OsProfileForVMInstance) []OS {
+func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceOSProfile(input *virtualmachineinstances.OsProfileForVMInstance, adminPassword string) []OS {
 	result := make([]OS, 0)
 	if input == nil {
 		return result
@@ -977,7 +952,7 @@ func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceOSProfile(inp
 
 	return append(result, OS{
 		ComputerName:  pointer.From(input.ComputerName),
-		AdminPassword: pointer.From(input.AdminPassword),
+		AdminPassword: adminPassword,
 	})
 }
 

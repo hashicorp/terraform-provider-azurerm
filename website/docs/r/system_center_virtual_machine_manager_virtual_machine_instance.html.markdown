@@ -53,9 +53,9 @@ The following arguments are supported:
 
 * `custom_location_id` - (Required) The ID of the Custom Location for the System Center Virtual Machine Manager Virtual Machine Instance. Changing this forces a new resource to be created.
 
-* `hardware` - (Optional) A `hardware` block as defined below.
+* `infrastructure` - (Required) An `infrastructure` block as defined below.
 
-* `infrastructure` - (Optional) An `infrastructure` block as defined below.
+* `hardware` - (Optional) A `hardware` block as defined below.
 
 * `network_interface` - (Optional) A `network_interface` block as defined below.
 
@@ -63,17 +63,13 @@ The following arguments are supported:
 
 * `storage_disk` - (Optional) A `storage_disk` block as defined below.
 
-* `system_center_virtual_machine_manager_availability_set_ids` - (Optional) A list of IDs of System Center Virtual Machine Manager Availability Set. Changing this forces a new resource to be created.
+* `system_center_virtual_machine_manager_availability_set_ids` - (Optional) A list of IDs of System Center Virtual Machine Manager Availability Set.
 
 ---
 
 An `infrastructure` block supports the following:
 
-* `bios_guid` - (Optional) The bios GUID for the Virtual Machine. Changing this forces a new resource to be created.
-
-* `checkpoint_type` - (Optional) The type of checkpoint supported for the Virtual Machine.
-
-* `generation` - (Optional) The generation for the Virtual Machine. Changing this forces a new resource to be created.
+* `checkpoint_type` - (Optional) The type of checkpoint supported for the Virtual Machine. Possible values are `Disabled`, `Production`, `ProductionOnly` and `Standard`. Defaults to `Production`.
 
 * `system_center_virtual_machine_manager_cloud_id` - (Optional) The ID of the System Center Virtual Machine Manager Cloud resource to use for deploying the Virtual Machine. Changing this forces a new resource to be created.
 
@@ -81,11 +77,7 @@ An `infrastructure` block supports the following:
 
 * `system_center_virtual_machine_manager_template_id` - (Optional) The ID of the System Center Virtual Machine Manager Virtual Machine Template to use for deploying the Virtual Machine. Changing this forces a new resource to be created.
 
-* `system_center_virtual_machine_manager_virtual_machine_name` - (Optional) The name of the System Center Virtual Machine Manager Virtual Machine. Changing this forces a new resource to be created.
-
 * `system_center_virtual_machine_manager_virtual_machine_server_id` - (Optional) The ID of the System Center Virtual Machine Manager Virtual Machine. Changing this forces a new resource to be created.
-
-* `uuid` - (Optional) The unique ID of the Virtual Machine. Changing this forces a new resource to be created.
 
 ---
 
