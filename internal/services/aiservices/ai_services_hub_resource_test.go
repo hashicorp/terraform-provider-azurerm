@@ -440,7 +440,7 @@ resource "azurerm_ai_services_hub" "import" {
   key_vault_id        = azurerm_ai_services_hub.test.key_vault_id
 
   identity {
-   type = "SystemAssigned"
+    type = "SystemAssigned"
   }
 }
 `, template)
