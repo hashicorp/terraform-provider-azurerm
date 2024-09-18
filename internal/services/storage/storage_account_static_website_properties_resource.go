@@ -116,6 +116,7 @@ func resourceStorageAccountStaticWebSitePropertiesCreate(d *pluginsdk.ResourceDa
 		return fmt.Errorf("unable to locate %q", id)
 	}
 
+	// NOTE: Wait for the data plane static website container to become available...
 	log.Printf("[DEBUG] [%s:CREATE] Calling 'custompollers.NewDataPlaneStaticWebsiteAvailabilityPoller' building Static Website Poller: %s", strings.ToUpper(storageAccountStaticWebSitePropertiesResourceName), id)
 	pollerType, err := custompollers.NewDataPlaneStaticWebsiteAvailabilityPoller(ctx, storageClient, dataPlaneAccount)
 	if err != nil {
@@ -325,13 +326,9 @@ func resourceStorageAccountStaticWebSitePropertiesDelete(d *pluginsdk.ResourceDa
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	// NOTE: Since this is a fake resource the best we can do
-	// is clear the settings and set enabled to false...
-	staticWebsiteProps := accounts.StorageServiceProperties{
-		StaticWebsite: &accounts.StaticWebsite{
-			Enabled: false,
-		},
-	}
+	// NOTE: Since this is a fake resource that has been split off from the main storage account resource
+	// the best we can do is reset the values to the default settings...
+	staticWebsiteProps := defaultStaticWebsiteProperties()
 
 	log.Printf("[DEBUG] [%s:DELETE] Calling 'storageClient.FindAccount': %s", strings.ToUpper(storageAccountStaticWebSitePropertiesResourceName), id)
 	dataPlaneAccount, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
@@ -358,11 +355,8 @@ func resourceStorageAccountStaticWebSitePropertiesDelete(d *pluginsdk.ResourceDa
 }
 
 func expandAccountStaticWebsiteProperties(input []interface{}) accounts.StorageServiceProperties {
-	properties := accounts.StorageServiceProperties{
-		StaticWebsite: &accounts.StaticWebsite{
-			Enabled: false,
-		},
-	}
+	properties := defaultStaticWebsiteProperties()
+
 	if len(input) == 0 {
 		return properties
 	}
@@ -402,4 +396,12 @@ func flattenAccountStaticWebsiteProperties(input accounts.GetServicePropertiesRe
 		}
 	}
 	return []interface{}{}
+}
+
+func defaultStaticWebsiteProperties() accounts.StorageServiceProperties {
+	return accounts.StorageServiceProperties{
+		StaticWebsite: &accounts.StaticWebsite{
+			Enabled: false,
+		},
+	}
 }

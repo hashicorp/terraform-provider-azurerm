@@ -88,7 +88,6 @@ func resourceStorageAccountQueueProperties() *pluginsdk.Resource {
 			"logging": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -121,7 +120,6 @@ func resourceStorageAccountQueueProperties() *pluginsdk.Resource {
 			"minute_metrics": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -189,7 +187,6 @@ func resourceStorageAccountQueuePropertiesCreate(d *pluginsdk.ResourceData, meta
 		return fmt.Errorf("%q are not supported for account kind %q in sku tier %q", storageAccountQueuePropertiesResourceName, accountKind, accountTier)
 	}
 
-	// NOTE: Wait for the data plane queue container to become available...
 	log.Printf("[DEBUG] [%s:CREATE] Calling 'storageClient.FindAccount': %s", strings.ToUpper(storageAccountQueuePropertiesResourceName), id)
 	dataPlaneAccount, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
 	if err != nil {
@@ -200,6 +197,7 @@ func resourceStorageAccountQueuePropertiesCreate(d *pluginsdk.ResourceData, meta
 		return fmt.Errorf("unable to locate %q", id)
 	}
 
+	// NOTE: Wait for the data plane queue container to become available...
 	log.Printf("[DEBUG] [%s:CREATE] Calling 'custompollers.NewDataPlaneQueuesAvailabilityPoller' building Queues Poller: %s", strings.ToUpper(storageAccountQueuePropertiesResourceName), id)
 	pollerType, err := custompollers.NewDataPlaneQueuesAvailabilityPoller(ctx, storageClient, dataPlaneAccount)
 	if err != nil {
@@ -219,9 +217,7 @@ func resourceStorageAccountQueuePropertiesCreate(d *pluginsdk.ResourceData, meta
 		return fmt.Errorf("building Queues Client: %s", err)
 	}
 
-	// Wrap the flattened schema into an interface slice to reuse the same expand/flatten functions...
-	queueProps := expandAccountQueueResouceProperties(d)
-	queueProperties, err := expandAccountQueueProperties(queueProps)
+	queueProperties, err := standaloneExpandAccountQueueProperties(d)
 	if err != nil {
 		return fmt.Errorf("expanding `properties`: %+v", err)
 	}
@@ -287,8 +283,7 @@ func resourceStorageAccountQueuePropertiesUpdate(d *pluginsdk.ResourceData, meta
 			return fmt.Errorf("building Queues Client: %s", err)
 		}
 
-		queueProps := expandAccountQueueResouceProperties(d)
-		queueProperties, err := expandAccountQueueProperties(queueProps)
+		queueProperties, err := standaloneExpandAccountQueueProperties(d)
 		if err != nil {
 			return fmt.Errorf("expanding `properties` for %s: %+v", *id, err)
 		}
@@ -350,19 +345,19 @@ func resourceStorageAccountQueuePropertiesRead(d *pluginsdk.ResourceData, meta i
 	}
 
 	if queueProps.Logging != nil {
-		if err := d.Set("logging", flattenAccountQueuePropertiesResourceLogging(queueProps.Logging)); err != nil {
+		if err := d.Set("logging", standaloneFlattenAccountQueuePropertiesLogging(queueProps.Logging)); err != nil {
 			return fmt.Errorf("setting `logging`: %+v", err)
 		}
 	}
 
 	if queueProps.HourMetrics != nil {
-		if err := d.Set("hour_metrics", flattenAccountQueuePropertiesResourceMetrics(queueProps.HourMetrics)); err != nil {
+		if err := d.Set("hour_metrics", standaloneFlattenAccountQueuePropertiesMetrics(queueProps.HourMetrics)); err != nil {
 			return fmt.Errorf("setting `hour_metrics`: %+v", err)
 		}
 	}
 
 	if queueProps.MinuteMetrics != nil {
-		if err := d.Set("minute_metrics", flattenAccountQueuePropertiesMetrics(queueProps.MinuteMetrics)); err != nil {
+		if err := d.Set("minute_metrics", standaloneFlattenAccountQueuePropertiesMetrics(queueProps.MinuteMetrics)); err != nil {
 			return fmt.Errorf("setting `minute_metrics`: %+v", err)
 		}
 	}
@@ -406,103 +401,89 @@ func resourceStorageAccountQueuePropertiesDelete(d *pluginsdk.ResourceData, meta
 		return fmt.Errorf("building Data Plane Queues Client: %s", err)
 	}
 
-	// NOTE: Call expand with an empty interface to get an
-	// unconfigured block back from the function...
-	queueProperties, err := expandAccountQueueProperties(make([]interface{}, 0))
-	if err != nil {
-		return fmt.Errorf("expanding %s: %+v", *id, err)
-	}
-
 	log.Printf("[DEBUG] [%s:DELETE] Calling 'queueDataPlaneClient.UpdateServiceProperties': %s", strings.ToUpper(storageAccountQueuePropertiesResourceName), id)
-	if err = queueDataPlaneClient.UpdateServiceProperties(ctx, *queueProperties); err != nil {
+
+	// NOTE: Since this is a fake resource that has been split off from the main storage account resource
+	// the best we can do is reset the values to the default settings...
+	queueProperties := defaultAccountQueueProperties()
+	if err = queueDataPlaneClient.UpdateServiceProperties(ctx, queueProperties); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil
 }
 
-func expandAccountQueueResouceProperties(d *pluginsdk.ResourceData) []interface{} {
-	// queueProperties, err := expandAccountQueueProperties(d.Get("queue_properties").([]interface{}))
-	corsRule := make(map[string]interface{}, 0)
-	logging := make(map[string]interface{}, 0)
-	minuteMetrics := make(map[string]interface{}, 0)
-	hourMetrics := make(map[string]interface{}, 0)
+func standaloneExpandAccountQueueProperties(d *pluginsdk.ResourceData) (*queues.StorageServiceProperties, error) {
+	var err error
+	properties := defaultAccountQueueProperties()
 
-	corsRule["cors_rule"] = d.Get("cors_rule")
-	logging["logging"] = d.Get("logging")
-	minuteMetrics["minute_metrics"] = d.Get("minute_metrics")
-	hourMetrics["hour_metrics"] = d.Get("hour_metrics")
+	corsRule := d.Get("cors_rule").([]interface{})
+	logging := d.Get("logging").([]interface{})
+	minuteMetrics := d.Get("minute_metrics").([]interface{})
+	hourMetrics := d.Get("hour_metrics").([]interface{})
 
-	return []interface{}{corsRule, logging, minuteMetrics, hourMetrics}
+	if len(corsRule) != 0 {
+		properties.Cors = expandAccountQueuePropertiesCors(corsRule)
+	}
+
+	if len(logging) != 0 {
+		if v := logging[0].(map[string]interface{}); v != nil {
+			properties.Logging = expandAccountQueuePropertiesLogging([]interface{}{v})
+		}
+	}
+
+	if len(minuteMetrics) != 0 {
+		if v := minuteMetrics[0].(map[string]interface{}); v != nil {
+			properties.MinuteMetrics, err = expandAccountQueuePropertiesMetrics([]interface{}{v})
+			if err != nil {
+				return nil, fmt.Errorf("expanding `minute_metrics`: %+v", err)
+			}
+		}
+	}
+
+	if len(hourMetrics) != 0 {
+		if v := hourMetrics[0].(map[string]interface{}); v != nil {
+			properties.HourMetrics, err = expandAccountQueuePropertiesMetrics([]interface{}{v})
+			if err != nil {
+				return nil, fmt.Errorf("expanding `hour_metrics`: %+v", err)
+			}
+		}
+	}
+
+	return &properties, nil
 }
 
+// TODO: Remove in v5.0, this is only here for legacy support of existing Storage Accounts...
 func expandAccountQueueProperties(input []interface{}) (*queues.StorageServiceProperties, error) {
 	var err error
-	properties := queues.StorageServiceProperties{
-		Cors: &queues.Cors{
-			CorsRule: []queues.CorsRule{},
-		},
-		HourMetrics: &queues.MetricsConfig{
-			Version: "1.0",
-			Enabled: false,
-			RetentionPolicy: queues.RetentionPolicy{
-				Enabled: false,
-			},
-		},
-		MinuteMetrics: &queues.MetricsConfig{
-			Version: "1.0",
-			Enabled: false,
-			RetentionPolicy: queues.RetentionPolicy{
-				Enabled: false,
-			},
-		},
-		Logging: &queues.LoggingConfig{
-			Version: "1.0",
-			Delete:  false,
-			Read:    false,
-			Write:   false,
-			RetentionPolicy: queues.RetentionPolicy{
-				Enabled: false,
-			},
-		},
-	}
-	log.Printf("********************************  expandAccountQueueProperties  *************************************")
-	log.Printf("  len: %d", len(input))
+	properties := defaultAccountQueueProperties()
 
-	if len(input) == 0 {
-		return &properties, nil
-	}
+	if len(input) != 0 {
+		attrs := input[0].(map[string]interface{})
 
-	attrs := input[0].(map[string]interface{})
-	log.Printf("  attrs: %+v", attrs)
+		if attrs["cors_rule"] != nil {
+			properties.Cors = expandAccountQueuePropertiesCors(attrs["cors_rule"].([]interface{}))
+		}
 
-	log.Printf("  attrs[cors_rule]     : %+v", attrs["cors_rule"])
-	log.Printf("  attrs[logging]       : %+v", attrs["logging"])
-	log.Printf("  attrs[minute_metrics]: %+v", attrs["minute_metrics"])
-	log.Printf("  attrs[hour_metrics]  : %+v", attrs["hour_metrics"])
+		if attrs["logging"] != nil {
+			properties.Logging = expandAccountQueuePropertiesLogging(attrs["logging"].([]interface{}))
+		}
 
-	if attrs["cors_rule"] != nil {
-		properties.Cors = expandAccountQueuePropertiesCors(attrs["cors_rule"].([]interface{}))
-	}
+		if attrs["minute_metrics"] != nil {
+			properties.MinuteMetrics, err = expandAccountQueuePropertiesMetrics(attrs["minute_metrics"].([]interface{}))
+			if err != nil {
+				return nil, fmt.Errorf("expanding `minute_metrics`: %+v", err)
+			}
+		}
 
-	if attrs["logging"] != nil {
-		properties.Logging = expandAccountQueuePropertiesLogging(attrs["logging"].([]interface{}))
-	}
-
-	if attrs["minute_metrics"] != nil {
-		properties.MinuteMetrics, err = expandAccountQueuePropertiesMetrics(attrs["minute_metrics"].([]interface{}))
-		if err != nil {
-			return nil, fmt.Errorf("expanding `minute_metrics`: %+v", err)
+		if attrs["hour_metrics"] != nil {
+			properties.HourMetrics, err = expandAccountQueuePropertiesMetrics(attrs["hour_metrics"].([]interface{}))
+			if err != nil {
+				return nil, fmt.Errorf("expanding `hour_metrics`: %+v", err)
+			}
 		}
 	}
 
-	if attrs["hour_metrics"] != nil {
-		properties.HourMetrics, err = expandAccountQueuePropertiesMetrics(attrs["hour_metrics"].([]interface{}))
-		if err != nil {
-			return nil, fmt.Errorf("expanding `hour_metrics`: %+v", err)
-		}
-	}
-	log.Printf("*********************************************************************")
 	return &properties, nil
 }
 
@@ -561,7 +542,7 @@ func expandAccountQueuePropertiesLogging(input []interface{}) *queues.LoggingCon
 	return logging
 }
 
-func flattenAccountQueuePropertiesResourceLogging(input *queues.LoggingConfig) []interface{} {
+func standaloneFlattenAccountQueuePropertiesLogging(input *queues.LoggingConfig) []interface{} {
 	output := []interface{}{}
 
 	if input == nil || (input.Version == "1.0" && !input.Delete && !input.Read && !input.Write && input.RetentionPolicy.Days == 0) {
@@ -581,6 +562,7 @@ func flattenAccountQueuePropertiesResourceLogging(input *queues.LoggingConfig) [
 	}
 }
 
+// TODO: Remove in v5.0, this is only here for legacy support of existing Storage Accounts...
 func flattenAccountQueuePropertiesLogging(input *queues.LoggingConfig) []interface{} {
 	if input == nil {
 		return []interface{}{}
@@ -603,9 +585,6 @@ func flattenAccountQueuePropertiesLogging(input *queues.LoggingConfig) []interfa
 }
 
 func expandAccountQueuePropertiesMetrics(input []interface{}) (*queues.MetricsConfig, error) {
-	log.Printf("*********************************************************************")
-	log.Printf("  len: %d", len(input))
-
 	if len(input) == 0 {
 		return &queues.MetricsConfig{
 			Version: "1.0",
@@ -617,8 +596,6 @@ func expandAccountQueuePropertiesMetrics(input []interface{}) (*queues.MetricsCo
 	}
 
 	metricsAttr := input[0].(map[string]interface{})
-
-	log.Printf("  metricsAttr: %+v", metricsAttr)
 
 	metrics := &queues.MetricsConfig{
 		Enabled: metricsAttr["enabled"].(bool),
@@ -642,30 +619,35 @@ func expandAccountQueuePropertiesMetrics(input []interface{}) (*queues.MetricsCo
 			return nil, fmt.Errorf("`include_apis` may only be set when `enabled` is true")
 		}
 	}
-	log.Printf("*********************************************************************")
 
 	return metrics, nil
 }
 
-func flattenAccountQueuePropertiesResourceMetrics(input *queues.MetricsConfig) []interface{} {
+func standaloneFlattenAccountQueuePropertiesMetrics(input *queues.MetricsConfig) []interface{} {
 	output := make([]interface{}, 0)
 
-	if input.Version == "1.0" && !input.Enabled && !input.RetentionPolicy.Enabled && input.RetentionPolicy.Days == 0 && input.IncludeAPIs == nil {
+	if input == nil || (input.Version == "1.0" && !input.Enabled && !input.RetentionPolicy.Enabled && input.RetentionPolicy.Days == 0 && input.IncludeAPIs == nil) {
 		return output
 	}
 
-	retentionPolicyDays := input.RetentionPolicy.Days
+	if input.Version != "" {
+		retentionPolicyDays := 0
+		if input.RetentionPolicy.Enabled {
+			retentionPolicyDays = input.RetentionPolicy.Days
+		}
 
-	output = append(output, map[string]interface{}{
-		"enabled":               input.Enabled,
-		"include_apis":          pointer.From(input.IncludeAPIs),
-		"retention_policy_days": retentionPolicyDays,
-		"version":               input.Version,
-	})
+		output = append(output, map[string]interface{}{
+			"enabled":               input.Enabled,
+			"include_apis":          pointer.From(input.IncludeAPIs),
+			"retention_policy_days": retentionPolicyDays,
+			"version":               input.Version,
+		})
+	}
 
 	return output
 }
 
+// TODO: Remove in v5.0, this is only here for legacy support of existing Storage Accounts...
 func flattenAccountQueuePropertiesMetrics(input *queues.MetricsConfig) []interface{} {
 	output := make([]interface{}, 0)
 
@@ -740,4 +722,37 @@ func flattenAccountQueuePropertiesCorsRule(input string) []interface{} {
 	}
 
 	return results
+}
+
+func defaultAccountQueueProperties() queues.StorageServiceProperties {
+	output := queues.StorageServiceProperties{
+		Cors: &queues.Cors{
+			CorsRule: []queues.CorsRule{},
+		},
+		HourMetrics: &queues.MetricsConfig{
+			Version: "1.0",
+			Enabled: false,
+			RetentionPolicy: queues.RetentionPolicy{
+				Enabled: false,
+			},
+		},
+		MinuteMetrics: &queues.MetricsConfig{
+			Version: "1.0",
+			Enabled: false,
+			RetentionPolicy: queues.RetentionPolicy{
+				Enabled: false,
+			},
+		},
+		Logging: &queues.LoggingConfig{
+			Version: "1.0",
+			Delete:  false,
+			Read:    false,
+			Write:   false,
+			RetentionPolicy: queues.RetentionPolicy{
+				Enabled: false,
+			},
+		},
+	}
+
+	return output
 }

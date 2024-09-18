@@ -183,7 +183,6 @@ func resourceStorageAccountSharePropertiesCreate(d *pluginsdk.ResourceData, meta
 		return fmt.Errorf("%q are not supported for account kind %q in sku tier %q", storageAccountSharePropertiesResourceName, accountKind, accountTier)
 	}
 
-	// NOTE: Wait for the data plane share container to become available...
 	log.Printf("[DEBUG] [%s:CREATE] Calling 'storageClient.FindAccount' for %s", strings.ToUpper(storageAccountSharePropertiesResourceName), id)
 	accountDetails, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
 	if err != nil {
@@ -194,6 +193,7 @@ func resourceStorageAccountSharePropertiesCreate(d *pluginsdk.ResourceData, meta
 		return fmt.Errorf("unable to locate %q", id)
 	}
 
+	// NOTE: Wait for the data plane share container to become available...
 	log.Printf("[DEBUG] [%s:CREATE] Calling 'custompollers.NewDataPlaneFileShareAvailabilityPoller' building File Share Poller: %s", strings.ToUpper(storageAccountSharePropertiesResourceName), id)
 	pollerType, err := custompollers.NewDataPlaneFileShareAvailabilityPoller(storageClient, accountDetails)
 	if err != nil {
@@ -378,7 +378,7 @@ func resourceStorageAccountSharePropertiesDelete(d *pluginsdk.ResourceData, meta
 
 	// NOTE: Call expand with an empty interface to get an
 	// unconfigured block back from the function...
-	shareProperties := expandAccountShareProperties(make([]interface{}, 0))
+	shareProperties := defaultShareProperties()
 
 	log.Printf("[DEBUG] [%s:DELETE] Calling 'storageClient.ResourceManager.FileService.SetServiceProperties': %s", strings.ToUpper(storageAccountSharePropertiesResourceName), id)
 	if _, err = storageClient.ResourceManager.FileService.SetServiceProperties(ctx, *id, shareProperties); err != nil {
@@ -428,16 +428,7 @@ func expandAccountShareResourceProperties(d *pluginsdk.ResourceData) fileservice
 
 // TODO: Remove in v5.0, this is only here for legacy support of existing Storage Accounts...
 func expandAccountShareProperties(input []interface{}) fileservice.FileServiceProperties {
-	props := fileservice.FileServiceProperties{
-		Properties: &fileservice.FileServicePropertiesProperties{
-			Cors: &fileservice.CorsRules{
-				CorsRules: &[]fileservice.CorsRule{},
-			},
-			ShareDeleteRetentionPolicy: &fileservice.DeleteRetentionPolicy{
-				Enabled: pointer.To(false),
-			},
-		},
-	}
+	props := defaultShareProperties()
 
 	if len(input) > 0 && input[0] != nil {
 		v := input[0].(map[string]interface{})
@@ -616,6 +607,19 @@ func flattenAccountSharePropertiesSMB(input *fileservice.ProtocolSettings) []int
 			"kerberos_ticket_encryption_type": kerberosTicketEncryption,
 			"multichannel_enabled":            multichannelEnabled,
 			"versions":                        versions,
+		},
+	}
+}
+
+func defaultShareProperties() fileservice.FileServiceProperties {
+	return fileservice.FileServiceProperties{
+		Properties: &fileservice.FileServicePropertiesProperties{
+			Cors: &fileservice.CorsRules{
+				CorsRules: &[]fileservice.CorsRule{},
+			},
+			ShareDeleteRetentionPolicy: &fileservice.DeleteRetentionPolicy{
+				Enabled: pointer.To(false),
+			},
 		},
 	}
 }
