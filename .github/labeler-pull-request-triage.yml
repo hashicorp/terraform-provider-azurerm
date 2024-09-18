@@ -27,6 +27,11 @@ service/advisor:
   - any-glob-to-any-file:
     - internal/services/advisor/**/*
 
+service/ai-services:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/aiservices/**/*
+
 service/analysis:
 - changed-files:
   - any-glob-to-any-file:
