@@ -147,7 +147,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-* `georeplications` - (Optional) A `georeplications` block as documented below.
+* `georeplications` - (Optional) One or more `georeplications` blocks as documented below.
 
 ~> **NOTE:** The `georeplications` is only supported on new resources with the `Premium` SKU.
 
