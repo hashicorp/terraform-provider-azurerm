@@ -116,22 +116,10 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Argumen
 
 		"infrastructure": {
 			Type:     pluginsdk.TypeList,
-			Required: true,
+			Optional: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"system_center_virtual_machine_manager_cloud_id": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ForceNew: true,
-					},
-
-					"system_center_virtual_machine_manager_template_id": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ForceNew: true,
-					},
-
 					"bios_guid": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
@@ -149,7 +137,19 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Argumen
 						ForceNew: true,
 					},
 
+					"system_center_virtual_machine_manager_cloud_id": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ForceNew: true,
+					},
+
 					"system_center_virtual_machine_manager_inventory_item_id": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ForceNew: true,
+					},
+
+					"system_center_virtual_machine_manager_template_id": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
 						ForceNew: true,
