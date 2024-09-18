@@ -147,7 +147,7 @@ func TestAccAppConfiguration_update(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.standard(data),
+			Config: r.standardWithSoftDeleteRetentionDays(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -495,6 +495,27 @@ resource "azurerm_app_configuration" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "standard"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (AppConfigurationResource) standardWithSoftDeleteRetentionDays(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-appconfig-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_configuration" "test" {
+  name                       = "testaccappconf%d"
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  sku                        = "standard"
+  soft_delete_retention_days = 1
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
