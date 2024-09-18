@@ -6,7 +6,6 @@ package client
 import (
 	"fmt"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2019-05-05-preview/actionrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2019-06-01/smartdetectoralertrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2021-08-08/alertprocessingrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2023-03-01/prometheusrulegroups"
@@ -37,7 +36,6 @@ type Client struct {
 	AutoscaleSettingsClient *autoscalesettings.AutoScaleSettingsClient
 
 	// alerts management
-	ActionRulesClient             *actionrules.ActionRulesClient
 	AlertProcessingRulesClient    *alertprocessingrules.AlertProcessingRulesClient
 	SmartDetectorAlertRulesClient *smartdetectoralertrules.SmartDetectorAlertRulesClient
 
@@ -71,12 +69,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		return nil, fmt.Errorf("building Autoscale Settings client: %+v", err)
 	}
 	o.Configure(AutoscaleSettingsClient.Client, o.Authorizers.ResourceManager)
-
-	ActionRulesClient, err := actionrules.NewActionRulesClientWithBaseURI(o.Environment.ResourceManager)
-	if err != nil {
-		return nil, fmt.Errorf("building Action Rules client: %+v", err)
-	}
-	o.Configure(ActionRulesClient.Client, o.Authorizers.ResourceManager)
 
 	alertProcessingRulesClient, err := alertprocessingrules.NewAlertProcessingRulesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -183,7 +175,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	return &Client{
 		AADDiagnosticSettingsClient:          aadDiagnosticSettingsClient,
 		AutoscaleSettingsClient:              AutoscaleSettingsClient,
-		ActionRulesClient:                    ActionRulesClient,
 		SmartDetectorAlertRulesClient:        SmartDetectorAlertRulesClient,
 		ActionGroupsClient:                   ActionGroupsClient,
 		ActivityLogsClient:                   activityLogsClient,
