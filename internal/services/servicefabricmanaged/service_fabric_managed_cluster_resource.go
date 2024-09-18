@@ -651,7 +651,11 @@ func flattenClusterProperties(cluster *managedcluster.ManagedCluster) *ClusterRe
 	if t := cluster.Tags; t != nil {
 		modelTags := make(map[string]interface{})
 		for tag, value := range *t {
-			modelTags[tag] = value
+			// This tag is being added outside of Terraform. We'll ignore it when setting tags into state
+			// but if it becomes an issue, we can add it as its own attribute
+			if !strings.Contains(tag, "SFRP.DisableDefaultOutboundAccess") {
+				modelTags[tag] = value
+			}
 		}
 		model.Tags = modelTags
 	}
