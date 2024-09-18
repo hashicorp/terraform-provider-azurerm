@@ -1,4 +1,4 @@
-package appserviceplans
+package webapps
 
 import (
 	"time"
@@ -9,7 +9,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type SiteProperties struct {
+type SitePatchResourceProperties struct {
 	AvailabilityState           *SiteAvailabilityState     `json:"availabilityState,omitempty"`
 	ClientAffinityEnabled       *bool                      `json:"clientAffinityEnabled,omitempty"`
 	ClientCertEnabled           *bool                      `json:"clientCertEnabled,omitempty"`
@@ -19,11 +19,10 @@ type SiteProperties struct {
 	ContainerSize               *int64                     `json:"containerSize,omitempty"`
 	CustomDomainVerificationId  *string                    `json:"customDomainVerificationId,omitempty"`
 	DailyMemoryTimeQuota        *int64                     `json:"dailyMemoryTimeQuota,omitempty"`
-	DaprConfig                  *DaprConfig                `json:"daprConfig,omitempty"`
 	DefaultHostName             *string                    `json:"defaultHostName,omitempty"`
+	DnsConfiguration            *SiteDnsConfig             `json:"dnsConfiguration,omitempty"`
 	Enabled                     *bool                      `json:"enabled,omitempty"`
 	EnabledHostNames            *[]string                  `json:"enabledHostNames,omitempty"`
-	EndToEndEncryptionEnabled   *bool                      `json:"endToEndEncryptionEnabled,omitempty"`
 	HTTPSOnly                   *bool                      `json:"httpsOnly,omitempty"`
 	HostNameSslStates           *[]HostNameSslState        `json:"hostNameSslStates,omitempty"`
 	HostNames                   *[]string                  `json:"hostNames,omitempty"`
@@ -35,15 +34,12 @@ type SiteProperties struct {
 	IsXenon                     *bool                      `json:"isXenon,omitempty"`
 	KeyVaultReferenceIdentity   *string                    `json:"keyVaultReferenceIdentity,omitempty"`
 	LastModifiedTimeUtc         *string                    `json:"lastModifiedTimeUtc,omitempty"`
-	ManagedEnvironmentId        *string                    `json:"managedEnvironmentId,omitempty"`
 	MaxNumberOfWorkers          *int64                     `json:"maxNumberOfWorkers,omitempty"`
 	OutboundIPAddresses         *string                    `json:"outboundIpAddresses,omitempty"`
 	PossibleOutboundIPAddresses *string                    `json:"possibleOutboundIpAddresses,omitempty"`
-	PublicNetworkAccess         *string                    `json:"publicNetworkAccess,omitempty"`
 	RedundancyMode              *RedundancyMode            `json:"redundancyMode,omitempty"`
 	RepositorySiteName          *string                    `json:"repositorySiteName,omitempty"`
 	Reserved                    *bool                      `json:"reserved,omitempty"`
-	ResourceConfig              *ResourceConfig            `json:"resourceConfig,omitempty"`
 	ResourceGroup               *string                    `json:"resourceGroup,omitempty"`
 	ScmSiteAlsoStopped          *bool                      `json:"scmSiteAlsoStopped,omitempty"`
 	ServerFarmId                *string                    `json:"serverFarmId,omitempty"`
@@ -56,32 +52,28 @@ type SiteProperties struct {
 	TrafficManagerHostNames     *[]string                  `json:"trafficManagerHostNames,omitempty"`
 	UsageState                  *UsageState                `json:"usageState,omitempty"`
 	VirtualNetworkSubnetId      *string                    `json:"virtualNetworkSubnetId,omitempty"`
-	VnetContentShareEnabled     *bool                      `json:"vnetContentShareEnabled,omitempty"`
-	VnetImagePullEnabled        *bool                      `json:"vnetImagePullEnabled,omitempty"`
-	VnetRouteAllEnabled         *bool                      `json:"vnetRouteAllEnabled,omitempty"`
-	WorkloadProfileName         *string                    `json:"workloadProfileName,omitempty"`
 }
 
-func (o *SiteProperties) GetLastModifiedTimeUtcAsTime() (*time.Time, error) {
+func (o *SitePatchResourceProperties) GetLastModifiedTimeUtcAsTime() (*time.Time, error) {
 	if o.LastModifiedTimeUtc == nil {
 		return nil, nil
 	}
 	return dates.ParseAsFormat(o.LastModifiedTimeUtc, "2006-01-02T15:04:05Z07:00")
 }
 
-func (o *SiteProperties) SetLastModifiedTimeUtcAsTime(input time.Time) {
+func (o *SitePatchResourceProperties) SetLastModifiedTimeUtcAsTime(input time.Time) {
 	formatted := input.Format("2006-01-02T15:04:05Z07:00")
 	o.LastModifiedTimeUtc = &formatted
 }
 
-func (o *SiteProperties) GetSuspendedTillAsTime() (*time.Time, error) {
+func (o *SitePatchResourceProperties) GetSuspendedTillAsTime() (*time.Time, error) {
 	if o.SuspendedTill == nil {
 		return nil, nil
 	}
 	return dates.ParseAsFormat(o.SuspendedTill, "2006-01-02T15:04:05Z07:00")
 }
 
-func (o *SiteProperties) SetSuspendedTillAsTime(input time.Time) {
+func (o *SitePatchResourceProperties) SetSuspendedTillAsTime(input time.Time) {
 	formatted := input.Format("2006-01-02T15:04:05Z07:00")
 	o.SuspendedTill = &formatted
 }

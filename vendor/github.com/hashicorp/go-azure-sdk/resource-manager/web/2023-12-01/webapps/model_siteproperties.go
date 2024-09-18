@@ -21,9 +21,10 @@ type SiteProperties struct {
 	DailyMemoryTimeQuota        *int64                     `json:"dailyMemoryTimeQuota,omitempty"`
 	DaprConfig                  *DaprConfig                `json:"daprConfig,omitempty"`
 	DefaultHostName             *string                    `json:"defaultHostName,omitempty"`
+	DnsConfiguration            *SiteDnsConfig             `json:"dnsConfiguration,omitempty"`
 	Enabled                     *bool                      `json:"enabled,omitempty"`
 	EnabledHostNames            *[]string                  `json:"enabledHostNames,omitempty"`
-	EndToEndEncryptionEnabled   *bool                      `json:"endToEndEncryptionEnabled,omitempty"`
+	FunctionAppConfig           *FunctionAppConfig         `json:"functionAppConfig,omitempty"`
 	HTTPSOnly                   *bool                      `json:"httpsOnly,omitempty"`
 	HostNameSslStates           *[]HostNameSslState        `json:"hostNameSslStates,omitempty"`
 	HostNames                   *[]string                  `json:"hostNames,omitempty"`
@@ -56,6 +57,7 @@ type SiteProperties struct {
 	TrafficManagerHostNames     *[]string                  `json:"trafficManagerHostNames,omitempty"`
 	UsageState                  *UsageState                `json:"usageState,omitempty"`
 	VirtualNetworkSubnetId      *string                    `json:"virtualNetworkSubnetId,omitempty"`
+	VnetBackupRestoreEnabled    *bool                      `json:"vnetBackupRestoreEnabled,omitempty"`
 	VnetContentShareEnabled     *bool                      `json:"vnetContentShareEnabled,omitempty"`
 	VnetImagePullEnabled        *bool                      `json:"vnetImagePullEnabled,omitempty"`
 	VnetRouteAllEnabled         *bool                      `json:"vnetRouteAllEnabled,omitempty"`

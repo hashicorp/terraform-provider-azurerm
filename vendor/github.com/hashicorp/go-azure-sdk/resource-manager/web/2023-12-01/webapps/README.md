@@ -1,7 +1,7 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps` Documentation
 
-The `webapps` SDK allows for interaction with the Azure Resource Manager Service `web` (API Version `2023-01-01`).
+The `webapps` SDK allows for interaction with the Azure Resource Manager Service `web` (API Version `2023-12-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -9,7 +9,7 @@ This readme covers example usages, but further information on [using this SDK ca
 
 ```go
 import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-import "github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 ```
 
 
@@ -726,6 +726,48 @@ if model := read.Model; model != nil {
 ```
 
 
+### Example Usage: `WebAppsClient.CreateOrUpdateSiteContainer`
+
+```go
+ctx := context.TODO()
+id := webapps.NewSitecontainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue", "sitecontainerValue")
+
+payload := webapps.SiteContainer{
+	// ...
+}
+
+
+read, err := client.CreateOrUpdateSiteContainer(ctx, id, payload)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
+### Example Usage: `WebAppsClient.CreateOrUpdateSiteContainerSlot`
+
+```go
+ctx := context.TODO()
+id := webapps.NewSlotSitecontainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue", "slotValue", "sitecontainerValue")
+
+payload := webapps.SiteContainer{
+	// ...
+}
+
+
+read, err := client.CreateOrUpdateSiteContainerSlot(ctx, id, payload)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
 ### Example Usage: `WebAppsClient.CreateOrUpdateSlot`
 
 ```go
@@ -1414,6 +1456,38 @@ ctx := context.TODO()
 id := webapps.NewSlotHybridConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue", "slotValue", "hybridConnectionValue")
 
 read, err := client.DeleteRelayServiceConnectionSlot(ctx, id)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
+### Example Usage: `WebAppsClient.DeleteSiteContainer`
+
+```go
+ctx := context.TODO()
+id := webapps.NewSitecontainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue", "sitecontainerValue")
+
+read, err := client.DeleteSiteContainer(ctx, id)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
+### Example Usage: `WebAppsClient.DeleteSiteContainerSlot`
+
+```go
+ctx := context.TODO()
+id := webapps.NewSlotSitecontainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue", "slotValue", "sitecontainerValue")
+
+read, err := client.DeleteSiteContainerSlot(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -3145,6 +3219,38 @@ for _, item := range items {
 ```
 
 
+### Example Usage: `WebAppsClient.GetSiteContainer`
+
+```go
+ctx := context.TODO()
+id := webapps.NewSitecontainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue", "sitecontainerValue")
+
+read, err := client.GetSiteContainer(ctx, id)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
+### Example Usage: `WebAppsClient.GetSiteContainerSlot`
+
+```go
+ctx := context.TODO()
+id := webapps.NewSlotSitecontainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue", "slotValue", "sitecontainerValue")
+
+read, err := client.GetSiteContainerSlot(ctx, id)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
 ### Example Usage: `WebAppsClient.GetSiteExtension`
 
 ```go
@@ -4750,6 +4856,40 @@ id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resourc
 
 // alternatively `client.ListSiteBackupsSlot(ctx, id)` can be used to do batched pagination
 items, err := client.ListSiteBackupsSlotComplete(ctx, id)
+if err != nil {
+	// handle the error
+}
+for _, item := range items {
+	// do something
+}
+```
+
+
+### Example Usage: `WebAppsClient.ListSiteContainers`
+
+```go
+ctx := context.TODO()
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+
+// alternatively `client.ListSiteContainers(ctx, id)` can be used to do batched pagination
+items, err := client.ListSiteContainersComplete(ctx, id)
+if err != nil {
+	// handle the error
+}
+for _, item := range items {
+	// do something
+}
+```
+
+
+### Example Usage: `WebAppsClient.ListSiteContainersSlot`
+
+```go
+ctx := context.TODO()
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue", "slotValue")
+
+// alternatively `client.ListSiteContainersSlot(ctx, id)` can be used to do batched pagination
+items, err := client.ListSiteContainersSlotComplete(ctx, id)
 if err != nil {
 	// handle the error
 }
