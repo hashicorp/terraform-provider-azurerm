@@ -1,3 +1,9 @@
+## 4.3.0 (Unreleased)
+
+BUG FIXES:
+
+* `azurerm_application_insights` - fix crash when read for `DataVolumeCap` is `nil` [GH-27352]
+
 ## 4.2.0 (September 12, 2024)
 
 FEATURES:
