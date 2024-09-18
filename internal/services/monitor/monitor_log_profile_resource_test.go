@@ -26,7 +26,6 @@ type MonitorLogProfileResource struct{}
 // running the exact same test afterwards always results in a pass.
 
 func TestAccMonitorLogProfile(t *testing.T) {
-	t.Skip("Skipping as Azure Log Profile has been deprecated and will be retired on 30th September 2026")
 	testCases := map[string]map[string]func(t *testing.T){
 		"basic": {
 			"basic":          testAccMonitorLogProfile_basic,
