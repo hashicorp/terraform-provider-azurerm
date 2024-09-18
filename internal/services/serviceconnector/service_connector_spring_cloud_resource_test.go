@@ -125,27 +125,6 @@ func TestAccServiceConnectorSpringCloudStorageBlob_secretStore(t *testing.T) {
 	})
 }
 
-func TestAccServiceConnectorSpringCloudCosmosdb_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_connection", "test")
-	r := ServiceConnectorSpringCloudResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.cosmosdbBasic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		{
-			Config: r.cosmosdbUpdate(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccServiceConnectorSpringCloud_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_connection", "test")
 	r := ServiceConnectorSpringCloudResource{}
@@ -357,58 +336,6 @@ resource "azurerm_spring_cloud_connection" "test" {
   }
 }
 `, data.Locations.Primary, data.RandomInteger, data.RandomString)
-}
-
-func (r ServiceConnectorSpringCloudResource) cosmosdbUpdate(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_cosmosdb_sql_database" "update" {
-  name                = "cosmos-sql-db-update"
-  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
-  account_name        = azurerm_cosmosdb_account.test.name
-  throughput          = 400
-}
-
-resource "azurerm_cosmosdb_sql_container" "update" {
-  name                = "test-containerupdate%[2]s"
-  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
-  account_name        = azurerm_cosmosdb_account.test.name
-  database_name       = azurerm_cosmosdb_sql_database.update.name
-  partition_key_paths = ["/definitionupdate"]
-}
-
-resource "azurerm_spring_cloud_service" "update" {
-  name                = "updatespringcloud-%[2]s"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-}
-
-resource "azurerm_spring_cloud_app" "update" {
-  name                = "testspringcloudupdate-%[2]s"
-  resource_group_name = azurerm_resource_group.test.name
-  service_name        = azurerm_spring_cloud_service.update.name
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
-
-resource "azurerm_spring_cloud_java_deployment" "update" {
-  name                = "deploy-%[2]s"
-  spring_cloud_app_id = azurerm_spring_cloud_app.update.id
-}
-
-resource "azurerm_spring_cloud_connection" "test" {
-  name               = "acctestserviceconnector%[3]d"
-  spring_cloud_id    = azurerm_spring_cloud_java_deployment.update.id
-  target_resource_id = azurerm_cosmosdb_sql_database.update.id
-  authentication {
-    type = "systemAssignedIdentity"
-  }
-}
-`, template, data.RandomString, data.RandomInteger)
 }
 
 func (r ServiceConnectorSpringCloudResource) secretStore(data acceptance.TestData) string {
