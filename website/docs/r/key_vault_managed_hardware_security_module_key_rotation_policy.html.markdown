@@ -32,7 +32,7 @@ resource "azurerm_key_vault_managed_hardware_security_module_key_rotation_policy
 
 The following arguments are supported:
 
-* `managed_hsm_key_id` - (Required) The ID of the Managed HSM Key. Changing this forces a new Key Vault to be created.
+* `managed_hsm_key_id` - (Required) The ID of the Managed HSM Key. Changing this forces a new Managed HSM Key rotation policy to be created.
 
 * `expire_after` - (Required) Specify the expiration duration on a newly rotated key as an [ISO 8601 duration](https://en.wikipedia.org/wiki/ISO_8601#Durations). The minimum duration is `P28D`.
 
@@ -50,14 +50,14 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Key Vault.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Key Vault.
-* `update` - (Defaults to 30 minutes) Used when updating the Key Vault.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Key Vault.
+* `create` - (Defaults to 30 minutes) Used when creating the Managed HSM Key rotation policy.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Managed HSM Key rotation policy.
+* `update` - (Defaults to 30 minutes) Used when updating the Managed HSM Key rotation policy.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Managed HSM Key rotation policy.
 
 ## Import
 
-Key Vaults can be imported using the `resource id`, e.g.
+Managed HSM Key rotation policy can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_key_vault_managed_hardware_security_module_key_rotation_policy.example https://example-hsm.managedhsm.azure.net/keys/example
