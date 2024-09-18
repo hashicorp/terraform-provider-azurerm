@@ -356,38 +356,6 @@ func resourceMonitorAADDiagnosticSettingDelete(d *pluginsdk.ResourceData, meta i
 	return nil
 }
 
-func expandMonitorAADDiagnosticsSettingsLogs(input []interface{}) []diagnosticsettings.LogSettings {
-	results := make([]diagnosticsettings.LogSettings, 0)
-
-	for _, raw := range input {
-		if raw == nil {
-			continue
-		}
-		v := raw.(map[string]interface{})
-
-		category := v["category"].(string)
-		enabled := v["enabled"].(bool)
-
-		policyRaw := v["retention_policy"].([]interface{})[0].(map[string]interface{})
-		if len(v["retention_policy"].([]interface{})) == 0 || v["retention_policy"].([]interface{})[0] == nil {
-			continue
-		}
-		retentionDays := policyRaw["days"].(int)
-		retentionEnabled := policyRaw["enabled"].(bool)
-
-		results = append(results, diagnosticsettings.LogSettings{
-			Category: pointer.To(diagnosticsettings.Category(category)),
-			Enabled:  enabled,
-			RetentionPolicy: &diagnosticsettings.RetentionPolicy{
-				Days:    int64(retentionDays),
-				Enabled: retentionEnabled,
-			},
-		})
-	}
-
-	return results
-}
-
 func expandMonitorAADDiagnosticsSettingsEnabledLogs(input []interface{}) []diagnosticsettings.LogSettings {
 	results := make([]diagnosticsettings.LogSettings, 0)
 
@@ -412,35 +380,6 @@ func expandMonitorAADDiagnosticsSettingsEnabledLogs(input []interface{}) []diagn
 				Days:    int64(retentionDays),
 				Enabled: retentionEnabled,
 			},
-		})
-	}
-
-	return results
-}
-
-func flattenMonitorAADDiagnosticLogs(input *[]diagnosticsettings.LogSettings) []interface{} {
-	results := make([]interface{}, 0)
-	if input == nil {
-		return results
-	}
-
-	for _, v := range *input {
-		policies := make([]interface{}, 0)
-		if inputPolicy := v.RetentionPolicy; inputPolicy != nil {
-			policies = append(policies, map[string]interface{}{
-				"days":    int(inputPolicy.Days),
-				"enabled": inputPolicy.Enabled,
-			})
-		}
-
-		category := ""
-		if v.Category != nil {
-			category = string(*v.Category)
-		}
-		results = append(results, map[string]interface{}{
-			"category":         category,
-			"enabled":          v.Enabled,
-			"retention_policy": policies,
 		})
 	}
 

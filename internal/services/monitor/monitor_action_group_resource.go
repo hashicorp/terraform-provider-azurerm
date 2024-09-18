@@ -477,11 +477,7 @@ func resourceMonitorActionGroupCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	logicAppReceiversRaw := d.Get("logic_app_receiver").([]interface{})
 	azureFunctionReceiversRaw := d.Get("azure_function_receiver").([]interface{})
 	armRoleReceiversRaw := d.Get("arm_role_receiver").([]interface{})
-
-	expandedEventHubReceiver, err := expandMonitorActionGroupEventHubReceiver(tenantId, subscriptionId, d)
-	if err != nil {
-		return err
-	}
+	eventHubReceiversRaw := d.Get("event_hub_receiver").([]interface{})
 
 	expandedItsmReceiver, err := expandMonitorActionGroupItsmReceiver(itsmReceiversRaw)
 	if err != nil {
@@ -505,7 +501,7 @@ func resourceMonitorActionGroupCreateUpdate(d *pluginsdk.ResourceData, meta inte
 			LogicAppReceivers:          expandMonitorActionGroupLogicAppReceiver(logicAppReceiversRaw),
 			AzureFunctionReceivers:     expandMonitorActionGroupAzureFunctionReceiver(azureFunctionReceiversRaw),
 			ArmRoleReceivers:           expandMonitorActionGroupRoleReceiver(armRoleReceiversRaw),
-			EventHubReceivers:          expandedEventHubReceiver,
+			EventHubReceivers:          expandMonitorActionGroupEventHubReceiver(tenantId, subscriptionId, eventHubReceiversRaw),
 		},
 		Tags: utils.ExpandPtrMapStringString(t),
 	}
@@ -587,7 +583,7 @@ func resourceMonitorActionGroupRead(d *pluginsdk.ResourceData, meta interface{})
 			if err = d.Set("arm_role_receiver", flattenMonitorActionGroupRoleReceiver(props.ArmRoleReceivers)); err != nil {
 				return fmt.Errorf("setting `arm_role_receiver`: %+v", err)
 			}
-			if err = d.Set("event_hub_receiver", flattenMonitorActionGroupEventHubReceiver(id.ResourceGroupName, props.EventHubReceivers)); err != nil {
+			if err = d.Set("event_hub_receiver", flattenMonitorActionGroupEventHubReceiver(props.EventHubReceivers)); err != nil {
 				return fmt.Errorf("setting `event_hub_receiver`: %+v", err)
 			}
 		}
@@ -792,10 +788,9 @@ func expandMonitorActionGroupRoleReceiver(v []interface{}) *[]actiongroupsapis.A
 	return &receivers
 }
 
-func expandMonitorActionGroupEventHubReceiver(tenantId string, subscriptionId string, d *pluginsdk.ResourceData) (*[]actiongroupsapis.EventHubReceiver, error) {
+func expandMonitorActionGroupEventHubReceiver(tenantId string, subscriptionId string, v []interface{}) *[]actiongroupsapis.EventHubReceiver {
 	receivers := make([]actiongroupsapis.EventHubReceiver, 0)
-	eventHubReceiver := d.Get("event_hub_receiver").([]interface{})
-	for _, receiverValue := range eventHubReceiver {
+	for _, receiverValue := range v {
 		val := receiverValue.(map[string]interface{})
 
 		eventHubNameSpace, eventHubName, subId := val["event_hub_namespace"].(string), val["event_hub_name"].(string), val["subscription_id"].(string)
@@ -821,7 +816,7 @@ func expandMonitorActionGroupEventHubReceiver(tenantId string, subscriptionId st
 
 		receivers = append(receivers, receiver)
 	}
-	return &receivers, nil
+	return &receivers
 }
 
 func flattenMonitorActionGroupEmailReceiver(receivers *[]actiongroupsapis.EmailReceiver) []interface{} {
@@ -1035,7 +1030,7 @@ func flattenMonitorActionGroupRoleReceiver(receivers *[]actiongroupsapis.ArmRole
 	return result
 }
 
-func flattenMonitorActionGroupEventHubReceiver(resourceGroup string, receivers *[]actiongroupsapis.EventHubReceiver) []interface{} {
+func flattenMonitorActionGroupEventHubReceiver(receivers *[]actiongroupsapis.EventHubReceiver) []interface{} {
 	result := make([]interface{}, 0)
 	if receivers != nil {
 		for _, receiver := range *receivers {

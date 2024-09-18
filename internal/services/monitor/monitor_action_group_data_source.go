@@ -414,7 +414,7 @@ func dataSourceMonitorActionGroupRead(d *pluginsdk.ResourceData, meta interface{
 			if err = d.Set("arm_role_receiver", flattenMonitorActionGroupRoleReceiver(props.ArmRoleReceivers)); err != nil {
 				return fmt.Errorf("setting `arm_role_receiver`: %+v", err)
 			}
-			if err = d.Set("event_hub_receiver", flattenMonitorActionGroupEventHubReceiver(resourceGroup, props.EventHubReceivers)); err != nil {
+			if err = d.Set("event_hub_receiver", flattenMonitorActionGroupEventHubReceiver(props.EventHubReceivers)); err != nil {
 				return fmt.Errorf("setting `event_hub_receiver`: %+v", err)
 			}
 		}

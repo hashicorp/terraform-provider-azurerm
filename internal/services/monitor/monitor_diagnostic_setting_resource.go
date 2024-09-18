@@ -554,46 +554,6 @@ func monitorDiagnosticSettingRefreshFunc(ctx context.Context, client *diagnostic
 	}
 }
 
-func expandMonitorDiagnosticsSettingsLogs(input []interface{}) (*[]diagnosticsettings.LogSettings, error) {
-	results := make([]diagnosticsettings.LogSettings, 0)
-
-	for _, raw := range input {
-		v := raw.(map[string]interface{})
-
-		category := v["category"].(string)
-		categoryGroup := v["category_group"].(string)
-		enabled := v["enabled"].(bool)
-		policiesRaw := v["retention_policy"].([]interface{})
-		var retentionPolicy *diagnosticsettings.RetentionPolicy
-		if len(policiesRaw) != 0 {
-			policyRaw := policiesRaw[0].(map[string]interface{})
-			retentionDays := policyRaw["days"].(int)
-			retentionEnabled := policyRaw["enabled"].(bool)
-			retentionPolicy = &diagnosticsettings.RetentionPolicy{
-				Days:    int64(retentionDays),
-				Enabled: retentionEnabled,
-			}
-		}
-
-		output := diagnosticsettings.LogSettings{
-			Enabled:         enabled,
-			RetentionPolicy: retentionPolicy,
-		}
-		switch {
-		case category != "":
-			output.Category = utils.String(category)
-		case categoryGroup != "":
-			output.CategoryGroup = utils.String(categoryGroup)
-		default:
-			return nil, fmt.Errorf("exactly one of `category` or `category_group` must be specified")
-		}
-
-		results = append(results, output)
-	}
-
-	return &results, nil
-}
-
 func expandMonitorDiagnosticsSettingsEnabledLogs(input []interface{}) (*[]diagnosticsettings.LogSettings, error) {
 	results := make([]diagnosticsettings.LogSettings, 0)
 
@@ -632,45 +592,6 @@ func expandMonitorDiagnosticsSettingsEnabledLogs(input []interface{}) (*[]diagno
 	}
 
 	return &results, nil
-}
-
-func flattenMonitorDiagnosticLogs(input *[]diagnosticsettings.LogSettings) []interface{} {
-	results := make([]interface{}, 0)
-	if input == nil {
-		return results
-	}
-
-	for _, v := range *input {
-		output := make(map[string]interface{})
-
-		if v.Category != nil {
-			output["category"] = *v.Category
-		}
-
-		if v.CategoryGroup != nil {
-			output["category_group"] = *v.CategoryGroup
-		}
-
-		output["enabled"] = v.Enabled
-
-		policies := make([]interface{}, 0)
-
-		if inputPolicy := v.RetentionPolicy; inputPolicy != nil {
-			outputPolicy := make(map[string]interface{})
-
-			outputPolicy["days"] = int(inputPolicy.Days)
-
-			outputPolicy["enabled"] = inputPolicy.Enabled
-
-			policies = append(policies, outputPolicy)
-		}
-
-		output["retention_policy"] = policies
-
-		results = append(results, output)
-	}
-
-	return results
 }
 
 func flattenMonitorDiagnosticEnabledLogs(input *[]diagnosticsettings.LogSettings) []interface{} {
