@@ -98,7 +98,7 @@ func (r AIServicesProject) Arguments() map[string]*pluginsdk.Schema {
 		"high_business_impact_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			// NOTE: O+C creating a hub that has encryption enabled with system assigned identity will set this property to true
+			// NOTE: O+C creating a project that has encryption enabled with system assigned identity will set this property to true
 			Computed: true,
 			ForceNew: true,
 		},
