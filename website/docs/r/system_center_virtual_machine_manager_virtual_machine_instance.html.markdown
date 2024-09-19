@@ -83,35 +83,31 @@ An `infrastructure` block supports the following:
 
 A `hardware` block supports the following:
 
-* `cpu_count` - (Optional) The number of vCPUs for the Virtual Machine.
+* `cpu_count` - (Optional) The number of vCPUs for the Virtual Machine. Defaults to `1`.
 
-* `dynamic_memory_enabled` - (Optional) Whether dynamic memory is enabled.
+* `dynamic_memory_max_in_mb` - (Optional) The max dynamic memory for the Virtual Machine. Possible value is between `32` and `1048576`.
 
-* `dynamic_memory_max_in_mb` - (Optional) The max dynamic memory for the Virtual Machine.
-
-* `dynamic_memory_min_in_mb` - (Optional) The min dynamic memory for the Virtual Machine.
+* `dynamic_memory_min_in_mb` - (Optional) The min dynamic memory for the Virtual Machine. Possible value is between `32` and `1048576`.
 
 * `limit_cpu_for_migration_enabled` - (Optional) Whether processor compatibility mode for live migration of Virtual Machines is enabled.
 
-* `memory_in_mb` - (Optional) The size of a Virtual Machine's memory.
+* `memory_in_mb` - (Optional) The size of a Virtual Machine's memory. Possible value is between `32` and `1048576`. Defaults to `1024`.
 
 ---
 
 A `network_interface` block supports the following:
 
-* `id` - (Optional) The ID of the Network Interface.
-
-* `name` - (Optional) The name of the Virtual Network in System Center Virtual Machine Manager Server that the Network Interface is connected to.
+* `name` - (Required) The name of the Virtual Network in System Center Virtual Machine Manager Server that the Network Interface is connected to.
 
 * `virtual_network_id` - (Optional) The ID of the System Center Virtual Machine Manager Virtual Network to connect the Network Interface.
 
-* `ipv4_address_type` - (Optional) The IPv4 address type.
+* `ipv4_address_type` - (Optional) The IPv4 address type. Possible values are `Dynamic` and `Static`. Defaults to `Dynamic`.
 
-* `ipv6_address_type` - (Optional) The IPv6 address type.
+* `ipv6_address_type` - (Optional) The IPv6 address type. Possible values are `Dynamic` and `Static`. Defaults to `Dynamic`.
 
 * `mac_address` - (Optional) The Network Interface MAC address.
 
-* `mac_address_type` - (Optional) The MAC address type.
+* `mac_address_type` - (Optional) The MAC address type. Possible values are `Dynamic` and `Static`. Defaults to `Dynamic`.
 
 ---
 
@@ -125,17 +121,15 @@ An `os` block supports the following:
 
 A `storage_disk` block supports the following:
 
-* `bus` - (Optional) The disk bus.
+* `bus` - (Optional) The disk bus. Possible values are between `0` and `3`. 
 
 * `bus_type` - (Optional) The disk bus type.
 
 * `create_diff_disk_enabled` - (Optional) Whether diff disk is enabled. Changing this forces a new resource to be created.
 
-* `disk_id` - (Optional) The disk id.
-
 * `disk_size_gb` - (Optional) The disk total size.
 
-* `lun` - (Optional) The disk lun.
+* `lun` - (Optional) The disk lun. Possible values are between `0` and `63`.
 
 * `name` - (Optional) The name of the disk.
 
@@ -143,7 +137,7 @@ A `storage_disk` block supports the following:
 
 * `template_disk_id` - (Optional) The disk ID in the System Center Virtual Machine Manager Virtual Machine Template. Changing this forces a new resource to be created.
 
-* `vhd_type` - (Optional) The disk vhd type.
+* `vhd_type` - (Optional) The disk vhd type. Possible values are `Dynamic`, `Fixed`, `Differencing` and `LinkedPhysical`.
 
 ---
 

@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/virtualmachinetemplates"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/vmmservers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/systemcentervirtualmachinemanager/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/systemcentervirtualmachinemanager/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -39,7 +40,6 @@ type SystemCenterVirtualMachineManagerVirtualMachineInstanceModel struct {
 
 type Hardware struct {
 	CpuCount                    int64 `tfschema:"cpu_count"`
-	DynamicMemoryEnabled        bool  `tfschema:"dynamic_memory_enabled"`
 	DynamicMemoryMaxInMb        int64 `tfschema:"dynamic_memory_max_in_mb"`
 	DynamicMemoryMinInMb        int64 `tfschema:"dynamic_memory_min_in_mb"`
 	LimitCpuForMigrationEnabled bool  `tfschema:"limit_cpu_for_migration_enabled"`
@@ -55,7 +55,6 @@ type Infrastructure struct {
 }
 
 type NetworkInterface struct {
-	Id               string `tfschema:"id"`
 	Name             string `tfschema:"name"`
 	Ipv4AddressType  string `tfschema:"ipv4_address_type"`
 	Ipv6AddressType  string `tfschema:"ipv6_address_type"`
@@ -73,7 +72,6 @@ type StorageDisk struct {
 	Bus                   int64              `tfschema:"bus"`
 	BusType               string             `tfschema:"bus_type"`
 	CreateDiffDiskEnabled bool               `tfschema:"create_diff_disk_enabled"`
-	DiskId                string             `tfschema:"disk_id"`
 	DiskSizeGB            int64              `tfschema:"disk_size_gb"`
 	Lun                   int64              `tfschema:"lun"`
 	Name                  string             `tfschema:"name"`
@@ -173,33 +171,38 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Argumen
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"cpu_count": {
-						Type:     pluginsdk.TypeInt,
-						Optional: true,
-					},
-
-					"dynamic_memory_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						Default:      1,
+						AtLeastOneOf: []string{"hardware.0.cpu_count", "hardware.0.dynamic_memory_max_in_mb", "hardware.0.dynamic_memory_min_in_mb", "hardware.0.limit_cpu_for_migration_enabled", "hardware.0.memory_in_mb"},
 					},
 
 					"dynamic_memory_max_in_mb": {
-						Type:     pluginsdk.TypeInt,
-						Optional: true,
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						ValidateFunc: validation.IntBetween(32, 1048576),
+						AtLeastOneOf: []string{"hardware.0.cpu_count", "hardware.0.dynamic_memory_max_in_mb", "hardware.0.dynamic_memory_min_in_mb", "hardware.0.limit_cpu_for_migration_enabled", "hardware.0.memory_in_mb"},
 					},
 
 					"dynamic_memory_min_in_mb": {
-						Type:     pluginsdk.TypeInt,
-						Optional: true,
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						ValidateFunc: validation.IntBetween(32, 1048576),
+						AtLeastOneOf: []string{"hardware.0.cpu_count", "hardware.0.dynamic_memory_max_in_mb", "hardware.0.dynamic_memory_min_in_mb", "hardware.0.limit_cpu_for_migration_enabled", "hardware.0.memory_in_mb"},
 					},
 
 					"limit_cpu_for_migration_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
+						Type:         pluginsdk.TypeBool,
+						Optional:     true,
+						AtLeastOneOf: []string{"hardware.0.cpu_count", "hardware.0.dynamic_memory_max_in_mb", "hardware.0.dynamic_memory_min_in_mb", "hardware.0.limit_cpu_for_migration_enabled", "hardware.0.memory_in_mb"},
 					},
 
 					"memory_in_mb": {
-						Type:     pluginsdk.TypeInt,
-						Optional: true,
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						Default:      1024,
+						ValidateFunc: validation.IntBetween(32, 1048576),
+						AtLeastOneOf: []string{"hardware.0.cpu_count", "hardware.0.dynamic_memory_max_in_mb", "hardware.0.dynamic_memory_min_in_mb", "hardware.0.limit_cpu_for_migration_enabled", "hardware.0.memory_in_mb"},
 					},
 				},
 			},
@@ -210,39 +213,43 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Argumen
 			Optional: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"id": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-					},
-
 					"name": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: networkValidate.NetworkInterfaceName,
 					},
 
 					"virtual_network_id": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: commonids.ValidateVirtualNetworkID,
 					},
 
 					"ipv4_address_type": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Default:      virtualmachineinstances.AllocationMethodDynamic,
+						ValidateFunc: validation.StringInSlice(virtualmachineinstances.PossibleValuesForAllocationMethod(), false),
 					},
 
 					"ipv6_address_type": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Default:      virtualmachineinstances.AllocationMethodDynamic,
+						ValidateFunc: validation.StringInSlice(virtualmachineinstances.PossibleValuesForAllocationMethod(), false),
 					},
 
 					"mac_address": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validate.SystemCenterVirtualMachineManagerVirtualMachineInstanceMacAddress,
 					},
 
 					"mac_address_type": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Default:      virtualmachineinstances.AllocationMethodDynamic,
+						ValidateFunc: validation.StringInSlice(virtualmachineinstances.PossibleValuesForAllocationMethod(), false),
 					},
 				},
 			},
@@ -279,13 +286,18 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Argumen
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"bus": {
-						Type:     pluginsdk.TypeInt,
-						Optional: true,
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						ValidateFunc: validation.IntBetween(0, 3),
 					},
 
 					"bus_type": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							"IDE",
+							"SCSI",
+						}, false),
 					},
 
 					"create_diff_disk_enabled": {
@@ -294,24 +306,22 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Argumen
 						ForceNew: true,
 					},
 
-					"disk_id": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-					},
-
 					"disk_size_gb": {
-						Type:     pluginsdk.TypeInt,
-						Optional: true,
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						ValidateFunc: validation.IntAtLeast(1),
 					},
 
 					"lun": {
-						Type:     pluginsdk.TypeInt,
-						Optional: true,
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						ValidateFunc: validation.IntBetween(0, 63),
 					},
 
 					"name": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"storage_qos_policy": {
@@ -334,14 +344,21 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Argumen
 					},
 
 					"template_disk_id": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ForceNew: true,
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.IsUUID,
 					},
 
 					"vhd_type": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							"Dynamic",
+							"Fixed",
+							"Differencing",
+							"LinkedPhysical",
+						}, false),
 					},
 				},
 			},
@@ -444,17 +461,20 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Read() 
 
 			if model := resp.Model; model != nil {
 				state.CustomLocationId = pointer.From(model.ExtendedLocation.Name)
-				state.Hardware = flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfile(model.Properties.HardwareProfile)
-				state.Infrastructure = flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceInfrastructureProfile(model.Properties.InfrastructureProfile)
-				state.OS = flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceOSProfile(model.Properties.OsProfile, metadata.ResourceData.Get("os.0.admin_password").(string))
-				state.SystemCenterVirtualMachineManagerAvailabilitySetIds = flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceAvailabilitySets(model.Properties.AvailabilitySets)
 
-				if v := model.Properties.NetworkProfile; v != nil {
-					state.NetworkInterfaces = flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceNetworkInterfaces(v.NetworkInterfaces)
-				}
+				if props := model.Properties; props != nil {
+					state.Hardware = flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfile(props.HardwareProfile)
+					state.Infrastructure = flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceInfrastructureProfile(props.InfrastructureProfile)
+					state.OS = flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceOSProfile(props.OsProfile, metadata.ResourceData.Get("os.0.admin_password").(string))
+					state.SystemCenterVirtualMachineManagerAvailabilitySetIds = flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceAvailabilitySets(props.AvailabilitySets)
 
-				if v := model.Properties.StorageProfile; v != nil {
-					state.StorageDisks = flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceStorageDisks(v.Disks)
+					if v := props.NetworkProfile; v != nil {
+						state.NetworkInterfaces = flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceNetworkInterfaces(v.NetworkInterfaces)
+					}
+
+					if v := props.StorageProfile; v != nil {
+						state.StorageDisks = flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceStorageDisks(v.Disks)
+					}
 				}
 			}
 
@@ -483,20 +503,12 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Update(
 				Properties: &virtualmachineinstances.VirtualMachineInstanceUpdateProperties{},
 			}
 
-			if metadata.ResourceData.HasChange("system_center_virtual_machine_manager_availability_set_ids") {
-				availabilitySets, err := expandSystemCenterVirtualMachineManagerVirtualMachineInstanceAvailabilitySets(model.SystemCenterVirtualMachineManagerAvailabilitySetIds)
-				if err != nil {
-					return err
-				}
-				parameters.Properties.AvailabilitySets = availabilitySets
+			if metadata.ResourceData.HasChange("infrastructure") {
+				parameters.Properties.InfrastructureProfile = expandSystemCenterVirtualMachineManagerVirtualMachineInstanceInfrastructureProfileForUpdate(model.Infrastructure)
 			}
 
 			if metadata.ResourceData.HasChange("hardware") {
 				parameters.Properties.HardwareProfile = expandSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfileForUpdate(model.Hardware)
-			}
-
-			if metadata.ResourceData.HasChange("infrastructure") {
-				parameters.Properties.InfrastructureProfile = expandSystemCenterVirtualMachineManagerVirtualMachineInstanceInfrastructureProfileForUpdate(model.Infrastructure)
 			}
 
 			if metadata.ResourceData.HasChange("network_interface") {
@@ -509,6 +521,14 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Update(
 				parameters.Properties.StorageProfile = &virtualmachineinstances.StorageProfileUpdate{
 					Disks: expandSystemCenterVirtualMachineManagerVirtualMachineInstanceStorageDisksForUpdate(model.StorageDisks),
 				}
+			}
+
+			if metadata.ResourceData.HasChange("system_center_virtual_machine_manager_availability_set_ids") {
+				availabilitySets, err := expandSystemCenterVirtualMachineManagerVirtualMachineInstanceAvailabilitySets(model.SystemCenterVirtualMachineManagerAvailabilitySetIds)
+				if err != nil {
+					return err
+				}
+				parameters.Properties.AvailabilitySets = availabilitySets
 			}
 
 			if err := client.UpdateThenPoll(ctx, commonids.NewScopeID(id.Scope), parameters); err != nil {
@@ -550,14 +570,27 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfil
 
 	hardwareProfile := input[0]
 
-	return &virtualmachineinstances.HardwareProfile{
+	result := virtualmachineinstances.HardwareProfile{
 		CpuCount:             pointer.To(hardwareProfile.CpuCount),
-		DynamicMemoryEnabled: pointer.To(virtualmachineinstances.DynamicMemoryEnabled(strconv.FormatBool(hardwareProfile.DynamicMemoryEnabled))),
-		DynamicMemoryMaxMB:   pointer.To(hardwareProfile.DynamicMemoryMaxInMb),
-		DynamicMemoryMinMB:   pointer.To(hardwareProfile.DynamicMemoryMinInMb),
 		LimitCPUForMigration: pointer.To(virtualmachineinstances.LimitCPUForMigration(strconv.FormatBool(hardwareProfile.LimitCpuForMigrationEnabled))),
 		MemoryMB:             pointer.To(hardwareProfile.MemoryInMb),
 	}
+
+	dynamicMemoryEnabled := false
+	if hardwareProfile.DynamicMemoryMaxInMb != 0 || hardwareProfile.DynamicMemoryMinInMb != 0 {
+		dynamicMemoryEnabled = true
+	}
+	result.DynamicMemoryEnabled = pointer.To(virtualmachineinstances.DynamicMemoryEnabled(strconv.FormatBool(dynamicMemoryEnabled)))
+
+	if v := hardwareProfile.DynamicMemoryMaxInMb; v != 0 {
+		result.DynamicMemoryMaxMB = pointer.To(v)
+	}
+
+	if v := hardwareProfile.DynamicMemoryMinInMb; v != 0 {
+		result.DynamicMemoryMinMB = pointer.To(v)
+	}
+
+	return &result
 }
 
 func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceInfrastructureProfileForCreate(input []Infrastructure) *virtualmachineinstances.InfrastructureProfile {
@@ -567,14 +600,16 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceInfrastructure
 
 	infrastructureProfile := input[0]
 
-	result := virtualmachineinstances.InfrastructureProfile{}
-
-	if v := infrastructureProfile.CheckpointType; v != "" {
-		result.CheckpointType = pointer.To(v)
+	result := virtualmachineinstances.InfrastructureProfile{
+		CheckpointType: pointer.To(infrastructureProfile.CheckpointType),
 	}
 
 	if v := infrastructureProfile.SystemCenterVirtualMachineManagerCloudId; v != "" {
 		result.CloudId = pointer.To(v)
+	}
+
+	if v := infrastructureProfile.SystemCenterVirtualMachineManagerInventoryItemId; v != "" {
+		result.InventoryItemId = pointer.To(v)
 	}
 
 	if v := infrastructureProfile.SystemCenterVirtualMachineManagerTemplateId; v != "" {
@@ -583,10 +618,6 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceInfrastructure
 
 	if v := infrastructureProfile.SystemCenterVirtualMachineManagerVirtualMachineServerId; v != "" {
 		result.VMmServerId = pointer.To(v)
-	}
-
-	if v := infrastructureProfile.SystemCenterVirtualMachineManagerInventoryItemId; v != "" {
-		result.InventoryItemId = pointer.To(v)
 	}
 
 	return &result
@@ -599,14 +630,27 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfil
 
 	hardwareProfile := input[0]
 
-	return &virtualmachineinstances.HardwareProfileUpdate{
+	result := virtualmachineinstances.HardwareProfileUpdate{
 		CpuCount:             pointer.To(hardwareProfile.CpuCount),
-		DynamicMemoryEnabled: pointer.To(virtualmachineinstances.DynamicMemoryEnabled(strconv.FormatBool(hardwareProfile.DynamicMemoryEnabled))),
-		DynamicMemoryMaxMB:   pointer.To(hardwareProfile.DynamicMemoryMaxInMb),
-		DynamicMemoryMinMB:   pointer.To(hardwareProfile.DynamicMemoryMinInMb),
 		LimitCPUForMigration: pointer.To(virtualmachineinstances.LimitCPUForMigration(strconv.FormatBool(hardwareProfile.LimitCpuForMigrationEnabled))),
 		MemoryMB:             pointer.To(hardwareProfile.MemoryInMb),
 	}
+
+	dynamicMemoryEnabled := false
+	if hardwareProfile.DynamicMemoryMaxInMb != 0 || hardwareProfile.DynamicMemoryMinInMb != 0 {
+		dynamicMemoryEnabled = true
+	}
+	result.DynamicMemoryEnabled = pointer.To(virtualmachineinstances.DynamicMemoryEnabled(strconv.FormatBool(dynamicMemoryEnabled)))
+
+	if v := hardwareProfile.DynamicMemoryMaxInMb; v != 0 {
+		result.DynamicMemoryMaxMB = pointer.To(v)
+	}
+
+	if v := hardwareProfile.DynamicMemoryMinInMb; v != 0 {
+		result.DynamicMemoryMinMB = pointer.To(v)
+	}
+
+	return &result
 }
 
 func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceInfrastructureProfileForUpdate(input []Infrastructure) *virtualmachineinstances.InfrastructureProfileUpdate {
@@ -616,13 +660,9 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceInfrastructure
 
 	infrastructureProfile := input[0]
 
-	result := virtualmachineinstances.InfrastructureProfileUpdate{}
-
-	if v := infrastructureProfile.CheckpointType; v != "" {
-		result.CheckpointType = pointer.To(v)
+	return &virtualmachineinstances.InfrastructureProfileUpdate{
+		CheckpointType: pointer.To(infrastructureProfile.CheckpointType),
 	}
-
-	return &result
 }
 
 func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceNetworkInterfacesForCreate(input []NetworkInterface) *[]virtualmachineinstances.NetworkInterface {
@@ -632,34 +672,19 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceNetworkInterfa
 	}
 
 	for _, v := range input {
-		networkInterface := virtualmachineinstances.NetworkInterface{}
-
-		if nicId := v.Id; nicId != "" {
-			networkInterface.NicId = pointer.To(nicId)
-		}
-
-		if name := v.Name; name != "" {
-			networkInterface.Name = pointer.To(name)
+		networkInterface := virtualmachineinstances.NetworkInterface{
+			Name:            pointer.To(v.Name),
+			IPv4AddressType: pointer.To(virtualmachineinstances.AllocationMethod(v.Ipv4AddressType)),
+			IPv6AddressType: pointer.To(virtualmachineinstances.AllocationMethod(v.Ipv6AddressType)),
+			MacAddressType:  pointer.To(virtualmachineinstances.AllocationMethod(v.MacAddressType)),
 		}
 
 		if vnetId := v.VirtualNetworkId; vnetId != "" {
 			networkInterface.VirtualNetworkId = pointer.To(vnetId)
 		}
 
-		if ipv4AddressType := v.Ipv4AddressType; ipv4AddressType != "" {
-			networkInterface.IPv4AddressType = pointer.To(virtualmachineinstances.AllocationMethod(ipv4AddressType))
-		}
-
-		if ipv6AddressType := v.Ipv6AddressType; ipv6AddressType != "" {
-			networkInterface.IPv6AddressType = pointer.To(virtualmachineinstances.AllocationMethod(ipv6AddressType))
-		}
-
 		if macAddress := v.MacAddress; macAddress != "" {
 			networkInterface.MacAddress = pointer.To(macAddress)
-		}
-
-		if macAddressType := v.MacAddressType; macAddressType != "" {
-			networkInterface.MacAddressType = pointer.To(virtualmachineinstances.AllocationMethod(macAddressType))
 		}
 
 		result = append(result, networkInterface)
@@ -683,7 +708,6 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceStorageDisksFo
 		virtualDisk := virtualmachineinstances.VirtualDisk{
 			Bus:              pointer.To(v.Bus),
 			CreateDiffDisk:   pointer.To(createDiffDisk),
-			DiskSizeGB:       pointer.To(v.DiskSizeGB),
 			Lun:              pointer.To(v.Lun),
 			StorageQoSPolicy: expandSystemCenterVirtualMachineManagerVirtualMachineInstanceStorageQoSPolicy(v.StorageQoSPolicy),
 		}
@@ -692,8 +716,8 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceStorageDisksFo
 			virtualDisk.BusType = pointer.To(busType)
 		}
 
-		if diskId := v.DiskId; diskId != "" {
-			virtualDisk.DiskId = pointer.To(diskId)
+		if diskSizeGB := v.DiskSizeGB; diskSizeGB != 0 {
+			virtualDisk.DiskSizeGB = pointer.To(diskSizeGB)
 		}
 
 		if name := v.Name; name != "" {
@@ -741,34 +765,19 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceNetworkInterfa
 	}
 
 	for _, v := range input {
-		networkInterface := virtualmachineinstances.NetworkInterfaceUpdate{}
-
-		if nicId := v.Id; nicId != "" {
-			networkInterface.NicId = pointer.To(nicId)
-		}
-
-		if name := v.Name; name != "" {
-			networkInterface.Name = pointer.To(name)
+		networkInterface := virtualmachineinstances.NetworkInterfaceUpdate{
+			Name:            pointer.To(v.Name),
+			IPv4AddressType: pointer.To(virtualmachineinstances.AllocationMethod(v.Ipv4AddressType)),
+			IPv6AddressType: pointer.To(virtualmachineinstances.AllocationMethod(v.Ipv6AddressType)),
+			MacAddressType:  pointer.To(virtualmachineinstances.AllocationMethod(v.MacAddressType)),
 		}
 
 		if vnetId := v.VirtualNetworkId; vnetId != "" {
 			networkInterface.VirtualNetworkId = pointer.To(vnetId)
 		}
 
-		if ipv4AddressType := v.Ipv4AddressType; ipv4AddressType != "" {
-			networkInterface.IPv4AddressType = pointer.To(virtualmachineinstances.AllocationMethod(ipv4AddressType))
-		}
-
-		if ipv6AddressType := v.Ipv6AddressType; ipv6AddressType != "" {
-			networkInterface.IPv6AddressType = pointer.To(virtualmachineinstances.AllocationMethod(ipv6AddressType))
-		}
-
 		if macAddress := v.MacAddress; macAddress != "" {
 			networkInterface.MacAddress = pointer.To(macAddress)
-		}
-
-		if macAddressType := v.MacAddressType; macAddressType != "" {
-			networkInterface.MacAddressType = pointer.To(virtualmachineinstances.AllocationMethod(macAddressType))
 		}
 
 		result = append(result, networkInterface)
@@ -786,7 +795,6 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceStorageDisksFo
 	for _, v := range input {
 		virtualDisk := virtualmachineinstances.VirtualDiskUpdate{
 			Bus:              pointer.To(v.Bus),
-			DiskSizeGB:       pointer.To(v.DiskSizeGB),
 			Lun:              pointer.To(v.Lun),
 			StorageQoSPolicy: expandSystemCenterVirtualMachineManagerVirtualMachineInstanceStorageQoSPolicy(v.StorageQoSPolicy),
 		}
@@ -795,8 +803,8 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceStorageDisksFo
 			virtualDisk.BusType = pointer.To(busType)
 		}
 
-		if diskId := v.DiskId; diskId != "" {
-			virtualDisk.DiskId = pointer.To(diskId)
+		if diskSizeGB := v.DiskSizeGB; diskSizeGB != 0 {
+			virtualDisk.DiskSizeGB = pointer.To(diskSizeGB)
 		}
 
 		if name := v.Name; name != "" {
@@ -820,10 +828,8 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceOSProfile(inpu
 
 	osProfile := input[0]
 
-	result := virtualmachineinstances.OsProfileForVMInstance{}
-
-	if v := osProfile.ComputerName; v != "" {
-		result.ComputerName = pointer.To(v)
+	result := virtualmachineinstances.OsProfileForVMInstance{
+		ComputerName: pointer.To(osProfile.ComputerName),
 	}
 
 	if v := osProfile.AdminPassword; v != "" {
@@ -862,7 +868,6 @@ func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfi
 
 	return append(result, Hardware{
 		CpuCount:                    pointer.From(input.CpuCount),
-		DynamicMemoryEnabled:        pointer.From(input.DynamicMemoryEnabled) == virtualmachineinstances.DynamicMemoryEnabledTrue,
 		DynamicMemoryMaxInMb:        pointer.From(input.DynamicMemoryMaxMB),
 		DynamicMemoryMinInMb:        pointer.From(input.DynamicMemoryMinMB),
 		LimitCpuForMigrationEnabled: pointer.From(input.LimitCPUForMigration) == virtualmachineinstances.LimitCPUForMigrationTrue,
@@ -893,10 +898,9 @@ func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceNetworkInterf
 
 	for _, v := range *input {
 		result = append(result, NetworkInterface{
-			Id:               pointer.From(v.NicId),
 			Name:             pointer.From(v.Name),
-			VirtualNetworkId: pointer.From(v.VirtualNetworkId),
 			MacAddress:       pointer.From(v.MacAddress),
+			VirtualNetworkId: pointer.From(v.VirtualNetworkId),
 			Ipv4AddressType:  string(pointer.From(v.IPv4AddressType)),
 			Ipv6AddressType:  string(pointer.From(v.IPv6AddressType)),
 			MacAddressType:   string(pointer.From(v.MacAddressType)),
@@ -917,7 +921,6 @@ func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceStorageDisks(
 			Bus:                   pointer.From(v.Bus),
 			BusType:               pointer.From(v.BusType),
 			CreateDiffDiskEnabled: pointer.From(v.CreateDiffDisk) == virtualmachineinstances.CreateDiffDiskTrue,
-			DiskId:                pointer.From(v.DiskId),
 			DiskSizeGB:            pointer.From(v.DiskSizeGB),
 			Lun:                   pointer.From(v.Lun),
 			Name:                  pointer.From(v.Name),
