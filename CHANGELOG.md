@@ -1,5 +1,9 @@
 ## 4.3.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource**: `azurerm_key_vault_managed_hardware_security_module_key_rotation_policy` [GH-27306]
+
 BUG FIXES:
 
 * `azurerm_application_insights` - fix crash when read for `DataVolumeCap` is `nil` [GH-27352]
