@@ -23,7 +23,7 @@ resource "azurerm_dynatrace_monitor" "example" {
   name                            = "exmpledynatracemonitor"
   resource_group_name             = azurerm_resource_group.example.name
   location                        = azurerm_resource_group.test.location
-  monitoring_status               = "Enabled"
+  monitoring_enabled              = true
   marketplace_subscription_status = "Active"
 
   identity {
@@ -65,7 +65,7 @@ The following arguments are supported:
 
 * `user` - (Required) User's information. A `user` block as defined below. Chainging this forces a new resource to be created.
 
-* `monitoring_status` - (Optional) Flag specifying if the resource monitoring is enabled or disabled. Possible values are `Enabled`, `Disabled`.
+* `monitoring_enabled` - (Optional) Flag specifying if the resource monitoring is enabled or disabled. Default is `true`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
