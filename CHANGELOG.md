@@ -4,6 +4,10 @@ FEATURES:
 
 * **New Resource**: `azurerm_key_vault_managed_hardware_security_module_key_rotation_policy` [GH-27306]
 
+ENHANCEMENTS: 
+
+* `azurerm_spring_cloud_gateway` - `environment_variables` and `sensitive_environment_variables` are no longer ForceNew [GH-27404]
+
 BUG FIXES:
 
 * `azurerm_application_insights` - fix crash when read for `DataVolumeCap` is `nil` [GH-27352]
