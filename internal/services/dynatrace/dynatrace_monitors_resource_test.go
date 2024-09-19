@@ -104,19 +104,19 @@ func TestAccDynatraceMonitor_requiresImport(t *testing.T) {
 
 func (r MonitorsResource) preCheck(t *testing.T) {
 	if r.dynatraceInfo.UserCountry == "" {
-		t.Fatal("DYNATRACE_USER_COUNTRY must be set for acceptance tests")
+		t.Skipf("DYNATRACE_USER_COUNTRY must be set for acceptance tests")
 	}
 	if r.dynatraceInfo.UserEmail == "" {
-		t.Fatal("DYNATRACE_USER_EMAIL must be set for acceptance tests")
+		t.Skipf("DYNATRACE_USER_EMAIL must be set for acceptance tests")
 	}
 	if r.dynatraceInfo.UserFirstName == "" {
-		t.Fatal("DYNATRACE_USER_FIRST_NAME must be set for acceptance tests")
+		t.Skipf("DYNATRACE_USER_FIRST_NAME must be set for acceptance tests")
 	}
 	if r.dynatraceInfo.UserLastName == "" {
-		t.Fatal("DYNATRACE_USER_LAST_NAME must be set for acceptance tests")
+		t.Skipf("DYNATRACE_USER_LAST_NAME must be set for acceptance tests")
 	}
 	if r.dynatraceInfo.UserPhoneNumber == "" {
-		t.Fatal("DYNATRACE_USER_PHONE_NUMBER must be set for acceptance tests")
+		t.Skipf("DYNATRACE_USER_PHONE_NUMBER must be set for acceptance tests")
 	}
 }
 
