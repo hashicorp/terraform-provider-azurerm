@@ -281,6 +281,11 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 	if billingRead.Model == nil {
 		return fmt.Errorf("model is nil for billing features")
 	}
+
+	if billingRead.Model.DataVolumeCap == nil {
+		billingRead.Model.DataVolumeCap = &billing.ApplicationInsightsComponentDataVolumeCap{}
+	}
+
 	applicationInsightsComponentBillingFeatures := billing.ApplicationInsightsComponentBillingFeatures{
 		CurrentBillingFeatures: billingRead.Model.CurrentBillingFeatures,
 		DataVolumeCap:          billingRead.Model.DataVolumeCap,
