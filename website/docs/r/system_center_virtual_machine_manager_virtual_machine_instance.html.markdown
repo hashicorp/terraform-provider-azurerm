@@ -137,7 +137,7 @@ A `storage_disk` block supports the following:
 
 * `template_disk_id` - (Optional) The disk ID in the System Center Virtual Machine Manager Virtual Machine Template. Changing this forces a new resource to be created.
 
-* `vhd_type` - (Optional) The disk vhd type. Possible values are `Dynamic`, `Fixed`, `Differencing` and `LinkedPhysical`.
+* `vhd_type` - (Optional) The disk vhd type. Possible values are `Dynamic` and `Fixed`.
 
 ---
 

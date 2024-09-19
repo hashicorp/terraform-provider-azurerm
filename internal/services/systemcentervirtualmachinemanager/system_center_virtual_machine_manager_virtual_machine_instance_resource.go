@@ -137,6 +137,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Argumen
 						ForceNew:     true,
 						ValidateFunc: clouds.ValidateCloudID,
 						RequiredWith: []string{"infrastructure.0.system_center_virtual_machine_manager_template_id"},
+						AtLeastOneOf: []string{"infrastructure.0.system_center_virtual_machine_manager_cloud_id", "infrastructure.0.system_center_virtual_machine_manager_inventory_item_id", "infrastructure.0.system_center_virtual_machine_manager_template_id", "infrastructure.0.system_center_virtual_machine_manager_virtual_machine_server_id"},
 					},
 
 					"system_center_virtual_machine_manager_inventory_item_id": {
@@ -144,6 +145,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Argumen
 						Optional:     true,
 						ForceNew:     true,
 						ValidateFunc: inventoryitems.ValidateInventoryItemID,
+						AtLeastOneOf: []string{"infrastructure.0.system_center_virtual_machine_manager_cloud_id", "infrastructure.0.system_center_virtual_machine_manager_inventory_item_id", "infrastructure.0.system_center_virtual_machine_manager_template_id", "infrastructure.0.system_center_virtual_machine_manager_virtual_machine_server_id"},
 					},
 
 					"system_center_virtual_machine_manager_template_id": {
@@ -152,6 +154,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Argumen
 						ForceNew:     true,
 						ValidateFunc: virtualmachinetemplates.ValidateVirtualMachineTemplateID,
 						RequiredWith: []string{"infrastructure.0.system_center_virtual_machine_manager_cloud_id"},
+						AtLeastOneOf: []string{"infrastructure.0.system_center_virtual_machine_manager_cloud_id", "infrastructure.0.system_center_virtual_machine_manager_inventory_item_id", "infrastructure.0.system_center_virtual_machine_manager_template_id", "infrastructure.0.system_center_virtual_machine_manager_virtual_machine_server_id"},
 					},
 
 					"system_center_virtual_machine_manager_virtual_machine_server_id": {
@@ -159,6 +162,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Argumen
 						Optional:     true,
 						ForceNew:     true,
 						ValidateFunc: vmmservers.ValidateVMmServerID,
+						AtLeastOneOf: []string{"infrastructure.0.system_center_virtual_machine_manager_cloud_id", "infrastructure.0.system_center_virtual_machine_manager_inventory_item_id", "infrastructure.0.system_center_virtual_machine_manager_template_id", "infrastructure.0.system_center_virtual_machine_manager_virtual_machine_server_id"},
 					},
 				},
 			},
@@ -321,7 +325,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Argumen
 					"name": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
+						ValidateFunc: validate.SystemCenterVirtualMachineManagerVirtualMachineInstanceStorageDiskName,
 					},
 
 					"storage_qos_policy": {
@@ -356,8 +360,6 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Argumen
 						ValidateFunc: validation.StringInSlice([]string{
 							"Dynamic",
 							"Fixed",
-							"Differencing",
-							"LinkedPhysical",
 						}, false),
 					},
 				},
