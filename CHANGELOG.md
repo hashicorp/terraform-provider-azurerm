@@ -7,6 +7,7 @@ FEATURES:
 ENHANCEMENTS: 
 
 * `nginx` - upgrade api version to `2024-06-01-preview`  [GH-27345]
+* `azurerm_cosmosdb_account` - support for the capability `EnableNoSQLVectorSearch` [GH-27357]
 * `azurerm_spring_cloud_gateway` - changing the `environment_variables` and `sensitive_environment_variables` properties no longer creates a new resource [GH-27404]
 * `azurerm_storage_blob` - changing the `source` property no longer creates a new resource [GH-27394]
 * `azurerm_storage_object_replication` - changing the `rules.x. source_container_name` and `rules.x. destination_container_name` properties no longer creates a new resource [GH-27394]
