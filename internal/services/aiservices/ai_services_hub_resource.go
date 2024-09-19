@@ -609,8 +609,6 @@ func flattenEncryption(input *workspaces.EncryptionProperty) ([]Encryption, erro
 		}
 		encryption.IdentityClientID = userAssignedId.ID()
 	}
-	// /subscriptions/1a6092a6-137e-4025-9a7c-ef77f76f2c02/resourceGroups/acctestrg-aiservices-240918114038029797/providers/Microsoft.ManagedIdentity/userAssignedIdentities/acctestuai-240918114038029797"
-	// /subscriptions/1a6092a6-137e-4025-9a7c-ef77f76f2c02/resourceGroups/acctestRG-aiservices-240918114038029797/providers/Microsoft.ManagedIdentity/userAssignedIdentities/acctestuai-240918114038029797"
 
 	return append(out, encryption), nil
 }
