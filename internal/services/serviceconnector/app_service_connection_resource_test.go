@@ -50,6 +50,28 @@ func TestAccServiceConnectorAppServiceCosmosdb_basic(t *testing.T) {
 	})
 }
 
+func TestAccServiceConnectorAppServiceCosmosdb_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service_connection", "test")
+	r := ServiceConnectorAppServiceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.cosmosdbBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.cosmosdbUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccServiceConnectorAppServiceCosmosdb_secretAuth(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_connection", "test")
 	r := ServiceConnectorAppServiceResource{}
@@ -622,5 +644,5 @@ resource "azurerm_linux_web_app" "test" {
     ]
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, "eastus", data.RandomString)
 }
