@@ -7,6 +7,8 @@ FEATURES:
 ENHANCEMENTS: 
 
 * `azurerm_spring_cloud_gateway` - `environment_variables` and `sensitive_environment_variables` are no longer ForceNew [GH-27404]
+* `azurerm_storage_blob` - `source` is no longer ForceNew [GH-27394]
+* `azurerm_storage_object_replication` - `rules.x. source_container_name` and `rules.x. destination_container_name` are no longer ForceNew [GH-27394]
 
 BUG FIXES:
 
