@@ -19,7 +19,20 @@ type ListLinkableEnvironmentsOperationResponse struct {
 }
 
 type ListLinkableEnvironmentsCompleteResult struct {
-	Items []LinkableEnvironmentResponse
+	LatestHttpResponse *http.Response
+	Items              []LinkableEnvironmentResponse
+}
+
+type ListLinkableEnvironmentsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListLinkableEnvironmentsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListLinkableEnvironments ...
@@ -30,6 +43,7 @@ func (c MonitorsClient) ListLinkableEnvironments(ctx context.Context, id Monitor
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodPost,
+		Pager:      &ListLinkableEnvironmentsCustomPager{},
 		Path:       fmt.Sprintf("%s/listLinkableEnvironments", id.ID()),
 	}
 
@@ -71,6 +85,7 @@ func (c MonitorsClient) ListLinkableEnvironmentsCompleteMatchingPredicate(ctx co
 
 	resp, err := c.ListLinkableEnvironments(ctx, id, input)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +98,8 @@ func (c MonitorsClient) ListLinkableEnvironmentsCompleteMatchingPredicate(ctx co
 	}
 
 	result = ListLinkableEnvironmentsCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

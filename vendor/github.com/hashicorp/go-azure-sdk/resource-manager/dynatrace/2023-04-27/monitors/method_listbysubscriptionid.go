@@ -20,7 +20,20 @@ type ListBySubscriptionIdOperationResponse struct {
 }
 
 type ListBySubscriptionIdCompleteResult struct {
-	Items []MonitorResource
+	LatestHttpResponse *http.Response
+	Items              []MonitorResource
+}
+
+type ListBySubscriptionIdCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListBySubscriptionIdCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListBySubscriptionId ...
@@ -31,6 +44,7 @@ func (c MonitorsClient) ListBySubscriptionId(ctx context.Context, id commonids.S
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListBySubscriptionIdCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Dynatrace.Observability/monitors", id.ID()),
 	}
 
@@ -72,6 +86,7 @@ func (c MonitorsClient) ListBySubscriptionIdCompleteMatchingPredicate(ctx contex
 
 	resp, err := c.ListBySubscriptionId(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -84,7 +99,8 @@ func (c MonitorsClient) ListBySubscriptionIdCompleteMatchingPredicate(ctx contex
 	}
 
 	result = ListBySubscriptionIdCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

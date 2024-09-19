@@ -47,7 +47,10 @@ func (c MonitorsClient) Update(ctx context.Context, id MonitorId, input MonitorR
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model MonitorResource
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

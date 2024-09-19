@@ -19,7 +19,20 @@ type ListAppServicesOperationResponse struct {
 }
 
 type ListAppServicesCompleteResult struct {
-	Items []AppServiceInfo
+	LatestHttpResponse *http.Response
+	Items              []AppServiceInfo
+}
+
+type ListAppServicesCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListAppServicesCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListAppServices ...
@@ -30,6 +43,7 @@ func (c MonitorsClient) ListAppServices(ctx context.Context, id MonitorId) (resu
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodPost,
+		Pager:      &ListAppServicesCustomPager{},
 		Path:       fmt.Sprintf("%s/listAppServices", id.ID()),
 	}
 
@@ -71,6 +85,7 @@ func (c MonitorsClient) ListAppServicesCompleteMatchingPredicate(ctx context.Con
 
 	resp, err := c.ListAppServices(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +98,8 @@ func (c MonitorsClient) ListAppServicesCompleteMatchingPredicate(ctx context.Con
 	}
 
 	result = ListAppServicesCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }
