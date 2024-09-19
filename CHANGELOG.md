@@ -15,6 +15,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_application_insights` - fix crash when read for `DataVolumeCap` is `nil` [GH-27352]
+* `azurerm_log_analytics_workspace_table` - will now correctly set `total_retention_in_days` when `sku` is `Basic` [GH-27420]
 
 ## 4.2.0 (September 12, 2024)
 
