@@ -180,6 +180,8 @@ resource "azurerm_linux_web_app" "test" {
       app_settings["AZURE_STORAGEBLOB_RESOURCEENDPOINT"],
       identity,
       sticky_settings,
+      ftp_publish_basic_authentication_enabled,
+      webdeploy_publish_basic_authentication_enabled,
     ]
   }
 }
@@ -280,6 +282,39 @@ resource "azurerm_app_service_connection" "test" {
 `, template, data.RandomString, data.RandomInteger)
 }
 
+func (r ServiceConnectorAppServiceResource) cosmosdbUpdate(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_app_configuration" "test" {
+  name                = "testacc-appconf%[3]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "free"
+}
+
+resource "azurerm_app_service_connection" "test" {
+  name               = "acctestserviceconnector%[3]d"
+  app_service_id     = azurerm_linux_web_app.test.id
+  target_resource_id = azurerm_cosmosdb_sql_database.test.id
+  authentication {
+    type = "systemAssignedIdentity"
+  }
+  scope = "default"
+  configuration {
+    action = "enable"
+    configuration_store {
+      app_configuration_id = azurerm_app_configuration.test.id
+    }
+  }
+  public_network_solution {
+    action = "enable"
+  }
+}
+`, template, data.RandomString, data.RandomInteger)
+}
+
 func (r ServiceConnectorAppServiceResource) secretStore(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -353,6 +388,8 @@ resource "azurerm_linux_web_app" "test" {
       app_settings["AZURE_STORAGEBLOB_RESOURCEENDPOINT"],
       identity,
       sticky_settings,
+      ftp_publish_basic_authentication_enabled,
+      webdeploy_publish_basic_authentication_enabled,
     ]
   }
 }
@@ -580,6 +617,8 @@ resource "azurerm_linux_web_app" "test" {
       app_settings,
       identity,
       sticky_settings,
+      ftp_publish_basic_authentication_enabled,
+      webdeploy_publish_basic_authentication_enabled,
     ]
   }
 }
