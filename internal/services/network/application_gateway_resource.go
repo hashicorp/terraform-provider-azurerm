@@ -4711,16 +4711,45 @@ func checkSslPolicy(sslPolicy []interface{}) error {
 	return nil
 }
 
+func checkBasicSkuFeatures(d *pluginsdk.ResourceDiff) error {
+	_, hasAutoscaleConfig := d.GetOk("autoscale_configuration.0")
+	if hasAutoscaleConfig {
+		return fmt.Errorf("The Application Gateway does not support `autoscale_configuration` blocks for the selected SKU tier %q", applicationgateways.ApplicationGatewaySkuNameBasic)
+	}
+
+	capacity, hasCapacityConfig := d.GetOk("sku.0.capacity")
+	if hasCapacityConfig {
+		if capacity.(int) > 2 || capacity.(int) < 1 {
+			return fmt.Errorf("`capacity` value %q for the selected SKU tier %q is invalid. Value must be between [1-2]", capacity, applicationgateways.ApplicationGatewaySkuNameBasic)
+		}
+	} else {
+		return fmt.Errorf("The Application Gateway must specify a `capacity` value between [1-2] for the selected SKU tier %q", applicationgateways.ApplicationGatewaySkuNameBasic)
+	}
+
+	_, hasMtlsConfig := d.GetOk("trusted_client_certificate")
+	if hasMtlsConfig {
+		return fmt.Errorf("The Application Gateway does not support `trusted_client_certificate` blocks for the selected SKU tier %q", applicationgateways.ApplicationGatewaySkuNameBasic)
+	}
+
+	_, hasRewriteRuleSetConfig := d.GetOk("rewrite_rule_set")
+	if hasRewriteRuleSetConfig {
+		return fmt.Errorf("The Application Gateway does not support `rewrite_rule_set` blocks for the selected SKU tier %q", applicationgateways.ApplicationGatewaySkuNameBasic)
+	}
+
+	return nil
+}
+
 func applicationGatewayCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
 	_, hasAutoscaleConfig := d.GetOk("autoscale_configuration.0")
 	capacity, hasCapacity := d.GetOk("sku.0.capacity")
 	tier := d.Get("sku.0.tier").(string)
 
-	if tier == "Basic" && (hasAutoscaleConfig || hasCapacity) {
-		return fmt.Errorf("The Application Gateway does not support `autoscale_configuration` blocks or `capacity` values for the selected SKU tier %q", tier)
-	}
-
-	if !hasAutoscaleConfig && !hasCapacity {
+	if tier == string(applicationgateways.ApplicationGatewaySkuNameBasic) {
+		err := checkBasicSkuFeatures(d)
+		if err != nil {
+			return err
+		}
+	} else if !hasAutoscaleConfig && !hasCapacity {
 		return fmt.Errorf("The Application Gateway must specify either `capacity` or `autoscale_configuration` for the selected SKU tier %q", tier)
 	}
 
