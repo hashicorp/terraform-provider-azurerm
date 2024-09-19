@@ -161,7 +161,7 @@ data "azurerm_key_vault_managed_hardware_security_module_role_definition" "offic
 }
 
 resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "test" {
-  vault_base_url     = azurerm_key_vault_managed_hardware_security_module.test.hsm_uri
+  managed_hsm_id     = azurerm_key_vault_managed_hardware_security_module.test.id
   name               = local.assignmentOfficerName
   scope              = "/keys"
   role_definition_id = data.azurerm_key_vault_managed_hardware_security_module_role_definition.officer.resource_manager_id
@@ -179,7 +179,7 @@ locals {
 }
 
 resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "test" {
-  vault_base_url     = azurerm_key_vault_managed_hardware_security_module.test.hsm_uri
+  managed_hsm_id     = azurerm_key_vault_managed_hardware_security_module.test.id
   name               = local.assignmentTestName
   scope              = "/keys"
   role_definition_id = azurerm_key_vault_managed_hardware_security_module_role_definition.test.resource_manager_id

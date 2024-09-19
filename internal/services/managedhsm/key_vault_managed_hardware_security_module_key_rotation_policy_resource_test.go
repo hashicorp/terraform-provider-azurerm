@@ -17,26 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type KeyVaultMHSMKeyTestResource struct{}
+type MHSMKeyRotationPolicyTestResource struct{}
 
-func testAccKeyVaultMHSMKey_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_hardware_security_module_key", "test")
-	r := KeyVaultMHSMKeyTestResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func testAccKeyVaultMHSMKey_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_hardware_security_module_key", "test")
-	r := KeyVaultMHSMKeyTestResource{}
+func testAccMHSMKeyRotationPolicy_all(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_hardware_security_module_key_rotation_policy", "test")
+	r := MHSMKeyRotationPolicyTestResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -47,14 +32,7 @@ func testAccKeyVaultMHSMKey_complete(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basic(data),
+			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -63,58 +41,7 @@ func testAccKeyVaultMHSMKey_complete(t *testing.T) {
 	})
 }
 
-func testAccKeyVaultHSMKey_purge(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_hardware_security_module_key", "test")
-	r := KeyVaultMHSMKeyTestResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		{
-			Config:  r.basic(data),
-			Destroy: true,
-		},
-	})
-}
-
-func testAccKeyVaultHSMKey_softDeleteRecovery(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_hardware_security_module_key", "test")
-	r := KeyVaultMHSMKeyTestResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.softDeleteRecovery(data, false),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("not_before_date").HasValue("2020-01-01T01:02:03Z"),
-				check.That(data.ResourceName).Key("expiration_date").HasValue("2021-01-01T01:02:03Z"),
-				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
-				check.That(data.ResourceName).Key("tags.hello").HasValue("world"),
-			),
-		},
-		data.ImportStep("key_size", "key_vault_id"),
-		{
-			Config:  r.softDeleteRecovery(data, false),
-			Destroy: true,
-		},
-		{
-			Config: r.softDeleteRecovery(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("not_before_date").HasValue("2020-01-01T01:02:03Z"),
-				check.That(data.ResourceName).Key("expiration_date").HasValue("2021-01-01T01:02:03Z"),
-				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
-				check.That(data.ResourceName).Key("tags.hello").HasValue("world"),
-			),
-		},
-	})
-}
-
-func (r KeyVaultMHSMKeyTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r MHSMKeyRotationPolicyTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	domainSuffix, ok := clients.Account.Environment.ManagedHSM.DomainSuffix()
 	if !ok {
 		return nil, fmt.Errorf("could not determine Managed HSM domain suffix for environment %q", clients.Account.Environment.Name)
@@ -133,15 +60,15 @@ func (r KeyVaultMHSMKeyTestResource) Exists(ctx context.Context, clients *client
 		return nil, fmt.Errorf("unable to determine the Resource Manager ID for %s", id)
 	}
 
-	resp, err := clients.ManagedHSMs.DataPlaneKeysClient.GetKey(ctx, id.BaseUri(), id.KeyName, "")
+	resp, err := clients.ManagedHSMs.DataPlaneKeysClient.GetKeyRotationPolicy(ctx, id.BaseUri(), id.KeyName)
 	if err != nil {
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Key != nil), nil
+	return utils.Bool(resp.Attributes != nil), nil
 }
 
-func (r KeyVaultMHSMKeyTestResource) basic(data acceptance.TestData) string {
+func (r MHSMKeyRotationPolicyTestResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -149,22 +76,15 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_key_vault_managed_hardware_security_module_key" "test" {
-  name           = "acctestHSMK-%[2]s"
-  managed_hsm_id = azurerm_key_vault_managed_hardware_security_module.test.id
-  key_type       = "EC-HSM"
-  curve          = "P-521"
-  key_opts       = ["sign"]
-
-  depends_on = [
-    azurerm_key_vault_managed_hardware_security_module_role_assignment.test,
-    azurerm_key_vault_managed_hardware_security_module_role_assignment.test1
-  ]
+resource "azurerm_key_vault_managed_hardware_security_module_key_rotation_policy" "test" {
+  managed_hsm_key_id = azurerm_key_vault_managed_hardware_security_module_key.test.id
+  time_before_expiry = "P30D"
+  expire_after       = "P60D"
 }
-`, r.template(data), data.RandomString)
+`, r.template(data))
 }
 
-func (r KeyVaultMHSMKeyTestResource) complete(data acceptance.TestData) string {
+func (r MHSMKeyRotationPolicyTestResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -172,63 +92,15 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_key_vault_managed_hardware_security_module_key" "test" {
-  name           = "acctestHSMK-%[2]s"
-  managed_hsm_id = azurerm_key_vault_managed_hardware_security_module.test.id
-  key_type       = "EC-HSM"
-  curve          = "P-521"
-  key_opts       = ["sign", "verify"]
-
-  not_before_date = "2020-01-01T01:02:03Z"
-  expiration_date = "2021-01-01T01:02:03Z"
-
-  tags = {
-    "hello" = "world"
-  }
-
-  depends_on = [
-    azurerm_key_vault_managed_hardware_security_module_role_assignment.test,
-    azurerm_key_vault_managed_hardware_security_module_role_assignment.test1
-  ]
+resource "azurerm_key_vault_managed_hardware_security_module_key_rotation_policy" "test" {
+  managed_hsm_key_id  = azurerm_key_vault_managed_hardware_security_module_key.test.id
+  expire_after        = "P60D"
+  time_after_creation = "P28D"
 }
-`, r.template(data), data.RandomString)
+`, r.template(data))
 }
 
-func (r KeyVaultMHSMKeyTestResource) softDeleteRecovery(data acceptance.TestData, purge bool) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {
-    key_vault {
-      purge_soft_deleted_hardware_security_module_keys_on_destroy = %t
-    }
-  }
-}
-
-%s
-
-resource "azurerm_key_vault_managed_hardware_security_module_key" "test" {
-  name           = "acctestHSMK-%[3]s"
-  managed_hsm_id = azurerm_key_vault_managed_hardware_security_module.test.id
-  key_type       = "EC-HSM"
-  curve          = "P-521"
-  key_opts       = ["sign"]
-
-  not_before_date = "2020-01-01T01:02:03Z"
-  expiration_date = "2021-01-01T01:02:03Z"
-
-  tags = {
-    "hello" = "world"
-  }
-
-  depends_on = [
-    azurerm_key_vault_managed_hardware_security_module_role_assignment.test,
-    azurerm_key_vault_managed_hardware_security_module_role_assignment.test1
-  ]
-}
-`, purge, r.template(data), data.RandomString)
-}
-
-func (r KeyVaultMHSMKeyTestResource) template(data acceptance.TestData) string {
+func (r MHSMKeyRotationPolicyTestResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {
 }
@@ -275,6 +147,7 @@ resource "azurerm_key_vault" "test" {
     environment = "Production"
   }
 }
+
 resource "azurerm_key_vault_certificate" "cert" {
   count        = 3
   name         = "acchsmcert${count.index}"
@@ -315,6 +188,7 @@ resource "azurerm_key_vault_certificate" "cert" {
     }
   }
 }
+
 resource "azurerm_key_vault_managed_hardware_security_module" "test" {
   name                     = "kvHsm%[3]d"
   resource_group_name      = azurerm_resource_group.test.name
@@ -342,6 +216,19 @@ resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "t
   scope              = "/keys"
   role_definition_id = "/Microsoft.KeyVault/providers/Microsoft.Authorization/roleDefinitions/515eb02d-2335-4d2d-92f2-b1cbdf9c3778"
   principal_id       = data.azurerm_client_config.current.object_id
+}
+
+resource "azurerm_key_vault_managed_hardware_security_module_key" "test" {
+  name           = "acctestHSMK-%[1]s"
+  managed_hsm_id = azurerm_key_vault_managed_hardware_security_module.test.id
+  key_type       = "EC-HSM"
+  curve          = "P-521"
+  key_opts       = ["sign"]
+
+  depends_on = [
+    azurerm_key_vault_managed_hardware_security_module_role_assignment.test,
+    azurerm_key_vault_managed_hardware_security_module_role_assignment.test1
+  ]
 }
 `, data.RandomString, data.Locations.Primary, data.RandomInteger)
 }
