@@ -147,7 +147,7 @@ resource "azurerm_spring_cloud_build_pack_binding" "test" {
   spring_cloud_builder_id = azurerm_spring_cloud_builder.test.id
   binding_type            = "ApplicationInsights"
 }
-`, template, data.RandomStringOfLength(5))
+`, template, data.RandomString)
 }
 
 func (r SpringCloudBuildPackBindingResource) requiresImport(data acceptance.TestData) string {
