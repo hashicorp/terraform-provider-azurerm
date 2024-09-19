@@ -1331,8 +1331,10 @@ func TestAccApplicationGateway_basicSku(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku.0.name").HasValue("Basic"),
 				check.That(data.ResourceName).Key("sku.0.tier").HasValue("Basic"),
-				check.That(data.ResourceName).Key("sku.0.capacity").IsEmpty(),
+				check.That(data.ResourceName).Key("sku.0.capacity").IsNotEmpty(),
 				check.That(data.ResourceName).Key("autoscale_configuration").IsEmpty(),
+				check.That(data.ResourceName).Key("trusted_client_certificate").IsEmpty(),
+				check.That(data.ResourceName).Key("rewrite_rule_set").IsEmpty(),
 			),
 		},
 		data.ImportStep(),
@@ -1617,6 +1619,14 @@ locals {
   request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
 }
 
+resource "azurerm_public_ip" "test_standard" {
+  name                = "acctest-pubip-standard"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
 resource "azurerm_application_gateway" "test" {
   name                = "acctestag-%d"
   resource_group_name = azurerm_resource_group.test.name
@@ -1625,6 +1635,7 @@ resource "azurerm_application_gateway" "test" {
   sku {
     name     = "Basic"
     tier     = "Basic"
+    capacity = 2
   }
 
   gateway_ip_configuration {
@@ -1639,7 +1650,7 @@ resource "azurerm_application_gateway" "test" {
 
   frontend_ip_configuration {
     name                 = local.frontend_ip_configuration_name
-    public_ip_address_id = azurerm_public_ip.test.id
+    public_ip_address_id = azurerm_public_ip.test_standard.id
   }
 
   backend_address_pool {
@@ -1663,6 +1674,7 @@ resource "azurerm_application_gateway" "test" {
 
   request_routing_rule {
     name                       = local.request_routing_rule_name
+    priority                   = 100
     rule_type                  = "Basic"
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
