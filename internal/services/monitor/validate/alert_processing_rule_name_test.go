@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestActionRuleName(t *testing.T) {
+func TestAlertProcessingRuleName(t *testing.T) {
 	testData := []struct {
 		input    string
 		expected bool
@@ -62,7 +62,7 @@ func TestActionRuleName(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.input)
 
-		_, errors := ActionRuleName(v.input, "name")
+		_, errors := AlertProcessingRuleName(v.input, "name")
 		actual := len(errors) == 0
 		if v.expected != actual {
 			t.Fatalf("Expected %t but got %t", v.expected, actual)

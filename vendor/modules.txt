@@ -155,8 +155,6 @@ github.com/hashicorp/go-azure-sdk/resource-manager/aad/2021-05-01/domainservices
 github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview
 github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview/tenants
 github.com/hashicorp/go-azure-sdk/resource-manager/advisor/2023-01-01/getrecommendations
-github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2019-05-05-preview/actionrules
-github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2019-05-05-preview/alertsmanagements
 github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2019-06-01/smartdetectoralertrules
 github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2021-08-08/alertprocessingrules
 github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2023-03-01/prometheusrulegroups
@@ -582,7 +580,6 @@ github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2024-07-10/priv
 github.com/hashicorp/go-azure-sdk/resource-manager/hybridkubernetes/2021-10-01/connectedclusters
 github.com/hashicorp/go-azure-sdk/resource-manager/hybridkubernetes/2024-01-01/connectedclusters
 github.com/hashicorp/go-azure-sdk/resource-manager/insights/2015-04-01/activitylogs
-github.com/hashicorp/go-azure-sdk/resource-manager/insights/2016-03-01/logprofiles
 github.com/hashicorp/go-azure-sdk/resource-manager/insights/2018-03-01/metricalerts
 github.com/hashicorp/go-azure-sdk/resource-manager/insights/2018-04-16/scheduledqueryrules
 github.com/hashicorp/go-azure-sdk/resource-manager/insights/2019-10-17-preview/privatelinkscopedresources
