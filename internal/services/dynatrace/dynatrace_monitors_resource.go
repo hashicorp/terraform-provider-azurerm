@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -125,8 +126,8 @@ func (r MonitorsResource) Create() sdk.ResourceFunc {
 				monitoringStatus = monitors.MonitoringStatusDisabled
 			}
 			monitorsProps := monitors.MonitorProperties{
-				MarketplaceSubscriptionStatus: &marketplaceSubscriptionServiceStatus,
-				MonitoringStatus:              &monitoringStatus,
+				MarketplaceSubscriptionStatus: pointer.To(marketplaceSubscriptionServiceStatus),
+				MonitoringStatus:              pointer.To(monitoringStatus),
 				PlanData:                      ExpandDynatracePlanData(model.PlanData),
 				UserInfo:                      ExpandDynatraceUserInfo(model.UserInfo),
 			}
@@ -139,9 +140,9 @@ func (r MonitorsResource) Create() sdk.ResourceFunc {
 			monitor := monitors.MonitorResource{
 				Identity:   dynatraceIdentity,
 				Location:   model.Location,
-				Name:       &model.Name,
+				Name:       pointer.To(model.Name),
 				Properties: monitorsProps,
-				Tags:       &model.Tags,
+				Tags:       pointer.To(model.Tags),
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, monitor); err != nil {
@@ -249,7 +250,7 @@ func (r MonitorsResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("tags") {
 				props := monitors.MonitorResourceUpdate{
-					Tags: &state.Tags,
+					Tags: pointer.To(state.Tags),
 				}
 
 				if _, err := client.Update(ctx, *id, props); err != nil {
@@ -269,14 +270,14 @@ func expandDynatraceIdentity(input []identity.ModelSystemAssigned) (*monitors.Id
 	}
 
 	if config.Type == identity.TypeNone {
-		return &monitors.IdentityProperties{}, nil
+		return pointer.To(monitors.IdentityProperties{}), nil
 	}
 
 	dynatraceIdentity := monitors.IdentityProperties{
 		Type: monitors.ManagedIdentityType(config.Type),
 	}
 
-	return &dynatraceIdentity, nil
+	return pointer.To(dynatraceIdentity), nil
 }
 
 func flattenDynatraceIdentity(input *monitors.IdentityProperties) ([]identity.ModelSystemAssigned, error) {
@@ -288,11 +289,11 @@ func flattenDynatraceIdentity(input *monitors.IdentityProperties) ([]identity.Mo
 	identityProp.Type = identity.Type(input.Type)
 
 	if input.PrincipalId != nil {
-		identityProp.PrincipalId = *input.PrincipalId
+		identityProp.PrincipalId = pointer.From(input.PrincipalId)
 	}
 
 	if input.TenantId != nil {
-		identityProp.TenantId = *input.TenantId
+		identityProp.TenantId = pointer.From(input.TenantId)
 	}
 
 	return []identity.ModelSystemAssigned{

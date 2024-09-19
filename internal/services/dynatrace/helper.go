@@ -1,6 +1,7 @@
 package dynatrace
 
 import (
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dynatrace/2023-04-27/monitors"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -95,11 +96,11 @@ func ExpandDynatracePlanData(input []PlanData) *monitors.PlanData {
 	}
 	v := input[0]
 
-	return &monitors.PlanData{
+	return pointer.To(monitors.PlanData{
 		BillingCycle: &v.BillingCycle,
 		PlanDetails:  &v.PlanDetails,
 		UsageType:    &v.UsageType,
-	}
+	})
 }
 
 func ExpandDynatraceUserInfo(input []UserInfo) *monitors.UserInfo {
@@ -108,13 +109,13 @@ func ExpandDynatraceUserInfo(input []UserInfo) *monitors.UserInfo {
 	}
 	v := input[0]
 
-	return &monitors.UserInfo{
-		Country:      &v.Country,
-		EmailAddress: &v.EmailAddress,
-		FirstName:    &v.FirstName,
-		LastName:     &v.LastName,
-		PhoneNumber:  &v.PhoneNumber,
-	}
+	return pointer.To(monitors.UserInfo{
+		Country:      pointer.To(v.Country),
+		EmailAddress: pointer.To(v.EmailAddress),
+		FirstName:    pointer.To(v.FirstName),
+		LastName:     pointer.To(v.LastName),
+		PhoneNumber:  pointer.To(v.PhoneNumber),
+	})
 }
 
 func FlattenDynatracePlanData(input *monitors.PlanData) []PlanData {
@@ -128,19 +129,19 @@ func FlattenDynatracePlanData(input *monitors.PlanData) []PlanData {
 	var usageType string
 
 	if input.BillingCycle != nil {
-		billingCycle = *input.BillingCycle
+		billingCycle = pointer.From(input.BillingCycle)
 	}
 
 	if input.EffectiveDate != nil {
-		effectiveDate = *input.EffectiveDate
+		effectiveDate = pointer.From(input.EffectiveDate)
 	}
 
 	if input.PlanDetails != nil {
-		planDetails = *input.PlanDetails
+		planDetails = pointer.From(input.PlanDetails)
 	}
 
 	if input.UsageType != nil {
-		usageType = *input.UsageType
+		usageType = pointer.From(input.UsageType)
 	}
 
 	return []PlanData{

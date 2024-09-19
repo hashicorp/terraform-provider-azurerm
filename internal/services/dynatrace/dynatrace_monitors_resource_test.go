@@ -149,24 +149,24 @@ resource "azurerm_dynatrace_monitor" "test" {
   }
 
   user {
-    first_name   = "Alice"
-    last_name    = "Bobab"
-    email        = "alice@microsoft.com"
-    phone_number = "12345"
-    country      = "westus"
+    first_name   = "%s"
+    last_name    = "%s"
+    email        = "%s"
+    phone_number = "%s"
+    country      = "%s"
   }
 
   plan {
-    usage_type     = "COMMITTED"
-    billing_cycle  = "MONTHLY"
-    plan           = "azureportalintegration_privatepreview@TIDgmz7xq9ge3py"
+    usage_type    = "COMMITTED"
+    billing_cycle = "MONTHLY"
+    plan          = "azureportalintegration_privatepreview@TIDgmz7xq9ge3py"
   }
 
   tags = {
     environment = "Dev"
   }
 }
-`, template, data.RandomInteger)
+`, template, data.RandomInteger, r.dynatraceInfo.UserFirstName, r.dynatraceInfo.UserLastName, r.dynatraceInfo.UserEmail, r.dynatraceInfo.UserPhoneNumber, r.dynatraceInfo.UserCountry)
 }
 
 func (r MonitorsResource) updated(data acceptance.TestData) string {
@@ -184,17 +184,17 @@ resource "azurerm_dynatrace_monitor" "test" {
     type = "SystemAssigned"
   }
   user {
-    first_name   = "Alice"
-    last_name    = "Bobab"
-    email        = "alice@microsoft.com"
-    phone_number = "12345"
-    country      = "westus"
+    first_name   = "%s"
+    last_name    = "%s"
+    email        = "%s"
+    phone_number = "%s"
+    country      = "%s"
   }
 
   plan {
-    usage_type     = "COMMITTED"
-    billing_cycle  = "MONTHLY"
-    plan           = "azureportalintegration_privatepreview@TIDgmz7xq9ge3py"
+    usage_type    = "COMMITTED"
+    billing_cycle = "MONTHLY"
+    plan          = "azureportalintegration_privatepreview@TIDgmz7xq9ge3py"
   }
 
   tags = {
@@ -202,7 +202,7 @@ resource "azurerm_dynatrace_monitor" "test" {
     test        = "Patch"
   }
 }
-`, template, data.RandomInteger)
+`, template, data.RandomInteger, r.dynatraceInfo.UserFirstName, r.dynatraceInfo.UserLastName, r.dynatraceInfo.UserEmail, r.dynatraceInfo.UserPhoneNumber, r.dynatraceInfo.UserCountry)
 }
 
 func (r MonitorsResource) requiresImport(data acceptance.TestData) string {
@@ -212,10 +212,9 @@ func (r MonitorsResource) requiresImport(data acceptance.TestData) string {
 
 resource "azurerm_dynatrace_monitor" "import" {
   name                     = azurerm_dynatrace_monitor.test.name
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  identity = azurerm_dynatrace_monitor.test.identity
-  monitoring_enabled       = azurerm_dynatrace_monitor.test.monitoring_enabled
+  resource_group_name      = azurerm_dynatrace_monitor.test.name
+  location                 = azurerm_dynatrace_monitor.test.location
+  identity                 = azurerm_dynatrace_monitor.test.identity
   marketplace_subscription = azurerm_dynatrace_monitor.test.marketplace_subscription
   plan                     = azurerm_dynatrace_monitor.test.plan
   user                     = azurerm_dynatrace_monitor.test.user
