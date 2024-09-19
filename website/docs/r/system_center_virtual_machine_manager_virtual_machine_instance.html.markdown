@@ -59,7 +59,7 @@ The following arguments are supported:
 
 * `network_interface` - (Optional) A `network_interface` block as defined below.
 
-* `os` - (Optional) An `os` block as defined below. Changing this forces a new resource to be created.
+* `operating_system` - (Optional) An `operating_system` block as defined below. Changing this forces a new resource to be created.
 
 * `storage_disk` - (Optional) A `storage_disk` block as defined below.
 
@@ -111,7 +111,7 @@ A `network_interface` block supports the following:
 
 ---
 
-An `os` block supports the following:
+An `operating_system` block supports the following:
 
 * `computer_name` - (Required) The computer name of the Virtual Machine. Changing this forces a new resource to be created.
 

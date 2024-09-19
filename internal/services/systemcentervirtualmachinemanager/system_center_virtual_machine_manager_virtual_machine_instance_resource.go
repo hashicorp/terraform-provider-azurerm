@@ -33,7 +33,7 @@ type SystemCenterVirtualMachineManagerVirtualMachineInstanceModel struct {
 	Hardware                                            []Hardware         `tfschema:"hardware"`
 	Infrastructure                                      []Infrastructure   `tfschema:"infrastructure"`
 	NetworkInterfaces                                   []NetworkInterface `tfschema:"network_interface"`
-	OS                                                  []OS               `tfschema:"os"`
+	OperatingSystem                                     []OperatingSystem  `tfschema:"operating_system"`
 	StorageDisks                                        []StorageDisk      `tfschema:"storage_disk"`
 	SystemCenterVirtualMachineManagerAvailabilitySetIds []string           `tfschema:"system_center_virtual_machine_manager_availability_set_ids"`
 }
@@ -63,7 +63,7 @@ type NetworkInterface struct {
 	VirtualNetworkId string `tfschema:"virtual_network_id"`
 }
 
-type OS struct {
+type OperatingSystem struct {
 	ComputerName  string `tfschema:"computer_name"`
 	AdminPassword string `tfschema:"admin_password"`
 }
@@ -255,7 +255,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Argumen
 			},
 		},
 
-		"os": {
+		"operating_system": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			ForceNew: true,
@@ -416,7 +416,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Create(
 					StorageProfile: &virtualmachineinstances.StorageProfile{
 						Disks: expandSystemCenterVirtualMachineManagerVirtualMachineInstanceStorageDisksForCreate(model.StorageDisks),
 					},
-					OsProfile: expandSystemCenterVirtualMachineManagerVirtualMachineInstanceOSProfile(model.OS),
+					OsProfile: expandSystemCenterVirtualMachineManagerVirtualMachineInstanceOSProfile(model.OperatingSystem),
 				},
 			}
 
@@ -465,7 +465,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Read() 
 				if props := model.Properties; props != nil {
 					state.Hardware = flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfile(props.HardwareProfile)
 					state.Infrastructure = flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceInfrastructureProfile(props.InfrastructureProfile)
-					state.OS = flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceOSProfile(props.OsProfile, metadata.ResourceData.Get("os.0.admin_password").(string))
+					state.OperatingSystem = flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceOSProfile(props.OsProfile, metadata.ResourceData.Get("operating_system.0.admin_password").(string))
 					state.SystemCenterVirtualMachineManagerAvailabilitySetIds = flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceAvailabilitySets(props.AvailabilitySets)
 
 					if v := props.NetworkProfile; v != nil {
@@ -821,7 +821,7 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceStorageDisksFo
 	return &result
 }
 
-func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceOSProfile(input []OS) *virtualmachineinstances.OsProfileForVMInstance {
+func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceOSProfile(input []OperatingSystem) *virtualmachineinstances.OsProfileForVMInstance {
 	if len(input) == 0 {
 		return nil
 	}
@@ -945,13 +945,13 @@ func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceStorageQoSPol
 	})
 }
 
-func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceOSProfile(input *virtualmachineinstances.OsProfileForVMInstance, adminPassword string) []OS {
-	result := make([]OS, 0)
+func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceOSProfile(input *virtualmachineinstances.OsProfileForVMInstance, adminPassword string) []OperatingSystem {
+	result := make([]OperatingSystem, 0)
 	if input == nil {
 		return result
 	}
 
-	return append(result, OS{
+	return append(result, OperatingSystem{
 		ComputerName:  pointer.From(input.ComputerName),
 		AdminPassword: adminPassword,
 	})
