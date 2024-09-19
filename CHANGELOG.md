@@ -6,9 +6,10 @@ FEATURES:
 
 ENHANCEMENTS: 
 
-* `azurerm_spring_cloud_gateway` - `environment_variables` and `sensitive_environment_variables` are no longer ForceNew [GH-27404]
-* `azurerm_storage_blob` - `source` is no longer ForceNew [GH-27394]
-* `azurerm_storage_object_replication` - `rules.x. source_container_name` and `rules.x. destination_container_name` are no longer ForceNew [GH-27394]
+* `nginx` - upgrade api version to `2024-06-01-preview`  [GH-27345]
+* `azurerm_spring_cloud_gateway` - changing the `environment_variables` and `sensitive_environment_variables` properties no longer creates a new resource [GH-27404]
+* `azurerm_storage_blob` - changing the `source` property no longer creates a new resource [GH-27394]
+* `azurerm_storage_object_replication` - changing the `rules.x. source_container_name` and `rules.x. destination_container_name` properties no longer creates a new resource [GH-27394]
 
 BUG FIXES:
 
