@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Resource**: `azurerm_advisor_suppression` [GH-26177]
 * **New Resource**: `azurerm_data_protection_backup_policy_mysql_flexible_server` [GH-26955]
 * **New Resource**: `azurerm_key_vault_managed_hardware_security_module_key_rotation_policy` [GH-27306]
 * **New Resource**: `azurerm_stack_hci_deployment_setting` [GH-25646]
