@@ -67,6 +67,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `automatic_upgrade_channel` - The automatic upgrade channel for this NGINX deployment.
 
+* `nginx_app_protect` - A `nginx_app_protect` block as defined below.
+
 * `tags` - A mapping of tags assigned to the NGINX Deployment.
 
 ---
@@ -116,6 +118,15 @@ An `auto_scale_profile` block exports the following:
 * `min_capacity` - The minimum number of NGINX capacity units for this NGINX Deployment.
 
 * `max_capacity` - The maximum number of NGINX capacity units for this NGINX Deployment.
+
+---
+
+A `nginx_app_protect` block exports the following:
+
+* `web_application_firewall_settings` - A `web_application_firewall_settings` block as defined below.
+
+A `web_application_firewall_settings` block exports the following:
+* `activation_state` - Whether WAF is enabled/disabled for this NGINX Deployment.
 
 ## Timeouts
 

@@ -170,6 +170,13 @@ An `auto_scale_profile` block supports the following:
 
 -> **NOTE:** If you're using autoscaling with deployments created before v4.0, you may need to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/language/meta-arguments/lifecycle#ignore_changes) to ignore changes to the `capacity` field.
 
+A `nginx_app_protect` block exports the following:
+
+* `web_application_firewall_settings` - (Required) A `web_application_firewall_settings` block as defined below.
+
+A `web_application_firewall_settings` block exports the following:
+* `activation_state` - (Optional) Whether WAF is enabled/disabled for this NGINX Deployment.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:

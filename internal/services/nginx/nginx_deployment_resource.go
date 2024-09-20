@@ -62,6 +62,14 @@ type AutoScaleProfile struct {
 	Max  int64  `tfschema:"max_capacity"`
 }
 
+type WebApplicationFirewallSettings struct {
+	ActivationState string `tfschema:"activation_state"`
+}
+
+type NginxAppProtect struct {
+	WebApplicationFirewallSettings []WebApplicationFirewallSettings `tfschema:"web_application_firewall_settings"`
+}
+
 type DeploymentModel struct {
 	ResourceGroupName      string                                     `tfschema:"resource_group_name"`
 	Name                   string                                     `tfschema:"name"`
@@ -80,6 +88,7 @@ type DeploymentModel struct {
 	FrontendPrivate        []FrontendPrivate                          `tfschema:"frontend_private"`
 	NetworkInterface       []NetworkInterface                         `tfschema:"network_interface"`
 	UpgradeChannel         string                                     `tfschema:"automatic_upgrade_channel"`
+	NginxAppProtect        []NginxAppProtect                          `tfschema:"nginx_app_protect"`
 	// Deprecated: remove in next major version
 	Configuration []Configuration   `tfschema:"configuration,removedInNextMajorVersion"`
 	Tags          map[string]string `tfschema:"tags"`
@@ -260,6 +269,32 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 					"stable",
 					"preview",
 				}, false),
+		},
+
+		"nginx_app_protect": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"web_application_firewall_settings": {
+						Type:     pluginsdk.TypeList,
+						Required: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"activation_state": {
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+									ValidateFunc: validation.StringInSlice(
+										[]string{
+											"Enabled",
+											"Disabled",
+										}, false),
+								},
+							},
+						},
+					},
+				},
+			},
 		},
 
 		"tags": commonschema.Tags(),
@@ -496,6 +531,17 @@ func (m DeploymentResource) Create() sdk.ResourceFunc {
 				}
 			}
 
+			if len(model.NginxAppProtect) > 0 && len(model.NginxAppProtect[0].WebApplicationFirewallSettings) > 0 {
+				activationState := nginxdeployment.ActivationState(model.NginxAppProtect[0].WebApplicationFirewallSettings[0].ActivationState)
+				if activationState != "" {
+					prop.NginxAppProtect = &nginxdeployment.NginxDeploymentPropertiesNginxAppProtect{
+						WebApplicationFirewallSettings: nginxdeployment.WebApplicationFirewallSettings{
+							ActivationState: &activationState,
+						},
+					}
+				}
+			}
+
 			req.Properties = prop
 
 			req.Identity, err = identity.ExpandSystemAndUserAssignedMapFromModel(model.Identity)
@@ -625,6 +671,18 @@ func (m DeploymentResource) Read() sdk.ResourceFunc {
 
 					if props.AutoUpgradeProfile != nil {
 						output.UpgradeChannel = props.AutoUpgradeProfile.UpgradeChannel
+					}
+
+					if props.NginxAppProtect != nil && props.NginxAppProtect.WebApplicationFirewallSettings.ActivationState != nil {
+						output.NginxAppProtect = []NginxAppProtect{
+							{
+								WebApplicationFirewallSettings: []WebApplicationFirewallSettings{
+									{
+										string(*props.NginxAppProtect.WebApplicationFirewallSettings.ActivationState),
+									},
+								},
+							},
+						}
 					}
 
 					flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMapToModel(model.Identity)
@@ -764,6 +822,15 @@ func (m DeploymentResource) Update() sdk.ResourceFunc {
 
 			if strings.HasPrefix(model.Sku, "basic") && req.Properties.ScalingProperties != nil {
 				return fmt.Errorf("basic SKUs are incompatible with `capacity` or `auto_scale_profiles`")
+			}
+
+			if meta.ResourceData.HasChange("nginx_app_protect") {
+				activationState := nginxdeployment.ActivationState(model.NginxAppProtect[0].WebApplicationFirewallSettings[0].ActivationState)
+				req.Properties.NginxAppProtect = &nginxdeployment.NginxDeploymentUpdatePropertiesNginxAppProtect{
+					WebApplicationFirewallSettings: &nginxdeployment.WebApplicationFirewallSettings{
+						ActivationState: &activationState,
+					},
+				}
 			}
 
 			if err := client.DeploymentsUpdateThenPoll(ctx, *id, req); err != nil {
