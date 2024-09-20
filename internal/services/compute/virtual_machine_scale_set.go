@@ -344,36 +344,6 @@ func flattenVirtualMachineScaleSetGalleryApplications(input *[]virtualmachinesca
 }
 
 func VirtualMachineScaleSetScaleInPolicySchema() *pluginsdk.Schema {
-	if !features.FourPointOhBeta() {
-		return &pluginsdk.Schema{
-			Type:          pluginsdk.TypeList,
-			Optional:      true,
-			Computed:      !features.FourPointOhBeta(),
-			MaxItems:      1,
-			ConflictsWith: []string{"scale_in_policy"},
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"rule": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  string(virtualmachinescalesets.VirtualMachineScaleSetScaleInRulesDefault),
-						ValidateFunc: validation.StringInSlice([]string{
-							string(virtualmachinescalesets.VirtualMachineScaleSetScaleInRulesDefault),
-							string(virtualmachinescalesets.VirtualMachineScaleSetScaleInRulesNewestVM),
-							string(virtualmachinescalesets.VirtualMachineScaleSetScaleInRulesOldestVM),
-						}, false),
-					},
-
-					"force_deletion_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
-					},
-				},
-			},
-		}
-	}
-
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,

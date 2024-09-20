@@ -14,10 +14,8 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/linkedstorageaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -58,7 +56,7 @@ func resourceLogAnalyticsLinkedStorageAccount() *pluginsdk.Resource {
 					string(linkedstorageaccounts.DataSourceTypeQuery),
 					string(linkedstorageaccounts.DataSourceTypeAlerts),
 					string(linkedstorageaccounts.DataSourceTypeIngestion),
-				}, !features.FourPointOhBeta()),
+				}, false),
 			},
 
 			"resource_group_name": commonschema.ResourceGroupName(),
@@ -81,10 +79,6 @@ func resourceLogAnalyticsLinkedStorageAccount() *pluginsdk.Resource {
 				},
 			},
 		},
-	}
-
-	if !features.FourPointOh() {
-		resource.Schema["data_source_type"].DiffSuppressFunc = suppress.CaseDifference
 	}
 
 	return resource

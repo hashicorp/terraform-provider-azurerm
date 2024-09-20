@@ -1,3 +1,26 @@
+## 4.3.0 (Unreleased)
+
+FEATURES:
+
+* **New Resource**: `azurerm_key_vault_managed_hardware_security_module_key_rotation_policy` [GH-27306]
+* **New Resource**: `azurerm_stack_hci_deployment_setting` [GH-25646]
+
+ENHANCEMENTS: 
+
+* `nginx` - upgrade api version to `2024-06-01-preview`  [GH-27345]
+* `azurerm_cosmosdb_account` - support for the capability `EnableNoSQLVectorSearch` [GH-27357]
+* `azurerm_linux_virtual_machine_scale_set` - the `zones` property can now be updated without creating a new resource [GH-27288]
+* `azurerm_orchestrated_virtual_machine_scale_set` - the `zones` property can now be updated without creating a new resource [GH-27288]
+* `azurerm_spring_cloud_gateway` - changing the `environment_variables` and `sensitive_environment_variables` properties no longer creates a new resource [GH-27404]
+* `azurerm_storage_blob` - changing the `source` property no longer creates a new resource [GH-27394]
+* `azurerm_storage_object_replication` - changing the `rules.x. source_container_name` and `rules.x. destination_container_name` properties no longer creates a new resource [GH-27394]
+* `azurerm_windows_virtual_machine_scale_set` - the `zones` property can now be updated without creating a new resource [GH-27288] 
+
+BUG FIXES:
+
+* `azurerm_application_insights` - fix crash when read for `DataVolumeCap` is `nil` [GH-27352]
+* `azurerm_log_analytics_workspace_table` - will now correctly set `total_retention_in_days` when `sku` is `Basic` [GH-27420]
+
 ## 4.2.0 (September 12, 2024)
 
 FEATURES:
