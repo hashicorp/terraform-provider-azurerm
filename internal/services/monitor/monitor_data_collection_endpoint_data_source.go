@@ -101,7 +101,7 @@ func (d DataCollectionEndpointDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			var enablePublicNetWorkAccess bool
+			var publicNetWorkAccessEnabled bool
 			var description, kind, location, configurationAccessEndpoint, logsIngestionEndpoint, immutableId string
 			var tag map[string]interface{}
 			if model := resp.Model; model != nil {
@@ -111,7 +111,7 @@ func (d DataCollectionEndpointDataSource) Read() sdk.ResourceFunc {
 				if prop := model.Properties; prop != nil {
 					description = flattenDataCollectionEndpointDescription(prop.Description)
 					if networkAcls := prop.NetworkAcls; networkAcls != nil {
-						enablePublicNetWorkAccess = flattenDataCollectionEndpointPublicNetworkAccess(networkAcls.PublicNetworkAccess)
+						publicNetWorkAccessEnabled = flattenDataCollectionEndpointPublicNetworkAccess(networkAcls.PublicNetworkAccess)
 					}
 
 					if prop.ConfigurationAccess != nil && prop.ConfigurationAccess.Endpoint != nil {
@@ -138,7 +138,7 @@ func (d DataCollectionEndpointDataSource) Read() sdk.ResourceFunc {
 				Location:                    location,
 				LogsIngestionEndpoint:       logsIngestionEndpoint,
 				Name:                        id.DataCollectionEndpointName,
-				PublicNetworkAccessEnabled:  enablePublicNetWorkAccess,
+				PublicNetworkAccessEnabled:  publicNetWorkAccessEnabled,
 				ResourceGroupName:           id.ResourceGroupName,
 				Tags:                        tag,
 			})
