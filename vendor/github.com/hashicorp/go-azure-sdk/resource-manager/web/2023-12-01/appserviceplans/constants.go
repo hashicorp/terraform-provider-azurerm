@@ -9,6 +9,50 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
+type AuthenticationType string
+
+const (
+	AuthenticationTypeStorageAccountConnectionString AuthenticationType = "StorageAccountConnectionString"
+	AuthenticationTypeSystemAssignedIdentity         AuthenticationType = "SystemAssignedIdentity"
+	AuthenticationTypeUserAssignedIdentity           AuthenticationType = "UserAssignedIdentity"
+)
+
+func PossibleValuesForAuthenticationType() []string {
+	return []string{
+		string(AuthenticationTypeStorageAccountConnectionString),
+		string(AuthenticationTypeSystemAssignedIdentity),
+		string(AuthenticationTypeUserAssignedIdentity),
+	}
+}
+
+func (s *AuthenticationType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseAuthenticationType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseAuthenticationType(input string) (*AuthenticationType, error) {
+	vals := map[string]AuthenticationType{
+		"storageaccountconnectionstring": AuthenticationTypeStorageAccountConnectionString,
+		"systemassignedidentity":         AuthenticationTypeSystemAssignedIdentity,
+		"userassignedidentity":           AuthenticationTypeUserAssignedIdentity,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := AuthenticationType(input)
+	return &out, nil
+}
+
 type AutoHealActionType string
 
 const (
@@ -50,6 +94,50 @@ func parseAutoHealActionType(input string) (*AutoHealActionType, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := AutoHealActionType(input)
+	return &out, nil
+}
+
+type AzureStorageProtocol string
+
+const (
+	AzureStorageProtocolHTTP AzureStorageProtocol = "Http"
+	AzureStorageProtocolNfs  AzureStorageProtocol = "Nfs"
+	AzureStorageProtocolSmb  AzureStorageProtocol = "Smb"
+)
+
+func PossibleValuesForAzureStorageProtocol() []string {
+	return []string{
+		string(AzureStorageProtocolHTTP),
+		string(AzureStorageProtocolNfs),
+		string(AzureStorageProtocolSmb),
+	}
+}
+
+func (s *AzureStorageProtocol) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseAzureStorageProtocol(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseAzureStorageProtocol(input string) (*AzureStorageProtocol, error) {
+	vals := map[string]AzureStorageProtocol{
+		"http": AzureStorageProtocolHTTP,
+		"nfs":  AzureStorageProtocolNfs,
+		"smb":  AzureStorageProtocolSmb,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := AzureStorageProtocol(input)
 	return &out, nil
 }
 
@@ -385,6 +473,44 @@ func parseFtpsState(input string) (*FtpsState, error) {
 	return &out, nil
 }
 
+type FunctionsDeploymentStorageType string
+
+const (
+	FunctionsDeploymentStorageTypeBlobContainer FunctionsDeploymentStorageType = "blobContainer"
+)
+
+func PossibleValuesForFunctionsDeploymentStorageType() []string {
+	return []string{
+		string(FunctionsDeploymentStorageTypeBlobContainer),
+	}
+}
+
+func (s *FunctionsDeploymentStorageType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseFunctionsDeploymentStorageType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseFunctionsDeploymentStorageType(input string) (*FunctionsDeploymentStorageType, error) {
+	vals := map[string]FunctionsDeploymentStorageType{
+		"blobcontainer": FunctionsDeploymentStorageTypeBlobContainer,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := FunctionsDeploymentStorageType(input)
+	return &out, nil
+}
+
 type HostType string
 
 const (
@@ -655,6 +781,59 @@ func parseRouteType(input string) (*RouteType, error) {
 	return &out, nil
 }
 
+type RuntimeName string
+
+const (
+	RuntimeNameCustom                 RuntimeName = "custom"
+	RuntimeNameDotnetNegativeisolated RuntimeName = "dotnet-isolated"
+	RuntimeNameJava                   RuntimeName = "java"
+	RuntimeNameNode                   RuntimeName = "node"
+	RuntimeNamePowershell             RuntimeName = "powershell"
+	RuntimeNamePython                 RuntimeName = "python"
+)
+
+func PossibleValuesForRuntimeName() []string {
+	return []string{
+		string(RuntimeNameCustom),
+		string(RuntimeNameDotnetNegativeisolated),
+		string(RuntimeNameJava),
+		string(RuntimeNameNode),
+		string(RuntimeNamePowershell),
+		string(RuntimeNamePython),
+	}
+}
+
+func (s *RuntimeName) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseRuntimeName(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseRuntimeName(input string) (*RuntimeName, error) {
+	vals := map[string]RuntimeName{
+		"custom":          RuntimeNameCustom,
+		"dotnet-isolated": RuntimeNameDotnetNegativeisolated,
+		"java":            RuntimeNameJava,
+		"node":            RuntimeNameNode,
+		"powershell":      RuntimeNamePowershell,
+		"python":          RuntimeNamePython,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := RuntimeName(input)
+	return &out, nil
+}
+
 type ScmType string
 
 const (
@@ -920,14 +1099,16 @@ func parseStatusOptions(input string) (*StatusOptions, error) {
 type SupportedTlsVersions string
 
 const (
-	SupportedTlsVersionsOnePointOne  SupportedTlsVersions = "1.1"
-	SupportedTlsVersionsOnePointTwo  SupportedTlsVersions = "1.2"
-	SupportedTlsVersionsOnePointZero SupportedTlsVersions = "1.0"
+	SupportedTlsVersionsOnePointOne   SupportedTlsVersions = "1.1"
+	SupportedTlsVersionsOnePointThree SupportedTlsVersions = "1.3"
+	SupportedTlsVersionsOnePointTwo   SupportedTlsVersions = "1.2"
+	SupportedTlsVersionsOnePointZero  SupportedTlsVersions = "1.0"
 )
 
 func PossibleValuesForSupportedTlsVersions() []string {
 	return []string{
 		string(SupportedTlsVersionsOnePointOne),
+		string(SupportedTlsVersionsOnePointThree),
 		string(SupportedTlsVersionsOnePointTwo),
 		string(SupportedTlsVersionsOnePointZero),
 	}
@@ -949,6 +1130,7 @@ func (s *SupportedTlsVersions) UnmarshalJSON(bytes []byte) error {
 func parseSupportedTlsVersions(input string) (*SupportedTlsVersions, error) {
 	vals := map[string]SupportedTlsVersions{
 		"1.1": SupportedTlsVersionsOnePointOne,
+		"1.3": SupportedTlsVersionsOnePointThree,
 		"1.2": SupportedTlsVersionsOnePointTwo,
 		"1.0": SupportedTlsVersionsOnePointZero,
 	}
