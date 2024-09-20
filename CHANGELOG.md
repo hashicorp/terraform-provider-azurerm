@@ -21,6 +21,7 @@ ENHANCEMENTS:
 * `azurerm_role_management_policy` - support for resource scope [GH-27205]
 * `azurerm_spring_cloud_gateway` - changing the `environment_variables` and `sensitive_environment_variables` properties no longer creates a new resource [GH-27404]
 * `azurerm_static_web_app` - support for the `public_network_access_enabled` property [GH-26345]
+* `azurerm_shared_image` - support for the `disk_controller_type_nvme_enabled` property [GH-26370]
 * `azurerm_storage_blob` - changing the `source` property no longer creates a new resource [GH-27394]
 * `azurerm_storage_object_replication` - changing the `rules.x. source_container_name` and `rules.x. destination_container_name` properties no longer creates a new resource [GH-27394]
 * `azurerm_windows_virtual_machine_scale_set` - the `zones` property can now be updated without creating a new resource [GH-27288] 
