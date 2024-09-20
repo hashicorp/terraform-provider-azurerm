@@ -75,9 +75,6 @@ func TestExpandFeatures(t *testing.T) {
 				RecoveryServicesVault: features.RecoveryServicesVault{
 					RecoverSoftDeletedBackupProtectedVM: true,
 				},
-				Storage: features.StorageFeatures{
-					DataPlaneAccessOnReadEnabled: true,
-				},
 				Subscription: features.SubscriptionFeatures{
 					PreventCancellationOnDestroy: false,
 				},
@@ -159,11 +156,6 @@ func TestExpandFeatures(t *testing.T) {
 							"recover_soft_deleted_backup_protected_vm": true,
 						},
 					},
-					"storage": []interface{}{
-						map[string]interface{}{
-							"data_plane_access_on_read_enabled": true,
-						},
-					},
 					"subscription": []interface{}{
 						map[string]interface{}{
 							"prevent_cancellation_on_destroy": true,
@@ -242,9 +234,6 @@ func TestExpandFeatures(t *testing.T) {
 				},
 				RecoveryServicesVault: features.RecoveryServicesVault{
 					RecoverSoftDeletedBackupProtectedVM: true,
-				},
-				Storage: features.StorageFeatures{
-					DataPlaneAccessOnReadEnabled: true,
 				},
 				Subscription: features.SubscriptionFeatures{
 					PreventCancellationOnDestroy: true,
@@ -425,9 +414,6 @@ func TestExpandFeatures(t *testing.T) {
 				},
 				RecoveryServicesVault: features.RecoveryServicesVault{
 					RecoverSoftDeletedBackupProtectedVM: false,
-				},
-				Storage: features.StorageFeatures{
-					DataPlaneAccessOnReadEnabled: false,
 				},
 				Subscription: features.SubscriptionFeatures{
 					PreventCancellationOnDestroy: false,
@@ -1446,54 +1432,6 @@ func TestExpandFeaturesManagedDisk(t *testing.T) {
 		result := expandFeatures(testCase.Input)
 		if !reflect.DeepEqual(result.ManagedDisk, testCase.Expected.ManagedDisk) {
 			t.Fatalf("Expected %+v but got %+v", result.ManagedDisk, testCase.Expected.ManagedDisk)
-		}
-	}
-}
-
-func TestExpandFeaturesStorage(t *testing.T) {
-	testData := []struct {
-		Name     string
-		Input    []interface{}
-		EnvVars  map[string]interface{}
-		Expected features.UserFeatures
-	}{
-		{
-			Name: "Empty Block",
-			Input: []interface{}{
-				map[string]interface{}{
-					"storage": []interface{}{},
-				},
-			},
-			Expected: features.UserFeatures{
-				Storage: features.StorageFeatures{
-					DataPlaneAccessOnReadEnabled: true,
-				},
-			},
-		},
-		{
-			Name: "Storage Data Plane on Read is Disabled",
-			Input: []interface{}{
-				map[string]interface{}{
-					"storage": []interface{}{
-						map[string]interface{}{
-							"data_plane_access_on_read_enabled": false,
-						},
-					},
-				},
-			},
-			Expected: features.UserFeatures{
-				Storage: features.StorageFeatures{
-					DataPlaneAccessOnReadEnabled: false,
-				},
-			},
-		},
-	}
-
-	for _, testCase := range testData {
-		t.Logf("[DEBUG] Test Case: %q", testCase.Name)
-		result := expandFeatures(testCase.Input)
-		if !reflect.DeepEqual(result.Storage, testCase.Expected.Storage) {
-			t.Fatalf("Expected %+v but got %+v", result.Storage, testCase.Expected.Storage)
 		}
 	}
 }

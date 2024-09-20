@@ -210,10 +210,6 @@ func TestProviderConfig_LoadDefault(t *testing.T) {
 	if features.RecoveryService.PurgeProtectedItemsFromVaultOnDestroy {
 		t.Errorf("expected recovery_service.PurgeProtectedItemsFromVaultOnDestroy to be false")
 	}
-
-	if !features.Storage.DataPlaneAccessOnReadEnabled {
-		t.Errorf("expected storage.DataPlaneAccessOnReadEnabled to be true")
-	}
 }
 
 // TODO - helper functions to make setting up test date more easily so we can add more configuration coverage
@@ -289,11 +285,6 @@ func defaultFeaturesList() types.List {
 	})
 	managedDiskList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(ManagedDiskAttributes), []attr.Value{managedDisk})
 
-	storage, _ := basetypes.NewObjectValueFrom(context.Background(), StorageAttributes, map[string]attr.Value{
-		"data_plane_access_on_read_enabled": basetypes.NewBoolNull(),
-	})
-	storageList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(StorageAttributes), []attr.Value{storage})
-
 	subscription, _ := basetypes.NewObjectValueFrom(context.Background(), SubscriptionAttributes, map[string]attr.Value{
 		"prevent_cancellation_on_destroy": basetypes.NewBoolNull(),
 	})
@@ -333,7 +324,6 @@ func defaultFeaturesList() types.List {
 		"virtual_machine_scale_set":  virtualMachineScaleSetList,
 		"resource_group":             resourceGroupList,
 		"managed_disk":               managedDiskList,
-		"storage":                    storageList,
 		"subscription":               subscriptionList,
 		"postgresql_flexible_server": postgresqlFlexibleServerList,
 		"machine_learning":           machineLearningList,

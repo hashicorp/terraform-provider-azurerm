@@ -12,7 +12,7 @@ Manages an Azure Storage Account.
 
 ## Disclaimers
 
-~> **Note:** Beginning with version 3.117.0 of the Azure Provider, a new Feature Toggle will be introduced to block data plane calls of the storage account resource during the read operation. See [the Features block documentation](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block) for more information on Feature Toggles within Terraform.
+~> **Note:** With the release of version 3.117.0 and subsequent 4.x.0 versions of the Azure RM Provider, a new field, `data_plane_access_on_read_enabled`, will be introduced. This field will block data plane calls to the storage account during read operations, enabling the inline deployment of private endpoints for storage accounts that have disabled public network access. Please note that this field is **not** available in Azure RM Provider versions 4.0.0 through 4.x.0.
 
 ~> **Note on Storage Accounts and Blob, Queue, Share and Static Web Site Properties:** Terraform currently provides both standalone [Blob Properties](storage_account_blob_properties.html), [Queue Properties](storage_account_queue_properties.html), [Share Properties](storage_account_share_properties.html) and [Static Web Site Properties](storage_account_static_website_properties.html) resources, and allows for Blob, Queue, Share and Static Web Site Properties to be defined in-line within the [Storage Account resource](storage_account.html). At this time you cannot use a Storage Account with in-line Blob, Queue, Share and/or Static Web Site Properties in conjunction with any Blob, Queue, Share and/or Static Web Site Properties resources. Doing so will cause a conflict of Blob, Queue, Share and/or Static Web Site Properties configurations and will overwrite the Blob, Queue, Share and/or Static Web Site Properties.
 
@@ -23,7 +23,7 @@ Manages an Azure Storage Account.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "West Europe"
+  location = "West US"
 }
 
 resource "azurerm_storage_account" "example" {
@@ -44,7 +44,7 @@ resource "azurerm_storage_account" "example" {
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "West Europe"
+  location = "West US"
 }
 
 resource "azurerm_virtual_network" "example" {
@@ -82,20 +82,12 @@ resource "azurerm_storage_account" "example" {
 }
 ```
 
-## Example Usage with data_plane_access_on_read_enabled Features Flag
+## Example Usage with data_plane_access_on_read_enabled
 
 ```hcl
-provider "azurerm" {
-  features {
-    storage {
-      data_plane_access_on_read_enabled = false
-    }
-  }
-}
-
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "West Europe"
+  location = "West US"
 }
 
 resource "azurerm_storage_account" "example" {
@@ -105,7 +97,8 @@ resource "azurerm_storage_account" "example" {
   account_tier             = "Standard"
   account_replication_type = "GRS"
 
-  public_network_access_enabled = false
+  public_network_access_enabled     = false
+  data_plane_access_on_read_enabled = false
 
   tags = {
     environment = "staging"
@@ -123,6 +116,8 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
+* `access_tier` - (Optional) Defines the access tier for `BlobStorage`, `FileStorage` and `StorageV2` accounts. Valid options are `Hot` and `Cool`, defaults to `Hot`.
+
 * `account_kind` - (Optional) Defines the Kind of account. Valid options are `BlobStorage`, `BlockBlobStorage`, `FileStorage`, `Storage` and `StorageV2`. Defaults to `StorageV2`.
 
 -> **Note:** Changing the `account_kind` value from `Storage` to `StorageV2` will not trigger a force new on the storage account, it will only upgrade the existing storage account from `Storage` to `StorageV2` keeping the existing storage account in place.
@@ -133,9 +128,15 @@ The following arguments are supported:
 
 * `account_replication_type` - (Required) Defines the type of replication to use for this storage account. Valid options are `LRS`, `GRS`, `RAGRS`, `ZRS`, `GZRS` and `RAGZRS`. Changing this forces a new resource to be created when types `LRS`, `GRS` and `RAGRS` are changed to `ZRS`, `GZRS` or `RAGZRS` and vice versa.
 
+* `allow_nested_items_to_be_public` - (Optional) Allow or disallow nested items within this Account to opt into being public. Defaults to `true`.
+
+-> **Note:** At this time `allow_nested_items_to_be_public` is only supported in the Public Cloud, China Cloud, and US Government Cloud.
+
 * `cross_tenant_replication_enabled` - (Optional) Should cross Tenant replication be enabled? Defaults to `true`.
 
-* `access_tier` - (Optional) Defines the access tier for `BlobStorage`, `FileStorage` and `StorageV2` accounts. Valid options are `Hot` and `Cool`, defaults to `Hot`.
+* `data_plane_access_on_read_enabled` - (Optional) Should the storage account attempt to read from the data plane? Defaults to `true`.
+
+* `default_to_oauth_authentication` - (Optional) Default to Azure Active Directory authorization in the Azure portal when accessing the Storage Account. The default value is `false`
 
 * `edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Storage Account should exist. Changing this forces a new Storage Account to be created.
 
@@ -145,17 +146,11 @@ The following arguments are supported:
 
 -> **Note:** At this time `min_tls_version` is only supported in the Public Cloud, China Cloud, and US Government Cloud.
 
-* `allow_nested_items_to_be_public` - (Optional) Allow or disallow nested items within this Account to opt into being public. Defaults to `true`.
-
--> **Note:** At this time `allow_nested_items_to_be_public` is only supported in the Public Cloud, China Cloud, and US Government Cloud.
-
 * `shared_access_key_enabled` - (Optional) Indicates whether the storage account permits requests to be authorized with the account access key via Shared Key. If false, then all requests, including shared access signatures, must be authorized with Azure Active Directory (Azure AD). Defaults to `true`.
 
 ~> **Note:** Terraform uses Shared Key Authorisation to provision Storage Containers, Blobs and other items - when Shared Key Access is disabled, you will need to enable [the `storage_use_azuread` flag in the Provider block](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#storage_use_azuread) to use Azure AD for authentication, however not all Azure Storage services support Active Directory authentication.
 
 * `public_network_access_enabled` - (Optional) Whether the public network access is enabled? Defaults to `true`.
-
-* `default_to_oauth_authentication` - (Optional) Default to Azure Active Directory authorization in the Azure portal when accessing the Storage Account. The default value is `false`
 
 * `is_hns_enabled` - (Optional) Is Hierarchical Namespace enabled? This can be used with Azure Data Lake Storage Gen 2 ([see here for more information](https://docs.microsoft.com/azure/storage/blobs/data-lake-storage-quickstart-create-account/)). Changing this forces a new resource to be created.
 

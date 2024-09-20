@@ -19,7 +19,7 @@ Manages an Azure Storage Accounts Share Properties.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "West Europe"
+  location = "West US"
 }
 
 resource "azurerm_storage_account" "example" {

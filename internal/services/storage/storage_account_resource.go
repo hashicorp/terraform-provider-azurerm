@@ -139,6 +139,12 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice(storageaccounts.PossibleValuesForAccessTier(), false), // TODO: docs for `Premium`
 			},
 
+			"data_plane_access_on_read_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"azure_files_authentication": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -1773,8 +1779,8 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	if err := client.CreateThenPoll(ctx, id, payload); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
-
 	d.SetId(id.ID())
+	d.Set("data_plane_access_on_read_enabled", d.Get("data_plane_access_on_read_enabled").(bool))
 
 	log.Printf("[DEBUG] [%s:CREATE] Calling 'client.GetProperties': %s", strings.ToUpper(storageAccountResourceName), id)
 	account, err := client.GetProperties(ctx, id, storageaccounts.DefaultGetPropertiesOperationOptions())
@@ -2192,7 +2198,6 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 	storageClient := meta.(*clients.Client).Storage
 	client := storageClient.ResourceManager.StorageAccounts
 	env := meta.(*clients.Client).Account.Environment
-	dataPlaneOnReadEnabled := meta.(*clients.Client).Features.Storage.DataPlaneAccessOnReadEnabled
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -2236,8 +2241,11 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 	}
 
+	dataPlaneOnReadEnabled := d.Get("data_plane_access_on_read_enabled").(bool)
+
 	d.Set("name", id.StorageAccountName)
 	d.Set("resource_group_name", id.ResourceGroupName)
+	d.Set("data_plane_access_on_read_enabled", dataPlaneOnReadEnabled)
 
 	supportLevel := storageAccountServiceSupportLevel{
 		supportBlob:          false,
@@ -2245,10 +2253,12 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		supportShare:         false,
 		supportStaticWebsite: false,
 	}
+
 	var accountKind storageaccounts.Kind
 	var primaryEndpoints *storageaccounts.Endpoints
 	var secondaryEndpoints *storageaccounts.Endpoints
 	var routingPreference *storageaccounts.RoutingPreference
+
 	if model := resp.Model; model != nil {
 		if model.Kind != nil {
 			accountKind = *model.Kind
@@ -2263,9 +2273,9 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 				accountTier = *sku.Tier
 			}
 		}
+
 		d.Set("account_tier", string(accountTier))
 		d.Set("account_replication_type", accountReplicationType)
-
 		d.Set("edge_zone", flattenEdgeZone(model.ExtendedLocation))
 		d.Set("location", location.Normalize(model.Location))
 

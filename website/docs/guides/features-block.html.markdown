@@ -79,10 +79,6 @@ provider "azurerm" {
       recover_soft_deleted_backup_protected_vm = true
     }
 
-    storage {
-      data_plane_access_on_read_enabled = true
-    }
-
     subscription {
       prevent_cancellation_on_destroy = false
     }

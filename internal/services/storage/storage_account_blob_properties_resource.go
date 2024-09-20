@@ -55,98 +55,91 @@ func resourceStorageAccountBlobProperties() *pluginsdk.Resource {
 				ValidateFunc: commonids.ValidateStorageAccountID,
 			},
 
-			"properties": {
+			"change_feed_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
+			"change_feed_retention_in_days": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(1, 146000),
+			},
+
+			"container_delete_retention_policy": {
 				Type:     pluginsdk.TypeList,
-				Required: true,
+				Optional: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"change_feed_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-
-						"change_feed_retention_in_days": {
+						"days": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
-							ValidateFunc: validation.IntBetween(1, 146000),
+							Default:      7,
+							ValidateFunc: validation.IntBetween(1, 365),
 						},
+					},
+				},
+			},
 
-						"container_delete_retention_policy": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							MaxItems: 1,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"days": {
-										Type:         pluginsdk.TypeInt,
-										Optional:     true,
-										Default:      7,
-										ValidateFunc: validation.IntBetween(1, 365),
-									},
-								},
-							},
-						},
+			"cors_rule": helpers.SchemaStorageAccountCorsRule(true),
 
-						"cors_rule": helpers.SchemaStorageAccountCorsRule(true),
+			"default_service_version": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validate.BlobPropertiesDefaultServiceVersion,
+			},
 
-						"default_service_version": {
-							Type:         pluginsdk.TypeString,
+			"delete_retention_policy": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"days": {
+							Type:         pluginsdk.TypeInt,
 							Optional:     true,
-							Computed:     true,
-							ValidateFunc: validate.BlobPropertiesDefaultServiceVersion,
+							Default:      7,
+							ValidateFunc: validation.IntBetween(1, 365),
 						},
 
-						"delete_retention_policy": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							MaxItems: 1,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"days": {
-										Type:         pluginsdk.TypeInt,
-										Optional:     true,
-										Default:      7,
-										ValidateFunc: validation.IntBetween(1, 365),
-									},
-									"permanent_delete_enabled": {
-										Type:     pluginsdk.TypeBool,
-										Optional: true,
-										Default:  false,
-									},
-								},
-							},
-						},
-						"last_access_time_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-
-						"restore_policy": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							MaxItems: 1,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"days": {
-										Type:         pluginsdk.TypeInt,
-										Required:     true,
-										ValidateFunc: validation.IntBetween(1, 365),
-									},
-								},
-							},
-							RequiredWith: []string{"properties.0.delete_retention_policy"},
-						},
-
-						"versioning_enabled": {
+						"permanent_delete_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  false,
 						},
 					},
 				},
+			},
+
+			"last_access_time_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
+			"restore_policy": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"days": {
+							Type:         pluginsdk.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntBetween(1, 365),
+						},
+					},
+				},
+				RequiredWith: []string{"delete_retention_policy"},
+			},
+
+			"versioning_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 		},
 	}
@@ -181,10 +174,7 @@ func resourceStorageAccountBlobPropertiesCreate(d *pluginsdk.ResourceData, meta 
 		return err
 	}
 
-	// TODO: Figure out how to implement the import error...
-	// if !response.WasNotFound(existing.HttpResponse) && model.Properties.PrimaryEndpoints.Blob != nil {
-	// 	return tf.ImportAsExistsError(storageAccountBlobPropertiesResourceName, id.ID())
-	// }
+	// TODO: Add Import error supported for this resource...
 
 	accountKind := pointer.From(model.Kind)
 	dnsEndpointType := pointer.From(model.Properties.DnsEndpointType)
@@ -196,13 +186,13 @@ func resourceStorageAccountBlobPropertiesCreate(d *pluginsdk.ResourceData, meta 
 		return fmt.Errorf("%q are not supported for account kind %q", storageAccountBlobPropertiesResourceName, accountKind)
 	}
 
-	// NOTE: Wait for the blob data plane container to become available...
 	log.Printf("[DEBUG] [%s:CREATE] Calling 'storageClient.FindAccount': %s", strings.ToUpper(storageAccountBlobPropertiesResourceName), id)
 	accountDetails, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
+	// NOTE: Wait for the blob data plane container to become available...
 	log.Printf("[DEBUG] [%s:CREATE] Calling 'custompollers.NewDataPlaneBlobContainersAvailabilityPoller': %s", strings.ToUpper(storageAccountBlobPropertiesResourceName), id)
 	pollerType, err := custompollers.NewDataPlaneBlobContainersAvailabilityPoller(ctx, storageClient, accountDetails)
 	if err != nil {
