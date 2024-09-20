@@ -83,7 +83,7 @@ An `infrastructure` block supports the following:
 
 A `hardware` block supports the following:
 
-* `cpu_count` - (Optional) The number of vCPUs for the Virtual Machine. Defaults to `1`.
+* `cpu_count` - (Optional) The number of vCPUs for the Virtual Machine. Possible values are between `1` and `64`. Defaults to `1`.
 
 * `dynamic_memory_max_in_mb` - (Optional) The max dynamic memory for the Virtual Machine. Possible value is between `32` and `1048576`.
 
