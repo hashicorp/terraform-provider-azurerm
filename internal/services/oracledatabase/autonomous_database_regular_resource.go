@@ -34,7 +34,7 @@ type AdbsRegularResourceModel struct {
 	CharacterSet                   string  `tfschema:"character_set"`
 	ComputeCount                   float64 `tfschema:"compute_count"`
 	ComputeModel                   string  `tfschema:"compute_model"`
-	DataStorageSizeInGbs           int64   `tfschema:"data_storage_size_in_gbs"`
+	DataStorageSizeInTbs           int64   `tfschema:"data_storage_size_in_tbs"`
 	DbVersion                      string  `tfschema:"db_version"`
 	DbWorkload                     string  `tfschema:"db_workload"`
 	DisplayName                    string  `tfschema:"display_name"`
@@ -86,7 +86,7 @@ func (AdbsRegularResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 		},
-		"data_storage_size_in_gbs": {
+		"data_storage_size_in_tbs": {
 			Type:     pluginsdk.TypeInt,
 			Required: true,
 		},
@@ -212,7 +212,7 @@ func (r AdbsRegularResource) Create() sdk.ResourceFunc {
 					ComputeCount:                   pointer.To(model.ComputeCount),
 					ComputeModel:                   pointer.To(autonomousdatabases.ComputeModel(model.ComputeModel)),
 					CustomerContacts:               pointer.To(convertAdbsCustomerContactsToSDK(model.CustomerContacts)),
-					DataStorageSizeInGbs:           pointer.To(model.DataStorageSizeInGbs),
+					DataStorageSizeInTbs:           pointer.To(model.DataStorageSizeInTbs),
 					DbWorkload:                     pointer.To(autonomousdatabases.WorkloadType(model.DbWorkload)),
 					DbVersion:                      pointer.To(model.DbVersion),
 					DisplayName:                    pointer.To(model.DisplayName),
@@ -260,17 +260,42 @@ func (r AdbsRegularResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving as nil when updating for %v", *id)
 			}
 
+			hasUpdate := false
+			update := &autonomousdatabases.AutonomousDatabaseUpdate{}
+			properties := &autonomousdatabases.AutonomousDatabaseUpdateProperties{}
+			update.Properties = properties
 			if metadata.ResourceData.HasChange("tags") {
-				update := &autonomousdatabases.AutonomousDatabaseUpdate{
-					Tags: tags.Expand(model.Tags),
-				}
+				hasUpdate = true
+				update.Tags = tags.Expand(model.Tags)
+			}
+			if metadata.ResourceData.HasChange("data_storage_size_in_tbs") {
+				hasUpdate = true
+				update.Properties.DataStorageSizeInTbs = pointer.To(model.DataStorageSizeInTbs)
+			}
+			if metadata.ResourceData.HasChange("compute_count") {
+				hasUpdate = true
+				update.Properties.ComputeCount = pointer.To(model.ComputeCount)
+			}
+			if metadata.ResourceData.HasChange("is_auto_scaling_enabled") {
+				hasUpdate = true
+				update.Properties.IsAutoScalingEnabled = pointer.To(model.IsAutoScalingEnabled)
+			}
+			if metadata.ResourceData.HasChange("is_auto_scaling_for_storage_enabled") {
+				hasUpdate = true
+				update.Properties.IsAutoScalingForStorageEnabled = pointer.To(model.IsAutoScalingForStorageEnabled)
+			} else if metadata.ResourceData.HasChangesExcept("tags", "data_storage_size_in_tbs",
+				"compute_count", "is_auto_scaling_enabled", "is_auto_scaling_for_storage_enabled") {
+				return fmt.Errorf("only `compute_count`, `data_storage_size_in_tbs`, `is_auto_scaling_enabled`, " +
+					"`is_auto_scaling_for_storage_enabled` and `tags` currently support updates")
+			}
+
+			if hasUpdate {
 				err = client.UpdateThenPoll(ctx, *id, *update)
 				if err != nil {
 					return fmt.Errorf("updating %s: %v", id, err)
 				}
-			} else if metadata.ResourceData.HasChangesExcept("tags") {
-				return fmt.Errorf("only `tags` currently support updates")
 			}
+
 			return nil
 		},
 	}
@@ -307,7 +332,7 @@ func (AdbsRegularResource) Read() sdk.ResourceFunc {
 				output.ComputeCount = pointer.From(adbsPropModel.ComputeCount)
 				output.ComputeModel = string(pointer.From(adbsPropModel.ComputeModel))
 				output.CustomerContacts = convertAdbsCustomerContactsToInternalModel(adbsPropModel.CustomerContacts)
-				output.DataStorageSizeInGbs = pointer.From(adbsPropModel.DataStorageSizeInGbs)
+				output.DataStorageSizeInTbs = pointer.From(adbsPropModel.DataStorageSizeInTbs)
 				output.DbWorkload = string(pointer.From(adbsPropModel.DbWorkload))
 				output.DbVersion = pointer.From(adbsPropModel.DbVersion)
 				output.DisplayName = pointer.From(adbsPropModel.DisplayName)

@@ -80,14 +80,12 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 		"data_storage_size_in_tbs": {
 			Type:     pluginsdk.TypeFloat,
-			Optional: true,
-			Computed: true,
+			Required: true,
 			ForceNew: true,
 		},
 		"db_node_storage_size_in_gbs": {
 			Type:     pluginsdk.TypeInt,
-			Optional: true,
-			Computed: true,
+			Required: true,
 		},
 		"db_servers": {
 			Type:     pluginsdk.TypeList,
@@ -119,8 +117,7 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 		"memory_size_in_gbs": {
 			Type:     pluginsdk.TypeInt,
-			Optional: true,
-			Computed: true,
+			Required: true,
 		},
 		"ssh_public_keys": {
 			Type:     pluginsdk.TypeList,

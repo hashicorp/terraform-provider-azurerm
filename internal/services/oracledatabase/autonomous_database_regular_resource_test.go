@@ -107,7 +107,7 @@ resource "azurerm_oracledatabase_autonomous_database_regular" "test" {
   is_auto_scaling_enabled = false
   is_auto_scaling_for_storage_enabled = false
   is_mtls_connection_required = false
-  data_storage_size_in_gbs = "32"
+  data_storage_size_in_tbs = "1"
   db_workload = "OLTP"
   admin_password = "TestPass#2024#"
   db_version = "19c"
@@ -141,7 +141,7 @@ resource "azurerm_oracledatabase_autonomous_database_regular" "test" {
   is_auto_scaling_enabled = false
   is_auto_scaling_for_storage_enabled = false
   is_mtls_connection_required = false
-  data_storage_size_in_gbs = "32"
+  data_storage_size_in_tbs = "1"
   db_workload = "OLTP"
   admin_password = "TestPass#2024#"
   db_version = "19c"
@@ -177,7 +177,7 @@ resource "azurerm_oracledatabase_autonomous_database_regular" "import" {
   is_auto_scaling_enabled = azurerm_oracledatabase_autonomous_database_regular.test.is_auto_scaling_enabled
   is_auto_scaling_for_storage_enabled = azurerm_oracledatabase_autonomous_database_regular.test.is_auto_scaling_for_storage_enabled
   is_mtls_connection_required = azurerm_oracledatabase_autonomous_database_regular.test.is_mtls_connection_required
-  data_storage_size_in_gbs = azurerm_oracledatabase_autonomous_database_regular.test.data_storage_size_in_gbs
+  data_storage_size_in_tbs = azurerm_oracledatabase_autonomous_database_regular.test.data_storage_size_in_tbs
   db_workload = azurerm_oracledatabase_autonomous_database_regular.test.db_workload
   admin_password = azurerm_oracledatabase_autonomous_database_regular.test.admin_password
   db_version = azurerm_oracledatabase_autonomous_database_regular.test.db_version
