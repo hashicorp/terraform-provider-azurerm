@@ -60,6 +60,7 @@ func (d DataCollectionEndpointDataSource) Attributes() map[string]*pluginsdk.Sch
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"public_network_access_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Computed: true,
@@ -137,7 +138,7 @@ func (d DataCollectionEndpointDataSource) Read() sdk.ResourceFunc {
 				Location:                    location,
 				LogsIngestionEndpoint:       logsIngestionEndpoint,
 				Name:                        id.DataCollectionEndpointName,
-				EnablePublicNetworkAccess:   enablePublicNetWorkAccess,
+				PublicNetworkAccessEnabled:  enablePublicNetWorkAccess,
 				ResourceGroupName:           id.ResourceGroupName,
 				Tags:                        tag,
 			})
