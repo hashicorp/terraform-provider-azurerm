@@ -489,7 +489,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.ManagedApplication, err = managedapplication.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Managed Applications: %+v", err)
 	}
-	client.ManagementGroups = managementgroup.NewClient(o)
+	if client.ManagementGroups, err = managementgroup.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Management Groups: %+v", err)
+	}
 	if client.ManagedHSMs, err = managedhsm.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for ManagedHSM: %+v", err)
 	}
