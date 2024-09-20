@@ -12,6 +12,7 @@ ENHANCEMENTS:
 
 * `managementgroups` - migrate to `hashicorp/go-azure-sdk` [GH-26430]
 * `nginx` - upgrade api version to `2024-06-01-preview`  [GH-27345]
+* `azurerm_linux[windows]_web[function]_app[app_slot]` - upgrade api version from `2023-01-01` to `2023-12-01` [GH-27196]
 * `azurerm_cosmosdb_account` - support for the capability `EnableNoSQLVectorSearch` [GH-27357]azurerm_container_app_custom_domain - fix parsing the certificate ID error #25972
 * `azurerm_container_app_custom_domain` - support other certificate types [GH-25972]
 * `azurerm_linux_virtual_machine_scale_set` - the `zones` property can now be updated without creating a new resource [GH-27288]
