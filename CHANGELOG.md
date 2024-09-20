@@ -7,6 +7,7 @@ FEATURES:
 
 ENHANCEMENTS: 
 
+* `managementgroups` - migrate to `hashicorp/go-azure-sdk` [GH-26430]
 * `nginx` - upgrade api version to `2024-06-01-preview`  [GH-27345]
 * `azurerm_cosmosdb_account` - support for the capability `EnableNoSQLVectorSearch` [GH-27357]
 * `azurerm_linux_virtual_machine_scale_set` - the `zones` property can now be updated without creating a new resource [GH-27288]
