@@ -86,7 +86,7 @@ The following arguments are supported:
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the Machine Learning Workspace.
+* `id` - The ID of the Machine Learning Workspace Network Outbound Rule.
 
 ### Timeouts
 
