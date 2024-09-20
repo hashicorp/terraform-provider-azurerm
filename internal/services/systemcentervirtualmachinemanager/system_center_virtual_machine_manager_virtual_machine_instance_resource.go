@@ -58,7 +58,6 @@ type NetworkInterface struct {
 	Name             string `tfschema:"name"`
 	Ipv4AddressType  string `tfschema:"ipv4_address_type"`
 	Ipv6AddressType  string `tfschema:"ipv6_address_type"`
-	MacAddress       string `tfschema:"mac_address"`
 	MacAddressType   string `tfschema:"mac_address_type"`
 	VirtualNetworkId string `tfschema:"virtual_network_id"`
 }
@@ -69,20 +68,15 @@ type OperatingSystem struct {
 }
 
 type StorageDisk struct {
-	Bus                   int64              `tfschema:"bus"`
-	BusType               string             `tfschema:"bus_type"`
-	CreateDiffDiskEnabled bool               `tfschema:"create_diff_disk_enabled"`
-	DiskSizeGB            int64              `tfschema:"disk_size_gb"`
-	Lun                   int64              `tfschema:"lun"`
-	Name                  string             `tfschema:"name"`
-	StorageQoSPolicy      []StorageQoSPolicy `tfschema:"storage_qos_policy"`
-	TemplateDiskId        string             `tfschema:"template_disk_id"`
-	VhdType               string             `tfschema:"vhd_type"`
-}
-
-type StorageQoSPolicy struct {
-	Id   string `tfschema:"id"`
-	Name string `tfschema:"name"`
+	Bus                   int64  `tfschema:"bus"`
+	BusType               string `tfschema:"bus_type"`
+	CreateDiffDiskEnabled bool   `tfschema:"create_diff_disk_enabled"`
+	DiskSizeGB            int64  `tfschema:"disk_size_gb"`
+	Lun                   int64  `tfschema:"lun"`
+	Name                  string `tfschema:"name"`
+	StorageQoSPolicyName  string `tfschema:"storage_qos_policy_name"`
+	TemplateDiskId        string `tfschema:"template_disk_id"`
+	VhdType               string `tfschema:"vhd_type"`
 }
 
 var _ sdk.Resource = SystemCenterVirtualMachineManagerVirtualMachineInstanceResource{}
@@ -244,12 +238,6 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Argumen
 						ValidateFunc: validation.StringInSlice(virtualmachineinstances.PossibleValuesForAllocationMethod(), false),
 					},
 
-					"mac_address": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validate.SystemCenterVirtualMachineManagerVirtualMachineInstanceMacAddress,
-					},
-
 					"mac_address_type": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
@@ -329,23 +317,10 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Argumen
 						ValidateFunc: validate.SystemCenterVirtualMachineManagerVirtualMachineInstanceStorageDiskName,
 					},
 
-					"storage_qos_policy": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 1,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"id": {
-									Type:     pluginsdk.TypeString,
-									Optional: true,
-								},
-
-								"name": {
-									Type:     pluginsdk.TypeString,
-									Optional: true,
-								},
-							},
-						},
+					"storage_qos_policy_name": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"template_disk_id": {
@@ -686,10 +661,6 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceNetworkInterfa
 			networkInterface.VirtualNetworkId = pointer.To(vnetId)
 		}
 
-		if macAddress := v.MacAddress; macAddress != "" {
-			networkInterface.MacAddress = pointer.To(macAddress)
-		}
-
 		result = append(result, networkInterface)
 	}
 
@@ -709,10 +680,9 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceStorageDisksFo
 		}
 
 		virtualDisk := virtualmachineinstances.VirtualDisk{
-			Bus:              pointer.To(v.Bus),
-			CreateDiffDisk:   pointer.To(createDiffDisk),
-			Lun:              pointer.To(v.Lun),
-			StorageQoSPolicy: expandSystemCenterVirtualMachineManagerVirtualMachineInstanceStorageQoSPolicy(v.StorageQoSPolicy),
+			Bus:            pointer.To(v.Bus),
+			CreateDiffDisk: pointer.To(createDiffDisk),
+			Lun:            pointer.To(v.Lun),
 		}
 
 		if busType := v.BusType; busType != "" {
@@ -735,27 +705,13 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceStorageDisksFo
 			virtualDisk.VhdType = pointer.To(vhdType)
 		}
 
+		if storageQosPolicyName := v.StorageQoSPolicyName; storageQosPolicyName != "" {
+			virtualDisk.StorageQoSPolicy = &virtualmachineinstances.StorageQosPolicyDetails{
+				Name: pointer.To(storageQosPolicyName),
+			}
+		}
+
 		result = append(result, virtualDisk)
-	}
-
-	return &result
-}
-
-func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceStorageQoSPolicy(input []StorageQoSPolicy) *virtualmachineinstances.StorageQosPolicyDetails {
-	if len(input) == 0 {
-		return nil
-	}
-
-	storageQoSPolicy := input[0]
-
-	result := virtualmachineinstances.StorageQosPolicyDetails{}
-
-	if v := storageQoSPolicy.Id; v != "" {
-		result.Id = pointer.To(v)
-	}
-
-	if v := storageQoSPolicy.Name; v != "" {
-		result.Name = pointer.To(v)
 	}
 
 	return &result
@@ -779,10 +735,6 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceNetworkInterfa
 			networkInterface.VirtualNetworkId = pointer.To(vnetId)
 		}
 
-		if macAddress := v.MacAddress; macAddress != "" {
-			networkInterface.MacAddress = pointer.To(macAddress)
-		}
-
 		result = append(result, networkInterface)
 	}
 
@@ -797,9 +749,8 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceStorageDisksFo
 
 	for _, v := range input {
 		virtualDisk := virtualmachineinstances.VirtualDiskUpdate{
-			Bus:              pointer.To(v.Bus),
-			Lun:              pointer.To(v.Lun),
-			StorageQoSPolicy: expandSystemCenterVirtualMachineManagerVirtualMachineInstanceStorageQoSPolicy(v.StorageQoSPolicy),
+			Bus: pointer.To(v.Bus),
+			Lun: pointer.To(v.Lun),
 		}
 
 		if busType := v.BusType; busType != "" {
@@ -816,6 +767,12 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceStorageDisksFo
 
 		if vhdType := v.VhdType; vhdType != "" {
 			virtualDisk.VhdType = pointer.To(vhdType)
+		}
+
+		if storageQosPolicyName := v.StorageQoSPolicyName; storageQosPolicyName != "" {
+			virtualDisk.StorageQoSPolicy = &virtualmachineinstances.StorageQosPolicyDetails{
+				Name: pointer.To(storageQosPolicyName),
+			}
 		}
 
 		result = append(result, virtualDisk)
@@ -902,7 +859,6 @@ func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceNetworkInterf
 	for _, v := range *input {
 		result = append(result, NetworkInterface{
 			Name:             pointer.From(v.Name),
-			MacAddress:       pointer.From(v.MacAddress),
 			VirtualNetworkId: pointer.From(v.VirtualNetworkId),
 			Ipv4AddressType:  string(pointer.From(v.IPv4AddressType)),
 			Ipv6AddressType:  string(pointer.From(v.IPv6AddressType)),
@@ -920,32 +876,25 @@ func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceStorageDisks(
 	}
 
 	for _, v := range *input {
-		result = append(result, StorageDisk{
+		storageDisk := StorageDisk{
 			Bus:                   pointer.From(v.Bus),
 			BusType:               pointer.From(v.BusType),
 			CreateDiffDiskEnabled: pointer.From(v.CreateDiffDisk) == virtualmachineinstances.CreateDiffDiskTrue,
 			DiskSizeGB:            pointer.From(v.DiskSizeGB),
 			Lun:                   pointer.From(v.Lun),
 			Name:                  pointer.From(v.Name),
-			StorageQoSPolicy:      flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceStorageQoSPolicy(v.StorageQoSPolicy),
 			TemplateDiskId:        pointer.From(v.TemplateDiskId),
 			VhdType:               pointer.From(v.VhdType),
-		})
+		}
+
+		if storageQoSPolicy := v.StorageQoSPolicy; storageQoSPolicy != nil {
+			storageDisk.StorageQoSPolicyName = pointer.From(storageQoSPolicy.Name)
+		}
+
+		result = append(result, storageDisk)
 	}
 
 	return result
-}
-
-func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceStorageQoSPolicy(input *virtualmachineinstances.StorageQosPolicyDetails) []StorageQoSPolicy {
-	result := make([]StorageQoSPolicy, 0)
-	if input == nil {
-		return result
-	}
-
-	return append(result, StorageQoSPolicy{
-		Id:   pointer.From(input.Id),
-		Name: pointer.From(input.Name),
-	})
 }
 
 func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceOSProfile(input *virtualmachineinstances.OsProfileForVMInstance, adminPassword string) []OperatingSystem {

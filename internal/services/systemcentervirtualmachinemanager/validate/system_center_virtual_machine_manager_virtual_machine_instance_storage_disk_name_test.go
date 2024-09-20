@@ -34,6 +34,10 @@ func TestSystemCenterVirtualMachineManagerVirtualMachineInstanceStorageDiskName(
 			Expected: true,
 		},
 		{
+			Input:    "test_1",
+			Expected: true,
+		},
+		{
 			Input:    strings.Repeat("s", 79),
 			Expected: true,
 		},

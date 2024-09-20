@@ -35,12 +35,57 @@ resource "azurerm_system_center_virtual_machine_manager_server" "example" {
   password            = "H@Sh1CoR3!"
 }
 
+data "azurerm_system_center_virtual_machine_manager_inventory_items" "example" {
+  inventory_type                                  = "Cloud"
+  system_center_virtual_machine_manager_server_id = azurerm_system_center_virtual_machine_manager_server.example.id
+}
+
+resource "azurerm_system_center_virtual_machine_manager_cloud" "example" {
+  name                                                           = "example-scvmmc"
+  location                                                       = azurerm_resource_group.example.location
+  resource_group_name                                            = azurerm_resource_group.example.name
+  custom_location_id                                             = azurerm_system_center_virtual_machine_manager_server.example.custom_location_id
+  system_center_virtual_machine_manager_server_inventory_item_id = data.azurerm_system_center_virtual_machine_manager_inventory_items.example.inventory_items[0].id
+}
+
+data "azurerm_system_center_virtual_machine_manager_inventory_items" "example2" {
+  inventory_type                                  = "VirtualMachineTemplate"
+  system_center_virtual_machine_manager_server_id = azurerm_system_center_virtual_machine_manager_server.example.id
+}
+
+resource "azurerm_system_center_virtual_machine_manager_virtual_machine_template" "example" {
+  name                                                           = "example-scvmmvmt"
+  location                                                       = azurerm_resource_group.example.location
+  resource_group_name                                            = azurerm_resource_group.example.name
+  custom_location_id                                             = azurerm_system_center_virtual_machine_manager_server.example.custom_location_id
+  system_center_virtual_machine_manager_server_inventory_item_id = data.azurerm_system_center_virtual_machine_manager_inventory_items.example2.inventory_items[0].id
+}
+
 resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance" "example" {
   scoped_resource_id = azurerm_arc_machine.example.id
   custom_location_id = azurerm_system_center_virtual_machine_manager_server.example.custom_location_id
 
   infrastructure {
+    system_center_virtual_machine_manager_cloud_id                  = azurerm_system_center_virtual_machine_manager_cloud.example.id
+    system_center_virtual_machine_manager_template_id               = azurerm_system_center_virtual_machine_manager_virtual_machine_template.example.id
     system_center_virtual_machine_manager_virtual_machine_server_id = azurerm_system_center_virtual_machine_manager_server.example.id
+  }
+
+  operating_system {
+    computer_name = "testComputer"
+  }
+
+  hardware {
+    cpu_count                       = 1
+    limit_cpu_for_migration_enabled = false
+    memory_in_mb                    = 512
+  }
+
+  storage_disk {
+    bus_type     = "SCSI"
+    disk_size_gb = 10
+    name         = "testDisk"
+    vhd_type     = "Dynamic"
   }
 }
 ```
@@ -133,19 +178,11 @@ A `storage_disk` block supports the following:
 
 * `name` - (Optional) The name of the disk.
 
-* `storage_qos_policy` - (Optional) A `storage_qos_policy` block as defined below.
+* `storage_qos_policy_name` - (Optional) The name of the Storage QoS policy.
 
 * `template_disk_id` - (Optional) The disk ID in the System Center Virtual Machine Manager Virtual Machine Template. Changing this forces a new resource to be created.
 
 * `vhd_type` - (Optional) The disk vhd type. Possible values are `Dynamic` and `Fixed`.
-
----
-
-A `storage_qos_policy` block supports the following:
-
-* `id` - (Optional) The ID of the Storage QoS policy.
-
-* `name` - (Optional) The name of the Storage QoS policy.
 
 ## Attributes Reference
 

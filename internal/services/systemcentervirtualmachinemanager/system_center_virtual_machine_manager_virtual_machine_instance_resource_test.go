@@ -29,10 +29,10 @@ func TestAccSystemCenterVirtualMachineManagerVirtualMachineInstanceSequential(t 
 
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"scvmmVirtualMachineInstance": {
-			"basic": testAccSystemCenterVirtualMachineManagerVirtualMachineInstance_basic,
-			//"requiresImport": testAccSystemCenterVirtualMachineManagerVirtualMachineInstance_requiresImport,
-			//"complete":       testAccSystemCenterVirtualMachineManagerVirtualMachineInstance_complete,
-			//"update":         testAccSystemCenterVirtualMachineManagerVirtualMachineInstance_update,
+			"basic":          testAccSystemCenterVirtualMachineManagerVirtualMachineInstance_basic,
+			"requiresImport": testAccSystemCenterVirtualMachineManagerVirtualMachineInstance_requiresImport,
+			"complete":       testAccSystemCenterVirtualMachineManagerVirtualMachineInstance_complete,
+			"update":         testAccSystemCenterVirtualMachineManagerVirtualMachineInstance_update,
 		},
 	})
 }
@@ -140,32 +140,6 @@ provider "azurerm" {
   features {}
 }
 
-data "azurerm_system_center_virtual_machine_manager_inventory_items" "test" {
-  inventory_type                                  = "Cloud"
-  system_center_virtual_machine_manager_server_id = azurerm_system_center_virtual_machine_manager_server.test.id
-}
-
-resource "azurerm_system_center_virtual_machine_manager_cloud" "test" {
-  name                                                           = "acctest-scvmmc-test07"
-  location                                                       = azurerm_resource_group.test.location
-  resource_group_name                                            = azurerm_resource_group.test.name
-  custom_location_id                                             = azurerm_system_center_virtual_machine_manager_server.test.custom_location_id
-  system_center_virtual_machine_manager_server_inventory_item_id = data.azurerm_system_center_virtual_machine_manager_inventory_items.test.inventory_items[0].id
-}
-
-data "azurerm_system_center_virtual_machine_manager_inventory_items" "test2" {
-  inventory_type                                  = "VirtualMachineTemplate"
-  system_center_virtual_machine_manager_server_id = azurerm_system_center_virtual_machine_manager_server.test.id
-}
-
-resource "azurerm_system_center_virtual_machine_manager_virtual_machine_template" "test" {
-  name                                                           = "acctest-scvmmt-test07"
-  location                                                       = azurerm_resource_group.test.location
-  resource_group_name                                            = azurerm_resource_group.test.name
-  custom_location_id                                             = azurerm_system_center_virtual_machine_manager_server.test.custom_location_id
-  system_center_virtual_machine_manager_server_inventory_item_id = data.azurerm_system_center_virtual_machine_manager_inventory_items.test2.inventory_items[0].id
-}
-
 resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance" "test" {
   scoped_resource_id = azurerm_arc_machine.test.id
   custom_location_id = azurerm_system_center_virtual_machine_manager_server.test.custom_location_id
@@ -173,6 +147,24 @@ resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance
   infrastructure {
     system_center_virtual_machine_manager_cloud_id                  = azurerm_system_center_virtual_machine_manager_cloud.test.id
     system_center_virtual_machine_manager_template_id               = azurerm_system_center_virtual_machine_manager_virtual_machine_template.test.id
+    system_center_virtual_machine_manager_virtual_machine_server_id = azurerm_system_center_virtual_machine_manager_server.test.id
+  }
+
+  operating_system {
+    computer_name = "testComputer"
+  }
+
+  hardware {
+    cpu_count                       = 1
+    limit_cpu_for_migration_enabled = false
+    memory_in_mb                    = 512
+  }
+
+  storage_disk {
+    bus_type     = "SCSI"
+    disk_size_gb = 10
+    name         = "testDisk"
+    vhd_type     = "Dynamic"
   }
 }
 `, r.template(data))
@@ -187,7 +179,26 @@ resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance
   custom_location_id = azurerm_system_center_virtual_machine_manager_virtual_machine_instance.test.custom_location_id
 
   infrastructure {
-    system_center_virtual_machine_manager_virtual_machine_server_id = azurerm_system_center_virtual_machine_manager_virtual_machine_instance.test.system_center_virtual_machine_manager_virtual_machine_server_id
+    system_center_virtual_machine_manager_cloud_id                  = azurerm_system_center_virtual_machine_manager_cloud.test.id
+    system_center_virtual_machine_manager_template_id               = azurerm_system_center_virtual_machine_manager_virtual_machine_template.test.id
+    system_center_virtual_machine_manager_virtual_machine_server_id = azurerm_system_center_virtual_machine_manager_server.test.id
+  }
+
+  operating_system {
+    computer_name = "testComputer"
+  }
+
+  hardware {
+    cpu_count                       = 1
+    limit_cpu_for_migration_enabled = false
+    memory_in_mb                    = 512
+  }
+
+  storage_disk {
+    bus_type     = "SCSI"
+    disk_size_gb = 10
+    name         = "testDisk"
+    vhd_type     = "Dynamic"
   }
 }
 `, r.basic(data))
@@ -206,7 +217,27 @@ resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance
   custom_location_id = azurerm_system_center_virtual_machine_manager_server.test.custom_location_id
 
   infrastructure {
+    checkpoint_type                                                 = "Production"
+    system_center_virtual_machine_manager_cloud_id                  = azurerm_system_center_virtual_machine_manager_cloud.test.id
+    system_center_virtual_machine_manager_template_id               = azurerm_system_center_virtual_machine_manager_virtual_machine_template.test.id
     system_center_virtual_machine_manager_virtual_machine_server_id = azurerm_system_center_virtual_machine_manager_server.test.id
+  }
+
+  operating_system {
+    computer_name = "testComputer"
+  }
+
+  hardware {
+    cpu_count                       = 1
+    limit_cpu_for_migration_enabled = false
+    memory_in_mb                    = 512
+  }
+
+  storage_disk {
+    bus_type     = "SCSI"
+    disk_size_gb = 10
+    name         = "testDisk"
+    vhd_type     = "Dynamic"
   }
 }
 `, r.template(data))
@@ -225,7 +256,27 @@ resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance
   custom_location_id = azurerm_system_center_virtual_machine_manager_server.test.custom_location_id
 
   infrastructure {
+    checkpoint_type                                                 = "Standard"
+    system_center_virtual_machine_manager_cloud_id                  = azurerm_system_center_virtual_machine_manager_cloud.test.id
+    system_center_virtual_machine_manager_template_id               = azurerm_system_center_virtual_machine_manager_virtual_machine_template.test.id
     system_center_virtual_machine_manager_virtual_machine_server_id = azurerm_system_center_virtual_machine_manager_server.test.id
+  }
+
+  operating_system {
+    computer_name = "testComputer"
+  }
+
+  hardware {
+    cpu_count                       = 1
+    limit_cpu_for_migration_enabled = false
+    memory_in_mb                    = 512
+  }
+
+  storage_disk {
+    bus_type     = "SCSI"
+    disk_size_gb = 10
+    name         = "testDisk"
+    vhd_type     = "Dynamic"
   }
 }
 `, r.template(data))
@@ -254,5 +305,31 @@ resource "azurerm_system_center_virtual_machine_manager_server" "test" {
   username            = "%s"
   password            = "%s"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, os.Getenv("ARM_TEST_CUSTOM_LOCATION_ID"), os.Getenv("ARM_TEST_FQDN"), os.Getenv("ARM_TEST_USERNAME"), os.Getenv("ARM_TEST_PASSWORD"))
+
+data "azurerm_system_center_virtual_machine_manager_inventory_items" "test" {
+  inventory_type                                  = "Cloud"
+  system_center_virtual_machine_manager_server_id = azurerm_system_center_virtual_machine_manager_server.test.id
+}
+
+resource "azurerm_system_center_virtual_machine_manager_cloud" "test" {
+  name                                                           = "acctest-scvmmc-%d"
+  location                                                       = azurerm_resource_group.test.location
+  resource_group_name                                            = azurerm_resource_group.test.name
+  custom_location_id                                             = azurerm_system_center_virtual_machine_manager_server.test.custom_location_id
+  system_center_virtual_machine_manager_server_inventory_item_id = data.azurerm_system_center_virtual_machine_manager_inventory_items.test.inventory_items[0].id
+}
+
+data "azurerm_system_center_virtual_machine_manager_inventory_items" "test2" {
+  inventory_type                                  = "VirtualMachineTemplate"
+  system_center_virtual_machine_manager_server_id = azurerm_system_center_virtual_machine_manager_server.test.id
+}
+
+resource "azurerm_system_center_virtual_machine_manager_virtual_machine_template" "test" {
+  name                                                           = "acctest-scvmmvmt-%d"
+  location                                                       = azurerm_resource_group.test.location
+  resource_group_name                                            = azurerm_resource_group.test.name
+  custom_location_id                                             = azurerm_system_center_virtual_machine_manager_server.test.custom_location_id
+  system_center_virtual_machine_manager_server_inventory_item_id = data.azurerm_system_center_virtual_machine_manager_inventory_items.test2.inventory_items[0].id
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, os.Getenv("ARM_TEST_CUSTOM_LOCATION_ID"), os.Getenv("ARM_TEST_FQDN"), os.Getenv("ARM_TEST_USERNAME"), os.Getenv("ARM_TEST_PASSWORD"), data.RandomInteger, data.RandomInteger)
 }

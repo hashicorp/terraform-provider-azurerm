@@ -15,7 +15,7 @@ func SystemCenterVirtualMachineManagerVirtualMachineInstanceStorageDiskName(i in
 		return
 	}
 
-	if !regexp.MustCompile("^[a-zA-Z]([-_a-zA-Z0-9]{0,78}[a-zA-Z])?$").MatchString(v) {
+	if !regexp.MustCompile("^[a-zA-Z]([-_a-zA-Z0-9]{0,78}[a-zA-Z0-9])?$").MatchString(v) {
 		errors = append(errors, fmt.Errorf("%q must start and end with a letter, may contain alphanumeric characters, dashes or underscores and must be between 1 and 80 characters long", k))
 	}
 
