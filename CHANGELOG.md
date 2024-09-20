@@ -7,6 +7,7 @@ FEATURES:
 * **New Resource**: `azurerm_key_vault_managed_hardware_security_module_key_rotation_policy` [GH-27306]
 * **New Resource**: `azurerm_stack_hci_deployment_setting` [GH-25646]
 * **New Resource**: `azurerm_stack_hci_storage_path` [GH-26509]
+* **New Data Source**: `azurerm_vpn_server_configuration` [GH-27054]
 
 ENHANCEMENTS: 
 
