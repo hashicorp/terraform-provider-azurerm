@@ -509,8 +509,24 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Update(
 				parameters.Properties.AvailabilitySets = availabilitySets
 			}
 
+			if metadata.ResourceData.HasChange("hardware") {
+				stopVirtualMachineOptions := virtualmachineinstances.StopVirtualMachineOptions{
+					SkipShutdown: pointer.To(virtualmachineinstances.SkipShutdownFalse),
+				}
+
+				if err := client.StopThenPoll(ctx, commonids.NewScopeID(id.Scope), stopVirtualMachineOptions); err != nil {
+					return fmt.Errorf("stopping %s: %+v", *id, err)
+				}
+			}
+
 			if err := client.UpdateThenPoll(ctx, commonids.NewScopeID(id.Scope), parameters); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
+			}
+
+			if metadata.ResourceData.HasChange("hardware") {
+				if err := client.StartThenPoll(ctx, commonids.NewScopeID(id.Scope)); err != nil {
+					return fmt.Errorf("starting %s: %+v", *id, err)
+				}
 			}
 
 			return nil
