@@ -171,7 +171,6 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Argumen
 					"cpu_count": {
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
-						Default:      1,
 						ValidateFunc: validation.IntBetween(1, 64),
 						AtLeastOneOf: []string{"hardware.0.cpu_count", "hardware.0.dynamic_memory_max_in_mb", "hardware.0.dynamic_memory_min_in_mb", "hardware.0.limit_cpu_for_migration_enabled", "hardware.0.memory_in_mb"},
 					},
@@ -199,7 +198,6 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Argumen
 					"memory_in_mb": {
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
-						Default:      1024,
 						ValidateFunc: validation.IntBetween(32, 1048576),
 						AtLeastOneOf: []string{"hardware.0.cpu_count", "hardware.0.dynamic_memory_max_in_mb", "hardware.0.dynamic_memory_min_in_mb", "hardware.0.limit_cpu_for_migration_enabled", "hardware.0.memory_in_mb"},
 					},
