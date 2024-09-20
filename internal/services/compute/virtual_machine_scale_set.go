@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplicationversions"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-07-01/virtualmachinescalesets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/applicationsecuritygroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/networksecuritygroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipprefixes"
@@ -344,36 +344,6 @@ func flattenVirtualMachineScaleSetGalleryApplications(input *[]virtualmachinesca
 }
 
 func VirtualMachineScaleSetScaleInPolicySchema() *pluginsdk.Schema {
-	if !features.FourPointOhBeta() {
-		return &pluginsdk.Schema{
-			Type:          pluginsdk.TypeList,
-			Optional:      true,
-			Computed:      !features.FourPointOhBeta(),
-			MaxItems:      1,
-			ConflictsWith: []string{"scale_in_policy"},
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"rule": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  string(virtualmachinescalesets.VirtualMachineScaleSetScaleInRulesDefault),
-						ValidateFunc: validation.StringInSlice([]string{
-							string(virtualmachinescalesets.VirtualMachineScaleSetScaleInRulesDefault),
-							string(virtualmachinescalesets.VirtualMachineScaleSetScaleInRulesNewestVM),
-							string(virtualmachinescalesets.VirtualMachineScaleSetScaleInRulesOldestVM),
-						}, false),
-					},
-
-					"force_deletion_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
-					},
-				},
-			},
-		}
-	}
-
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
