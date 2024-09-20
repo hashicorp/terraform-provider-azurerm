@@ -162,7 +162,7 @@ func (r StreamAnalyticsOutputSqlResource) updated(data acceptance.TestData) stri
 %s
 
 resource "azurerm_stream_analytics_output_mssql" "test" {
-  name                      = "acctestoutput-updated-%d"
+  name                      = "acctestoutput-%d"
   stream_analytics_job_name = azurerm_stream_analytics_job.test.name
   resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
 
@@ -171,6 +171,8 @@ resource "azurerm_stream_analytics_output_mssql" "test" {
   password = azurerm_mssql_server.test.administrator_login_password
   database = azurerm_mssql_database.test.name
   table    = "AccTestTable"
+
+  max_batch_count = 1000
 }
 `, template, data.RandomInteger)
 }
