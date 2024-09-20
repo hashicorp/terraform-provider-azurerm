@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/inventoryitems"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/virtualmachineinstances"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/virtualmachinetemplates"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/virtualnetworks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/vmmservers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -219,7 +220,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Argumen
 					"virtual_network_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: commonids.ValidateVirtualNetworkID,
+						ValidateFunc: virtualnetworks.ValidateVirtualNetworkID,
 					},
 
 					"ipv4_address_type": {
