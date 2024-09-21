@@ -165,7 +165,7 @@ func resourceStorageAccountSharePropertiesCreate(d *pluginsdk.ResourceData, meta
 	}
 
 	model := existing.Model
-	if err := validateExistingModel(model, id); err != nil {
+	if err := validateStorageAccountModel(model, id); err != nil {
 		return err
 	}
 
@@ -252,7 +252,7 @@ func resourceStorageAccountSharePropertiesUpdate(d *pluginsdk.ResourceData, meta
 	}
 
 	model := existing.Model
-	if err := validateExistingModel(model, id); err != nil {
+	if err := validateStorageAccountModel(model, id); err != nil {
 		return err
 	}
 
@@ -313,7 +313,7 @@ func resourceStorageAccountSharePropertiesRead(d *pluginsdk.ResourceData, meta i
 	}
 
 	model := resp.Model
-	if err := validateExistingModel(model, id); err != nil {
+	if err := validateStorageAccountModel(model, id); err != nil {
 		return err
 	}
 
@@ -372,7 +372,7 @@ func resourceStorageAccountSharePropertiesDelete(d *pluginsdk.ResourceData, meta
 	}
 
 	model := existing.Model
-	if err := validateExistingModel(model, id); err != nil {
+	if err := validateStorageAccountModel(model, id); err != nil {
 		return err
 	}
 

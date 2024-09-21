@@ -92,7 +92,7 @@ func resourceStorageAccountStaticWebSitePropertiesCreate(d *pluginsdk.ResourceDa
 	// TODO: Add Import error supported for this resource...
 
 	model := existing.Model
-	if err := validateExistingModel(model, id); err != nil {
+	if err := validateStorageAccountModel(model, id); err != nil {
 		return err
 	}
 
@@ -183,7 +183,7 @@ func resourceStorageAccountStaticWebSitePropertiesUpdate(d *pluginsdk.ResourceDa
 	}
 
 	model := existing.Model
-	if err := validateExistingModel(model, id); err != nil {
+	if err := validateStorageAccountModel(model, id); err != nil {
 		return err
 	}
 

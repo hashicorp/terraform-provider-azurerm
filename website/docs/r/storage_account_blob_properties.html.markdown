@@ -37,16 +37,14 @@ resource "azurerm_storage_account" "example" {
 resource "azurerm_storage_account_blob_properties" "example" {
   storage_account_id = azurerm_storage_account.example.id
 
-  properties {
-    delete_retention_policy {}
+  delete_retention_policy {}
 
-    restore_policy {
-      days = 6
-    }
-
-    versioning_enabled  = true
-    change_feed_enabled = true
+  restore_policy {
+    days = 6
   }
+
+  versioning_enabled  = true
+  change_feed_enabled = true
 }
 ```
 
@@ -54,13 +52,7 @@ resource "azurerm_storage_account_blob_properties" "example" {
 
 The following arguments are supported:
 
-* `storage_account_id` - (Required) Specifies the resource id of the storage account.
-
-* `properties` - (Required) A `properties` block as defined below.
-
----
-
-A `properties` block supports the following:
+* `storage_account_id` - (Required) Specifies the resource id of the storage account. Changing this forces a new resource to be created.
 
 * `cors_rule` - (Optional) A `cors_rule` block as defined below.
 

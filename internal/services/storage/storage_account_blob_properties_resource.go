@@ -170,7 +170,7 @@ func resourceStorageAccountBlobPropertiesCreate(d *pluginsdk.ResourceData, meta 
 	}
 
 	model := existing.Model
-	if err := validateExistingModel(model, id); err != nil {
+	if err := validateStorageAccountModel(model, id); err != nil {
 		return err
 	}
 
@@ -207,8 +207,7 @@ func resourceStorageAccountBlobPropertiesCreate(d *pluginsdk.ResourceData, meta 
 
 	// NOTE: Now that we know the data plane container is available, we can now set the properties on the resource
 	// after a bit more validation of the resource...
-	props := d.Get("properties").([]interface{})
-	blobProperties, err := expandAccountBlobServiceProperties(accountKind, props)
+	blobProperties, err := standaloneExpandAccountBlobServiceProperties(accountKind, d)
 	if err != nil {
 		return err
 	}
@@ -217,13 +216,13 @@ func resourceStorageAccountBlobPropertiesCreate(d *pluginsdk.ResourceData, meta 
 	isVersioningEnabled := pointer.From(blobProperties.Properties.IsVersioningEnabled)
 	isHnsEnabled := pointer.From(model.Properties.IsHnsEnabled)
 	if isVersioningEnabled && isHnsEnabled {
-		return fmt.Errorf("`versioning_enabled` cannot be 'true' when `is_hns_enabled` is true")
+		return fmt.Errorf("'versioning_enabled' cannot be 'true' when 'is_hns_enabled' is set to 'true'")
 	}
 
 	if !isVersioningEnabled {
 		if blobProperties.Properties.RestorePolicy != nil && blobProperties.Properties.RestorePolicy.Enabled {
 			// Otherwise, API returns: "Conflicting feature 'restorePolicy' is enabled. Please disable it and retry."
-			return fmt.Errorf("`properties.restore_policy` cannot be set when `versioning_enabled` is 'false'")
+			return fmt.Errorf("'restore_policy' cannot be set when 'versioning_enabled' is set to 'false'")
 		}
 
 		immutableStorageWithVersioningEnabled := false
@@ -236,7 +235,7 @@ func resourceStorageAccountBlobPropertiesCreate(d *pluginsdk.ResourceData, meta 
 		if immutableStorageWithVersioningEnabled {
 			// Otherwise, API returns: "Conflicting feature 'Account level WORM' is enabled. Please disable it and retry."
 			// See: https://learn.microsoft.com/en-us/azure/storage/blobs/immutable-policy-configure-version-scope?tabs=azure-portal#prerequisites
-			return fmt.Errorf("`immutability_policy` cannot be set when `versioning_enabled` is 'false'")
+			return fmt.Errorf("'immutability_policy' cannot be set when 'versioning_enabled' is set to 'false'")
 		}
 	}
 
@@ -245,15 +244,15 @@ func resourceStorageAccountBlobPropertiesCreate(d *pluginsdk.ResourceData, meta 
 	if dnsEndpointType == storageaccounts.DnsEndpointTypeAzureDnsZone {
 		if blobProperties.Properties.RestorePolicy != nil && blobProperties.Properties.RestorePolicy.Enabled {
 			// Otherwise, API returns: "Required feature Global Dns is disabled"
-			// This is confirmed with the SRP team, where they said:
-			// > restorePolicy feature is incompatible with partitioned DNS
-			return fmt.Errorf("`properties.restore_policy` cannot be set when `dns_endpoint_type` is set to %q", storageaccounts.DnsEndpointTypeAzureDnsZone)
+			// This is confirmed with the Service team, where they said:
+			// "...the 'restorePolicy' feature is incompatible with partitioned DNS..."
+			return fmt.Errorf("'restore_policy' cannot be set when 'dns_endpoint_type' is set to %q", storageaccounts.DnsEndpointTypeAzureDnsZone)
 		}
 	}
 
 	log.Printf("[DEBUG] [%s:CREATE] Calling 'storageClient.ResourceManager.BlobService.SetServiceProperties': %s", strings.ToUpper(storageAccountBlobPropertiesResourceName), id)
 	if _, err = storageClient.ResourceManager.BlobService.SetServiceProperties(ctx, *id, *blobProperties); err != nil {
-		return fmt.Errorf("creating `properties`: %+v", err)
+		return fmt.Errorf("creating Storage Account Blob Properties: %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -282,7 +281,7 @@ func resourceStorageAccountBlobPropertiesUpdate(d *pluginsdk.ResourceData, meta 
 	}
 
 	model := existing.Model
-	if err := validateExistingModel(model, id); err != nil {
+	if err := validateStorageAccountModel(model, id); err != nil {
 		return err
 	}
 
@@ -296,22 +295,24 @@ func resourceStorageAccountBlobPropertiesUpdate(d *pluginsdk.ResourceData, meta 
 
 	if accountKind == storageaccounts.KindBlobStorage || accountKind == storageaccounts.KindStorage {
 		if storageType == storageaccounts.SkuNameStandardZRS {
-			return fmt.Errorf("an `account_replication_type` of `ZRS` isn't supported for Blob Storage accounts")
+			return fmt.Errorf("an 'account_replication_type' of 'ZRS' isn't supported for Blob Storage accounts")
 		}
 	}
 
-	if d.HasChange("properties") {
+	if d.HasChange("change_feed_enabled") || d.HasChange("change_feed_retention_in_days") || d.HasChange("container_delete_retention_policy") || d.HasChange("cors_rule") ||
+		d.HasChange("default_service_version") || d.HasChange("delete_retention_policy") || d.HasChange("last_access_time_enabled") || d.HasChange("restore_policy") ||
+		d.HasChange("versioning_enabled") {
 		if !supportLevel.supportBlob {
 			return fmt.Errorf("%q are not supported for account kind %q in sku tier %q", storageAccountBlobPropertiesResourceName, accountKind, accountTier)
 		}
 
-		blobProperties, err := expandAccountBlobServiceProperties(accountKind, d.Get("properties").([]interface{}))
+		blobProperties, err := standaloneExpandAccountBlobServiceProperties(accountKind, d)
 		if err != nil {
 			return err
 		}
 
 		if blobProperties.Properties.IsVersioningEnabled != nil && *blobProperties.Properties.IsVersioningEnabled && isHnsEnabled {
-			return fmt.Errorf("`versioning_enabled` cannot be true when `is_hns_enabled` is true")
+			return fmt.Errorf("'versioning_enabled' cannot be 'true' when 'is_hns_enabled' is set to 'true'")
 		}
 
 		// Disable restore_policy first. Disabling restore_policy and while setting delete_retention_policy.allow_permanent_delete to true cause error.
@@ -326,22 +327,22 @@ func resourceStorageAccountBlobPropertiesUpdate(d *pluginsdk.ResourceData, meta 
 
 			log.Printf("[DEBUG] [%s:UPDATE] Calling 'storageClient.ResourceManager.BlobService.SetServiceProperties' to disable 'RestorePolicy': %s", strings.ToUpper(storageAccountBlobPropertiesResourceName), id)
 			if _, err := storageClient.ResourceManager.BlobService.SetServiceProperties(ctx, *id, blobPayload); err != nil {
-				return fmt.Errorf("updating Azure Storage Account blob restore policy %q: %+v", id.StorageAccountName, err)
+				return fmt.Errorf("updating Azure Storage Account Blob 'RestorePolicy' %q: %+v", id.StorageAccountName, err)
 			}
 		}
 
 		if dnsEndpointType == storageaccounts.DnsEndpointTypeAzureDnsZone {
 			if blobProperties.Properties.RestorePolicy != nil && blobProperties.Properties.RestorePolicy.Enabled {
 				// Otherwise, API returns: "Required feature Global Dns is disabled"
-				// This is confirmed with the SRP team, where they said:
-				// > restorePolicy feature is incompatible with partitioned DNS
-				return fmt.Errorf("`properties.restore_policy` cannot be set when `dns_endpoint_type` is set to %q", storageaccounts.DnsEndpointTypeAzureDnsZone)
+				// This is confirmed with the Service team, where they said:
+				// "...the 'restorePolicy' feature is incompatible with partitioned DNS..."
+				return fmt.Errorf("'restore_policy' cannot be set when 'dns_endpoint_type' is set to %q", storageaccounts.DnsEndpointTypeAzureDnsZone)
 			}
 		}
 
 		log.Printf("[DEBUG] [%s:UPDATE] Calling 'storageClient.ResourceManager.BlobService.SetServiceProperties': %s", strings.ToUpper(storageAccountBlobPropertiesResourceName), id)
 		if _, err = storageClient.ResourceManager.BlobService.SetServiceProperties(ctx, *id, *blobProperties); err != nil {
-			return fmt.Errorf("updating `properties` for %s: %+v", *id, err)
+			return fmt.Errorf("updating Storage Account Blob Properties for %s: %+v", *id, err)
 		}
 	}
 
@@ -372,13 +373,17 @@ func resourceStorageAccountBlobPropertiesRead(d *pluginsdk.ResourceData, meta in
 	log.Printf("[DEBUG] [%s:READ] Calling 'storageClient.ResourceManager.BlobService.GetServiceProperties': %s", strings.ToUpper(storageAccountBlobPropertiesResourceName), id)
 	blobProps, err := storageClient.ResourceManager.BlobService.GetServiceProperties(ctx, *id)
 	if err != nil {
-		return fmt.Errorf("reading blob properties for %s: %+v", *id, err)
+		return fmt.Errorf("reading Storage Account Blob Properties for %s: %+v", *id, err)
 	}
 
-	blobProperties := flattenAccountBlobServiceProperties(blobProps.Model)
+	model := blobProps.Model
+	if err := validateBlobPropertiesModel(model, id); err != nil {
+		return err
+	}
 
-	if err := d.Set("properties", blobProperties); err != nil {
-		return fmt.Errorf("setting `properties` for %s: %+v", *id, err)
+	err = standaloneFlattenAccountBlobServiceProperties(model, d)
+	if err != nil {
+		return fmt.Errorf("setting Storage Account Blob Properties for %s: %+v", *id, err)
 	}
 
 	return nil
@@ -405,7 +410,7 @@ func resourceStorageAccountBlobPropertiesDelete(d *pluginsdk.ResourceData, meta 
 	}
 
 	model := existing.Model
-	if err := validateExistingModel(model, id); err != nil {
+	if err := validateStorageAccountModel(model, id); err != nil {
 		return err
 	}
 
@@ -437,6 +442,108 @@ func resourceStorageAccountBlobPropertiesDelete(d *pluginsdk.ResourceData, meta 
 	return nil
 }
 
+func standaloneExpandAccountBlobServiceProperties(kind storageaccounts.Kind, d *pluginsdk.ResourceData) (*blobservice.BlobServiceProperties, error) {
+	props := blobservice.BlobServicePropertiesProperties{
+		Cors: &blobservice.CorsRules{
+			CorsRules: &[]blobservice.CorsRule{},
+		},
+		DeleteRetentionPolicy: &blobservice.DeleteRetentionPolicy{
+			Enabled: utils.Bool(false),
+		},
+	}
+
+	// 'Storage' (v1) kind doesn't support:
+	// - LastAccessTimeTrackingPolicy: Confirmed by SRP.
+	// - ChangeFeed: See https://learn.microsoft.com/en-us/azure/storage/blobs/storage-blob-change-feed?tabs=azure-portal#enable-and-disable-the-change-feed.
+	// - Versioning: See https://learn.microsoft.com/en-us/azure/storage/blobs/versioning-overview#how-blob-versioning-works
+	// - Restore Policy: See https://learn.microsoft.com/en-us/azure/storage/blobs/point-in-time-restore-overview#prerequisites-for-point-in-time-restore
+	if kind != storageaccounts.KindStorage {
+		props.LastAccessTimeTrackingPolicy = &blobservice.LastAccessTimeTrackingPolicy{
+			Enable: false,
+		}
+		props.ChangeFeed = &blobservice.ChangeFeed{
+			Enabled: pointer.To(false),
+		}
+		props.IsVersioningEnabled = pointer.To(false)
+	}
+
+	deletePolicyRaw := d.Get("delete_retention_policy").([]interface{})
+	props.DeleteRetentionPolicy = expandAccountBlobDeleteRetentionPolicy(deletePolicyRaw)
+
+	containerDeletePolicyRaw := d.Get("container_delete_retention_policy").([]interface{})
+	props.ContainerDeleteRetentionPolicy = expandAccountBlobContainerDeleteRetentionPolicy(containerDeletePolicyRaw)
+
+	corsRaw := d.Get("cors_rule").([]interface{})
+	props.Cors = expandAccountBlobPropertiesCors(corsRaw)
+
+	props.IsVersioningEnabled = pointer.To(d.Get("versioning_enabled").(bool))
+
+	if version, ok := d.Get("default_service_version").(string); ok && version != "" {
+		props.DefaultServiceVersion = pointer.To(version)
+	}
+
+	lastAccessTimeEnabled := d.Get("last_access_time_enabled").(bool)
+	changeFeedEnabled := d.Get("change_feed_enabled").(bool)
+	changeFeedRetentionInDays := d.Get("change_feed_retention_in_days").(int)
+	restorePolicyRaw := d.Get("restore_policy").([]interface{})
+	versioningEnabled := d.Get("versioning_enabled").(bool)
+
+	if kind == storageaccounts.KindStorage {
+		// 'Storage' (v1) kind doesn't support: 'LastAccessTimeTrackingPolicy', 'ChangeFeed',
+		// 'Versioning' and 'RestorePolicy'...
+
+		if lastAccessTimeEnabled {
+			return nil, fmt.Errorf("'last_access_time_enabled' can not be configured when 'kind' is set to 'Storage' (v1)")
+		}
+
+		if changeFeedEnabled {
+			return nil, fmt.Errorf("'change_feed_enabled' can not be configured when 'kind' is set to 'Storage' (v1)")
+		}
+
+		if changeFeedRetentionInDays != 0 {
+			return nil, fmt.Errorf("'change_feed_retention_in_days' can not be configured when 'kind' is set to 'Storage' (v1)")
+		}
+
+		if len(restorePolicyRaw) != 0 {
+			return nil, fmt.Errorf("'restore_policy' can not be configured when 'kind' is set to 'Storage' (v1)")
+		}
+
+		if versioningEnabled {
+			return nil, fmt.Errorf("'versioning_enabled' can not be configured when 'kind' is set to 'Storage' (v1)")
+		}
+	} else {
+		props.LastAccessTimeTrackingPolicy = &blobservice.LastAccessTimeTrackingPolicy{
+			Enable: lastAccessTimeEnabled,
+		}
+
+		props.ChangeFeed = &blobservice.ChangeFeed{
+			Enabled: pointer.To(changeFeedEnabled),
+		}
+
+		if changeFeedRetentionInDays != 0 {
+			props.ChangeFeed.RetentionInDays = pointer.To(int64(changeFeedRetentionInDays))
+		}
+
+		props.RestorePolicy = expandAccountBlobPropertiesRestorePolicy(restorePolicyRaw)
+		props.IsVersioningEnabled = &versioningEnabled
+	}
+
+	// Sanity check for the prerequisites of restore_policy
+	// Ref: https://learn.microsoft.com/en-us/azure/storage/blobs/point-in-time-restore-overview#prerequisites-for-point-in-time-restore
+	if p := props.RestorePolicy; p != nil && p.Enabled {
+		if props.ChangeFeed == nil || props.ChangeFeed.Enabled == nil || !*props.ChangeFeed.Enabled {
+			return nil, fmt.Errorf("'change_feed_enabled' must be 'true' when 'restore_policy' is set")
+		}
+		if props.IsVersioningEnabled == nil || !*props.IsVersioningEnabled {
+			return nil, fmt.Errorf("'versioning_enabled' must be 'true' when 'restore_policy' is set")
+		}
+	}
+
+	return &blobservice.BlobServiceProperties{
+		Properties: &props,
+	}, nil
+}
+
 func expandAccountBlobServiceProperties(kind storageaccounts.Kind, input []interface{}) (*blobservice.BlobServiceProperties, error) {
 	props := blobservice.BlobServicePropertiesProperties{
 		Cors: &blobservice.CorsRules{
@@ -447,8 +554,8 @@ func expandAccountBlobServiceProperties(kind storageaccounts.Kind, input []inter
 		},
 	}
 
-	// `Storage` (v1) kind doesn't support:
-	// - LastAccessTimeTrackingPolicy: Confirmed by SRP.
+	// 'Storage' (v1) kind doesn't support:
+	// - LastAccessTimeTrackingPolicy: Confirmed by Service Team.
 	// - ChangeFeed: See https://learn.microsoft.com/en-us/azure/storage/blobs/storage-blob-change-feed?tabs=azure-portal#enable-and-disable-the-change-feed.
 	// - Versioning: See https://learn.microsoft.com/en-us/azure/storage/blobs/versioning-overview#how-blob-versioning-works
 	// - Restore Policy: See https://learn.microsoft.com/en-us/azure/storage/blobs/point-in-time-restore-overview#prerequisites-for-point-in-time-restore
@@ -480,7 +587,7 @@ func expandAccountBlobServiceProperties(kind storageaccounts.Kind, input []inter
 			props.DefaultServiceVersion = pointer.To(version)
 		}
 
-		// `Storage` (v1) kind doesn't support:
+		// 'Storage' (v1) kind doesn't support:
 		// - LastAccessTimeTrackingPolicy
 		// - ChangeFeed
 		// - Versioning
@@ -504,19 +611,19 @@ func expandAccountBlobServiceProperties(kind storageaccounts.Kind, input []inter
 			props.IsVersioningEnabled = &versioningEnabled
 		} else {
 			if lastAccessTimeEnabled {
-				return nil, fmt.Errorf("`last_access_time_enabled` can not be configured when `kind` is set to `Storage` (v1)")
+				return nil, fmt.Errorf("'last_access_time_enabled' can not be configured when 'kind' is set to 'Storage' (v1)")
 			}
 			if changeFeedEnabled {
-				return nil, fmt.Errorf("`change_feed_enabled` can not be configured when `kind` is set to `Storage` (v1)")
+				return nil, fmt.Errorf("'change_feed_enabled' can not be configured when 'kind' is set to 'Storage' (v1)")
 			}
 			if changeFeedRetentionInDays != 0 {
-				return nil, fmt.Errorf("`change_feed_retention_in_days` can not be configured when `kind` is set to `Storage` (v1)")
+				return nil, fmt.Errorf("'change_feed_retention_in_days' can not be configured when 'kind' is set to 'Storage' (v1)")
 			}
 			if len(restorePolicyRaw) != 0 {
-				return nil, fmt.Errorf("`restore_policy` can not be configured when `kind` is set to `Storage` (v1)")
+				return nil, fmt.Errorf("'restore_policy' can not be configured when 'kind' is set to 'Storage' (v1)")
 			}
 			if versioningEnabled {
-				return nil, fmt.Errorf("`versioning_enabled` can not be configured when `kind` is set to `Storage` (v1)")
+				return nil, fmt.Errorf("'versioning_enabled' can not be configured when 'kind' is set to 'Storage' (v1)")
 			}
 		}
 
@@ -524,10 +631,10 @@ func expandAccountBlobServiceProperties(kind storageaccounts.Kind, input []inter
 		// Ref: https://learn.microsoft.com/en-us/azure/storage/blobs/point-in-time-restore-overview#prerequisites-for-point-in-time-restore
 		if p := props.RestorePolicy; p != nil && p.Enabled {
 			if props.ChangeFeed == nil || props.ChangeFeed.Enabled == nil || !*props.ChangeFeed.Enabled {
-				return nil, fmt.Errorf("`change_feed_enabled` must be `true` when `restore_policy` is set")
+				return nil, fmt.Errorf("'change_feed_enabled' must be 'true' when 'restore_policy' is set")
 			}
 			if props.IsVersioningEnabled == nil || !*props.IsVersioningEnabled {
-				return nil, fmt.Errorf("`versioning_enabled` must be `true` when `restore_policy` is set")
+				return nil, fmt.Errorf("'versioning_enabled' must be 'true' when 'restore_policy' is set")
 			}
 		}
 	}
@@ -535,6 +642,123 @@ func expandAccountBlobServiceProperties(kind storageaccounts.Kind, input []inter
 	return &blobservice.BlobServiceProperties{
 		Properties: &props,
 	}, nil
+}
+
+func standaloneFlattenAccountBlobServiceProperties(input *blobservice.BlobServiceProperties, d *pluginsdk.ResourceData) error {
+	flattenedCorsRules := make([]interface{}, 0)
+	flattenedDeletePolicy := make([]interface{}, 0)
+	flattenedRestorePolicy := make([]interface{}, 0)
+	flattenedContainerDeletePolicy := make([]interface{}, 0)
+	versioning, changeFeedEnabled, changeFeedRetentionInDays := false, false, 0
+	var defaultServiceVersion string
+	var LastAccessTimeTrackingPolicy bool
+
+	if input == nil || input.Properties == nil {
+		if err := d.Set("cors_rule", flattenedCorsRules); err != nil {
+			return fmt.Errorf("'cors_rule': %+v", err)
+		}
+
+		if err := d.Set("delete_retention_policy", flattenedDeletePolicy); err != nil {
+			return fmt.Errorf("'cors_rule': %+v", err)
+		}
+
+		if err := d.Set("restore_policy", flattenedRestorePolicy); err != nil {
+			return fmt.Errorf("'cors_rule': %+v", err)
+		}
+
+		if err := d.Set("container_delete_retention_policy", flattenedContainerDeletePolicy); err != nil {
+			return fmt.Errorf("'cors_rule': %+v", err)
+		}
+
+		if err := d.Set("versioning_enabled", versioning); err != nil {
+			return fmt.Errorf("'cors_rule': %+v", err)
+		}
+
+		if err := d.Set("change_feed_enabled", changeFeedEnabled); err != nil {
+			return fmt.Errorf("'cors_rule': %+v", err)
+		}
+
+		if err := d.Set("change_feed_retention_in_days", changeFeedRetentionInDays); err != nil {
+			return fmt.Errorf("'cors_rule': %+v", err)
+		}
+
+		if err := d.Set("default_service_version", defaultServiceVersion); err != nil {
+			return fmt.Errorf("'cors_rule': %+v", err)
+		}
+
+		if err := d.Set("last_access_time_enabled", LastAccessTimeTrackingPolicy); err != nil {
+			return fmt.Errorf("'cors_rule': %+v", err)
+		}
+
+		return nil
+	}
+
+	if corsRules := input.Properties.Cors; corsRules != nil {
+		flattenedCorsRules = flattenAccountBlobPropertiesCorsRule(corsRules)
+	}
+	if err := d.Set("cors_rule", flattenedCorsRules); err != nil {
+		return fmt.Errorf("property 'cors_rule': %+v", err)
+	}
+
+	if deletePolicy := input.Properties.DeleteRetentionPolicy; deletePolicy != nil {
+		flattenedDeletePolicy = flattenAccountBlobDeleteRetentionPolicy(deletePolicy)
+	}
+	if err := d.Set("delete_retention_policy", flattenedDeletePolicy); err != nil {
+		return fmt.Errorf("property 'delete_retention_policy': %+v", err)
+	}
+
+	if restorePolicy := input.Properties.RestorePolicy; restorePolicy != nil {
+		flattenedRestorePolicy = flattenAccountBlobPropertiesRestorePolicy(restorePolicy)
+	}
+	if err := d.Set("restore_policy", flattenedRestorePolicy); err != nil {
+		return fmt.Errorf("property 'restore_policy': %+v", err)
+	}
+
+	if containerDeletePolicy := input.Properties.ContainerDeleteRetentionPolicy; containerDeletePolicy != nil {
+		flattenedContainerDeletePolicy = flattenAccountBlobContainerDeleteRetentionPolicy(containerDeletePolicy)
+	}
+	if err := d.Set("container_delete_retention_policy", flattenedContainerDeletePolicy); err != nil {
+		return fmt.Errorf("property 'container_delete_retention_policy': %+v", err)
+	}
+
+	if input.Properties.IsVersioningEnabled != nil {
+		versioning = *input.Properties.IsVersioningEnabled
+	}
+	if err := d.Set("versioning_enabled", versioning); err != nil {
+		return fmt.Errorf("property 'versioning_enabled': %+v", err)
+	}
+
+	if v := input.Properties.ChangeFeed; v != nil {
+		if v.Enabled != nil {
+			changeFeedEnabled = *v.Enabled
+		}
+		if v.RetentionInDays != nil {
+			changeFeedRetentionInDays = int(*v.RetentionInDays)
+		}
+	}
+	if err := d.Set("change_feed_enabled", changeFeedEnabled); err != nil {
+		return fmt.Errorf("property 'change_feed_enabled': %+v", err)
+	}
+
+	if err := d.Set("change_feed_retention_in_days", changeFeedRetentionInDays); err != nil {
+		return fmt.Errorf("property 'change_feed_retention_in_days': %+v", err)
+	}
+
+	if input.Properties.DefaultServiceVersion != nil {
+		defaultServiceVersion = *input.Properties.DefaultServiceVersion
+	}
+	if err := d.Set("default_service_version", defaultServiceVersion); err != nil {
+		return fmt.Errorf("property 'default_service_version': %+v", err)
+	}
+
+	if v := input.Properties.LastAccessTimeTrackingPolicy; v != nil {
+		LastAccessTimeTrackingPolicy = v.Enable
+	}
+	if err := d.Set("last_access_time_enabled", LastAccessTimeTrackingPolicy); err != nil {
+		return fmt.Errorf("property 'last_access_time_enabled': %+v", err)
+	}
+
+	return nil
 }
 
 func flattenAccountBlobServiceProperties(input *blobservice.BlobServiceProperties) []interface{} {

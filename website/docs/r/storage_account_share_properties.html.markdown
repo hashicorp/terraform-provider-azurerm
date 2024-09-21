@@ -61,7 +61,7 @@ resource "azurerm_storage_account_share_properties" "example" {
 
 The following arguments are supported:
 
-* `storage_account_id` - (Required) Specifies the resource id of the storage account.
+* `storage_account_id` - (Required) Specifies the resource id of the storage account. Changing this forces a new resource to be created.
 
 * `cors_rule` - (Optional) A `cors_rule` block as defined below.
 

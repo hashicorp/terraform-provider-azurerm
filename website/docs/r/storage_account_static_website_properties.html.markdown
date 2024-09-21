@@ -50,7 +50,7 @@ resource "azurerm_storage_account_static_website_properties" "example" {
 
 The following arguments are supported:
 
-* `storage_account_id` - (Required) Specifies the resource id of the storage account.
+* `storage_account_id` - (Required) Specifies the resource id of the storage account. Changing this forces a new resource to be created.
 
 * `index_document` - (Optional) The webpage that Azure Storage serves for requests to the root of a website or any subfolder (e.g., `index.html`). The value is case-sensitive.
 

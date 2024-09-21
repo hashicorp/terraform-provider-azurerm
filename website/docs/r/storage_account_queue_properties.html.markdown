@@ -74,7 +74,7 @@ resource "azurerm_storage_account_queue_properties" "example" {
 
 The following arguments are supported:
 
-* `storage_account_id` - (Required) Specifies the resource id of the storage account.
+* `storage_account_id` - (Required) Specifies the resource id of the storage account. Changing this forces a new resource to be created.
 
 * `properties` - (Required) A `properties` block as defined below.
 

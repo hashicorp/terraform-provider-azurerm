@@ -172,7 +172,7 @@ func resourceStorageAccountQueuePropertiesCreate(d *pluginsdk.ResourceData, meta
 	}
 
 	model := existing.Model
-	if err := validateExistingModel(model, id); err != nil {
+	if err := validateStorageAccountModel(model, id); err != nil {
 		return err
 	}
 
@@ -253,7 +253,7 @@ func resourceStorageAccountQueuePropertiesUpdate(d *pluginsdk.ResourceData, meta
 	}
 
 	model := existing.Model
-	if err := validateExistingModel(model, id); err != nil {
+	if err := validateStorageAccountModel(model, id); err != nil {
 		return err
 	}
 
