@@ -46,6 +46,7 @@ var services = mapOf(
         "desktopvirtualization" to "Desktop Virtualization",
         "devcenter" to "Dev Center",
         "devtestlabs" to "Dev Test",
+        "devopsinfrastructure" to "DevOps Infrastructure",
         "digitaltwins" to "Digital Twins",
         "domainservices" to "DomainServices",
         "elastic" to "Elastic",
