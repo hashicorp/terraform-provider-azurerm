@@ -230,18 +230,11 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_storage_mover_agent" "test2" {
-  name                     = "acctest-sa2-%[2]d"
-  storage_mover_id         = azurerm_storage_mover.test.id
-  arc_virtual_machine_id   = data.azurerm_arc_machine.test.id
-  arc_virtual_machine_uuid = data.azurerm_arc_machine.test.vm_uuid
-}
-
 resource "azurerm_storage_mover_job_definition" "test" {
   name                     = "acctest-sjd-%[2]d"
   storage_mover_project_id = azurerm_storage_mover_project.test.id
-  agent_name               = azurerm_storage_mover_agent.test2.name
-  copy_mode                = "Mirror"
+  agent_name               = azurerm_storage_mover_agent.test.name
+  copy_mode                = "Additive"
   source_name              = azurerm_storage_mover_source_endpoint.test.name
   source_sub_path          = "/"
   target_name              = azurerm_storage_mover_target_endpoint.test.name

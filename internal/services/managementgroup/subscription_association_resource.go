@@ -10,15 +10,16 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-05-01/managementgroups" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/managementgroups/2020-05-01/managementgroups"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceManagementGroupSubscriptionAssociation() *pluginsdk.Resource {
@@ -34,7 +35,7 @@ func resourceManagementGroupSubscriptionAssociation() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ManagementGroupSubscriptionAssociationID(id)
+			_, err := managementgroups.ParseSubscriptionID(id)
 			return err
 		}),
 
@@ -57,8 +58,7 @@ func resourceManagementGroupSubscriptionAssociation() *pluginsdk.Resource {
 }
 
 func resourceManagementGroupSubscriptionAssociationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ManagementGroups.SubscriptionClient
-	groupsClient := meta.(*clients.Client).ManagementGroups.GroupsClient
+	client := meta.(*clients.Client).ManagementGroups.GroupsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -72,29 +72,35 @@ func resourceManagementGroupSubscriptionAssociationCreate(d *pluginsdk.ResourceD
 		return err
 	}
 
-	id := parse.NewManagementGroupSubscriptionAssociationID(managementGroupId.Name, subscriptionId.SubscriptionId)
+	id := managementgroups.NewSubscriptionID(managementGroupId.Name, subscriptionId.SubscriptionId)
 
-	existing, err := groupsClient.Get(ctx, id.ManagementGroup, "children", utils.Bool(false), "", "")
+	existing, err := client.Get(ctx, commonids.NewManagementGroupID(id.GroupId), managementgroups.GetOperationOptions{
+		CacheControl: &managementGroupCacheControl,
+		Expand:       pointer.To(managementgroups.ExpandChildren),
+		Recurse:      pointer.FromBool(false),
+	})
 	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("failed checking Management Group %q: %+v", id.ManagementGroup, err)
+		if !response.WasNotFound(existing.HttpResponse) {
+			return fmt.Errorf("failed checking Management Group %q: %+v", id.GroupId, err)
 		}
 	}
 
-	props := existing.Properties
-	if props == nil {
-		return fmt.Errorf("could not read properties for Management Group %q to check if Subscription Association for %q already exists", id.ManagementGroup, id.SubscriptionId)
-	}
+	if model := existing.Model; model != nil {
+		props := model.Properties
+		if props == nil {
+			return fmt.Errorf("could not read properties for Management Group %q to check if Subscription Association for %q already exists", id.GroupId, id.SubscriptionId)
+		}
 
-	if props.Children != nil {
-		for _, v := range *props.Children {
-			if v.Type == managementgroups.Type1Subscriptions && v.Name != nil && strings.EqualFold(*v.Name, id.SubscriptionId) {
-				return tf.ImportAsExistsError("azurerm_management_group_subscription_association", id.ID())
+		if props.Children != nil {
+			for _, v := range *props.Children {
+				if v.Type != nil && *v.Type == managementgroups.ManagementGroupChildTypeSubscriptions && v.Name != nil && strings.EqualFold(*v.Name, id.SubscriptionId) {
+					return tf.ImportAsExistsError("azurerm_management_group_subscription_association", id.ID())
+				}
 			}
 		}
 	}
 
-	if _, err := client.Create(ctx, id.ManagementGroup, id.SubscriptionId, ""); err != nil {
+	if _, err := client.SubscriptionsCreate(ctx, id, managementgroups.SubscriptionsCreateOperationOptions{}); err != nil {
 		return fmt.Errorf("creating Management Group Subscription Association between %q and %q: %+v", managementGroupId.Name, subscriptionId, err)
 	}
 
@@ -109,54 +115,60 @@ func resourceManagementGroupSubscriptionAssociationRead(d *pluginsdk.ResourceDat
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ManagementGroupSubscriptionAssociationID(d.Id())
+	id, err := managementgroups.ParseSubscriptionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	managementGroup, err := client.Get(ctx, id.ManagementGroup, "children", utils.Bool(false), "", "")
+	managementGroup, err := client.Get(ctx, commonids.NewManagementGroupID(id.GroupId), managementgroups.GetOperationOptions{
+		CacheControl: &managementGroupCacheControl,
+		Expand:       pointer.To(managementgroups.ExpandChildren),
+		Recurse:      pointer.FromBool(false),
+	})
 	if err != nil {
-		return fmt.Errorf("reading Management Group %q for Subscription Associations: %+v", id.ManagementGroup, err)
+		return fmt.Errorf("reading Management Group %q for Subscription Associations: %+v", id.GroupId, err)
 	}
 	found := false
-	if props := managementGroup.Properties; props != nil {
-		if props.Children != nil {
-			for _, v := range *props.Children {
-				if v.Type == managementgroups.Type1Subscriptions && v.Name != nil && strings.EqualFold(*v.Name, id.SubscriptionId) {
-					found = true
+	if model := managementGroup.Model; model != nil {
+		if props := model.Properties; props != nil {
+			if props.Children != nil {
+				for _, v := range *props.Children {
+					if v.Type != nil && *v.Type == managementgroups.ManagementGroupChildTypeSubscriptions && v.Name != nil && strings.EqualFold(*v.Name, id.SubscriptionId) {
+						found = true
+					}
 				}
 			}
-		}
 
-		if !found {
-			log.Printf("[INFO] Subscription %q not found in Management group %q, removing from state", id.SubscriptionId, id.ManagementGroup)
-			d.SetId("")
-			return nil
-		}
+			if !found {
+				log.Printf("[INFO] Subscription %q not found in Management group %q, removing from state", id.SubscriptionId, id.GroupId)
+				d.SetId("")
+				return nil
+			}
 
-		managementGroupId := parse.NewManagementGroupId(id.ManagementGroup)
-		d.Set("management_group_id", managementGroupId.ID())
-		subscriptionId := commonids.NewSubscriptionID(id.SubscriptionId)
-		d.Set("subscription_id", subscriptionId.ID())
+			managementGroupId := parse.NewManagementGroupId(id.GroupId)
+			d.Set("management_group_id", managementGroupId.ID())
+			subscriptionId := commonids.NewSubscriptionID(id.SubscriptionId)
+			d.Set("subscription_id", subscriptionId.ID())
+		}
 	}
 
 	return nil
 }
 
 func resourceManagementGroupSubscriptionAssociationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ManagementGroups.SubscriptionClient
+	client := meta.(*clients.Client).ManagementGroups.GroupsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ManagementGroupSubscriptionAssociationID(d.Id())
+	id, err := managementgroups.ParseSubscriptionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Delete(ctx, id.ManagementGroup, id.SubscriptionId, "")
+	resp, err := client.SubscriptionsDelete(ctx, *id, managementgroups.SubscriptionsDeleteOperationOptions{})
 	if err != nil {
-		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("deleting Management Group Subscription Association between Management Group %q and Subscription %q: %+v", id.ManagementGroup, id.SubscriptionId, err)
+		if !response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("deleting Management Group Subscription Association between Management Group %q and Subscription %q: %+v", id.GroupId, id.SubscriptionId, err)
 		}
 	}
 
@@ -183,18 +195,24 @@ func resourceManagementGroupSubscriptionAssociationDelete(d *pluginsdk.ResourceD
 	return nil
 }
 
-func subscriptionAssociationRefreshFunc(ctx context.Context, client *managementgroups.Client, id parse.ManagementGroupSubscriptionAssociationId) pluginsdk.StateRefreshFunc {
+func subscriptionAssociationRefreshFunc(ctx context.Context, client *managementgroups.ManagementGroupsClient, id managementgroups.SubscriptionId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		managementGroup, err := client.Get(ctx, id.ManagementGroup, "children", utils.Bool(false), "", "")
+		managementGroup, err := client.Get(ctx, commonids.NewManagementGroupID(id.GroupId), managementgroups.GetOperationOptions{
+			CacheControl: &managementGroupCacheControl,
+			Expand:       pointer.To(managementgroups.ExpandChildren),
+			Recurse:      pointer.FromBool(false),
+		})
 		if err != nil {
-			return nil, "", fmt.Errorf("reading Management Group %q for Subscription Associations: %+v", id.ManagementGroup, err)
+			return nil, "", fmt.Errorf("reading Management Group %q for Subscription Associations: %+v", id.GroupId, err)
 		}
 
-		if props := managementGroup.Properties; props != nil && props.Children != nil {
-			for _, v := range *props.Children {
-				if v.Type == managementgroups.Type1Subscriptions {
-					if v.Name != nil && strings.EqualFold(*v.Name, id.SubscriptionId) {
-						return managementGroup, "Exists", nil
+		if model := managementGroup.Model; model != nil {
+			if props := model.Properties; props != nil && props.Children != nil {
+				for _, v := range *props.Children {
+					if v.Type != nil && *v.Type == managementgroups.ManagementGroupChildTypeSubscriptions {
+						if v.Name != nil && strings.EqualFold(*v.Name, id.SubscriptionId) {
+							return managementGroup, "Exists", nil
+						}
 					}
 				}
 			}
