@@ -4,7 +4,6 @@
 package resource
 
 import (
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -52,10 +51,6 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_resource_group_template_deployment":   resourceGroupTemplateDeploymentResource(),
 		"azurerm_subscription_template_deployment":     subscriptionTemplateDeploymentResource(),
 		"azurerm_tenant_template_deployment":           tenantTemplateDeploymentResource(),
-	}
-
-	if !features.FourPointOhBeta() {
-		resources["azurerm_template_deployment"] = resourceTemplateDeployment()
 	}
 
 	return resources

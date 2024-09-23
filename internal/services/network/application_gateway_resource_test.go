@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-07-01/applicationgateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/applicationgateways"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -878,7 +878,7 @@ func TestAccApplicationGateway_sslPolicy_policyType_predefined(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("ssl_policy.0.policy_type").HasValue("Predefined"),
-				check.That(data.ResourceName).Key("ssl_policy.0.policy_name").HasValue("AppGwSslPolicy20170401S"),
+				check.That(data.ResourceName).Key("ssl_policy.0.policy_name").HasValue("AppGwSslPolicy20220101S"),
 			),
 		},
 	})
@@ -1058,7 +1058,7 @@ func TestAccApplicationGateway_sslProfile(t *testing.T) {
 				check.That(data.ResourceName).Key("ssl_profile.0.trusted_client_certificate_names.0").DoesNotExist(),
 				check.That(data.ResourceName).Key("http_listener.0.ssl_profile_name").Exists(),
 				check.That(data.ResourceName).Key("ssl_profile.0.ssl_policy.0.policy_type").HasValue("Predefined"),
-				check.That(data.ResourceName).Key("ssl_profile.0.ssl_policy.0.policy_name").HasValue("AppGwSslPolicy20150501"),
+				check.That(data.ResourceName).Key("ssl_profile.0.ssl_policy.0.policy_name").HasValue("AppGwSslPolicy20220101"),
 			),
 		},
 		// since these are read from the existing state
@@ -1074,7 +1074,7 @@ func TestAccApplicationGateway_sslProfile(t *testing.T) {
 				check.That(data.ResourceName).Key("ssl_profile.0.trusted_client_certificate_names.0").DoesNotExist(),
 				check.That(data.ResourceName).Key("http_listener.0.ssl_profile_name").Exists(),
 				check.That(data.ResourceName).Key("ssl_profile.0.ssl_policy.0.policy_type").HasValue("Predefined"),
-				check.That(data.ResourceName).Key("ssl_profile.0.ssl_policy.0.policy_name").HasValue("AppGwSslPolicy20170401"),
+				check.That(data.ResourceName).Key("ssl_profile.0.ssl_policy.0.policy_name").HasValue("AppGwSslPolicy20220101S"),
 			),
 		},
 		// since these are read from the existing state
@@ -1098,7 +1098,7 @@ func TestAccApplicationGateway_sslProfileWithClientCertificateVerification(t *te
 				check.That(data.ResourceName).Key("ssl_profile.0.trusted_client_certificate_names.0").Exists(),
 				check.That(data.ResourceName).Key("http_listener.0.ssl_profile_name").Exists(),
 				check.That(data.ResourceName).Key("ssl_profile.0.ssl_policy.0.policy_type").HasValue("Custom"),
-				check.That(data.ResourceName).Key("ssl_profile.0.ssl_policy.0.min_protocol_version").HasValue("TLSv1_1"),
+				check.That(data.ResourceName).Key("ssl_profile.0.ssl_policy.0.min_protocol_version").HasValue("TLSv1_2"),
 				check.That(data.ResourceName).Key("ssl_profile.0.ssl_policy.0.cipher_suites.0").HasValue("TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256"),
 				check.That(data.ResourceName).Key("ssl_profile.0.ssl_policy.0.cipher_suites.1").HasValue("TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384"),
 				check.That(data.ResourceName).Key("ssl_profile.0.ssl_policy.0.cipher_suites.2").HasValue("TLS_RSA_WITH_AES_128_GCM_SHA256"),
@@ -1326,7 +1326,7 @@ func (t ApplicationGatewayResource) Exists(ctx context.Context, clients *clients
 		return nil, err
 	}
 
-	resp, err := clients.Network.ApplicationGatewaysClient.Get(ctx, *id)
+	resp, err := clients.Network.ApplicationGateways.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
@@ -5098,7 +5098,7 @@ func (ApplicationGatewayResource) changeCert(certificateName string) acceptance.
 			return err
 		}
 
-		agw, err := clients.Network.ApplicationGatewaysClient.Get(ctx, *id)
+		agw, err := clients.Network.ApplicationGateways.Get(ctx, *id)
 		if err != nil {
 			return fmt.Errorf("retrieving %s: %+v", id, err)
 		}
@@ -5129,7 +5129,7 @@ func (ApplicationGatewayResource) changeCert(certificateName string) acceptance.
 
 		agw.Model.Properties.SslCertificates = &newSslCertificates
 
-		if err := clients.Network.ApplicationGatewaysClient.CreateOrUpdateThenPoll(ctx, *id, *agw.Model); err != nil {
+		if err := clients.Network.ApplicationGateways.CreateOrUpdateThenPoll(ctx, *id, *agw.Model); err != nil {
 			return fmt.Errorf("updating %s: %+v", id, err)
 		}
 
@@ -5905,7 +5905,7 @@ resource "azurerm_application_gateway" "test" {
   }
 
   ssl_policy {
-    policy_name = "AppGwSslPolicy20170401S"
+    policy_name = "AppGwSslPolicy20220101S"
     policy_type = "Predefined"
   }
 
@@ -7465,7 +7465,7 @@ resource "azurerm_application_gateway" "test" {
     name = local.ssl_profile_name
     ssl_policy {
       policy_type = "Predefined"
-      policy_name = "AppGwSslPolicy20150501"
+      policy_name = "AppGwSslPolicy20220101"
     }
   }
 
@@ -7564,7 +7564,7 @@ resource "azurerm_application_gateway" "test" {
     verify_client_certificate_revocation = "OCSP"
     ssl_policy {
       policy_type = "Predefined"
-      policy_name = "AppGwSslPolicy20170401"
+      policy_name = "AppGwSslPolicy20220101S"
     }
   }
 
@@ -7658,12 +7658,18 @@ resource "azurerm_application_gateway" "test" {
     priority                   = 10
   }
 
+  ssl_policy {
+    policy_type          = "Custom"
+    min_protocol_version = "TLSv1_2"
+    cipher_suites        = ["TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256", "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384", "TLS_RSA_WITH_AES_128_GCM_SHA256"]
+  }
+
   ssl_profile {
     name                             = local.ssl_profile_name
     trusted_client_certificate_names = [local.trusted_client_cert_name]
     ssl_policy {
       policy_type          = "Custom"
-      min_protocol_version = "TLSv1_1"
+      min_protocol_version = "TLSv1_2"
       cipher_suites        = ["TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256", "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384", "TLS_RSA_WITH_AES_128_GCM_SHA256"]
     }
   }
@@ -7761,6 +7767,10 @@ resource "azurerm_application_gateway" "test" {
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
     priority                   = 10
+  }
+
+  ssl_policy {
+    disabled_protocols = ["TLSv1_0", "TLSv1_1"]
   }
 
   ssl_profile {

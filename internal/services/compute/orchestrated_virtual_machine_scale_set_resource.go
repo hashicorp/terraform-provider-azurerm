@@ -4,6 +4,7 @@
 package compute
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strconv"
@@ -21,7 +22,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/images"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-07-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -250,7 +251,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 
 			"termination_notification": OrchestratedVirtualMachineScaleSetTerminationNotificationSchema(),
 
-			"zones": commonschema.ZonesMultipleOptionalForceNew(),
+			"zones": commonschema.ZonesMultipleOptional(),
 
 			"tags": commonschema.Tags(),
 
@@ -269,6 +270,30 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 
 			"priority_mix": OrchestratedVirtualMachineScaleSetPriorityMixPolicySchema(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			// Removing existing zones is currently not supported for Virtual Machine Scale Sets
+			pluginsdk.ForceNewIfChange("zones", func(ctx context.Context, old, new, meta interface{}) bool {
+				oldZones := zones.ExpandUntyped(old.(*schema.Set).List())
+				newZones := zones.ExpandUntyped(new.(*schema.Set).List())
+
+				for _, ov := range oldZones {
+					found := false
+					for _, nv := range newZones {
+						if ov == nv {
+							found = true
+							break
+						}
+					}
+
+					if !found {
+						return true
+					}
+				}
+
+				return false
+			}),
+		),
 	}
 }
 
@@ -1070,6 +1095,10 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 			updateProps.VirtualMachineProfile.ExtensionProfile = extensionProfile
 			updateProps.VirtualMachineProfile.ExtensionProfile.ExtensionsTimeBudget = pointer.To(d.Get("extensions_time_budget").(string))
 		}
+	}
+
+	if d.HasChange("zones") {
+		update.Zones = pointer.To(zones.ExpandUntyped(d.Get("zones").(*schema.Set).List()))
 	}
 
 	// Only two fields that can change in legacy mode

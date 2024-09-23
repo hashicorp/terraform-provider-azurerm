@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-07-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -638,6 +638,9 @@ func TestAccWindowsVirtualMachineScaleSet_otherTerminationNotification(t *testin
 
 // TODO remove TestAccWindowsVirtualMachineScaleSet_otherTerminationNotificationMigration in 4.0
 func TestAccWindowsVirtualMachineScaleSet_otherTerminationNotificationMigration(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("this test is being removed in 4.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -2221,14 +2224,16 @@ func (r WindowsVirtualMachineScaleSetResource) otherVMAgent(data acceptance.Test
 %s
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
-  name                = local.vm_name
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "Standard_F2"
-  instances           = 1
-  admin_username      = "adminuser"
-  admin_password      = "P@ssword1234!"
-  provision_vm_agent  = %t
+  name                         = local.vm_name
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  sku                          = "Standard_F2"
+  instances                    = 1
+  admin_username               = "adminuser"
+  admin_password               = "P@ssword1234!"
+  provision_vm_agent           = %t
+  extension_operations_enabled = false
+
 
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
@@ -2841,6 +2846,7 @@ resource "azurerm_public_ip" "test" {
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
   allocation_method       = "Dynamic"
+  sku                     = "Basic"
   idle_timeout_in_minutes = 4
 }
 
@@ -2951,6 +2957,7 @@ resource "azurerm_public_ip" "test" {
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
   allocation_method       = "Dynamic"
+  sku                     = "Basic"
   idle_timeout_in_minutes = 4
 }
 

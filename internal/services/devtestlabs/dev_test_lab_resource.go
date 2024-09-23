@@ -8,7 +8,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -16,12 +15,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -97,19 +94,6 @@ func resourceDevTestLab() *pluginsdk.Resource {
 		},
 	}
 
-	if !features.FourPointOhBeta() {
-		resource.Schema["storage_type"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(labs.StorageTypePremium),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(labs.StorageTypeStandard),
-				string(labs.StorageTypePremium),
-			}, false),
-			Deprecated: "`storage_type` is deprecated in version 3.0 of the AzureRM provider and will be removed in version 4.0.",
-		}
-	}
-
 	return resource
 }
 
@@ -141,13 +125,6 @@ func resourceDevTestLabCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 	parameters := labs.Lab{
 		Location: utils.String(location),
 		Tags:     expandTags(d.Get("tags").(map[string]interface{})),
-	}
-
-	if !features.FourPointOhBeta() {
-		storageType := labs.StorageType(d.Get("storage_type").(string))
-		parameters.Properties = &labs.LabProperties{
-			LabStorageType: &storageType,
-		}
 	}
 
 	err := client.CreateOrUpdateThenPoll(ctx, id, parameters)
@@ -190,9 +167,6 @@ func resourceDevTestLabRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 
 		if props := model.Properties; props != nil {
-			if !features.FourPointOhBeta() {
-				d.Set("storage_type", string(pointer.From(props.LabStorageType)))
-			}
 			// Computed fields
 			d.Set("artifacts_storage_account_id", props.ArtifactsStorageAccount)
 			d.Set("default_storage_account_id", props.DefaultStorageAccount)

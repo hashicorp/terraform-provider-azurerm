@@ -44,7 +44,7 @@ resource "azurerm_public_ip" "example" {
   name                = "example-pip"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
 }
 
 # since these variables are re-used - a locals block makes this more maintainable
@@ -63,14 +63,14 @@ resource "azurerm_application_gateway" "network" {
   location            = azurerm_resource_group.example.location
 
   sku {
-    name     = "Standard_Small"
-    tier     = "Standard"
+    name     = "Standard_v2"
+    tier     = "Standard_v2"
     capacity = 2
   }
 
   gateway_ip_configuration {
     name      = "my-gateway-ip-configuration"
-    subnet_id = azurerm_subnet.frontend.id
+    subnet_id = azurerm_subnet.backend.id
   }
 
   frontend_port {

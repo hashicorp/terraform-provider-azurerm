@@ -373,8 +373,6 @@ An `ingress` block supports the following:
 
 * `allow_insecure_connections` - (Optional) Should this ingress allow insecure connections?
 
-* `custom_domain` - (Optional) One or more `custom_domain` block as detailed below.
-
 * `fqdn` - The FQDN of the ingress.
 
 * `external_enabled` - (Optional) Are connections to this Ingress from outside the Container App Environment enabled? Defaults to `false`.
@@ -390,16 +388,6 @@ An `ingress` block supports the following:
 * `traffic_weight` - (Required) One or more `traffic_weight` blocks as detailed below.
 
 * `transport` - (Optional) The transport method for the Ingress. Possible values are `auto`, `http`, `http2` and `tcp`. Defaults to `auto`.
-
----
-
-A `custom_domain` block supports the following:
-
-* `certificate_binding_type` - (Optional) The Binding type. Possible values include `Disabled` and `SniEnabled`. Defaults to `Disabled`.
-
-* `certificate_id` - (Required) The ID of the Container App Environment Certificate.
-
-* `name` - (Required) The hostname of the Certificate. Must be the CN or a named SAN in the certificate.
 
 ---
 
@@ -427,7 +415,7 @@ A `traffic_weight` block supports the following:
 
 * `revision_suffix` - (Optional) The suffix string to which this `traffic_weight` applies.
 
-~> **Note:** `latest_revision` conflicts with `revision_suffix`, which means you shall either set `latest_revision` to `true` or specify `revision_suffix`. Especially for creation, there shall only be one `traffic_weight`, with the `latest_revision` set to `true`, and leave the `revision_suffix` empty.
+~> **Note:** If `latest_revision` is `false`, the `revision_suffix` shall be specified.
 
 * `percentage` - (Required) The percentage of traffic which should be sent this revision.
 
@@ -469,6 +457,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `custom_domain_verification_id` - The ID of the Custom Domain Verification for this Container App.
 
+* `ingress` - An `ingress` block as detailed below.
+
 * `latest_revision_fqdn` - The FQDN of the Latest Revision of the Container App.
 
 * `latest_revision_name` - The name of the latest Container Revision.
@@ -477,6 +467,21 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `outbound_ip_addresses` - A list of the Public IP Addresses which the Container App uses for outbound network access.
 
+---
+
+An `ingress` block exports the following:
+
+* `custom_domain` - One or more `custom_domain` block as detailed below.
+
+---
+
+A `custom_domain` block exports the following:
+
+* `certificate_binding_type` - The Binding type.
+
+* `certificate_id` - The ID of the Container App Environment Certificate.
+
+* `name` - The hostname of the Certificate.
 
 ## Timeouts
 

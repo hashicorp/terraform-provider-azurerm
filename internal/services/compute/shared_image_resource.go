@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 	"time"
 
@@ -253,6 +254,18 @@ func resourceSharedImage() *pluginsdk.Resource {
 			},
 
 			"accelerated_network_support_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
+			},
+
+			"hibernation_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
+			},
+
+			"disk_controller_type_nvme_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				ForceNew: true,
@@ -516,6 +529,8 @@ func resourceSharedImageRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			cvmEnabled := false
 			cvmSupported := false
 			acceleratedNetworkSupportEnabled := false
+			hibernationEnabled := false
+			diskControllerTypeNVMEEnabled := false
 			if features := props.Features; features != nil {
 				for _, feature := range *features {
 					if feature.Name == nil || feature.Value == nil {
@@ -532,6 +547,14 @@ func resourceSharedImageRead(d *pluginsdk.ResourceData, meta interface{}) error 
 					if strings.EqualFold(*feature.Name, "IsAcceleratedNetworkSupported") {
 						acceleratedNetworkSupportEnabled = strings.EqualFold(*feature.Value, "true")
 					}
+
+					if strings.EqualFold(*feature.Name, "IsHibernateSupported") {
+						hibernationEnabled = strings.EqualFold(*feature.Value, "true")
+					}
+
+					if strings.EqualFold(*feature.Name, "DiskControllerTypes") {
+						diskControllerTypeNVMEEnabled = strings.Contains(*feature.Value, "NVMe")
+					}
 				}
 			}
 			d.Set("confidential_vm_supported", cvmSupported)
@@ -539,6 +562,8 @@ func resourceSharedImageRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			d.Set("trusted_launch_supported", trustedLaunchSupported)
 			d.Set("trusted_launch_enabled", trustedLaunchEnabled)
 			d.Set("accelerated_network_support_enabled", acceleratedNetworkSupportEnabled)
+			d.Set("hibernation_enabled", hibernationEnabled)
+			d.Set("disk_controller_type_nvme_enabled", diskControllerTypeNVMEEnabled)
 		}
 
 		return tags.FlattenAndSet(d, model.Tags)
@@ -731,6 +756,13 @@ func expandSharedImageFeatures(d *pluginsdk.ResourceData) *[]galleryimages.Galle
 		})
 	}
 
+	if d.Get("disk_controller_type_nvme_enabled").(bool) {
+		features = append(features, galleryimages.GalleryImageFeature{
+			Name:  pointer.To("DiskControllerTypes"),
+			Value: pointer.To("SCSI, NVMe"),
+		})
+	}
+
 	if tvmSupported := d.Get("trusted_launch_supported").(bool); tvmSupported {
 		features = append(features, galleryimages.GalleryImageFeature{
 			Name:  pointer.To("SecurityType"),
@@ -756,6 +788,13 @@ func expandSharedImageFeatures(d *pluginsdk.ResourceData) *[]galleryimages.Galle
 		features = append(features, galleryimages.GalleryImageFeature{
 			Name:  pointer.To("SecurityType"),
 			Value: pointer.To("ConfidentialVM"),
+		})
+	}
+
+	if hibernationEnabled := d.Get("hibernation_enabled").(bool); hibernationEnabled {
+		features = append(features, galleryimages.GalleryImageFeature{
+			Name:  pointer.To("IsHibernateSupported"),
+			Value: pointer.To(strconv.FormatBool(hibernationEnabled)),
 		})
 	}
 

@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-09-02-preview/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-05-01/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -868,13 +868,6 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 				return fmt.Errorf("setting `key_management_service`: %+v", err)
 			}
 
-			if !features.FourPointOhBeta() {
-				customCaTrustCertList := flattenCustomCaTrustCerts(props.SecurityProfile)
-				if err := d.Set("custom_ca_trust_certificates_base64", customCaTrustCertList); err != nil {
-					return fmt.Errorf("setting `custom_ca_trust_certificates_base64`: %+v", err)
-				}
-			}
-
 			serviceMeshProfile := flattenKubernetesClusterAzureServiceMeshProfile(props.ServiceMeshProfile)
 			if err := d.Set("service_mesh_profile", serviceMeshProfile); err != nil {
 				return fmt.Errorf("setting `service_mesh_profile`: %+v", err)
@@ -1033,26 +1026,12 @@ func flattenKubernetesClusterDataSourceStorageProfile(input *managedclusters.Man
 			snapshotController = *input.SnapshotController.Enabled
 		}
 
-		if !features.FourPointOhBeta() {
-			diskVersion := ""
-			if input.DiskCSIDriver != nil && input.DiskCSIDriver.Version != nil {
-				diskVersion = *input.DiskCSIDriver.Version
-			}
-			storageProfile = append(storageProfile, map[string]interface{}{
-				"blob_driver_enabled":         blobEnabled,
-				"disk_driver_enabled":         diskEnabled,
-				"disk_driver_version":         diskVersion,
-				"file_driver_enabled":         fileEnabled,
-				"snapshot_controller_enabled": snapshotController,
-			})
-		} else {
-			storageProfile = append(storageProfile, map[string]interface{}{
-				"blob_driver_enabled":         blobEnabled,
-				"disk_driver_enabled":         diskEnabled,
-				"file_driver_enabled":         fileEnabled,
-				"snapshot_controller_enabled": snapshotController,
-			})
-		}
+		storageProfile = append(storageProfile, map[string]interface{}{
+			"blob_driver_enabled":         blobEnabled,
+			"disk_driver_enabled":         diskEnabled,
+			"file_driver_enabled":         fileEnabled,
+			"snapshot_controller_enabled": snapshotController,
+		})
 	}
 
 	return storageProfile
@@ -1581,18 +1560,4 @@ func flattenKubernetesClusterDataSourceUpgradeSettings(input *managedclusters.Ag
 	}
 
 	return []interface{}{values}
-}
-
-func flattenCustomCaTrustCerts(input *managedclusters.ManagedClusterSecurityProfile) []interface{} {
-	if input == nil || input.CustomCATrustCertificates == nil {
-		return make([]interface{}, 0)
-	}
-
-	customCaTrustCertInterface := make([]interface{}, len(*input.CustomCATrustCertificates))
-
-	for index, value := range *input.CustomCATrustCertificates {
-		customCaTrustCertInterface[index] = value
-	}
-
-	return customCaTrustCertInterface
 }

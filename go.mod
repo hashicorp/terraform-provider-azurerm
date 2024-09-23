@@ -17,8 +17,8 @@ require (
 	github.com/google/go-cmp v0.6.0
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/go-azure-helpers v0.70.1
-	github.com/hashicorp/go-azure-sdk/resource-manager v0.20240731.1212841
-	github.com/hashicorp/go-azure-sdk/sdk v0.20240731.1212841
+	github.com/hashicorp/go-azure-sdk/resource-manager v0.20240906.1232634
+	github.com/hashicorp/go-azure-sdk/sdk v0.20240906.1232634
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/go-uuid v1.0.3
@@ -93,4 +93,4 @@ require (
 	software.sslmate.com/src/go-pkcs12 v0.4.0 // indirect
 )
 
-go 1.21
+go 1.22
