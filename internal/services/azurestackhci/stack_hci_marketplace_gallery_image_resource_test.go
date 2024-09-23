@@ -131,7 +131,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_stack_hci_marketplace_gallery_image" "test" {
-  name                = "acctest-mgi-${var.random_string}"
+  name                = "acctest-mgi-%s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   custom_location_id  = %q
@@ -146,7 +146,7 @@ resource "azurerm_stack_hci_marketplace_gallery_image" "test" {
 
   depends_on = [azurerm_role_assignment.test]
 }
-`, template, os.Getenv(customLocationIdEnv))
+`, template, data.RandomString, os.Getenv(customLocationIdEnv))
 }
 
 func (r StackHCIMarketplaceGalleryImageResource) requiresImport(data acceptance.TestData) string {
@@ -181,14 +181,23 @@ provider "azurerm" {
   features {}
 }
 
-resource "azurerm_stack_hci_marketplace_gallery_image" "test" {
-  name                = "acctest-ln-${var.random_string}"
+resource "azurerm_stack_hci_storage_path" "test" {
+  name                = "acctest-sp-%[2]s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  custom_location_id  = %q
+  custom_location_id  = %[3]q
+  path                = "C:\\ClusterStorage\\UserStorage_2\\sp-${var.random_string}"
+}
+
+resource "azurerm_stack_hci_marketplace_gallery_image" "test" {
+  name                = "acctest-mgi-%[2]s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  custom_location_id  = %[3]q
   hyperv_generation   = "V2"
   os_type             = "Windows"
   version             = "20348.2655.240810"
+  storage_path_id     = azurerm_stack_hci_storage_path.test.id
   identifier {
     publisher = "MicrosoftWindowsServer"
     offer     = "WindowsServer"
@@ -210,6 +219,14 @@ provider "azurerm" {
   features {}
 }
 
+resource "azurerm_stack_hci_storage_path" "test" {
+  name                = "acctest-sp-%[2]s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  custom_location_id  = %[3]q
+  path                = "C:\\ClusterStorage\\UserStorage_2\\sp-${var.random_string}"
+}
+
 resource "azurerm_stack_hci_marketplace_gallery_image" "test" {
   name                = "acctest-mgi-%[2]s"
   resource_group_name = azurerm_resource_group.test.name
@@ -218,6 +235,7 @@ resource "azurerm_stack_hci_marketplace_gallery_image" "test" {
   hyperv_generation   = "V2"
   os_type             = "Windows"
   version             = "20348.2655.240810"
+  storage_path_id     = azurerm_stack_hci_storage_path.test.id
   identifier {
     publisher = "MicrosoftWindowsServer"
     offer     = "WindowsServer"
