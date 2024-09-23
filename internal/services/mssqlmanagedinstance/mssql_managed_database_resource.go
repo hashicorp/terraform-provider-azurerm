@@ -114,7 +114,7 @@ func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 	}
 
-	if !features.FourPointOhBeta() {
+	if !features.FivePointOhBeta() {
 		atLeastOneOf := []string{
 			"long_term_retention_policy.0.weekly_retention", "long_term_retention_policy.0.monthly_retention",
 			"long_term_retention_policy.0.yearly_retention", "long_term_retention_policy.0.week_of_year",
