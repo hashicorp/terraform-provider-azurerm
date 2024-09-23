@@ -453,7 +453,7 @@ func TestAccVirtualMachine_ChangeAvailabilitySet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	r := VirtualMachineResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
 		{
 			Config: r.withAvailabilitySet(data),
 			Check: acceptance.ComposeTestCheckFunc(

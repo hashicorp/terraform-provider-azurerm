@@ -185,7 +185,7 @@ func TestAccVirtualMachineScaleSet_verify_key_data_changed(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
 	r := VirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
 		{
 			Config: r.linux(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -3530,6 +3530,9 @@ resource "azurerm_application_gateway" "test" {
     timeout             = 120
     interval            = 300
     unhealthy_threshold = 8
+    match {
+      status_code = ["200-399"]
+    }
   }
 
   request_routing_rule {

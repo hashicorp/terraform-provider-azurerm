@@ -282,7 +282,7 @@ func TestAccVirtualMachine_deleteVHDOptIn(t *testing.T) {
 func TestAccVirtualMachine_ChangeComputerName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	r := VirtualMachineResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
 		{
 			Config: r.machineNameBeforeUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -322,7 +322,7 @@ func TestAccVirtualMachine_changeOSDiskVhdUri(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	r := VirtualMachineResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicLinuxMachine(data),
 			Check: acceptance.ComposeTestCheckFunc(
