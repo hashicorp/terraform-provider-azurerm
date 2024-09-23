@@ -57,5 +57,6 @@ func (r Registration) Resources() []sdk.Resource {
 		KeyVaultMHSMKeyResource{},
 		KeyVaultMHSMRoleDefinitionResource{},
 		KeyVaultManagedHSMRoleAssignmentResource{},
+		KeyVaultMHSMKeyRotationPolicyResource{},
 	}
 }

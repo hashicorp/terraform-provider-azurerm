@@ -852,6 +852,7 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 * The deprecated `terminate_notification` block has been removed in favour of the `termination_notification` block.
 * The deprecated `scale_in_policy` property has been removed in favour of the `scale_in` block.
 * The `extension_operations_enabled` property now defaults to `true`.
+* The `scale_in` property is no longer Computed. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
 
 ### `azurerm_linux_web_app`
 
@@ -1205,6 +1206,7 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 * The deprecated `terminate_notification` block has been removed in favour of the `termination_notification` block.
 * The deprecated `scale_in_policy` property has been removed in favour of the `scale_in` block.
 * The `extension_operations_enabled` property now defaults to `true`.
+* The `scale_in` property is no longer Computed. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
 
 ### `azurerm_windows_web_app`
 
