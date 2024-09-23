@@ -59,7 +59,7 @@ func TestAccMachineLearningWorkspaceNetworkOutboundRuleFqdn_update(t *testing.T)
 	})
 }
 
-func TestAccMachineLearningWorkspaceOutboundFqdn_requiresImport(t *testing.T) {
+func TestAccMachineLearningWorkspaceNetworkOutboundRuleFqdn_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace_network_outbound_rule_fqdn", "test")
 	r := WorkspaceNetworkOutboundRuleFqdnResource{}
 
@@ -181,7 +181,7 @@ resource "azurerm_machine_learning_workspace_network_outbound_rule_fqdn" "test" 
   workspace_id = azurerm_machine_learning_workspace.test.id
   destination  = "destination"
 }
-`, template, data.RandomInteger, data.RandomStringOfLength(6))
+`, template, data.RandomInteger, data.RandomString)
 }
 
 func (r WorkspaceNetworkOutboundRuleFqdnResource) update(data acceptance.TestData) string {
@@ -223,7 +223,7 @@ resource "azurerm_machine_learning_workspace_network_outbound_rule_fqdn" "test" 
   workspace_id = azurerm_machine_learning_workspace.test.id
   destination  = "destinationupdate"
 }
-`, template, data.RandomInteger, data.RandomStringOfLength(6))
+`, template, data.RandomInteger, data.RandomString)
 }
 
 func (r WorkspaceNetworkOutboundRuleFqdnResource) requiresImport(data acceptance.TestData) string {
