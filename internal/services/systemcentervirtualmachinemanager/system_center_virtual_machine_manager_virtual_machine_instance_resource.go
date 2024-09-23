@@ -69,15 +69,14 @@ type OperatingSystem struct {
 }
 
 type StorageDisk struct {
-	Bus                   int64  `tfschema:"bus"`
-	BusType               string `tfschema:"bus_type"`
-	CreateDiffDiskEnabled bool   `tfschema:"create_diff_disk_enabled"`
-	DiskSizeGB            int64  `tfschema:"disk_size_gb"`
-	Lun                   int64  `tfschema:"lun"`
-	Name                  string `tfschema:"name"`
-	StorageQoSPolicyName  string `tfschema:"storage_qos_policy_name"`
-	TemplateDiskId        string `tfschema:"template_disk_id"`
-	VhdType               string `tfschema:"vhd_type"`
+	Bus                  int64  `tfschema:"bus"`
+	BusType              string `tfschema:"bus_type"`
+	DiskSizeGB           int64  `tfschema:"disk_size_gb"`
+	Lun                  int64  `tfschema:"lun"`
+	Name                 string `tfschema:"name"`
+	StorageQoSPolicyName string `tfschema:"storage_qos_policy_name"`
+	TemplateDiskId       string `tfschema:"template_disk_id"`
+	VhdType              string `tfschema:"vhd_type"`
 }
 
 var _ sdk.Resource = SystemCenterVirtualMachineManagerVirtualMachineInstanceResource{}
@@ -290,12 +289,6 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Argumen
 							"IDE",
 							"SCSI",
 						}, false),
-					},
-
-					"create_diff_disk_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						ForceNew: true,
 					},
 
 					"disk_size_gb": {
@@ -689,15 +682,9 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceStorageDisksFo
 	}
 
 	for _, v := range input {
-		createDiffDisk := virtualmachineinstances.CreateDiffDiskFalse
-		if v.CreateDiffDiskEnabled {
-			createDiffDisk = virtualmachineinstances.CreateDiffDiskTrue
-		}
-
 		virtualDisk := virtualmachineinstances.VirtualDisk{
-			Bus:            pointer.To(v.Bus),
-			CreateDiffDisk: pointer.To(createDiffDisk),
-			Lun:            pointer.To(v.Lun),
+			Bus: pointer.To(v.Bus),
+			Lun: pointer.To(v.Lun),
 		}
 
 		if busType := v.BusType; busType != "" {
@@ -892,14 +879,13 @@ func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceStorageDisks(
 
 	for _, v := range *input {
 		storageDisk := StorageDisk{
-			Bus:                   pointer.From(v.Bus),
-			BusType:               pointer.From(v.BusType),
-			CreateDiffDiskEnabled: pointer.From(v.CreateDiffDisk) == virtualmachineinstances.CreateDiffDiskTrue,
-			DiskSizeGB:            pointer.From(v.DiskSizeGB),
-			Lun:                   pointer.From(v.Lun),
-			Name:                  pointer.From(v.Name),
-			TemplateDiskId:        pointer.From(v.TemplateDiskId),
-			VhdType:               pointer.From(v.VhdType),
+			Bus:            pointer.From(v.Bus),
+			BusType:        pointer.From(v.BusType),
+			DiskSizeGB:     pointer.From(v.DiskSizeGB),
+			Lun:            pointer.From(v.Lun),
+			Name:           pointer.From(v.Name),
+			TemplateDiskId: pointer.From(v.TemplateDiskId),
+			VhdType:        pointer.From(v.VhdType),
 		}
 
 		if storageQoSPolicy := v.StorageQoSPolicy; storageQoSPolicy != nil {

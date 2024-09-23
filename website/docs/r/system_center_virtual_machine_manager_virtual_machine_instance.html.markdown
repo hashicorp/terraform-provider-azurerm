@@ -170,8 +170,6 @@ A `storage_disk` block supports the following:
 
 * `bus_type` - (Optional) The disk bus type.
 
-* `create_diff_disk_enabled` - (Optional) Whether diff disk is enabled. Changing this forces a new resource to be created.
-
 * `disk_size_gb` - (Optional) The disk total size.
 
 * `lun` - (Optional) The disk lun. Possible values are between `0` and `63`.
