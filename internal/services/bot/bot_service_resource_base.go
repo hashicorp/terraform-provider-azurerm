@@ -72,10 +72,6 @@ func (br botBaseResource) arguments(fields map[string]*pluginsdk.Schema) map[str
 			Optional:     true,
 			Sensitive:    true,
 			ValidateFunc: validation.StringIsNotEmpty,
-			DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
-				// This field for the api key isn't returned at all from Azure
-				return (new == d.Get(k).(string)) && (old == "")
-			},
 		},
 
 		"developer_app_insights_application_id": {
@@ -357,6 +353,11 @@ func (br botBaseResource) readFunc() sdk.ResourceFunc {
 
 			metadata.ResourceData.Set("tags", tags.ToTypedObject(resp.Tags))
 
+			// The API doesn't return this property, so we need to set the value from config into state
+			if apiKey, ok := metadata.ResourceData.GetOk("developer_app_insights_api_key"); ok && apiKey.(string) != "" {
+				metadata.ResourceData.Set("developer_app_insights_api_key", apiKey.(string))
+			}
+
 			if props := resp.Properties; props != nil {
 				msAppId := ""
 				if v := props.MsaAppID; v != nil {
@@ -381,12 +382,6 @@ func (br botBaseResource) readFunc() sdk.ResourceFunc {
 					key = *v
 				}
 				metadata.ResourceData.Set("developer_app_insights_key", key)
-
-				apiKey := ""
-				if v := props.DeveloperAppInsightsAPIKey; v != nil {
-					apiKey = *v
-				}
-				metadata.ResourceData.Set("developer_app_insights_api_key", apiKey)
 
 				appInsightsId := ""
 				if v := props.DeveloperAppInsightsApplicationID; v != nil {

@@ -440,36 +440,10 @@ func (r ContainerAppResource) CustomizeDiff() sdk.ResourceFunc {
 			// Ingress traffic weight validations
 			if len(app.Ingress) != 0 {
 				ingress := app.Ingress[0]
-				if metadata.ResourceDiff.HasChange("name") {
-					// Validation for create time
-					// (Above is a trick to tell whether this is for a new create apply, as the "name" is a force new property)
-					if len(ingress.TrafficWeights) != 0 {
-						if len(ingress.TrafficWeights) > 1 {
-							return fmt.Errorf("at most one `ingress.0.traffic_weight` can be specified during creation")
-						}
-						tw := ingress.TrafficWeights[0]
-						if !tw.LatestRevision {
-							return fmt.Errorf("`ingress.0.traffic_weight.0.latest_revision` must be set to true during creation")
-						}
-						if tw.RevisionSuffix != "" {
-							return fmt.Errorf("`ingress.0.traffic_weight.0.revision_suffix` must not be set during creation")
-						}
-					}
-				} else {
-					// Validation for update time
-					var latestRevCount int
-					for i, tw := range ingress.TrafficWeights {
-						if tw.LatestRevision {
-							latestRevCount++
-							if tw.RevisionSuffix != "" {
-								return fmt.Errorf("`ingress.0.traffic_weight.%[1]d.revision_suffix` conflicts with `ingress.0.traffic_weight.%[1]d.latest_revision`", i)
-							}
-						} else if tw.RevisionSuffix == "" {
-							return fmt.Errorf("`ingress.0.traffic_weight.%[1]d.revision_suffix` is not specified", i)
-						}
-					}
-					if latestRevCount > 1 {
-						return fmt.Errorf("more than one `ingress.0.traffic_weight` has `latest_revision` set to `true`")
+
+				for i, tw := range ingress.TrafficWeights {
+					if !tw.LatestRevision && tw.RevisionSuffix == "" {
+						return fmt.Errorf("`either ingress.0.traffic_weight.%[1]d.revision_suffix` or `ingress.0.traffic_weight.%[1]d.latest_revision` should be specified", i)
 					}
 				}
 			}

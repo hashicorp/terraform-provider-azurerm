@@ -66,7 +66,7 @@ var serviceTestConfigurationOverrides = mapOf(
 
         // Container App Managed Environments are limited to 20 per location, using 10 as they can take some time to clear
         // Enable rotation test to mitigate resource burden in a single region
-        "containerapps" to testConfiguration(parallelism = 10, locationOverride = LocationConfiguration("eastus2","westus2","southcentralus", true)),
+        "containerapps" to testConfiguration(parallelism = 10, locationOverride = LocationConfiguration("eastus2","westus2","northcentralus", true)),
 
         // The AKS API has a low rate limit
         "containers" to testConfiguration(parallelism = 5, locationOverride = LocationConfiguration("eastus","westeurope","eastus2", false), timeout = 18),

@@ -508,6 +508,7 @@ func resourceMysqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("zone", props.AvailabilityZone)
 			d.Set("version", string(pointer.From(props.Version)))
 			d.Set("fqdn", props.FullyQualifiedDomainName)
+			d.Set("source_server_id", d.Get("source_server_id").(string))
 
 			if network := props.Network; network != nil {
 				d.Set("public_network_access_enabled", *network.PublicNetworkAccess == servers.EnableStatusEnumEnabled)

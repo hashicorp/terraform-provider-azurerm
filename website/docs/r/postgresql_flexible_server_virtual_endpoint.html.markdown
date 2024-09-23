@@ -91,5 +91,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 A PostgreSQL Flexible Virtual Endpoint can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_postgresql_flexible_server_virtual_endpoint.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DBForPostgreSql/flexibleServers/server1/virtualendpoints/endpoint1
+terraform import azurerm_postgresql_flexible_server_virtual_endpoint.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DBforPostgreSQL/flexibleServers/server1/virtualEndpoints/endpoint1
 ```
