@@ -114,6 +114,8 @@ az account set --subscription="SUBSCRIPTION_ID"
 
 Now that we're logged into the Azure CLI - we can configure Terraform to use these credentials.
 
+-> **Note:** In version 4.0 of the Azure Provider, it's now required to specify the Azure Subscription ID when configuring a provider instance in your configuration. This can be done by specifying the `subscription_id` provider property, or by exporting the `ARM_SUBSCRIPTION_ID` environment variable. More information can be found in the [Azure Resource Manager: 4.0 Upgrade Guide](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/4.0-upgrade-guide#specifying-subscription-id-is-now-mandatory).
+
 To configure Terraform to use the Default Subscription defined in the Azure CLI - we can use the following Provider block:
 
 ```hcl
@@ -123,7 +125,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=3.0.0"
+      version = "~> 4.0"
     }
   }
 }
@@ -149,7 +151,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=3.0.0"
+      version = "~> 4.0"
     }
   }
 }
@@ -177,7 +179,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=3.0.0"
+      version = "~> 4.0"
     }
   }
 }
