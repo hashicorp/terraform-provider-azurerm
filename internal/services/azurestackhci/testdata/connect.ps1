@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 # follows https://learn.microsoft.com/en-us/azure-stack/hci/deploy/deployment-arc-register-server-permissions?tabs=powershell
 # the script is from https://github.com/Azure/Edge-infrastructure-quickstart-template/blob/c42d671bd8464071c3b8dfc9d599bef1631b22a2/modules/hci-provisioners/hci-server/connect.ps1
 param(
