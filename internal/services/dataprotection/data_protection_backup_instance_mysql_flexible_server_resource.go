@@ -193,13 +193,13 @@ func (r DataProtectionBackupInstanceMySQLFlexibleServerResource) Read() sdk.Reso
 				if props := model.Properties; props != nil {
 					state.Location = location.NormalizeNilable(props.DataSourceInfo.ResourceLocation)
 
-					serverId, err := servers.ParseFlexibleServerID(props.DataSourceInfo.ResourceID)
+					serverId, err := servers.ParseFlexibleServerIDInsensitively(props.DataSourceInfo.ResourceID)
 					if err != nil {
 						return err
 					}
 					state.ServerId = serverId.ID()
 
-					backupPolicyId, err := backuppolicies.ParseBackupPolicyID(props.PolicyInfo.PolicyId)
+					backupPolicyId, err := backuppolicies.ParseBackupPolicyIDInsensitively(props.PolicyInfo.PolicyId)
 					if err != nil {
 						return err
 					}
@@ -235,6 +235,9 @@ func (r DataProtectionBackupInstanceMySQLFlexibleServerResource) Update() sdk.Re
 				}
 
 				return fmt.Errorf("reading %s: %+v", *id, err)
+			}
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: `model` was nil", id)
 			}
 
 			parameters := *existing.Model

@@ -86,11 +86,11 @@ The following arguments are supported:
 
 * `location` - (Required) The location of the source database. Changing this forces a new resource to be created.
 
-* `vault_id` - (Required) The ID of the Backup Vault within which the MySQL Flexible Server Backup Instance should exist. Changing this forces a new resource to be created.
+* `backup_policy_id` - (Required) The ID of the Backup Policy.
 
 * `server_id` - (Required) The ID of the source server. Changing this forces a new resource to be created.
 
-* `backup_policy_id` - (Required) The ID of the Backup Policy.
+* `vault_id` - (Required) The ID of the Backup Vault within which the MySQL Flexible Server Backup Instance should exist. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
