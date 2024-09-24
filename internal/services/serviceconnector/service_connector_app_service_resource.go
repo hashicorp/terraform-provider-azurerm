@@ -109,7 +109,7 @@ func (r AppServiceConnectorResource) CustomizeDiff() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			var model AppServiceConnectorResourceModel
-			if err := metadata.Decode(&model); err != nil {
+			if err := metadata.DecodeDiff(&model); err != nil {
 				return err
 			}
 
