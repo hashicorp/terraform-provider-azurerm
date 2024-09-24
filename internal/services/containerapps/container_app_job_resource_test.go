@@ -488,7 +488,7 @@ resource "azurerm_container_app_job" "test" {
           topic_name = "my-topic"
         }
         name             = "servicebuscalingrule"
-		identity         = azurerm_user_assigned_identity.test.id
+        identity         = azurerm_user_assigned_identity.test.id
         custom_rule_type = "azure-servicebus"
       }
     }
@@ -537,7 +537,7 @@ resource "azurerm_container_app_job" "test" {
   container_app_environment_id = azurerm_container_app_environment.test.id
 
   identity {
-    type         = "SystemAssigned"
+    type = "SystemAssigned"
   }
 
   replica_timeout_in_seconds = 10
@@ -557,7 +557,7 @@ resource "azurerm_container_app_job" "test" {
           topic_name = "my-topic"
         }
         name             = "servicebuscalingrule"
-		identity         = "system"
+        identity         = "system"
         custom_rule_type = "azure-servicebus"
       }
     }
@@ -633,10 +633,10 @@ resource "azurerm_container_app_job" "test" {
           topic_name = "my-topic"
         }
         name             = "servicebuscalingrule"
-		identity         = azurerm_user_assigned_identity.test.id
+        identity         = azurerm_user_assigned_identity.test.id
         custom_rule_type = "azure-servicebus"
       }
-	  rules {
+      rules {
         authentication {
           secret_name       = "my-secret"
           trigger_parameter = "my-trigger-parameter"
@@ -645,7 +645,7 @@ resource "azurerm_container_app_job" "test" {
           pool-name = "my-pool"
         }
         name             = "otherrule"
-		identity         = "system"
+        identity         = "system"
         custom_rule_type = "azure-pipelines"
       }
     }
