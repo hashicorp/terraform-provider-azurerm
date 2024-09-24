@@ -5,9 +5,11 @@ package client
 
 import (
 	"fmt"
+
 	flexibleServers_v2022_01_01 "github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2022-01-01"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2022-01-01/azureadadministrators"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
