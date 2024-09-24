@@ -130,10 +130,6 @@ resource "azurerm_virtual_network" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   address_space       = ["10.0.0.0/16"]
-
-  lifecycle {
-    ignore_changes = [subnet]
-  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -215,21 +211,7 @@ resource "azurerm_private_dns_resolver_inbound_endpoint" "test" {
 func (r DNSResolverInboundEndpointResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-			%s
-resource "azurerm_subnet" "test1" {
-  name                 = "inbounddns1"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.0.64/28"]
-
-  delegation {
-    name = "Microsoft.Network.dnsResolvers"
-    service_delegation {
-      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
-      name    = "Microsoft.Network/dnsResolvers"
-    }
-  }
-}
+	%s
 
 resource "azurerm_private_dns_resolver_inbound_endpoint" "test" {
   name                    = "acctest-drie-%d"

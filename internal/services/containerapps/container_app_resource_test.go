@@ -570,16 +570,8 @@ func TestAccContainerAppResource_ingressTrafficValidation(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config:      r.ingressTrafficValidation(data, r.trafficBlockMoreThanOne()),
-			ExpectError: regexp.MustCompile(fmt.Sprintf(`at most one %s can be specified during creation`, "`ingress.0.traffic_weight`")),
-		},
-		{
-			Config:      r.ingressTrafficValidation(data, r.trafficBlockLatestRevisionNotSet()),
-			ExpectError: regexp.MustCompile(fmt.Sprintf(`%s must be set to true during creation`, "`ingress.0.traffic_weight.0.latest_revision`")),
-		},
-		{
-			Config:      r.ingressTrafficValidation(data, r.trafficBlockRevisionSuffixSet()),
-			ExpectError: regexp.MustCompile(fmt.Sprintf(`%s must not be set during creation`, "`ingress.0.traffic_weight.0.revision_suffix`")),
+			Config:      r.ingressTrafficValidation(data, r.latestRevisionFalseRevisionSuffixEmpty()),
+			ExpectError: regexp.MustCompile("`either ingress.0.traffic_weight.0.revision_suffix` or `ingress.0.traffic_weight.0.latest_revision` should be specified"),
 		},
 	})
 }
@@ -948,10 +940,6 @@ resource "azurerm_key_vault" "test" {
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "premium"
   soft_delete_retention_days = 7
-
-  lifecycle {
-    ignore_changes = [access_policy]
-  }
 }
 
 resource "azurerm_key_vault_secret" "test" {
@@ -1064,10 +1052,6 @@ resource "azurerm_key_vault" "test" {
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "premium"
   soft_delete_retention_days = 7
-
-  lifecycle {
-    ignore_changes = [access_policy]
-  }
 }
 
 resource "azurerm_key_vault_secret" "test" {
@@ -1194,10 +1178,6 @@ resource "azurerm_key_vault" "test" {
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "premium"
   soft_delete_retention_days = 7
-
-  lifecycle {
-    ignore_changes = [access_policy]
-  }
 }
 
 resource "azurerm_key_vault_secret" "test" {
@@ -2844,31 +2824,11 @@ resource "azurerm_container_app" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r ContainerAppResource) trafficBlockMoreThanOne() string {
+func (r ContainerAppResource) latestRevisionFalseRevisionSuffixEmpty() string {
 	return `
 traffic_weight {
-  percentage = 50
-}
-traffic_weight {
-  percentage = 50
-}
-`
-}
-
-func (r ContainerAppResource) trafficBlockLatestRevisionNotSet() string {
-	return `
-traffic_weight {
+  latest_revision = false
   percentage = 100
-}
-`
-}
-
-func (r ContainerAppResource) trafficBlockRevisionSuffixSet() string {
-	return `
-traffic_weight {
-  percentage      = 100
-  latest_revision = true
-  revision_suffix = "foo"
 }
 `
 }

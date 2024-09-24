@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package azurestackhci_test
 
 import (
@@ -82,6 +85,10 @@ func TestAccStackHCILogicalNetwork_update(t *testing.T) {
 }
 
 func TestAccStackHCILogicalNetwork_requiresImport(t *testing.T) {
+	if os.Getenv(customLocationIdEnv) == "" {
+		t.Skipf("skipping since %q has not been specified", customLocationIdEnv)
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_stack_hci_logical_network", "test")
 	r := StackHCILogicalNetworkResource{}
 
@@ -97,6 +104,10 @@ func TestAccStackHCILogicalNetwork_requiresImport(t *testing.T) {
 }
 
 func TestAccStackHCILogicalNetwork_complete(t *testing.T) {
+	if os.Getenv(customLocationIdEnv) == "" {
+		t.Skipf("skipping since %q has not been specified", customLocationIdEnv)
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_stack_hci_logical_network", "test")
 	r := StackHCILogicalNetworkResource{}
 

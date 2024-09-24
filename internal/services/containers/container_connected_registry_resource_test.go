@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2021-08-01-preview/connectedregistries"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-06-01-preview/connectedregistries"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -139,7 +139,7 @@ func TestAccContainerConnectedRegistry_requiresImport(t *testing.T) {
 }
 
 func (r ContainerConnectedRegistryResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	client := clients.Containers.ContainerRegistryClient_v2021_08_01_preview.ConnectedRegistries
+	client := clients.Containers.ContainerRegistryClient_v2023_06_01_preview.ConnectedRegistries
 
 	id, err := connectedregistries.ParseConnectedRegistryID(state.ID)
 	if err != nil {
@@ -249,10 +249,6 @@ resource "azurerm_container_registry" "test" {
   location              = azurerm_resource_group.test.location
   sku                   = "Premium"
   data_endpoint_enabled = true
-
-  lifecycle {
-    ignore_changes = [network_rule_set]
-  }
 }
 
 resource "azurerm_container_registry_scope_map" "test" {
@@ -337,10 +333,6 @@ resource "azurerm_container_registry" "test" {
   location              = azurerm_resource_group.test.location
   sku                   = "Premium"
   data_endpoint_enabled = true
-
-  lifecycle {
-    ignore_changes = [network_rule_set]
-  }
 }
 
 resource "azurerm_container_registry_scope_map" "test" {
@@ -390,10 +382,6 @@ resource "azurerm_container_registry" "test" {
   location              = azurerm_resource_group.test.location
   sku                   = "Premium"
   data_endpoint_enabled = true
-
-  lifecycle {
-    ignore_changes = [network_rule_set]
-  }
 }
 
 resource "azurerm_container_registry_scope_map" "test" {
@@ -446,10 +434,6 @@ resource "azurerm_container_registry" "test" {
   location              = azurerm_resource_group.test.location
   sku                   = "Premium"
   data_endpoint_enabled = true
-
-  lifecycle {
-    ignore_changes = [network_rule_set]
-  }
 }
 
 resource "azurerm_container_registry_scope_map" "test" {

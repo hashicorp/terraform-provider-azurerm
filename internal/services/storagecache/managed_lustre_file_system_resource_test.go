@@ -125,10 +125,6 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-
-  lifecycle {
-    ignore_changes = [subnet]
-  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -151,7 +147,7 @@ resource "azurerm_managed_lustre_file_system" "test" {
   sku_name               = "AMLFS-Durable-Premium-250"
   subnet_id              = azurerm_subnet.test.id
   storage_capacity_in_tb = 8
-  zones                  = ["2"]
+  zones                  = ["1"]
 
   maintenance_window {
     day_of_week        = "Friday"
@@ -282,7 +278,7 @@ resource "azurerm_managed_lustre_file_system" "test" {
   sku_name               = "AMLFS-Durable-Premium-250"
   subnet_id              = azurerm_subnet.test.id
   storage_capacity_in_tb = 8
-  zones                  = ["2"]
+  zones                  = ["1"]
 
   maintenance_window {
     day_of_week        = "Friday"
@@ -366,7 +362,7 @@ resource "azurerm_managed_lustre_file_system" "test" {
   sku_name               = "AMLFS-Durable-Premium-250"
   subnet_id              = azurerm_subnet.test.id
   storage_capacity_in_tb = 8
-  zones                  = ["2"]
+  zones                  = ["1"]
 
   maintenance_window {
     day_of_week        = "Thursday"

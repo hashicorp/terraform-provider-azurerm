@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/bastionhosts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-01-01/bastionhosts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -144,7 +144,7 @@ func (BastionHostResource) Exists(ctx context.Context, clients *clients.Client, 
 		return nil, err
 	}
 
-	resp, err := clients.Network.BastionHosts.Get(ctx, *id)
+	resp, err := clients.Network.BastionHostsClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading Bastion Host (%s): %+v", *id, err)
 	}
@@ -168,10 +168,6 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["192.168.1.0/24"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-
-  lifecycle {
-    ignore_changes = [subnet]
-  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -219,10 +215,6 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["192.168.1.0/24"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-
-  lifecycle {
-    ignore_changes = [subnet]
-  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -276,10 +268,6 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["192.168.1.0/24"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-
-  lifecycle {
-    ignore_changes = [subnet]
-  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -349,10 +337,6 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["192.168.1.0/24"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-
-  lifecycle {
-    ignore_changes = [subnet]
-  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -402,10 +386,6 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["192.168.1.0/24"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-
-  lifecycle {
-    ignore_changes = [subnet]
-  }
 }
 
 resource "azurerm_subnet" "test" {

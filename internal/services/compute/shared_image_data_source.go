@@ -5,6 +5,7 @@ package compute
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -126,6 +127,36 @@ func dataSourceSharedImage() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"trusted_launch_supported": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"trusted_launch_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"confidential_vm_supported": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"confidential_vm_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"accelerated_network_support_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"hibernation_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
 			"tags": commonschema.TagsDataSource(),
 		},
 	}
@@ -174,6 +205,42 @@ func dataSourceSharedImageRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			if err := d.Set("purchase_plan", flattenGalleryImageDataSourcePurchasePlan(props.PurchasePlan)); err != nil {
 				return fmt.Errorf("setting `purchase_plan`: %+v", err)
 			}
+
+			trustedLaunchSupported := false
+			trustedLaunchEnabled := false
+			cvmEnabled := false
+			cvmSupported := false
+			acceleratedNetworkSupportEnabled := false
+			hibernationEnabled := false
+			if model.Properties.Features != nil {
+				for _, feature := range *model.Properties.Features {
+					if feature.Name == nil || feature.Value == nil {
+						continue
+					}
+
+					if strings.EqualFold(*feature.Name, "SecurityType") {
+						trustedLaunchSupported = strings.EqualFold(*feature.Value, "TrustedLaunchSupported")
+						trustedLaunchEnabled = strings.EqualFold(*feature.Value, "TrustedLaunch")
+						cvmSupported = strings.EqualFold(*feature.Value, "ConfidentialVmSupported")
+						cvmEnabled = strings.EqualFold(*feature.Value, "ConfidentialVm")
+					}
+
+					if strings.EqualFold(*feature.Name, "IsAcceleratedNetworkSupported") {
+						acceleratedNetworkSupportEnabled = strings.EqualFold(*feature.Value, "true")
+					}
+
+					if strings.EqualFold(*feature.Name, "IsHibernateSupported") {
+						hibernationEnabled = strings.EqualFold(*feature.Value, "true")
+					}
+				}
+			}
+
+			d.Set("confidential_vm_supported", cvmSupported)
+			d.Set("confidential_vm_enabled", cvmEnabled)
+			d.Set("trusted_launch_supported", trustedLaunchSupported)
+			d.Set("trusted_launch_enabled", trustedLaunchEnabled)
+			d.Set("accelerated_network_support_enabled", acceleratedNetworkSupportEnabled)
+			d.Set("hibernation_enabled", hibernationEnabled)
 		}
 
 		return tags.FlattenAndSet(d, model.Tags)

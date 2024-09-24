@@ -125,27 +125,6 @@ func TestAccServiceConnectorAppServiceStorageBlob_secretStore(t *testing.T) {
 	})
 }
 
-func TestAccServiceConnectorAppServiceCosmosdb_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_app_service_connection", "test")
-	r := ServiceConnectorAppServiceResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.cosmosdbBasic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		{
-			Config: r.cosmosdbUpdate(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccServiceConnectorAppService_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_connection", "test")
 	r := ServiceConnectorAppServiceResource{}
@@ -301,45 +280,6 @@ resource "azurerm_app_service_connection" "test" {
 `, template, data.RandomString, data.RandomInteger)
 }
 
-func (r ServiceConnectorAppServiceResource) cosmosdbUpdate(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_cosmosdb_sql_database" "update" {
-  name                = "cosmos-sql-db-update"
-  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
-  account_name        = azurerm_cosmosdb_account.test.name
-  throughput          = 400
-}
-
-resource "azurerm_cosmosdb_sql_container" "update" {
-  name                = "test-containerupdate%[2]s"
-  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
-  account_name        = azurerm_cosmosdb_account.test.name
-  database_name       = azurerm_cosmosdb_sql_database.update.name
-  partition_key_paths = ["/definitionupdate"]
-}
-
-resource "azurerm_service_plan" "update" {
-  location            = azurerm_resource_group.test.location
-  name                = "testserviceplanupdate%[2]s"
-  resource_group_name = azurerm_resource_group.test.name
-  sku_name            = "P1v2"
-  os_type             = "Linux"
-}
-
-resource "azurerm_app_service_connection" "test" {
-  name               = "acctestserviceconnector%[3]d"
-  app_service_id     = azurerm_linux_web_app.test.id
-  target_resource_id = azurerm_cosmosdb_sql_database.update.id
-  authentication {
-    type = "systemAssignedIdentity"
-  }
-}
-`, template, data.RandomString, data.RandomInteger)
-}
-
 func (r ServiceConnectorAppServiceResource) secretStore(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -380,10 +320,6 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-
-  lifecycle {
-    ignore_changes = [subnet]
-  }
 }
 
 resource "azurerm_subnet" "test1" {
@@ -505,10 +441,6 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-
-  lifecycle {
-    ignore_changes = [subnet]
-  }
 }
 
 resource "azurerm_subnet" "test1" {

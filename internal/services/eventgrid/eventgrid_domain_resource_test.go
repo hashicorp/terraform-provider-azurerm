@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -346,8 +345,7 @@ resource "azurerm_eventgrid_domain" "test" {
 }
 
 func (EventGridDomainResource) unsetInboundIPRules(data acceptance.TestData) string {
-	if !features.FourPointOhBeta() {
-		return fmt.Sprintf(`
+	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -365,25 +363,6 @@ resource "azurerm_eventgrid_domain" "test" {
   public_network_access_enabled = true
 
   inbound_ip_rule = []
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-	}
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_eventgrid_domain" "test" {
-  name                = "acctesteg-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  public_network_access_enabled = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

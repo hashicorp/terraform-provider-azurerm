@@ -47,7 +47,6 @@ func TestAccStorageAccount_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("account_replication_type").HasValue("GRS"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.environment").HasValue("staging"),
-				check.That(data.ResourceName).Key("cross_tenant_replication_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -914,13 +913,6 @@ func TestAccStorageAccount_largeFileShare(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-		{
-			Config: r.largeFileShareDisabled(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("large_file_share_enabled").HasValue("false"),
-			),
-		},
 	})
 }
 
@@ -2180,10 +2172,6 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-
-  lifecycle {
-    ignore_changes = [subnet]
-  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -2576,10 +2564,6 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-
-  lifecycle {
-    ignore_changes = [subnet]
-  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -3485,6 +3469,7 @@ resource "azurerm_storage_account" "test" {
       forest_name         = "adtest.com"
       netbios_domain_name = "adtest.com"
     }
+    default_share_level_permission = "StorageFileDataSmbShareReader"
   }
 
   tags = {
@@ -3522,6 +3507,7 @@ resource "azurerm_storage_account" "test" {
       forest_name         = "adtest2.com"
       netbios_domain_name = "adtest2.com"
     }
+    default_share_level_permission = "StorageFileDataSmbShareContributor"
   }
 
   tags = {
@@ -3550,7 +3536,8 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
 
   azure_files_authentication {
-    directory_type = "AADKERB"
+    directory_type                 = "AADKERB"
+    default_share_level_permission = "StorageFileDataSmbShareElevatedContributor"
   }
 
   tags = {
@@ -4127,7 +4114,6 @@ resource "azurerm_storage_account" "test" {
   account_tier                      = "Premium"
   account_replication_type          = "LRS"
   infrastructure_encryption_enabled = true
-  large_file_share_enabled          = true # defaulted on the API side
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
@@ -4286,10 +4272,6 @@ resource "azurerm_key_vault" "update" {
   tenant_id                = data.azurerm_client_config.current.tenant_id
   sku_name                 = "standard"
   purge_protection_enabled = true
-
-  lifecycle {
-    ignore_changes = [access_policy]
-  }
 }
 
 resource "azurerm_key_vault_access_policy" "storageupdate" {
@@ -4486,10 +4468,6 @@ resource "azurerm_key_vault" "remotetest" {
   tenant_id                = "%s"
   sku_name                 = "standard"
   purge_protection_enabled = true
-
-  lifecycle {
-    ignore_changes = [access_policy]
-  }
 }
 
 resource "azurerm_key_vault_access_policy" "storage" {
@@ -4625,7 +4603,6 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Premium"
   account_kind             = "FileStorage"
   account_replication_type = "ZRS"
-  large_file_share_enabled = true # defaulted in the API when FileStorage & Premium
 
   share_properties {
     smb {
@@ -5208,7 +5185,7 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "test" {
-  vault_base_url     = azurerm_key_vault_managed_hardware_security_module.test.hsm_uri
+  managed_hsm_id     = azurerm_key_vault_managed_hardware_security_module.test.id
   name               = "1e243909-064c-6ac3-84e9-1c8bf8d6ad22"
   scope              = "/keys"
   role_definition_id = "/Microsoft.KeyVault/providers/Microsoft.Authorization/roleDefinitions/21dbd100-6940-42c2-9190-5d6cb909625b"
@@ -5216,7 +5193,7 @@ resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "t
 }
 
 resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "test1" {
-  vault_base_url     = azurerm_key_vault_managed_hardware_security_module.test.hsm_uri
+  managed_hsm_id     = azurerm_key_vault_managed_hardware_security_module.test.id
   name               = "1e243909-064c-6ac3-84e9-1c8bf8d6ad23"
   scope              = "/keys"
   role_definition_id = "/Microsoft.KeyVault/providers/Microsoft.Authorization/roleDefinitions/515eb02d-2335-4d2d-92f2-b1cbdf9c3778"
@@ -5224,7 +5201,7 @@ resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "t
 }
 
 resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "user" {
-  vault_base_url     = azurerm_key_vault_managed_hardware_security_module.test.hsm_uri
+  managed_hsm_id     = azurerm_key_vault_managed_hardware_security_module.test.id
   name               = "1e243909-064c-6ac3-84e9-1c8bf8d6ad20"
   scope              = "/keys"
   role_definition_id = "/Microsoft.KeyVault/providers/Microsoft.Authorization/roleDefinitions/21dbd100-6940-42c2-9190-5d6cb909625b"

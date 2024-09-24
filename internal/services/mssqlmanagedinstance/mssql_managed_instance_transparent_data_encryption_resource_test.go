@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -109,16 +111,17 @@ func (MsSqlManagedInstanceTransparentDataEncryptionResource) Exists(ctx context.
 		return nil, err
 	}
 
-	resp, err := client.MSSQLManagedInstance.ManagedInstanceEncryptionProtectorClient.Get(ctx, id.ResourceGroup, id.ManagedInstanceName)
+	instanceId := commonids.NewSqlManagedInstanceID(id.SubscriptionId, id.ResourceGroup, id.ManagedInstanceName)
+	resp, err := client.MSSQLManagedInstance.ManagedInstanceEncryptionProtectorClient.Get(ctx, instanceId)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return nil, fmt.Errorf("Encryption protector for managed instance %q (Resource Group %q) does not exist", id.ManagedInstanceName, id.ResourceGroup)
+		if response.WasNotFound(resp.HttpResponse) {
+			return nil, fmt.Errorf("encryption protector for managed instance %q (Resource Group %q) does not exist", id.ManagedInstanceName, id.ResourceGroup)
 		}
 
 		return nil, fmt.Errorf("reading Encryption Protector for managed instance %q (Resource Group %q): %v", id.ManagedInstanceName, id.ResourceGroup, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r MsSqlManagedInstanceTransparentDataEncryptionResource) keyVaultSystemAssignedIdentity(data acceptance.TestData) string {
@@ -325,6 +328,14 @@ provider "azurerm" {
       purge_soft_delete_on_destroy       = false
       purge_soft_deleted_keys_on_destroy = false
     }
+
+    resource_group {
+      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service, 
+      prevent_deletion_if_contains_resources has been added here to allow the test resources to be 
+       deleted until this can be properly investigated
+      */
+      prevent_deletion_if_contains_resources = false
+    }
   }
 }
 
@@ -362,6 +373,8 @@ resource "azurerm_mssql_managed_instance" "test" {
 }
 
 
+
+
 `, db.template(data, data.Locations.Primary), data.RandomInteger)
 }
 
@@ -374,6 +387,13 @@ provider "azurerm" {
     key_vault {
       purge_soft_delete_on_destroy       = false
       purge_soft_deleted_keys_on_destroy = false
+    }
+    resource_group {
+      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
+      prevent_deletion_if_contains_resources has been added here to allow the test resources to be
+       deleted until this can be properly investigated
+      */
+      prevent_deletion_if_contains_resources = false
     }
   }
 }
@@ -419,6 +439,12 @@ resource "azurerm_mssql_managed_instance" "test" {
     database    = "test"
   }
 }
+
+
+
+
+
+
 
 
 `, db.template(data, data.Locations.Primary), data.RandomInteger)
