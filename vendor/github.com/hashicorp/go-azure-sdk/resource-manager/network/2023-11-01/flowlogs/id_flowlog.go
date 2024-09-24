@@ -44,7 +44,7 @@ func ParseFlowLogID(input string) (*FlowLogId, error) {
 	}
 
 	id := FlowLogId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseFlowLogIDInsensitively(input string) (*FlowLogId, error) {
 	}
 
 	id := FlowLogId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id FlowLogId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticNetworkWatchers", "networkWatchers", "networkWatchers"),
-		resourceids.UserSpecifiedSegment("networkWatcherName", "networkWatcherValue"),
+		resourceids.UserSpecifiedSegment("networkWatcherName", "networkWatcherName"),
 		resourceids.StaticSegment("staticFlowLogs", "flowLogs", "flowLogs"),
-		resourceids.UserSpecifiedSegment("flowLogName", "flowLogValue"),
+		resourceids.UserSpecifiedSegment("flowLogName", "flowLogName"),
 	}
 }
 

@@ -45,7 +45,6 @@ func (c LocalUsersClient) Get(ctx context.Context, id LocalUserId) (result GetOp
 
 	var model LocalUser
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

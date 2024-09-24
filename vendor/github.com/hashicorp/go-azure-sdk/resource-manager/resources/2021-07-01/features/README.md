@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/resources/2021-07-01/features` Documentation
 
-The `features` SDK allows for interaction with the Azure Resource Manager Service `resources` (API Version `2021-07-01`).
+The `features` SDK allows for interaction with Azure Resource Manager `resources` (API Version `2021-07-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := features.NewFeatureID("12345678-1234-9876-4563-123456789012", "providerValue", "featureValue")
+id := features.NewFeatureID("12345678-1234-9876-4563-123456789012", "resourceProviderNamespace", "featureName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -41,7 +41,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := features.NewProviders2ID("12345678-1234-9876-4563-123456789012", "providerValue")
+id := features.NewProviders2ID("12345678-1234-9876-4563-123456789012", "resourceProviderNamespace")
 
 // alternatively `client.List(ctx, id)` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id)
@@ -75,7 +75,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := features.NewFeatureID("12345678-1234-9876-4563-123456789012", "providerValue", "featureValue")
+id := features.NewFeatureID("12345678-1234-9876-4563-123456789012", "resourceProviderNamespace", "featureName")
 
 read, err := client.Register(ctx, id)
 if err != nil {
@@ -91,7 +91,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := features.NewFeatureID("12345678-1234-9876-4563-123456789012", "providerValue", "featureValue")
+id := features.NewFeatureID("12345678-1234-9876-4563-123456789012", "resourceProviderNamespace", "featureName")
 
 read, err := client.Unregister(ctx, id)
 if err != nil {

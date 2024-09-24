@@ -44,7 +44,7 @@ func ParseOutboundRuleID(input string) (*OutboundRuleId, error) {
 	}
 
 	id := OutboundRuleId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseOutboundRuleIDInsensitively(input string) (*OutboundRuleId, error) {
 	}
 
 	id := OutboundRuleId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id OutboundRuleId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticLoadBalancers", "loadBalancers", "loadBalancers"),
-		resourceids.UserSpecifiedSegment("loadBalancerName", "loadBalancerValue"),
+		resourceids.UserSpecifiedSegment("loadBalancerName", "loadBalancerName"),
 		resourceids.StaticSegment("staticOutboundRules", "outboundRules", "outboundRules"),
-		resourceids.UserSpecifiedSegment("outboundRuleName", "outboundRuleValue"),
+		resourceids.UserSpecifiedSegment("outboundRuleName", "outboundRuleName"),
 	}
 }
 

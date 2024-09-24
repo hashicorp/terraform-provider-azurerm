@@ -14,6 +14,14 @@ type InMageDisableProtectionProviderSpecificInput struct {
 	ReplicaVMDeletionStatus *string `json:"replicaVmDeletionStatus,omitempty"`
 
 	// Fields inherited from DisableProtectionProviderSpecificInput
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s InMageDisableProtectionProviderSpecificInput) DisableProtectionProviderSpecificInput() BaseDisableProtectionProviderSpecificInputImpl {
+	return BaseDisableProtectionProviderSpecificInputImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = InMageDisableProtectionProviderSpecificInput{}
@@ -27,9 +35,10 @@ func (s InMageDisableProtectionProviderSpecificInput) MarshalJSON() ([]byte, err
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling InMageDisableProtectionProviderSpecificInput: %+v", err)
 	}
+
 	decoded["instanceType"] = "InMage"
 
 	encoded, err = json.Marshal(decoded)

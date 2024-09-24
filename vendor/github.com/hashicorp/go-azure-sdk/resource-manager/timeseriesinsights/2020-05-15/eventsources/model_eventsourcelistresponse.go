@@ -29,7 +29,7 @@ func (s *EventSourceListResponse) UnmarshalJSON(bytes []byte) error {
 
 		output := make([]EventSourceResource, 0)
 		for i, val := range listTemp {
-			impl, err := unmarshalEventSourceResourceImplementation(val)
+			impl, err := UnmarshalEventSourceResourceImplementation(val)
 			if err != nil {
 				return fmt.Errorf("unmarshaling index %d field 'Value' for 'EventSourceListResponse': %+v", i, err)
 			}
@@ -37,5 +37,6 @@ func (s *EventSourceListResponse) UnmarshalJSON(bytes []byte) error {
 		}
 		s.Value = &output
 	}
+
 	return nil
 }

@@ -44,7 +44,7 @@ func ParseTriggeredWebJobID(input string) (*TriggeredWebJobId, error) {
 	}
 
 	id := TriggeredWebJobId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseTriggeredWebJobIDInsensitively(input string) (*TriggeredWebJobId, erro
 	}
 
 	id := TriggeredWebJobId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id TriggeredWebJobId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftWeb", "Microsoft.Web", "Microsoft.Web"),
 		resourceids.StaticSegment("staticSites", "sites", "sites"),
-		resourceids.UserSpecifiedSegment("siteName", "siteValue"),
+		resourceids.UserSpecifiedSegment("siteName", "name"),
 		resourceids.StaticSegment("staticTriggeredWebJobs", "triggeredWebJobs", "triggeredWebJobs"),
-		resourceids.UserSpecifiedSegment("triggeredWebJobName", "triggeredWebJobValue"),
+		resourceids.UserSpecifiedSegment("triggeredWebJobName", "webJobName"),
 	}
 }
 

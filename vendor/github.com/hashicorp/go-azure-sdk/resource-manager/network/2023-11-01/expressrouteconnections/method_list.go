@@ -46,7 +46,6 @@ func (c ExpressRouteConnectionsClient) List(ctx context.Context, id ExpressRoute
 
 	var model ExpressRouteConnectionList
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

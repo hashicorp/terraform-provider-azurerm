@@ -45,7 +45,6 @@ func (c ConfigurationsClient) Get(ctx context.Context, id ConfigurationId) (resu
 
 	var model Configuration
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

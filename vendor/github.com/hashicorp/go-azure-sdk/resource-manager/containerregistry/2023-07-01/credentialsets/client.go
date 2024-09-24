@@ -15,7 +15,7 @@ type CredentialSetsClient struct {
 }
 
 func NewCredentialSetsClientWithBaseURI(sdkApi sdkEnv.Api) (*CredentialSetsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "credentialsets", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "credentialsets", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating CredentialSetsClient: %+v", err)
 	}

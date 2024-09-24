@@ -45,7 +45,6 @@ func (c TokensClient) Get(ctx context.Context, id TokenId) (result GetOperationR
 
 	var model Token
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

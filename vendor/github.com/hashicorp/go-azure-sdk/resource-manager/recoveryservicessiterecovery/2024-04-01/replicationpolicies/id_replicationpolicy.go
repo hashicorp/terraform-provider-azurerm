@@ -44,7 +44,7 @@ func ParseReplicationPolicyID(input string) (*ReplicationPolicyId, error) {
 	}
 
 	id := ReplicationPolicyId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseReplicationPolicyIDInsensitively(input string) (*ReplicationPolicyId, 
 	}
 
 	id := ReplicationPolicyId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id ReplicationPolicyId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftRecoveryServices", "Microsoft.RecoveryServices", "Microsoft.RecoveryServices"),
 		resourceids.StaticSegment("staticVaults", "vaults", "vaults"),
-		resourceids.UserSpecifiedSegment("vaultName", "vaultValue"),
+		resourceids.UserSpecifiedSegment("vaultName", "resourceName"),
 		resourceids.StaticSegment("staticReplicationPolicies", "replicationPolicies", "replicationPolicies"),
-		resourceids.UserSpecifiedSegment("replicationPolicyName", "replicationPolicyValue"),
+		resourceids.UserSpecifiedSegment("replicationPolicyName", "policyName"),
 	}
 }
 

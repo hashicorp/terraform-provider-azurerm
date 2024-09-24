@@ -45,7 +45,6 @@ func (c ServersClient) Get(ctx context.Context, id FlexibleServerId) (result Get
 
 	var model Server
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

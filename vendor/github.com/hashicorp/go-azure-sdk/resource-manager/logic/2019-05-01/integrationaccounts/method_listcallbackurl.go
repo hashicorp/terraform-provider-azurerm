@@ -50,7 +50,6 @@ func (c IntegrationAccountsClient) ListCallbackUrl(ctx context.Context, id Integ
 
 	var model CallbackUrl
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

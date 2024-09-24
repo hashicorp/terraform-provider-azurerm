@@ -52,7 +52,6 @@ func (c BlobAuditingClient) DatabaseBlobAuditingPoliciesCreateOrUpdate(ctx conte
 
 	var model DatabaseBlobAuditingPolicy
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

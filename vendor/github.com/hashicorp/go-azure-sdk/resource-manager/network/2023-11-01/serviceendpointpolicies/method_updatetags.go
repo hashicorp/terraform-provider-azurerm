@@ -49,7 +49,6 @@ func (c ServiceEndpointPoliciesClient) UpdateTags(ctx context.Context, id Servic
 
 	var model ServiceEndpointPolicy
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -42,7 +42,7 @@ func ParseResourceManagementPrivateLinkID(input string) (*ResourceManagementPriv
 	}
 
 	id := ResourceManagementPrivateLinkId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseResourceManagementPrivateLinkIDInsensitively(input string) (*ResourceM
 	}
 
 	id := ResourceManagementPrivateLinkId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id ResourceManagementPrivateLinkId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAuthorization", "Microsoft.Authorization", "Microsoft.Authorization"),
 		resourceids.StaticSegment("staticResourceManagementPrivateLinks", "resourceManagementPrivateLinks", "resourceManagementPrivateLinks"),
-		resourceids.UserSpecifiedSegment("resourceManagementPrivateLinkName", "resourceManagementPrivateLinkValue"),
+		resourceids.UserSpecifiedSegment("resourceManagementPrivateLinkName", "rmplName"),
 	}
 }
 

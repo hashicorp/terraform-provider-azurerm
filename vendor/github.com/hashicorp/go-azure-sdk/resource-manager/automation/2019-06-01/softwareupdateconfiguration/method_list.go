@@ -37,6 +37,7 @@ func (o ListOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -77,7 +78,6 @@ func (c SoftwareUpdateConfigurationClient) List(ctx context.Context, id Automati
 
 	var model SoftwareUpdateConfigurationListResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -15,7 +15,7 @@ type ExpressRoutePortAuthorizationsClient struct {
 }
 
 func NewExpressRoutePortAuthorizationsClientWithBaseURI(sdkApi sdkEnv.Api) (*ExpressRoutePortAuthorizationsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "expressrouteportauthorizations", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "expressrouteportauthorizations", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ExpressRoutePortAuthorizationsClient: %+v", err)
 	}

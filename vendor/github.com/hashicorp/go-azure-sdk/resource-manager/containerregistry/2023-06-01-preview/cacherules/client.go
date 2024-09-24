@@ -15,7 +15,7 @@ type CacheRulesClient struct {
 }
 
 func NewCacheRulesClientWithBaseURI(sdkApi sdkEnv.Api) (*CacheRulesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "cacherules", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "cacherules", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating CacheRulesClient: %+v", err)
 	}

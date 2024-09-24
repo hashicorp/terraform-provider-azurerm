@@ -44,7 +44,7 @@ func ParseFrontendIPConfigurationID(input string) (*FrontendIPConfigurationId, e
 	}
 
 	id := FrontendIPConfigurationId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseFrontendIPConfigurationIDInsensitively(input string) (*FrontendIPConfi
 	}
 
 	id := FrontendIPConfigurationId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id FrontendIPConfigurationId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticLoadBalancers", "loadBalancers", "loadBalancers"),
-		resourceids.UserSpecifiedSegment("loadBalancerName", "loadBalancerValue"),
+		resourceids.UserSpecifiedSegment("loadBalancerName", "loadBalancerName"),
 		resourceids.StaticSegment("staticFrontendIPConfigurations", "frontendIPConfigurations", "frontendIPConfigurations"),
-		resourceids.UserSpecifiedSegment("frontendIPConfigurationName", "frontendIPConfigurationValue"),
+		resourceids.UserSpecifiedSegment("frontendIPConfigurationName", "frontendIPConfigurationName"),
 	}
 }
 

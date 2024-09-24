@@ -45,7 +45,6 @@ func (c WebAppsClient) GetInstanceInfoSlot(ctx context.Context, id SlotInstanceI
 
 	var model WebSiteInstanceStatus
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

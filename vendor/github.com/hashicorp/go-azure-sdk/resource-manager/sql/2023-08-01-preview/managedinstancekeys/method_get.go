@@ -45,7 +45,6 @@ func (c ManagedInstanceKeysClient) Get(ctx context.Context, id ManagedInstanceKe
 
 	var model ManagedInstanceKey
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

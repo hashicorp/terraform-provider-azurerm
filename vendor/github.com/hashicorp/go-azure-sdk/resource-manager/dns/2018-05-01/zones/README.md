@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones` Documentation
 
-The `zones` SDK allows for interaction with the Azure Resource Manager Service `dns` (API Version `2018-05-01`).
+The `zones` SDK allows for interaction with Azure Resource Manager `dns` (API Version `2018-05-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := zones.NewDnsZoneID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dnsZoneValue")
+id := zones.NewDnsZoneID("12345678-1234-9876-4563-123456789012", "example-resource-group", "zoneName")
 
 payload := zones.Zone{
 	// ...
@@ -46,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := zones.NewDnsZoneID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dnsZoneValue")
+id := zones.NewDnsZoneID("12345678-1234-9876-4563-123456789012", "example-resource-group", "zoneName")
 
 if err := client.DeleteThenPoll(ctx, id, zones.DefaultDeleteOperationOptions()); err != nil {
 	// handle the error
@@ -58,7 +58,7 @@ if err := client.DeleteThenPoll(ctx, id, zones.DefaultDeleteOperationOptions());
 
 ```go
 ctx := context.TODO()
-id := zones.NewDnsZoneID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dnsZoneValue")
+id := zones.NewDnsZoneID("12345678-1234-9876-4563-123456789012", "example-resource-group", "zoneName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -108,7 +108,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := zones.NewDnsZoneID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dnsZoneValue")
+id := zones.NewDnsZoneID("12345678-1234-9876-4563-123456789012", "example-resource-group", "zoneName")
 
 payload := zones.ZoneUpdate{
 	// ...

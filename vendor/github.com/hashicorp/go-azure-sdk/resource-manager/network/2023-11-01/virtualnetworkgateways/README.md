@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/virtualnetworkgateways` Documentation
 
-The `virtualnetworkgateways` SDK allows for interaction with the Azure Resource Manager Service `network` (API Version `2023-11-01`).
+The `virtualnetworkgateways` SDK allows for interaction with Azure Resource Manager `network` (API Version `2023-11-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := virtualnetworkgateways.NewVirtualNetworkGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayValue")
+id := virtualnetworkgateways.NewVirtualNetworkGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayName")
 
 payload := virtualnetworkgateways.VirtualNetworkGateway{
 	// ...
@@ -42,7 +42,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualnetworkgateways.NewVirtualNetworkGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayValue")
+id := virtualnetworkgateways.NewVirtualNetworkGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -54,7 +54,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualnetworkgateways.NewVirtualNetworkGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayValue")
+id := virtualnetworkgateways.NewVirtualNetworkGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayName")
 
 payload := virtualnetworkgateways.P2SVpnConnectionRequest{
 	// ...
@@ -71,7 +71,7 @@ if err := client.DisconnectVirtualNetworkGatewayVpnConnectionsThenPoll(ctx, id, 
 
 ```go
 ctx := context.TODO()
-id := virtualnetworkgateways.NewVirtualNetworkGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayValue")
+id := virtualnetworkgateways.NewVirtualNetworkGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayName")
 
 payload := virtualnetworkgateways.VpnClientParameters{
 	// ...
@@ -88,7 +88,7 @@ if err := client.GenerateVpnProfileThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualnetworkgateways.NewVirtualNetworkGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayValue")
+id := virtualnetworkgateways.NewVirtualNetworkGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayName")
 
 payload := virtualnetworkgateways.VpnClientParameters{
 	// ...
@@ -105,7 +105,7 @@ if err := client.GeneratevpnclientpackageThenPoll(ctx, id, payload); err != nil 
 
 ```go
 ctx := context.TODO()
-id := virtualnetworkgateways.NewVirtualNetworkGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayValue")
+id := virtualnetworkgateways.NewVirtualNetworkGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -121,7 +121,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualnetworkgateways.NewVirtualNetworkGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayValue")
+id := virtualnetworkgateways.NewVirtualNetworkGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayName")
 
 if err := client.GetAdvertisedRoutesThenPoll(ctx, id, virtualnetworkgateways.DefaultGetAdvertisedRoutesOperationOptions()); err != nil {
 	// handle the error
@@ -133,7 +133,7 @@ if err := client.GetAdvertisedRoutesThenPoll(ctx, id, virtualnetworkgateways.Def
 
 ```go
 ctx := context.TODO()
-id := virtualnetworkgateways.NewVirtualNetworkGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayValue")
+id := virtualnetworkgateways.NewVirtualNetworkGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayName")
 
 if err := client.GetBgpPeerStatusThenPoll(ctx, id, virtualnetworkgateways.DefaultGetBgpPeerStatusOperationOptions()); err != nil {
 	// handle the error
@@ -145,7 +145,7 @@ if err := client.GetBgpPeerStatusThenPoll(ctx, id, virtualnetworkgateways.Defaul
 
 ```go
 ctx := context.TODO()
-id := virtualnetworkgateways.NewVirtualNetworkGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayValue")
+id := virtualnetworkgateways.NewVirtualNetworkGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayName")
 
 if err := client.GetLearnedRoutesThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -157,7 +157,7 @@ if err := client.GetLearnedRoutesThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualnetworkgateways.NewVirtualNetworkGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayValue")
+id := virtualnetworkgateways.NewVirtualNetworkGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayName")
 
 if err := client.GetVpnProfilePackageUrlThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -169,7 +169,7 @@ if err := client.GetVpnProfilePackageUrlThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualnetworkgateways.NewVirtualNetworkGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayValue")
+id := virtualnetworkgateways.NewVirtualNetworkGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayName")
 
 if err := client.GetVpnclientConnectionHealthThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -181,7 +181,7 @@ if err := client.GetVpnclientConnectionHealthThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualnetworkgateways.NewVirtualNetworkGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayValue")
+id := virtualnetworkgateways.NewVirtualNetworkGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayName")
 
 if err := client.GetVpnclientIPsecParametersThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -210,7 +210,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := virtualnetworkgateways.NewVirtualNetworkGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayValue")
+id := virtualnetworkgateways.NewVirtualNetworkGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayName")
 
 // alternatively `client.ListConnections(ctx, id)` can be used to do batched pagination
 items, err := client.ListConnectionsComplete(ctx, id)
@@ -227,7 +227,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := virtualnetworkgateways.NewVirtualNetworkGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayValue")
+id := virtualnetworkgateways.NewVirtualNetworkGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayName")
 
 if err := client.ResetThenPoll(ctx, id, virtualnetworkgateways.DefaultResetOperationOptions()); err != nil {
 	// handle the error
@@ -239,7 +239,7 @@ if err := client.ResetThenPoll(ctx, id, virtualnetworkgateways.DefaultResetOpera
 
 ```go
 ctx := context.TODO()
-id := virtualnetworkgateways.NewVirtualNetworkGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayValue")
+id := virtualnetworkgateways.NewVirtualNetworkGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayName")
 
 if err := client.ResetVpnClientSharedKeyThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -251,7 +251,7 @@ if err := client.ResetVpnClientSharedKeyThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualnetworkgateways.NewVirtualNetworkGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayValue")
+id := virtualnetworkgateways.NewVirtualNetworkGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayName")
 
 payload := virtualnetworkgateways.VpnClientIPsecParameters{
 	// ...
@@ -268,7 +268,7 @@ if err := client.SetVpnclientIPsecParametersThenPoll(ctx, id, payload); err != n
 
 ```go
 ctx := context.TODO()
-id := virtualnetworkgateways.NewVirtualNetworkGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayValue")
+id := virtualnetworkgateways.NewVirtualNetworkGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayName")
 
 payload := virtualnetworkgateways.VpnPacketCaptureStartParameters{
 	// ...
@@ -285,7 +285,7 @@ if err := client.StartPacketCaptureThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualnetworkgateways.NewVirtualNetworkGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayValue")
+id := virtualnetworkgateways.NewVirtualNetworkGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayName")
 
 payload := virtualnetworkgateways.VpnPacketCaptureStopParameters{
 	// ...
@@ -302,7 +302,7 @@ if err := client.StopPacketCaptureThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualnetworkgateways.NewVirtualNetworkGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayValue")
+id := virtualnetworkgateways.NewVirtualNetworkGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayName")
 
 read, err := client.SupportedVpnDevices(ctx, id)
 if err != nil {
@@ -318,7 +318,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualnetworkgateways.NewVirtualNetworkGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayValue")
+id := virtualnetworkgateways.NewVirtualNetworkGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayName")
 
 payload := virtualnetworkgateways.TagsObject{
 	// ...
@@ -335,7 +335,7 @@ if err := client.UpdateTagsThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualnetworkgateways.NewVirtualNetworkGatewayNatRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayValue", "natRuleValue")
+id := virtualnetworkgateways.NewVirtualNetworkGatewayNatRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayName", "natRuleName")
 
 payload := virtualnetworkgateways.VirtualNetworkGatewayNatRule{
 	// ...
@@ -352,7 +352,7 @@ if err := client.VirtualNetworkGatewayNatRulesCreateOrUpdateThenPoll(ctx, id, pa
 
 ```go
 ctx := context.TODO()
-id := virtualnetworkgateways.NewVirtualNetworkGatewayNatRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayValue", "natRuleValue")
+id := virtualnetworkgateways.NewVirtualNetworkGatewayNatRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayName", "natRuleName")
 
 if err := client.VirtualNetworkGatewayNatRulesDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -364,7 +364,7 @@ if err := client.VirtualNetworkGatewayNatRulesDeleteThenPoll(ctx, id); err != ni
 
 ```go
 ctx := context.TODO()
-id := virtualnetworkgateways.NewVirtualNetworkGatewayNatRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayValue", "natRuleValue")
+id := virtualnetworkgateways.NewVirtualNetworkGatewayNatRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayName", "natRuleName")
 
 read, err := client.VirtualNetworkGatewayNatRulesGet(ctx, id)
 if err != nil {
@@ -380,7 +380,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualnetworkgateways.NewVirtualNetworkGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayValue")
+id := virtualnetworkgateways.NewVirtualNetworkGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayName")
 
 // alternatively `client.VirtualNetworkGatewayNatRulesListByVirtualNetworkGateway(ctx, id)` can be used to do batched pagination
 items, err := client.VirtualNetworkGatewayNatRulesListByVirtualNetworkGatewayComplete(ctx, id)
@@ -397,7 +397,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := virtualnetworkgateways.NewConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "connectionValue")
+id := virtualnetworkgateways.NewConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayConnectionName")
 
 payload := virtualnetworkgateways.VpnDeviceScriptParameters{
 	// ...

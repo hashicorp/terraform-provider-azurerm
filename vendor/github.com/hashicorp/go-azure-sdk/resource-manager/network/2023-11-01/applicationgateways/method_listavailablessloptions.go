@@ -47,7 +47,6 @@ func (c ApplicationGatewaysClient) ListAvailableSslOptions(ctx context.Context, 
 
 	var model ApplicationGatewayAvailableSslOptions
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

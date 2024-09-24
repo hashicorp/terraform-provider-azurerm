@@ -15,7 +15,7 @@ type VolumeQuotaRulesClient struct {
 }
 
 func NewVolumeQuotaRulesClientWithBaseURI(sdkApi sdkEnv.Api) (*VolumeQuotaRulesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "volumequotarules", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "volumequotarules", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating VolumeQuotaRulesClient: %+v", err)
 	}

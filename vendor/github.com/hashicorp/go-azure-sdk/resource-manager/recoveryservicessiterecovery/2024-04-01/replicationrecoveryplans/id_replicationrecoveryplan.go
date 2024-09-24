@@ -44,7 +44,7 @@ func ParseReplicationRecoveryPlanID(input string) (*ReplicationRecoveryPlanId, e
 	}
 
 	id := ReplicationRecoveryPlanId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseReplicationRecoveryPlanIDInsensitively(input string) (*ReplicationReco
 	}
 
 	id := ReplicationRecoveryPlanId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id ReplicationRecoveryPlanId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftRecoveryServices", "Microsoft.RecoveryServices", "Microsoft.RecoveryServices"),
 		resourceids.StaticSegment("staticVaults", "vaults", "vaults"),
-		resourceids.UserSpecifiedSegment("vaultName", "vaultValue"),
+		resourceids.UserSpecifiedSegment("vaultName", "resourceName"),
 		resourceids.StaticSegment("staticReplicationRecoveryPlans", "replicationRecoveryPlans", "replicationRecoveryPlans"),
-		resourceids.UserSpecifiedSegment("replicationRecoveryPlanName", "replicationRecoveryPlanValue"),
+		resourceids.UserSpecifiedSegment("replicationRecoveryPlanName", "recoveryPlanName"),
 	}
 }
 

@@ -44,7 +44,7 @@ func ParseFunctionID(input string) (*FunctionId, error) {
 	}
 
 	id := FunctionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseFunctionIDInsensitively(input string) (*FunctionId, error) {
 	}
 
 	id := FunctionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id FunctionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftWeb", "Microsoft.Web", "Microsoft.Web"),
 		resourceids.StaticSegment("staticSites", "sites", "sites"),
-		resourceids.UserSpecifiedSegment("siteName", "siteValue"),
+		resourceids.UserSpecifiedSegment("siteName", "name"),
 		resourceids.StaticSegment("staticFunctions", "functions", "functions"),
-		resourceids.UserSpecifiedSegment("functionName", "functionValue"),
+		resourceids.UserSpecifiedSegment("functionName", "functionName"),
 	}
 }
 

@@ -46,7 +46,7 @@ func ParseSlotContinuousWebJobID(input string) (*SlotContinuousWebJobId, error) 
 	}
 
 	id := SlotContinuousWebJobId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -63,7 +63,7 @@ func ParseSlotContinuousWebJobIDInsensitively(input string) (*SlotContinuousWebJ
 	}
 
 	id := SlotContinuousWebJobId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -127,11 +127,11 @@ func (id SlotContinuousWebJobId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftWeb", "Microsoft.Web", "Microsoft.Web"),
 		resourceids.StaticSegment("staticSites", "sites", "sites"),
-		resourceids.UserSpecifiedSegment("siteName", "siteValue"),
+		resourceids.UserSpecifiedSegment("siteName", "name"),
 		resourceids.StaticSegment("staticSlots", "slots", "slots"),
-		resourceids.UserSpecifiedSegment("slotName", "slotValue"),
+		resourceids.UserSpecifiedSegment("slotName", "slot"),
 		resourceids.StaticSegment("staticContinuousWebJobs", "continuousWebJobs", "continuousWebJobs"),
-		resourceids.UserSpecifiedSegment("continuousWebJobName", "continuousWebJobValue"),
+		resourceids.UserSpecifiedSegment("continuousWebJobName", "webJobName"),
 	}
 }
 

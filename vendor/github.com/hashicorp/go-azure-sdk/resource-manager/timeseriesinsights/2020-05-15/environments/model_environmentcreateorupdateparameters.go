@@ -10,18 +10,38 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type EnvironmentCreateOrUpdateParameters interface {
+	EnvironmentCreateOrUpdateParameters() BaseEnvironmentCreateOrUpdateParametersImpl
 }
 
-// RawEnvironmentCreateOrUpdateParametersImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ EnvironmentCreateOrUpdateParameters = BaseEnvironmentCreateOrUpdateParametersImpl{}
+
+type BaseEnvironmentCreateOrUpdateParametersImpl struct {
+	Kind     EnvironmentKind    `json:"kind"`
+	Location string             `json:"location"`
+	Sku      Sku                `json:"sku"`
+	Tags     *map[string]string `json:"tags,omitempty"`
+}
+
+func (s BaseEnvironmentCreateOrUpdateParametersImpl) EnvironmentCreateOrUpdateParameters() BaseEnvironmentCreateOrUpdateParametersImpl {
+	return s
+}
+
+var _ EnvironmentCreateOrUpdateParameters = RawEnvironmentCreateOrUpdateParametersImpl{}
+
+// RawEnvironmentCreateOrUpdateParametersImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawEnvironmentCreateOrUpdateParametersImpl struct {
-	Type   string
-	Values map[string]interface{}
+	environmentCreateOrUpdateParameters BaseEnvironmentCreateOrUpdateParametersImpl
+	Type                                string
+	Values                              map[string]interface{}
 }
 
-func unmarshalEnvironmentCreateOrUpdateParametersImplementation(input []byte) (EnvironmentCreateOrUpdateParameters, error) {
+func (s RawEnvironmentCreateOrUpdateParametersImpl) EnvironmentCreateOrUpdateParameters() BaseEnvironmentCreateOrUpdateParametersImpl {
+	return s.environmentCreateOrUpdateParameters
+}
+
+func UnmarshalEnvironmentCreateOrUpdateParametersImplementation(input []byte) (EnvironmentCreateOrUpdateParameters, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +51,9 @@ func unmarshalEnvironmentCreateOrUpdateParametersImplementation(input []byte) (E
 		return nil, fmt.Errorf("unmarshaling EnvironmentCreateOrUpdateParameters into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["kind"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["kind"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "Gen1") {
@@ -52,10 +72,15 @@ func unmarshalEnvironmentCreateOrUpdateParametersImplementation(input []byte) (E
 		return out, nil
 	}
 
-	out := RawEnvironmentCreateOrUpdateParametersImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseEnvironmentCreateOrUpdateParametersImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseEnvironmentCreateOrUpdateParametersImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawEnvironmentCreateOrUpdateParametersImpl{
+		environmentCreateOrUpdateParameters: parent,
+		Type:                                value,
+		Values:                              temp,
+	}, nil
 
 }

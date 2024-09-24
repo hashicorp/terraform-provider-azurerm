@@ -44,7 +44,7 @@ func ParseAdministratorID(input string) (*AdministratorId, error) {
 	}
 
 	id := AdministratorId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseAdministratorIDInsensitively(input string) (*AdministratorId, error) {
 	}
 
 	id := AdministratorId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id AdministratorId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDBforPostgreSQL", "Microsoft.DBforPostgreSQL", "Microsoft.DBforPostgreSQL"),
 		resourceids.StaticSegment("staticFlexibleServers", "flexibleServers", "flexibleServers"),
-		resourceids.UserSpecifiedSegment("flexibleServerName", "flexibleServerValue"),
+		resourceids.UserSpecifiedSegment("flexibleServerName", "serverName"),
 		resourceids.StaticSegment("staticAdministrators", "administrators", "administrators"),
-		resourceids.UserSpecifiedSegment("objectId", "objectIdValue"),
+		resourceids.UserSpecifiedSegment("objectId", "objectId"),
 	}
 }
 

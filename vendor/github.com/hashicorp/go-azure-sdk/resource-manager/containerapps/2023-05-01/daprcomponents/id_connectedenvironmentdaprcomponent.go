@@ -44,7 +44,7 @@ func ParseConnectedEnvironmentDaprComponentID(input string) (*ConnectedEnvironme
 	}
 
 	id := ConnectedEnvironmentDaprComponentId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseConnectedEnvironmentDaprComponentIDInsensitively(input string) (*Conne
 	}
 
 	id := ConnectedEnvironmentDaprComponentId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id ConnectedEnvironmentDaprComponentId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftApp", "Microsoft.App", "Microsoft.App"),
 		resourceids.StaticSegment("staticConnectedEnvironments", "connectedEnvironments", "connectedEnvironments"),
-		resourceids.UserSpecifiedSegment("connectedEnvironmentName", "connectedEnvironmentValue"),
+		resourceids.UserSpecifiedSegment("connectedEnvironmentName", "connectedEnvironmentName"),
 		resourceids.StaticSegment("staticDaprComponents", "daprComponents", "daprComponents"),
-		resourceids.UserSpecifiedSegment("daprComponentName", "daprComponentValue"),
+		resourceids.UserSpecifiedSegment("daprComponentName", "componentName"),
 	}
 }
 

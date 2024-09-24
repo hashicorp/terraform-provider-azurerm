@@ -51,7 +51,6 @@ func (c CheckNameAvailabilityClient) WithoutLocationExecute(ctx context.Context,
 
 	var model NameAvailability
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -46,7 +46,6 @@ func (c AppPlatformClient) AppsGetResourceUploadUrl(ctx context.Context, id AppI
 
 	var model ResourceUploadDefinition
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

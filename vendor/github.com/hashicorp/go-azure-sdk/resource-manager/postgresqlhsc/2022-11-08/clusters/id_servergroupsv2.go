@@ -42,7 +42,7 @@ func ParseServerGroupsv2ID(input string) (*ServerGroupsv2Id, error) {
 	}
 
 	id := ServerGroupsv2Id{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseServerGroupsv2IDInsensitively(input string) (*ServerGroupsv2Id, error)
 	}
 
 	id := ServerGroupsv2Id{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id ServerGroupsv2Id) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDBforPostgreSQL", "Microsoft.DBforPostgreSQL", "Microsoft.DBforPostgreSQL"),
 		resourceids.StaticSegment("staticServerGroupsv2", "serverGroupsv2", "serverGroupsv2"),
-		resourceids.UserSpecifiedSegment("serverGroupsv2Name", "serverGroupsv2Value"),
+		resourceids.UserSpecifiedSegment("serverGroupsv2Name", "clusterName"),
 	}
 }
 

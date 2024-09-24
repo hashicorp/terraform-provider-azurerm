@@ -15,7 +15,7 @@ type BlobAuditingClient struct {
 }
 
 func NewBlobAuditingClientWithBaseURI(sdkApi sdkEnv.Api) (*BlobAuditingClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "blobauditing", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "blobauditing", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating BlobAuditingClient: %+v", err)
 	}

@@ -44,7 +44,7 @@ func ParseDevToolPortalID(input string) (*DevToolPortalId, error) {
 	}
 
 	id := DevToolPortalId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseDevToolPortalIDInsensitively(input string) (*DevToolPortalId, error) {
 	}
 
 	id := DevToolPortalId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id DevToolPortalId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAppPlatform", "Microsoft.AppPlatform", "Microsoft.AppPlatform"),
 		resourceids.StaticSegment("staticSpring", "spring", "spring"),
-		resourceids.UserSpecifiedSegment("springName", "springValue"),
+		resourceids.UserSpecifiedSegment("springName", "serviceName"),
 		resourceids.StaticSegment("staticDevToolPortals", "devToolPortals", "devToolPortals"),
-		resourceids.UserSpecifiedSegment("devToolPortalName", "devToolPortalValue"),
+		resourceids.UserSpecifiedSegment("devToolPortalName", "devToolPortalName"),
 	}
 }
 

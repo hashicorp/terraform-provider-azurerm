@@ -15,7 +15,7 @@ type NetworkManagerEffectiveConnectivityConfigurationClient struct {
 }
 
 func NewNetworkManagerEffectiveConnectivityConfigurationClientWithBaseURI(sdkApi sdkEnv.Api) (*NetworkManagerEffectiveConnectivityConfigurationClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "networkmanagereffectiveconnectivityconfiguration", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "networkmanagereffectiveconnectivityconfiguration", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating NetworkManagerEffectiveConnectivityConfigurationClient: %+v", err)
 	}

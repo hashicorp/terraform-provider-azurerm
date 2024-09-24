@@ -44,7 +44,7 @@ func ParseWorkerID(input string) (*WorkerId, error) {
 	}
 
 	id := WorkerId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseWorkerIDInsensitively(input string) (*WorkerId, error) {
 	}
 
 	id := WorkerId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id WorkerId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftWeb", "Microsoft.Web", "Microsoft.Web"),
 		resourceids.StaticSegment("staticServerFarms", "serverFarms", "serverFarms"),
-		resourceids.UserSpecifiedSegment("serverFarmName", "serverFarmValue"),
+		resourceids.UserSpecifiedSegment("serverFarmName", "name"),
 		resourceids.StaticSegment("staticWorkers", "workers", "workers"),
-		resourceids.UserSpecifiedSegment("workerName", "workerValue"),
+		resourceids.UserSpecifiedSegment("workerName", "workerName"),
 	}
 }
 

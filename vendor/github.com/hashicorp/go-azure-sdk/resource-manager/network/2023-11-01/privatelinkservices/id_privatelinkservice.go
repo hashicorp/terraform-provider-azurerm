@@ -42,7 +42,7 @@ func ParsePrivateLinkServiceID(input string) (*PrivateLinkServiceId, error) {
 	}
 
 	id := PrivateLinkServiceId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParsePrivateLinkServiceIDInsensitively(input string) (*PrivateLinkServiceId
 	}
 
 	id := PrivateLinkServiceId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id PrivateLinkServiceId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticPrivateLinkServices", "privateLinkServices", "privateLinkServices"),
-		resourceids.UserSpecifiedSegment("privateLinkServiceName", "privateLinkServiceValue"),
+		resourceids.UserSpecifiedSegment("privateLinkServiceName", "serviceName"),
 	}
 }
 

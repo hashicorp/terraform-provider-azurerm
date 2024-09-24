@@ -40,6 +40,7 @@ func (o StartWebSiteNetworkTraceOperationOperationOptions) ToHeaders() *client.H
 
 func (o StartWebSiteNetworkTraceOperationOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

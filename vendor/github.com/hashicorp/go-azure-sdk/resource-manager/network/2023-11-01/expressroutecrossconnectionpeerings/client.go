@@ -15,7 +15,7 @@ type ExpressRouteCrossConnectionPeeringsClient struct {
 }
 
 func NewExpressRouteCrossConnectionPeeringsClientWithBaseURI(sdkApi sdkEnv.Api) (*ExpressRouteCrossConnectionPeeringsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "expressroutecrossconnectionpeerings", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "expressroutecrossconnectionpeerings", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ExpressRouteCrossConnectionPeeringsClient: %+v", err)
 	}

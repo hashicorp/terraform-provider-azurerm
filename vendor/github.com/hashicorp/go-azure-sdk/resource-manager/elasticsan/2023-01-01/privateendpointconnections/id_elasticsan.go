@@ -42,7 +42,7 @@ func ParseElasticSanID(input string) (*ElasticSanId, error) {
 	}
 
 	id := ElasticSanId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseElasticSanIDInsensitively(input string) (*ElasticSanId, error) {
 	}
 
 	id := ElasticSanId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id ElasticSanId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftElasticSan", "Microsoft.ElasticSan", "Microsoft.ElasticSan"),
 		resourceids.StaticSegment("staticElasticSans", "elasticSans", "elasticSans"),
-		resourceids.UserSpecifiedSegment("elasticSanName", "elasticSanValue"),
+		resourceids.UserSpecifiedSegment("elasticSanName", "elasticSanName"),
 	}
 }
 

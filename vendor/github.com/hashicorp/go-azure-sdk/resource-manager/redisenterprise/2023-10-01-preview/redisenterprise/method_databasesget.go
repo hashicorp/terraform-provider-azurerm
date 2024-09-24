@@ -45,7 +45,6 @@ func (c RedisEnterpriseClient) DatabasesGet(ctx context.Context, id DatabaseId) 
 
 	var model Database
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

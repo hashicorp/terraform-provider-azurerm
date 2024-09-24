@@ -20,11 +20,24 @@ type AzureBlobDatastore struct {
 	SubscriptionId                *string                        `json:"subscriptionId,omitempty"`
 
 	// Fields inherited from Datastore
-	Credentials DatastoreCredentials `json:"credentials"`
-	Description *string              `json:"description,omitempty"`
-	IsDefault   *bool                `json:"isDefault,omitempty"`
-	Properties  *map[string]string   `json:"properties,omitempty"`
-	Tags        *map[string]string   `json:"tags,omitempty"`
+
+	Credentials   DatastoreCredentials `json:"credentials"`
+	DatastoreType DatastoreType        `json:"datastoreType"`
+	Description   *string              `json:"description,omitempty"`
+	IsDefault     *bool                `json:"isDefault,omitempty"`
+	Properties    *map[string]string   `json:"properties,omitempty"`
+	Tags          *map[string]string   `json:"tags,omitempty"`
+}
+
+func (s AzureBlobDatastore) Datastore() BaseDatastoreImpl {
+	return BaseDatastoreImpl{
+		Credentials:   s.Credentials,
+		DatastoreType: s.DatastoreType,
+		Description:   s.Description,
+		IsDefault:     s.IsDefault,
+		Properties:    s.Properties,
+		Tags:          s.Tags,
+	}
 }
 
 var _ json.Marshaler = AzureBlobDatastore{}
@@ -38,9 +51,10 @@ func (s AzureBlobDatastore) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling AzureBlobDatastore: %+v", err)
 	}
+
 	decoded["datastoreType"] = "AzureBlob"
 
 	encoded, err = json.Marshal(decoded)
@@ -54,22 +68,35 @@ func (s AzureBlobDatastore) MarshalJSON() ([]byte, error) {
 var _ json.Unmarshaler = &AzureBlobDatastore{}
 
 func (s *AzureBlobDatastore) UnmarshalJSON(bytes []byte) error {
-	type alias AzureBlobDatastore
-	var decoded alias
+	var decoded struct {
+		AccountName                   *string                        `json:"accountName,omitempty"`
+		ContainerName                 *string                        `json:"containerName,omitempty"`
+		Endpoint                      *string                        `json:"endpoint,omitempty"`
+		Protocol                      *string                        `json:"protocol,omitempty"`
+		ResourceGroup                 *string                        `json:"resourceGroup,omitempty"`
+		ServiceDataAccessAuthIdentity *ServiceDataAccessAuthIdentity `json:"serviceDataAccessAuthIdentity,omitempty"`
+		SubscriptionId                *string                        `json:"subscriptionId,omitempty"`
+		DatastoreType                 DatastoreType                  `json:"datastoreType"`
+		Description                   *string                        `json:"description,omitempty"`
+		IsDefault                     *bool                          `json:"isDefault,omitempty"`
+		Properties                    *map[string]string             `json:"properties,omitempty"`
+		Tags                          *map[string]string             `json:"tags,omitempty"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into AzureBlobDatastore: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
 	s.AccountName = decoded.AccountName
 	s.ContainerName = decoded.ContainerName
-	s.Description = decoded.Description
 	s.Endpoint = decoded.Endpoint
-	s.IsDefault = decoded.IsDefault
-	s.Properties = decoded.Properties
 	s.Protocol = decoded.Protocol
 	s.ResourceGroup = decoded.ResourceGroup
 	s.ServiceDataAccessAuthIdentity = decoded.ServiceDataAccessAuthIdentity
 	s.SubscriptionId = decoded.SubscriptionId
+	s.DatastoreType = decoded.DatastoreType
+	s.Description = decoded.Description
+	s.IsDefault = decoded.IsDefault
+	s.Properties = decoded.Properties
 	s.Tags = decoded.Tags
 
 	var temp map[string]json.RawMessage
@@ -78,11 +105,12 @@ func (s *AzureBlobDatastore) UnmarshalJSON(bytes []byte) error {
 	}
 
 	if v, ok := temp["credentials"]; ok {
-		impl, err := unmarshalDatastoreCredentialsImplementation(v)
+		impl, err := UnmarshalDatastoreCredentialsImplementation(v)
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'Credentials' for 'AzureBlobDatastore': %+v", err)
 		}
 		s.Credentials = impl
 	}
+
 	return nil
 }

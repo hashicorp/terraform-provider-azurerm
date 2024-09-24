@@ -44,7 +44,7 @@ func ParseServerFarmVirtualNetworkConnectionID(input string) (*ServerFarmVirtual
 	}
 
 	id := ServerFarmVirtualNetworkConnectionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseServerFarmVirtualNetworkConnectionIDInsensitively(input string) (*Serv
 	}
 
 	id := ServerFarmVirtualNetworkConnectionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id ServerFarmVirtualNetworkConnectionId) Segments() []resourceids.Segment 
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftWeb", "Microsoft.Web", "Microsoft.Web"),
 		resourceids.StaticSegment("staticServerFarms", "serverFarms", "serverFarms"),
-		resourceids.UserSpecifiedSegment("serverFarmName", "serverFarmValue"),
+		resourceids.UserSpecifiedSegment("serverFarmName", "name"),
 		resourceids.StaticSegment("staticVirtualNetworkConnections", "virtualNetworkConnections", "virtualNetworkConnections"),
-		resourceids.UserSpecifiedSegment("virtualNetworkConnectionName", "virtualNetworkConnectionValue"),
+		resourceids.UserSpecifiedSegment("virtualNetworkConnectionName", "vnetName"),
 	}
 }
 

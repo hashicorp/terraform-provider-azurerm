@@ -42,7 +42,7 @@ func ParseNginxDeploymentID(input string) (*NginxDeploymentId, error) {
 	}
 
 	id := NginxDeploymentId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseNginxDeploymentIDInsensitively(input string) (*NginxDeploymentId, erro
 	}
 
 	id := NginxDeploymentId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id NginxDeploymentId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticNginxNginxPlus", "Nginx.NginxPlus", "Nginx.NginxPlus"),
 		resourceids.StaticSegment("staticNginxDeployments", "nginxDeployments", "nginxDeployments"),
-		resourceids.UserSpecifiedSegment("nginxDeploymentName", "nginxDeploymentValue"),
+		resourceids.UserSpecifiedSegment("nginxDeploymentName", "deploymentName"),
 	}
 }
 
