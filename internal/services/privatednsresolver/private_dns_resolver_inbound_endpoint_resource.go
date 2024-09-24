@@ -69,6 +69,8 @@ func (r PrivateDNSResolverInboundEndpointResource) Arguments() map[string]*plugi
 		"ip_configurations": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
+			MaxItems: 1,
+			ForceNew: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"subnet_id": {
@@ -177,17 +179,6 @@ func (r PrivateDNSResolverInboundEndpointResource) Update() sdk.ResourceFunc {
 			properties := resp.Model
 			if properties == nil {
 				return fmt.Errorf("retrieving %s: properties was nil", id)
-			}
-
-			if metadata.ResourceData.HasChange("ip_configurations") {
-				iPConfigurationsValue, err := expandIPConfigurationModel(model.IPConfigurations)
-				if err != nil {
-					return err
-				}
-
-				if iPConfigurationsValue != nil {
-					properties.Properties.IPConfigurations = *iPConfigurationsValue
-				}
 			}
 
 			if metadata.ResourceData.HasChange("tags") {

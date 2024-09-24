@@ -380,7 +380,7 @@ func TestAccKubernetesCluster_enableNodePublicIP(t *testing.T) {
 			Config: r.enableNodePublicIPConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("default_node_pool.0.enable_node_public_ip").HasValue("true"),
+				check.That(data.ResourceName).Key("default_node_pool.0.node_public_ip_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -412,7 +412,7 @@ func TestAccKubernetesCluster_nodePublicIPPrefix(t *testing.T) {
 			Config: r.nodePublicIPPrefixConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("default_node_pool.0.enable_node_public_ip").HasValue("true"),
+				check.That(data.ResourceName).Key("default_node_pool.0.node_public_ip_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("default_node_pool.0.node_public_ip_prefix_id").Exists(),
 			),
 		},
@@ -979,6 +979,9 @@ func TestAccKubernetesCluster_networkDataPlane(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_apiServerInManagedSubnet(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("Skipping this test in 4.0 beta as it is not supported")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -994,6 +997,9 @@ func TestAccKubernetesCluster_apiServerInManagedSubnet(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_apiServerInBYOSubnet(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("Skipping this test in 4.0 beta as it is not supported")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -1960,10 +1966,10 @@ resource "azurerm_kubernetes_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   default_node_pool {
-    name                  = "default"
-    node_count            = 1
-    vm_size               = "Standard_DS2_v2"
-    enable_node_public_ip = true
+    name                   = "default"
+    node_count             = 1
+    vm_size                = "Standard_DS2_v2"
+    node_public_ip_enabled = true
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -2061,7 +2067,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     name                     = "default"
     node_count               = 1
     vm_size                  = "Standard_DS2_v2"
-    enable_node_public_ip    = true
+    node_public_ip_enabled   = true
     node_public_ip_prefix_id = azurerm_public_ip_prefix.test.id
     upgrade_settings {
       max_surge = "10%%"
@@ -4378,10 +4384,10 @@ resource "azurerm_kubernetes_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%[2]d"
   default_node_pool {
-    name                  = "default"
-    node_count            = 1
-    vm_size               = "Standard_DS2_v2"
-    enable_node_public_ip = true
+    name                   = "default"
+    node_count             = 1
+    vm_size                = "Standard_DS2_v2"
+    node_public_ip_enabled = true
     node_network_profile {
       node_public_ip_tags = {
         RoutingPreference = "Internet"
@@ -4421,10 +4427,10 @@ resource "azurerm_kubernetes_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%[2]d"
   default_node_pool {
-    name                  = "default"
-    node_count            = 1
-    vm_size               = "Standard_DS2_v2"
-    enable_node_public_ip = true
+    name                   = "default"
+    node_count             = 1
+    vm_size                = "Standard_DS2_v2"
+    node_public_ip_enabled = true
     node_network_profile {
       allowed_host_ports {
         port_start = 8001

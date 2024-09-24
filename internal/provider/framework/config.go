@@ -28,6 +28,12 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 	env := &environments.Environment{}
 	var err error
 
+	subscriptionId := getEnvStringOrDefault(data.SubscriptionId, "ARM_SUBSCRIPTION_ID", "")
+	if subscriptionId == "" {
+		diags.Append(diag.NewErrorDiagnostic("Configuring subscription", "`subscription_id` is a required provider property when performing a plan/apply operation"))
+		return
+	}
+
 	if metadataHost := getEnvStringOrDefault(data.MetaDataHost, "ARM_METADATA_HOSTNAME", ""); metadataHost != "" {
 		env, err = environments.FromEndpoint(ctx, metadataHost)
 		if err != nil {
@@ -98,7 +104,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 		CustomManagedIdentityEndpoint: getEnvStringOrDefault(data.MSIEndpoint, "ARM_MSI_ENDPOINT", ""),
 
-		AzureCliSubscriptionIDHint: getEnvStringOrDefault(data.SubscriptionId, "ARM_SUBSCRIPTION_ID", ""),
+		AzureCliSubscriptionIDHint: subscriptionId,
 
 		EnableAuthenticatingUsingClientCertificate: true,
 		EnableAuthenticatingUsingClientSecret:      true,
@@ -511,11 +517,11 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 		}
 	}
 
-	subscriptionId := commonids.NewSubscriptionID(client.Account.SubscriptionId)
+	subId := commonids.NewSubscriptionID(client.Account.SubscriptionId)
 	ctx2, cancel := context.WithTimeout(ctx, 30*time.Minute)
 	defer cancel()
 
-	if err = resourceproviders.EnsureRegistered(ctx2, client.Resource.ResourceProvidersClient, subscriptionId, requiredResourceProviders); err != nil {
+	if err = resourceproviders.EnsureRegistered(ctx2, client.Resource.ResourceProvidersClient, subId, requiredResourceProviders); err != nil {
 		diags.AddError("registering resource providers", err.Error())
 		return
 	}

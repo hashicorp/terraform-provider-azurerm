@@ -702,6 +702,10 @@ func TestAccCosmosDBAccount_capabilities_EnableServerless(t *testing.T) {
 	testAccCosmosDBAccount_capabilitiesWith(t, cosmosdb.DatabaseAccountKindGlobalDocumentDB, []string{"EnableServerless"})
 }
 
+func TestAccCosmosDBAccount_capabilities_EnableNoSQLVectorSearch(t *testing.T) {
+	testAccCosmosDBAccount_capabilitiesWith(t, cosmosdb.DatabaseAccountKindGlobalDocumentDB, []string{"EnableNoSQLVectorSearch"})
+}
+
 func TestAccCosmosDBAccount_capabilities_EnableMongo(t *testing.T) {
 	testAccCosmosDBAccount_capabilitiesWith(t, cosmosdb.DatabaseAccountKindMongoDB, []string{"EnableMongo"})
 }
@@ -1287,6 +1291,30 @@ func TestAccCosmosDBAccount_localAuthenticationDisabled(t *testing.T) {
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("local_authentication_disabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCosmosDBAccount_updateBurstCapacity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	r := CosmosDBAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, cosmosdb.DefaultConsistencyLevelEventual),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("burst_capacity_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicWithBurstCapacityEnabled(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, cosmosdb.DefaultConsistencyLevelEventual),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("burst_capacity_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -3902,10 +3930,6 @@ resource "azurerm_cosmosdb_account" "test" {
     name = "EnableTtlOnCustomPath"
   }
 
-  capabilities {
-    name = "EnablePartialUniqueIndex"
-  }
-
   consistency_policy {
     consistency_level = "%s"
   }
@@ -3981,6 +4005,38 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 
   local_authentication_disabled = true
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
+}
+
+func (CosmosDBAccountResource) basicWithBurstCapacityEnabled(data acceptance.TestData, kind cosmosdb.DatabaseAccountKind, consistency cosmosdb.DefaultConsistencyLevel) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cosmos-%d"
+  location = "%s"
+}
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-ca-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "%s"
+
+  consistency_policy {
+    consistency_level = "%s"
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+
+  burst_capacity_enabled = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
 }
@@ -4588,7 +4644,7 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 
   is_virtual_network_filter_enabled = true
-  ip_range_filter                   = ["55.0.1.0/24", "55.0.2.0/24"]
+  ip_range_filter                   = ["55.0.1.0/24", "55.0.2.0/24", "0.0.0.0"]
 
   virtual_network_rule {
     id                                   = azurerm_subnet.subnet1.id

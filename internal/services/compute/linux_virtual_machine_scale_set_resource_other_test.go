@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-07-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -516,6 +516,9 @@ func TestAccLinuxVirtualMachineScaleSet_otherTerminationNotification(t *testing.
 
 // TODO remove TestAccLinuxVirtualMachineScaleSet_otherTerminationNotificationMigration in 4.0
 func TestAccLinuxVirtualMachineScaleSet_otherTerminationNotificationMigration(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("removing in 4.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
 
@@ -1248,10 +1251,12 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "internal"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/24"]
+  name                            = "internal"
+  resource_group_name             = azurerm_resource_group.test.name
+  virtual_network_name            = azurerm_virtual_network.test.name
+  address_prefixes                = ["10.0.2.0/24"]
+  default_outbound_access_enabled = false
+
 }
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
@@ -2035,6 +2040,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   disable_password_authentication = false
   provision_vm_agent              = %t
+  extension_operations_enabled    = false
 
   source_image_reference {
     publisher = "Canonical"

@@ -166,10 +166,6 @@ An `application_stack` block supports the following:
 
 ~> **NOTE:** `docker_registry_url`, `docker_registry_username`, and `docker_registry_password` replace the use of the `app_settings` values of `DOCKER_REGISTRY_SERVER_URL`, `DOCKER_REGISTRY_SERVER_USERNAME` and `DOCKER_REGISTRY_SERVER_PASSWORD` respectively, these values will be managed by the provider and should not be specified in the `app_settings` map.
 
-* `docker_container_name` - (Optional) The name of the container to be used. This value is required with `docker_container_tag`.
-
-* `docker_container_tag` - (Optional) The tag of the container to be used. This value is required with `docker_container_name`.
-
 * `dotnet_version` - (Optional) The version of .NET to use when `current_stack` is set to `dotnet`. Possible values include `v2.0`,`v3.0`, `v4.0`, `v5.0`, `v6.0`, `v7.0` and `v8.0`.
 
 * `dotnet_core_version` - (Optional) The version of .NET to use when `current_stack` is set to `dotnetcore`. Possible values include `v4.0`.
@@ -708,8 +704,6 @@ A `site_config` block supports the following:
 
 * `application_stack` - (Optional) A `application_stack` block as defined above.
 
-* `auto_heal_enabled` - (Optional) Should Auto heal rules be enabled. Required with `auto_heal_setting`.
-
 * `auto_heal_setting` - (Optional) A `auto_heal_setting` block as defined above. Required with `auto_heal`.
 
 * `auto_swap_slot_name` - (Optional) The Windows Web App Slot Name to automatically swap to when deployment to that slot is successfully completed.
@@ -779,10 +773,6 @@ A `slow_request` block supports the following:
 * `interval` - (Required) The time interval in the form `hh:mm:ss`.
 
 * `time_taken` - (Required) The threshold of time passed to qualify as a Slow Request in `hh:mm:ss`.
-
-* `path` - (Optional) The path for which this slow request rule applies.
-
-~> **NOTE:** The `path` property in the `slow_request` block is deprecated and will be removed in 4.0 of provider. Please use `slow_request_with_path` to set a slow request trigger with path specified.
 
 ---
 

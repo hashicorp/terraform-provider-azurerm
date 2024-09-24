@@ -36,7 +36,7 @@ type KeyVaultManagedHSMRoleAssignmentModel struct {
 	ResourceId       string `tfschema:"resource_id"`
 
 	// TODO: remove in v4.0
-	VaultBaseUrl string `tfschema:"vault_base_url"`
+	VaultBaseUrl string `tfschema:"vault_base_url,removedInNextMajorVersion"`
 }
 
 var _ sdk.ResourceWithStateMigration = KeyVaultManagedHSMRoleAssignmentResource{}

@@ -142,8 +142,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_sentinel_log_analytics_workspace_onboarding" "test" {
-  resource_group_name = azurerm_resource_group.test.name
-  workspace_name      = azurerm_log_analytics_workspace.test.name
+  workspace_id = azurerm_log_analytics_workspace.test.id
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
