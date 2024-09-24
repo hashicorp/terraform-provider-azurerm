@@ -388,6 +388,8 @@ A `rules` block supports the following:
 
 * `custom_rule_type` - (Optional) Type of the scale rule.
 
+* `identity` - (Optional) The identity to use for the scale rule. This can either be the Resource ID of a User Assigned Identity, or `System` for the System Assigned Identity.
+
 * `metadata` - (Optional) Metadata properties to describe the scale rule.
 
 * `authentication` - (Optional) A `authentication` block as defined below.
