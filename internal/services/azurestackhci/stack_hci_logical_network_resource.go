@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/logicalnetworks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/extendedlocation/2021-08-15/customlocations"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -65,13 +66,13 @@ type StackHCIIPPoolModel struct {
 }
 
 type StackHCIRouteModel struct {
-	Name             string `tfschema:"name"`
+	Name             string `tfschema:"name,removedInNextMajorVersion"`
 	AddressPrefix    string `tfschema:"address_prefix"`
 	NextHopIpAddress string `tfschema:"next_hop_ip_address"`
 }
 
 func (StackHCILogicalNetworkResource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	schema := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
@@ -157,18 +158,9 @@ func (StackHCILogicalNetworkResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
 						ForceNew: true,
+						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
-								"name": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
-									ForceNew: true,
-									ValidateFunc: validation.StringMatch(
-										regexp.MustCompile(`^[a-zA-Z0-9][\-\.\_a-zA-Z0-9]{0,78}[a-zA-Z0-9]$`),
-										"name must be between 2 and 80 characters and can only contain alphanumberic characters, hyphen, dot and underline",
-									),
-								},
-
 								"address_prefix": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
@@ -198,6 +190,42 @@ func (StackHCILogicalNetworkResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
+
+	if !features.FivePointOhBeta() {
+		schema["route"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			ForceNew: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"address_prefix": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.IsCIDR,
+					},
+
+					"next_hop_ip_address": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.IsIPv4Address,
+					},
+
+					"name": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ForceNew: true,
+						ValidateFunc: validation.StringMatch(
+							regexp.MustCompile(`^[a-zA-Z0-9][\-\.\_a-zA-Z0-9]{0,78}[a-zA-Z0-9]$`),
+							"name must be between 2 and 80 characters and can only contain alphanumberic characters, hyphen, dot and underline",
+						),
+					},
+				},
+			},
+		}
+	}
+	return schema
 }
 
 func (StackHCILogicalNetworkResource) Attributes() map[string]*pluginsdk.Schema {
@@ -446,13 +474,20 @@ func expandStackHCILogicalNetworkRouteTable(input []StackHCIRouteModel) *logical
 
 	routes := make([]logicalnetworks.Route, 0)
 	for _, v := range input {
-		routes = append(routes, logicalnetworks.Route{
-			Name: pointer.To(v.Name),
+		route := logicalnetworks.Route{
 			Properties: &logicalnetworks.RoutePropertiesFormat{
 				AddressPrefix:    pointer.To(v.AddressPrefix),
 				NextHopIPAddress: pointer.To(v.NextHopIpAddress),
 			},
-		})
+		}
+
+		if !features.FivePointOhBeta() {
+			if v.Name != "" {
+				route.Name = pointer.To(v.Name)
+			}
+		}
+
+		routes = append(routes, route)
 	}
 
 	return &logicalnetworks.RouteTable{
@@ -469,9 +504,12 @@ func flattenStackHCILogicalNetworkRouteTable(input *logicalnetworks.RouteTable) 
 
 	results := make([]StackHCIRouteModel, 0)
 	for _, v := range *input.Properties.Routes {
-		route := StackHCIRouteModel{
-			Name: pointer.From(v.Name),
+		route := StackHCIRouteModel{}
+
+		if !features.FivePointOhBeta() {
+			route.Name = pointer.From(v.Name)
 		}
+
 		if v.Properties != nil {
 			route.AddressPrefix = pointer.From(v.Properties.AddressPrefix)
 			route.NextHopIpAddress = pointer.From(v.Properties.NextHopIPAddress)
