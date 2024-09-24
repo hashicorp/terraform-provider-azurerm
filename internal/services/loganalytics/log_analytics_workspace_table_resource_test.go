@@ -104,9 +104,10 @@ resource "azurerm_log_analytics_workspace" "test" {
   retention_in_days   = 30
 }
 resource "azurerm_log_analytics_workspace_table" "test" {
-  name         = "AppTraces"
-  workspace_id = azurerm_log_analytics_workspace.test.id
-  plan         = "Basic"
+  name                    = "AppTraces"
+  workspace_id            = azurerm_log_analytics_workspace.test.id
+  plan                    = "Basic"
+  total_retention_in_days = 32
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

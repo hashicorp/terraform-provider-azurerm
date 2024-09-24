@@ -5,6 +5,7 @@ package validate
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	iso8601 "github.com/btubbs/datetime"
@@ -60,6 +61,42 @@ func ISO8601DateTime(i interface{}, k string) (warnings []string, errors []error
 
 	if _, err := iso8601.Parse(v, time.UTC); err != nil {
 		errors = append(errors, fmt.Errorf("%q has the invalid ISO8601 date format %q: %+v", k, i, err))
+	}
+
+	return warnings, errors
+}
+
+func ISO8601RepeatingTime(i interface{}, k string) (warnings []string, errors []error) {
+	v, ok := i.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
+		return
+	}
+
+	if !strings.HasPrefix(v, "R/") {
+		errors = append(errors, fmt.Errorf("%s must start with 'R/'", k))
+		return
+	}
+
+	partsWithoutPrefix := strings.TrimPrefix(v, "R/")
+
+	pIndex := strings.Index(partsWithoutPrefix, "/P")
+	if pIndex == -1 {
+		errors = append(errors, fmt.Errorf("%s must end with duration", k))
+		return
+	}
+
+	dateTime := partsWithoutPrefix[:pIndex]
+	duration := partsWithoutPrefix[pIndex+1:]
+
+	if _, err := iso8601.Parse(dateTime, time.UTC); err != nil {
+		errors = append(errors, fmt.Errorf("%q has the invalid ISO8601 date format %q: %+v", k, i, err))
+		return
+	}
+
+	if _, err := period.Parse(duration); err != nil {
+		errors = append(errors, err)
+		return
 	}
 
 	return warnings, errors
