@@ -195,7 +195,7 @@ resource "azurerm_stack_hci_virtual_hard_disk" "test" {
   location            = azurerm_resource_group.test.location
   custom_location_id  = %[3]q
   disk_size_in_gb     = 2
-  storage_path_id = azurerm_stack_hci_storage_path.test.id
+  storage_path_id     = azurerm_stack_hci_storage_path.test.id
 
   tags = {
     foo = "bar"
@@ -216,7 +216,7 @@ resource "azurerm_stack_hci_virtual_hard_disk" "import" {
   resource_group_name = azurerm_stack_hci_virtual_hard_disk.test.resource_group_name
   location            = azurerm_stack_hci_virtual_hard_disk.test.location
   custom_location_id  = azurerm_stack_hci_virtual_hard_disk.test.custom_location_id
-  disk_size_in_gb = azurerm_stack_hci_virtual_hard_disk.test.disk_size_in_gb
+  disk_size_in_gb     = azurerm_stack_hci_virtual_hard_disk.test.disk_size_in_gb
 }
 `, config)
 }
