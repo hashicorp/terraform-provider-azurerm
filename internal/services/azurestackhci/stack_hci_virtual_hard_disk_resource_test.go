@@ -17,12 +17,12 @@ import (
 type StackHCIVirtualHardDiskResource struct{}
 
 func TestAccStackHCIVirtualHardDisk_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_stack_hci_virtual_hard_disk", "test")
-	r := StackHCIVirtualHardDiskResource{}
-
 	if os.Getenv(customLocationIdEnv) == "" {
 		t.Skipf("skipping since %q has not been specified", customLocationIdEnv)
 	}
+
+	data := acceptance.BuildTestData(t, "azurerm_stack_hci_virtual_hard_disk", "test")
+	r := StackHCIVirtualHardDiskResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -55,12 +55,12 @@ func TestAccStackHCIVirtualHardDisk_complete(t *testing.T) {
 }
 
 func TestAccStackHCIVirtualHardDisk_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_stack_hci_virtual_hard_disk", "test")
-	r := StackHCIVirtualHardDiskResource{}
-
 	if os.Getenv(customLocationIdEnv) == "" {
 		t.Skipf("skipping since %q has not been specified", customLocationIdEnv)
 	}
+
+	data := acceptance.BuildTestData(t, "azurerm_stack_hci_virtual_hard_disk", "test")
+	r := StackHCIVirtualHardDiskResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -71,7 +71,7 @@ func TestAccStackHCIVirtualHardDisk_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.complete(data),
+			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -121,6 +121,90 @@ func (r StackHCIVirtualHardDiskResource) Exists(ctx context.Context, client *cli
 	return pointer.To(resp.Model != nil), nil
 }
 
+func (r StackHCIVirtualHardDiskResource) basic(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_stack_hci_virtual_hard_disk" "test" {
+  name                = "acctest-vhd-%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  custom_location_id  = %q
+  disk_size_in_gb     = 2
+
+  lifecycle {
+    ignore_changes = [storage_path_id]
+  }
+}
+`, template, data.RandomString, os.Getenv(customLocationIdEnv))
+}
+
+func (r StackHCIVirtualHardDiskResource) update(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_stack_hci_virtual_hard_disk" "test" {
+  name                = "acctest-vhd-%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  custom_location_id  = %q
+  disk_size_in_gb     = 2
+
+  tags = {
+    foo = "bar"
+    env = "test"
+  }
+
+  lifecycle {
+    ignore_changes = [storage_path_id]
+  }
+}
+`, template, data.RandomString, os.Getenv(customLocationIdEnv))
+}
+
+func (r StackHCIVirtualHardDiskResource) complete(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_stack_hci_storage_path" "test" {
+  name                = "acctest-sp-%[2]s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  custom_location_id  = %[3]q
+  path                = "C:\\ClusterStorage\\UserStorage_2\\sp-%[2]s"
+}
+
+resource "azurerm_stack_hci_virtual_hard_disk" "test" {
+  name                = "acctest-vhd-%[2]s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  custom_location_id  = %[3]q
+  disk_size_in_gb     = 2
+  storage_path_id = azurerm_stack_hci_storage_path.test.id
+
+  tags = {
+    foo = "bar"
+    env = "test"
+  }
+}
+`, template, data.RandomString, os.Getenv(customLocationIdEnv))
+}
+
 func (r StackHCIVirtualHardDiskResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 
@@ -137,66 +221,11 @@ resource "azurerm_stack_hci_virtual_hard_disk" "import" {
 `, config)
 }
 
-func (r StackHCIVirtualHardDiskResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-%s
-
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_stack_hci_virtual_hard_disk" "test" {
-  name                = "acctest-ln-${var.random_string}"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  custom_location_id  = %q
-  disk_size_in_gb     = 2
-  lifecycle {
-    ignore_changes = [storage_path_id]
-  }
-}
-`, template, os.Getenv(customLocationIdEnv))
-}
-
-func (r StackHCIVirtualHardDiskResource) complete(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-%s
-
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_stack_hci_virtual_hard_disk" "test" {
-  name                = "acctest-ln-${var.random_string}"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  custom_location_id  = %q
-  disk_size_in_gb     = 2
-
-
-  tags = {
-    foo = "bar"
-    env = "test"
-  }
-}
-`, template, os.Getenv(customLocationIdEnv))
-}
-
 func (r StackHCIVirtualHardDiskResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-variable "primary_location" {
-  default = %q
-}
-
-variable "random_string" {
-  default = %q
-}
-
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-hci-ln-${var.random_string}"
-  location = var.primary_location
+  name     = "acctest-hci-vhd-%[2]s"
+  location = %[1]q
 }
 `, data.Locations.Primary, data.RandomString)
 }

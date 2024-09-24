@@ -96,7 +96,7 @@ func (StackHCIVirtualHardDiskResource) Arguments() map[string]*pluginsdk.Schema 
 
 		"disk_size_in_gb": {
 			Type:         pluginsdk.TypeInt,
-			Optional:     true,
+			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.IntAtLeast(1),
 		},
