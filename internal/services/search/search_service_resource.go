@@ -125,6 +125,11 @@ func resourceSearchService() *pluginsdk.Resource {
 				Default:  false,
 			},
 
+			"customer_managed_key_encryption_compliance_status": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"primary_key": {
 				Type:      pluginsdk.TypeString,
 				Computed:  true,
@@ -557,6 +562,9 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 
 			if props.EncryptionWithCmk != nil {
 				cmkEnforcement = strings.EqualFold(string(pointer.From(props.EncryptionWithCmk.Enforcement)), string(services.SearchEncryptionWithCmkEnabled))
+				if props.EncryptionWithCmk.EncryptionComplianceStatus != nil {
+					d.Set("customer_managed_key_encryption_compliance_status", string(pointer.From(props.EncryptionWithCmk.EncryptionComplianceStatus)))
+				}
 			}
 
 			// I am using 'DisableLocalAuth' here because when you are in

@@ -39,6 +39,11 @@ func dataSourceSearchService() *pluginsdk.Resource {
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
+			"customer_managed_key_encryption_compliance_status": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"replica_count": {
 				Type:     pluginsdk.TypeInt,
 				Computed: true,
@@ -115,6 +120,10 @@ func dataSourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) er
 			partitionCount := 1
 			replicaCount := 1
 			publicNetworkAccess := true
+
+			if props.EncryptionWithCmk != nil && props.EncryptionWithCmk.EncryptionComplianceStatus != nil {
+				d.Set("customer_managed_key_encryption_compliance_status", string(pointer.From(props.EncryptionWithCmk.EncryptionComplianceStatus)))
+			}
 
 			if count := props.PartitionCount; count != nil {
 				partitionCount = int(*count)
