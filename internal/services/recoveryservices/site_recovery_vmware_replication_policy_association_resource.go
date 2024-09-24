@@ -123,7 +123,7 @@ func (s VMWareReplicationPolicyAssociationResource) Create() sdk.ResourceFunc {
 				Properties: &replicationprotectioncontainermappings.CreateProtectionContainerMappingInputProperties{
 					TargetProtectionContainerId: utils.String(SiteRecoveryReplicationPolicyVMWareAssociationTargetContainerId),
 					PolicyId:                    &model.RecoveryReplicationPolicyId,
-					ProviderSpecificInput:       &RawProviderSpecificInput{},
+					ProviderSpecificInput:       replicationprotectioncontainermappings.BaseReplicationProviderSpecificContainerMappingInputImpl{},
 				},
 			}
 
