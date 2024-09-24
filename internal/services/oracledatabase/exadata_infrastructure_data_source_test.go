@@ -4,10 +4,11 @@ package oracledatabase_test
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracledatabase"
-	"testing"
 )
 
 type ExadataInfraDataSource struct{}
