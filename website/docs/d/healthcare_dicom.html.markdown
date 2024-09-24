@@ -41,7 +41,7 @@ The following attributes are exported:
 
 * `data_partitions_enabled` - If data partitions are enabled or not.
 
-* `cors_configuration` - The `cors_configuration` block as defined below.
+* `cors` - The `cors` block as defined below.
 
 * `encryption_key_url` - The URL of the key to use for encryption as part of the customer-managed key encryption settings.
 
@@ -51,7 +51,7 @@ The following attributes are exported:
 
 * `service_url` - The url of the Healthcare DICOM Services.
 
-* `storage_configuration` - The `storage_configuration` block as defined below.
+* `storage` - The `storage` block as defined below.
 
 * `tags` - A map of tags assigned to the Healthcare DICOM Service.
 
@@ -65,7 +65,7 @@ An `authentication` supports the following:
 
 ---
 
-A `cors_configuration` supports the following:
+A `cors` supports the following:
 
 * `allowed_origins` - A list of allowed origins for CORS.
 
@@ -79,7 +79,7 @@ A `cors_configuration` supports the following:
 
 ---
 
-A `storage_configuration` block supports the following:
+A `storage` block supports the following:
 
 * `file_system_name` - The filesystem name of connected storage account.
 

@@ -80,6 +80,7 @@ func resourceHealthcareApisDicomService() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
+
 						"audience": {
 							Type:     pluginsdk.TypeList,
 							Computed: true,
@@ -118,7 +119,7 @@ func resourceHealthcareApisDicomService() *pluginsdk.Resource {
 				Default:  true,
 			},
 
-			"cors_configuration": {
+			"cors": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
@@ -132,6 +133,7 @@ func resourceHealthcareApisDicomService() *pluginsdk.Resource {
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
+
 						"allowed_headers": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -140,6 +142,7 @@ func resourceHealthcareApisDicomService() *pluginsdk.Resource {
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
+
 						"allowed_methods": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -148,10 +151,13 @@ func resourceHealthcareApisDicomService() *pluginsdk.Resource {
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
+
 						"max_age_in_seconds": {
-							Type:     pluginsdk.TypeInt,
-							Optional: true,
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(0, 99998),
 						},
+
 						"allow_credentials": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
@@ -174,7 +180,7 @@ func resourceHealthcareApisDicomService() *pluginsdk.Resource {
 				ValidateFunc: validation.IsURLWithHTTPS,
 			},
 
-			"storage_configuration": {
+			"storage": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				ForceNew: true,
@@ -242,7 +248,7 @@ func resourceHealthcareApisDicomServiceCreate(d *pluginsdk.ResourceData, meta in
 	}
 
 	var corsConfiguration *dicomservices.CorsConfiguration
-	if v, ok := d.GetOk("cors_configuration"); ok {
+	if v, ok := d.GetOk("cors"); ok {
 		corsConfiguration = expandDicomServiceCorsConfiguration(v.([]interface{}))
 	}
 
@@ -256,7 +262,7 @@ func resourceHealthcareApisDicomServiceCreate(d *pluginsdk.ResourceData, meta in
 	}
 
 	var storageConfiguration *dicomservices.StorageConfiguration
-	if v, ok := d.GetOk("storage_configuration"); ok {
+	if v, ok := d.GetOk("storage"); ok {
 		storageConfiguration = expandStorageConfiguration(v.([]interface{}))
 	}
 
@@ -327,13 +333,13 @@ func resourceHealthcareApisDicomServiceRead(d *pluginsdk.ResourceData, meta inte
 			}
 			d.Set("data_partitions_enabled", enableDataPartitions)
 
-			d.Set("cors_configuration", flattenDicomServiceCorsConfiguration(props.CorsConfiguration))
+			d.Set("cors", flattenDicomServiceCorsConfiguration(props.CorsConfiguration))
 
 			if props.Encryption != nil && props.Encryption.CustomerManagedKeyEncryption != nil {
 				d.Set("encryption_key_url", pointer.From(props.Encryption.CustomerManagedKeyEncryption.KeyEncryptionKeyUrl))
 			}
 
-			d.Set("storage_configuration", flattenStorageConfiguration(props.StorageConfiguration))
+			d.Set("storage", flattenStorageConfiguration(props.StorageConfiguration))
 		}
 
 		i, err := identity.FlattenLegacySystemAndUserAssignedMap(m.Identity)
@@ -370,7 +376,7 @@ func resourceHealthcareApisDicomServiceUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	var corsConfiguration *dicomservices.CorsConfiguration
-	if v, ok := d.GetOk("cors_configuration"); ok {
+	if v, ok := d.GetOk("cors"); ok {
 		corsConfiguration = expandDicomServiceCorsConfiguration(v.([]interface{}))
 	}
 
@@ -384,7 +390,7 @@ func resourceHealthcareApisDicomServiceUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	var storageConfiguration *dicomservices.StorageConfiguration
-	if v, ok := d.GetOk("storage_configuration"); ok {
+	if v, ok := d.GetOk("storage"); ok {
 		storageConfiguration = expandStorageConfiguration(v.([]interface{}))
 	}
 

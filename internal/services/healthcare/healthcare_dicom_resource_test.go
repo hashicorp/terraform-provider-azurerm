@@ -112,8 +112,8 @@ resource "azurerm_healthcare_dicom_service" "test" {
 
   lifecycle {
     ignore_changes = [
-      "cors_configuration",
-      "storage_configuration"
+      "cors",
+      "storage"
     ]
   }
 }
@@ -144,7 +144,7 @@ resource "azurerm_healthcare_dicom_service" "test" {
   workspace_id = azurerm_healthcare_workspace.test.id
   location     = azurerm_resource_group.test.location
 
-  cors_configuration {
+  cors {
     allowed_origins    = ["http://www.example.com", "http://www.example2.com"]
     allowed_headers    = ["*"]
     allowed_methods    = ["GET"]
@@ -156,7 +156,7 @@ resource "azurerm_healthcare_dicom_service" "test" {
 
   encryption_key_url = azurerm_key_vault_key.test.id
 
-  storage_configuration {
+  storage {
     storage_account_id = azurerm_storage_account.test.id
     file_system_name   = azurerm_storage_data_lake_gen2_filesystem.test.name
   }
@@ -182,7 +182,7 @@ resource "azurerm_healthcare_dicom_service" "test" {
   workspace_id = azurerm_healthcare_workspace.test.id
   location     = azurerm_resource_group.test.location
 
-  cors_configuration {
+  cors {
     allowed_origins    = ["http://www.example.com", "http://www.example2.com"]
     allowed_headers    = ["*"]
     allowed_methods    = ["GET"]
@@ -203,7 +203,7 @@ resource "azurerm_healthcare_dicom_service" "test" {
 
   lifecycle {
     ignore_changes = [
-      "storage_configuration"
+      "storage"
     ]
   }
 }
@@ -220,8 +220,8 @@ resource "azurerm_healthcare_dicom_service" "import" {
 
   lifecycle {
     ignore_changes = [
-      "cors_configuration",
-      "storage_configuration"
+      "cors",
+      "storage"
     ]
   }
 }

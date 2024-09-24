@@ -55,6 +55,7 @@ func dataSourceHealthcareDicomService() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
+
 						"audience": {
 							Type:     pluginsdk.TypeList,
 							Computed: true,
@@ -92,7 +93,7 @@ func dataSourceHealthcareDicomService() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"cors_configuration": {
+			"cors": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem: &pluginsdk.Resource{
@@ -104,6 +105,7 @@ func dataSourceHealthcareDicomService() *pluginsdk.Resource {
 								Type: pluginsdk.TypeString,
 							},
 						},
+
 						"allowed_headers": {
 							Type:     pluginsdk.TypeList,
 							Computed: true,
@@ -111,6 +113,7 @@ func dataSourceHealthcareDicomService() *pluginsdk.Resource {
 								Type: pluginsdk.TypeString,
 							},
 						},
+
 						"allowed_methods": {
 							Type:     pluginsdk.TypeList,
 							Computed: true,
@@ -118,10 +121,12 @@ func dataSourceHealthcareDicomService() *pluginsdk.Resource {
 								Type: pluginsdk.TypeString,
 							},
 						},
+
 						"max_age_in_seconds": {
 							Type:     pluginsdk.TypeInt,
 							Computed: true,
 						},
+
 						"allow_credentials": {
 							Type:     pluginsdk.TypeBool,
 							Computed: true,
@@ -135,7 +140,7 @@ func dataSourceHealthcareDicomService() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"storage_configuration": {
+			"storage": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem: &pluginsdk.Resource{
@@ -207,13 +212,13 @@ func dataSourceHealthcareApisDicomServiceRead(d *pluginsdk.ResourceData, meta in
 			}
 			d.Set("data_partitions_enabled", enableDataPartitions)
 
-			d.Set("cors_configuration", flattenDicomServiceCorsConfiguration(props.CorsConfiguration))
+			d.Set("cors", flattenDicomServiceCorsConfiguration(props.CorsConfiguration))
 
 			if props.Encryption != nil && props.Encryption.CustomerManagedKeyEncryption != nil {
 				d.Set("encryption_key_url", pointer.From(props.Encryption.CustomerManagedKeyEncryption.KeyEncryptionKeyUrl))
 			}
 
-			d.Set("storage_configuration", flattenStorageConfiguration(props.StorageConfiguration))
+			d.Set("storage", flattenStorageConfiguration(props.StorageConfiguration))
 
 			if props.ProvisioningState != nil {
 				d.Set("provision_state", pointer.From(props.ProvisioningState))
