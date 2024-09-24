@@ -66,7 +66,7 @@ type StackHCIIPPoolModel struct {
 }
 
 type StackHCIRouteModel struct {
-	Name             string `tfschema:"name,removedInNextMajorVersion"`
+	Name             string `tfschema:"name,removedInNextMajorVersion"` // remove in 5.0
 	AddressPrefix    string `tfschema:"address_prefix"`
 	NextHopIpAddress string `tfschema:"next_hop_ip_address"`
 }
