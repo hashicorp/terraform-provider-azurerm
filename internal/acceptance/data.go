@@ -97,11 +97,6 @@ func (td *TestData) RandomIntOfLength(len int) int {
 		panic("Invalid Test: RandomIntOfLength: len is not between 8 or 18 inclusive")
 	}
 
-	// 18 - just return the int
-	if len >= 18 {
-		return td.RandomInteger
-	}
-
 	// 16-17 just strip off the last 1-2 digits
 	if len >= 16 {
 		return td.RandomInteger / int(math.Pow10(18-len))
