@@ -3,6 +3,8 @@ package validate
 import (
 	"fmt"
 	"slices"
+
+	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/cloudexadatainfrastructures"
 )
 
 func ComputeCount(i interface{}, k string) (warnings []string, errors []error) {
@@ -53,26 +55,24 @@ func CustomActionTimeoutInMins(i interface{}, k string) (warnings []string, erro
 }
 
 func DaysOfWeek(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.([]string)
+	v, ok := i.(string)
 	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %s to be list of strings", k))
+		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
 		return
 	}
 
 	validDaysOfWeek := []string{"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"}
 
-	for _, day := range v {
-		if !slices.Contains(validDaysOfWeek, day) {
-			errors = append(errors, fmt.Errorf("days of week must be %v", validDaysOfWeek))
-			return
-		}
+	if !slices.Contains(validDaysOfWeek, v) {
+		errors = append(errors, fmt.Errorf("days of week must be %v", validDaysOfWeek))
+		return
 	}
 
 	return
 }
 
 func HoursOfDay(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.([]int)
+	v, ok := i.(int)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %s to be int", k))
 		return
@@ -83,11 +83,9 @@ func HoursOfDay(i interface{}, k string) (warnings []string, errors []error) {
 		"12:00 - 15:59 UTC - 16 - represents time slot 16:00 - 19:59 UTC - 20 - represents time slot" +
 		"20:00 - 23:59 UTC"
 
-	for _, hour := range v {
-		if (hour < 0 || hour > 20) && (hour%4 == 0) {
-			errors = append(errors, fmt.Errorf("%s", hoursOfDayValidationMsg))
-			return
-		}
+	if (v < 0 || v > 20) || (v%4 != 0) {
+		errors = append(errors, fmt.Errorf("%s", hoursOfDayValidationMsg))
+		return
 	}
 
 	return
@@ -109,19 +107,64 @@ func LeadTimeInWeeks(i interface{}, k string) (warnings []string, errors []error
 }
 
 func Month(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.([]string)
+	v, ok := i.(string)
 	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %s to be list of strings", k))
+		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
 		return
 	}
 
 	validMonth := []string{"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"}
 
-	for _, month := range v {
-		if !slices.Contains(validMonth, month) {
-			errors = append(errors, fmt.Errorf("month must be %v", validMonth))
-			return
-		}
+	if !slices.Contains(validMonth, v) {
+		errors = append(errors, fmt.Errorf("month must be %v", validMonth))
+		return
+	}
+
+	return
+}
+
+func WeeksOfMonth(i interface{}, k string) (warnings []string, errors []error) {
+	v, ok := i.(int)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected type of %s to be int", k))
+		return
+	}
+
+	if v < 1 || v > 4 {
+		errors = append(errors, fmt.Errorf("weeksOfMonth should be a list of integers between %d and %d (inclusive)", 1, 4))
+		return
+	}
+
+	return
+}
+
+func Preference(i interface{}, k string) (warnings []string, errors []error) {
+	v, ok := i.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected type of %s to be list of strings", k))
+		return
+	}
+
+	if v != string(cloudexadatainfrastructures.PreferenceCustomPreference) && v != string(cloudexadatainfrastructures.PreferenceNoPreference) {
+		errors = append(errors, fmt.Errorf("%v must be %v or %v", k,
+			string(cloudexadatainfrastructures.PreferenceCustomPreference), string(cloudexadatainfrastructures.PreferenceNoPreference)))
+		return
+	}
+
+	return
+}
+
+func PatchingMode(i interface{}, k string) (warnings []string, errors []error) {
+	v, ok := i.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected type of %s to be list of strings", k))
+		return
+	}
+
+	if v != string(cloudexadatainfrastructures.PatchingModeRolling) && v != string(cloudexadatainfrastructures.PatchingModeNonRolling) {
+		errors = append(errors, fmt.Errorf("%v must be %v or %v", k,
+			string(cloudexadatainfrastructures.PatchingModeRolling), string(cloudexadatainfrastructures.PatchingModeNonRolling)))
+		return
 	}
 
 	return

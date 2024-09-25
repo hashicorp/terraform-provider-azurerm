@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -15,7 +17,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/cloudexadatainfrastructures"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ExadataInfraDataSource struct{}
@@ -444,6 +445,14 @@ func (d ExadataInfraDataSource) Read() sdk.ResourceFunc {
 				}
 
 				var output ExadataInfraDataModel
+
+				output.Name = id.CloudExadataInfrastructureName
+				output.ResourceGroupName = id.ResourceGroupName
+				output.Type = pointer.From(model.Type)
+				output.Tags = utils.FlattenPtrMapStringString(model.Tags)
+				output.Location = model.Location
+				output.Zones = model.Zones
+
 				prop := model.Properties
 				if prop != nil {
 					output = ExadataInfraDataModel{
@@ -494,12 +503,6 @@ func (d ExadataInfraDataSource) Read() sdk.ResourceFunc {
 						},
 					}
 				}
-				output.Name = id.CloudExadataInfrastructureName
-				output.ResourceGroupName = id.ResourceGroupName
-				output.Type = pointer.From(model.Type)
-				output.Tags = utils.FlattenPtrMapStringString(model.Tags)
-				output.Location = model.Location
-				output.Zones = model.Zones
 
 				metadata.SetID(id)
 				return metadata.Encode(&output)
@@ -511,7 +514,7 @@ func (d ExadataInfraDataSource) Read() sdk.ResourceFunc {
 
 func FlattenCustomerContacts(customerContactsList *[]cloudexadatainfrastructures.CustomerContact) []string {
 	var customerContacts []string
-	if *customerContactsList != nil {
+	if customerContactsList != nil {
 		for _, customerContact := range *customerContactsList {
 			customerContacts = append(customerContacts, customerContact.Email)
 		}

@@ -105,7 +105,8 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 						Optional: true,
 						Computed: true,
 						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeString,
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validate.DaysOfWeek,
 						},
 					},
 
@@ -114,7 +115,8 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 						Optional: true,
 						Computed: true,
 						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeInt,
+							Type:         pluginsdk.TypeInt,
+							ValidateFunc: validate.HoursOfDay,
 						},
 					},
 
@@ -142,20 +144,23 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 						Optional: true,
 						Computed: true,
 						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeString,
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validate.Month,
 						},
 					},
 
 					"patching_mode": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Computed: true,
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: validate.PatchingMode,
 					},
 
 					"preference": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Computed: true,
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: validate.Preference,
 					},
 
 					"weeks_of_month": {
@@ -163,7 +168,8 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 						Optional: true,
 						Computed: true,
 						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeInt,
+							Type:         pluginsdk.TypeInt,
+							ValidateFunc: validate.WeeksOfMonth,
 						},
 					},
 				},
@@ -312,20 +318,21 @@ func (ExadataInfraResource) Read() sdk.ResourceFunc {
 			if result.Model == nil {
 				return fmt.Errorf("retrieving %s got nil model", id)
 			}
-			var output ExadataInfraResourceModel
 
-			output.CustomerContacts = FlattenCustomerContacts(result.Model.Properties.CustomerContacts)
-			output.Name = pointer.ToString(result.Model.Name)
-			output.Location = result.Model.Location
-			output.Zones = result.Model.Zones
-			output.ResourceGroupName = id.ResourceGroupName
-			output.Tags = utils.FlattenPtrMapStringString(result.Model.Tags)
 			prop := result.Model.Properties
-			output.ComputeCount = pointer.From(prop.ComputeCount)
-			output.DisplayName = prop.DisplayName
-			output.StorageCount = pointer.From(prop.StorageCount)
-			output.Shape = prop.Shape
-			output.MaintenanceWindow = FlattenMaintenanceWindow(prop.MaintenanceWindow)
+			output := ExadataInfraResourceModel{
+				CustomerContacts:  FlattenCustomerContacts(result.Model.Properties.CustomerContacts),
+				Name:              pointer.ToString(result.Model.Name),
+				Location:          result.Model.Location,
+				Zones:             result.Model.Zones,
+				ResourceGroupName: id.ResourceGroupName,
+				Tags:              utils.FlattenPtrMapStringString(result.Model.Tags),
+				ComputeCount:      pointer.From(prop.ComputeCount),
+				DisplayName:       prop.DisplayName,
+				StorageCount:      pointer.From(prop.StorageCount),
+				Shape:             prop.Shape,
+				MaintenanceWindow: FlattenMaintenanceWindow(prop.MaintenanceWindow),
+			}
 
 			return metadata.Encode(&output)
 		},
