@@ -22,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-var _ sdk.ResourceWithCustomizeDiff = AppServiceConnectorResource{}
 var _ sdk.ResourceWithUpdate = AppServiceConnectorResource{}
 
 type AppServiceConnectorResource struct{}
@@ -103,110 +102,6 @@ func (r AppServiceConnectorResource) ModelObject() interface{} {
 
 func (r AppServiceConnectorResource) ResourceType() string {
 	return "azurerm_app_service_connection"
-}
-
-func (r AppServiceConnectorResource) CustomizeDiff() sdk.ResourceFunc {
-	return sdk.ResourceFunc{
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var model AppServiceConnectorResourceModel
-			if err := metadata.DecodeDiff(&model); err != nil {
-				return err
-			}
-
-			if len(model.AuthInfo) > 0 {
-				authInfo := model.AuthInfo[0]
-				switch servicelinker.AuthType(authInfo.Type) {
-				case servicelinker.AuthTypeSecret:
-					if authInfo.ClientId != "" {
-						return fmt.Errorf("`client_id` cannot be set when `type` is set to `Secret`")
-					}
-					if authInfo.SubscriptionId != "" {
-						return fmt.Errorf("`subscription_id` cannot be set when `type` is set to `Secret`")
-					}
-					if authInfo.PrincipalId != "" {
-						return fmt.Errorf("`principal_id` cannot be set when `type` is set to `Secret`")
-					}
-					if authInfo.Certificate != "" {
-						return fmt.Errorf("`certificate` cannot be set when `type` is set to `Secret`")
-					}
-					if authInfo.Name != "" && authInfo.Secret == "" {
-						return fmt.Errorf("`name` cannot be set when `secret` is empty")
-					}
-					if authInfo.Name == "" && authInfo.Secret != "" {
-						return fmt.Errorf("`secret` cannot be set when `name` is empty")
-					}
-
-				case servicelinker.AuthTypeSystemAssignedIdentity:
-					if authInfo.Name != "" || authInfo.Secret != "" || authInfo.ClientId != "" || authInfo.SubscriptionId != "" || authInfo.PrincipalId != "" || authInfo.Certificate != "" {
-						return fmt.Errorf("no other authentication parameters should be set when `type` is set to `SystemIdentity`")
-					}
-
-				case servicelinker.AuthTypeServicePrincipalSecret:
-					if authInfo.ClientId == "" {
-						return fmt.Errorf("`client_id` must be specified when `type` is set to `ServicePrincipal`")
-					}
-					if authInfo.PrincipalId == "" {
-						return fmt.Errorf("`principal_id` must be specified when `type` is set to `ServicePrincipal`")
-					}
-					if authInfo.Secret == "" {
-						return fmt.Errorf("`secret` must be specified when `type` is set to `ServicePrincipal`")
-					}
-					if authInfo.SubscriptionId != "" {
-						return fmt.Errorf("`subscription_id` cannot be set when `type` is set to `ServicePrincipal`")
-					}
-					if authInfo.Name != "" {
-						return fmt.Errorf("`name` cannot be set when `type` is set to `ServicePrincipal`")
-					}
-					if authInfo.Certificate != "" {
-						return fmt.Errorf("`certificate` cannot be set when `type` is set to `ServicePrincipal`")
-					}
-
-				case servicelinker.AuthTypeServicePrincipalCertificate:
-					if authInfo.ClientId == "" {
-						return fmt.Errorf("`client_id` must be specified when `type` is set to `ServicePrincipalCertificate`")
-					}
-					if authInfo.PrincipalId == "" {
-						return fmt.Errorf("`principal_id` must be specified when `type` is set to `ServicePrincipalCertificate`")
-					}
-					if authInfo.Certificate == "" {
-						return fmt.Errorf("`certificate` must be specified when `type` is set to `ServicePrincipalCertificate`")
-					}
-					if authInfo.SubscriptionId != "" {
-						return fmt.Errorf("`subscription_id` cannot be set when `type` is set to `ServicePrincipalCertificate`")
-					}
-					if authInfo.Name != "" {
-						return fmt.Errorf("`name` cannot be set when `type` is set to `ServicePrincipalCertificate`")
-					}
-					if authInfo.Secret != "" {
-						return fmt.Errorf("`secret` cannot be set when `type` is set to `ServicePrincipalCertificate`")
-					}
-
-				case servicelinker.AuthTypeUserAssignedIdentity:
-					if authInfo.PrincipalId != "" {
-						return fmt.Errorf("`principal_id` cannot be set when `type` is set to `UserIdentity`")
-					}
-					if authInfo.Certificate != "" {
-						return fmt.Errorf("`certificate` cannot be set when `type` is set to `UserIdentity`")
-					}
-					if authInfo.Name != "" {
-						return fmt.Errorf("`name` cannot be set when `type` is set to `UserIdentity`")
-					}
-					if authInfo.Secret != "" {
-						return fmt.Errorf("`secret` cannot be set when `type` is set to `UserIdentity`")
-					}
-					if authInfo.ClientId == "" && authInfo.SubscriptionId != "" {
-						return fmt.Errorf("`subscription_id` cannot be set when `client_id` is empty")
-					}
-					if authInfo.ClientId != "" && authInfo.SubscriptionId == "" {
-						return fmt.Errorf("`client_id` cannot be set when `subscription_id` is empty")
-					}
-				}
-			}
-
-			return nil
-		},
-		Timeout: 5 * time.Minute,
-	}
 }
 
 func (r AppServiceConnectorResource) Create() sdk.ResourceFunc {
