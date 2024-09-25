@@ -161,7 +161,7 @@ resource "azurerm_key_vault_certificate" "test" {
   name         = "acctestcert%s"
   key_vault_id = azurerm_key_vault.test.id
   certificate {
-    contents = filebase64("testdata/wpstftestzone.pfx")
+    contents = filebase64("testdata/custom-domain-cert-wps.pfx")
     password = ""
   }
 }
