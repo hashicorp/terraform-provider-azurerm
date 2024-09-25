@@ -161,7 +161,7 @@ resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance
 
   lifecycle {
     // Service API always provisions a virtual disk with bus type IDE by default, so it has to ignore it
-    ignore_changes = [ storage_disk ]
+    ignore_changes = [storage_disk]
   }
 }
 `, r.template(data))
@@ -199,6 +199,14 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) complet
 
 provider "azurerm" {
   features {}
+}
+
+resource "azurerm_system_center_virtual_machine_manager_availability_set" "test" {
+  name                                            = "acctest-scvmmas-%d"
+  resource_group_name                             = azurerm_resource_group.test.name
+  location                                        = azurerm_resource_group.test.location
+  custom_location_id                              = azurerm_system_center_virtual_machine_manager_server.test.custom_location_id
+  system_center_virtual_machine_manager_server_id = azurerm_system_center_virtual_machine_manager_server.test.id
 }
 
 resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance" "test" {
@@ -241,12 +249,14 @@ resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance
     vhd_type     = "Dynamic"
   }
 
+  system_center_virtual_machine_manager_availability_set_ids = [azurerm_system_center_virtual_machine_manager_availability_set.test.id]
+
   lifecycle {
     // Service API always provisions a virtual disk with bus type IDE by default, so it has to ignore it
-    ignore_changes = [ storage_disk ]
+    ignore_changes = [storage_disk]
   }
 }
-`, r.template(data))
+`, r.template(data), data.RandomInteger)
 }
 
 func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) update(data acceptance.TestData) string {
@@ -255,6 +265,22 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) update(
 
 provider "azurerm" {
   features {}
+}
+
+resource "azurerm_system_center_virtual_machine_manager_availability_set" "test" {
+  name                                            = "acctest-scvmmas-%d"
+  resource_group_name                             = azurerm_resource_group.test.name
+  location                                        = azurerm_resource_group.test.location
+  custom_location_id                              = azurerm_system_center_virtual_machine_manager_server.test.custom_location_id
+  system_center_virtual_machine_manager_server_id = azurerm_system_center_virtual_machine_manager_server.test.id
+}
+
+resource "azurerm_system_center_virtual_machine_manager_availability_set" "test2" {
+  name                                            = "acctest-scvmmas2-%d"
+  resource_group_name                             = azurerm_resource_group.test.name
+  location                                        = azurerm_resource_group.test.location
+  custom_location_id                              = azurerm_system_center_virtual_machine_manager_server.test.custom_location_id
+  system_center_virtual_machine_manager_server_id = azurerm_system_center_virtual_machine_manager_server.test.id
 }
 
 resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance" "test" {
@@ -297,12 +323,14 @@ resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance
     vhd_type     = "Fixed"
   }
 
+  system_center_virtual_machine_manager_availability_set_ids = [azurerm_system_center_virtual_machine_manager_availability_set.test.id, azurerm_system_center_virtual_machine_manager_availability_set.test2.id]
+
   lifecycle {
     // Service API always provisions a virtual disk with bus type IDE by default, so it has to ignore it
-    ignore_changes = [ storage_disk ]
+    ignore_changes = [storage_disk]
   }
 }
-`, r.template(data))
+`, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
 func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) template(data acceptance.TestData) string {
