@@ -150,8 +150,6 @@ A `network_interface` block supports the following:
 
 * `ipv6_address_type` - (Optional) The IPv6 address type. Possible values are `Dynamic` and `Static`. Defaults to `Dynamic`.
 
-* `mac_address` - (Optional) The Network Interface MAC address.
-
 * `mac_address_type` - (Optional) The MAC address type. Possible values are `Dynamic` and `Static`. Defaults to `Dynamic`.
 
 ---
