@@ -2269,12 +2269,12 @@ resource "azurerm_mssql_elasticpool" "test" {
   location            = azurerm_resource_group.test.location
   server_name         = azurerm_mssql_server.test.name
 
- sku {
-name = "HS_Gen5"
-tier = "Hyperscale"
-family = "Gen5"
-capacity = 4
-}
+  sku {
+    name     = "HS_Gen5"
+    tier     = "Hyperscale"
+    family   = "Gen5"
+    capacity = 4
+  }
 
   per_database_settings {
     min_capacity = 0.25
