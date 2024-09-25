@@ -72,7 +72,7 @@ A `maintenance_window` block supports the following:
 
 * `is_monthly_patching_enabled` - (Optional) If true, enables the monthly patching option.
 
-* `lead_time_in_weeks` - (Optional) Lead time window allows user to set a lead time to prepare for a down time. The lead time is in weeks and valid value is between 1 to 4.
+* `lead_time_in_weeks` - (Optional) Lead time window allows user to set a lead time to prepare for a down time. The lead time is in weeks and valid value is between `1` to `4`.
 
 * `months` - (Optional) Months during the year when maintenance should be performed.
 
