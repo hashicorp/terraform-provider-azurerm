@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2019-09-01/querypackqueries` Documentation
 
-The `querypackqueries` SDK allows for interaction with the Azure Resource Manager Service `operationalinsights` (API Version `2019-09-01`).
+The `querypackqueries` SDK allows for interaction with Azure Resource Manager `operationalinsights` (API Version `2019-09-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := querypackqueries.NewQueryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "queryPackValue", "queryValue")
+id := querypackqueries.NewQueryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "queryPackName", "id")
 
 read, err := client.QueriesDelete(ctx, id)
 if err != nil {
@@ -40,7 +40,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := querypackqueries.NewQueryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "queryPackValue", "queryValue")
+id := querypackqueries.NewQueryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "queryPackName", "id")
 
 read, err := client.QueriesGet(ctx, id)
 if err != nil {
@@ -56,7 +56,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := querypackqueries.NewQueryPackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "queryPackValue")
+id := querypackqueries.NewQueryPackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "queryPackName")
 
 // alternatively `client.QueriesList(ctx, id, querypackqueries.DefaultQueriesListOperationOptions())` can be used to do batched pagination
 items, err := client.QueriesListComplete(ctx, id, querypackqueries.DefaultQueriesListOperationOptions())
@@ -73,7 +73,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := querypackqueries.NewQueryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "queryPackValue", "queryValue")
+id := querypackqueries.NewQueryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "queryPackName", "id")
 
 payload := querypackqueries.LogAnalyticsQueryPackQuery{
 	// ...
@@ -94,7 +94,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := querypackqueries.NewQueryPackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "queryPackValue")
+id := querypackqueries.NewQueryPackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "queryPackName")
 
 payload := querypackqueries.LogAnalyticsQueryPackQuerySearchProperties{
 	// ...
@@ -116,7 +116,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := querypackqueries.NewQueryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "queryPackValue", "queryValue")
+id := querypackqueries.NewQueryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "queryPackName", "id")
 
 payload := querypackqueries.LogAnalyticsQueryPackQuery{
 	// ...

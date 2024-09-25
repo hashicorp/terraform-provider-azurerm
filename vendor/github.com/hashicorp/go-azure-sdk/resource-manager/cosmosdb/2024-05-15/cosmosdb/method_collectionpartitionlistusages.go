@@ -34,6 +34,7 @@ func (o CollectionPartitionListUsagesOperationOptions) ToHeaders() *client.Heade
 
 func (o CollectionPartitionListUsagesOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -74,7 +75,6 @@ func (c CosmosDBClient) CollectionPartitionListUsages(ctx context.Context, id Co
 
 	var model PartitionUsagesResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

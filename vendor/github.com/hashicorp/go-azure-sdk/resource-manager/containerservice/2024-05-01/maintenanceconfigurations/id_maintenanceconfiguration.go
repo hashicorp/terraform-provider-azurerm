@@ -44,7 +44,7 @@ func ParseMaintenanceConfigurationID(input string) (*MaintenanceConfigurationId,
 	}
 
 	id := MaintenanceConfigurationId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseMaintenanceConfigurationIDInsensitively(input string) (*MaintenanceCon
 	}
 
 	id := MaintenanceConfigurationId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id MaintenanceConfigurationId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftContainerService", "Microsoft.ContainerService", "Microsoft.ContainerService"),
 		resourceids.StaticSegment("staticManagedClusters", "managedClusters", "managedClusters"),
-		resourceids.UserSpecifiedSegment("managedClusterName", "managedClusterValue"),
+		resourceids.UserSpecifiedSegment("managedClusterName", "resourceName"),
 		resourceids.StaticSegment("staticMaintenanceConfigurations", "maintenanceConfigurations", "maintenanceConfigurations"),
-		resourceids.UserSpecifiedSegment("maintenanceConfigurationName", "maintenanceConfigurationValue"),
+		resourceids.UserSpecifiedSegment("maintenanceConfigurationName", "configName"),
 	}
 }
 

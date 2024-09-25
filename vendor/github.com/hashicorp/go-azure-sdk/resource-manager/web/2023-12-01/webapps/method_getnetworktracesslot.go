@@ -45,7 +45,6 @@ func (c WebAppsClient) GetNetworkTracesSlot(ctx context.Context, id SlotNetworkT
 
 	var model []NetworkTrace
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

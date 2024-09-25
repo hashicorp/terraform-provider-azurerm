@@ -47,7 +47,6 @@ func (c LocalUsersClient) List(ctx context.Context, id commonids.StorageAccountI
 
 	var model LocalUsers
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

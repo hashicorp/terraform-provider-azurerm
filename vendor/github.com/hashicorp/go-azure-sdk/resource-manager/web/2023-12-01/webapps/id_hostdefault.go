@@ -48,7 +48,7 @@ func ParseHostDefaultID(input string) (*HostDefaultId, error) {
 	}
 
 	id := HostDefaultId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -65,7 +65,7 @@ func ParseHostDefaultIDInsensitively(input string) (*HostDefaultId, error) {
 	}
 
 	id := HostDefaultId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -133,13 +133,13 @@ func (id HostDefaultId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftWeb", "Microsoft.Web", "Microsoft.Web"),
 		resourceids.StaticSegment("staticSites", "sites", "sites"),
-		resourceids.UserSpecifiedSegment("siteName", "siteValue"),
+		resourceids.UserSpecifiedSegment("siteName", "name"),
 		resourceids.StaticSegment("staticSlots", "slots", "slots"),
-		resourceids.UserSpecifiedSegment("slotName", "slotValue"),
+		resourceids.UserSpecifiedSegment("slotName", "slot"),
 		resourceids.StaticSegment("staticHost", "host", "host"),
 		resourceids.StaticSegment("staticDefault", "default", "default"),
-		resourceids.UserSpecifiedSegment("defaultName", "defaultValue"),
-		resourceids.UserSpecifiedSegment("keyName", "keyValue"),
+		resourceids.UserSpecifiedSegment("defaultName", "keyType"),
+		resourceids.UserSpecifiedSegment("keyName", "keyName"),
 	}
 }
 

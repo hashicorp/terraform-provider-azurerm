@@ -46,7 +46,6 @@ func (c AppServicePlansClient) ListRoutesForVnet(ctx context.Context, id ServerF
 
 	var model []VnetRoute
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

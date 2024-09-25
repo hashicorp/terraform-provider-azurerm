@@ -50,7 +50,6 @@ func (c SecurityAdminConfigurationsClient) CreateOrUpdate(ctx context.Context, i
 
 	var model SecurityAdminConfiguration
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

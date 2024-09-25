@@ -50,7 +50,6 @@ func (c OperationsClient) ConvertGraphRunbookContent(ctx context.Context, id Aut
 
 	var model GraphicalRunbookContent
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

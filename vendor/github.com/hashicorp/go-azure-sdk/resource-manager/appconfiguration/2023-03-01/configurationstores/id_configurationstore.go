@@ -42,7 +42,7 @@ func ParseConfigurationStoreID(input string) (*ConfigurationStoreId, error) {
 	}
 
 	id := ConfigurationStoreId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseConfigurationStoreIDInsensitively(input string) (*ConfigurationStoreId
 	}
 
 	id := ConfigurationStoreId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id ConfigurationStoreId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAppConfiguration", "Microsoft.AppConfiguration", "Microsoft.AppConfiguration"),
 		resourceids.StaticSegment("staticConfigurationStores", "configurationStores", "configurationStores"),
-		resourceids.UserSpecifiedSegment("configurationStoreName", "configurationStoreValue"),
+		resourceids.UserSpecifiedSegment("configurationStoreName", "configStoreName"),
 	}
 }
 

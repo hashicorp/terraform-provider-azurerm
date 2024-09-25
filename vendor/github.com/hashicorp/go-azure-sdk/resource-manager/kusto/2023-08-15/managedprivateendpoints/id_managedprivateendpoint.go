@@ -44,7 +44,7 @@ func ParseManagedPrivateEndpointID(input string) (*ManagedPrivateEndpointId, err
 	}
 
 	id := ManagedPrivateEndpointId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseManagedPrivateEndpointIDInsensitively(input string) (*ManagedPrivateEn
 	}
 
 	id := ManagedPrivateEndpointId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id ManagedPrivateEndpointId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftKusto", "Microsoft.Kusto", "Microsoft.Kusto"),
 		resourceids.StaticSegment("staticClusters", "clusters", "clusters"),
-		resourceids.UserSpecifiedSegment("clusterName", "clusterValue"),
+		resourceids.UserSpecifiedSegment("clusterName", "clusterName"),
 		resourceids.StaticSegment("staticManagedPrivateEndpoints", "managedPrivateEndpoints", "managedPrivateEndpoints"),
-		resourceids.UserSpecifiedSegment("managedPrivateEndpointName", "managedPrivateEndpointValue"),
+		resourceids.UserSpecifiedSegment("managedPrivateEndpointName", "managedPrivateEndpointName"),
 	}
 }
 

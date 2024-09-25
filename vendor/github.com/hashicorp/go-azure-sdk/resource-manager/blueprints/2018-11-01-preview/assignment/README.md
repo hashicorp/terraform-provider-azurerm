@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/blueprints/2018-11-01-preview/assignment` Documentation
 
-The `assignment` SDK allows for interaction with the Azure Resource Manager Service `blueprints` (API Version `2018-11-01-preview`).
+The `assignment` SDK allows for interaction with Azure Resource Manager `blueprints` (API Version `2018-11-01-preview`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := assignment.NewScopedBlueprintAssignmentID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "blueprintAssignmentValue")
+id := assignment.NewScopedBlueprintAssignmentID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "assignmentName")
 
 payload := assignment.Assignment{
 	// ...
@@ -46,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := assignment.NewScopedBlueprintAssignmentID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "blueprintAssignmentValue")
+id := assignment.NewScopedBlueprintAssignmentID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "assignmentName")
 
 read, err := client.Delete(ctx, id, assignment.DefaultDeleteOperationOptions())
 if err != nil {
@@ -62,7 +62,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := assignment.NewScopedBlueprintAssignmentID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "blueprintAssignmentValue")
+id := assignment.NewScopedBlueprintAssignmentID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "assignmentName")
 
 read, err := client.Get(ctx, id)
 if err != nil {

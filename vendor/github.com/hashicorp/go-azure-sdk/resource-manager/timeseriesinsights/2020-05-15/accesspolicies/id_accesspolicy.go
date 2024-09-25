@@ -44,7 +44,7 @@ func ParseAccessPolicyID(input string) (*AccessPolicyId, error) {
 	}
 
 	id := AccessPolicyId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseAccessPolicyIDInsensitively(input string) (*AccessPolicyId, error) {
 	}
 
 	id := AccessPolicyId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id AccessPolicyId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftTimeSeriesInsights", "Microsoft.TimeSeriesInsights", "Microsoft.TimeSeriesInsights"),
 		resourceids.StaticSegment("staticEnvironments", "environments", "environments"),
-		resourceids.UserSpecifiedSegment("environmentName", "environmentValue"),
+		resourceids.UserSpecifiedSegment("environmentName", "environmentName"),
 		resourceids.StaticSegment("staticAccessPolicies", "accessPolicies", "accessPolicies"),
-		resourceids.UserSpecifiedSegment("accessPolicyName", "accessPolicyValue"),
+		resourceids.UserSpecifiedSegment("accessPolicyName", "accessPolicyName"),
 	}
 }
 

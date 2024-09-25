@@ -44,7 +44,7 @@ func ParseOperationKindID(input string) (*OperationKindId, error) {
 	}
 
 	id := OperationKindId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseOperationKindIDInsensitively(input string) (*OperationKindId, error) {
 	}
 
 	id := OperationKindId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -129,7 +129,7 @@ func (id OperationKindId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftKeyVault", "Microsoft.KeyVault", "Microsoft.KeyVault"),
 		resourceids.StaticSegment("staticVaults", "vaults", "vaults"),
-		resourceids.UserSpecifiedSegment("vaultName", "vaultValue"),
+		resourceids.UserSpecifiedSegment("vaultName", "vaultName"),
 		resourceids.StaticSegment("staticAccessPolicies", "accessPolicies", "accessPolicies"),
 		resourceids.ConstantSegment("operationKind", PossibleValuesForAccessPolicyUpdateKind(), "add"),
 	}

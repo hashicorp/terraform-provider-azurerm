@@ -42,7 +42,7 @@ func ParseActionRuleID(input string) (*ActionRuleId, error) {
 	}
 
 	id := ActionRuleId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseActionRuleIDInsensitively(input string) (*ActionRuleId, error) {
 	}
 
 	id := ActionRuleId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id ActionRuleId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAlertsManagement", "Microsoft.AlertsManagement", "Microsoft.AlertsManagement"),
 		resourceids.StaticSegment("staticActionRules", "actionRules", "actionRules"),
-		resourceids.UserSpecifiedSegment("actionRuleName", "actionRuleValue"),
+		resourceids.UserSpecifiedSegment("actionRuleName", "alertProcessingRuleName"),
 	}
 }
 

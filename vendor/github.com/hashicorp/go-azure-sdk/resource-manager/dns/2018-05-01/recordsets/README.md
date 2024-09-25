@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/recordsets` Documentation
 
-The `recordsets` SDK allows for interaction with the Azure Resource Manager Service `dns` (API Version `2018-05-01`).
+The `recordsets` SDK allows for interaction with Azure Resource Manager `dns` (API Version `2018-05-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := recordsets.NewRecordTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dnsZoneValue", "A", "relativeRecordSetValue")
+id := recordsets.NewRecordTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "zoneName", "A", "relativeRecordSetName")
 
 payload := recordsets.RecordSet{
 	// ...
@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := recordsets.NewRecordTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dnsZoneValue", "A", "relativeRecordSetValue")
+id := recordsets.NewRecordTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "zoneName", "A", "relativeRecordSetName")
 
 read, err := client.Delete(ctx, id, recordsets.DefaultDeleteOperationOptions())
 if err != nil {
@@ -61,7 +61,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := recordsets.NewRecordTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dnsZoneValue", "A", "relativeRecordSetValue")
+id := recordsets.NewRecordTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "zoneName", "A", "relativeRecordSetName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -77,7 +77,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := recordsets.NewDnsZoneID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dnsZoneValue")
+id := recordsets.NewDnsZoneID("12345678-1234-9876-4563-123456789012", "example-resource-group", "zoneName")
 
 // alternatively `client.ListAllByDnsZone(ctx, id, recordsets.DefaultListAllByDnsZoneOperationOptions())` can be used to do batched pagination
 items, err := client.ListAllByDnsZoneComplete(ctx, id, recordsets.DefaultListAllByDnsZoneOperationOptions())
@@ -94,7 +94,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := recordsets.NewDnsZoneID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dnsZoneValue")
+id := recordsets.NewDnsZoneID("12345678-1234-9876-4563-123456789012", "example-resource-group", "zoneName")
 
 // alternatively `client.ListByDnsZone(ctx, id, recordsets.DefaultListByDnsZoneOperationOptions())` can be used to do batched pagination
 items, err := client.ListByDnsZoneComplete(ctx, id, recordsets.DefaultListByDnsZoneOperationOptions())
@@ -111,7 +111,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := recordsets.NewZoneID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dnsZoneValue", "A")
+id := recordsets.NewZoneID("12345678-1234-9876-4563-123456789012", "example-resource-group", "zoneName", "A")
 
 // alternatively `client.ListByType(ctx, id, recordsets.DefaultListByTypeOperationOptions())` can be used to do batched pagination
 items, err := client.ListByTypeComplete(ctx, id, recordsets.DefaultListByTypeOperationOptions())
@@ -128,7 +128,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := recordsets.NewRecordTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dnsZoneValue", "A", "relativeRecordSetValue")
+id := recordsets.NewRecordTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "zoneName", "A", "relativeRecordSetName")
 
 payload := recordsets.RecordSet{
 	// ...

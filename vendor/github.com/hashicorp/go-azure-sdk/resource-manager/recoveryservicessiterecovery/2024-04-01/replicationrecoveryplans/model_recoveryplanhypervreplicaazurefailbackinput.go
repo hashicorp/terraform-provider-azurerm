@@ -15,6 +15,14 @@ type RecoveryPlanHyperVReplicaAzureFailbackInput struct {
 	RecoveryVMCreationOption AlternateLocationRecoveryOption `json:"recoveryVmCreationOption"`
 
 	// Fields inherited from RecoveryPlanProviderSpecificFailoverInput
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s RecoveryPlanHyperVReplicaAzureFailbackInput) RecoveryPlanProviderSpecificFailoverInput() BaseRecoveryPlanProviderSpecificFailoverInputImpl {
+	return BaseRecoveryPlanProviderSpecificFailoverInputImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = RecoveryPlanHyperVReplicaAzureFailbackInput{}
@@ -28,9 +36,10 @@ func (s RecoveryPlanHyperVReplicaAzureFailbackInput) MarshalJSON() ([]byte, erro
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling RecoveryPlanHyperVReplicaAzureFailbackInput: %+v", err)
 	}
+
 	decoded["instanceType"] = "HyperVReplicaAzureFailback"
 
 	encoded, err = json.Marshal(decoded)

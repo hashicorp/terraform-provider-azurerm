@@ -44,7 +44,7 @@ func ParseSqlDatabaseID(input string) (*SqlDatabaseId, error) {
 	}
 
 	id := SqlDatabaseId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseSqlDatabaseIDInsensitively(input string) (*SqlDatabaseId, error) {
 	}
 
 	id := SqlDatabaseId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id SqlDatabaseId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDocumentDB", "Microsoft.DocumentDB", "Microsoft.DocumentDB"),
 		resourceids.StaticSegment("staticDatabaseAccounts", "databaseAccounts", "databaseAccounts"),
-		resourceids.UserSpecifiedSegment("databaseAccountName", "databaseAccountValue"),
+		resourceids.UserSpecifiedSegment("databaseAccountName", "accountName"),
 		resourceids.StaticSegment("staticSqlDatabases", "sqlDatabases", "sqlDatabases"),
-		resourceids.UserSpecifiedSegment("sqlDatabaseName", "sqlDatabaseValue"),
+		resourceids.UserSpecifiedSegment("sqlDatabaseName", "databaseName"),
 	}
 }
 

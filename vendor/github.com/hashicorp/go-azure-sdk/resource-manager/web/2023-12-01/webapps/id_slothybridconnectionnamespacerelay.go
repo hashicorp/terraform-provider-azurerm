@@ -48,7 +48,7 @@ func ParseSlotHybridConnectionNamespaceRelayID(input string) (*SlotHybridConnect
 	}
 
 	id := SlotHybridConnectionNamespaceRelayId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -65,7 +65,7 @@ func ParseSlotHybridConnectionNamespaceRelayIDInsensitively(input string) (*Slot
 	}
 
 	id := SlotHybridConnectionNamespaceRelayId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -133,13 +133,13 @@ func (id SlotHybridConnectionNamespaceRelayId) Segments() []resourceids.Segment 
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftWeb", "Microsoft.Web", "Microsoft.Web"),
 		resourceids.StaticSegment("staticSites", "sites", "sites"),
-		resourceids.UserSpecifiedSegment("siteName", "siteValue"),
+		resourceids.UserSpecifiedSegment("siteName", "name"),
 		resourceids.StaticSegment("staticSlots", "slots", "slots"),
-		resourceids.UserSpecifiedSegment("slotName", "slotValue"),
+		resourceids.UserSpecifiedSegment("slotName", "slot"),
 		resourceids.StaticSegment("staticHybridConnectionNamespaces", "hybridConnectionNamespaces", "hybridConnectionNamespaces"),
-		resourceids.UserSpecifiedSegment("hybridConnectionNamespaceName", "hybridConnectionNamespaceValue"),
+		resourceids.UserSpecifiedSegment("hybridConnectionNamespaceName", "namespaceName"),
 		resourceids.StaticSegment("staticRelays", "relays", "relays"),
-		resourceids.UserSpecifiedSegment("relayName", "relayValue"),
+		resourceids.UserSpecifiedSegment("relayName", "relayName"),
 	}
 }
 

@@ -37,6 +37,7 @@ func (o BackendHealthOperationOptions) ToHeaders() *client.Headers {
 
 func (o BackendHealthOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/bastionshareablelink` Documentation
 
-The `bastionshareablelink` SDK allows for interaction with the Azure Resource Manager Service `network` (API Version `2023-11-01`).
+The `bastionshareablelink` SDK allows for interaction with Azure Resource Manager `network` (API Version `2023-11-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := bastionshareablelink.NewBastionHostID("12345678-1234-9876-4563-123456789012", "example-resource-group", "bastionHostValue")
+id := bastionshareablelink.NewBastionHostID("12345678-1234-9876-4563-123456789012", "example-resource-group", "bastionHostName")
 
 payload := bastionshareablelink.BastionShareableLinkListRequest{
 	// ...
@@ -41,7 +41,7 @@ if err := client.DeleteBastionShareableLinkThenPoll(ctx, id, payload); err != ni
 
 ```go
 ctx := context.TODO()
-id := bastionshareablelink.NewBastionHostID("12345678-1234-9876-4563-123456789012", "example-resource-group", "bastionHostValue")
+id := bastionshareablelink.NewBastionHostID("12345678-1234-9876-4563-123456789012", "example-resource-group", "bastionHostName")
 
 payload := bastionshareablelink.BastionShareableLinkTokenListRequest{
 	// ...
@@ -58,7 +58,7 @@ if err := client.DeleteBastionShareableLinkByTokenThenPoll(ctx, id, payload); er
 
 ```go
 ctx := context.TODO()
-id := bastionshareablelink.NewBastionHostID("12345678-1234-9876-4563-123456789012", "example-resource-group", "bastionHostValue")
+id := bastionshareablelink.NewBastionHostID("12345678-1234-9876-4563-123456789012", "example-resource-group", "bastionHostName")
 
 payload := bastionshareablelink.BastionShareableLinkListRequest{
 	// ...
@@ -80,7 +80,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := bastionshareablelink.NewBastionHostID("12345678-1234-9876-4563-123456789012", "example-resource-group", "bastionHostValue")
+id := bastionshareablelink.NewBastionHostID("12345678-1234-9876-4563-123456789012", "example-resource-group", "bastionHostName")
 
 payload := bastionshareablelink.BastionShareableLinkListRequest{
 	// ...

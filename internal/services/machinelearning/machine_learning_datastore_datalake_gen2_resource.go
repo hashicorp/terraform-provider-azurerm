@@ -184,20 +184,20 @@ func (r MachineLearningDataStoreDataLakeGen2) Create() sdk.ResourceFunc {
 				Tags:                          pointer.To(model.Tags),
 			}
 
-			creds := map[string]interface{}{
-				"credentialsType": "None",
-			}
+			var creds datastore.DatastoreCredentials = datastore.NoneDatastoreCredentials{}
 
 			if len(model.TenantID) != 0 && len(model.ClientID) != 0 && len(model.ClientSecret) != 0 {
-				creds = map[string]interface{}{
-					"credentialsType": string(datastore.CredentialsTypeServicePrincipal),
-					"authorityUrl":    model.AuthorityUrl,
-					"resourceUrl":     "https://datalake.azure.net/",
-					"tenantId":        model.TenantID,
-					"clientId":        model.ClientID,
-					"secrets": map[string]interface{}{
-						"secretsType":  "ServicePrincipal",
-						"clientSecret": model.ClientSecret,
+				resourceId, ok := metadata.Client.Account.Environment.DataLake.ResourceIdentifier()
+				if !ok {
+					return fmt.Errorf("could not determine resource identifier for DataLake in the %q cloud environment", metadata.Client.Account.Environment.Name)
+				}
+				creds = datastore.ServicePrincipalDatastoreCredentials{
+					AuthorityUrl: pointer.To(model.AuthorityUrl),
+					ResourceUrl:  resourceId,
+					TenantId:     model.TenantID,
+					ClientId:     model.ClientID,
+					Secrets: datastore.ServicePrincipalDatastoreSecrets{
+						ClientSecret: pointer.To(model.ClientSecret),
 					},
 				}
 			}
@@ -248,20 +248,20 @@ func (r MachineLearningDataStoreDataLakeGen2) Update() sdk.ResourceFunc {
 				Tags:                          pointer.To(state.Tags),
 			}
 
-			creds := map[string]interface{}{
-				"credentialsType": "None",
-			}
+			var creds datastore.DatastoreCredentials = datastore.NoneDatastoreCredentials{}
 
 			if len(state.TenantID) != 0 && len(state.ClientID) != 0 && len(state.ClientSecret) != 0 {
-				creds = map[string]interface{}{
-					"credentialsType": string(datastore.CredentialsTypeServicePrincipal),
-					"authorityUrl":    state.AuthorityUrl,
-					"resourceUrl":     "https://datalake.azure.net/",
-					"tenantId":        state.TenantID,
-					"clientId":        state.ClientID,
-					"secrets": map[string]interface{}{
-						"secretsType":  "ServicePrincipal",
-						"clientSecret": state.ClientSecret,
+				resourceId, ok := metadata.Client.Account.Environment.DataLake.ResourceIdentifier()
+				if !ok {
+					return fmt.Errorf("could not determine resource identifier for DataLake in the %q cloud environment", metadata.Client.Account.Environment.Name)
+				}
+				creds = datastore.ServicePrincipalDatastoreCredentials{
+					AuthorityUrl: pointer.To(state.AuthorityUrl),
+					ResourceUrl:  resourceId,
+					TenantId:     state.TenantID,
+					ClientId:     state.ClientID,
+					Secrets: datastore.ServicePrincipalDatastoreSecrets{
+						ClientSecret: pointer.To(state.ClientSecret),
 					},
 				}
 			}

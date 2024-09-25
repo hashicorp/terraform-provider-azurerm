@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2024-04-01/workspaces` Documentation
 
-The `workspaces` SDK allows for interaction with the Azure Resource Manager Service `machinelearningservices` (API Version `2024-04-01`).
+The `workspaces` SDK allows for interaction with Azure Resource Manager `machinelearningservices` (API Version `2024-04-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := workspaces.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue")
+id := workspaces.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName")
 
 payload := workspaces.Workspace{
 	// ...
@@ -42,7 +42,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := workspaces.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue")
+id := workspaces.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName")
 
 if err := client.DeleteThenPoll(ctx, id, workspaces.DefaultDeleteOperationOptions()); err != nil {
 	// handle the error
@@ -54,7 +54,7 @@ if err := client.DeleteThenPoll(ctx, id, workspaces.DefaultDeleteOperationOption
 
 ```go
 ctx := context.TODO()
-id := workspaces.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue")
+id := workspaces.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName")
 
 payload := workspaces.DiagnoseWorkspaceParameters{
 	// ...
@@ -71,7 +71,7 @@ if err := client.DiagnoseThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := workspaces.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue")
+id := workspaces.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -121,7 +121,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := workspaces.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue")
+id := workspaces.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName")
 
 read, err := client.ListKeys(ctx, id)
 if err != nil {
@@ -137,7 +137,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := workspaces.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue")
+id := workspaces.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName")
 
 read, err := client.ListNotebookAccessToken(ctx, id)
 if err != nil {
@@ -153,7 +153,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := workspaces.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue")
+id := workspaces.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName")
 
 if err := client.ResyncKeysThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -165,7 +165,7 @@ if err := client.ResyncKeysThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := workspaces.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue")
+id := workspaces.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName")
 
 payload := workspaces.WorkspaceUpdateParameters{
 	// ...
@@ -182,7 +182,7 @@ if err := client.UpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := workspaces.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue")
+id := workspaces.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName")
 
 // alternatively `client.WorkspaceFeaturesList(ctx, id)` can be used to do batched pagination
 items, err := client.WorkspaceFeaturesListComplete(ctx, id)

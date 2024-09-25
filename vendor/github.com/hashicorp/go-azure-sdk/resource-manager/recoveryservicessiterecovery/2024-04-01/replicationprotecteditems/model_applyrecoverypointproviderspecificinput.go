@@ -10,18 +10,35 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ApplyRecoveryPointProviderSpecificInput interface {
+	ApplyRecoveryPointProviderSpecificInput() BaseApplyRecoveryPointProviderSpecificInputImpl
 }
 
-// RawApplyRecoveryPointProviderSpecificInputImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ ApplyRecoveryPointProviderSpecificInput = BaseApplyRecoveryPointProviderSpecificInputImpl{}
+
+type BaseApplyRecoveryPointProviderSpecificInputImpl struct {
+	InstanceType string `json:"instanceType"`
+}
+
+func (s BaseApplyRecoveryPointProviderSpecificInputImpl) ApplyRecoveryPointProviderSpecificInput() BaseApplyRecoveryPointProviderSpecificInputImpl {
+	return s
+}
+
+var _ ApplyRecoveryPointProviderSpecificInput = RawApplyRecoveryPointProviderSpecificInputImpl{}
+
+// RawApplyRecoveryPointProviderSpecificInputImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawApplyRecoveryPointProviderSpecificInputImpl struct {
-	Type   string
-	Values map[string]interface{}
+	applyRecoveryPointProviderSpecificInput BaseApplyRecoveryPointProviderSpecificInputImpl
+	Type                                    string
+	Values                                  map[string]interface{}
 }
 
-func unmarshalApplyRecoveryPointProviderSpecificInputImplementation(input []byte) (ApplyRecoveryPointProviderSpecificInput, error) {
+func (s RawApplyRecoveryPointProviderSpecificInputImpl) ApplyRecoveryPointProviderSpecificInput() BaseApplyRecoveryPointProviderSpecificInputImpl {
+	return s.applyRecoveryPointProviderSpecificInput
+}
+
+func UnmarshalApplyRecoveryPointProviderSpecificInputImplementation(input []byte) (ApplyRecoveryPointProviderSpecificInput, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +48,9 @@ func unmarshalApplyRecoveryPointProviderSpecificInputImplementation(input []byte
 		return nil, fmt.Errorf("unmarshaling ApplyRecoveryPointProviderSpecificInput into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["instanceType"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["instanceType"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "A2A") {
@@ -76,10 +93,15 @@ func unmarshalApplyRecoveryPointProviderSpecificInputImplementation(input []byte
 		return out, nil
 	}
 
-	out := RawApplyRecoveryPointProviderSpecificInputImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseApplyRecoveryPointProviderSpecificInputImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseApplyRecoveryPointProviderSpecificInputImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawApplyRecoveryPointProviderSpecificInputImpl{
+		applyRecoveryPointProviderSpecificInput: parent,
+		Type:                                    value,
+		Values:                                  temp,
+	}, nil
 
 }

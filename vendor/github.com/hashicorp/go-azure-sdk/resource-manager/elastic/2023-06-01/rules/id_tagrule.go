@@ -44,7 +44,7 @@ func ParseTagRuleID(input string) (*TagRuleId, error) {
 	}
 
 	id := TagRuleId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseTagRuleIDInsensitively(input string) (*TagRuleId, error) {
 	}
 
 	id := TagRuleId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id TagRuleId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftElastic", "Microsoft.Elastic", "Microsoft.Elastic"),
 		resourceids.StaticSegment("staticMonitors", "monitors", "monitors"),
-		resourceids.UserSpecifiedSegment("monitorName", "monitorValue"),
+		resourceids.UserSpecifiedSegment("monitorName", "monitorName"),
 		resourceids.StaticSegment("staticTagRules", "tagRules", "tagRules"),
-		resourceids.UserSpecifiedSegment("tagRuleName", "tagRuleValue"),
+		resourceids.UserSpecifiedSegment("tagRuleName", "ruleSetName"),
 	}
 }
 

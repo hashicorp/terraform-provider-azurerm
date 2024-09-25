@@ -46,7 +46,6 @@ func (c EventSubscriptionsClient) PartnerTopicEventSubscriptionsGetFullUrl(ctx c
 
 	var model EventSubscriptionFullUrl
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

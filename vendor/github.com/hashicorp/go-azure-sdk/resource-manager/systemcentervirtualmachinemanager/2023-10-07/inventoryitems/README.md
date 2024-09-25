@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/inventoryitems` Documentation
 
-The `inventoryitems` SDK allows for interaction with the Azure Resource Manager Service `systemcentervirtualmachinemanager` (API Version `2023-10-07`).
+The `inventoryitems` SDK allows for interaction with Azure Resource Manager `systemcentervirtualmachinemanager` (API Version `2023-10-07`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := inventoryitems.NewInventoryItemID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vmmServerValue", "inventoryItemValue")
+id := inventoryitems.NewInventoryItemID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vmmServerName", "inventoryItemResourceName")
 
 payload := inventoryitems.InventoryItem{
 	// ...
@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := inventoryitems.NewInventoryItemID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vmmServerValue", "inventoryItemValue")
+id := inventoryitems.NewInventoryItemID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vmmServerName", "inventoryItemResourceName")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -61,7 +61,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := inventoryitems.NewInventoryItemID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vmmServerValue", "inventoryItemValue")
+id := inventoryitems.NewInventoryItemID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vmmServerName", "inventoryItemResourceName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -77,7 +77,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := inventoryitems.NewVMmServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vmmServerValue")
+id := inventoryitems.NewVMmServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vmmServerName")
 
 // alternatively `client.ListByVMmServer(ctx, id)` can be used to do batched pagination
 items, err := client.ListByVMmServerComplete(ctx, id)

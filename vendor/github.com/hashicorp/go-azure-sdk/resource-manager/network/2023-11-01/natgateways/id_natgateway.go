@@ -42,7 +42,7 @@ func ParseNatGatewayID(input string) (*NatGatewayId, error) {
 	}
 
 	id := NatGatewayId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseNatGatewayIDInsensitively(input string) (*NatGatewayId, error) {
 	}
 
 	id := NatGatewayId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id NatGatewayId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticNatGateways", "natGateways", "natGateways"),
-		resourceids.UserSpecifiedSegment("natGatewayName", "natGatewayValue"),
+		resourceids.UserSpecifiedSegment("natGatewayName", "natGatewayName"),
 	}
 }
 

@@ -45,7 +45,6 @@ func (c JobsClient) GetDetector(ctx context.Context, id DetectorId) (result GetD
 
 	var model Diagnostics
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

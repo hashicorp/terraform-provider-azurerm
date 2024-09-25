@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/advisor/2023-01-01/suppressions` Documentation
 
-The `suppressions` SDK allows for interaction with the Azure Resource Manager Service `advisor` (API Version `2023-01-01`).
+The `suppressions` SDK allows for interaction with Azure Resource Manager `advisor` (API Version `2023-01-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := suppressions.NewScopedSuppressionID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "recommendationIdValue", "suppressionValue")
+id := suppressions.NewScopedSuppressionID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "recommendationId", "name")
 
 payload := suppressions.SuppressionContract{
 	// ...
@@ -46,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := suppressions.NewScopedSuppressionID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "recommendationIdValue", "suppressionValue")
+id := suppressions.NewScopedSuppressionID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "recommendationId", "name")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -62,7 +62,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := suppressions.NewScopedSuppressionID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "recommendationIdValue", "suppressionValue")
+id := suppressions.NewScopedSuppressionID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "recommendationId", "name")
 
 read, err := client.Get(ctx, id)
 if err != nil {

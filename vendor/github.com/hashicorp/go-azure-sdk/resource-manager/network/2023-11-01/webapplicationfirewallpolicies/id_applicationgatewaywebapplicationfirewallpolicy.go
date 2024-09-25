@@ -42,7 +42,7 @@ func ParseApplicationGatewayWebApplicationFirewallPolicyID(input string) (*Appli
 	}
 
 	id := ApplicationGatewayWebApplicationFirewallPolicyId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseApplicationGatewayWebApplicationFirewallPolicyIDInsensitively(input st
 	}
 
 	id := ApplicationGatewayWebApplicationFirewallPolicyId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id ApplicationGatewayWebApplicationFirewallPolicyId) Segments() []resource
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticApplicationGatewayWebApplicationFirewallPolicies", "applicationGatewayWebApplicationFirewallPolicies", "applicationGatewayWebApplicationFirewallPolicies"),
-		resourceids.UserSpecifiedSegment("applicationGatewayWebApplicationFirewallPolicyName", "applicationGatewayWebApplicationFirewallPolicyValue"),
+		resourceids.UserSpecifiedSegment("applicationGatewayWebApplicationFirewallPolicyName", "policyName"),
 	}
 }
 

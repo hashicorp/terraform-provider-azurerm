@@ -44,7 +44,7 @@ func ParseRuleCollectionGroupID(input string) (*RuleCollectionGroupId, error) {
 	}
 
 	id := RuleCollectionGroupId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseRuleCollectionGroupIDInsensitively(input string) (*RuleCollectionGroup
 	}
 
 	id := RuleCollectionGroupId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id RuleCollectionGroupId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticFirewallPolicies", "firewallPolicies", "firewallPolicies"),
-		resourceids.UserSpecifiedSegment("firewallPolicyName", "firewallPolicyValue"),
+		resourceids.UserSpecifiedSegment("firewallPolicyName", "firewallPolicyName"),
 		resourceids.StaticSegment("staticRuleCollectionGroups", "ruleCollectionGroups", "ruleCollectionGroups"),
-		resourceids.UserSpecifiedSegment("ruleCollectionGroupName", "ruleCollectionGroupValue"),
+		resourceids.UserSpecifiedSegment("ruleCollectionGroupName", "ruleCollectionGroupName"),
 	}
 }
 

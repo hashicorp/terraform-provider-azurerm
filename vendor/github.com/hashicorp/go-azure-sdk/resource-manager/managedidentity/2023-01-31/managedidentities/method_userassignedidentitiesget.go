@@ -46,7 +46,6 @@ func (c ManagedIdentitiesClient) UserAssignedIdentitiesGet(ctx context.Context, 
 
 	var model Identity
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

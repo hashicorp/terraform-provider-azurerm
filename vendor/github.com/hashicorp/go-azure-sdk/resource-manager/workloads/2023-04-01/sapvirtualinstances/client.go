@@ -15,7 +15,7 @@ type SAPVirtualInstancesClient struct {
 }
 
 func NewSAPVirtualInstancesClientWithBaseURI(sdkApi sdkEnv.Api) (*SAPVirtualInstancesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "sapvirtualinstances", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "sapvirtualinstances", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating SAPVirtualInstancesClient: %+v", err)
 	}

@@ -40,6 +40,7 @@ func (o ManagementGroupNetworkManagerConnectionsListOperationOptions) ToHeaders(
 
 func (o ManagementGroupNetworkManagerConnectionsListOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

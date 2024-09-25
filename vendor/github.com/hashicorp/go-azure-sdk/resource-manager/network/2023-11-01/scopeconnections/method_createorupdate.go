@@ -50,7 +50,6 @@ func (c ScopeConnectionsClient) CreateOrUpdate(ctx context.Context, id ScopeConn
 
 	var model ScopeConnection
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

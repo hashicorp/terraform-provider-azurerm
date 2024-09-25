@@ -39,6 +39,7 @@ func (o StartWebSiteNetworkTraceOperationSlotOperationOptions) ToHeaders() *clie
 
 func (o StartWebSiteNetworkTraceOperationSlotOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

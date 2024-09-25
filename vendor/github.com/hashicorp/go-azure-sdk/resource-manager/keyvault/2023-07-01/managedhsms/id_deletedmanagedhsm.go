@@ -42,7 +42,7 @@ func ParseDeletedManagedHSMID(input string) (*DeletedManagedHSMId, error) {
 	}
 
 	id := DeletedManagedHSMId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseDeletedManagedHSMIDInsensitively(input string) (*DeletedManagedHSMId, 
 	}
 
 	id := DeletedManagedHSMId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -113,9 +113,9 @@ func (id DeletedManagedHSMId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftKeyVault", "Microsoft.KeyVault", "Microsoft.KeyVault"),
 		resourceids.StaticSegment("staticLocations", "locations", "locations"),
-		resourceids.UserSpecifiedSegment("locationName", "locationValue"),
+		resourceids.UserSpecifiedSegment("locationName", "location"),
 		resourceids.StaticSegment("staticDeletedManagedHSMs", "deletedManagedHSMs", "deletedManagedHSMs"),
-		resourceids.UserSpecifiedSegment("deletedManagedHSMName", "deletedManagedHSMValue"),
+		resourceids.UserSpecifiedSegment("deletedManagedHSMName", "name"),
 	}
 }
 

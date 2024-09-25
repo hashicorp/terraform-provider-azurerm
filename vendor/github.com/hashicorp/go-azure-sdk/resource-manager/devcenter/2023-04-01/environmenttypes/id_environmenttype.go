@@ -44,7 +44,7 @@ func ParseEnvironmentTypeID(input string) (*EnvironmentTypeId, error) {
 	}
 
 	id := EnvironmentTypeId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseEnvironmentTypeIDInsensitively(input string) (*EnvironmentTypeId, erro
 	}
 
 	id := EnvironmentTypeId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id EnvironmentTypeId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDevCenter", "Microsoft.DevCenter", "Microsoft.DevCenter"),
 		resourceids.StaticSegment("staticProjects", "projects", "projects"),
-		resourceids.UserSpecifiedSegment("projectName", "projectValue"),
+		resourceids.UserSpecifiedSegment("projectName", "projectName"),
 		resourceids.StaticSegment("staticEnvironmentTypes", "environmentTypes", "environmentTypes"),
-		resourceids.UserSpecifiedSegment("environmentTypeName", "environmentTypeValue"),
+		resourceids.UserSpecifiedSegment("environmentTypeName", "environmentTypeName"),
 	}
 }
 

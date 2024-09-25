@@ -37,6 +37,7 @@ func (o CheckNameAvailabilityOperationOptions) ToHeaders() *client.Headers {
 
 func (o CheckNameAvailabilityOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -79,7 +80,6 @@ func (c ServicesClient) CheckNameAvailability(ctx context.Context, id commonids.
 
 	var model CheckNameAvailabilityOutput
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

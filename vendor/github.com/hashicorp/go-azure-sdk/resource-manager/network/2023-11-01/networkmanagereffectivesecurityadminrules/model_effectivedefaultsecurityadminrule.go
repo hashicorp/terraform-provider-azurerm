@@ -14,11 +14,24 @@ type EffectiveDefaultSecurityAdminRule struct {
 	Properties *DefaultAdminPropertiesFormat `json:"properties,omitempty"`
 
 	// Fields inherited from EffectiveBaseSecurityAdminRule
+
 	ConfigurationDescription      *string                            `json:"configurationDescription,omitempty"`
 	Id                            *string                            `json:"id,omitempty"`
+	Kind                          EffectiveAdminRuleKind             `json:"kind"`
 	RuleCollectionAppliesToGroups *[]NetworkManagerSecurityGroupItem `json:"ruleCollectionAppliesToGroups,omitempty"`
 	RuleCollectionDescription     *string                            `json:"ruleCollectionDescription,omitempty"`
 	RuleGroups                    *[]ConfigurationGroup              `json:"ruleGroups,omitempty"`
+}
+
+func (s EffectiveDefaultSecurityAdminRule) EffectiveBaseSecurityAdminRule() BaseEffectiveBaseSecurityAdminRuleImpl {
+	return BaseEffectiveBaseSecurityAdminRuleImpl{
+		ConfigurationDescription:      s.ConfigurationDescription,
+		Id:                            s.Id,
+		Kind:                          s.Kind,
+		RuleCollectionAppliesToGroups: s.RuleCollectionAppliesToGroups,
+		RuleCollectionDescription:     s.RuleCollectionDescription,
+		RuleGroups:                    s.RuleGroups,
+	}
 }
 
 var _ json.Marshaler = EffectiveDefaultSecurityAdminRule{}
@@ -32,9 +45,10 @@ func (s EffectiveDefaultSecurityAdminRule) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling EffectiveDefaultSecurityAdminRule: %+v", err)
 	}
+
 	decoded["kind"] = "Default"
 
 	encoded, err = json.Marshal(decoded)

@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-07-01-preview/privatelinkscopesapis` Documentation
 
-The `privatelinkscopesapis` SDK allows for interaction with the Azure Resource Manager Service `insights` (API Version `2021-07-01-preview`).
+The `privatelinkscopesapis` SDK allows for interaction with Azure Resource Manager `insights` (API Version `2021-07-01-preview`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := privatelinkscopesapis.NewPrivateLinkScopeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateLinkScopeValue")
+id := privatelinkscopesapis.NewPrivateLinkScopeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "scopeName")
 
 payload := privatelinkscopesapis.AzureMonitorPrivateLinkScope{
 	// ...
@@ -46,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := privatelinkscopesapis.NewPrivateLinkScopeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateLinkScopeValue")
+id := privatelinkscopesapis.NewPrivateLinkScopeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "scopeName")
 
 if err := client.PrivateLinkScopesDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -58,7 +58,7 @@ if err := client.PrivateLinkScopesDeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := privatelinkscopesapis.NewPrivateLinkScopeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateLinkScopeValue")
+id := privatelinkscopesapis.NewPrivateLinkScopeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "scopeName")
 
 read, err := client.PrivateLinkScopesGet(ctx, id)
 if err != nil {
@@ -108,7 +108,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := privatelinkscopesapis.NewPrivateLinkScopeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateLinkScopeValue")
+id := privatelinkscopesapis.NewPrivateLinkScopeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "scopeName")
 
 payload := privatelinkscopesapis.TagsResource{
 	// ...

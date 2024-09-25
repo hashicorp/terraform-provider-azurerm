@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/images` Documentation
 
-The `images` SDK allows for interaction with the Azure Resource Manager Service `compute` (API Version `2022-03-01`).
+The `images` SDK allows for interaction with Azure Resource Manager `compute` (API Version `2022-03-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := images.NewImageID("12345678-1234-9876-4563-123456789012", "example-resource-group", "imageValue")
+id := images.NewImageID("12345678-1234-9876-4563-123456789012", "example-resource-group", "imageName")
 
 payload := images.Image{
 	// ...
@@ -42,7 +42,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := images.NewImageID("12345678-1234-9876-4563-123456789012", "example-resource-group", "imageValue")
+id := images.NewImageID("12345678-1234-9876-4563-123456789012", "example-resource-group", "imageName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -54,7 +54,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := images.NewImageID("12345678-1234-9876-4563-123456789012", "example-resource-group", "imageValue")
+id := images.NewImageID("12345678-1234-9876-4563-123456789012", "example-resource-group", "imageName")
 
 read, err := client.Get(ctx, id, images.DefaultGetOperationOptions())
 if err != nil {
@@ -104,7 +104,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := images.NewImageID("12345678-1234-9876-4563-123456789012", "example-resource-group", "imageValue")
+id := images.NewImageID("12345678-1234-9876-4563-123456789012", "example-resource-group", "imageName")
 
 payload := images.ImageUpdate{
 	// ...

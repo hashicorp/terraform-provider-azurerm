@@ -44,7 +44,7 @@ func ParseNatRuleID(input string) (*NatRuleId, error) {
 	}
 
 	id := NatRuleId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseNatRuleIDInsensitively(input string) (*NatRuleId, error) {
 	}
 
 	id := NatRuleId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id NatRuleId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticVpnGateways", "vpnGateways", "vpnGateways"),
-		resourceids.UserSpecifiedSegment("vpnGatewayName", "vpnGatewayValue"),
+		resourceids.UserSpecifiedSegment("vpnGatewayName", "gatewayName"),
 		resourceids.StaticSegment("staticNatRules", "natRules", "natRules"),
-		resourceids.UserSpecifiedSegment("natRuleName", "natRuleValue"),
+		resourceids.UserSpecifiedSegment("natRuleName", "natRuleName"),
 	}
 }
 

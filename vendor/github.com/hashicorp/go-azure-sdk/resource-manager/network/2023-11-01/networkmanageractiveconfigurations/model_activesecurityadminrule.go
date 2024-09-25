@@ -17,13 +17,28 @@ type ActiveSecurityAdminRule struct {
 	Properties *AdminPropertiesFormat `json:"properties,omitempty"`
 
 	// Fields inherited from ActiveBaseSecurityAdminRule
+
 	CommitTime                    *string                            `json:"commitTime,omitempty"`
 	ConfigurationDescription      *string                            `json:"configurationDescription,omitempty"`
 	Id                            *string                            `json:"id,omitempty"`
+	Kind                          EffectiveAdminRuleKind             `json:"kind"`
 	Region                        *string                            `json:"region,omitempty"`
 	RuleCollectionAppliesToGroups *[]NetworkManagerSecurityGroupItem `json:"ruleCollectionAppliesToGroups,omitempty"`
 	RuleCollectionDescription     *string                            `json:"ruleCollectionDescription,omitempty"`
 	RuleGroups                    *[]ConfigurationGroup              `json:"ruleGroups,omitempty"`
+}
+
+func (s ActiveSecurityAdminRule) ActiveBaseSecurityAdminRule() BaseActiveBaseSecurityAdminRuleImpl {
+	return BaseActiveBaseSecurityAdminRuleImpl{
+		CommitTime:                    s.CommitTime,
+		ConfigurationDescription:      s.ConfigurationDescription,
+		Id:                            s.Id,
+		Kind:                          s.Kind,
+		Region:                        s.Region,
+		RuleCollectionAppliesToGroups: s.RuleCollectionAppliesToGroups,
+		RuleCollectionDescription:     s.RuleCollectionDescription,
+		RuleGroups:                    s.RuleGroups,
+	}
 }
 
 func (o *ActiveSecurityAdminRule) GetCommitTimeAsTime() (*time.Time, error) {
@@ -49,9 +64,10 @@ func (s ActiveSecurityAdminRule) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling ActiveSecurityAdminRule: %+v", err)
 	}
+
 	decoded["kind"] = "Custom"
 
 	encoded, err = json.Marshal(decoded)

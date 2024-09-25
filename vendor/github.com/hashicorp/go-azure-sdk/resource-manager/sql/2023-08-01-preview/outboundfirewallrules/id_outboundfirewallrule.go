@@ -44,7 +44,7 @@ func ParseOutboundFirewallRuleID(input string) (*OutboundFirewallRuleId, error) 
 	}
 
 	id := OutboundFirewallRuleId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseOutboundFirewallRuleIDInsensitively(input string) (*OutboundFirewallRu
 	}
 
 	id := OutboundFirewallRuleId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id OutboundFirewallRuleId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftSql", "Microsoft.Sql", "Microsoft.Sql"),
 		resourceids.StaticSegment("staticServers", "servers", "servers"),
-		resourceids.UserSpecifiedSegment("serverName", "serverValue"),
+		resourceids.UserSpecifiedSegment("serverName", "serverName"),
 		resourceids.StaticSegment("staticOutboundFirewallRules", "outboundFirewallRules", "outboundFirewallRules"),
-		resourceids.UserSpecifiedSegment("outboundFirewallRuleName", "outboundFirewallRuleValue"),
+		resourceids.UserSpecifiedSegment("outboundFirewallRuleName", "outboundRuleFqdn"),
 	}
 }
 

@@ -44,7 +44,7 @@ func ParseManagedCertificateID(input string) (*ManagedCertificateId, error) {
 	}
 
 	id := ManagedCertificateId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseManagedCertificateIDInsensitively(input string) (*ManagedCertificateId
 	}
 
 	id := ManagedCertificateId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id ManagedCertificateId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftApp", "Microsoft.App", "Microsoft.App"),
 		resourceids.StaticSegment("staticManagedEnvironments", "managedEnvironments", "managedEnvironments"),
-		resourceids.UserSpecifiedSegment("managedEnvironmentName", "managedEnvironmentValue"),
+		resourceids.UserSpecifiedSegment("managedEnvironmentName", "environmentName"),
 		resourceids.StaticSegment("staticManagedCertificates", "managedCertificates", "managedCertificates"),
-		resourceids.UserSpecifiedSegment("managedCertificateName", "managedCertificateValue"),
+		resourceids.UserSpecifiedSegment("managedCertificateName", "managedCertificateName"),
 	}
 }
 

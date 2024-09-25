@@ -15,7 +15,7 @@ type ManagedBackupShortTermRetentionPoliciesClient struct {
 }
 
 func NewManagedBackupShortTermRetentionPoliciesClientWithBaseURI(sdkApi sdkEnv.Api) (*ManagedBackupShortTermRetentionPoliciesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "managedbackupshorttermretentionpolicies", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "managedbackupshorttermretentionpolicies", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ManagedBackupShortTermRetentionPoliciesClient: %+v", err)
 	}

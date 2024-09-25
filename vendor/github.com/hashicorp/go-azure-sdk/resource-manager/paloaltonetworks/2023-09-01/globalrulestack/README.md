@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2023-09-01/globalrulestack` Documentation
 
-The `globalrulestack` SDK allows for interaction with the Azure Resource Manager Service `paloaltonetworks` (API Version `2023-09-01`).
+The `globalrulestack` SDK allows for interaction with Azure Resource Manager `paloaltonetworks` (API Version `2023-09-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := globalrulestack.NewGlobalRulestackID("globalRulestackValue")
+id := globalrulestack.NewGlobalRulestackID("globalRulestackName")
 
 if err := client.CommitThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -36,7 +36,7 @@ if err := client.CommitThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := globalrulestack.NewGlobalRulestackID("globalRulestackValue")
+id := globalrulestack.NewGlobalRulestackID("globalRulestackName")
 
 payload := globalrulestack.GlobalRulestackResource{
 	// ...
@@ -53,7 +53,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := globalrulestack.NewGlobalRulestackID("globalRulestackValue")
+id := globalrulestack.NewGlobalRulestackID("globalRulestackName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -65,7 +65,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := globalrulestack.NewGlobalRulestackID("globalRulestackValue")
+id := globalrulestack.NewGlobalRulestackID("globalRulestackName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -81,7 +81,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := globalrulestack.NewGlobalRulestackID("globalRulestackValue")
+id := globalrulestack.NewGlobalRulestackID("globalRulestackName")
 
 read, err := client.GetChangeLog(ctx, id)
 if err != nil {
@@ -114,7 +114,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := globalrulestack.NewGlobalRulestackID("globalRulestackValue")
+id := globalrulestack.NewGlobalRulestackID("globalRulestackName")
 
 // alternatively `client.ListAdvancedSecurityObjects(ctx, id, globalrulestack.DefaultListAdvancedSecurityObjectsOperationOptions())` can be used to do batched pagination
 items, err := client.ListAdvancedSecurityObjectsComplete(ctx, id, globalrulestack.DefaultListAdvancedSecurityObjectsOperationOptions())
@@ -131,7 +131,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := globalrulestack.NewGlobalRulestackID("globalRulestackValue")
+id := globalrulestack.NewGlobalRulestackID("globalRulestackName")
 
 // alternatively `client.ListAppIds(ctx, id, globalrulestack.DefaultListAppIdsOperationOptions())` can be used to do batched pagination
 items, err := client.ListAppIdsComplete(ctx, id, globalrulestack.DefaultListAppIdsOperationOptions())
@@ -148,7 +148,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := globalrulestack.NewGlobalRulestackID("globalRulestackValue")
+id := globalrulestack.NewGlobalRulestackID("globalRulestackName")
 
 // alternatively `client.ListCountries(ctx, id, globalrulestack.DefaultListCountriesOperationOptions())` can be used to do batched pagination
 items, err := client.ListCountriesComplete(ctx, id, globalrulestack.DefaultListCountriesOperationOptions())
@@ -165,7 +165,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := globalrulestack.NewGlobalRulestackID("globalRulestackValue")
+id := globalrulestack.NewGlobalRulestackID("globalRulestackName")
 
 // alternatively `client.ListFirewalls(ctx, id)` can be used to do batched pagination
 items, err := client.ListFirewallsComplete(ctx, id)
@@ -182,7 +182,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := globalrulestack.NewGlobalRulestackID("globalRulestackValue")
+id := globalrulestack.NewGlobalRulestackID("globalRulestackName")
 
 // alternatively `client.ListPredefinedUrlCategories(ctx, id, globalrulestack.DefaultListPredefinedUrlCategoriesOperationOptions())` can be used to do batched pagination
 items, err := client.ListPredefinedUrlCategoriesComplete(ctx, id, globalrulestack.DefaultListPredefinedUrlCategoriesOperationOptions())
@@ -199,7 +199,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := globalrulestack.NewGlobalRulestackID("globalRulestackValue")
+id := globalrulestack.NewGlobalRulestackID("globalRulestackName")
 
 // alternatively `client.ListSecurityServices(ctx, id, globalrulestack.DefaultListSecurityServicesOperationOptions())` can be used to do batched pagination
 items, err := client.ListSecurityServicesComplete(ctx, id, globalrulestack.DefaultListSecurityServicesOperationOptions())
@@ -216,7 +216,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := globalrulestack.NewGlobalRulestackID("globalRulestackValue")
+id := globalrulestack.NewGlobalRulestackID("globalRulestackName")
 
 read, err := client.Revert(ctx, id)
 if err != nil {
@@ -232,7 +232,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := globalrulestack.NewGlobalRulestackID("globalRulestackValue")
+id := globalrulestack.NewGlobalRulestackID("globalRulestackName")
 
 payload := globalrulestack.GlobalRulestackResourceUpdate{
 	// ...

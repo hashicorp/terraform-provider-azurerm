@@ -46,7 +46,7 @@ func ParseSourceRegionTargetRegionID(input string) (*SourceRegionTargetRegionId,
 	}
 
 	id := SourceRegionTargetRegionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -63,7 +63,7 @@ func ParseSourceRegionTargetRegionIDInsensitively(input string) (*SourceRegionTa
 	}
 
 	id := SourceRegionTargetRegionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -127,11 +127,11 @@ func (id SourceRegionTargetRegionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDocumentDB", "Microsoft.DocumentDB", "Microsoft.DocumentDB"),
 		resourceids.StaticSegment("staticDatabaseAccounts", "databaseAccounts", "databaseAccounts"),
-		resourceids.UserSpecifiedSegment("databaseAccountName", "databaseAccountValue"),
+		resourceids.UserSpecifiedSegment("databaseAccountName", "accountName"),
 		resourceids.StaticSegment("staticSourceRegion", "sourceRegion", "sourceRegion"),
-		resourceids.UserSpecifiedSegment("sourceRegionName", "sourceRegionValue"),
+		resourceids.UserSpecifiedSegment("sourceRegionName", "sourceRegion"),
 		resourceids.StaticSegment("staticTargetRegion", "targetRegion", "targetRegion"),
-		resourceids.UserSpecifiedSegment("targetRegionName", "targetRegionValue"),
+		resourceids.UserSpecifiedSegment("targetRegionName", "targetRegion"),
 	}
 }
 

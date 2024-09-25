@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/powerbidedicated/2021-01-01/capacities` Documentation
 
-The `capacities` SDK allows for interaction with the Azure Resource Manager Service `powerbidedicated` (API Version `2021-01-01`).
+The `capacities` SDK allows for interaction with Azure Resource Manager `powerbidedicated` (API Version `2021-01-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := capacities.NewLocationID("12345678-1234-9876-4563-123456789012", "locationValue")
+id := capacities.NewLocationID("12345678-1234-9876-4563-123456789012", "location")
 
 payload := capacities.CheckCapacityNameAvailabilityParameters{
 	// ...
@@ -46,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := capacities.NewCapacityID("12345678-1234-9876-4563-123456789012", "example-resource-group", "capacityValue")
+id := capacities.NewCapacityID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dedicatedCapacityName")
 
 payload := capacities.DedicatedCapacity{
 	// ...
@@ -63,7 +63,7 @@ if err := client.CreateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := capacities.NewCapacityID("12345678-1234-9876-4563-123456789012", "example-resource-group", "capacityValue")
+id := capacities.NewCapacityID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dedicatedCapacityName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -75,7 +75,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := capacities.NewCapacityID("12345678-1234-9876-4563-123456789012", "example-resource-group", "capacityValue")
+id := capacities.NewCapacityID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dedicatedCapacityName")
 
 read, err := client.GetDetails(ctx, id)
 if err != nil {
@@ -123,7 +123,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := capacities.NewCapacityID("12345678-1234-9876-4563-123456789012", "example-resource-group", "capacityValue")
+id := capacities.NewCapacityID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dedicatedCapacityName")
 
 read, err := client.ListSkusForCapacity(ctx, id)
 if err != nil {
@@ -139,7 +139,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := capacities.NewCapacityID("12345678-1234-9876-4563-123456789012", "example-resource-group", "capacityValue")
+id := capacities.NewCapacityID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dedicatedCapacityName")
 
 if err := client.ResumeThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -151,7 +151,7 @@ if err := client.ResumeThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := capacities.NewCapacityID("12345678-1234-9876-4563-123456789012", "example-resource-group", "capacityValue")
+id := capacities.NewCapacityID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dedicatedCapacityName")
 
 if err := client.SuspendThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -163,7 +163,7 @@ if err := client.SuspendThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := capacities.NewCapacityID("12345678-1234-9876-4563-123456789012", "example-resource-group", "capacityValue")
+id := capacities.NewCapacityID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dedicatedCapacityName")
 
 payload := capacities.DedicatedCapacityUpdateParameters{
 	// ...

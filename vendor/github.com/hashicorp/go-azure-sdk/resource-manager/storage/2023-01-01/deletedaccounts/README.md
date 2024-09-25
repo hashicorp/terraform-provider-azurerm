@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/deletedaccounts` Documentation
 
-The `deletedaccounts` SDK allows for interaction with the Azure Resource Manager Service `storage` (API Version `2023-01-01`).
+The `deletedaccounts` SDK allows for interaction with Azure Resource Manager `storage` (API Version `2023-01-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := deletedaccounts.NewDeletedAccountID("12345678-1234-9876-4563-123456789012", "locationValue", "deletedAccountValue")
+id := deletedaccounts.NewDeletedAccountID("12345678-1234-9876-4563-123456789012", "location", "deletedAccountName")
 
 read, err := client.Get(ctx, id)
 if err != nil {

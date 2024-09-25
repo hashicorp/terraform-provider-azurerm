@@ -45,7 +45,6 @@ func (c NginxDeploymentClient) DeploymentsGet(ctx context.Context, id NginxDeplo
 
 	var model NginxDeployment
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

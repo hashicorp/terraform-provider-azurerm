@@ -49,7 +49,6 @@ func (c WebAppsClient) GetSourceControl(ctx context.Context, id commonids.AppSer
 
 	var model SiteSourceControl
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
