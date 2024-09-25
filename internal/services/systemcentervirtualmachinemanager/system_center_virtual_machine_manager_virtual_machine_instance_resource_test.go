@@ -155,16 +155,13 @@ resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance
   }
 
   hardware {
-    cpu_count                       = 1
-    limit_cpu_for_migration_enabled = false
-    memory_in_mb                    = 512
+    cpu_count    = 1
+    memory_in_mb = 512
   }
 
-  storage_disk {
-    bus_type     = "SCSI"
-    disk_size_gb = 10
-    name         = "testDisk"
-    vhd_type     = "Dynamic"
+  lifecycle {
+    // Service API always provisions a virtual disk with bus type IDE by default, so it has to ignore it
+    ignore_changes = [ storage_disk ]
   }
 }
 `, r.template(data))
@@ -189,16 +186,8 @@ resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance
   }
 
   hardware {
-    cpu_count                       = 1
-    limit_cpu_for_migration_enabled = false
-    memory_in_mb                    = 512
-  }
-
-  storage_disk {
-    bus_type     = "SCSI"
-    disk_size_gb = 10
-    name         = "testDisk"
-    vhd_type     = "Dynamic"
+    cpu_count    = 1
+    memory_in_mb = 512
   }
 }
 `, r.basic(data))
@@ -224,20 +213,37 @@ resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance
   }
 
   operating_system {
-    computer_name = "testComputer"
+    computer_name  = "testComputer"
+    admin_password = "AdminPassword123!"
   }
 
   hardware {
     cpu_count                       = 1
     limit_cpu_for_migration_enabled = false
     memory_in_mb                    = 512
+    dynamic_memory_min_in_mb        = 32
+    dynamic_memory_max_in_mb        = 1024
+  }
+
+  network_interface {
+    name              = "testNetworkInterface"
+    ipv4_address_type = "Dynamic"
+    ipv6_address_type = "Dynamic"
+    mac_address_type  = "Dynamic"
   }
 
   storage_disk {
+    name         = "testStorageDisk"
     bus_type     = "SCSI"
+    bus          = 0
+    lun          = 0
     disk_size_gb = 10
-    name         = "testDisk"
     vhd_type     = "Dynamic"
+  }
+
+  lifecycle {
+    // Service API always provisions a virtual disk with bus type IDE by default, so it has to ignore it
+    ignore_changes = [ storage_disk ]
   }
 }
 `, r.template(data))
@@ -263,20 +269,37 @@ resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance
   }
 
   operating_system {
-    computer_name = "testComputer"
+    computer_name  = "testComputer"
+    admin_password = "AdminPassword123!"
   }
 
   hardware {
     cpu_count                       = 1
-    limit_cpu_for_migration_enabled = false
-    memory_in_mb                    = 512
+    limit_cpu_for_migration_enabled = true
+    memory_in_mb                    = 544
+    dynamic_memory_min_in_mb        = 64
+    dynamic_memory_max_in_mb        = 1056
+  }
+
+  network_interface {
+    name              = "testNetworkInterface2"
+    ipv4_address_type = "Static"
+    ipv6_address_type = "Static"
+    mac_address_type  = "Static"
   }
 
   storage_disk {
+    name         = "testStorageDisk2"
     bus_type     = "SCSI"
-    disk_size_gb = 10
-    name         = "testDisk"
-    vhd_type     = "Dynamic"
+    bus          = 1
+    lun          = 1
+    disk_size_gb = 20
+    vhd_type     = "Fixed"
+  }
+
+  lifecycle {
+    // Service API always provisions a virtual disk with bus type IDE by default, so it has to ignore it
+    ignore_changes = [ storage_disk ]
   }
 }
 `, r.template(data))
