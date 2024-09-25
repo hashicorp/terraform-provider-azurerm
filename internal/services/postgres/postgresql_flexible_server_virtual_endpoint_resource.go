@@ -14,10 +14,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2023-06-01-preview/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2023-06-01-preview/virtualendpoints"
-	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -162,27 +160,15 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Read() sdk.ResourceFunc
 						return metadata.MarkAsGone(id)
 					}
 
-					// Model.Properties.Members is a tuple => [source_server, replication_server]
+					// Model.Properties.Members is a tuple => [source_server_id, replication_server_name]
 					sourceServerName := (*resp.Model.Properties.Members)[0]
 					replicaServerName := (*resp.Model.Properties.Members)[1]
+
 					sourceServerId := servers.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, sourceServerName).ID()
 
-					// the flexible endpoint API does not store the location/rg information on replicas it only stores the name
-					// this lookup is safe because replicas for a given source server are *not* allowed to have identical names
-					postgresServers, err := flexibleServerClient.ListCompleteMatchingPredicate(ctx, commonids.NewSubscriptionID(id.SubscriptionId), servers.ServerOperationPredicate{
-						Name: &replicaServerName,
-					})
+					replicaServer, err := lookupFlexibleServerByName(ctx, flexibleServerClient, id, replicaServerName, sourceServerId)
 					if err != nil {
 						return err
-					}
-
-					// loop to find the replica server associated with this flexible endpoint
-					var replicaServer servers.Server
-					for i := 0; i < len(postgresServers.Items); i++ {
-						postgresServer := postgresServers.Items[i]
-						if postgresServer.Properties.SourceServerResourceId != nil && *postgresServer.Properties.SourceServerResourceId == sourceServerId {
-							replicaServer = postgresServer
-						}
 					}
 
 					state.SourceServerId = sourceServerId
@@ -209,8 +195,8 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Delete() sdk.ResourceFu
 			locks.ByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
 			defer locks.UnlockByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
 
-			if err := DeletePostgresFlexibileServerVirtualEndpoint(ctx, client, id); err != nil {
-				return err
+			if err := client.DeleteThenPoll(ctx, *id); err != nil {
+				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
 			return nil
@@ -256,17 +242,23 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Update() sdk.ResourceFu
 	}
 }
 
-// exposed so we can access from tests
-func DeletePostgresFlexibileServerVirtualEndpoint(ctx context.Context, client *virtualendpoints.VirtualEndpointsClient, id *virtualendpoints.VirtualEndpointId) error {
-	deletePoller := custompollers.NewPostgresFlexibleServerVirtualEndpointDeletePoller(client, *id)
-	poller := pollers.NewPoller(deletePoller, 5*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
-
-	if _, err := client.Delete(ctx, *id); err != nil {
-		return fmt.Errorf("deleting %s: %+v", *id, err)
+// The flexible endpoint API does not store the location/rg information on replicas it only stores the name.
+// This lookup is safe because replicas for a given source server are *not* allowed to have identical names
+func lookupFlexibleServerByName(ctx context.Context, flexibleServerClient *servers.ServersClient, virtualEndpointId *virtualendpoints.VirtualEndpointId, replicaServerName string, sourceServerId string) (*servers.Server, error) {
+	postgresServers, err := flexibleServerClient.ListCompleteMatchingPredicate(ctx, commonids.NewSubscriptionID(virtualEndpointId.SubscriptionId), servers.ServerOperationPredicate{
+		Name: &replicaServerName,
+	})
+	if err != nil {
+		return nil, err
 	}
 
-	if err := poller.PollUntilDone(ctx); err != nil {
-		return err
+	// loop to find the replica server associated with this flexible endpoint
+	var replicaServer servers.Server
+	for i := 0; i < len(postgresServers.Items); i++ {
+		postgresServer := postgresServers.Items[i]
+		if postgresServer.Properties.SourceServerResourceId != nil && *postgresServer.Properties.SourceServerResourceId == sourceServerId {
+			replicaServer = postgresServer
+		}
 	}
-	return nil
+	return &replicaServer, nil
 }
