@@ -49,7 +49,6 @@ func (c CommunicationsGatewaysClient) Update(ctx context.Context, id Communicati
 
 	var model CommunicationsGateway
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

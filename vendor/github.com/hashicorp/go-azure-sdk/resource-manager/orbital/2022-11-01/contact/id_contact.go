@@ -44,7 +44,7 @@ func ParseContactID(input string) (*ContactId, error) {
 	}
 
 	id := ContactId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseContactIDInsensitively(input string) (*ContactId, error) {
 	}
 
 	id := ContactId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id ContactId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftOrbital", "Microsoft.Orbital", "Microsoft.Orbital"),
 		resourceids.StaticSegment("staticSpacecrafts", "spacecrafts", "spacecrafts"),
-		resourceids.UserSpecifiedSegment("spacecraftName", "spacecraftValue"),
+		resourceids.UserSpecifiedSegment("spacecraftName", "spacecraftName"),
 		resourceids.StaticSegment("staticContacts", "contacts", "contacts"),
-		resourceids.UserSpecifiedSegment("contactName", "contactValue"),
+		resourceids.UserSpecifiedSegment("contactName", "contactName"),
 	}
 }
 

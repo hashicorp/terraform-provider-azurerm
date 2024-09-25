@@ -49,7 +49,6 @@ func (c WebAppsClient) CreateOrUpdatePublicCertificate(ctx context.Context, id P
 
 	var model PublicCertificate
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

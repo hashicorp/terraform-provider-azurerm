@@ -50,7 +50,6 @@ func (c StaticMembersClient) CreateOrUpdate(ctx context.Context, id StaticMember
 
 	var model StaticMember
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

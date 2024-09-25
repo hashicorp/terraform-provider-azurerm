@@ -15,7 +15,7 @@ type EventSourcesClient struct {
 }
 
 func NewEventSourcesClientWithBaseURI(sdkApi sdkEnv.Api) (*EventSourcesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "eventsources", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "eventsources", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating EventSourcesClient: %+v", err)
 	}

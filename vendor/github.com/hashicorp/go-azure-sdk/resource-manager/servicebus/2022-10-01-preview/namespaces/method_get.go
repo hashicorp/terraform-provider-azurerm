@@ -45,7 +45,6 @@ func (c NamespacesClient) Get(ctx context.Context, id NamespaceId) (result GetOp
 
 	var model SBNamespace
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

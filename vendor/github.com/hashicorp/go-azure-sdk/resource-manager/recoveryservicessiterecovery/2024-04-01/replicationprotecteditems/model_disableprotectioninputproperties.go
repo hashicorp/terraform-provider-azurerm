@@ -16,10 +16,11 @@ type DisableProtectionInputProperties struct {
 var _ json.Unmarshaler = &DisableProtectionInputProperties{}
 
 func (s *DisableProtectionInputProperties) UnmarshalJSON(bytes []byte) error {
-	type alias DisableProtectionInputProperties
-	var decoded alias
+	var decoded struct {
+		DisableProtectionReason *DisableProtectionReason `json:"disableProtectionReason,omitempty"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into DisableProtectionInputProperties: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
 	s.DisableProtectionReason = decoded.DisableProtectionReason
@@ -30,11 +31,12 @@ func (s *DisableProtectionInputProperties) UnmarshalJSON(bytes []byte) error {
 	}
 
 	if v, ok := temp["replicationProviderInput"]; ok {
-		impl, err := unmarshalDisableProtectionProviderSpecificInputImplementation(v)
+		impl, err := UnmarshalDisableProtectionProviderSpecificInputImplementation(v)
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'ReplicationProviderInput' for 'DisableProtectionInputProperties': %+v", err)
 		}
 		s.ReplicationProviderInput = impl
 	}
+
 	return nil
 }

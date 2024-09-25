@@ -15,7 +15,7 @@ type ReplicationVaultSettingClient struct {
 }
 
 func NewReplicationVaultSettingClientWithBaseURI(sdkApi sdkEnv.Api) (*ReplicationVaultSettingClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "replicationvaultsetting", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "replicationvaultsetting", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ReplicationVaultSettingClient: %+v", err)
 	}

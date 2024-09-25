@@ -45,7 +45,6 @@ func (c AADClient) AccessPolicyAssignmentGet(ctx context.Context, id AccessPolic
 
 	var model RedisCacheAccessPolicyAssignment
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

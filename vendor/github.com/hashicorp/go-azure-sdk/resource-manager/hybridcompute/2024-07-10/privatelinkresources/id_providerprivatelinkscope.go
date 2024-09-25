@@ -42,7 +42,7 @@ func ParseProviderPrivateLinkScopeID(input string) (*ProviderPrivateLinkScopeId,
 	}
 
 	id := ProviderPrivateLinkScopeId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseProviderPrivateLinkScopeIDInsensitively(input string) (*ProviderPrivat
 	}
 
 	id := ProviderPrivateLinkScopeId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id ProviderPrivateLinkScopeId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftHybridCompute", "Microsoft.HybridCompute", "Microsoft.HybridCompute"),
 		resourceids.StaticSegment("staticPrivateLinkScopes", "privateLinkScopes", "privateLinkScopes"),
-		resourceids.UserSpecifiedSegment("privateLinkScopeName", "privateLinkScopeValue"),
+		resourceids.UserSpecifiedSegment("privateLinkScopeName", "scopeName"),
 	}
 }
 

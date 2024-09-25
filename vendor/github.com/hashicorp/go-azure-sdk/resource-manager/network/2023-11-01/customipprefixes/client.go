@@ -15,7 +15,7 @@ type CustomIPPrefixesClient struct {
 }
 
 func NewCustomIPPrefixesClientWithBaseURI(sdkApi sdkEnv.Api) (*CustomIPPrefixesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "customipprefixes", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "customipprefixes", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating CustomIPPrefixesClient: %+v", err)
 	}

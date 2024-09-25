@@ -46,7 +46,7 @@ func ParsePolicyID(input string) (*PolicyId, error) {
 	}
 
 	id := PolicyId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -63,7 +63,7 @@ func ParsePolicyIDInsensitively(input string) (*PolicyId, error) {
 	}
 
 	id := PolicyId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -127,11 +127,11 @@ func (id PolicyId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDevTestLab", "Microsoft.DevTestLab", "Microsoft.DevTestLab"),
 		resourceids.StaticSegment("staticLabs", "labs", "labs"),
-		resourceids.UserSpecifiedSegment("labName", "labValue"),
+		resourceids.UserSpecifiedSegment("labName", "labName"),
 		resourceids.StaticSegment("staticPolicySets", "policySets", "policySets"),
-		resourceids.UserSpecifiedSegment("policySetName", "policySetValue"),
+		resourceids.UserSpecifiedSegment("policySetName", "policySetName"),
 		resourceids.StaticSegment("staticPolicies", "policies", "policies"),
-		resourceids.UserSpecifiedSegment("policyName", "policyValue"),
+		resourceids.UserSpecifiedSegment("policyName", "name"),
 	}
 }
 

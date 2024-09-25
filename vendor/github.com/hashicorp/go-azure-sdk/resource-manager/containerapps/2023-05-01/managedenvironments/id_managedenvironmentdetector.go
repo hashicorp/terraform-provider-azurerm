@@ -44,7 +44,7 @@ func ParseManagedEnvironmentDetectorID(input string) (*ManagedEnvironmentDetecto
 	}
 
 	id := ManagedEnvironmentDetectorId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseManagedEnvironmentDetectorIDInsensitively(input string) (*ManagedEnvir
 	}
 
 	id := ManagedEnvironmentDetectorId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id ManagedEnvironmentDetectorId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftApp", "Microsoft.App", "Microsoft.App"),
 		resourceids.StaticSegment("staticManagedEnvironments", "managedEnvironments", "managedEnvironments"),
-		resourceids.UserSpecifiedSegment("managedEnvironmentName", "managedEnvironmentValue"),
+		resourceids.UserSpecifiedSegment("managedEnvironmentName", "environmentName"),
 		resourceids.StaticSegment("staticDetectors", "detectors", "detectors"),
-		resourceids.UserSpecifiedSegment("detectorName", "detectorValue"),
+		resourceids.UserSpecifiedSegment("detectorName", "detectorName"),
 	}
 }
 

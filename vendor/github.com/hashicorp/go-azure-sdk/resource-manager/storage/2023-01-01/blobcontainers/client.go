@@ -15,7 +15,7 @@ type BlobContainersClient struct {
 }
 
 func NewBlobContainersClientWithBaseURI(sdkApi sdkEnv.Api) (*BlobContainersClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "blobcontainers", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "blobcontainers", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating BlobContainersClient: %+v", err)
 	}

@@ -15,7 +15,7 @@ type ServiceEndpointPolicyDefinitionsClient struct {
 }
 
 func NewServiceEndpointPolicyDefinitionsClientWithBaseURI(sdkApi sdkEnv.Api) (*ServiceEndpointPolicyDefinitionsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "serviceendpointpolicydefinitions", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "serviceendpointpolicydefinitions", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ServiceEndpointPolicyDefinitionsClient: %+v", err)
 	}

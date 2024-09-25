@@ -42,7 +42,7 @@ func ParseLoadTestID(input string) (*LoadTestId, error) {
 	}
 
 	id := LoadTestId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseLoadTestIDInsensitively(input string) (*LoadTestId, error) {
 	}
 
 	id := LoadTestId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id LoadTestId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftLoadTestService", "Microsoft.LoadTestService", "Microsoft.LoadTestService"),
 		resourceids.StaticSegment("staticLoadTests", "loadTests", "loadTests"),
-		resourceids.UserSpecifiedSegment("loadTestName", "loadTestValue"),
+		resourceids.UserSpecifiedSegment("loadTestName", "loadTestName"),
 	}
 }
 

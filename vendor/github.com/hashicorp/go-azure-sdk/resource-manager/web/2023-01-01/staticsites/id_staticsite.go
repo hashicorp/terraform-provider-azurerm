@@ -42,7 +42,7 @@ func ParseStaticSiteID(input string) (*StaticSiteId, error) {
 	}
 
 	id := StaticSiteId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseStaticSiteIDInsensitively(input string) (*StaticSiteId, error) {
 	}
 
 	id := StaticSiteId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id StaticSiteId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftWeb", "Microsoft.Web", "Microsoft.Web"),
 		resourceids.StaticSegment("staticStaticSites", "staticSites", "staticSites"),
-		resourceids.UserSpecifiedSegment("staticSiteName", "staticSiteValue"),
+		resourceids.UserSpecifiedSegment("staticSiteName", "name"),
 	}
 }
 

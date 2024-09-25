@@ -44,7 +44,7 @@ func ParseDefaultSecurityRuleID(input string) (*DefaultSecurityRuleId, error) {
 	}
 
 	id := DefaultSecurityRuleId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseDefaultSecurityRuleIDInsensitively(input string) (*DefaultSecurityRule
 	}
 
 	id := DefaultSecurityRuleId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id DefaultSecurityRuleId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticNetworkSecurityGroups", "networkSecurityGroups", "networkSecurityGroups"),
-		resourceids.UserSpecifiedSegment("networkSecurityGroupName", "networkSecurityGroupValue"),
+		resourceids.UserSpecifiedSegment("networkSecurityGroupName", "networkSecurityGroupName"),
 		resourceids.StaticSegment("staticDefaultSecurityRules", "defaultSecurityRules", "defaultSecurityRules"),
-		resourceids.UserSpecifiedSegment("defaultSecurityRuleName", "defaultSecurityRuleValue"),
+		resourceids.UserSpecifiedSegment("defaultSecurityRuleName", "defaultSecurityRuleName"),
 	}
 }
 

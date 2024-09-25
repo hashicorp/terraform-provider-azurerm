@@ -42,7 +42,7 @@ func ParseSecurityPartnerProviderID(input string) (*SecurityPartnerProviderId, e
 	}
 
 	id := SecurityPartnerProviderId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseSecurityPartnerProviderIDInsensitively(input string) (*SecurityPartner
 	}
 
 	id := SecurityPartnerProviderId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id SecurityPartnerProviderId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticSecurityPartnerProviders", "securityPartnerProviders", "securityPartnerProviders"),
-		resourceids.UserSpecifiedSegment("securityPartnerProviderName", "securityPartnerProviderValue"),
+		resourceids.UserSpecifiedSegment("securityPartnerProviderName", "securityPartnerProviderName"),
 	}
 }
 

@@ -83,6 +83,14 @@ type InMageAzureV2ReplicationDetails struct {
 	VhdName                             *string                                            `json:"vhdName,omitempty"`
 
 	// Fields inherited from ReplicationProviderSpecificSettings
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s InMageAzureV2ReplicationDetails) ReplicationProviderSpecificSettings() BaseReplicationProviderSpecificSettingsImpl {
+	return BaseReplicationProviderSpecificSettingsImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = InMageAzureV2ReplicationDetails{}
@@ -96,9 +104,10 @@ func (s InMageAzureV2ReplicationDetails) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling InMageAzureV2ReplicationDetails: %+v", err)
 	}
+
 	decoded["instanceType"] = "InMageAzureV2"
 
 	encoded, err = json.Marshal(decoded)

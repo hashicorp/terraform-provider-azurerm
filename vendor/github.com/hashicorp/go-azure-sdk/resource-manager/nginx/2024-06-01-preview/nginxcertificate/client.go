@@ -15,7 +15,7 @@ type NginxCertificateClient struct {
 }
 
 func NewNginxCertificateClientWithBaseURI(sdkApi sdkEnv.Api) (*NginxCertificateClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "nginxcertificate", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "nginxcertificate", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating NginxCertificateClient: %+v", err)
 	}

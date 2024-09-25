@@ -49,7 +49,6 @@ func (c ReferenceDataSetsClient) Update(ctx context.Context, id ReferenceDataSet
 
 	var model ReferenceDataSetResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

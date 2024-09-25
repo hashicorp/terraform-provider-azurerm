@@ -45,7 +45,6 @@ func (c ScopeConnectionsClient) Get(ctx context.Context, id ScopeConnectionId) (
 
 	var model ScopeConnection
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

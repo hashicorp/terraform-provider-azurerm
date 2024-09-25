@@ -45,7 +45,6 @@ func (c CreatorsClient) Get(ctx context.Context, id CreatorId) (result GetOperat
 
 	var model Creator
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -15,7 +15,7 @@ type TypeFieldsClient struct {
 }
 
 func NewTypeFieldsClientWithBaseURI(sdkApi sdkEnv.Api) (*TypeFieldsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "typefields", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "typefields", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating TypeFieldsClient: %+v", err)
 	}

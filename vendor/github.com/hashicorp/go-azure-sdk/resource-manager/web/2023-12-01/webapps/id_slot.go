@@ -44,7 +44,7 @@ func ParseSlotID(input string) (*SlotId, error) {
 	}
 
 	id := SlotId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseSlotIDInsensitively(input string) (*SlotId, error) {
 	}
 
 	id := SlotId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id SlotId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftWeb", "Microsoft.Web", "Microsoft.Web"),
 		resourceids.StaticSegment("staticSites", "sites", "sites"),
-		resourceids.UserSpecifiedSegment("siteName", "siteValue"),
+		resourceids.UserSpecifiedSegment("siteName", "siteName"),
 		resourceids.StaticSegment("staticSlots", "slots", "slots"),
-		resourceids.UserSpecifiedSegment("slotName", "slotValue"),
+		resourceids.UserSpecifiedSegment("slotName", "slot"),
 	}
 }
 

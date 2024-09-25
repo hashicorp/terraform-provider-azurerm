@@ -35,6 +35,7 @@ func (o ApiVersionSetDeleteOperationOptions) ToHeaders() *client.Headers {
 
 func (o ApiVersionSetDeleteOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

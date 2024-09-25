@@ -15,7 +15,7 @@ type AzureTrafficCollectorsClient struct {
 }
 
 func NewAzureTrafficCollectorsClientWithBaseURI(sdkApi sdkEnv.Api) (*AzureTrafficCollectorsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "azuretrafficcollectors", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "azuretrafficcollectors", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating AzureTrafficCollectorsClient: %+v", err)
 	}

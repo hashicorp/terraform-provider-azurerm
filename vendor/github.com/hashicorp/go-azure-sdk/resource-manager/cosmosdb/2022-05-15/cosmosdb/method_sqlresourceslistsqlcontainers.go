@@ -46,7 +46,6 @@ func (c CosmosDBClient) SqlResourcesListSqlContainers(ctx context.Context, id Sq
 
 	var model SqlContainerListResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

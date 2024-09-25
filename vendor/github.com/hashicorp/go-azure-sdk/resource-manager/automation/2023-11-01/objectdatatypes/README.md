@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/objectdatatypes` Documentation
 
-The `objectdatatypes` SDK allows for interaction with the Azure Resource Manager Service `automation` (API Version `2023-11-01`).
+The `objectdatatypes` SDK allows for interaction with Azure Resource Manager `automation` (API Version `2023-11-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := objectdatatypes.NewModuleObjectDataTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountValue", "moduleValue", "objectDataTypeValue")
+id := objectdatatypes.NewModuleObjectDataTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountName", "moduleName", "typeName")
 
 read, err := client.ListFieldsByModuleAndType(ctx, id)
 if err != nil {
@@ -40,7 +40,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := objectdatatypes.NewObjectDataTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountValue", "objectDataTypeValue")
+id := objectdatatypes.NewObjectDataTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountName", "typeName")
 
 read, err := client.ListFieldsByType(ctx, id)
 if err != nil {

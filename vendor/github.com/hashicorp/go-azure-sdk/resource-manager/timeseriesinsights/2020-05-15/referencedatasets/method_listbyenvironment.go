@@ -46,7 +46,6 @@ func (c ReferenceDataSetsClient) ListByEnvironment(ctx context.Context, id Envir
 
 	var model ReferenceDataSetListResponse
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

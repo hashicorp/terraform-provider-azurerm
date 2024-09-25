@@ -52,7 +52,6 @@ func (c AppServiceEnvironmentsClient) UpdateMultiRolePool(ctx context.Context, i
 
 	var model WorkerPoolResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

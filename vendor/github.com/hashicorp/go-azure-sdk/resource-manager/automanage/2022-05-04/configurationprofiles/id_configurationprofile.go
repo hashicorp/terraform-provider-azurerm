@@ -42,7 +42,7 @@ func ParseConfigurationProfileID(input string) (*ConfigurationProfileId, error) 
 	}
 
 	id := ConfigurationProfileId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseConfigurationProfileIDInsensitively(input string) (*ConfigurationProfi
 	}
 
 	id := ConfigurationProfileId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id ConfigurationProfileId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAutoManage", "Microsoft.AutoManage", "Microsoft.AutoManage"),
 		resourceids.StaticSegment("staticConfigurationProfiles", "configurationProfiles", "configurationProfiles"),
-		resourceids.UserSpecifiedSegment("configurationProfileName", "configurationProfileValue"),
+		resourceids.UserSpecifiedSegment("configurationProfileName", "configurationProfileName"),
 	}
 }
 

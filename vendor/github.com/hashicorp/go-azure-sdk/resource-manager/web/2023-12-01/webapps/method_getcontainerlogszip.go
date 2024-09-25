@@ -48,7 +48,6 @@ func (c WebAppsClient) GetContainerLogsZip(ctx context.Context, id commonids.App
 
 	var model []byte
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

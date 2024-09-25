@@ -42,7 +42,7 @@ func ParseAutoScaleSettingID(input string) (*AutoScaleSettingId, error) {
 	}
 
 	id := AutoScaleSettingId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseAutoScaleSettingIDInsensitively(input string) (*AutoScaleSettingId, er
 	}
 
 	id := AutoScaleSettingId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id AutoScaleSettingId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftInsights", "Microsoft.Insights", "Microsoft.Insights"),
 		resourceids.StaticSegment("staticAutoScaleSettings", "autoScaleSettings", "autoScaleSettings"),
-		resourceids.UserSpecifiedSegment("autoScaleSettingName", "autoScaleSettingValue"),
+		resourceids.UserSpecifiedSegment("autoScaleSettingName", "autoscaleSettingName"),
 	}
 }
 

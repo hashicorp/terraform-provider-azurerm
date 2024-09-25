@@ -45,7 +45,6 @@ func (c RouteFilterRulesClient) Get(ctx context.Context, id RouteFilterRuleId) (
 
 	var model RouteFilterRule
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

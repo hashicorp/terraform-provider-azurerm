@@ -35,6 +35,7 @@ func (o PublicIPAddressesGetCloudServicePublicIPAddressOperationOptions) ToHeade
 
 func (o PublicIPAddressesGetCloudServicePublicIPAddressOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -75,7 +76,6 @@ func (c CloudServicePublicIPAddressesClient) PublicIPAddressesGetCloudServicePub
 
 	var model PublicIPAddress
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

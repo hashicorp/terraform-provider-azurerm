@@ -74,7 +74,7 @@ func (c DeploymentScriptsClient) ListByResourceGroup(ctx context.Context, id com
 	temp := make([]DeploymentScript, 0)
 	if values.Values != nil {
 		for i, v := range *values.Values {
-			val, err := unmarshalDeploymentScriptImplementation(v)
+			val, err := UnmarshalDeploymentScriptImplementation(v)
 			if err != nil {
 				err = fmt.Errorf("unmarshalling item %d for DeploymentScript (%q): %+v", i, v, err)
 				return result, err

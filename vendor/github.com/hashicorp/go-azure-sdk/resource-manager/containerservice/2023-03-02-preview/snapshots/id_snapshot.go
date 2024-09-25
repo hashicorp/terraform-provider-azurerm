@@ -42,7 +42,7 @@ func ParseSnapshotID(input string) (*SnapshotId, error) {
 	}
 
 	id := SnapshotId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseSnapshotIDInsensitively(input string) (*SnapshotId, error) {
 	}
 
 	id := SnapshotId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id SnapshotId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftContainerService", "Microsoft.ContainerService", "Microsoft.ContainerService"),
 		resourceids.StaticSegment("staticSnapshots", "snapshots", "snapshots"),
-		resourceids.UserSpecifiedSegment("snapshotName", "snapshotValue"),
+		resourceids.UserSpecifiedSegment("snapshotName", "resourceName"),
 	}
 }
 

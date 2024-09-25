@@ -20,7 +20,16 @@ type ThreeTierConfiguration struct {
 	StorageConfiguration   *StorageConfiguration          `json:"storageConfiguration,omitempty"`
 
 	// Fields inherited from InfrastructureConfiguration
-	AppResourceGroup string `json:"appResourceGroup"`
+
+	AppResourceGroup string            `json:"appResourceGroup"`
+	DeploymentType   SAPDeploymentType `json:"deploymentType"`
+}
+
+func (s ThreeTierConfiguration) InfrastructureConfiguration() BaseInfrastructureConfigurationImpl {
+	return BaseInfrastructureConfigurationImpl{
+		AppResourceGroup: s.AppResourceGroup,
+		DeploymentType:   s.DeploymentType,
+	}
 }
 
 var _ json.Marshaler = ThreeTierConfiguration{}
@@ -34,9 +43,10 @@ func (s ThreeTierConfiguration) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling ThreeTierConfiguration: %+v", err)
 	}
+
 	decoded["deploymentType"] = "ThreeTier"
 
 	encoded, err = json.Marshal(decoded)
@@ -50,19 +60,28 @@ func (s ThreeTierConfiguration) MarshalJSON() ([]byte, error) {
 var _ json.Unmarshaler = &ThreeTierConfiguration{}
 
 func (s *ThreeTierConfiguration) UnmarshalJSON(bytes []byte) error {
-	type alias ThreeTierConfiguration
-	var decoded alias
+	var decoded struct {
+		ApplicationServer      ApplicationServerConfiguration `json:"applicationServer"`
+		CentralServer          CentralServerConfiguration     `json:"centralServer"`
+		DatabaseServer         DatabaseConfiguration          `json:"databaseServer"`
+		HighAvailabilityConfig *HighAvailabilityConfiguration `json:"highAvailabilityConfig,omitempty"`
+		NetworkConfiguration   *NetworkConfiguration          `json:"networkConfiguration,omitempty"`
+		StorageConfiguration   *StorageConfiguration          `json:"storageConfiguration,omitempty"`
+		AppResourceGroup       string                         `json:"appResourceGroup"`
+		DeploymentType         SAPDeploymentType              `json:"deploymentType"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into ThreeTierConfiguration: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
-	s.AppResourceGroup = decoded.AppResourceGroup
 	s.ApplicationServer = decoded.ApplicationServer
 	s.CentralServer = decoded.CentralServer
 	s.DatabaseServer = decoded.DatabaseServer
 	s.HighAvailabilityConfig = decoded.HighAvailabilityConfig
 	s.NetworkConfiguration = decoded.NetworkConfiguration
 	s.StorageConfiguration = decoded.StorageConfiguration
+	s.AppResourceGroup = decoded.AppResourceGroup
+	s.DeploymentType = decoded.DeploymentType
 
 	var temp map[string]json.RawMessage
 	if err := json.Unmarshal(bytes, &temp); err != nil {
@@ -70,11 +89,12 @@ func (s *ThreeTierConfiguration) UnmarshalJSON(bytes []byte) error {
 	}
 
 	if v, ok := temp["customResourceNames"]; ok {
-		impl, err := unmarshalThreeTierCustomResourceNamesImplementation(v)
+		impl, err := UnmarshalThreeTierCustomResourceNamesImplementation(v)
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'CustomResourceNames' for 'ThreeTierConfiguration': %+v", err)
 		}
 		s.CustomResourceNames = impl
 	}
+
 	return nil
 }

@@ -46,7 +46,7 @@ func ParseModuleObjectDataTypeID(input string) (*ModuleObjectDataTypeId, error) 
 	}
 
 	id := ModuleObjectDataTypeId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -63,7 +63,7 @@ func ParseModuleObjectDataTypeIDInsensitively(input string) (*ModuleObjectDataTy
 	}
 
 	id := ModuleObjectDataTypeId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -127,11 +127,11 @@ func (id ModuleObjectDataTypeId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAutomation", "Microsoft.Automation", "Microsoft.Automation"),
 		resourceids.StaticSegment("staticAutomationAccounts", "automationAccounts", "automationAccounts"),
-		resourceids.UserSpecifiedSegment("automationAccountName", "automationAccountValue"),
+		resourceids.UserSpecifiedSegment("automationAccountName", "automationAccountName"),
 		resourceids.StaticSegment("staticModules", "modules", "modules"),
-		resourceids.UserSpecifiedSegment("moduleName", "moduleValue"),
+		resourceids.UserSpecifiedSegment("moduleName", "moduleName"),
 		resourceids.StaticSegment("staticObjectDataTypes", "objectDataTypes", "objectDataTypes"),
-		resourceids.UserSpecifiedSegment("objectDataTypeName", "objectDataTypeValue"),
+		resourceids.UserSpecifiedSegment("objectDataTypeName", "typeName"),
 	}
 }
 
