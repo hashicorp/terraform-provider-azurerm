@@ -11,6 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2023-06-01-preview/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2023-06-01-preview/virtualendpoints"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
@@ -131,6 +132,8 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Read() sdk.ResourceFunc
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Postgres.VirtualEndpointClient
+			flexibleServerClient := metadata.Client.Postgres.FlexibleServersClient
+
 			state := PostgresqlFlexibleServerVirtualEndpointModel{}
 
 			id, err := virtualendpoints.ParseVirtualEndpointID(metadata.ResourceData.Id())
@@ -159,9 +162,31 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Read() sdk.ResourceFunc
 						return metadata.MarkAsGone(id)
 					}
 
-					// Model.Properties.Members should be a tuple => [source_server, replication_server]
-					state.SourceServerId = servers.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, (*resp.Model.Properties.Members)[0]).ID()
-					state.ReplicaServerId = servers.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, (*resp.Model.Properties.Members)[1]).ID()
+					// Model.Properties.Members is a tuple => [source_server, replication_server]
+					sourceServerName := (*resp.Model.Properties.Members)[0]
+					replicaServerName := (*resp.Model.Properties.Members)[1]
+					sourceServerId := servers.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, sourceServerName).ID()
+
+					// the flexible endpoint API does not store the location/rg information on replicas it only stores the name
+					// this lookup is safe because replicas for a given source server are *not* allowed to have identical names
+					postgresServers, err := flexibleServerClient.ListCompleteMatchingPredicate(ctx, commonids.NewSubscriptionID(id.SubscriptionId), servers.ServerOperationPredicate{
+						Name: &replicaServerName,
+					})
+					if err != nil {
+						return err
+					}
+
+					// loop to find the replica server associated with this flexible endpoint
+					var replicaServer servers.Server
+					for i := 0; i < len(postgresServers.Items); i++ {
+						postgresServer := postgresServers.Items[i]
+						if postgresServer.Properties.SourceServerResourceId != nil && *postgresServer.Properties.SourceServerResourceId == sourceServerId {
+							replicaServer = postgresServer
+						}
+					}
+
+					state.SourceServerId = sourceServerId
+					state.ReplicaServerId = *replicaServer.Id
 				}
 			}
 
