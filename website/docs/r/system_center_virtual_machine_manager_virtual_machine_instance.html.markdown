@@ -76,16 +76,13 @@ resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance
   }
 
   hardware {
-    cpu_count                       = 1
-    limit_cpu_for_migration_enabled = false
-    memory_in_mb                    = 512
+    cpu_count    = 1
+    memory_in_mb = 512
   }
 
-  storage_disk {
-    bus_type     = "SCSI"
-    disk_size_gb = 10
-    name         = "testDisk"
-    vhd_type     = "Dynamic"
+  lifecycle {
+    // Service API always provisions a virtual disk with bus type IDE by default, so it has to ignore it
+    ignore_changes = [storage_disk]
   }
 }
 ```
