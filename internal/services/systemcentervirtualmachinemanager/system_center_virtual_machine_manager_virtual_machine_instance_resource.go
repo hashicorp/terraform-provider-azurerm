@@ -226,21 +226,18 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Argumen
 					"ipv4_address_type": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						Default:      virtualmachineinstances.AllocationMethodDynamic,
 						ValidateFunc: validation.StringInSlice(virtualmachineinstances.PossibleValuesForAllocationMethod(), false),
 					},
 
 					"ipv6_address_type": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						Default:      virtualmachineinstances.AllocationMethodDynamic,
 						ValidateFunc: validation.StringInSlice(virtualmachineinstances.PossibleValuesForAllocationMethod(), false),
 					},
 
 					"mac_address_type": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						Default:      virtualmachineinstances.AllocationMethodDynamic,
 						ValidateFunc: validation.StringInSlice(virtualmachineinstances.PossibleValuesForAllocationMethod(), false),
 					},
 				},
@@ -352,7 +349,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Attribu
 
 func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.SystemCenterVirtualMachineManager.VirtualMachineInstances
 
@@ -379,23 +376,31 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Create(
 					Name: utils.String(model.CustomLocationId),
 				},
 				Properties: &virtualmachineinstances.VirtualMachineInstanceProperties{
-					HardwareProfile:       expandSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfileForCreate(model.Hardware),
 					InfrastructureProfile: expandSystemCenterVirtualMachineManagerVirtualMachineInstanceInfrastructureProfileForCreate(model.Infrastructure),
-					NetworkProfile: &virtualmachineinstances.NetworkProfile{
-						NetworkInterfaces: expandSystemCenterVirtualMachineManagerVirtualMachineInstanceNetworkInterfacesForCreate(model.NetworkInterfaces),
-					},
-					StorageProfile: &virtualmachineinstances.StorageProfile{
-						Disks: expandSystemCenterVirtualMachineManagerVirtualMachineInstanceStorageDisksForCreate(model.StorageDisks),
-					},
-					OsProfile: expandSystemCenterVirtualMachineManagerVirtualMachineInstanceOSProfile(model.OperatingSystem),
+					HardwareProfile:       expandSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfileForCreate(model.Hardware, metadata.ResourceData),
+					OsProfile:             expandSystemCenterVirtualMachineManagerVirtualMachineInstanceOSProfile(model.OperatingSystem),
 				},
 			}
 
-			availabilitySets, err := expandSystemCenterVirtualMachineManagerVirtualMachineInstanceAvailabilitySets(model.SystemCenterVirtualMachineManagerAvailabilitySetIds)
-			if err != nil {
-				return err
+			if v := model.NetworkInterfaces; v != nil {
+				parameters.Properties.NetworkProfile = &virtualmachineinstances.NetworkProfile{
+					NetworkInterfaces: expandSystemCenterVirtualMachineManagerVirtualMachineInstanceNetworkInterfacesForCreate(v),
+				}
 			}
-			parameters.Properties.AvailabilitySets = availabilitySets
+
+			if v := model.StorageDisks; v != nil {
+				parameters.Properties.StorageProfile = &virtualmachineinstances.StorageProfile{
+					Disks: expandSystemCenterVirtualMachineManagerVirtualMachineInstanceStorageDisksForCreate(v, metadata.ResourceData),
+				}
+			}
+
+			if v := model.SystemCenterVirtualMachineManagerAvailabilitySetIds; v != nil {
+				availabilitySets, err := expandSystemCenterVirtualMachineManagerVirtualMachineInstanceAvailabilitySets(v)
+				if err != nil {
+					return err
+				}
+				parameters.Properties.AvailabilitySets = availabilitySets
+			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, commonids.NewScopeID(id.Scope), parameters); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
@@ -456,7 +461,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Read() 
 
 func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.SystemCenterVirtualMachineManager.VirtualMachineInstances
 
@@ -479,7 +484,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Update(
 			}
 
 			if metadata.ResourceData.HasChange("hardware") {
-				parameters.Properties.HardwareProfile = expandSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfileForUpdate(model.Hardware)
+				parameters.Properties.HardwareProfile = expandSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfileForUpdate(model.Hardware, metadata.ResourceData)
 			}
 
 			if metadata.ResourceData.HasChange("network_interface") {
@@ -490,7 +495,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Update(
 
 			if metadata.ResourceData.HasChange("storage_disk") {
 				parameters.Properties.StorageProfile = &virtualmachineinstances.StorageProfileUpdate{
-					Disks: expandSystemCenterVirtualMachineManagerVirtualMachineInstanceStorageDisksForUpdate(model.StorageDisks),
+					Disks: expandSystemCenterVirtualMachineManagerVirtualMachineInstanceStorageDisksForUpdate(model.StorageDisks, metadata.ResourceData),
 				}
 			}
 
@@ -502,11 +507,9 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Update(
 				parameters.Properties.AvailabilitySets = availabilitySets
 			}
 
-			stopVirtualMachineOptions := virtualmachineinstances.StopVirtualMachineOptions{
+			if err := client.StopThenPoll(ctx, commonids.NewScopeID(id.Scope), virtualmachineinstances.StopVirtualMachineOptions{
 				SkipShutdown: pointer.To(virtualmachineinstances.SkipShutdownFalse),
-			}
-
-			if err := client.StopThenPoll(ctx, commonids.NewScopeID(id.Scope), stopVirtualMachineOptions); err != nil {
+			}); err != nil {
 				return fmt.Errorf("stopping %s: %+v", *id, err)
 			}
 
@@ -525,7 +528,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Update(
 
 func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.SystemCenterVirtualMachineManager.VirtualMachineInstances
 
@@ -546,17 +549,22 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Delete(
 	}
 }
 
-func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfileForCreate(input []Hardware) *virtualmachineinstances.HardwareProfile {
+func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfileForCreate(input []Hardware, d *pluginsdk.ResourceData) *virtualmachineinstances.HardwareProfile {
 	if len(input) == 0 {
 		return nil
 	}
 
 	hardwareProfile := input[0]
 
-	result := virtualmachineinstances.HardwareProfile{
-		CpuCount:             pointer.To(hardwareProfile.CpuCount),
-		LimitCPUForMigration: pointer.To(virtualmachineinstances.LimitCPUForMigration(strconv.FormatBool(hardwareProfile.LimitCpuForMigrationEnabled))),
-		MemoryMB:             pointer.To(hardwareProfile.MemoryInMb),
+	result := virtualmachineinstances.HardwareProfile{}
+
+	// As TF always sets bool value to false when it isn't set, so it has to use IsExplicitlyNullInConfig to determine whether it is set in the tf config
+	if !pluginsdk.IsExplicitlyNullInConfig(d, fmt.Sprintf("hardware.0.limit_cpu_for_migration_enabled")) {
+		result.LimitCPUForMigration = pointer.To(virtualmachineinstances.LimitCPUForMigration(strconv.FormatBool(hardwareProfile.LimitCpuForMigrationEnabled)))
+	}
+
+	if v := hardwareProfile.CpuCount; v != 0 {
+		result.CpuCount = pointer.To(v)
 	}
 
 	dynamicMemoryEnabled := false
@@ -571,6 +579,10 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfil
 
 	if v := hardwareProfile.DynamicMemoryMinInMb; v != 0 {
 		result.DynamicMemoryMinMB = pointer.To(v)
+	}
+
+	if v := hardwareProfile.MemoryInMb; v != 0 {
+		result.MemoryMB = pointer.To(v)
 	}
 
 	return &result
@@ -606,17 +618,22 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceInfrastructure
 	return &result
 }
 
-func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfileForUpdate(input []Hardware) *virtualmachineinstances.HardwareProfileUpdate {
+func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfileForUpdate(input []Hardware, d *pluginsdk.ResourceData) *virtualmachineinstances.HardwareProfileUpdate {
 	if len(input) == 0 {
 		return nil
 	}
 
 	hardwareProfile := input[0]
 
-	result := virtualmachineinstances.HardwareProfileUpdate{
-		CpuCount:             pointer.To(hardwareProfile.CpuCount),
-		LimitCPUForMigration: pointer.To(virtualmachineinstances.LimitCPUForMigration(strconv.FormatBool(hardwareProfile.LimitCpuForMigrationEnabled))),
-		MemoryMB:             pointer.To(hardwareProfile.MemoryInMb),
+	result := virtualmachineinstances.HardwareProfileUpdate{}
+
+	// As TF always sets bool value to false when it isn't set, so it has to use IsExplicitlyNullInConfig to determine whether it is set in the tf config
+	if !pluginsdk.IsExplicitlyNullInConfig(d, fmt.Sprintf("hardware.0.limit_cpu_for_migration_enabled")) {
+		result.LimitCPUForMigration = pointer.To(virtualmachineinstances.LimitCPUForMigration(strconv.FormatBool(hardwareProfile.LimitCpuForMigrationEnabled)))
+	}
+
+	if v := hardwareProfile.CpuCount; v != 0 {
+		result.CpuCount = pointer.To(v)
 	}
 
 	dynamicMemoryEnabled := false
@@ -631,6 +648,10 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfil
 
 	if v := hardwareProfile.DynamicMemoryMinInMb; v != 0 {
 		result.DynamicMemoryMinMB = pointer.To(v)
+	}
+
+	if v := hardwareProfile.MemoryInMb; v != 0 {
+		result.MemoryMB = pointer.To(v)
 	}
 
 	return &result
@@ -656,10 +677,19 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceNetworkInterfa
 
 	for _, v := range input {
 		networkInterface := virtualmachineinstances.NetworkInterface{
-			Name:            pointer.To(v.Name),
-			IPv4AddressType: pointer.To(virtualmachineinstances.AllocationMethod(v.Ipv4AddressType)),
-			IPv6AddressType: pointer.To(virtualmachineinstances.AllocationMethod(v.Ipv6AddressType)),
-			MacAddressType:  pointer.To(virtualmachineinstances.AllocationMethod(v.MacAddressType)),
+			Name: pointer.To(v.Name),
+		}
+
+		if ipv4AddressType := v.Ipv4AddressType; ipv4AddressType != "" {
+			networkInterface.IPv4AddressType = pointer.To(virtualmachineinstances.AllocationMethod(ipv4AddressType))
+		}
+
+		if ipv6AddressType := v.Ipv6AddressType; ipv6AddressType != "" {
+			networkInterface.IPv6AddressType = pointer.To(virtualmachineinstances.AllocationMethod(ipv6AddressType))
+		}
+
+		if macAddressType := v.MacAddressType; macAddressType != "" {
+			networkInterface.MacAddressType = pointer.To(virtualmachineinstances.AllocationMethod(macAddressType))
 		}
 
 		if vnetId := v.VirtualNetworkId; vnetId != "" {
@@ -672,16 +702,22 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceNetworkInterfa
 	return &result
 }
 
-func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceStorageDisksForCreate(input []StorageDisk) *[]virtualmachineinstances.VirtualDisk {
+func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceStorageDisksForCreate(input []StorageDisk, d *pluginsdk.ResourceData) *[]virtualmachineinstances.VirtualDisk {
 	result := make([]virtualmachineinstances.VirtualDisk, 0)
 	if len(input) == 0 {
 		return &result
 	}
 
-	for _, v := range input {
-		virtualDisk := virtualmachineinstances.VirtualDisk{
-			Bus: pointer.To(v.Bus),
-			Lun: pointer.To(v.Lun),
+	for k, v := range input {
+		virtualDisk := virtualmachineinstances.VirtualDisk{}
+
+		// As API allows zero value for this property, so TF has to use IsExplicitlyNullInConfig to determine whether it's set in tf config
+		if !pluginsdk.IsExplicitlyNullInConfig(d, fmt.Sprintf("storage_disk.%d.bus", k)) {
+			virtualDisk.Bus = pointer.To(v.Bus)
+		}
+
+		if !pluginsdk.IsExplicitlyNullInConfig(d, fmt.Sprintf("storage_disk.%d.lun", k)) {
+			virtualDisk.Lun = pointer.To(v.Lun)
 		}
 
 		if busType := v.BusType; busType != "" {
@@ -724,10 +760,19 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceNetworkInterfa
 
 	for _, v := range input {
 		networkInterface := virtualmachineinstances.NetworkInterfaceUpdate{
-			Name:            pointer.To(v.Name),
-			IPv4AddressType: pointer.To(virtualmachineinstances.AllocationMethod(v.Ipv4AddressType)),
-			IPv6AddressType: pointer.To(virtualmachineinstances.AllocationMethod(v.Ipv6AddressType)),
-			MacAddressType:  pointer.To(virtualmachineinstances.AllocationMethod(v.MacAddressType)),
+			Name: pointer.To(v.Name),
+		}
+
+		if ipv4AddressType := v.Ipv4AddressType; ipv4AddressType != "" {
+			networkInterface.IPv4AddressType = pointer.To(virtualmachineinstances.AllocationMethod(ipv4AddressType))
+		}
+
+		if ipv6AddressType := v.Ipv6AddressType; ipv6AddressType != "" {
+			networkInterface.IPv6AddressType = pointer.To(virtualmachineinstances.AllocationMethod(ipv6AddressType))
+		}
+
+		if macAddressType := v.MacAddressType; macAddressType != "" {
+			networkInterface.MacAddressType = pointer.To(virtualmachineinstances.AllocationMethod(macAddressType))
 		}
 
 		if vnetId := v.VirtualNetworkId; vnetId != "" {
@@ -740,16 +785,22 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceNetworkInterfa
 	return &result
 }
 
-func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceStorageDisksForUpdate(input []StorageDisk) *[]virtualmachineinstances.VirtualDiskUpdate {
+func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceStorageDisksForUpdate(input []StorageDisk, d *pluginsdk.ResourceData) *[]virtualmachineinstances.VirtualDiskUpdate {
 	result := make([]virtualmachineinstances.VirtualDiskUpdate, 0)
 	if len(input) == 0 {
 		return &result
 	}
 
-	for _, v := range input {
-		virtualDisk := virtualmachineinstances.VirtualDiskUpdate{
-			Bus: pointer.To(v.Bus),
-			Lun: pointer.To(v.Lun),
+	for k, v := range input {
+		virtualDisk := virtualmachineinstances.VirtualDiskUpdate{}
+
+		// As API allows zero value for this property, so TF has to use IsExplicitlyNullInConfig to determine whether it's set in tf config
+		if !pluginsdk.IsExplicitlyNullInConfig(d, fmt.Sprintf("storage_disk.%d.bus", k)) {
+			virtualDisk.Bus = pointer.To(v.Bus)
+		}
+
+		if !pluginsdk.IsExplicitlyNullInConfig(d, fmt.Sprintf("storage_disk.%d.lun", k)) {
+			virtualDisk.Lun = pointer.To(v.Lun)
 		}
 
 		if busType := v.BusType; busType != "" {

@@ -143,11 +143,11 @@ A `network_interface` block supports the following:
 
 * `virtual_network_id` - (Optional) The ID of the System Center Virtual Machine Manager Virtual Network to connect the Network Interface.
 
-* `ipv4_address_type` - (Optional) The IPv4 address type. Possible values are `Dynamic` and `Static`. Defaults to `Dynamic`.
+* `ipv4_address_type` - (Optional) The IPv4 address type. Possible values are `Dynamic` and `Static`.
 
-* `ipv6_address_type` - (Optional) The IPv6 address type. Possible values are `Dynamic` and `Static`. Defaults to `Dynamic`.
+* `ipv6_address_type` - (Optional) The IPv6 address type. Possible values are `Dynamic` and `Static`.
 
-* `mac_address_type` - (Optional) The MAC address type. Possible values are `Dynamic` and `Static`. Defaults to `Dynamic`.
+* `mac_address_type` - (Optional) The MAC address type. Possible values are `Dynamic` and `Static`.
 
 ---
 
@@ -187,10 +187,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating this System Center Virtual Machine Manager Virtual Machine Instance.
+* `create` - (Defaults to 60 minutes) Used when creating this System Center Virtual Machine Manager Virtual Machine Instance.
 * `read` - (Defaults to 5 minutes) Used when retrieving this System Center Virtual Machine Manager Virtual Machine Instance.
-* `update` - (Defaults to 30 minutes) Used when updating this System Center Virtual Machine Manager Virtual Machine Instance.
-* `delete` - (Defaults to 30 minutes) Used when deleting this System Center Virtual Machine Manager Virtual Machine Instance.
+* `update` - (Defaults to 60 minutes) Used when updating this System Center Virtual Machine Manager Virtual Machine Instance.
+* `delete` - (Defaults to 60 minutes) Used when deleting this System Center Virtual Machine Manager Virtual Machine Instance.
 
 ## Import
 
