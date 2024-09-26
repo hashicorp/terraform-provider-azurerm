@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/storageinsights"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/clusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/deletedworkspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/tables"
 	featureWorkspaces "github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationsmanagement/2015-11-01-preview/solution"
@@ -27,6 +28,7 @@ type Client struct {
 	DataExportClient           *dataexport.DataExportClient
 	DataSourcesClient          *datasources.DataSourcesClient
 	LinkedServicesClient       *linkedservices.LinkedServicesClient
+	DeletedClient              *deletedworkspaces.DeletedWorkspacesClient
 	LinkedStorageAccountClient *linkedstorageaccounts.LinkedStorageAccountsClient
 	QueryPacksClient           *querypacks.QueryPacksClient
 	SavedSearchesClient        *savedsearches.SavedSearchesClient
@@ -56,6 +58,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		return nil, fmt.Errorf("building DataSources client: %+v", err)
 	}
 	o.Configure(dataSourcesClient.Client, o.Authorizers.ResourceManager)
+
+	deletedClient, err := deletedworkspaces.NewDeletedWorkspacesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building DeletedWorkspaces client: %+v", err)
+	}
+	o.Configure(deletedClient.Client, o.Authorizers.ResourceManager)
 
 	workspacesClient, err := workspaces.NewWorkspacesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -131,5 +139,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		SharedKeyWorkspacesClient:  workspacesClient,
 		TablesClient:               tablesClient,
 		WorkspaceClient:            featureWorkspaceClient,
+		DeletedClient:              deletedClient,
 	}, nil
 }
