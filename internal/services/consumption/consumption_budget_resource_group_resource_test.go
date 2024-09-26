@@ -404,9 +404,9 @@ resource "azurerm_consumption_budget_resource_group" "test" {
   }
 
   notification {
-    enabled   = true
-    threshold = 90.0
-    operator  = "EqualTo"
+    enabled        = true
+    threshold      = 90.0
+    operator       = "EqualTo"
     threshold_type = "Actual"
 
     contact_emails = [
