@@ -407,9 +407,7 @@ resource "azurerm_consumption_budget_resource_group" "test" {
     enabled   = true
     threshold = 90.0
     operator  = "EqualTo"
-    // We don't update the value of threshold_type because toggling between the two seems to be broken
-    // See the comment on threshold_type in the schema for more details
-    threshold_type = "Forecasted"
+    threshold_type = "Actual"
 
     contact_emails = [
       "baz@example.com",
