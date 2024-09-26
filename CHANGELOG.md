@@ -1,6 +1,9 @@
 ## 4.4.0 (Unreleased)
 
+ENHANCEMENTS: 
+
 * dependencies - update `github.com/hashicorp/go-azure-sdk` to `v0.20240923.1151247` [GH-27491]
+* `azurerm_site_recovery_replicated_vm` - support for the `target_virtual_machine_size` property [GH-27480]
 
 ## 4.3.0 (September 19, 2024)
 
