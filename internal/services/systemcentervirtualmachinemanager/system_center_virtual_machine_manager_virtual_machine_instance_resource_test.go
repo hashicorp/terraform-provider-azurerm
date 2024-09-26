@@ -145,6 +145,7 @@ resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance
   custom_location_id = azurerm_system_center_virtual_machine_manager_server.test.custom_location_id
 
   infrastructure {
+    checkpoint_type                                                 = "Standard"
     system_center_virtual_machine_manager_cloud_id                  = azurerm_system_center_virtual_machine_manager_cloud.test.id
     system_center_virtual_machine_manager_template_id               = azurerm_system_center_virtual_machine_manager_virtual_machine_template.test.id
     system_center_virtual_machine_manager_virtual_machine_server_id = azurerm_system_center_virtual_machine_manager_server.test.id
@@ -160,7 +161,7 @@ resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance
   }
 
   lifecycle {
-    // Service API always provisions a virtual disk with bus type IDE per Virtual Machine Template by default, so it has to ignore it
+    // Service API always provisions a virtual disk with bus type IDE per Virtual Machine Template by default, so it has to be ignored
     ignore_changes = [storage_disk]
   }
 }
@@ -176,6 +177,7 @@ resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance
   custom_location_id = azurerm_system_center_virtual_machine_manager_virtual_machine_instance.test.custom_location_id
 
   infrastructure {
+    checkpoint_type                                                 = "Standard"
     system_center_virtual_machine_manager_cloud_id                  = azurerm_system_center_virtual_machine_manager_cloud.test.id
     system_center_virtual_machine_manager_template_id               = azurerm_system_center_virtual_machine_manager_virtual_machine_template.test.id
     system_center_virtual_machine_manager_virtual_machine_server_id = azurerm_system_center_virtual_machine_manager_server.test.id
@@ -266,7 +268,7 @@ resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance
   system_center_virtual_machine_manager_availability_set_ids = [azurerm_system_center_virtual_machine_manager_availability_set.test.id]
 
   lifecycle {
-    // Service API always provisions a virtual disk with bus type IDE per Virtual Machine Template by default, so it has to ignore it
+    // Service API always provisions a virtual disk with bus type IDE per Virtual Machine Template by default, so it has to be ignored
     ignore_changes = [storage_disk]
   }
 }
@@ -354,7 +356,7 @@ resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance
   system_center_virtual_machine_manager_availability_set_ids = [azurerm_system_center_virtual_machine_manager_availability_set.test.id, azurerm_system_center_virtual_machine_manager_availability_set.test2.id]
 
   lifecycle {
-    // Service API always provisions a virtual disk with bus type IDE per Virtual Machine Template by default, so it has to ignore it
+    // Service API always provisions a virtual disk with bus type IDE per Virtual Machine Template by default, so it has to be ignored
     ignore_changes = [storage_disk]
   }
 }

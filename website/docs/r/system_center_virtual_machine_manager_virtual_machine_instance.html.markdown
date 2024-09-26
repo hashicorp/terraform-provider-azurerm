@@ -81,7 +81,7 @@ resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance
   }
 
   lifecycle {
-    // Service API always provisions a virtual disk with bus type IDE per Virtual Machine Template by default, so it has to ignore it
+    // Service API always provisions a virtual disk with bus type IDE per Virtual Machine Template by default, so it has to be ignored
     ignore_changes = [storage_disk]
   }
 }
@@ -111,7 +111,7 @@ The following arguments are supported:
 
 An `infrastructure` block supports the following:
 
-* `checkpoint_type` - (Optional) The type of checkpoint supported for the Virtual Machine. Possible values are `Disabled`, `Production`, `ProductionOnly` and `Standard`. Defaults to `Production`.
+* `checkpoint_type` - (Optional) The type of checkpoint supported for the Virtual Machine. Possible values are `Disabled`, `Production`, `ProductionOnly` and `Standard`.
 
 * `system_center_virtual_machine_manager_cloud_id` - (Optional) The ID of the System Center Virtual Machine Manager Cloud resource to use for deploying the Virtual Machine. Changing this forces a new resource to be created.
 

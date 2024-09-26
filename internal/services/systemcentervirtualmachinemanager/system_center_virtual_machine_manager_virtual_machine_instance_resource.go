@@ -116,7 +116,6 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Argumen
 					"checkpoint_type": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
-						Default:  "Production",
 						ValidateFunc: validation.StringInSlice([]string{
 							"Disabled",
 							"Production",
@@ -595,8 +594,10 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceInfrastructure
 
 	infrastructureProfile := input[0]
 
-	result := virtualmachineinstances.InfrastructureProfile{
-		CheckpointType: pointer.To(infrastructureProfile.CheckpointType),
+	result := virtualmachineinstances.InfrastructureProfile{}
+
+	if v := infrastructureProfile.CheckpointType; v != "" {
+		result.CheckpointType = pointer.To(v)
 	}
 
 	if v := infrastructureProfile.SystemCenterVirtualMachineManagerCloudId; v != "" {
@@ -664,9 +665,13 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceInfrastructure
 
 	infrastructureProfile := input[0]
 
-	return &virtualmachineinstances.InfrastructureProfileUpdate{
-		CheckpointType: pointer.To(infrastructureProfile.CheckpointType),
+	result := virtualmachineinstances.InfrastructureProfileUpdate{}
+
+	if v := infrastructureProfile.CheckpointType; v != "" {
+		result.CheckpointType = pointer.To(v)
 	}
+
+	return &result
 }
 
 func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceNetworkInterfacesForCreate(input []NetworkInterface) *[]virtualmachineinstances.NetworkInterface {
