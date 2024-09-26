@@ -548,6 +548,38 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Delete(
 	}
 }
 
+func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceInfrastructureProfileForCreate(input []Infrastructure) *virtualmachineinstances.InfrastructureProfile {
+	if len(input) == 0 {
+		return nil
+	}
+
+	infrastructureProfile := input[0]
+
+	result := virtualmachineinstances.InfrastructureProfile{}
+
+	if v := infrastructureProfile.CheckpointType; v != "" {
+		result.CheckpointType = pointer.To(v)
+	}
+
+	if v := infrastructureProfile.SystemCenterVirtualMachineManagerCloudId; v != "" {
+		result.CloudId = pointer.To(v)
+	}
+
+	if v := infrastructureProfile.SystemCenterVirtualMachineManagerInventoryItemId; v != "" {
+		result.InventoryItemId = pointer.To(v)
+	}
+
+	if v := infrastructureProfile.SystemCenterVirtualMachineManagerTemplateId; v != "" {
+		result.TemplateId = pointer.To(v)
+	}
+
+	if v := infrastructureProfile.SystemCenterVirtualMachineManagerVirtualMachineServerId; v != "" {
+		result.VMmServerId = pointer.To(v)
+	}
+
+	return &result
+}
+
 func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfileForCreate(input []Hardware, d *pluginsdk.ResourceData) *virtualmachineinstances.HardwareProfile {
 	if len(input) == 0 {
 		return nil
@@ -587,93 +619,6 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfil
 	return &result
 }
 
-func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceInfrastructureProfileForCreate(input []Infrastructure) *virtualmachineinstances.InfrastructureProfile {
-	if len(input) == 0 {
-		return nil
-	}
-
-	infrastructureProfile := input[0]
-
-	result := virtualmachineinstances.InfrastructureProfile{}
-
-	if v := infrastructureProfile.CheckpointType; v != "" {
-		result.CheckpointType = pointer.To(v)
-	}
-
-	if v := infrastructureProfile.SystemCenterVirtualMachineManagerCloudId; v != "" {
-		result.CloudId = pointer.To(v)
-	}
-
-	if v := infrastructureProfile.SystemCenterVirtualMachineManagerInventoryItemId; v != "" {
-		result.InventoryItemId = pointer.To(v)
-	}
-
-	if v := infrastructureProfile.SystemCenterVirtualMachineManagerTemplateId; v != "" {
-		result.TemplateId = pointer.To(v)
-	}
-
-	if v := infrastructureProfile.SystemCenterVirtualMachineManagerVirtualMachineServerId; v != "" {
-		result.VMmServerId = pointer.To(v)
-	}
-
-	return &result
-}
-
-func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfileForUpdate(input []Hardware, d *pluginsdk.ResourceData) *virtualmachineinstances.HardwareProfileUpdate {
-	if len(input) == 0 {
-		return nil
-	}
-
-	hardwareProfile := input[0]
-
-	result := virtualmachineinstances.HardwareProfileUpdate{}
-
-	// As TF always sets bool value to false when it isn't set, so it has to use IsExplicitlyNullInConfig to determine whether it is set in the tf config
-	if !pluginsdk.IsExplicitlyNullInConfig(d, fmt.Sprintf("hardware.0.limit_cpu_for_migration_enabled")) {
-		result.LimitCPUForMigration = pointer.To(virtualmachineinstances.LimitCPUForMigration(strconv.FormatBool(hardwareProfile.LimitCpuForMigrationEnabled)))
-	}
-
-	if v := hardwareProfile.CpuCount; v != 0 {
-		result.CpuCount = pointer.To(v)
-	}
-
-	dynamicMemoryEnabled := false
-	if hardwareProfile.DynamicMemoryMaxInMb != 0 || hardwareProfile.DynamicMemoryMinInMb != 0 {
-		dynamicMemoryEnabled = true
-	}
-	result.DynamicMemoryEnabled = pointer.To(virtualmachineinstances.DynamicMemoryEnabled(strconv.FormatBool(dynamicMemoryEnabled)))
-
-	if v := hardwareProfile.DynamicMemoryMaxInMb; v != 0 {
-		result.DynamicMemoryMaxMB = pointer.To(v)
-	}
-
-	if v := hardwareProfile.DynamicMemoryMinInMb; v != 0 {
-		result.DynamicMemoryMinMB = pointer.To(v)
-	}
-
-	if v := hardwareProfile.MemoryInMb; v != 0 {
-		result.MemoryMB = pointer.To(v)
-	}
-
-	return &result
-}
-
-func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceInfrastructureProfileForUpdate(input []Infrastructure) *virtualmachineinstances.InfrastructureProfileUpdate {
-	if len(input) == 0 {
-		return nil
-	}
-
-	infrastructureProfile := input[0]
-
-	result := virtualmachineinstances.InfrastructureProfileUpdate{}
-
-	if v := infrastructureProfile.CheckpointType; v != "" {
-		result.CheckpointType = pointer.To(v)
-	}
-
-	return &result
-}
-
 func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceNetworkInterfacesForCreate(input []NetworkInterface) *[]virtualmachineinstances.NetworkInterface {
 	result := make([]virtualmachineinstances.NetworkInterface, 0)
 	if len(input) == 0 {
@@ -702,6 +647,24 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceNetworkInterfa
 		}
 
 		result = append(result, networkInterface)
+	}
+
+	return &result
+}
+
+func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceOSProfile(input []OperatingSystem) *virtualmachineinstances.OsProfileForVMInstance {
+	if len(input) == 0 {
+		return nil
+	}
+
+	osProfile := input[0]
+
+	result := virtualmachineinstances.OsProfileForVMInstance{
+		ComputerName: pointer.To(osProfile.ComputerName),
+	}
+
+	if v := osProfile.AdminPassword; v != "" {
+		result.AdminPassword = pointer.To(v)
 	}
 
 	return &result
@@ -752,6 +715,82 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceStorageDisksFo
 		}
 
 		result = append(result, virtualDisk)
+	}
+
+	return &result
+}
+
+func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceAvailabilitySets(input []string) (*[]virtualmachineinstances.AvailabilitySetListItem, error) {
+	result := make([]virtualmachineinstances.AvailabilitySetListItem, 0)
+	if len(input) == 0 {
+		return &result, nil
+	}
+
+	for _, v := range input {
+		availabilitySetId, err := availabilitysets.ParseAvailabilitySetID(v)
+		if err != nil {
+			return nil, err
+		}
+
+		result = append(result, virtualmachineinstances.AvailabilitySetListItem{
+			Id:   pointer.To(availabilitySetId.ID()),
+			Name: pointer.To(availabilitySetId.AvailabilitySetName),
+		})
+	}
+
+	return &result, nil
+}
+
+func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceInfrastructureProfileForUpdate(input []Infrastructure) *virtualmachineinstances.InfrastructureProfileUpdate {
+	if len(input) == 0 {
+		return nil
+	}
+
+	infrastructureProfile := input[0]
+
+	result := virtualmachineinstances.InfrastructureProfileUpdate{}
+
+	if v := infrastructureProfile.CheckpointType; v != "" {
+		result.CheckpointType = pointer.To(v)
+	}
+
+	return &result
+}
+
+func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfileForUpdate(input []Hardware, d *pluginsdk.ResourceData) *virtualmachineinstances.HardwareProfileUpdate {
+	result := virtualmachineinstances.HardwareProfileUpdate{}
+
+	if len(input) == 0 {
+		return &result
+	}
+
+	hardwareProfile := input[0]
+
+	// As TF always sets bool value to false when it isn't set, so it has to use IsExplicitlyNullInConfig to determine whether it is set in the tf config
+	if !pluginsdk.IsExplicitlyNullInConfig(d, fmt.Sprintf("hardware.0.limit_cpu_for_migration_enabled")) {
+		result.LimitCPUForMigration = pointer.To(virtualmachineinstances.LimitCPUForMigration(strconv.FormatBool(hardwareProfile.LimitCpuForMigrationEnabled)))
+	}
+
+	if v := hardwareProfile.CpuCount; v != 0 {
+		result.CpuCount = pointer.To(v)
+	}
+
+	dynamicMemoryEnabled := false
+	if hardwareProfile.DynamicMemoryMaxInMb != 0 || hardwareProfile.DynamicMemoryMinInMb != 0 {
+		dynamicMemoryEnabled = true
+	}
+	result.DynamicMemoryEnabled = pointer.To(virtualmachineinstances.DynamicMemoryEnabled(strconv.FormatBool(dynamicMemoryEnabled)))
+
+	if v := hardwareProfile.DynamicMemoryMaxInMb; v != 0 {
+		result.DynamicMemoryMaxMB = pointer.To(v)
+	}
+
+	if v := hardwareProfile.DynamicMemoryMinInMb; v != 0 {
+		result.DynamicMemoryMinMB = pointer.To(v)
+	}
+
+	if v := hardwareProfile.MemoryInMb; v != 0 {
+		result.MemoryMB = pointer.To(v)
 	}
 
 	return &result
@@ -836,43 +875,19 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceStorageDisksFo
 	return &result
 }
 
-func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceOSProfile(input []OperatingSystem) *virtualmachineinstances.OsProfileForVMInstance {
-	if len(input) == 0 {
-		return nil
+func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceInfrastructureProfile(input *virtualmachineinstances.InfrastructureProfile) []Infrastructure {
+	result := make([]Infrastructure, 0)
+	if input == nil {
+		return result
 	}
 
-	osProfile := input[0]
-
-	result := virtualmachineinstances.OsProfileForVMInstance{
-		ComputerName: pointer.To(osProfile.ComputerName),
-	}
-
-	if v := osProfile.AdminPassword; v != "" {
-		result.AdminPassword = pointer.To(v)
-	}
-
-	return &result
-}
-
-func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceAvailabilitySets(input []string) (*[]virtualmachineinstances.AvailabilitySetListItem, error) {
-	result := make([]virtualmachineinstances.AvailabilitySetListItem, 0)
-	if len(input) == 0 {
-		return &result, nil
-	}
-
-	for _, v := range input {
-		availabilitySetId, err := availabilitysets.ParseAvailabilitySetID(v)
-		if err != nil {
-			return nil, err
-		}
-
-		result = append(result, virtualmachineinstances.AvailabilitySetListItem{
-			Id:   pointer.To(availabilitySetId.ID()),
-			Name: pointer.To(availabilitySetId.AvailabilitySetName),
-		})
-	}
-
-	return &result, nil
+	return append(result, Infrastructure{
+		CheckpointType:                                          pointer.From(input.CheckpointType),
+		SystemCenterVirtualMachineManagerCloudId:                pointer.From(input.CloudId),
+		SystemCenterVirtualMachineManagerInventoryItemId:        pointer.From(input.InventoryItemId),
+		SystemCenterVirtualMachineManagerTemplateId:             pointer.From(input.TemplateId),
+		SystemCenterVirtualMachineManagerVirtualMachineServerId: pointer.From(input.VMmServerId),
+	})
 }
 
 func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfile(input *virtualmachineinstances.HardwareProfile) []Hardware {
@@ -887,21 +902,6 @@ func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfi
 		DynamicMemoryMinInMb:        pointer.From(input.DynamicMemoryMinMB),
 		LimitCpuForMigrationEnabled: pointer.From(input.LimitCPUForMigration) == virtualmachineinstances.LimitCPUForMigrationTrue,
 		MemoryInMb:                  pointer.From(input.MemoryMB),
-	})
-}
-
-func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceInfrastructureProfile(input *virtualmachineinstances.InfrastructureProfile) []Infrastructure {
-	result := make([]Infrastructure, 0)
-	if input == nil {
-		return result
-	}
-
-	return append(result, Infrastructure{
-		CheckpointType:                                          pointer.From(input.CheckpointType),
-		SystemCenterVirtualMachineManagerCloudId:                pointer.From(input.CloudId),
-		SystemCenterVirtualMachineManagerInventoryItemId:        pointer.From(input.InventoryItemId),
-		SystemCenterVirtualMachineManagerTemplateId:             pointer.From(input.TemplateId),
-		SystemCenterVirtualMachineManagerVirtualMachineServerId: pointer.From(input.VMmServerId),
 	})
 }
 
@@ -922,6 +922,18 @@ func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceNetworkInterf
 	}
 
 	return result
+}
+
+func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceOSProfile(input *virtualmachineinstances.OsProfileForVMInstance, adminPassword string) []OperatingSystem {
+	result := make([]OperatingSystem, 0)
+	if input == nil {
+		return result
+	}
+
+	return append(result, OperatingSystem{
+		ComputerName:  pointer.From(input.ComputerName),
+		AdminPassword: adminPassword,
+	})
 }
 
 func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceStorageDisks(input *[]virtualmachineinstances.VirtualDisk) []StorageDisk {
@@ -949,18 +961,6 @@ func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceStorageDisks(
 	}
 
 	return result
-}
-
-func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceOSProfile(input *virtualmachineinstances.OsProfileForVMInstance, adminPassword string) []OperatingSystem {
-	result := make([]OperatingSystem, 0)
-	if input == nil {
-		return result
-	}
-
-	return append(result, OperatingSystem{
-		ComputerName:  pointer.From(input.ComputerName),
-		AdminPassword: adminPassword,
-	})
 }
 
 func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceAvailabilitySets(input *[]virtualmachineinstances.AvailabilitySetListItem) []string {
