@@ -15,7 +15,7 @@ type AccountMigrationsClient struct {
 }
 
 func NewAccountMigrationsClientWithBaseURI(sdkApi sdkEnv.Api) (*AccountMigrationsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "accountmigrations", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "accountmigrations", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating AccountMigrationsClient: %+v", err)
 	}

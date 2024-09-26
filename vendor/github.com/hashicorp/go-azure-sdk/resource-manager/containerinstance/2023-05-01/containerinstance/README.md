@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2023-05-01/containerinstance` Documentation
 
-The `containerinstance` SDK allows for interaction with the Azure Resource Manager Service `containerinstance` (API Version `2023-05-01`).
+The `containerinstance` SDK allows for interaction with Azure Resource Manager `containerinstance` (API Version `2023-05-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := containerinstance.NewContainerGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "containerGroupValue")
+id := containerinstance.NewContainerGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "containerGroupName")
 
 payload := containerinstance.ContainerGroup{
 	// ...
@@ -42,7 +42,7 @@ if err := client.ContainerGroupsCreateOrUpdateThenPoll(ctx, id, payload); err !=
 
 ```go
 ctx := context.TODO()
-id := containerinstance.NewContainerGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "containerGroupValue")
+id := containerinstance.NewContainerGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "containerGroupName")
 
 if err := client.ContainerGroupsDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -54,7 +54,7 @@ if err := client.ContainerGroupsDeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := containerinstance.NewContainerGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "containerGroupValue")
+id := containerinstance.NewContainerGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "containerGroupName")
 
 read, err := client.ContainerGroupsGet(ctx, id)
 if err != nil {
@@ -70,7 +70,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := containerinstance.NewContainerGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "containerGroupValue")
+id := containerinstance.NewContainerGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "containerGroupName")
 
 read, err := client.ContainerGroupsGetOutboundNetworkDependenciesEndpoints(ctx, id)
 if err != nil {
@@ -120,7 +120,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := containerinstance.NewContainerGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "containerGroupValue")
+id := containerinstance.NewContainerGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "containerGroupName")
 
 if err := client.ContainerGroupsRestartThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -132,7 +132,7 @@ if err := client.ContainerGroupsRestartThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := containerinstance.NewContainerGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "containerGroupValue")
+id := containerinstance.NewContainerGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "containerGroupName")
 
 if err := client.ContainerGroupsStartThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -144,7 +144,7 @@ if err := client.ContainerGroupsStartThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := containerinstance.NewContainerGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "containerGroupValue")
+id := containerinstance.NewContainerGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "containerGroupName")
 
 read, err := client.ContainerGroupsStop(ctx, id)
 if err != nil {
@@ -160,7 +160,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := containerinstance.NewContainerGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "containerGroupValue")
+id := containerinstance.NewContainerGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "containerGroupName")
 
 payload := containerinstance.Resource{
 	// ...
@@ -181,7 +181,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := containerinstance.NewContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "containerGroupValue", "containerValue")
+id := containerinstance.NewContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "containerGroupName", "containerName")
 
 read, err := client.ContainersAttach(ctx, id)
 if err != nil {
@@ -197,7 +197,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := containerinstance.NewContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "containerGroupValue", "containerValue")
+id := containerinstance.NewContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "containerGroupName", "containerName")
 
 payload := containerinstance.ContainerExecRequest{
 	// ...
@@ -218,7 +218,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := containerinstance.NewContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "containerGroupValue", "containerValue")
+id := containerinstance.NewContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "containerGroupName", "containerName")
 
 read, err := client.ContainersListLogs(ctx, id, containerinstance.DefaultContainersListLogsOperationOptions())
 if err != nil {
@@ -234,7 +234,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := containerinstance.NewLocationID("12345678-1234-9876-4563-123456789012", "locationValue")
+id := containerinstance.NewLocationID("12345678-1234-9876-4563-123456789012", "location")
 
 // alternatively `client.LocationListCachedImages(ctx, id)` can be used to do batched pagination
 items, err := client.LocationListCachedImagesComplete(ctx, id)
@@ -251,7 +251,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := containerinstance.NewLocationID("12345678-1234-9876-4563-123456789012", "locationValue")
+id := containerinstance.NewLocationID("12345678-1234-9876-4563-123456789012", "location")
 
 // alternatively `client.LocationListCapabilities(ctx, id)` can be used to do batched pagination
 items, err := client.LocationListCapabilitiesComplete(ctx, id)
@@ -268,7 +268,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := containerinstance.NewLocationID("12345678-1234-9876-4563-123456789012", "locationValue")
+id := containerinstance.NewLocationID("12345678-1234-9876-4563-123456789012", "location")
 
 read, err := client.LocationListUsage(ctx, id)
 if err != nil {
@@ -284,7 +284,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewSubnetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkValue", "subnetValue")
+id := commonids.NewSubnetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkName", "subnetName")
 
 if err := client.SubnetServiceAssociationLinkDeleteThenPoll(ctx, id); err != nil {
 	// handle the error

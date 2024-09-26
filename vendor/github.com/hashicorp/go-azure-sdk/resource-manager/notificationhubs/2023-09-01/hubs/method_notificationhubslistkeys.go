@@ -46,7 +46,6 @@ func (c HubsClient) NotificationHubsListKeys(ctx context.Context, id Notificatio
 
 	var model ResourceListKeys
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

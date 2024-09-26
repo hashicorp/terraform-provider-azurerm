@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces` Documentation
 
-The `workspaces` SDK allows for interaction with the Azure Resource Manager Service `operationalinsights` (API Version `2020-08-01`).
+The `workspaces` SDK allows for interaction with Azure Resource Manager `operationalinsights` (API Version `2020-08-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := workspaces.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue")
+id := workspaces.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName")
 
 payload := workspaces.Workspace{
 	// ...
@@ -42,7 +42,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := workspaces.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue")
+id := workspaces.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName")
 
 if err := client.DeleteThenPoll(ctx, id, workspaces.DefaultDeleteOperationOptions()); err != nil {
 	// handle the error
@@ -54,7 +54,7 @@ if err := client.DeleteThenPoll(ctx, id, workspaces.DefaultDeleteOperationOption
 
 ```go
 ctx := context.TODO()
-id := workspaces.NewGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue", "gatewayIdValue")
+id := workspaces.NewGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName", "gatewayId")
 
 read, err := client.GatewaysDelete(ctx, id)
 if err != nil {
@@ -70,7 +70,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := workspaces.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue")
+id := workspaces.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -86,7 +86,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := workspaces.NewIntelligencePackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue", "intelligencePackValue")
+id := workspaces.NewIntelligencePackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName", "intelligencePackName")
 
 read, err := client.IntelligencePacksDisable(ctx, id)
 if err != nil {
@@ -102,7 +102,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := workspaces.NewIntelligencePackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue", "intelligencePackValue")
+id := workspaces.NewIntelligencePackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName", "intelligencePackName")
 
 read, err := client.IntelligencePacksEnable(ctx, id)
 if err != nil {
@@ -118,7 +118,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := workspaces.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue")
+id := workspaces.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName")
 
 read, err := client.IntelligencePacksList(ctx, id)
 if err != nil {
@@ -166,7 +166,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := workspaces.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue")
+id := workspaces.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName")
 
 read, err := client.ManagementGroupsList(ctx, id)
 if err != nil {
@@ -182,7 +182,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := workspaces.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue")
+id := workspaces.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName")
 
 read, err := client.SchemaGet(ctx, id)
 if err != nil {
@@ -198,7 +198,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := workspaces.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue")
+id := workspaces.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName")
 
 read, err := client.SharedKeysGetSharedKeys(ctx, id)
 if err != nil {
@@ -214,7 +214,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := workspaces.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue")
+id := workspaces.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName")
 
 read, err := client.SharedKeysRegenerate(ctx, id)
 if err != nil {
@@ -230,7 +230,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := workspaces.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue")
+id := workspaces.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName")
 
 payload := workspaces.WorkspacePatch{
 	// ...
@@ -251,7 +251,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := workspaces.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue")
+id := workspaces.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName")
 
 read, err := client.UsagesList(ctx, id)
 if err != nil {
@@ -267,7 +267,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := workspaces.NewOperationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue", "purgeIdValue")
+id := workspaces.NewOperationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName", "purgeId")
 
 read, err := client.WorkspacePurgeGetPurgeStatus(ctx, id)
 if err != nil {
@@ -283,7 +283,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := workspaces.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue")
+id := workspaces.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName")
 
 payload := workspaces.WorkspacePurgeBody{
 	// ...

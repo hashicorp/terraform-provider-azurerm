@@ -44,7 +44,7 @@ func ParseApmID(input string) (*ApmId, error) {
 	}
 
 	id := ApmId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseApmIDInsensitively(input string) (*ApmId, error) {
 	}
 
 	id := ApmId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id ApmId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAppPlatform", "Microsoft.AppPlatform", "Microsoft.AppPlatform"),
 		resourceids.StaticSegment("staticSpring", "spring", "spring"),
-		resourceids.UserSpecifiedSegment("springName", "springValue"),
+		resourceids.UserSpecifiedSegment("springName", "serviceName"),
 		resourceids.StaticSegment("staticApms", "apms", "apms"),
-		resourceids.UserSpecifiedSegment("apmName", "apmValue"),
+		resourceids.UserSpecifiedSegment("apmName", "apmName"),
 	}
 }
 

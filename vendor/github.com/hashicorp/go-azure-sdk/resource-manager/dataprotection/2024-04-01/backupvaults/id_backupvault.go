@@ -42,7 +42,7 @@ func ParseBackupVaultID(input string) (*BackupVaultId, error) {
 	}
 
 	id := BackupVaultId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseBackupVaultIDInsensitively(input string) (*BackupVaultId, error) {
 	}
 
 	id := BackupVaultId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id BackupVaultId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDataProtection", "Microsoft.DataProtection", "Microsoft.DataProtection"),
 		resourceids.StaticSegment("staticBackupVaults", "backupVaults", "backupVaults"),
-		resourceids.UserSpecifiedSegment("backupVaultName", "backupVaultValue"),
+		resourceids.UserSpecifiedSegment("backupVaultName", "vaultName"),
 	}
 }
 

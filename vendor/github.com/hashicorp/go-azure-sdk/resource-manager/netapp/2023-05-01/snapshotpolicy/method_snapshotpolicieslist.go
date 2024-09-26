@@ -46,7 +46,6 @@ func (c SnapshotPolicyClient) SnapshotPoliciesList(ctx context.Context, id NetAp
 
 	var model SnapshotPoliciesList
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

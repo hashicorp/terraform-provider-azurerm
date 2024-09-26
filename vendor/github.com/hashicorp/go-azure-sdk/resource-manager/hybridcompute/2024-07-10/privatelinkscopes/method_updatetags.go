@@ -49,7 +49,6 @@ func (c PrivateLinkScopesClient) UpdateTags(ctx context.Context, id ProviderPriv
 
 	var model HybridComputePrivateLinkScope
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

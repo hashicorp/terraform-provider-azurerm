@@ -47,7 +47,6 @@ func (c ManagedInstanceLongTermRetentionPoliciesClient) Get(ctx context.Context,
 
 	var model ManagedInstanceLongTermRetentionPolicy
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

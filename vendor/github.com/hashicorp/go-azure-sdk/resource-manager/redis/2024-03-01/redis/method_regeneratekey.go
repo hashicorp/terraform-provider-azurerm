@@ -50,7 +50,6 @@ func (c RedisClient) RegenerateKey(ctx context.Context, id RediId, input RedisRe
 
 	var model RedisAccessKeys
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

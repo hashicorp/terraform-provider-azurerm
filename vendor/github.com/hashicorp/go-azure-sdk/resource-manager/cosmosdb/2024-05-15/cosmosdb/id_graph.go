@@ -46,7 +46,7 @@ func ParseGraphID(input string) (*GraphId, error) {
 	}
 
 	id := GraphId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -63,7 +63,7 @@ func ParseGraphIDInsensitively(input string) (*GraphId, error) {
 	}
 
 	id := GraphId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -127,11 +127,11 @@ func (id GraphId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDocumentDB", "Microsoft.DocumentDB", "Microsoft.DocumentDB"),
 		resourceids.StaticSegment("staticDatabaseAccounts", "databaseAccounts", "databaseAccounts"),
-		resourceids.UserSpecifiedSegment("databaseAccountName", "databaseAccountValue"),
+		resourceids.UserSpecifiedSegment("databaseAccountName", "accountName"),
 		resourceids.StaticSegment("staticGremlinDatabases", "gremlinDatabases", "gremlinDatabases"),
-		resourceids.UserSpecifiedSegment("gremlinDatabaseName", "gremlinDatabaseValue"),
+		resourceids.UserSpecifiedSegment("gremlinDatabaseName", "databaseName"),
 		resourceids.StaticSegment("staticGraphs", "graphs", "graphs"),
-		resourceids.UserSpecifiedSegment("graphName", "graphValue"),
+		resourceids.UserSpecifiedSegment("graphName", "graphName"),
 	}
 }
 

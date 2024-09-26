@@ -46,7 +46,6 @@ func (c CosmosDBClient) DatabaseAccountsListKeys(ctx context.Context, id Databas
 
 	var model DatabaseAccountListKeysResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -44,7 +44,7 @@ func ParseDataCenterID(input string) (*DataCenterId, error) {
 	}
 
 	id := DataCenterId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseDataCenterIDInsensitively(input string) (*DataCenterId, error) {
 	}
 
 	id := DataCenterId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id DataCenterId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDocumentDB", "Microsoft.DocumentDB", "Microsoft.DocumentDB"),
 		resourceids.StaticSegment("staticCassandraClusters", "cassandraClusters", "cassandraClusters"),
-		resourceids.UserSpecifiedSegment("cassandraClusterName", "cassandraClusterValue"),
+		resourceids.UserSpecifiedSegment("cassandraClusterName", "clusterName"),
 		resourceids.StaticSegment("staticDataCenters", "dataCenters", "dataCenters"),
-		resourceids.UserSpecifiedSegment("dataCenterName", "dataCenterValue"),
+		resourceids.UserSpecifiedSegment("dataCenterName", "dataCenterName"),
 	}
 }
 

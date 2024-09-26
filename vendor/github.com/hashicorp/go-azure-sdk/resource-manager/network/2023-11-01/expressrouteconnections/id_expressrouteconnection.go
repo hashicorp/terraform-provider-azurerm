@@ -44,7 +44,7 @@ func ParseExpressRouteConnectionID(input string) (*ExpressRouteConnectionId, err
 	}
 
 	id := ExpressRouteConnectionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseExpressRouteConnectionIDInsensitively(input string) (*ExpressRouteConn
 	}
 
 	id := ExpressRouteConnectionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id ExpressRouteConnectionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticExpressRouteGateways", "expressRouteGateways", "expressRouteGateways"),
-		resourceids.UserSpecifiedSegment("expressRouteGatewayName", "expressRouteGatewayValue"),
+		resourceids.UserSpecifiedSegment("expressRouteGatewayName", "expressRouteGatewayName"),
 		resourceids.StaticSegment("staticExpressRouteConnections", "expressRouteConnections", "expressRouteConnections"),
-		resourceids.UserSpecifiedSegment("expressRouteConnectionName", "expressRouteConnectionValue"),
+		resourceids.UserSpecifiedSegment("expressRouteConnectionName", "connectionName"),
 	}
 }
 

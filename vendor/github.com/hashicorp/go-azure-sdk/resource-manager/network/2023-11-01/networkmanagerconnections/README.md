@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/networkmanagerconnections` Documentation
 
-The `networkmanagerconnections` SDK allows for interaction with the Azure Resource Manager Service `network` (API Version `2023-11-01`).
+The `networkmanagerconnections` SDK allows for interaction with Azure Resource Manager `network` (API Version `2023-11-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := networkmanagerconnections.NewProviders2NetworkManagerConnectionID("managementGroupIdValue", "networkManagerConnectionValue")
+id := networkmanagerconnections.NewProviders2NetworkManagerConnectionID("managementGroupId", "networkManagerConnectionName")
 
 payload := networkmanagerconnections.NetworkManagerConnection{
 	// ...
@@ -46,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := networkmanagerconnections.NewProviders2NetworkManagerConnectionID("managementGroupIdValue", "networkManagerConnectionValue")
+id := networkmanagerconnections.NewProviders2NetworkManagerConnectionID("managementGroupId", "networkManagerConnectionName")
 
 read, err := client.ManagementGroupNetworkManagerConnectionsDelete(ctx, id)
 if err != nil {
@@ -62,7 +62,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := networkmanagerconnections.NewProviders2NetworkManagerConnectionID("managementGroupIdValue", "networkManagerConnectionValue")
+id := networkmanagerconnections.NewProviders2NetworkManagerConnectionID("managementGroupId", "networkManagerConnectionName")
 
 read, err := client.ManagementGroupNetworkManagerConnectionsGet(ctx, id)
 if err != nil {
@@ -78,7 +78,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewManagementGroupID("groupIdValue")
+id := commonids.NewManagementGroupID("groupId")
 
 // alternatively `client.ManagementGroupNetworkManagerConnectionsList(ctx, id, networkmanagerconnections.DefaultManagementGroupNetworkManagerConnectionsListOperationOptions())` can be used to do batched pagination
 items, err := client.ManagementGroupNetworkManagerConnectionsListComplete(ctx, id, networkmanagerconnections.DefaultManagementGroupNetworkManagerConnectionsListOperationOptions())
@@ -95,7 +95,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := networkmanagerconnections.NewNetworkManagerConnectionID("12345678-1234-9876-4563-123456789012", "networkManagerConnectionValue")
+id := networkmanagerconnections.NewNetworkManagerConnectionID("12345678-1234-9876-4563-123456789012", "networkManagerConnectionName")
 
 payload := networkmanagerconnections.NetworkManagerConnection{
 	// ...
@@ -116,7 +116,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := networkmanagerconnections.NewNetworkManagerConnectionID("12345678-1234-9876-4563-123456789012", "networkManagerConnectionValue")
+id := networkmanagerconnections.NewNetworkManagerConnectionID("12345678-1234-9876-4563-123456789012", "networkManagerConnectionName")
 
 read, err := client.SubscriptionNetworkManagerConnectionsDelete(ctx, id)
 if err != nil {
@@ -132,7 +132,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := networkmanagerconnections.NewNetworkManagerConnectionID("12345678-1234-9876-4563-123456789012", "networkManagerConnectionValue")
+id := networkmanagerconnections.NewNetworkManagerConnectionID("12345678-1234-9876-4563-123456789012", "networkManagerConnectionName")
 
 read, err := client.SubscriptionNetworkManagerConnectionsGet(ctx, id)
 if err != nil {

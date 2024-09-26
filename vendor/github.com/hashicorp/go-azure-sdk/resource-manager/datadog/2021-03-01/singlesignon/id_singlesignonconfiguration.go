@@ -44,7 +44,7 @@ func ParseSingleSignOnConfigurationID(input string) (*SingleSignOnConfigurationI
 	}
 
 	id := SingleSignOnConfigurationId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseSingleSignOnConfigurationIDInsensitively(input string) (*SingleSignOnC
 	}
 
 	id := SingleSignOnConfigurationId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id SingleSignOnConfigurationId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDatadog", "Microsoft.Datadog", "Microsoft.Datadog"),
 		resourceids.StaticSegment("staticMonitors", "monitors", "monitors"),
-		resourceids.UserSpecifiedSegment("monitorName", "monitorValue"),
+		resourceids.UserSpecifiedSegment("monitorName", "monitorName"),
 		resourceids.StaticSegment("staticSingleSignOnConfigurations", "singleSignOnConfigurations", "singleSignOnConfigurations"),
-		resourceids.UserSpecifiedSegment("singleSignOnConfigurationName", "singleSignOnConfigurationValue"),
+		resourceids.UserSpecifiedSegment("singleSignOnConfigurationName", "configurationName"),
 	}
 }
 

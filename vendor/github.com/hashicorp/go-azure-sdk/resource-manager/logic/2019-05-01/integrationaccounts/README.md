@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationaccounts` Documentation
 
-The `integrationaccounts` SDK allows for interaction with the Azure Resource Manager Service `logic` (API Version `2019-05-01`).
+The `integrationaccounts` SDK allows for interaction with Azure Resource Manager `logic` (API Version `2019-05-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := integrationaccounts.NewIntegrationAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "integrationAccountValue")
+id := integrationaccounts.NewIntegrationAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "integrationAccountName")
 
 payload := integrationaccounts.IntegrationAccount{
 	// ...
@@ -46,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := integrationaccounts.NewIntegrationAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "integrationAccountValue")
+id := integrationaccounts.NewIntegrationAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "integrationAccountName")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -62,7 +62,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := integrationaccounts.NewIntegrationAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "integrationAccountValue")
+id := integrationaccounts.NewIntegrationAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "integrationAccountName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -112,7 +112,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := integrationaccounts.NewIntegrationAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "integrationAccountValue")
+id := integrationaccounts.NewIntegrationAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "integrationAccountName")
 
 payload := integrationaccounts.GetCallbackUrlParameters{
 	// ...
@@ -133,7 +133,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := integrationaccounts.NewIntegrationAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "integrationAccountValue")
+id := integrationaccounts.NewIntegrationAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "integrationAccountName")
 
 payload := integrationaccounts.ListKeyVaultKeysDefinition{
 	// ...
@@ -154,7 +154,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := integrationaccounts.NewIntegrationAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "integrationAccountValue")
+id := integrationaccounts.NewIntegrationAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "integrationAccountName")
 
 payload := integrationaccounts.TrackingEventsDefinition{
 	// ...
@@ -175,7 +175,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := integrationaccounts.NewIntegrationAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "integrationAccountValue")
+id := integrationaccounts.NewIntegrationAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "integrationAccountName")
 
 payload := integrationaccounts.RegenerateActionParameter{
 	// ...
@@ -196,7 +196,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := integrationaccounts.NewIntegrationAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "integrationAccountValue")
+id := integrationaccounts.NewIntegrationAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "integrationAccountName")
 
 payload := integrationaccounts.IntegrationAccount{
 	// ...

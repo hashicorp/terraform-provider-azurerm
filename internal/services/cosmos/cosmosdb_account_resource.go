@@ -68,6 +68,7 @@ const (
 	databaseAccountCapabilitiesEnableMongoRetryableWrites        databaseAccountCapabilities = "EnableMongoRetryableWrites"
 	databaseAccountCapabilitiesEnableMongoRoleBasedAccessControl databaseAccountCapabilities = "EnableMongoRoleBasedAccessControl"
 	databaseAccountCapabilitiesEnableUniqueCompoundNestedDocs    databaseAccountCapabilities = "EnableUniqueCompoundNestedDocs"
+	databaseAccountCapabilitiesEnableNoSqlVectorSearch           databaseAccountCapabilities = "EnableNoSQLVectorSearch"
 	databaseAccountCapabilitiesEnableTtlOnCustomPath             databaseAccountCapabilities = "EnableTtlOnCustomPath"
 	databaseAccountCapabilitiesEnablePartialUniqueIndex          databaseAccountCapabilities = "EnablePartialUniqueIndex"
 )
@@ -99,6 +100,7 @@ var capabilitiesToKindMap = map[string]interface{}{
 	strings.ToLower(string(databaseAccountCapabilitiesEnableUniqueCompoundNestedDocs)):    []string{strings.ToLower(string(cosmosdb.DatabaseAccountKindMongoDB))},
 	strings.ToLower(string(databaseAccountCapabilitiesEnableTtlOnCustomPath)):             []string{strings.ToLower(string(cosmosdb.DatabaseAccountKindMongoDB))},
 	strings.ToLower(string(databaseAccountCapabilitiesEnablePartialUniqueIndex)):          []string{strings.ToLower(string(cosmosdb.DatabaseAccountKindMongoDB))},
+	strings.ToLower(string(databaseAccountCapabilitiesEnableNoSqlVectorSearch)):           []string{strings.ToLower(string(cosmosdb.DatabaseAccountKindGlobalDocumentDB))},
 	strings.ToLower(string(databaseAccountCapabilitiesEnableCassandra)):                   []string{strings.ToLower(string(cosmosdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(cosmosdb.DatabaseAccountKindParse))},
 	strings.ToLower(string(databaseAccountCapabilitiesEnableGremlin)):                     []string{strings.ToLower(string(cosmosdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(cosmosdb.DatabaseAccountKindParse))},
 	strings.ToLower(string(databaseAccountCapabilitiesEnableTable)):                       []string{strings.ToLower(string(cosmosdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(cosmosdb.DatabaseAccountKindParse))},
@@ -427,6 +429,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 								string(databaseAccountCapabilitiesEnableMongoRetryableWrites),
 								string(databaseAccountCapabilitiesEnableMongoRoleBasedAccessControl),
 								string(databaseAccountCapabilitiesEnableUniqueCompoundNestedDocs),
+								string(databaseAccountCapabilitiesEnableNoSqlVectorSearch),
 								string(databaseAccountCapabilitiesEnableTtlOnCustomPath),
 								string(databaseAccountCapabilitiesEnablePartialUniqueIndex),
 							}, false),

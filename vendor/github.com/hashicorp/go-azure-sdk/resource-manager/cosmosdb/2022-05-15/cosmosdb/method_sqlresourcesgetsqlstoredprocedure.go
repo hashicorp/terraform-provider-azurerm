@@ -45,7 +45,6 @@ func (c CosmosDBClient) SqlResourcesGetSqlStoredProcedure(ctx context.Context, i
 
 	var model SqlStoredProcedureGetResults
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

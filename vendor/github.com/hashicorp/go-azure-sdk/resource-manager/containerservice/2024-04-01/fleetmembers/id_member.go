@@ -44,7 +44,7 @@ func ParseMemberID(input string) (*MemberId, error) {
 	}
 
 	id := MemberId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseMemberIDInsensitively(input string) (*MemberId, error) {
 	}
 
 	id := MemberId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id MemberId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftContainerService", "Microsoft.ContainerService", "Microsoft.ContainerService"),
 		resourceids.StaticSegment("staticFleets", "fleets", "fleets"),
-		resourceids.UserSpecifiedSegment("fleetName", "fleetValue"),
+		resourceids.UserSpecifiedSegment("fleetName", "fleetName"),
 		resourceids.StaticSegment("staticMembers", "members", "members"),
-		resourceids.UserSpecifiedSegment("memberName", "memberValue"),
+		resourceids.UserSpecifiedSegment("memberName", "fleetMemberName"),
 	}
 }
 

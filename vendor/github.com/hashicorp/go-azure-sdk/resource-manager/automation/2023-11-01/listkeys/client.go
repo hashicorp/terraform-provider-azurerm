@@ -15,7 +15,7 @@ type ListKeysClient struct {
 }
 
 func NewListKeysClientWithBaseURI(sdkApi sdkEnv.Api) (*ListKeysClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "listkeys", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "listkeys", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ListKeysClient: %+v", err)
 	}

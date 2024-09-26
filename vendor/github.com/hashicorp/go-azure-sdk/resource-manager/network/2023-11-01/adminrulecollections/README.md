@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/adminrulecollections` Documentation
 
-The `adminrulecollections` SDK allows for interaction with the Azure Resource Manager Service `network` (API Version `2023-11-01`).
+The `adminrulecollections` SDK allows for interaction with Azure Resource Manager `network` (API Version `2023-11-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := adminrulecollections.NewRuleCollectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkManagerValue", "securityAdminConfigurationValue", "ruleCollectionValue")
+id := adminrulecollections.NewRuleCollectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkManagerName", "configurationName", "ruleCollectionName")
 
 payload := adminrulecollections.AdminRuleCollection{
 	// ...
@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := adminrulecollections.NewRuleCollectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkManagerValue", "securityAdminConfigurationValue", "ruleCollectionValue")
+id := adminrulecollections.NewRuleCollectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkManagerName", "configurationName", "ruleCollectionName")
 
 if err := client.DeleteThenPoll(ctx, id, adminrulecollections.DefaultDeleteOperationOptions()); err != nil {
 	// handle the error
@@ -57,7 +57,7 @@ if err := client.DeleteThenPoll(ctx, id, adminrulecollections.DefaultDeleteOpera
 
 ```go
 ctx := context.TODO()
-id := adminrulecollections.NewRuleCollectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkManagerValue", "securityAdminConfigurationValue", "ruleCollectionValue")
+id := adminrulecollections.NewRuleCollectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkManagerName", "configurationName", "ruleCollectionName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -73,7 +73,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := adminrulecollections.NewSecurityAdminConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkManagerValue", "securityAdminConfigurationValue")
+id := adminrulecollections.NewSecurityAdminConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkManagerName", "configurationName")
 
 // alternatively `client.List(ctx, id, adminrulecollections.DefaultListOperationOptions())` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id, adminrulecollections.DefaultListOperationOptions())

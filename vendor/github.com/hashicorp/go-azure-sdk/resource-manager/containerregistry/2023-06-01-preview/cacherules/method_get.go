@@ -45,7 +45,6 @@ func (c CacheRulesClient) Get(ctx context.Context, id CacheRuleId) (result GetOp
 
 	var model CacheRule
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

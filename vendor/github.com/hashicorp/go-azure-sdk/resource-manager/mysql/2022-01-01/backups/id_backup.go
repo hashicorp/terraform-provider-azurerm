@@ -44,7 +44,7 @@ func ParseBackupID(input string) (*BackupId, error) {
 	}
 
 	id := BackupId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseBackupIDInsensitively(input string) (*BackupId, error) {
 	}
 
 	id := BackupId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id BackupId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDBforMySQL", "Microsoft.DBforMySQL", "Microsoft.DBforMySQL"),
 		resourceids.StaticSegment("staticFlexibleServers", "flexibleServers", "flexibleServers"),
-		resourceids.UserSpecifiedSegment("flexibleServerName", "flexibleServerValue"),
+		resourceids.UserSpecifiedSegment("flexibleServerName", "serverName"),
 		resourceids.StaticSegment("staticBackups", "backups", "backups"),
-		resourceids.UserSpecifiedSegment("backupName", "backupValue"),
+		resourceids.UserSpecifiedSegment("backupName", "backupName"),
 	}
 }
 

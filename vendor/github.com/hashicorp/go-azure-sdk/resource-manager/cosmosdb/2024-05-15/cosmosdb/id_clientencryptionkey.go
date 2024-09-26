@@ -46,7 +46,7 @@ func ParseClientEncryptionKeyID(input string) (*ClientEncryptionKeyId, error) {
 	}
 
 	id := ClientEncryptionKeyId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -63,7 +63,7 @@ func ParseClientEncryptionKeyIDInsensitively(input string) (*ClientEncryptionKey
 	}
 
 	id := ClientEncryptionKeyId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -127,11 +127,11 @@ func (id ClientEncryptionKeyId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDocumentDB", "Microsoft.DocumentDB", "Microsoft.DocumentDB"),
 		resourceids.StaticSegment("staticDatabaseAccounts", "databaseAccounts", "databaseAccounts"),
-		resourceids.UserSpecifiedSegment("databaseAccountName", "databaseAccountValue"),
+		resourceids.UserSpecifiedSegment("databaseAccountName", "accountName"),
 		resourceids.StaticSegment("staticSqlDatabases", "sqlDatabases", "sqlDatabases"),
-		resourceids.UserSpecifiedSegment("sqlDatabaseName", "sqlDatabaseValue"),
+		resourceids.UserSpecifiedSegment("sqlDatabaseName", "databaseName"),
 		resourceids.StaticSegment("staticClientEncryptionKeys", "clientEncryptionKeys", "clientEncryptionKeys"),
-		resourceids.UserSpecifiedSegment("clientEncryptionKeyName", "clientEncryptionKeyValue"),
+		resourceids.UserSpecifiedSegment("clientEncryptionKeyName", "clientEncryptionKeyName"),
 	}
 }
 

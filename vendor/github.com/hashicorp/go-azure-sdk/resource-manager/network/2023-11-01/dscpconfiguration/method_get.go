@@ -45,7 +45,6 @@ func (c DscpConfigurationClient) Get(ctx context.Context, id DscpConfigurationId
 
 	var model DscpConfiguration
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

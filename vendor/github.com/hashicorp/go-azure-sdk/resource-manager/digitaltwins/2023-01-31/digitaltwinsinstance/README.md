@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/digitaltwins/2023-01-31/digitaltwinsinstance` Documentation
 
-The `digitaltwinsinstance` SDK allows for interaction with the Azure Resource Manager Service `digitaltwins` (API Version `2023-01-31`).
+The `digitaltwinsinstance` SDK allows for interaction with Azure Resource Manager `digitaltwins` (API Version `2023-01-31`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := digitaltwinsinstance.NewDigitalTwinsInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "digitalTwinsInstanceValue")
+id := digitaltwinsinstance.NewDigitalTwinsInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
 
 payload := digitaltwinsinstance.DigitalTwinsDescription{
 	// ...
@@ -42,7 +42,7 @@ if err := client.DigitalTwinsCreateOrUpdateThenPoll(ctx, id, payload); err != ni
 
 ```go
 ctx := context.TODO()
-id := digitaltwinsinstance.NewDigitalTwinsInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "digitalTwinsInstanceValue")
+id := digitaltwinsinstance.NewDigitalTwinsInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
 
 if err := client.DigitalTwinsDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -54,7 +54,7 @@ if err := client.DigitalTwinsDeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := digitaltwinsinstance.NewDigitalTwinsInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "digitalTwinsInstanceValue")
+id := digitaltwinsinstance.NewDigitalTwinsInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
 
 read, err := client.DigitalTwinsGet(ctx, id)
 if err != nil {
@@ -104,7 +104,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := digitaltwinsinstance.NewDigitalTwinsInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "digitalTwinsInstanceValue")
+id := digitaltwinsinstance.NewDigitalTwinsInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
 
 payload := digitaltwinsinstance.DigitalTwinsPatchDescription{
 	// ...

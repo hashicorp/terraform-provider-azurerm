@@ -35,6 +35,7 @@ func (o GetPropertiesOperationOptions) ToHeaders() *client.Headers {
 
 func (o GetPropertiesOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -75,7 +76,6 @@ func (c StorageAccountsClient) GetProperties(ctx context.Context, id commonids.S
 
 	var model StorageAccount
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -15,7 +15,7 @@ type DdosCustomPoliciesClient struct {
 }
 
 func NewDdosCustomPoliciesClientWithBaseURI(sdkApi sdkEnv.Api) (*DdosCustomPoliciesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "ddoscustompolicies", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "ddoscustompolicies", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating DdosCustomPoliciesClient: %+v", err)
 	}

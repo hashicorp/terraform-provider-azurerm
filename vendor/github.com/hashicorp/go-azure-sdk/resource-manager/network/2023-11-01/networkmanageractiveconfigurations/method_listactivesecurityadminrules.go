@@ -50,7 +50,6 @@ func (c NetworkManagerActiveConfigurationsClient) ListActiveSecurityAdminRules(c
 
 	var model ActiveSecurityAdminRulesListResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

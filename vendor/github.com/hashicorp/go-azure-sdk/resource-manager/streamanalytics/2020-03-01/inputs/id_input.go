@@ -44,7 +44,7 @@ func ParseInputID(input string) (*InputId, error) {
 	}
 
 	id := InputId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseInputIDInsensitively(input string) (*InputId, error) {
 	}
 
 	id := InputId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id InputId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftStreamAnalytics", "Microsoft.StreamAnalytics", "Microsoft.StreamAnalytics"),
 		resourceids.StaticSegment("staticStreamingJobs", "streamingJobs", "streamingJobs"),
-		resourceids.UserSpecifiedSegment("streamingJobName", "streamingJobValue"),
+		resourceids.UserSpecifiedSegment("streamingJobName", "jobName"),
 		resourceids.StaticSegment("staticInputs", "inputs", "inputs"),
-		resourceids.UserSpecifiedSegment("inputName", "inputValue"),
+		resourceids.UserSpecifiedSegment("inputName", "inputName"),
 	}
 }
 

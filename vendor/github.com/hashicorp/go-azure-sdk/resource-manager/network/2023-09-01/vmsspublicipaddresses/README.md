@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/vmsspublicipaddresses` Documentation
 
-The `vmsspublicipaddresses` SDK allows for interaction with the Azure Resource Manager Service `network` (API Version `2023-09-01`).
+The `vmsspublicipaddresses` SDK allows for interaction with Azure Resource Manager `network` (API Version `2023-09-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := commonids.NewVirtualMachineScaleSetPublicIPAddressID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualMachineScaleSetValue", "virtualMachineValue", "networkInterfaceValue", "ipConfigurationValue", "publicIPAddressValue")
+id := commonids.NewVirtualMachineScaleSetPublicIPAddressID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualMachineScaleSetName", "virtualMachineIndex", "networkInterfaceName", "ipConfigurationName", "publicIpAddressName")
 
 read, err := client.PublicIPAddressesGetVirtualMachineScaleSetPublicIPAddress(ctx, id, vmsspublicipaddresses.DefaultPublicIPAddressesGetVirtualMachineScaleSetPublicIPAddressOperationOptions())
 if err != nil {
@@ -41,7 +41,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := vmsspublicipaddresses.NewVirtualMachineScaleSetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualMachineScaleSetValue")
+id := vmsspublicipaddresses.NewVirtualMachineScaleSetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualMachineScaleSetName")
 
 // alternatively `client.PublicIPAddressesListVirtualMachineScaleSetPublicIPAddresses(ctx, id)` can be used to do batched pagination
 items, err := client.PublicIPAddressesListVirtualMachineScaleSetPublicIPAddressesComplete(ctx, id)
@@ -58,7 +58,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewVirtualMachineScaleSetIPConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualMachineScaleSetValue", "virtualMachineValue", "networkInterfaceValue", "ipConfigurationValue")
+id := commonids.NewVirtualMachineScaleSetIPConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualMachineScaleSetName", "virtualMachineIndex", "networkInterfaceName", "ipConfigurationName")
 
 // alternatively `client.PublicIPAddressesListVirtualMachineScaleSetVMPublicIPAddresses(ctx, id)` can be used to do batched pagination
 items, err := client.PublicIPAddressesListVirtualMachineScaleSetVMPublicIPAddressesComplete(ctx, id)

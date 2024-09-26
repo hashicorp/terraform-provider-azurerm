@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/chaosstudio/2023-11-01/experiments` Documentation
 
-The `experiments` SDK allows for interaction with the Azure Resource Manager Service `chaosstudio` (API Version `2023-11-01`).
+The `experiments` SDK allows for interaction with Azure Resource Manager `chaosstudio` (API Version `2023-11-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := experiments.NewExperimentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "experimentValue")
+id := experiments.NewExperimentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "experimentName")
 
 if err := client.CancelThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -37,7 +37,7 @@ if err := client.CancelThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := experiments.NewExperimentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "experimentValue")
+id := experiments.NewExperimentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "experimentName")
 
 payload := experiments.Experiment{
 	// ...
@@ -54,7 +54,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := experiments.NewExperimentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "experimentValue")
+id := experiments.NewExperimentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "experimentName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -66,7 +66,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := experiments.NewExecutionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "experimentValue", "executionIdValue")
+id := experiments.NewExecutionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "experimentName", "executionId")
 
 read, err := client.ExecutionDetails(ctx, id)
 if err != nil {
@@ -82,7 +82,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := experiments.NewExperimentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "experimentValue")
+id := experiments.NewExperimentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "experimentName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -98,7 +98,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := experiments.NewExecutionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "experimentValue", "executionIdValue")
+id := experiments.NewExecutionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "experimentName", "executionId")
 
 read, err := client.GetExecution(ctx, id)
 if err != nil {
@@ -148,7 +148,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := experiments.NewExperimentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "experimentValue")
+id := experiments.NewExperimentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "experimentName")
 
 // alternatively `client.ListAllExecutions(ctx, id)` can be used to do batched pagination
 items, err := client.ListAllExecutionsComplete(ctx, id)
@@ -165,7 +165,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := experiments.NewExperimentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "experimentValue")
+id := experiments.NewExperimentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "experimentName")
 
 if err := client.StartThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -177,7 +177,7 @@ if err := client.StartThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := experiments.NewExperimentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "experimentValue")
+id := experiments.NewExperimentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "experimentName")
 
 payload := experiments.ExperimentUpdate{
 	// ...

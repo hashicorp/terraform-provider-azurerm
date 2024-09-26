@@ -15,7 +15,7 @@ type SAPSupportedSkuClient struct {
 }
 
 func NewSAPSupportedSkuClientWithBaseURI(sdkApi sdkEnv.Api) (*SAPSupportedSkuClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "sapsupportedsku", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "sapsupportedsku", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating SAPSupportedSkuClient: %+v", err)
 	}

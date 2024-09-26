@@ -15,7 +15,7 @@ type AccessPoliciesClient struct {
 }
 
 func NewAccessPoliciesClientWithBaseURI(sdkApi sdkEnv.Api) (*AccessPoliciesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "accesspolicies", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "accesspolicies", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating AccessPoliciesClient: %+v", err)
 	}

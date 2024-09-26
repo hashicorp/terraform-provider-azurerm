@@ -46,7 +46,6 @@ func (c FirewallPoliciesClient) FirewallPolicyRuleCollectionGroupDraftsGet(ctx c
 
 	var model FirewallPolicyRuleCollectionGroupDraft
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

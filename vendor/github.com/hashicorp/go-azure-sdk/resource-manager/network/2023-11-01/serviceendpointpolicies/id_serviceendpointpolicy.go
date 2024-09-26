@@ -42,7 +42,7 @@ func ParseServiceEndpointPolicyID(input string) (*ServiceEndpointPolicyId, error
 	}
 
 	id := ServiceEndpointPolicyId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseServiceEndpointPolicyIDInsensitively(input string) (*ServiceEndpointPo
 	}
 
 	id := ServiceEndpointPolicyId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id ServiceEndpointPolicyId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticServiceEndpointPolicies", "serviceEndpointPolicies", "serviceEndpointPolicies"),
-		resourceids.UserSpecifiedSegment("serviceEndpointPolicyName", "serviceEndpointPolicyValue"),
+		resourceids.UserSpecifiedSegment("serviceEndpointPolicyName", "serviceEndpointPolicyName"),
 	}
 }
 

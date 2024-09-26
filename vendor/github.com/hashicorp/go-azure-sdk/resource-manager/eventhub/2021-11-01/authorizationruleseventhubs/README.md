@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/authorizationruleseventhubs` Documentation
 
-The `authorizationruleseventhubs` SDK allows for interaction with the Azure Resource Manager Service `eventhub` (API Version `2021-11-01`).
+The `authorizationruleseventhubs` SDK allows for interaction with Azure Resource Manager `eventhub` (API Version `2021-11-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := authorizationruleseventhubs.NewEventhubAuthorizationRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "eventhubValue", "authorizationRuleValue")
+id := authorizationruleseventhubs.NewEventhubAuthorizationRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName", "eventHubName", "authorizationRuleName")
 
 payload := authorizationruleseventhubs.AuthorizationRule{
 	// ...
@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := authorizationruleseventhubs.NewEventhubID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "eventhubValue")
+id := authorizationruleseventhubs.NewEventhubID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName", "eventHubName")
 
 // alternatively `client.EventHubsListAuthorizationRules(ctx, id)` can be used to do batched pagination
 items, err := client.EventHubsListAuthorizationRulesComplete(ctx, id)
@@ -62,7 +62,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := authorizationruleseventhubs.NewEventhubAuthorizationRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "eventhubValue", "authorizationRuleValue")
+id := authorizationruleseventhubs.NewEventhubAuthorizationRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName", "eventHubName", "authorizationRuleName")
 
 read, err := client.EventHubsListKeys(ctx, id)
 if err != nil {
@@ -78,7 +78,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := authorizationruleseventhubs.NewEventhubAuthorizationRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "eventhubValue", "authorizationRuleValue")
+id := authorizationruleseventhubs.NewEventhubAuthorizationRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName", "eventHubName", "authorizationRuleName")
 
 payload := authorizationruleseventhubs.RegenerateAccessKeyParameters{
 	// ...

@@ -45,7 +45,6 @@ func (c ExportPipelinesClient) Get(ctx context.Context, id ExportPipelineId) (re
 
 	var model ExportPipeline
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

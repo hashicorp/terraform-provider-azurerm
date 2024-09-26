@@ -48,7 +48,7 @@ func ParseReplicationProtectionContainerMappingID(input string) (*ReplicationPro
 	}
 
 	id := ReplicationProtectionContainerMappingId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -65,7 +65,7 @@ func ParseReplicationProtectionContainerMappingIDInsensitively(input string) (*R
 	}
 
 	id := ReplicationProtectionContainerMappingId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -133,13 +133,13 @@ func (id ReplicationProtectionContainerMappingId) Segments() []resourceids.Segme
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftRecoveryServices", "Microsoft.RecoveryServices", "Microsoft.RecoveryServices"),
 		resourceids.StaticSegment("staticVaults", "vaults", "vaults"),
-		resourceids.UserSpecifiedSegment("vaultName", "vaultValue"),
+		resourceids.UserSpecifiedSegment("vaultName", "resourceName"),
 		resourceids.StaticSegment("staticReplicationFabrics", "replicationFabrics", "replicationFabrics"),
-		resourceids.UserSpecifiedSegment("replicationFabricName", "replicationFabricValue"),
+		resourceids.UserSpecifiedSegment("replicationFabricName", "fabricName"),
 		resourceids.StaticSegment("staticReplicationProtectionContainers", "replicationProtectionContainers", "replicationProtectionContainers"),
-		resourceids.UserSpecifiedSegment("replicationProtectionContainerName", "replicationProtectionContainerValue"),
+		resourceids.UserSpecifiedSegment("replicationProtectionContainerName", "protectionContainerName"),
 		resourceids.StaticSegment("staticReplicationProtectionContainerMappings", "replicationProtectionContainerMappings", "replicationProtectionContainerMappings"),
-		resourceids.UserSpecifiedSegment("replicationProtectionContainerMappingName", "replicationProtectionContainerMappingValue"),
+		resourceids.UserSpecifiedSegment("replicationProtectionContainerMappingName", "mappingName"),
 	}
 }
 

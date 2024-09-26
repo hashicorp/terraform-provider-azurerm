@@ -44,7 +44,7 @@ func ParseFederatedIdentityCredentialID(input string) (*FederatedIdentityCredent
 	}
 
 	id := FederatedIdentityCredentialId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseFederatedIdentityCredentialIDInsensitively(input string) (*FederatedId
 	}
 
 	id := FederatedIdentityCredentialId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id FederatedIdentityCredentialId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftManagedIdentity", "Microsoft.ManagedIdentity", "Microsoft.ManagedIdentity"),
 		resourceids.StaticSegment("staticUserAssignedIdentities", "userAssignedIdentities", "userAssignedIdentities"),
-		resourceids.UserSpecifiedSegment("userAssignedIdentityName", "userAssignedIdentityValue"),
+		resourceids.UserSpecifiedSegment("userAssignedIdentityName", "resourceName"),
 		resourceids.StaticSegment("staticFederatedIdentityCredentials", "federatedIdentityCredentials", "federatedIdentityCredentials"),
-		resourceids.UserSpecifiedSegment("federatedIdentityCredentialName", "federatedIdentityCredentialValue"),
+		resourceids.UserSpecifiedSegment("federatedIdentityCredentialName", "federatedIdentityCredentialResourceName"),
 	}
 }
 

@@ -274,7 +274,6 @@ func (s SpringCloudGatewayResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"environment_variables": {
 			Type:     pluginsdk.TypeMap,
-			ForceNew: true,
 			Optional: true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
@@ -328,7 +327,6 @@ func (s SpringCloudGatewayResource) Arguments() map[string]*pluginsdk.Schema {
 		"sensitive_environment_variables": {
 			Type:      pluginsdk.TypeMap,
 			Optional:  true,
-			ForceNew:  true,
 			Sensitive: true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,

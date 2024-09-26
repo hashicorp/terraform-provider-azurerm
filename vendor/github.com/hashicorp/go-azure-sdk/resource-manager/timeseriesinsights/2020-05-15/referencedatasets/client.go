@@ -15,7 +15,7 @@ type ReferenceDataSetsClient struct {
 }
 
 func NewReferenceDataSetsClientWithBaseURI(sdkApi sdkEnv.Api) (*ReferenceDataSetsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "referencedatasets", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "referencedatasets", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ReferenceDataSetsClient: %+v", err)
 	}
