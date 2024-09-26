@@ -100,7 +100,7 @@ resource "azurerm_resource_management_private_link_association" "test" {
   resource_management_private_link_id = azurerm_resource_management_private_link.test.id
   public_network_access_enabled       = true
 }
-`, r.template(data), r.uuid, data.RandomInteger)
+    `, r.template(data), r.uuid)
 }
 
 func (r ResourceManagementPrivateLinkAssociationTestResource) generateName(data acceptance.TestData) string {
