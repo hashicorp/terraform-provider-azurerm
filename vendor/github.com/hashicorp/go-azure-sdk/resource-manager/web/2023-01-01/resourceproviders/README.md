@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders` Documentation
 
-The `resourceproviders` SDK allows for interaction with the Azure Resource Manager Service `web` (API Version `2023-01-01`).
+The `resourceproviders` SDK allows for interaction with Azure Resource Manager `web` (API Version `2023-01-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -62,7 +62,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := resourceproviders.NewSourceControlID("sourceControlValue")
+id := resourceproviders.NewSourceControlID("sourceControlType")
 
 read, err := client.GetSourceControl(ctx, id)
 if err != nil {
@@ -94,7 +94,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := resourceproviders.NewProviderLocationID("12345678-1234-9876-4563-123456789012", "locationValue")
+id := resourceproviders.NewProviderLocationID("12345678-1234-9876-4563-123456789012", "location")
 
 // alternatively `client.GetUsagesInLocationlist(ctx, id)` can be used to do batched pagination
 items, err := client.GetUsagesInLocationlistComplete(ctx, id)
@@ -292,7 +292,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := resourceproviders.NewSourceControlID("sourceControlValue")
+id := resourceproviders.NewSourceControlID("sourceControlType")
 
 payload := resourceproviders.SourceControl{
 	// ...

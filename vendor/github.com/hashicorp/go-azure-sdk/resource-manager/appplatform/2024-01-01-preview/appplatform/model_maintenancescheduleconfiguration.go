@@ -10,18 +10,35 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type MaintenanceScheduleConfiguration interface {
+	MaintenanceScheduleConfiguration() BaseMaintenanceScheduleConfigurationImpl
 }
 
-// RawMaintenanceScheduleConfigurationImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ MaintenanceScheduleConfiguration = BaseMaintenanceScheduleConfigurationImpl{}
+
+type BaseMaintenanceScheduleConfigurationImpl struct {
+	Frequency Frequency `json:"frequency"`
+}
+
+func (s BaseMaintenanceScheduleConfigurationImpl) MaintenanceScheduleConfiguration() BaseMaintenanceScheduleConfigurationImpl {
+	return s
+}
+
+var _ MaintenanceScheduleConfiguration = RawMaintenanceScheduleConfigurationImpl{}
+
+// RawMaintenanceScheduleConfigurationImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawMaintenanceScheduleConfigurationImpl struct {
-	Type   string
-	Values map[string]interface{}
+	maintenanceScheduleConfiguration BaseMaintenanceScheduleConfigurationImpl
+	Type                             string
+	Values                           map[string]interface{}
 }
 
-func unmarshalMaintenanceScheduleConfigurationImplementation(input []byte) (MaintenanceScheduleConfiguration, error) {
+func (s RawMaintenanceScheduleConfigurationImpl) MaintenanceScheduleConfiguration() BaseMaintenanceScheduleConfigurationImpl {
+	return s.maintenanceScheduleConfiguration
+}
+
+func UnmarshalMaintenanceScheduleConfigurationImplementation(input []byte) (MaintenanceScheduleConfiguration, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +48,9 @@ func unmarshalMaintenanceScheduleConfigurationImplementation(input []byte) (Main
 		return nil, fmt.Errorf("unmarshaling MaintenanceScheduleConfiguration into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["frequency"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["frequency"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "Weekly") {
@@ -44,10 +61,15 @@ func unmarshalMaintenanceScheduleConfigurationImplementation(input []byte) (Main
 		return out, nil
 	}
 
-	out := RawMaintenanceScheduleConfigurationImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseMaintenanceScheduleConfigurationImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseMaintenanceScheduleConfigurationImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawMaintenanceScheduleConfigurationImpl{
+		maintenanceScheduleConfiguration: parent,
+		Type:                             value,
+		Values:                           temp,
+	}, nil
 
 }

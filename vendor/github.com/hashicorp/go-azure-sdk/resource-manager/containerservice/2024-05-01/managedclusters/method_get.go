@@ -46,7 +46,6 @@ func (c ManagedClustersClient) Get(ctx context.Context, id commonids.KubernetesC
 
 	var model ManagedCluster
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

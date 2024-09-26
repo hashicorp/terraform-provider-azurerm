@@ -38,7 +38,7 @@ func ParseProviderID(input string) (*ProviderId, error) {
 	}
 
 	id := ProviderId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -55,7 +55,7 @@ func ParseProviderIDInsensitively(input string) (*ProviderId, error) {
 	}
 
 	id := ProviderId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -97,7 +97,7 @@ func (id ProviderId) ID() string {
 func (id ProviderId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
-		resourceids.UserSpecifiedSegment("providerName", "providerValue"),
+		resourceids.UserSpecifiedSegment("providerName", "resourceProviderNamespace"),
 	}
 }
 

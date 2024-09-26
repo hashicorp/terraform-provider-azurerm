@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-02-01/templatespecversions` Documentation
 
-The `templatespecversions` SDK allows for interaction with the Azure Resource Manager Service `resources` (API Version `2022-02-01`).
+The `templatespecversions` SDK allows for interaction with Azure Resource Manager `resources` (API Version `2022-02-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := templatespecversions.NewTemplateSpecVersionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "templateSpecValue", "versionValue")
+id := templatespecversions.NewTemplateSpecVersionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "templateSpecName", "templateSpecVersion")
 
 payload := templatespecversions.TemplateSpecVersion{
 	// ...
@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := templatespecversions.NewTemplateSpecVersionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "templateSpecValue", "versionValue")
+id := templatespecversions.NewTemplateSpecVersionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "templateSpecName", "templateSpecVersion")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -61,7 +61,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := templatespecversions.NewTemplateSpecVersionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "templateSpecValue", "versionValue")
+id := templatespecversions.NewTemplateSpecVersionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "templateSpecName", "templateSpecVersion")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -77,7 +77,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := templatespecversions.NewVersionID("builtInTemplateSpecValue", "versionValue")
+id := templatespecversions.NewVersionID("templateSpecName", "templateSpecVersion")
 
 read, err := client.GetBuiltIn(ctx, id)
 if err != nil {
@@ -93,7 +93,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := templatespecversions.NewTemplateSpecID("12345678-1234-9876-4563-123456789012", "example-resource-group", "templateSpecValue")
+id := templatespecversions.NewTemplateSpecID("12345678-1234-9876-4563-123456789012", "example-resource-group", "templateSpecName")
 
 // alternatively `client.List(ctx, id)` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id)
@@ -110,7 +110,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := templatespecversions.NewBuiltInTemplateSpecID("builtInTemplateSpecValue")
+id := templatespecversions.NewBuiltInTemplateSpecID("templateSpecName")
 
 // alternatively `client.ListBuiltIns(ctx, id)` can be used to do batched pagination
 items, err := client.ListBuiltInsComplete(ctx, id)
@@ -127,7 +127,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := templatespecversions.NewTemplateSpecVersionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "templateSpecValue", "versionValue")
+id := templatespecversions.NewTemplateSpecVersionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "templateSpecName", "templateSpecVersion")
 
 payload := templatespecversions.TemplateSpecVersionUpdateModel{
 	// ...

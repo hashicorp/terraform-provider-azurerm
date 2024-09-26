@@ -46,7 +46,7 @@ func ParseRecordTypeID(input string) (*RecordTypeId, error) {
 	}
 
 	id := RecordTypeId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -63,7 +63,7 @@ func ParseRecordTypeIDInsensitively(input string) (*RecordTypeId, error) {
 	}
 
 	id := RecordTypeId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -135,9 +135,9 @@ func (id RecordTypeId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticPrivateDnsZones", "privateDnsZones", "privateDnsZones"),
-		resourceids.UserSpecifiedSegment("privateDnsZoneName", "privateDnsZoneValue"),
+		resourceids.UserSpecifiedSegment("privateDnsZoneName", "privateZoneName"),
 		resourceids.ConstantSegment("recordType", PossibleValuesForRecordType(), "A"),
-		resourceids.UserSpecifiedSegment("relativeRecordSetName", "relativeRecordSetValue"),
+		resourceids.UserSpecifiedSegment("relativeRecordSetName", "relativeRecordSetName"),
 	}
 }
 

@@ -44,7 +44,7 @@ func ParseNodeConfigurationID(input string) (*NodeConfigurationId, error) {
 	}
 
 	id := NodeConfigurationId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseNodeConfigurationIDInsensitively(input string) (*NodeConfigurationId, 
 	}
 
 	id := NodeConfigurationId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id NodeConfigurationId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDBforPostgreSQL", "Microsoft.DBforPostgreSQL", "Microsoft.DBforPostgreSQL"),
 		resourceids.StaticSegment("staticServerGroupsv2", "serverGroupsv2", "serverGroupsv2"),
-		resourceids.UserSpecifiedSegment("serverGroupsv2Name", "serverGroupsv2Value"),
+		resourceids.UserSpecifiedSegment("serverGroupsv2Name", "clusterName"),
 		resourceids.StaticSegment("staticNodeConfigurations", "nodeConfigurations", "nodeConfigurations"),
-		resourceids.UserSpecifiedSegment("nodeConfigurationName", "nodeConfigurationValue"),
+		resourceids.UserSpecifiedSegment("nodeConfigurationName", "configurationName"),
 	}
 }
 

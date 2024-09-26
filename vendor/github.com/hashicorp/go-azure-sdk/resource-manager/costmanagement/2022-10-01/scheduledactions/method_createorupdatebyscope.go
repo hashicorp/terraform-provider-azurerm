@@ -36,6 +36,7 @@ func (o CreateOrUpdateByScopeOperationOptions) ToHeaders() *client.Headers {
 
 func (o CreateOrUpdateByScopeOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -79,7 +80,6 @@ func (c ScheduledActionsClient) CreateOrUpdateByScope(ctx context.Context, id Sc
 
 	var model ScheduledAction
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

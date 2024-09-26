@@ -44,7 +44,7 @@ func ParseIotConnectorID(input string) (*IotConnectorId, error) {
 	}
 
 	id := IotConnectorId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseIotConnectorIDInsensitively(input string) (*IotConnectorId, error) {
 	}
 
 	id := IotConnectorId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id IotConnectorId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftHealthcareApis", "Microsoft.HealthcareApis", "Microsoft.HealthcareApis"),
 		resourceids.StaticSegment("staticWorkspaces", "workspaces", "workspaces"),
-		resourceids.UserSpecifiedSegment("workspaceName", "workspaceValue"),
+		resourceids.UserSpecifiedSegment("workspaceName", "workspaceName"),
 		resourceids.StaticSegment("staticIotConnectors", "iotConnectors", "iotConnectors"),
-		resourceids.UserSpecifiedSegment("iotConnectorName", "iotConnectorValue"),
+		resourceids.UserSpecifiedSegment("iotConnectorName", "iotConnectorName"),
 	}
 }
 

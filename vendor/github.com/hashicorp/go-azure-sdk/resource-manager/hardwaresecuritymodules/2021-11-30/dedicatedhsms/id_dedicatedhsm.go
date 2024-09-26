@@ -42,7 +42,7 @@ func ParseDedicatedHSMID(input string) (*DedicatedHSMId, error) {
 	}
 
 	id := DedicatedHSMId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseDedicatedHSMIDInsensitively(input string) (*DedicatedHSMId, error) {
 	}
 
 	id := DedicatedHSMId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id DedicatedHSMId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftHardwareSecurityModules", "Microsoft.HardwareSecurityModules", "Microsoft.HardwareSecurityModules"),
 		resourceids.StaticSegment("staticDedicatedHSMs", "dedicatedHSMs", "dedicatedHSMs"),
-		resourceids.UserSpecifiedSegment("dedicatedHSMName", "dedicatedHSMValue"),
+		resourceids.UserSpecifiedSegment("dedicatedHSMName", "name"),
 	}
 }
 

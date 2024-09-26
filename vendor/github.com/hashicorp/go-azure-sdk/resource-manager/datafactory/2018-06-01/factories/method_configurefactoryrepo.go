@@ -50,7 +50,6 @@ func (c FactoriesClient) ConfigureFactoryRepo(ctx context.Context, id LocationId
 
 	var model Factory
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

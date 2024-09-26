@@ -44,7 +44,7 @@ func ParseInventoryItemID(input string) (*InventoryItemId, error) {
 	}
 
 	id := InventoryItemId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseInventoryItemIDInsensitively(input string) (*InventoryItemId, error) {
 	}
 
 	id := InventoryItemId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id InventoryItemId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftScVmm", "Microsoft.ScVmm", "Microsoft.ScVmm"),
 		resourceids.StaticSegment("staticVmmServers", "vmmServers", "vmmServers"),
-		resourceids.UserSpecifiedSegment("vmmServerName", "vmmServerValue"),
+		resourceids.UserSpecifiedSegment("vmmServerName", "vmmServerName"),
 		resourceids.StaticSegment("staticInventoryItems", "inventoryItems", "inventoryItems"),
-		resourceids.UserSpecifiedSegment("inventoryItemName", "inventoryItemValue"),
+		resourceids.UserSpecifiedSegment("inventoryItemName", "inventoryItemResourceName"),
 	}
 }
 

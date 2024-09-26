@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2020-04-01/webapplicationfirewallpolicies` Documentation
 
-The `webapplicationfirewallpolicies` SDK allows for interaction with the Azure Resource Manager Service `frontdoor` (API Version `2020-04-01`).
+The `webapplicationfirewallpolicies` SDK allows for interaction with Azure Resource Manager `frontdoor` (API Version `2020-04-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := webapplicationfirewallpolicies.NewFrontDoorWebApplicationFirewallPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "frontDoorWebApplicationFirewallPolicyValue")
+id := webapplicationfirewallpolicies.NewFrontDoorWebApplicationFirewallPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "policyName")
 
 payload := webapplicationfirewallpolicies.WebApplicationFirewallPolicy{
 	// ...
@@ -42,7 +42,7 @@ if err := client.PoliciesCreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := webapplicationfirewallpolicies.NewFrontDoorWebApplicationFirewallPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "frontDoorWebApplicationFirewallPolicyValue")
+id := webapplicationfirewallpolicies.NewFrontDoorWebApplicationFirewallPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "policyName")
 
 if err := client.PoliciesDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -54,7 +54,7 @@ if err := client.PoliciesDeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := webapplicationfirewallpolicies.NewFrontDoorWebApplicationFirewallPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "frontDoorWebApplicationFirewallPolicyValue")
+id := webapplicationfirewallpolicies.NewFrontDoorWebApplicationFirewallPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "policyName")
 
 read, err := client.PoliciesGet(ctx, id)
 if err != nil {

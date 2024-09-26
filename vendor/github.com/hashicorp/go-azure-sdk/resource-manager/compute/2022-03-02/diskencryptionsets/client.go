@@ -15,7 +15,7 @@ type DiskEncryptionSetsClient struct {
 }
 
 func NewDiskEncryptionSetsClientWithBaseURI(sdkApi sdkEnv.Api) (*DiskEncryptionSetsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "diskencryptionsets", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "diskencryptionsets", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating DiskEncryptionSetsClient: %+v", err)
 	}

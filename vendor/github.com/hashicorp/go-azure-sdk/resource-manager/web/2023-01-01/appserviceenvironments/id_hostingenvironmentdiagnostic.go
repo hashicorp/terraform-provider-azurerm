@@ -44,7 +44,7 @@ func ParseHostingEnvironmentDiagnosticID(input string) (*HostingEnvironmentDiagn
 	}
 
 	id := HostingEnvironmentDiagnosticId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseHostingEnvironmentDiagnosticIDInsensitively(input string) (*HostingEnv
 	}
 
 	id := HostingEnvironmentDiagnosticId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id HostingEnvironmentDiagnosticId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftWeb", "Microsoft.Web", "Microsoft.Web"),
 		resourceids.StaticSegment("staticHostingEnvironments", "hostingEnvironments", "hostingEnvironments"),
-		resourceids.UserSpecifiedSegment("hostingEnvironmentName", "hostingEnvironmentValue"),
+		resourceids.UserSpecifiedSegment("hostingEnvironmentName", "name"),
 		resourceids.StaticSegment("staticDiagnostics", "diagnostics", "diagnostics"),
-		resourceids.UserSpecifiedSegment("diagnosticName", "diagnosticValue"),
+		resourceids.UserSpecifiedSegment("diagnosticName", "diagnosticsName"),
 	}
 }
 

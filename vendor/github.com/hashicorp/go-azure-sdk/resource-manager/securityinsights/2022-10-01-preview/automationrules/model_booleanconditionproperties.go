@@ -14,6 +14,14 @@ type BooleanConditionProperties struct {
 	ConditionProperties *AutomationRuleBooleanCondition `json:"conditionProperties,omitempty"`
 
 	// Fields inherited from AutomationRuleCondition
+
+	ConditionType ConditionType `json:"conditionType"`
+}
+
+func (s BooleanConditionProperties) AutomationRuleCondition() BaseAutomationRuleConditionImpl {
+	return BaseAutomationRuleConditionImpl{
+		ConditionType: s.ConditionType,
+	}
 }
 
 var _ json.Marshaler = BooleanConditionProperties{}
@@ -27,9 +35,10 @@ func (s BooleanConditionProperties) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling BooleanConditionProperties: %+v", err)
 	}
+
 	decoded["conditionType"] = "Boolean"
 
 	encoded, err = json.Marshal(decoded)

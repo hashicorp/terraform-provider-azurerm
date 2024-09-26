@@ -10,18 +10,36 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type EnvironmentUpdateParameters interface {
+	EnvironmentUpdateParameters() BaseEnvironmentUpdateParametersImpl
 }
 
-// RawEnvironmentUpdateParametersImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ EnvironmentUpdateParameters = BaseEnvironmentUpdateParametersImpl{}
+
+type BaseEnvironmentUpdateParametersImpl struct {
+	Kind EnvironmentKind    `json:"kind"`
+	Tags *map[string]string `json:"tags,omitempty"`
+}
+
+func (s BaseEnvironmentUpdateParametersImpl) EnvironmentUpdateParameters() BaseEnvironmentUpdateParametersImpl {
+	return s
+}
+
+var _ EnvironmentUpdateParameters = RawEnvironmentUpdateParametersImpl{}
+
+// RawEnvironmentUpdateParametersImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawEnvironmentUpdateParametersImpl struct {
-	Type   string
-	Values map[string]interface{}
+	environmentUpdateParameters BaseEnvironmentUpdateParametersImpl
+	Type                        string
+	Values                      map[string]interface{}
 }
 
-func unmarshalEnvironmentUpdateParametersImplementation(input []byte) (EnvironmentUpdateParameters, error) {
+func (s RawEnvironmentUpdateParametersImpl) EnvironmentUpdateParameters() BaseEnvironmentUpdateParametersImpl {
+	return s.environmentUpdateParameters
+}
+
+func UnmarshalEnvironmentUpdateParametersImplementation(input []byte) (EnvironmentUpdateParameters, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +49,9 @@ func unmarshalEnvironmentUpdateParametersImplementation(input []byte) (Environme
 		return nil, fmt.Errorf("unmarshaling EnvironmentUpdateParameters into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["kind"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["kind"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "Gen1") {
@@ -52,10 +70,15 @@ func unmarshalEnvironmentUpdateParametersImplementation(input []byte) (Environme
 		return out, nil
 	}
 
-	out := RawEnvironmentUpdateParametersImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseEnvironmentUpdateParametersImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseEnvironmentUpdateParametersImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawEnvironmentUpdateParametersImpl{
+		environmentUpdateParameters: parent,
+		Type:                        value,
+		Values:                      temp,
+	}, nil
 
 }

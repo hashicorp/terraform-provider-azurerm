@@ -45,7 +45,6 @@ func (c VirtualNetworkGatewaysClient) Get(ctx context.Context, id VirtualNetwork
 
 	var model VirtualNetworkGateway
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

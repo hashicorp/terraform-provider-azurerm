@@ -44,7 +44,7 @@ func ParseAccessPolicyAssignmentID(input string) (*AccessPolicyAssignmentId, err
 	}
 
 	id := AccessPolicyAssignmentId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseAccessPolicyAssignmentIDInsensitively(input string) (*AccessPolicyAssi
 	}
 
 	id := AccessPolicyAssignmentId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id AccessPolicyAssignmentId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftCache", "Microsoft.Cache", "Microsoft.Cache"),
 		resourceids.StaticSegment("staticRedis", "redis", "redis"),
-		resourceids.UserSpecifiedSegment("redisName", "redisValue"),
+		resourceids.UserSpecifiedSegment("redisName", "cacheName"),
 		resourceids.StaticSegment("staticAccessPolicyAssignments", "accessPolicyAssignments", "accessPolicyAssignments"),
-		resourceids.UserSpecifiedSegment("accessPolicyAssignmentName", "accessPolicyAssignmentValue"),
+		resourceids.UserSpecifiedSegment("accessPolicyAssignmentName", "accessPolicyAssignmentName"),
 	}
 }
 

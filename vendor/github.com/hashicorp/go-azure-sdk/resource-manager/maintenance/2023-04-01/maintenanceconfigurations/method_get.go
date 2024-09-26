@@ -45,7 +45,6 @@ func (c MaintenanceConfigurationsClient) Get(ctx context.Context, id Maintenance
 
 	var model MaintenanceConfiguration
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

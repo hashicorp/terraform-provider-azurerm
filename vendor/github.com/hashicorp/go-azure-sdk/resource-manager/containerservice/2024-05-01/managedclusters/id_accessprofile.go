@@ -44,7 +44,7 @@ func ParseAccessProfileID(input string) (*AccessProfileId, error) {
 	}
 
 	id := AccessProfileId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseAccessProfileIDInsensitively(input string) (*AccessProfileId, error) {
 	}
 
 	id := AccessProfileId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id AccessProfileId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftContainerService", "Microsoft.ContainerService", "Microsoft.ContainerService"),
 		resourceids.StaticSegment("staticManagedClusters", "managedClusters", "managedClusters"),
-		resourceids.UserSpecifiedSegment("managedClusterName", "managedClusterValue"),
+		resourceids.UserSpecifiedSegment("managedClusterName", "resourceName"),
 		resourceids.StaticSegment("staticAccessProfiles", "accessProfiles", "accessProfiles"),
-		resourceids.UserSpecifiedSegment("accessProfileName", "accessProfileValue"),
+		resourceids.UserSpecifiedSegment("accessProfileName", "roleName"),
 	}
 }
 

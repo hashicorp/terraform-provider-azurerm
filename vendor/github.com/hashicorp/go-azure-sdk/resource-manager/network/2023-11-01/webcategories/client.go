@@ -15,7 +15,7 @@ type WebCategoriesClient struct {
 }
 
 func NewWebCategoriesClientWithBaseURI(sdkApi sdkEnv.Api) (*WebCategoriesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "webcategories", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "webcategories", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating WebCategoriesClient: %+v", err)
 	}

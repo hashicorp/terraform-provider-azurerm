@@ -164,8 +164,7 @@ func (t SentinelAlertRuleScheduledResource) Exists(ctx context.Context, clients 
 	}
 
 	if model := resp.Model; model != nil {
-		modelPtr := *model
-		rule, ok := modelPtr.(alertrules.ScheduledAlertRule)
+		rule, ok := model.(alertrules.ScheduledAlertRule)
 		if !ok {
 			return nil, fmt.Errorf("the Alert Rule %q is not a Fusion Alert Rule", id)
 		}

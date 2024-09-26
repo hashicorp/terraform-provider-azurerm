@@ -15,7 +15,7 @@ type DdosProtectionPlansClient struct {
 }
 
 func NewDdosProtectionPlansClientWithBaseURI(sdkApi sdkEnv.Api) (*DdosProtectionPlansClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "ddosprotectionplans", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "ddosprotectionplans", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating DdosProtectionPlansClient: %+v", err)
 	}

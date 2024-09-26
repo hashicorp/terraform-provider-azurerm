@@ -40,6 +40,7 @@ func (o ListVirtualMachineScaleSetIPConfigurationsOperationOptions) ToHeaders() 
 
 func (o ListVirtualMachineScaleSetIPConfigurationsOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

@@ -15,7 +15,7 @@ type IntegrationAccountBatchConfigurationsClient struct {
 }
 
 func NewIntegrationAccountBatchConfigurationsClientWithBaseURI(sdkApi sdkEnv.Api) (*IntegrationAccountBatchConfigurationsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "integrationaccountbatchconfigurations", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "integrationaccountbatchconfigurations", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating IntegrationAccountBatchConfigurationsClient: %+v", err)
 	}

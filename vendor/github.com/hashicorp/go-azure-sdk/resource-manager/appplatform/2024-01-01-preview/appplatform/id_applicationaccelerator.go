@@ -44,7 +44,7 @@ func ParseApplicationAcceleratorID(input string) (*ApplicationAcceleratorId, err
 	}
 
 	id := ApplicationAcceleratorId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseApplicationAcceleratorIDInsensitively(input string) (*ApplicationAccel
 	}
 
 	id := ApplicationAcceleratorId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id ApplicationAcceleratorId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAppPlatform", "Microsoft.AppPlatform", "Microsoft.AppPlatform"),
 		resourceids.StaticSegment("staticSpring", "spring", "spring"),
-		resourceids.UserSpecifiedSegment("springName", "springValue"),
+		resourceids.UserSpecifiedSegment("springName", "serviceName"),
 		resourceids.StaticSegment("staticApplicationAccelerators", "applicationAccelerators", "applicationAccelerators"),
-		resourceids.UserSpecifiedSegment("applicationAcceleratorName", "applicationAcceleratorValue"),
+		resourceids.UserSpecifiedSegment("applicationAcceleratorName", "applicationAcceleratorName"),
 	}
 }
 

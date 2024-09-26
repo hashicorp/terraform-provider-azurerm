@@ -47,7 +47,6 @@ func (c CosmosDBClient) DatabaseAccountsList(ctx context.Context, id commonids.S
 
 	var model DatabaseAccountsListResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -42,7 +42,7 @@ func ParseCloudServiceID(input string) (*CloudServiceId, error) {
 	}
 
 	id := CloudServiceId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseCloudServiceIDInsensitively(input string) (*CloudServiceId, error) {
 	}
 
 	id := CloudServiceId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -111,11 +111,11 @@ func (id CloudServiceId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticSubscriptions", "subscriptions", "subscriptions"),
 		resourceids.SubscriptionIdSegment("subscriptionId", "12345678-1234-9876-4563-123456789012"),
 		resourceids.StaticSegment("staticResourceGroups", "resourceGroups", "resourceGroups"),
-		resourceids.UserSpecifiedSegment("resourceGroupName", "resourceGroupValue"),
+		resourceids.UserSpecifiedSegment("resourceGroupName", "groupName"),
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftCompute", "Microsoft.Compute", "Microsoft.Compute"),
 		resourceids.StaticSegment("staticCloudServices", "cloudServices", "cloudServices"),
-		resourceids.UserSpecifiedSegment("cloudServiceName", "cloudServiceValue"),
+		resourceids.UserSpecifiedSegment("cloudServiceName", "resourceName"),
 	}
 }
 

@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2023-09-01/grafanaresource` Documentation
 
-The `grafanaresource` SDK allows for interaction with the Azure Resource Manager Service `dashboard` (API Version `2023-09-01`).
+The `grafanaresource` SDK allows for interaction with Azure Resource Manager `dashboard` (API Version `2023-09-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := grafanaresource.NewGrafanaID("12345678-1234-9876-4563-123456789012", "example-resource-group", "grafanaValue")
+id := grafanaresource.NewGrafanaID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName")
 
 read, err := client.GrafanaCheckEnterpriseDetails(ctx, id)
 if err != nil {
@@ -41,7 +41,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := grafanaresource.NewGrafanaID("12345678-1234-9876-4563-123456789012", "example-resource-group", "grafanaValue")
+id := grafanaresource.NewGrafanaID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName")
 
 payload := grafanaresource.ManagedGrafana{
 	// ...
@@ -58,7 +58,7 @@ if err := client.GrafanaCreateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := grafanaresource.NewGrafanaID("12345678-1234-9876-4563-123456789012", "example-resource-group", "grafanaValue")
+id := grafanaresource.NewGrafanaID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName")
 
 if err := client.GrafanaDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -70,7 +70,7 @@ if err := client.GrafanaDeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := grafanaresource.NewGrafanaID("12345678-1234-9876-4563-123456789012", "example-resource-group", "grafanaValue")
+id := grafanaresource.NewGrafanaID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName")
 
 read, err := client.GrafanaGet(ctx, id)
 if err != nil {
@@ -120,7 +120,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := grafanaresource.NewGrafanaID("12345678-1234-9876-4563-123456789012", "example-resource-group", "grafanaValue")
+id := grafanaresource.NewGrafanaID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName")
 
 payload := grafanaresource.ManagedGrafanaUpdateParameters{
 	// ...

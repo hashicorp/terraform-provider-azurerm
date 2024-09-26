@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/python3package` Documentation
 
-The `python3package` SDK allows for interaction with the Azure Resource Manager Service `automation` (API Version `2023-11-01`).
+The `python3package` SDK allows for interaction with Azure Resource Manager `automation` (API Version `2023-11-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := python3package.NewPython3PackageID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountValue", "python3PackageValue")
+id := python3package.NewPython3PackageID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountName", "packageName")
 
 payload := python3package.PythonPackageCreateParameters{
 	// ...
@@ -41,7 +41,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := python3package.NewPython3PackageID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountValue", "python3PackageValue")
+id := python3package.NewPython3PackageID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountName", "packageName")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -57,7 +57,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := python3package.NewPython3PackageID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountValue", "python3PackageValue")
+id := python3package.NewPython3PackageID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountName", "packageName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -73,7 +73,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := python3package.NewAutomationAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountValue")
+id := python3package.NewAutomationAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountName")
 
 // alternatively `client.ListByAutomationAccount(ctx, id)` can be used to do batched pagination
 items, err := client.ListByAutomationAccountComplete(ctx, id)
@@ -90,7 +90,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := python3package.NewPython3PackageID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountValue", "python3PackageValue")
+id := python3package.NewPython3PackageID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountName", "packageName")
 
 payload := python3package.PythonPackageUpdateParameters{
 	// ...

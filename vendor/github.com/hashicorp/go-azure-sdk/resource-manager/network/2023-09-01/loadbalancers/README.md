@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/loadbalancers` Documentation
 
-The `loadbalancers` SDK allows for interaction with the Azure Resource Manager Service `network` (API Version `2023-09-01`).
+The `loadbalancers` SDK allows for interaction with Azure Resource Manager `network` (API Version `2023-09-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := loadbalancers.NewProviderLoadBalancerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "loadBalancerValue")
+id := loadbalancers.NewProviderLoadBalancerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "loadBalancerName")
 
 payload := loadbalancers.LoadBalancer{
 	// ...
@@ -42,7 +42,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := loadbalancers.NewProviderLoadBalancerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "loadBalancerValue")
+id := loadbalancers.NewProviderLoadBalancerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "loadBalancerName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -54,7 +54,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := loadbalancers.NewProviderLoadBalancerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "loadBalancerValue")
+id := loadbalancers.NewProviderLoadBalancerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "loadBalancerName")
 
 read, err := client.Get(ctx, id, loadbalancers.DefaultGetOperationOptions())
 if err != nil {
@@ -70,7 +70,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := loadbalancers.NewInboundNatRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "loadBalancerValue", "inboundNatRuleValue")
+id := loadbalancers.NewInboundNatRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "loadBalancerName", "inboundNatRuleName")
 
 payload := loadbalancers.InboundNatRule{
 	// ...
@@ -87,7 +87,7 @@ if err := client.InboundNatRulesCreateOrUpdateThenPoll(ctx, id, payload); err !=
 
 ```go
 ctx := context.TODO()
-id := loadbalancers.NewInboundNatRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "loadBalancerValue", "inboundNatRuleValue")
+id := loadbalancers.NewInboundNatRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "loadBalancerName", "inboundNatRuleName")
 
 if err := client.InboundNatRulesDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -99,7 +99,7 @@ if err := client.InboundNatRulesDeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := loadbalancers.NewInboundNatRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "loadBalancerValue", "inboundNatRuleValue")
+id := loadbalancers.NewInboundNatRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "loadBalancerName", "inboundNatRuleName")
 
 read, err := client.InboundNatRulesGet(ctx, id, loadbalancers.DefaultInboundNatRulesGetOperationOptions())
 if err != nil {
@@ -115,7 +115,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := loadbalancers.NewProviderLoadBalancerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "loadBalancerValue")
+id := loadbalancers.NewProviderLoadBalancerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "loadBalancerName")
 
 // alternatively `client.InboundNatRulesList(ctx, id)` can be used to do batched pagination
 items, err := client.InboundNatRulesListComplete(ctx, id)
@@ -166,7 +166,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := loadbalancers.NewBackendAddressPoolID("12345678-1234-9876-4563-123456789012", "resourceGroupValue", "loadBalancerValue", "backendAddressPoolValue")
+id := loadbalancers.NewBackendAddressPoolID("12345678-1234-9876-4563-123456789012", "groupName", "loadBalancerName", "backendPoolName")
 
 payload := loadbalancers.QueryInboundNatRulePortMappingRequest{
 	// ...
@@ -183,7 +183,7 @@ if err := client.ListInboundNatRulePortMappingsThenPoll(ctx, id, payload); err !
 
 ```go
 ctx := context.TODO()
-id := loadbalancers.NewLoadBalancerBackendAddressPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "loadBalancerValue", "backendAddressPoolValue")
+id := loadbalancers.NewLoadBalancerBackendAddressPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "loadBalancerName", "backendAddressPoolName")
 
 payload := loadbalancers.BackendAddressPool{
 	// ...
@@ -200,7 +200,7 @@ if err := client.LoadBalancerBackendAddressPoolsCreateOrUpdateThenPoll(ctx, id, 
 
 ```go
 ctx := context.TODO()
-id := loadbalancers.NewLoadBalancerBackendAddressPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "loadBalancerValue", "backendAddressPoolValue")
+id := loadbalancers.NewLoadBalancerBackendAddressPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "loadBalancerName", "backendAddressPoolName")
 
 if err := client.LoadBalancerBackendAddressPoolsDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -212,7 +212,7 @@ if err := client.LoadBalancerBackendAddressPoolsDeleteThenPoll(ctx, id); err != 
 
 ```go
 ctx := context.TODO()
-id := loadbalancers.NewLoadBalancerBackendAddressPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "loadBalancerValue", "backendAddressPoolValue")
+id := loadbalancers.NewLoadBalancerBackendAddressPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "loadBalancerName", "backendAddressPoolName")
 
 read, err := client.LoadBalancerBackendAddressPoolsGet(ctx, id)
 if err != nil {
@@ -228,7 +228,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := loadbalancers.NewProviderLoadBalancerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "loadBalancerValue")
+id := loadbalancers.NewProviderLoadBalancerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "loadBalancerName")
 
 // alternatively `client.LoadBalancerBackendAddressPoolsList(ctx, id)` can be used to do batched pagination
 items, err := client.LoadBalancerBackendAddressPoolsListComplete(ctx, id)
@@ -245,7 +245,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := loadbalancers.NewFrontendIPConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "loadBalancerValue", "frontendIPConfigurationValue")
+id := loadbalancers.NewFrontendIPConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "loadBalancerName", "frontendIPConfigurationName")
 
 read, err := client.LoadBalancerFrontendIPConfigurationsGet(ctx, id)
 if err != nil {
@@ -261,7 +261,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := loadbalancers.NewProviderLoadBalancerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "loadBalancerValue")
+id := loadbalancers.NewProviderLoadBalancerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "loadBalancerName")
 
 // alternatively `client.LoadBalancerFrontendIPConfigurationsList(ctx, id)` can be used to do batched pagination
 items, err := client.LoadBalancerFrontendIPConfigurationsListComplete(ctx, id)
@@ -278,7 +278,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := loadbalancers.NewLoadBalancingRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "loadBalancerValue", "loadBalancingRuleValue")
+id := loadbalancers.NewLoadBalancingRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "loadBalancerName", "loadBalancingRuleName")
 
 read, err := client.LoadBalancerLoadBalancingRulesGet(ctx, id)
 if err != nil {
@@ -294,7 +294,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := loadbalancers.NewProviderLoadBalancerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "loadBalancerValue")
+id := loadbalancers.NewProviderLoadBalancerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "loadBalancerName")
 
 // alternatively `client.LoadBalancerLoadBalancingRulesList(ctx, id)` can be used to do batched pagination
 items, err := client.LoadBalancerLoadBalancingRulesListComplete(ctx, id)
@@ -311,7 +311,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := loadbalancers.NewProviderLoadBalancerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "loadBalancerValue")
+id := loadbalancers.NewProviderLoadBalancerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "loadBalancerName")
 
 // alternatively `client.LoadBalancerNetworkInterfacesList(ctx, id)` can be used to do batched pagination
 items, err := client.LoadBalancerNetworkInterfacesListComplete(ctx, id)
@@ -328,7 +328,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := loadbalancers.NewOutboundRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "loadBalancerValue", "outboundRuleValue")
+id := loadbalancers.NewOutboundRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "loadBalancerName", "outboundRuleName")
 
 read, err := client.LoadBalancerOutboundRulesGet(ctx, id)
 if err != nil {
@@ -344,7 +344,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := loadbalancers.NewProviderLoadBalancerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "loadBalancerValue")
+id := loadbalancers.NewProviderLoadBalancerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "loadBalancerName")
 
 // alternatively `client.LoadBalancerOutboundRulesList(ctx, id)` can be used to do batched pagination
 items, err := client.LoadBalancerOutboundRulesListComplete(ctx, id)
@@ -361,7 +361,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := loadbalancers.NewProbeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "loadBalancerValue", "probeValue")
+id := loadbalancers.NewProbeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "loadBalancerName", "probeName")
 
 read, err := client.LoadBalancerProbesGet(ctx, id)
 if err != nil {
@@ -377,7 +377,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := loadbalancers.NewProviderLoadBalancerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "loadBalancerValue")
+id := loadbalancers.NewProviderLoadBalancerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "loadBalancerName")
 
 // alternatively `client.LoadBalancerProbesList(ctx, id)` can be used to do batched pagination
 items, err := client.LoadBalancerProbesListComplete(ctx, id)
@@ -394,7 +394,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := loadbalancers.NewLoadBalancerID("12345678-1234-9876-4563-123456789012", "resourceGroupValue", "loadBalancerValue")
+id := loadbalancers.NewLoadBalancerID("12345678-1234-9876-4563-123456789012", "groupName", "loadBalancerName")
 
 payload := loadbalancers.MigrateLoadBalancerToIPBasedRequest{
 	// ...
@@ -415,7 +415,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := loadbalancers.NewLocationID("12345678-1234-9876-4563-123456789012", "locationValue")
+id := loadbalancers.NewLocationID("12345678-1234-9876-4563-123456789012", "location")
 
 payload := loadbalancers.LoadBalancerVipSwapRequest{
 	// ...
@@ -432,7 +432,7 @@ if err := client.SwapPublicIPAddressesThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := loadbalancers.NewProviderLoadBalancerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "loadBalancerValue")
+id := loadbalancers.NewProviderLoadBalancerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "loadBalancerName")
 
 payload := loadbalancers.TagsObject{
 	// ...

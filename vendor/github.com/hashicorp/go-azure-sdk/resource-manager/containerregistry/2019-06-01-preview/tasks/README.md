@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview/tasks` Documentation
 
-The `tasks` SDK allows for interaction with the Azure Resource Manager Service `containerregistry` (API Version `2019-06-01-preview`).
+The `tasks` SDK allows for interaction with Azure Resource Manager `containerregistry` (API Version `2019-06-01-preview`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := tasks.NewTaskID("12345678-1234-9876-4563-123456789012", "example-resource-group", "registryValue", "taskValue")
+id := tasks.NewTaskID("12345678-1234-9876-4563-123456789012", "example-resource-group", "registryName", "taskName")
 
 payload := tasks.Task{
 	// ...
@@ -41,7 +41,7 @@ if err := client.CreateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := tasks.NewTaskID("12345678-1234-9876-4563-123456789012", "example-resource-group", "registryValue", "taskValue")
+id := tasks.NewTaskID("12345678-1234-9876-4563-123456789012", "example-resource-group", "registryName", "taskName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +53,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := tasks.NewTaskID("12345678-1234-9876-4563-123456789012", "example-resource-group", "registryValue", "taskValue")
+id := tasks.NewTaskID("12345678-1234-9876-4563-123456789012", "example-resource-group", "registryName", "taskName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -69,7 +69,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := tasks.NewTaskID("12345678-1234-9876-4563-123456789012", "example-resource-group", "registryValue", "taskValue")
+id := tasks.NewTaskID("12345678-1234-9876-4563-123456789012", "example-resource-group", "registryName", "taskName")
 
 read, err := client.GetDetails(ctx, id)
 if err != nil {
@@ -85,7 +85,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := tasks.NewRegistryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "registryValue")
+id := tasks.NewRegistryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "registryName")
 
 // alternatively `client.List(ctx, id)` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id)
@@ -102,7 +102,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := tasks.NewTaskID("12345678-1234-9876-4563-123456789012", "example-resource-group", "registryValue", "taskValue")
+id := tasks.NewTaskID("12345678-1234-9876-4563-123456789012", "example-resource-group", "registryName", "taskName")
 
 payload := tasks.TaskUpdateParameters{
 	// ...

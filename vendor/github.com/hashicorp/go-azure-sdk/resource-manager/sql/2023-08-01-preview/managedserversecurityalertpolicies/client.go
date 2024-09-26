@@ -15,7 +15,7 @@ type ManagedServerSecurityAlertPoliciesClient struct {
 }
 
 func NewManagedServerSecurityAlertPoliciesClientWithBaseURI(sdkApi sdkEnv.Api) (*ManagedServerSecurityAlertPoliciesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "managedserversecurityalertpolicies", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "managedserversecurityalertpolicies", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ManagedServerSecurityAlertPoliciesClient: %+v", err)
 	}

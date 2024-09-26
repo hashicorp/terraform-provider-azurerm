@@ -15,6 +15,14 @@ type InMageRcmUnplannedFailoverInput struct {
 	RecoveryPointId *string `json:"recoveryPointId,omitempty"`
 
 	// Fields inherited from UnplannedFailoverProviderSpecificInput
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s InMageRcmUnplannedFailoverInput) UnplannedFailoverProviderSpecificInput() BaseUnplannedFailoverProviderSpecificInputImpl {
+	return BaseUnplannedFailoverProviderSpecificInputImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = InMageRcmUnplannedFailoverInput{}
@@ -28,9 +36,10 @@ func (s InMageRcmUnplannedFailoverInput) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling InMageRcmUnplannedFailoverInput: %+v", err)
 	}
+
 	decoded["instanceType"] = "InMageRcm"
 
 	encoded, err = json.Marshal(decoded)

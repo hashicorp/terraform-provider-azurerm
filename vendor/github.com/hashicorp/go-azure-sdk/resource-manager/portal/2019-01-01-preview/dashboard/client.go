@@ -15,7 +15,7 @@ type DashboardClient struct {
 }
 
 func NewDashboardClientWithBaseURI(sdkApi sdkEnv.Api) (*DashboardClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "dashboard", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "dashboard", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating DashboardClient: %+v", err)
 	}

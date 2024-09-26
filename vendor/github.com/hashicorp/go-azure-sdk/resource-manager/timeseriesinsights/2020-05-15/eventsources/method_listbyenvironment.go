@@ -46,7 +46,6 @@ func (c EventSourcesClient) ListByEnvironment(ctx context.Context, id Environmen
 
 	var model EventSourceListResponse
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

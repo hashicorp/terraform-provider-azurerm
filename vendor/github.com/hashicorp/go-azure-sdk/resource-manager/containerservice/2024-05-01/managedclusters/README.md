@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-05-01/managedclusters` Documentation
 
-The `managedclusters` SDK allows for interaction with the Azure Resource Manager Service `containerservice` (API Version `2024-05-01`).
+The `managedclusters` SDK allows for interaction with Azure Resource Manager `containerservice` (API Version `2024-05-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := commonids.NewKubernetesClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterValue")
+id := commonids.NewKubernetesClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterName")
 
 if err := client.AbortLatestOperationThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -37,7 +37,7 @@ if err := client.AbortLatestOperationThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewKubernetesClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterValue")
+id := commonids.NewKubernetesClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterName")
 
 payload := managedclusters.ManagedCluster{
 	// ...
@@ -54,7 +54,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewKubernetesClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterValue")
+id := commonids.NewKubernetesClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -66,7 +66,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewKubernetesClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterValue")
+id := commonids.NewKubernetesClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -82,7 +82,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managedclusters.NewAccessProfileID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterValue", "accessProfileValue")
+id := managedclusters.NewAccessProfileID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "roleName")
 
 read, err := client.GetAccessProfile(ctx, id)
 if err != nil {
@@ -98,7 +98,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managedclusters.NewCommandResultID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterValue", "commandIdValue")
+id := managedclusters.NewCommandResultID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "commandId")
 
 read, err := client.GetCommandResult(ctx, id)
 if err != nil {
@@ -114,7 +114,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managedclusters.NewMeshRevisionProfileID("12345678-1234-9876-4563-123456789012", "locationValue", "meshRevisionProfileValue")
+id := managedclusters.NewMeshRevisionProfileID("12345678-1234-9876-4563-123456789012", "location", "mode")
 
 read, err := client.GetMeshRevisionProfile(ctx, id)
 if err != nil {
@@ -130,7 +130,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managedclusters.NewMeshUpgradeProfileID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterValue", "meshUpgradeProfileValue")
+id := managedclusters.NewMeshUpgradeProfileID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "mode")
 
 read, err := client.GetMeshUpgradeProfile(ctx, id)
 if err != nil {
@@ -146,7 +146,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewKubernetesClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterValue")
+id := commonids.NewKubernetesClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterName")
 
 read, err := client.GetUpgradeProfile(ctx, id)
 if err != nil {
@@ -196,7 +196,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewKubernetesClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterValue")
+id := commonids.NewKubernetesClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterName")
 
 read, err := client.ListClusterAdminCredentials(ctx, id, managedclusters.DefaultListClusterAdminCredentialsOperationOptions())
 if err != nil {
@@ -212,7 +212,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewKubernetesClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterValue")
+id := commonids.NewKubernetesClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterName")
 
 read, err := client.ListClusterMonitoringUserCredentials(ctx, id, managedclusters.DefaultListClusterMonitoringUserCredentialsOperationOptions())
 if err != nil {
@@ -228,7 +228,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewKubernetesClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterValue")
+id := commonids.NewKubernetesClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterName")
 
 read, err := client.ListClusterUserCredentials(ctx, id, managedclusters.DefaultListClusterUserCredentialsOperationOptions())
 if err != nil {
@@ -244,7 +244,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managedclusters.NewLocationID("12345678-1234-9876-4563-123456789012", "locationValue")
+id := managedclusters.NewLocationID("12345678-1234-9876-4563-123456789012", "location")
 
 read, err := client.ListKubernetesVersions(ctx, id)
 if err != nil {
@@ -260,7 +260,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managedclusters.NewLocationID("12345678-1234-9876-4563-123456789012", "locationValue")
+id := managedclusters.NewLocationID("12345678-1234-9876-4563-123456789012", "location")
 
 // alternatively `client.ListMeshRevisionProfiles(ctx, id)` can be used to do batched pagination
 items, err := client.ListMeshRevisionProfilesComplete(ctx, id)
@@ -277,7 +277,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewKubernetesClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterValue")
+id := commonids.NewKubernetesClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterName")
 
 // alternatively `client.ListMeshUpgradeProfiles(ctx, id)` can be used to do batched pagination
 items, err := client.ListMeshUpgradeProfilesComplete(ctx, id)
@@ -294,7 +294,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewKubernetesClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterValue")
+id := commonids.NewKubernetesClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterName")
 
 // alternatively `client.ListOutboundNetworkDependenciesEndpoints(ctx, id)` can be used to do batched pagination
 items, err := client.ListOutboundNetworkDependenciesEndpointsComplete(ctx, id)
@@ -311,7 +311,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewKubernetesClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterValue")
+id := commonids.NewKubernetesClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterName")
 
 payload := managedclusters.ManagedClusterAADProfile{
 	// ...
@@ -328,7 +328,7 @@ if err := client.ResetAADProfileThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewKubernetesClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterValue")
+id := commonids.NewKubernetesClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterName")
 
 payload := managedclusters.ManagedClusterServicePrincipalProfile{
 	// ...
@@ -345,7 +345,7 @@ if err := client.ResetServicePrincipalProfileThenPoll(ctx, id, payload); err != 
 
 ```go
 ctx := context.TODO()
-id := commonids.NewKubernetesClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterValue")
+id := commonids.NewKubernetesClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterName")
 
 if err := client.RotateClusterCertificatesThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -357,7 +357,7 @@ if err := client.RotateClusterCertificatesThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewKubernetesClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterValue")
+id := commonids.NewKubernetesClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterName")
 
 if err := client.RotateServiceAccountSigningKeysThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -369,7 +369,7 @@ if err := client.RotateServiceAccountSigningKeysThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewKubernetesClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterValue")
+id := commonids.NewKubernetesClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterName")
 
 payload := managedclusters.RunCommandRequest{
 	// ...
@@ -386,7 +386,7 @@ if err := client.RunCommandThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewKubernetesClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterValue")
+id := commonids.NewKubernetesClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterName")
 
 if err := client.StartThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -398,7 +398,7 @@ if err := client.StartThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewKubernetesClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterValue")
+id := commonids.NewKubernetesClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterName")
 
 if err := client.StopThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -410,7 +410,7 @@ if err := client.StopThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewKubernetesClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterValue")
+id := commonids.NewKubernetesClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterName")
 
 payload := managedclusters.TagsObject{
 	// ...

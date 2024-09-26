@@ -46,7 +46,7 @@ func ParseBuildUserProvidedFunctionAppID(input string) (*BuildUserProvidedFuncti
 	}
 
 	id := BuildUserProvidedFunctionAppId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -63,7 +63,7 @@ func ParseBuildUserProvidedFunctionAppIDInsensitively(input string) (*BuildUserP
 	}
 
 	id := BuildUserProvidedFunctionAppId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -127,11 +127,11 @@ func (id BuildUserProvidedFunctionAppId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftWeb", "Microsoft.Web", "Microsoft.Web"),
 		resourceids.StaticSegment("staticStaticSites", "staticSites", "staticSites"),
-		resourceids.UserSpecifiedSegment("staticSiteName", "staticSiteValue"),
+		resourceids.UserSpecifiedSegment("staticSiteName", "name"),
 		resourceids.StaticSegment("staticBuilds", "builds", "builds"),
-		resourceids.UserSpecifiedSegment("buildName", "buildValue"),
+		resourceids.UserSpecifiedSegment("buildName", "environmentName"),
 		resourceids.StaticSegment("staticUserProvidedFunctionApps", "userProvidedFunctionApps", "userProvidedFunctionApps"),
-		resourceids.UserSpecifiedSegment("userProvidedFunctionAppName", "userProvidedFunctionAppValue"),
+		resourceids.UserSpecifiedSegment("userProvidedFunctionAppName", "functionAppName"),
 	}
 }
 

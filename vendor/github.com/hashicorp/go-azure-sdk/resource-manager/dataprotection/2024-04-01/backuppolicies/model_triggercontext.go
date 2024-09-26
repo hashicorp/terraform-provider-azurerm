@@ -10,18 +10,35 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type TriggerContext interface {
+	TriggerContext() BaseTriggerContextImpl
 }
 
-// RawTriggerContextImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ TriggerContext = BaseTriggerContextImpl{}
+
+type BaseTriggerContextImpl struct {
+	ObjectType string `json:"objectType"`
+}
+
+func (s BaseTriggerContextImpl) TriggerContext() BaseTriggerContextImpl {
+	return s
+}
+
+var _ TriggerContext = RawTriggerContextImpl{}
+
+// RawTriggerContextImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawTriggerContextImpl struct {
-	Type   string
-	Values map[string]interface{}
+	triggerContext BaseTriggerContextImpl
+	Type           string
+	Values         map[string]interface{}
 }
 
-func unmarshalTriggerContextImplementation(input []byte) (TriggerContext, error) {
+func (s RawTriggerContextImpl) TriggerContext() BaseTriggerContextImpl {
+	return s.triggerContext
+}
+
+func UnmarshalTriggerContextImplementation(input []byte) (TriggerContext, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +48,9 @@ func unmarshalTriggerContextImplementation(input []byte) (TriggerContext, error)
 		return nil, fmt.Errorf("unmarshaling TriggerContext into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["objectType"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["objectType"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "AdhocBasedTriggerContext") {
@@ -52,10 +69,15 @@ func unmarshalTriggerContextImplementation(input []byte) (TriggerContext, error)
 		return out, nil
 	}
 
-	out := RawTriggerContextImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseTriggerContextImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseTriggerContextImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawTriggerContextImpl{
+		triggerContext: parent,
+		Type:           value,
+		Values:         temp,
+	}, nil
 
 }

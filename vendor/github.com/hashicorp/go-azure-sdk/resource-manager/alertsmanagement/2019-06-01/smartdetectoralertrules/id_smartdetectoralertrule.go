@@ -42,7 +42,7 @@ func ParseSmartDetectorAlertRuleID(input string) (*SmartDetectorAlertRuleId, err
 	}
 
 	id := SmartDetectorAlertRuleId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseSmartDetectorAlertRuleIDInsensitively(input string) (*SmartDetectorAle
 	}
 
 	id := SmartDetectorAlertRuleId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id SmartDetectorAlertRuleId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAlertsManagement", "Microsoft.AlertsManagement", "Microsoft.AlertsManagement"),
 		resourceids.StaticSegment("staticSmartDetectorAlertRules", "smartDetectorAlertRules", "smartDetectorAlertRules"),
-		resourceids.UserSpecifiedSegment("smartDetectorAlertRuleName", "smartDetectorAlertRuleValue"),
+		resourceids.UserSpecifiedSegment("smartDetectorAlertRuleName", "alertRuleName"),
 	}
 }
 

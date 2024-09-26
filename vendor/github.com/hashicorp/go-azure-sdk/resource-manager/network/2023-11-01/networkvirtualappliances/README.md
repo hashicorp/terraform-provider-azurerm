@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/networkvirtualappliances` Documentation
 
-The `networkvirtualappliances` SDK allows for interaction with the Azure Resource Manager Service `network` (API Version `2023-11-01`).
+The `networkvirtualappliances` SDK allows for interaction with Azure Resource Manager `network` (API Version `2023-11-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := networkvirtualappliances.NewNetworkVirtualApplianceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkVirtualApplianceValue")
+id := networkvirtualappliances.NewNetworkVirtualApplianceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkVirtualApplianceName")
 
 payload := networkvirtualappliances.NetworkVirtualAppliance{
 	// ...
@@ -42,7 +42,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := networkvirtualappliances.NewNetworkVirtualApplianceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkVirtualApplianceValue")
+id := networkvirtualappliances.NewNetworkVirtualApplianceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkVirtualApplianceName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -54,7 +54,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := networkvirtualappliances.NewNetworkVirtualApplianceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkVirtualApplianceValue")
+id := networkvirtualappliances.NewNetworkVirtualApplianceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkVirtualApplianceName")
 
 read, err := client.Get(ctx, id, networkvirtualappliances.DefaultGetOperationOptions())
 if err != nil {
@@ -70,7 +70,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := networkvirtualappliances.NewInboundSecurityRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkVirtualApplianceValue", "inboundSecurityRuleValue")
+id := networkvirtualappliances.NewInboundSecurityRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkVirtualApplianceName", "ruleCollectionName")
 
 payload := networkvirtualappliances.InboundSecurityRule{
 	// ...
@@ -121,7 +121,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := networkvirtualappliances.NewNetworkVirtualApplianceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkVirtualApplianceValue")
+id := networkvirtualappliances.NewNetworkVirtualApplianceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkVirtualApplianceName")
 
 payload := networkvirtualappliances.NetworkVirtualApplianceInstanceIds{
 	// ...
@@ -138,7 +138,7 @@ if err := client.RestartThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := networkvirtualappliances.NewNetworkVirtualApplianceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkVirtualApplianceValue")
+id := networkvirtualappliances.NewNetworkVirtualApplianceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkVirtualApplianceName")
 
 payload := networkvirtualappliances.TagsObject{
 	// ...
