@@ -15,7 +15,7 @@ type IntegrationServiceEnvironmentsClient struct {
 }
 
 func NewIntegrationServiceEnvironmentsClientWithBaseURI(sdkApi sdkEnv.Api) (*IntegrationServiceEnvironmentsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "integrationserviceenvironments", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "integrationserviceenvironments", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating IntegrationServiceEnvironmentsClient: %+v", err)
 	}

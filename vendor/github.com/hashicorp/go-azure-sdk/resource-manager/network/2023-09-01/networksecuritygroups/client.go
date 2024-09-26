@@ -15,7 +15,7 @@ type NetworkSecurityGroupsClient struct {
 }
 
 func NewNetworkSecurityGroupsClientWithBaseURI(sdkApi sdkEnv.Api) (*NetworkSecurityGroupsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "networksecuritygroups", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "networksecuritygroups", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating NetworkSecurityGroupsClient: %+v", err)
 	}

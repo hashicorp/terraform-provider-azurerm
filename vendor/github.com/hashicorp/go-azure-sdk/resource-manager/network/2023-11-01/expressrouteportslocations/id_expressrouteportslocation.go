@@ -40,7 +40,7 @@ func ParseExpressRoutePortsLocationID(input string) (*ExpressRoutePortsLocationI
 	}
 
 	id := ExpressRoutePortsLocationId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -57,7 +57,7 @@ func ParseExpressRoutePortsLocationIDInsensitively(input string) (*ExpressRouteP
 	}
 
 	id := ExpressRoutePortsLocationId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -107,7 +107,7 @@ func (id ExpressRoutePortsLocationId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticExpressRoutePortsLocations", "expressRoutePortsLocations", "expressRoutePortsLocations"),
-		resourceids.UserSpecifiedSegment("expressRoutePortsLocationName", "expressRoutePortsLocationValue"),
+		resourceids.UserSpecifiedSegment("expressRoutePortsLocationName", "locationName"),
 	}
 }
 

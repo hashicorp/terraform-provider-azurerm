@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/testclient"
@@ -42,6 +43,48 @@ func (td TestData) DataSourceTestInSequence(t *testing.T, steps []TestStep) {
 }
 
 func (td TestData) ResourceTest(t *testing.T, testResource types.TestResource, steps []TestStep) {
+	// Testing framework as of 1.6.0 no longer auto-refreshes state, so adding it back in here for all steps that update
+	// the config rather than having to modify 1000's of tests individually to add a refresh-only step
+	var refreshStep = TestStep{
+		RefreshState: true,
+	}
+
+	newSteps := make([]TestStep, 0)
+	for _, step := range steps {
+		// This block adds a check to make sure tests aren't recreating a resource
+		if (step.Config != "" || step.ConfigDirectory != nil || step.ConfigFile != nil) && !step.PlanOnly {
+			step.ConfigPlanChecks = resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					helpers.IsNotResourceAction(td.ResourceName, plancheck.ResourceActionReplace),
+				},
+			}
+		}
+
+		if !step.ImportState {
+			newSteps = append(newSteps, step)
+		} else {
+			newSteps = append(newSteps, refreshStep)
+			newSteps = append(newSteps, step)
+		}
+	}
+	steps = newSteps
+
+	testCase := resource.TestCase{
+		PreCheck: func() { PreCheck(t) },
+		CheckDestroy: func(s *terraform.State) error {
+			client, err := testclient.Build()
+			if err != nil {
+				return fmt.Errorf("building client: %+v", err)
+			}
+			return helpers.CheckDestroyedFunc(client, testResource, td.ResourceType, td.ResourceName)(s)
+		},
+		Steps: steps,
+	}
+	td.runAcceptanceTest(t, testCase)
+}
+
+// ResourceTestIgnoreRecreate should be used when checking that a resource should be recreated during a test.
+func (td TestData) ResourceTestIgnoreRecreate(t *testing.T, testResource types.TestResource, steps []TestStep) {
 	// Testing framework as of 1.6.0 no longer auto-refreshes state, so adding it back in here for all steps that update
 	// the config rather than having to modify 1000's of tests individually to add a refresh-only step
 	var refreshStep = TestStep{

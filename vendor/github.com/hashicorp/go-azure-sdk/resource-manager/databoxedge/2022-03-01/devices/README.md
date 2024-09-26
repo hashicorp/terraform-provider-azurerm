@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/databoxedge/2022-03-01/devices` Documentation
 
-The `devices` SDK allows for interaction with the Azure Resource Manager Service `databoxedge` (API Version `2022-03-01`).
+The `devices` SDK allows for interaction with Azure Resource Manager `databoxedge` (API Version `2022-03-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := devices.NewDataBoxEdgeDeviceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dataBoxEdgeDeviceValue")
+id := devices.NewDataBoxEdgeDeviceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "deviceName")
 
 payload := devices.DataBoxEdgeDevice{
 	// ...
@@ -46,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := devices.NewDataBoxEdgeDeviceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dataBoxEdgeDeviceValue")
+id := devices.NewDataBoxEdgeDeviceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "deviceName")
 
 payload := devices.SecuritySettings{
 	// ...
@@ -63,7 +63,7 @@ if err := client.CreateOrUpdateSecuritySettingsThenPoll(ctx, id, payload); err !
 
 ```go
 ctx := context.TODO()
-id := devices.NewDataBoxEdgeDeviceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dataBoxEdgeDeviceValue")
+id := devices.NewDataBoxEdgeDeviceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "deviceName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -75,7 +75,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := devices.NewDataBoxEdgeDeviceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dataBoxEdgeDeviceValue")
+id := devices.NewDataBoxEdgeDeviceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "deviceName")
 
 if err := client.DownloadUpdatesThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -87,7 +87,7 @@ if err := client.DownloadUpdatesThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := devices.NewDataBoxEdgeDeviceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dataBoxEdgeDeviceValue")
+id := devices.NewDataBoxEdgeDeviceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "deviceName")
 
 read, err := client.GenerateCertificate(ctx, id)
 if err != nil {
@@ -103,7 +103,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := devices.NewDataBoxEdgeDeviceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dataBoxEdgeDeviceValue")
+id := devices.NewDataBoxEdgeDeviceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "deviceName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -119,7 +119,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := devices.NewDataBoxEdgeDeviceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dataBoxEdgeDeviceValue")
+id := devices.NewDataBoxEdgeDeviceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "deviceName")
 
 read, err := client.GetExtendedInformation(ctx, id)
 if err != nil {
@@ -135,7 +135,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := devices.NewDataBoxEdgeDeviceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dataBoxEdgeDeviceValue")
+id := devices.NewDataBoxEdgeDeviceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "deviceName")
 
 read, err := client.GetNetworkSettings(ctx, id)
 if err != nil {
@@ -151,7 +151,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := devices.NewDataBoxEdgeDeviceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dataBoxEdgeDeviceValue")
+id := devices.NewDataBoxEdgeDeviceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "deviceName")
 
 read, err := client.GetUpdateSummary(ctx, id)
 if err != nil {
@@ -167,7 +167,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := devices.NewDataBoxEdgeDeviceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dataBoxEdgeDeviceValue")
+id := devices.NewDataBoxEdgeDeviceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "deviceName")
 
 if err := client.InstallUpdatesThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -213,7 +213,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := devices.NewDataBoxEdgeDeviceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dataBoxEdgeDeviceValue")
+id := devices.NewDataBoxEdgeDeviceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "deviceName")
 
 if err := client.ScanForUpdatesThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -225,7 +225,7 @@ if err := client.ScanForUpdatesThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := devices.NewDataBoxEdgeDeviceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dataBoxEdgeDeviceValue")
+id := devices.NewDataBoxEdgeDeviceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "deviceName")
 
 payload := devices.DataBoxEdgeDevicePatch{
 	// ...
@@ -246,7 +246,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := devices.NewDataBoxEdgeDeviceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dataBoxEdgeDeviceValue")
+id := devices.NewDataBoxEdgeDeviceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "deviceName")
 
 payload := devices.DataBoxEdgeDeviceExtendedInfoPatch{
 	// ...
@@ -267,7 +267,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := devices.NewDataBoxEdgeDeviceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dataBoxEdgeDeviceValue")
+id := devices.NewDataBoxEdgeDeviceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "deviceName")
 
 payload := devices.UploadCertificateRequest{
 	// ...

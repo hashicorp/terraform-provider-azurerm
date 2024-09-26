@@ -47,7 +47,6 @@ func (c BlobAuditingClient) ExtendedServerBlobAuditingPoliciesGet(ctx context.Co
 
 	var model ExtendedServerBlobAuditingPolicy
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -15,7 +15,7 @@ type AADClient struct {
 }
 
 func NewAADClientWithBaseURI(sdkApi sdkEnv.Api) (*AADClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "aad", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "aad", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating AADClient: %+v", err)
 	}

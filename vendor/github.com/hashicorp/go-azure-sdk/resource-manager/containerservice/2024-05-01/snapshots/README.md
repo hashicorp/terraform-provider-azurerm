@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-05-01/snapshots` Documentation
 
-The `snapshots` SDK allows for interaction with the Azure Resource Manager Service `containerservice` (API Version `2024-05-01`).
+The `snapshots` SDK allows for interaction with Azure Resource Manager `containerservice` (API Version `2024-05-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := snapshots.NewSnapshotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "snapshotValue")
+id := snapshots.NewSnapshotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
 
 payload := snapshots.Snapshot{
 	// ...
@@ -46,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := snapshots.NewSnapshotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "snapshotValue")
+id := snapshots.NewSnapshotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -62,7 +62,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := snapshots.NewSnapshotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "snapshotValue")
+id := snapshots.NewSnapshotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -112,7 +112,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := snapshots.NewSnapshotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "snapshotValue")
+id := snapshots.NewSnapshotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
 
 payload := snapshots.TagsObject{
 	// ...

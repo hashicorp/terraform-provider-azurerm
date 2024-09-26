@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/batch/2023-05-01/certificate` Documentation
 
-The `certificate` SDK allows for interaction with the Azure Resource Manager Service `batch` (API Version `2023-05-01`).
+The `certificate` SDK allows for interaction with Azure Resource Manager `batch` (API Version `2023-05-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := certificate.NewCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "batchAccountValue", "certificateValue")
+id := certificate.NewCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "certificateName")
 
 read, err := client.CancelDeletion(ctx, id)
 if err != nil {
@@ -40,7 +40,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := certificate.NewCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "batchAccountValue", "certificateValue")
+id := certificate.NewCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "certificateName")
 
 payload := certificate.CertificateCreateOrUpdateParameters{
 	// ...
@@ -61,7 +61,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := certificate.NewCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "batchAccountValue", "certificateValue")
+id := certificate.NewCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "certificateName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -73,7 +73,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := certificate.NewCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "batchAccountValue", "certificateValue")
+id := certificate.NewCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "certificateName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -89,7 +89,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := certificate.NewBatchAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "batchAccountValue")
+id := certificate.NewBatchAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName")
 
 // alternatively `client.ListByBatchAccount(ctx, id, certificate.DefaultListByBatchAccountOperationOptions())` can be used to do batched pagination
 items, err := client.ListByBatchAccountComplete(ctx, id, certificate.DefaultListByBatchAccountOperationOptions())
@@ -106,7 +106,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := certificate.NewCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "batchAccountValue", "certificateValue")
+id := certificate.NewCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "certificateName")
 
 payload := certificate.CertificateCreateOrUpdateParameters{
 	// ...

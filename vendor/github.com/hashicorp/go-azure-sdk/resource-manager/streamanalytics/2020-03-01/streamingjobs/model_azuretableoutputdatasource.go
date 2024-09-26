@@ -14,6 +14,14 @@ type AzureTableOutputDataSource struct {
 	Properties *AzureTableOutputDataSourceProperties `json:"properties,omitempty"`
 
 	// Fields inherited from OutputDataSource
+
+	Type string `json:"type"`
+}
+
+func (s AzureTableOutputDataSource) OutputDataSource() BaseOutputDataSourceImpl {
+	return BaseOutputDataSourceImpl{
+		Type: s.Type,
+	}
 }
 
 var _ json.Marshaler = AzureTableOutputDataSource{}
@@ -27,9 +35,10 @@ func (s AzureTableOutputDataSource) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling AzureTableOutputDataSource: %+v", err)
 	}
+
 	decoded["type"] = "Microsoft.Storage/Table"
 
 	encoded, err = json.Marshal(decoded)

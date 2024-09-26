@@ -15,7 +15,7 @@ type BgpServiceCommunitiesClient struct {
 }
 
 func NewBgpServiceCommunitiesClientWithBaseURI(sdkApi sdkEnv.Api) (*BgpServiceCommunitiesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "bgpservicecommunities", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "bgpservicecommunities", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating BgpServiceCommunitiesClient: %+v", err)
 	}

@@ -203,11 +203,6 @@ service/digital-twins:
   - any-glob-to-any-file:
     - internal/services/digitaltwins/**/*
 
-service/disks:
-- changed-files:
-  - any-glob-to-any-file:
-    - internal/services/disks/**/*
-
 service/dns:
 - changed-files:
   - any-glob-to-any-file:
@@ -294,11 +289,6 @@ service/iot-hub:
   - any-glob-to-any-file:
     - internal/services/iothub/**/*
 
-service/iot-time-series:
-- changed-files:
-  - any-glob-to-any-file:
-    - internal/services/iottimeseriesinsights/**/*
-
 service/key-vault:
 - changed-files:
   - any-glob-to-any-file:
@@ -308,11 +298,6 @@ service/kusto:
 - changed-files:
   - any-glob-to-any-file:
     - internal/services/kusto/**/*
-
-service/labservice:
-- changed-files:
-  - any-glob-to-any-file:
-    - internal/services/labservice/**/*
 
 service/lighthouse:
 - changed-files:
@@ -338,11 +323,6 @@ service/logic:
 - changed-files:
   - any-glob-to-any-file:
     - internal/services/logic/**/*
-
-service/logz:
-- changed-files:
-  - any-glob-to-any-file:
-    - internal/services/logz/**/*
 
 service/machine-learning:
 - changed-files:
@@ -373,16 +353,6 @@ service/maps:
 - changed-files:
   - any-glob-to-any-file:
     - internal/services/maps/**/*
-
-service/maria-db:
-- changed-files:
-  - any-glob-to-any-file:
-    - internal/services/mariadb/**/*
-
-service/media:
-- changed-files:
-  - any-glob-to-any-file:
-    - internal/services/media/**/*
 
 service/mixed-reality:
 - changed-files:
@@ -550,11 +520,6 @@ service/spring:
   - any-glob-to-any-file:
     - internal/services/springcloud/**/*
 
-service/sql:
-- changed-files:
-  - any-glob-to-any-file:
-    - internal/services/sql/**/*
-
 service/storage:
 - changed-files:
   - any-glob-to-any-file:
@@ -589,11 +554,6 @@ service/traffic-manager:
 - changed-files:
   - any-glob-to-any-file:
     - internal/services/trafficmanager/**/*
-
-service/video-analyzer:
-- changed-files:
-  - any-glob-to-any-file:
-    - internal/services/videoanalyzer/**/*
 
 service/virtual-desktops:
 - changed-files:

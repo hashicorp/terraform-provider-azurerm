@@ -15,7 +15,7 @@ type ApplicationSecurityGroupsClient struct {
 }
 
 func NewApplicationSecurityGroupsClientWithBaseURI(sdkApi sdkEnv.Api) (*ApplicationSecurityGroupsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "applicationsecuritygroups", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "applicationsecuritygroups", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ApplicationSecurityGroupsClient: %+v", err)
 	}

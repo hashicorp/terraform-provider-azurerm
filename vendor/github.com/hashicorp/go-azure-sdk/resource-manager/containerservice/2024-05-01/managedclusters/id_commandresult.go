@@ -44,7 +44,7 @@ func ParseCommandResultID(input string) (*CommandResultId, error) {
 	}
 
 	id := CommandResultId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseCommandResultIDInsensitively(input string) (*CommandResultId, error) {
 	}
 
 	id := CommandResultId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id CommandResultId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftContainerService", "Microsoft.ContainerService", "Microsoft.ContainerService"),
 		resourceids.StaticSegment("staticManagedClusters", "managedClusters", "managedClusters"),
-		resourceids.UserSpecifiedSegment("managedClusterName", "managedClusterValue"),
+		resourceids.UserSpecifiedSegment("managedClusterName", "resourceName"),
 		resourceids.StaticSegment("staticCommandResults", "commandResults", "commandResults"),
-		resourceids.UserSpecifiedSegment("commandId", "commandIdValue"),
+		resourceids.UserSpecifiedSegment("commandId", "commandId"),
 	}
 }
 

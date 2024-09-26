@@ -71,6 +71,11 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"cross_region_restore_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
+
 			"identity": commonschema.SystemAssignedIdentityOptional(),
 
 			"retention_duration_in_days": {
@@ -93,6 +98,21 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
 			pluginsdk.ForceNewIfChange("soft_delete", func(ctx context.Context, old, new, meta interface{}) bool {
 				return old.(string) == string(backupvaults.SoftDeleteStateAlwaysOn) && new.(string) != string(backupvaults.SoftDeleteStateAlwaysOn)
+			}),
+
+			// Once `cross_region_restore_enabled` is enabled it cannot be disabled.
+			pluginsdk.ForceNewIfChange("cross_region_restore_enabled", func(ctx context.Context, old, new, meta interface{}) bool {
+				return old.(bool) && new.(bool) != old.(bool)
+			}),
+
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+				redundancy := d.Get("redundancy").(string)
+				crossRegionRestore := d.GetRawConfig().AsValueMap()["cross_region_restore_enabled"]
+				if !crossRegionRestore.IsNull() && redundancy != string(backupvaults.StorageSettingTypesGeoRedundant) {
+					// Cross region restore is only allowed on `GeoRedundant` vault.
+					return fmt.Errorf("`cross_region_restore_enabled` can only be specified when `redundancy` is specified for `GeoRedundant`.")
+				}
+				return nil
 			}),
 		),
 	}
@@ -175,6 +195,17 @@ func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, me
 		Tags:     expandTags(d.Get("tags").(map[string]interface{})),
 	}
 
+	if !pluginsdk.IsExplicitlyNullInConfig(d, "cross_region_restore_enabled") {
+		parameters.Properties.FeatureSettings = &backupvaults.FeatureSettings{
+			CrossRegionRestoreSettings: &backupvaults.CrossRegionRestoreSettings{},
+		}
+		if d.Get("cross_region_restore_enabled").(bool) {
+			parameters.Properties.FeatureSettings.CrossRegionRestoreSettings.State = pointer.To(backupvaults.CrossRegionRestoreStateEnabled)
+		} else {
+			parameters.Properties.FeatureSettings.CrossRegionRestoreSettings.State = pointer.To(backupvaults.CrossRegionRestoreStateDisabled)
+		}
+	}
+
 	if v, ok := d.GetOk("retention_duration_in_days"); ok {
 		parameters.Properties.SecuritySettings.SoftDeleteSettings.RetentionDurationInDays = pointer.To(v.(float64))
 	}
@@ -223,6 +254,16 @@ func resourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta inter
 				d.Set("retention_duration_in_days", pointer.From(softDelete.RetentionDurationInDays))
 			}
 		}
+		crossRegionStoreEnabled := false
+		if featureSetting := model.Properties.FeatureSettings; featureSetting != nil {
+			if featureSetting := model.Properties.FeatureSettings; featureSetting != nil {
+				if pointer.From(featureSetting.CrossRegionRestoreSettings.State) == backupvaults.CrossRegionRestoreStateEnabled {
+					crossRegionStoreEnabled = true
+				}
+			}
+		}
+
+		d.Set("cross_region_restore_enabled", crossRegionStoreEnabled)
 
 		if err = d.Set("identity", flattenBackupVaultDppIdentityDetails(model.Identity)); err != nil {
 			return fmt.Errorf("setting `identity`: %+v", err)

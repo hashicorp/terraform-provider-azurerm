@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/subscriptions` Documentation
 
-The `subscriptions` SDK allows for interaction with the Azure Resource Manager Service `servicebus` (API Version `2021-06-01-preview`).
+The `subscriptions` SDK allows for interaction with Azure Resource Manager `servicebus` (API Version `2021-06-01-preview`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := subscriptions.NewSubscriptions2ID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "topicValue", "subscriptionValue")
+id := subscriptions.NewSubscriptions2ID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName", "topicName", "subscriptionName")
 
 payload := subscriptions.SBSubscription{
 	// ...
@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := subscriptions.NewSubscriptions2ID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "topicValue", "subscriptionValue")
+id := subscriptions.NewSubscriptions2ID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName", "topicName", "subscriptionName")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -61,7 +61,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := subscriptions.NewSubscriptions2ID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "topicValue", "subscriptionValue")
+id := subscriptions.NewSubscriptions2ID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName", "topicName", "subscriptionName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -77,7 +77,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := subscriptions.NewTopicID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "topicValue")
+id := subscriptions.NewTopicID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName", "topicName")
 
 // alternatively `client.ListByTopic(ctx, id, subscriptions.DefaultListByTopicOperationOptions())` can be used to do batched pagination
 items, err := client.ListByTopicComplete(ctx, id, subscriptions.DefaultListByTopicOperationOptions())
@@ -94,7 +94,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := subscriptions.NewRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "topicValue", "subscriptionValue", "ruleValue")
+id := subscriptions.NewRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName", "topicName", "subscriptionName", "ruleName")
 
 read, err := client.RulesGet(ctx, id)
 if err != nil {

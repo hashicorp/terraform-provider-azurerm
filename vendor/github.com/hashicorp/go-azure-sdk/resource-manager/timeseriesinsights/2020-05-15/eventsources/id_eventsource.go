@@ -44,7 +44,7 @@ func ParseEventSourceID(input string) (*EventSourceId, error) {
 	}
 
 	id := EventSourceId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseEventSourceIDInsensitively(input string) (*EventSourceId, error) {
 	}
 
 	id := EventSourceId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id EventSourceId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftTimeSeriesInsights", "Microsoft.TimeSeriesInsights", "Microsoft.TimeSeriesInsights"),
 		resourceids.StaticSegment("staticEnvironments", "environments", "environments"),
-		resourceids.UserSpecifiedSegment("environmentName", "environmentValue"),
+		resourceids.UserSpecifiedSegment("environmentName", "environmentName"),
 		resourceids.StaticSegment("staticEventSources", "eventSources", "eventSources"),
-		resourceids.UserSpecifiedSegment("eventSourceName", "eventSourceValue"),
+		resourceids.UserSpecifiedSegment("eventSourceName", "eventSourceName"),
 	}
 }
 

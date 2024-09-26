@@ -194,7 +194,7 @@ func (r CosmosDBDataConnectionResource) Read() sdk.ResourceFunc {
 			}
 
 			if model := resp.Model; model != nil {
-				cosmosDbModel := (*model).(dataconnections.CosmosDbDataConnection)
+				cosmosDbModel := model.(dataconnections.CosmosDbDataConnection)
 				state.Location = location.Normalize(*cosmosDbModel.Location)
 
 				if properties := cosmosDbModel.Properties; properties != nil {

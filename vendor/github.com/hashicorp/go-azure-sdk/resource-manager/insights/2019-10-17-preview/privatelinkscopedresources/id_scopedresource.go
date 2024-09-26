@@ -44,7 +44,7 @@ func ParseScopedResourceID(input string) (*ScopedResourceId, error) {
 	}
 
 	id := ScopedResourceId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseScopedResourceIDInsensitively(input string) (*ScopedResourceId, error)
 	}
 
 	id := ScopedResourceId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id ScopedResourceId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftInsights", "Microsoft.Insights", "Microsoft.Insights"),
 		resourceids.StaticSegment("staticPrivateLinkScopes", "privateLinkScopes", "privateLinkScopes"),
-		resourceids.UserSpecifiedSegment("privateLinkScopeName", "privateLinkScopeValue"),
+		resourceids.UserSpecifiedSegment("privateLinkScopeName", "scopeName"),
 		resourceids.StaticSegment("staticScopedResources", "scopedResources", "scopedResources"),
-		resourceids.UserSpecifiedSegment("scopedResourceName", "scopedResourceValue"),
+		resourceids.UserSpecifiedSegment("scopedResourceName", "name"),
 	}
 }
 

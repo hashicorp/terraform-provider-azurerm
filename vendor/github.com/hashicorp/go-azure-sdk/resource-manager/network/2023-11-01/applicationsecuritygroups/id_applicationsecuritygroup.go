@@ -42,7 +42,7 @@ func ParseApplicationSecurityGroupID(input string) (*ApplicationSecurityGroupId,
 	}
 
 	id := ApplicationSecurityGroupId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseApplicationSecurityGroupIDInsensitively(input string) (*ApplicationSec
 	}
 
 	id := ApplicationSecurityGroupId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id ApplicationSecurityGroupId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticApplicationSecurityGroups", "applicationSecurityGroups", "applicationSecurityGroups"),
-		resourceids.UserSpecifiedSegment("applicationSecurityGroupName", "applicationSecurityGroupValue"),
+		resourceids.UserSpecifiedSegment("applicationSecurityGroupName", "applicationSecurityGroupName"),
 	}
 }
 

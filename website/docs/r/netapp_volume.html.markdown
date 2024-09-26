@@ -156,6 +156,8 @@ The following arguments are supported:
 
 * `smb_continuous_availability_enabled` - (Optional) Enable SMB Continuous Availability.
 
+* `smb3_protocol_encryption_enabled` - (Optional) Enable SMB encryption.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 -> **Note:** It is highly recommended to use the **lifecycle** property as noted in the example since it will prevent an accidental deletion of the volume if the `protocols` argument changes to a different protocol type.

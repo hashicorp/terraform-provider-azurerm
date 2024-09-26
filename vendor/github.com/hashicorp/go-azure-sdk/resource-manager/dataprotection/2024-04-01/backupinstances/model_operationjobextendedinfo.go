@@ -14,6 +14,14 @@ type OperationJobExtendedInfo struct {
 	JobId *string `json:"jobId,omitempty"`
 
 	// Fields inherited from OperationExtendedInfo
+
+	ObjectType string `json:"objectType"`
+}
+
+func (s OperationJobExtendedInfo) OperationExtendedInfo() BaseOperationExtendedInfoImpl {
+	return BaseOperationExtendedInfoImpl{
+		ObjectType: s.ObjectType,
+	}
 }
 
 var _ json.Marshaler = OperationJobExtendedInfo{}
@@ -27,9 +35,10 @@ func (s OperationJobExtendedInfo) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling OperationJobExtendedInfo: %+v", err)
 	}
+
 	decoded["objectType"] = "OperationJobExtendedInfo"
 
 	encoded, err = json.Marshal(decoded)

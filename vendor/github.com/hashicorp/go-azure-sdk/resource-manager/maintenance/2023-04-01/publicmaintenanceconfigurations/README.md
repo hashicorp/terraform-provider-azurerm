@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/publicmaintenanceconfigurations` Documentation
 
-The `publicmaintenanceconfigurations` SDK allows for interaction with the Azure Resource Manager Service `maintenance` (API Version `2023-04-01`).
+The `publicmaintenanceconfigurations` SDK allows for interaction with Azure Resource Manager `maintenance` (API Version `2023-04-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := publicmaintenanceconfigurations.NewPublicMaintenanceConfigurationID("12345678-1234-9876-4563-123456789012", "publicMaintenanceConfigurationValue")
+id := publicmaintenanceconfigurations.NewPublicMaintenanceConfigurationID("12345678-1234-9876-4563-123456789012", "resourceName")
 
 read, err := client.Get(ctx, id)
 if err != nil {

@@ -46,7 +46,7 @@ func ParsePredefinedAcceleratorID(input string) (*PredefinedAcceleratorId, error
 	}
 
 	id := PredefinedAcceleratorId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -63,7 +63,7 @@ func ParsePredefinedAcceleratorIDInsensitively(input string) (*PredefinedAcceler
 	}
 
 	id := PredefinedAcceleratorId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -127,11 +127,11 @@ func (id PredefinedAcceleratorId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAppPlatform", "Microsoft.AppPlatform", "Microsoft.AppPlatform"),
 		resourceids.StaticSegment("staticSpring", "spring", "spring"),
-		resourceids.UserSpecifiedSegment("springName", "springValue"),
+		resourceids.UserSpecifiedSegment("springName", "serviceName"),
 		resourceids.StaticSegment("staticApplicationAccelerators", "applicationAccelerators", "applicationAccelerators"),
-		resourceids.UserSpecifiedSegment("applicationAcceleratorName", "applicationAcceleratorValue"),
+		resourceids.UserSpecifiedSegment("applicationAcceleratorName", "applicationAcceleratorName"),
 		resourceids.StaticSegment("staticPredefinedAccelerators", "predefinedAccelerators", "predefinedAccelerators"),
-		resourceids.UserSpecifiedSegment("predefinedAcceleratorName", "predefinedAcceleratorValue"),
+		resourceids.UserSpecifiedSegment("predefinedAcceleratorName", "predefinedAcceleratorName"),
 	}
 }
 

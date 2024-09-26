@@ -57,7 +57,7 @@ resource "azurerm_subnet" "example" {
 resource "azurerm_nginx_deployment" "example" {
   name                      = "example-nginx"
   resource_group_name       = azurerm_resource_group.example.name
-  sku                       = "standard_Monthly"
+  sku                       = "standardv2_Monthly"
   location                  = azurerm_resource_group.example.location
   managed_resource_group    = "example"
   diagnose_support_enabled  = true
@@ -86,7 +86,7 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the NGINX Deployment should exist. Changing this forces a new NGINX Deployment to be created.
 
-* `sku` - (Required) Specifies the NGINX Deployment SKU. Possible values are `standard_Monthly` and `basic_Monthly`. Changing this forces a new resource to be created.
+* `sku` - (Required) Specifies the NGINX Deployment SKU. Possible values are `standardv2_Monthly`, `basic_Monthly`. Changing this forces a new resource to be created.
 
 -> **NOTE:** If you are setting the `sku` to `basic_Monthly`, you cannot specify a `capacity` or `auto_scale_profile`; basic plans do not support scaling. Other `sku`s require either `capacity` or `auto_scale_profile`. If you're using `basic_Monthly` with deployments created before v4.0, you may need to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/language/meta-arguments/lifecycle#ignore_changes) to ignore changes to the `capacity` field.
 

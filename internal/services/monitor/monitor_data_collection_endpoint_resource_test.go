@@ -113,7 +113,7 @@ func (r MonitorDataCollectionEndpointResource) basic(data acceptance.TestData) s
 	return fmt.Sprintf(`
 %[1]s
 resource "azurerm_monitor_data_collection_endpoint" "test" {
-  name                = "acctestmdcr-%[2]d"
+  name                = "acctestmdce-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }

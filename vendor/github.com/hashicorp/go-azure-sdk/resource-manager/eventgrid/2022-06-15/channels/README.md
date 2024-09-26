@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/channels` Documentation
 
-The `channels` SDK allows for interaction with the Azure Resource Manager Service `eventgrid` (API Version `2022-06-15`).
+The `channels` SDK allows for interaction with Azure Resource Manager `eventgrid` (API Version `2022-06-15`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := channels.NewChannelID("12345678-1234-9876-4563-123456789012", "example-resource-group", "partnerNamespaceValue", "channelValue")
+id := channels.NewChannelID("12345678-1234-9876-4563-123456789012", "example-resource-group", "partnerNamespaceName", "channelName")
 
 payload := channels.Channel{
 	// ...
@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := channels.NewChannelID("12345678-1234-9876-4563-123456789012", "example-resource-group", "partnerNamespaceValue", "channelValue")
+id := channels.NewChannelID("12345678-1234-9876-4563-123456789012", "example-resource-group", "partnerNamespaceName", "channelName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -57,7 +57,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := channels.NewChannelID("12345678-1234-9876-4563-123456789012", "example-resource-group", "partnerNamespaceValue", "channelValue")
+id := channels.NewChannelID("12345678-1234-9876-4563-123456789012", "example-resource-group", "partnerNamespaceName", "channelName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -73,7 +73,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := channels.NewChannelID("12345678-1234-9876-4563-123456789012", "example-resource-group", "partnerNamespaceValue", "channelValue")
+id := channels.NewChannelID("12345678-1234-9876-4563-123456789012", "example-resource-group", "partnerNamespaceName", "channelName")
 
 read, err := client.GetFullUrl(ctx, id)
 if err != nil {
@@ -89,7 +89,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := channels.NewPartnerNamespaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "partnerNamespaceValue")
+id := channels.NewPartnerNamespaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "partnerNamespaceName")
 
 // alternatively `client.ListByPartnerNamespace(ctx, id, channels.DefaultListByPartnerNamespaceOperationOptions())` can be used to do batched pagination
 items, err := client.ListByPartnerNamespaceComplete(ctx, id, channels.DefaultListByPartnerNamespaceOperationOptions())
@@ -106,7 +106,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := channels.NewChannelID("12345678-1234-9876-4563-123456789012", "example-resource-group", "partnerNamespaceValue", "channelValue")
+id := channels.NewChannelID("12345678-1234-9876-4563-123456789012", "example-resource-group", "partnerNamespaceName", "channelName")
 
 payload := channels.ChannelUpdateParameters{
 	// ...

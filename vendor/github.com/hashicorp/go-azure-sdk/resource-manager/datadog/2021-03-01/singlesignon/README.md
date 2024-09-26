@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/singlesignon` Documentation
 
-The `singlesignon` SDK allows for interaction with the Azure Resource Manager Service `datadog` (API Version `2021-03-01`).
+The `singlesignon` SDK allows for interaction with Azure Resource Manager `datadog` (API Version `2021-03-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := singlesignon.NewSingleSignOnConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "monitorValue", "singleSignOnConfigurationValue")
+id := singlesignon.NewSingleSignOnConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "monitorName", "configurationName")
 
 payload := singlesignon.DatadogSingleSignOnResource{
 	// ...
@@ -41,7 +41,7 @@ if err := client.ConfigurationsCreateOrUpdateThenPoll(ctx, id, payload); err != 
 
 ```go
 ctx := context.TODO()
-id := singlesignon.NewSingleSignOnConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "monitorValue", "singleSignOnConfigurationValue")
+id := singlesignon.NewSingleSignOnConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "monitorName", "configurationName")
 
 read, err := client.ConfigurationsGet(ctx, id)
 if err != nil {
@@ -57,7 +57,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := singlesignon.NewMonitorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "monitorValue")
+id := singlesignon.NewMonitorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "monitorName")
 
 // alternatively `client.ConfigurationsList(ctx, id)` can be used to do batched pagination
 items, err := client.ConfigurationsListComplete(ctx, id)

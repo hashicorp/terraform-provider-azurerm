@@ -48,7 +48,7 @@ func ParseUserDefinedFunctionID(input string) (*UserDefinedFunctionId, error) {
 	}
 
 	id := UserDefinedFunctionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -65,7 +65,7 @@ func ParseUserDefinedFunctionIDInsensitively(input string) (*UserDefinedFunction
 	}
 
 	id := UserDefinedFunctionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -133,13 +133,13 @@ func (id UserDefinedFunctionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDocumentDB", "Microsoft.DocumentDB", "Microsoft.DocumentDB"),
 		resourceids.StaticSegment("staticDatabaseAccounts", "databaseAccounts", "databaseAccounts"),
-		resourceids.UserSpecifiedSegment("databaseAccountName", "databaseAccountValue"),
+		resourceids.UserSpecifiedSegment("databaseAccountName", "accountName"),
 		resourceids.StaticSegment("staticSqlDatabases", "sqlDatabases", "sqlDatabases"),
-		resourceids.UserSpecifiedSegment("sqlDatabaseName", "sqlDatabaseValue"),
+		resourceids.UserSpecifiedSegment("sqlDatabaseName", "databaseName"),
 		resourceids.StaticSegment("staticContainers", "containers", "containers"),
-		resourceids.UserSpecifiedSegment("containerName", "containerValue"),
+		resourceids.UserSpecifiedSegment("containerName", "containerName"),
 		resourceids.StaticSegment("staticUserDefinedFunctions", "userDefinedFunctions", "userDefinedFunctions"),
-		resourceids.UserSpecifiedSegment("userDefinedFunctionName", "userDefinedFunctionValue"),
+		resourceids.UserSpecifiedSegment("userDefinedFunctionName", "userDefinedFunctionName"),
 	}
 }
 

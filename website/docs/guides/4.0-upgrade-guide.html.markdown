@@ -660,6 +660,10 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 * The deprecated `health_probes_enabled` property has been removed in favour of the `enabled` property.
 * The `enabled` property now defaults to `true`.
 
+### `azurerm_cognitive_account`
+
+* The `scale` block is no longer supported by the service and has been removed and replaced with the `sku` block.
+
 ### `azurerm_consumption_budget_management_group`
 
 * The deprecated `filter.not` block has been removed.
@@ -703,6 +707,7 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 * The deprecated `enable_free_tier` property has been removed in favour of the `free_tier_enabled` property.
 * The deprecated `enable_automatic_failover` property has been removed in favour of the `automatic_failover_enabled` property.
 * The `minimal_tls_version` property now defaults to `Tls12`.
+* The `ip_range_filter` property is now a set that will only accept valid CIDR values.
 
 ### `azurerm_cosmosdb_sql_container`
 
@@ -847,6 +852,7 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 * The deprecated `terminate_notification` block has been removed in favour of the `termination_notification` block.
 * The deprecated `scale_in_policy` property has been removed in favour of the `scale_in` block.
 * The `extension_operations_enabled` property now defaults to `true`.
+* The `scale_in` property is no longer Computed. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
 
 ### `azurerm_linux_web_app`
 
@@ -854,11 +860,13 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 * The deprecated `site_config.application_stack.docker_image_tag` property has been removed.
 * The deprecated `site_config.application_stack.docker_image` property has been removed.
 * The properties `site_config.health_check_path` and `site_config.health_check_eviction_time_in_min` must be set together.
+* The property `auto_heal_enabled` has been removed and is now implied by the presence of the `auto_heal` block.
 
 ### `azurerm_linux_web_app_slot`
 
 * The deprecated `site_config.application_stack.docker_image_tag` property has been removed.
 * The deprecated `site_config.application_stack.docker_image` property has been removed.
+* The property `auto_heal_enabled` has been removed and is now implied by the presence of the `auto_heal` block.
 
 ### `azurerm_log_analytics_cluster`
 
@@ -923,6 +931,14 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 * The deprecated `enabled_log.retention_policy` block has been removed in favour of the `azurerm_storage_management_policy` resource.
 * The deprecated `metric.retention_policy` block has been removed in favour of the `azurerm_storage_management_policy` resource.
 * The deprecated `log` block has been removed in favour of the `enabled_log` block.
+
+### `azurerm_mssql_managed_database`
+
+* The `long_term_retention_policy.immutable_backups_enabled` property has been removed due to a breaking SDK upgrade.
+
+### `azurerm_mssql_database`
+
+* The `long_term_retention_policy.immutable_backups_enabled` property has been removed due to a breaking SDK upgrade.
 
 ### `azurerm_netapp_pool`
 
@@ -1190,6 +1206,7 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 * The deprecated `terminate_notification` block has been removed in favour of the `termination_notification` block.
 * The deprecated `scale_in_policy` property has been removed in favour of the `scale_in` block.
 * The `extension_operations_enabled` property now defaults to `true`.
+* The `scale_in` property is no longer Computed. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
 
 ### `azurerm_windows_web_app`
 
@@ -1198,6 +1215,7 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 * The `site_config.application_stack.docker_container_name` property has been removed.
 * The `site_config.application_stack.docker_container_tag` property has been removed.
 * The properties `site_config.health_check_path` and `site_config.health_check_eviction_time_in_min` must be set together.
+* The property `auto_heal_enabled` has been removed and is now implied by the presence of the `auto_heal` block.
 
 ### `azurerm_windows_web_app_slot`
 
@@ -1206,6 +1224,7 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 * The `site_config.application_stack.docker_container_name` property has been removed.
 * The `site_config.application_stack.docker_container_tag` property has been removed.
 * The properties `site_config.health_check_path` and `site_config.health_check_eviction_time_in_min` must be set together.
+* The property `auto_heal_enabled` has been removed and is now implied by the presence of the `auto_heal` block.
 
 ## Behaviour changes and removed properties in Data Sources
 

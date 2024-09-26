@@ -1349,12 +1349,12 @@ resource "azurerm_kubernetes_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   default_node_pool {
-    name                = "default"
-    node_count          = 1
-    enable_auto_scaling = true
-    vm_size             = "Standard_DS2_v2"
-    min_count           = 1
-    max_count           = 1
+    name                 = "default"
+    node_count           = 1
+    auto_scaling_enabled = true
+    vm_size              = "Standard_DS2_v2"
+    min_count            = 1
+    max_count            = 1
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -1385,12 +1385,12 @@ resource "azurerm_kubernetes_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   default_node_pool {
-    name                = "default"
-    node_count          = 2
-    vm_size             = "Standard_DS2_v2"
-    enable_auto_scaling = true
-    max_count           = 10
-    min_count           = 1
+    name                 = "default"
+    node_count           = 2
+    vm_size              = "Standard_DS2_v2"
+    auto_scaling_enabled = true
+    max_count            = 10
+    min_count            = 1
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -1421,12 +1421,12 @@ resource "azurerm_kubernetes_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   default_node_pool {
-    name                = "default"
-    node_count          = 1
-    vm_size             = "Standard_DS2_v2"
-    enable_auto_scaling = true
-    max_count           = 10
-    min_count           = 1
+    name                 = "default"
+    node_count           = 1
+    vm_size              = "Standard_DS2_v2"
+    auto_scaling_enabled = true
+    max_count            = 10
+    min_count            = 1
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -1457,12 +1457,12 @@ resource "azurerm_kubernetes_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   default_node_pool {
-    name                = "default"
-    node_count          = 11
-    vm_size             = "Standard_DS2_v2"
-    enable_auto_scaling = true
-    max_count           = 10
-    min_count           = 1
+    name                 = "default"
+    node_count           = 11
+    vm_size              = "Standard_DS2_v2"
+    auto_scaling_enabled = true
+    max_count            = 10
+    min_count            = 1
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -1493,12 +1493,12 @@ resource "azurerm_kubernetes_cluster" "test" {
   dns_prefix          = "acctestAKS%d"
 
   default_node_pool {
-    name                = "default"
-    vm_size             = "Standard_DS2_v2"
-    enable_auto_scaling = true
-    min_count           = 1
-    max_count           = 399
-    node_count          = 1
+    name                 = "default"
+    vm_size              = "Standard_DS2_v2"
+    auto_scaling_enabled = true
+    min_count            = 1
+    max_count            = 399
+    node_count           = 1
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -1529,12 +1529,12 @@ resource "azurerm_kubernetes_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   default_node_pool {
-    name                = "default"
-    node_count          = 1
-    vm_size             = "Standard_DS2_v2"
-    enable_auto_scaling = true
-    max_count           = 10
-    min_count           = 2
+    name                 = "default"
+    node_count           = 1
+    vm_size              = "Standard_DS2_v2"
+    auto_scaling_enabled = true
+    max_count            = 10
+    min_count            = 2
     upgrade_settings {
       max_surge = "10%%"
     }

@@ -15,7 +15,7 @@ type VpnServerConfigurationsClient struct {
 }
 
 func NewVpnServerConfigurationsClientWithBaseURI(sdkApi sdkEnv.Api) (*VpnServerConfigurationsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "vpnserverconfigurations", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "vpnserverconfigurations", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating VpnServerConfigurationsClient: %+v", err)
 	}

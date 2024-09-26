@@ -15,7 +15,7 @@ type WebTestsAPIsClient struct {
 }
 
 func NewWebTestsAPIsClientWithBaseURI(sdkApi sdkEnv.Api) (*WebTestsAPIsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "webtestsapis", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "webtestsapis", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating WebTestsAPIsClient: %+v", err)
 	}
