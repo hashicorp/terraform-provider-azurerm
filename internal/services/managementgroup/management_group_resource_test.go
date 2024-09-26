@@ -284,7 +284,7 @@ provider "azurerm" {
 resource "azurerm_management_group" "test" {
   display_name = "accTestMG-%d"
 }
-`, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger)
 }
 
 // TODO: switch this out for dynamically creating a subscription once that's supported in the future
