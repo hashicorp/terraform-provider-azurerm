@@ -133,7 +133,7 @@ func TestAccManagementGroup_withName(t *testing.T) {
 	})
 }
 
-func TestAccManagementGroup_updateName(t *testing.T) {
+func TestAccManagementGroup_updateDisplayName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_group", "test")
 	r := ManagementGroupResource{}
 
@@ -145,10 +145,10 @@ func TestAccManagementGroup_updateName(t *testing.T) {
 			),
 		},
 		{
-			Config: r.withName(data),
+			Config: r.withDisplayName(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("acctestmg-%d", data.RandomInteger)),
+				check.That(data.ResourceName).Key("display_name").HasValue(fmt.Sprintf("accTestMG-%d", data.RandomInteger)),
 			),
 		},
 		data.ImportStep(),
@@ -270,6 +270,18 @@ provider "azurerm" {
 
 resource "azurerm_management_group" "test" {
   name         = "acctestmg-%d"
+  display_name = "accTestMG-%d"
+}
+`, data.RandomInteger, data.RandomInteger)
+}
+
+func (ManagementGroupResource) withDisplayName(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_management_group" "test" {
   display_name = "accTestMG-%d"
 }
 `, data.RandomInteger, data.RandomInteger)
