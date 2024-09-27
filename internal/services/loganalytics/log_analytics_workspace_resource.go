@@ -252,11 +252,13 @@ func resourceLogAnalyticsWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta i
 			return fmt.Errorf("checking for deleted Log Analytics Workspaces: %s", err)
 		}
 
-		if deletedModel := deletedResp.Model; deletedModel != nil {
+		if deletedModel := deletedResp.Model; deletedModel != nil && deletedModel.Value != nil {
 			for _, v := range *deletedModel.Value {
-				if *v.Name == name && strings.EqualFold(string(v.Properties.Sku.Name), string(workspaces.WorkspaceSkuNameEnumLACluster)) {
-					isLACluster = true
-					log.Printf("[INFO] Log Analytics Workspace %q: Soft-deleted resource is linked to Log Analytics Cluster", name)
+				if v.Properties != nil && v.Properties.Sku != nil {
+					if pointer.From(v.Name) == name && strings.EqualFold(string(v.Properties.Sku.Name), string(workspaces.WorkspaceSkuNameEnumLACluster)) {
+						isLACluster = true
+						log.Printf("[INFO] Log Analytics Workspace %q: Soft-deleted resource is linked to Log Analytics Cluster", name)
+					}
 				}
 			}
 		}
