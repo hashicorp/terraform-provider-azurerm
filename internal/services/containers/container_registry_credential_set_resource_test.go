@@ -125,7 +125,10 @@ resource "azurerm_container_registry_credential_set" "import" {
   name                  = azurerm_container_registry_credential_set.test.name
   container_registry_id = azurerm_container_registry_credential_set.test.container_registry_id
   login_server          = azurerm_container_registry_credential_set.test.login_server
-  auth_credentials      = azurerm_container_registry_credential_set.test.auth_credentials
+  auth_credentials {
+    username_secret_identifier = azurerm_container_registry_credential_set.test.auth_credentials[0].username_secret_identifier
+    password_secret_identifier = azurerm_container_registry_credential_set.test.auth_credentials[0].password_secret_identifier
+  }
 }
 `, r.basic(data))
 }
