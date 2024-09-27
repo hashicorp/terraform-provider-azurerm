@@ -616,8 +616,6 @@ resource "azurerm_container_app_environment" "test" {
     workload_profile_type = "Consumption"
   }
 
-  zone_redundancy_enabled = true
-
   tags = {
     Foo    = "Bar"
     secret = "sauce"
