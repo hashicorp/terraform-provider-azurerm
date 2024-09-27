@@ -107,8 +107,6 @@ func TestExaInfra_update(t *testing.T) {
 
 func (a ExadataInfraResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-
-
 %s
 
 resource "azurerm_oracledatabase_exadata_infrastructure" "test" {
