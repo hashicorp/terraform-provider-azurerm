@@ -322,7 +322,7 @@ func (a DeploymentResource) basicNginxAppProtect(data acceptance.TestData) strin
 resource "azurerm_nginx_deployment" "test" {
   name                      = "acctest-%[2]d"
   resource_group_name       = azurerm_resource_group.test.name
-  sku                       = "standard_Monthly"
+  sku                       = "standardv2_Monthly"
   location                  = azurerm_resource_group.test.location
   diagnose_support_enabled  = false
   automatic_upgrade_channel = "stable"
@@ -332,10 +332,8 @@ resource "azurerm_nginx_deployment" "test" {
   network_interface {
     subnet_id = azurerm_subnet.test.id
   }
-  nginx_app_protect {
-    web_application_firewall_settings {
-      activation_state = "Enabled"
-    }
+  web_application_firewall_settings {
+    activation_state = "Enabled"
   }
   email = "test@test.com"
   tags = {
