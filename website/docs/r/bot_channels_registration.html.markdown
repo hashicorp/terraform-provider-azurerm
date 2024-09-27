@@ -10,6 +10,8 @@ description: |-
 
 Manages a Bot Channels Registration.
 
+~> **Note:** Bot Channels Registration has been [deprecated by Azure](https://learn.microsoft.com/en-us/azure/bot-service/bot-service-resources-faq-azure?view=azure-bot-service-4.0#why-are-web-app-bot-and-bot-channel-registration-being-deprecated). New implementations should use the [`azurerm_bot_service_azure_bot`](./bot_service_azure_bot.html.markdown) resource.
+
 ## Example Usage
 
 ```hcl
@@ -61,13 +63,9 @@ The following arguments are supported:
 
 * `developer_app_insights_application_id` - (Optional) The Application Insights Application ID to associate with the Bot Channels Registration.
 
-* `icon_url` - (Optional) The icon URL to visually identify the Bot Channels Registration.
+* `icon_url` - (Optional) The icon URL to visually identify the Bot Channels Registration. Defaults to `https://docs.botframework.com/static/devportal/client/images/bot-framework-default.png`.
 
 * `streaming_endpoint_enabled` - (Optional) Is the streaming endpoint enabled for the Bot Channels Registration. Defaults to `false`.
-
-* `isolated_network_enabled` - (Optional) Is the Bot Channels Registration in an isolated network?
-
-~> **NOTE:** `isolated_network_enabled` is deprecated and will be removed in favour of the property `public_network_access_enabled` in version 4.0 of the AzureRM Provider.
 
 * `public_network_access_enabled` - (Optional) Is the Bot Channels Registration in an isolated network?
 

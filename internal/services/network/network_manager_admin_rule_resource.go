@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/adminrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/adminrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -259,7 +259,7 @@ func (r ManagerAdminRuleResource) Update() sdk.ResourceFunc {
 			}
 
 			var rule adminrules.AdminRule
-			if adminRule, ok := (*existing.Model).(adminrules.AdminRule); ok {
+			if adminRule, ok := existing.Model.(adminrules.AdminRule); ok {
 				rule = adminRule
 			}
 
@@ -342,7 +342,7 @@ func (r ManagerAdminRuleResource) Read() sdk.ResourceFunc {
 			}
 
 			var rule adminrules.AdminRule
-			if adminRule, ok := (*existing.Model).(adminrules.AdminRule); ok {
+			if adminRule, ok := existing.Model.(adminrules.AdminRule); ok {
 				rule = adminRule
 			}
 

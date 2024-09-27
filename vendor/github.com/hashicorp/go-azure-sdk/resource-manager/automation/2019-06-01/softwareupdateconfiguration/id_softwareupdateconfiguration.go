@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = SoftwareUpdateConfigurationId{}
+func init() {
+	recaser.RegisterResourceId(&SoftwareUpdateConfigurationId{})
+}
+
+var _ resourceids.ResourceId = &SoftwareUpdateConfigurationId{}
 
 // SoftwareUpdateConfigurationId is a struct representing the Resource ID for a Software Update Configuration
 type SoftwareUpdateConfigurationId struct {
@@ -32,29 +37,15 @@ func NewSoftwareUpdateConfigurationID(subscriptionId string, resourceGroupName s
 
 // ParseSoftwareUpdateConfigurationID parses 'input' into a SoftwareUpdateConfigurationId
 func ParseSoftwareUpdateConfigurationID(input string) (*SoftwareUpdateConfigurationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SoftwareUpdateConfigurationId{})
+	parser := resourceids.NewParserFromResourceIdType(&SoftwareUpdateConfigurationId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := SoftwareUpdateConfigurationId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.AutomationAccountName, ok = parsed.Parsed["automationAccountName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "automationAccountName", *parsed)
-	}
-
-	if id.SoftwareUpdateConfigurationName, ok = parsed.Parsed["softwareUpdateConfigurationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "softwareUpdateConfigurationName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +54,40 @@ func ParseSoftwareUpdateConfigurationID(input string) (*SoftwareUpdateConfigurat
 // ParseSoftwareUpdateConfigurationIDInsensitively parses 'input' case-insensitively into a SoftwareUpdateConfigurationId
 // note: this method should only be used for API response data and not user input
 func ParseSoftwareUpdateConfigurationIDInsensitively(input string) (*SoftwareUpdateConfigurationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SoftwareUpdateConfigurationId{})
+	parser := resourceids.NewParserFromResourceIdType(&SoftwareUpdateConfigurationId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := SoftwareUpdateConfigurationId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.AutomationAccountName, ok = parsed.Parsed["automationAccountName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "automationAccountName", *parsed)
-	}
-
-	if id.SoftwareUpdateConfigurationName, ok = parsed.Parsed["softwareUpdateConfigurationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "softwareUpdateConfigurationName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *SoftwareUpdateConfigurationId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.AutomationAccountName, ok = input.Parsed["automationAccountName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "automationAccountName", input)
+	}
+
+	if id.SoftwareUpdateConfigurationName, ok = input.Parsed["softwareUpdateConfigurationName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "softwareUpdateConfigurationName", input)
+	}
+
+	return nil
 }
 
 // ValidateSoftwareUpdateConfigurationID checks that 'input' can be parsed as a Software Update Configuration ID
@@ -122,9 +121,9 @@ func (id SoftwareUpdateConfigurationId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAutomation", "Microsoft.Automation", "Microsoft.Automation"),
 		resourceids.StaticSegment("staticAutomationAccounts", "automationAccounts", "automationAccounts"),
-		resourceids.UserSpecifiedSegment("automationAccountName", "automationAccountValue"),
+		resourceids.UserSpecifiedSegment("automationAccountName", "automationAccountName"),
 		resourceids.StaticSegment("staticSoftwareUpdateConfigurations", "softwareUpdateConfigurations", "softwareUpdateConfigurations"),
-		resourceids.UserSpecifiedSegment("softwareUpdateConfigurationName", "softwareUpdateConfigurationValue"),
+		resourceids.UserSpecifiedSegment("softwareUpdateConfigurationName", "softwareUpdateConfigurationName"),
 	}
 }
 

@@ -73,7 +73,7 @@ func resourceDnsTxtRecord() *pluginsdk.Resource {
 						"value": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: validation.StringLenBetween(1, 1024),
+							ValidateFunc: validation.StringLenBetween(1, 4096),
 						},
 					},
 				},

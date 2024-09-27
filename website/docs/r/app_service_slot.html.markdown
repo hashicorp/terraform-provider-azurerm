@@ -235,7 +235,7 @@ A `site_config` block supports the following:
 
 * `http2_enabled` - (Optional) Is HTTP2 Enabled on this App Service? Defaults to `false`.
 
-* `ip_restriction` - (Optional) A [List of objects](/docs/configuration/attr-as-blocks.html) representing IP restrictions as defined below.
+* `ip_restriction` - (Optional) A list of `ip_restriction` objects representing IP restrictions as defined below.
 
 -> **NOTE** User has to explicitly set `ip_restriction` to empty slice (`[]`) to remove it.
 
@@ -243,7 +243,7 @@ A `site_config` block supports the following:
 
 -> **NOTE** Any `scm_ip_restriction` blocks configured are ignored by the service when `scm_use_main_ip_restriction` is set to `true`. Any scm restrictions will become active if this is subsequently set to `false` or removed.  
 
-* `scm_ip_restriction` - (Optional) A [List of objects](/docs/configuration/attr-as-blocks.html) representing IP restrictions as defined below.
+* `scm_ip_restriction` - (Optional) A list of `scm_ip_restriction` objects representing IP restrictions as defined below.
 
 -> **NOTE** User has to explicitly set `scm_ip_restriction` to empty slice (`[]`) to remove it.
 
@@ -275,7 +275,7 @@ Additional examples of how to run Containers via the `azurerm_app_service_slot` 
 
 * `remote_debugging_enabled` - (Optional) Is Remote Debugging Enabled? Defaults to `false`.
 
-* `remote_debugging_version` - (Optional) Which version of Visual Studio should the Remote Debugger be compatible with? Possible values are `VS2017` and `VS2019`.
+* `remote_debugging_version` - (Optional) Which version of Visual Studio should the Remote Debugger be compatible with? Possible values are `VS2017`, `VS2019`, and `VS2022`.
 
 * `scm_type` - (Optional) The type of Source Control enabled for this App Service Slot. Defaults to `None`. Possible values are: `BitbucketGit`, `BitbucketHg`, `CodePlexGit`, `CodePlexHg`, `Dropbox`, `ExternalGit`, `ExternalHg`, `GitHub`, `LocalGit`, `None`, `OneDrive`, `Tfs`, `VSO`, and `VSTSRM`
 
@@ -387,7 +387,7 @@ A `ip_restriction` block supports the following:
 
 * `action` - (Optional) Does this restriction `Allow` or `Deny` access for this IP range. Defaults to `Allow`. 
 
-* `headers` - (Optional) The headers for this specific `ip_restriction` as defined below. The HTTP header filters are evaluated after the rule itself and both conditions must be true for the rule to apply.
+* `headers` - (Optional) The `headers` block for this specific `ip_restriction` as defined below. The HTTP header filters are evaluated after the rule itself and both conditions must be true for the rule to apply.
 
 ---
 
@@ -419,7 +419,7 @@ A `scm_ip_restriction` block supports the following:
 
 * `action` - (Optional) Allow or Deny access for this IP range. Defaults to `Allow`.
 
-* `headers` - (Optional) The headers for this specific `scm_ip_restriction` as defined below.
+* `headers` - (Optional) The `headers` block for this specific `scm_ip_restriction` as defined below.
 
 ---
 
@@ -457,7 +457,7 @@ A `logs` block supports the following:
 
 An `application_logs` block supports the following:
 
-* `file_system_level` - (Optional) The file system log level. Possible values are `Off`, `Error`, `Warning`, `Information`, and `Verbose`.
+* `file_system_level` - (Optional) The file system log level. Possible values are `Off`, `Error`, `Warning`, `Information`, and `Verbose`. Defaults to `Off`.
 
 * `azure_blob_storage` - (Optional) An `azure_blob_storage` block as defined below.
 
@@ -507,7 +507,7 @@ A `identity` block exports the following:
 
 * `tenant_id` - The Tenant ID for the Service Principal associated with the Managed Service Identity of this App Service slot.
 
--> You can access the Principal ID via `azurerm_app_service_slot.example.identity.0.principal_id` and the Tenant ID via `azurerm_app_service_slot.example.identity.0.tenant_id`
+-> You can access the Principal ID via `azurerm_app_service_slot.example.identity[0].principal_id` and the Tenant ID via `azurerm_app_service_slot.example.identity[0].tenant_id`
 
 ---
 

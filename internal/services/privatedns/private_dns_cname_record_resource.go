@@ -75,7 +75,7 @@ func resourcePrivateDnsCNameRecord() *pluginsdk.Resource {
 			"ttl": {
 				Type:         pluginsdk.TypeInt,
 				Required:     true,
-				ValidateFunc: validation.IntBetween(1, 2147483647),
+				ValidateFunc: validation.IntBetween(0, 2147483647),
 			},
 
 			"fqdn": {

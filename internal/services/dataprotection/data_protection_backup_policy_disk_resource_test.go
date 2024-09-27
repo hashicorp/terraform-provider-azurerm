@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2022-04-01/backuppolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backuppolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -162,6 +162,7 @@ resource "azurerm_data_protection_backup_policy_disk" "test" {
   vault_id                        = azurerm_data_protection_backup_vault.test.id
   backup_repeating_time_intervals = ["R/2021-05-19T06:33:16+00:00/PT4H"]
   default_retention_duration      = "P7D"
+  time_zone                       = "W. Europe Standard Time"
 
   retention_rule {
     name     = "Daily"

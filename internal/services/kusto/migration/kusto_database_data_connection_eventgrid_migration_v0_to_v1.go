@@ -7,8 +7,8 @@ import (
 	"context"
 	"log"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/dataconnections"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -111,7 +111,7 @@ func (s KustoDatabaseDataConnectionEventGridV0ToV1) Schema() map[string]*plugins
 func (s KustoDatabaseDataConnectionEventGridV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 		oldId := rawState["id"].(string)
-		newId, err := parse.DataConnectionIDInsensitively(oldId)
+		newId, err := dataconnections.ParseDataConnectionIDInsensitively(oldId)
 		if err != nil {
 			return nil, err
 		}

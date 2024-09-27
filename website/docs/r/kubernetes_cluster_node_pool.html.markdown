@@ -72,17 +72,13 @@ The following arguments are supported:
 
 * `capacity_reservation_group_id` - (Optional) Specifies the ID of the Capacity Reservation Group where this Node Pool should exist. Changing this forces a new resource to be created.
 
-* `custom_ca_trust_enabled` - (Optional) Specifies whether to trust a Custom CA.
+* `auto_scaling_enabled` - (Optional) Whether to enable [auto-scaler](https://docs.microsoft.com/azure/aks/cluster-autoscaler).
 
--> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/CustomCATrustPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://learn.microsoft.com/en-us/azure/aks/custom-certificate-authority) for more information.
-
-* `enable_auto_scaling` - (Optional) Whether to enable [auto-scaler](https://docs.microsoft.com/azure/aks/cluster-autoscaler).
-
-* `enable_host_encryption` - (Optional) Should the nodes in this Node Pool have host encryption enabled? Changing this forces a new resource to be created.
+* `host_encryption_enabled` - (Optional) Should the nodes in this Node Pool have host encryption enabled? Changing this forces a new resource to be created.
 
 ~> **NOTE:** Additional fields must be configured depending on the value of this field - see below.
 
-* `enable_node_public_ip` - (Optional) Should each node have a Public IP Address? Changing this forces a new resource to be created.
+* `node_public_ip_enabled` - (Optional) Should each node have a Public IP Address? Changing this forces a new resource to be created.
 
 * `eviction_policy` - (Optional) The Eviction Policy which should be used for Virtual Machines within the Virtual Machine Scale Set powering this Node Pool. Possible values are `Deallocate` and `Delete`. Changing this forces a new resource to be created.
 
@@ -98,11 +94,11 @@ The following arguments are supported:
 
 ~> **Note:** FIPS support is in Public Preview - more information and details on how to opt into the Preview can be found in [this article](https://docs.microsoft.com/azure/aks/use-multiple-node-pools#add-a-fips-enabled-node-pool-preview).
 
+* `gpu_instance` - (Optional) Specifies the GPU MIG instance profile for supported GPU VM SKU. The allowed values are `MIG1g`, `MIG2g`, `MIG3g`, `MIG4g` and `MIG7g`. Changing this forces a new resource to be created.
+
 * `kubelet_disk_type` - (Optional) The type of disk used by kubelet. Possible values are `OS` and `Temporary`.
 
 * `max_pods` - (Optional) The maximum number of pods that can run on each agent. Changing this forces a new resource to be created.
-
-* `message_of_the_day` - (Optional) A base64-encoded string which will be written to /etc/motd after decoding. This allows customization of the message of the day for Linux nodes. It cannot be specified for Windows nodes and must be a static string (i.e. will be printed raw and not executed as a script). Changing this forces a new resource to be created.
 
 * `mode` - (Optional) Should this Node Pool be used for System or User resources? Possible values are `System` and `User`. Defaults to `User`.
 
@@ -110,9 +106,9 @@ The following arguments are supported:
 
 * `node_labels` - (Optional) A map of Kubernetes labels which should be applied to nodes in this Node Pool.
 
-* `node_public_ip_prefix_id` - (Optional) Resource ID for the Public IP Addresses Prefix for the nodes in this Node Pool. `enable_node_public_ip` should be `true`. Changing this forces a new resource to be created.
+* `node_public_ip_prefix_id` - (Optional) Resource ID for the Public IP Addresses Prefix for the nodes in this Node Pool. `node_public_ip_enabled` should be `true`. Changing this forces a new resource to be created.
 
-* `node_taints` - (Optional) A list of Kubernetes taints which should be applied to nodes in the agent pool (e.g `key=value:NoSchedule`). Changing this forces a new resource to be created.
+* `node_taints` - (Optional) A list of Kubernetes taints which should be applied to nodes in the agent pool (e.g `key=value:NoSchedule`).
 
 * `orchestrator_version` - (Optional) Version of Kubernetes used for the Agents. If not specified, the latest recommended version will be used at provisioning time (but won't auto-upgrade). AKS does not require an exact patch version to be specified, minor version aliases such as `1.22` are also supported. - The minor version's latest GA patch is automatically chosen in that case. More details can be found in [the documentation](https://docs.microsoft.com/en-us/azure/aks/supported-kubernetes-versions?tabs=azure-cli#alias-minor-version).
 
@@ -124,7 +120,7 @@ The following arguments are supported:
 
 * `pod_subnet_id` - (Optional) The ID of the Subnet where the pods in the Node Pool should exist. Changing this forces a new resource to be created.
 
-* `os_sku` - (Optional) Specifies the OS SKU used by the agent pool. Possible values include: `AzureLinux`, `Ubuntu`, `Windows2019`, `Windows2022`. If not specified, the default is `Ubuntu` if OSType=Linux or `Windows2019` if OSType=Windows. And the default Windows OSSKU will be changed to `Windows2022` after Windows2019 is deprecated. Changing this forces a new resource to be created.
+* `os_sku` - (Optional) Specifies the OS SKU used by the agent pool. Possible values are `AzureLinux`, `Ubuntu`, `Windows2019` and `Windows2022`. If not specified, the default is `Ubuntu` if OSType=Linux or `Windows2019` if OSType=Windows. And the default Windows OSSKU will be changed to `Windows2022` after Windows2019 is deprecated. Changing this from `AzureLinux` or `Ubuntu` to `AzureLinux` or `Ubuntu` will not replace the resource, otherwise it forces a new resource to be created.
 
 * `os_type` - (Optional) The Operating System which should be used for this Node Pool. Changing this forces a new resource to be created. Possible values are `Linux` and `Windows`. Defaults to `Linux`.
 
@@ -156,17 +152,15 @@ The following arguments are supported:
 
 * `windows_profile` - (Optional) A `windows_profile` block as documented below. Changing this forces a new resource to be created.
 
-* `workload_runtime` - (Optional) Used to specify the workload runtime. Allowed values are `OCIContainer`, `WasmWasi` and `KataMshvVmIsolation`.
+* `workload_runtime` - (Optional) Used to specify the workload runtime. Allowed values are `OCIContainer` and `WasmWasi`.
 
 ~> **Note:** WebAssembly System Interface node pools are in Public Preview - more information and details on how to opt into the preview can be found in [this article](https://docs.microsoft.com/azure/aks/use-wasi-node-pools)
-
-~> **Note:** Pod Sandboxing / KataVM Isolation node pools are in Public Preview - more information and details on how to opt into the preview can be found in [this article](https://learn.microsoft.com/azure/aks/use-pod-sandboxing)
 
 * `zones` - (Optional) Specifies a list of Availability Zones in which this Kubernetes Cluster Node Pool should be located. Changing this forces a new Kubernetes Cluster Node Pool to be created.
 
 ---
 
-If `enable_auto_scaling` is set to `true`, then the following fields can also be configured:
+If `auto_scaling_enabled` is set to `true`, then the following fields can also be configured:
 
 * `max_count` - (Optional) The maximum number of nodes which should exist within this Node Pool. Valid values are between `0` and `1000` and must be greater than or equal to `min_count`.
 
@@ -176,7 +170,7 @@ If `enable_auto_scaling` is set to `true`, then the following fields can also be
 
 -> **NOTE:** If you're specifying an initial number of nodes you may wish to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/language/meta-arguments/lifecycle#ignore_changess) to ignore changes to this field.
 
-If `enable_auto_scaling` is set to `false`, then the following fields can also be configured:
+If `auto_scaling_enabled` is set to `false`, then the following fields can also be configured:
 
 * `node_count` - (Optional) The number of nodes which should exist within this Node Pool. Valid values are between `0` and `1000` (inclusive) for user pools and between `1` and `1000` (inclusive) for system pools.
 
@@ -220,9 +214,23 @@ A `linux_os_config` block supports the following:
 
 A `node_network_profile` block supports the following:
 
+* `allowed_host_ports` - (Optional) One or more `allowed_host_ports` blocks as defined below.
+
+* `application_security_group_ids` - (Optional) A list of Application Security Group IDs which should be associated with this Node Pool.
+
 * `node_public_ip_tags` - (Optional) Specifies a mapping of tags to the instance-level public IPs. Changing this forces a new resource to be created.
 
 -> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/NodePublicIPTagsPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://learn.microsoft.com/azure/aks/use-node-public-ips#use-public-ip-tags-on-node-public-ips-preview) for more information.
+
+---
+
+An `allowed_host_ports` block supports the following:
+
+* `port_start` - (Optional) Specifies the start of the port range.
+
+* `port_end` - (Optional) Specifies the end of the port range.
+
+* `protocol` - (Optional) Specifies the protocol of the port range. Possible values are `TCP` and `UDP`.
 
 ---
 
@@ -291,6 +299,10 @@ A `sysctl_config` block supports the following:
 ---
 
 A `upgrade_settings` block supports the following:
+
+* `drain_timeout_in_minutes` - (Optional) The amount of time in minutes to wait on eviction of pods and graceful termination per node. This eviction wait time honors waiting on pod disruption budgets. If this time is exceeded, the upgrade fails. Unsetting this after configuring it will force a new resource to be created.
+
+* `node_soak_duration_in_minutes` - (Optional) The amount of time in minutes to wait after draining a node and before reimaging and moving on to next node. Defaults to `0`.
 
 * `max_surge` - (Required) The maximum number or percentage of nodes which will be added to the Node Pool size during an upgrade.
 

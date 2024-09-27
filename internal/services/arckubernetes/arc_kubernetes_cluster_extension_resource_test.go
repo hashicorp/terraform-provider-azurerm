@@ -177,6 +177,7 @@ resource "azurerm_arc_kubernetes_cluster_extension" "test" {
   name              = "acctest-kce-%[2]d"
   cluster_id        = azurerm_arc_kubernetes_cluster.test.id
   extension_type    = "microsoft.flux"
+  release_train     = "stable"
   version           = "1.6.3"
   release_namespace = "flux-system"
 

@@ -60,9 +60,25 @@ The following arguments are supported:
 
 A `subnet` block supports the following:
 
-* `use_public_ip_address` - (Optional) Can Virtual Machines in this Subnet use Public IP Addresses? Possible values are `Allow`, `Default` and `Deny`.
+* `use_public_ip_address` - (Optional) Can Virtual Machines in this Subnet use Public IP Addresses? Possible values are `Allow`, `Default` and `Deny`. Defaults to `Allow`.
 
-* `use_in_virtual_machine_creation` - (Optional) Can this subnet be used for creating Virtual Machines? Possible values are `Allow`, `Default` and `Deny`.
+* `use_in_virtual_machine_creation` - (Optional) Can this subnet be used for creating Virtual Machines? Possible values are `Allow`, `Default` and `Deny`. Defaults to `Allow`.
+
+* `shared_public_ip_address` - (Optional) A `shared_public_ip_address` block as defined below.
+
+---
+
+A `shared_public_ip_address` block supports the following:
+
+* `allowed_ports` - (Optional) A list of `allowed_ports` blocks as defined below.
+
+---
+
+An `allowed_ports` block supports the following:
+
+* `backend_port` - (Optional) The port on the Virtual Machine that the traffic will be sent to.
+
+* `transport_protocol` - (Optional) The transport protocol that the traffic will use. Possible values are `TCP` and `UDP`.
 
 ## Attributes Reference
 

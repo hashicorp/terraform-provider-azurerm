@@ -78,7 +78,7 @@ resource "azurerm_virtual_hub_route_table" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -92,7 +92,7 @@ The following arguments are supported:
 
 ---
 
-An `route` block exports the following:
+A `route` block supports the following:
 
 * `name` - (Required) The name which should be used for this route.
 

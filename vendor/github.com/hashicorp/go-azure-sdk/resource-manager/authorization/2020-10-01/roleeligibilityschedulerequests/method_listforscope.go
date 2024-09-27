@@ -20,7 +20,8 @@ type ListForScopeOperationResponse struct {
 }
 
 type ListForScopeCompleteResult struct {
-	Items []RoleEligibilityScheduleRequest
+	LatestHttpResponse *http.Response
+	Items              []RoleEligibilityScheduleRequest
 }
 
 type ListForScopeOperationOptions struct {
@@ -39,6 +40,7 @@ func (o ListForScopeOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListForScopeOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -50,6 +52,18 @@ func (o ListForScopeOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListForScopeCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListForScopeCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListForScope ...
 func (c RoleEligibilityScheduleRequestsClient) ListForScope(ctx context.Context, id commonids.ScopeId, options ListForScopeOperationOptions) (result ListForScopeOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -58,8 +72,9 @@ func (c RoleEligibilityScheduleRequestsClient) ListForScope(ctx context.Context,
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/providers/Microsoft.Authorization/roleEligibilityScheduleRequests", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListForScopeCustomPager{},
+		Path:          fmt.Sprintf("%s/providers/Microsoft.Authorization/roleEligibilityScheduleRequests", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -100,6 +115,7 @@ func (c RoleEligibilityScheduleRequestsClient) ListForScopeCompleteMatchingPredi
 
 	resp, err := c.ListForScope(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -112,7 +128,8 @@ func (c RoleEligibilityScheduleRequestsClient) ListForScopeCompleteMatchingPredi
 	}
 
 	result = ListForScopeCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

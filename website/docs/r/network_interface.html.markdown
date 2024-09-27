@@ -60,15 +60,23 @@ The following arguments are supported:
 
 ---
 
+* `auxiliary_mode` - (Optional) Specifies the auxiliary mode used to enable network high-performance feature on Network Virtual Appliances (NVAs). This feature offers competitive performance in Connections Per Second (CPS) optimization, along with improvements to handling large amounts of simultaneous connections. Possible values are `AcceleratedConnections`, `Floating`, `MaxConnections` and `None`.
+
+-> **Note:** `auxiliary_mode` is in **Preview** and requires that the preview is enabled - [more information can be found in the Azure documentation](https://learn.microsoft.com/azure/networking/nva-accelerated-connections#prerequisites).
+
+* `auxiliary_sku` - (Optional) Specifies the SKU used for the network high-performance feature on Network Virtual Appliances (NVAs). Possible values are `A8`, `A4`, `A1`, `A2` and `None`.
+
+-> **Note:** `auxiliary_sku` is in **Preview** and requires that the preview is enabled - [more information can be found in the Azure documentation](https://learn.microsoft.com/azure/networking/nva-accelerated-connections#prerequisites).
+
 * `dns_servers` - (Optional) A list of IP Addresses defining the DNS Servers which should be used for this Network Interface.
 
 -> **Note:** Configuring DNS Servers on the Network Interface will override the DNS Servers defined on the Virtual Network.
 
 * `edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Network Interface should exist. Changing this forces a new Network Interface to be created.
 
-* `enable_ip_forwarding` - (Optional) Should IP Forwarding be enabled? Defaults to `false`.
+* `ip_forwarding_enabled` - (Optional) Should IP Forwarding be enabled? Defaults to `false`.
 
-* `enable_accelerated_networking` - (Optional) Should Accelerated Networking be enabled? Defaults to `false`.
+* `accelerated_networking_enabled` - (Optional) Should Accelerated Networking be enabled? Defaults to `false`.
 
 -> **Note:** Only certain Virtual Machine sizes are supported for Accelerated Networking - [more information can be found in this document](https://docs.microsoft.com/azure/virtual-network/create-vm-accelerated-networking-cli).
 
@@ -105,8 +113,6 @@ When `private_ip_address_allocation` is set to `Static` the following fields can
 * `private_ip_address` - (Optional) The Static IP Address which should be used.
 
 When `private_ip_address_version` is set to `IPv4` the following fields can be configured:
-
-* `subnet_id` - (Optional) The ID of the Subnet where this Network Interface should be located in.
 
 ## Attributes Reference
 

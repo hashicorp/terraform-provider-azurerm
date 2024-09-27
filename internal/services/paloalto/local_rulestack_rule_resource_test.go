@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package paloalto_test
 
 import (
@@ -117,6 +120,50 @@ func TestAccPaloAltoLocalRule_update(t *testing.T) {
 	})
 }
 
+func TestAccPaloAltoLocalRule_updateProtocol(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rulestack_rule", "test")
+
+	r := LocalRuleResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicProtocol(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicProtocolPorts(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicProtocol(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r LocalRuleResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := localrules.ParseLocalRuleID(state.ID)
 	if err != nil {
@@ -147,6 +194,7 @@ resource "azurerm_palo_alto_local_rulestack_rule" "test" {
   rulestack_id = azurerm_palo_alto_local_rulestack.test.id
   priority     = 100
   action       = "Allow"
+  protocol     = "application-default"
 
   applications = ["any"]
 
@@ -161,10 +209,66 @@ resource "azurerm_palo_alto_local_rulestack_rule" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
+func (r LocalRuleResource) basicProtocol(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_palo_alto_local_rulestack_rule" "test" {
+  name         = "testacc-palr-%[2]d"
+  rulestack_id = azurerm_palo_alto_local_rulestack.test.id
+  priority     = 100
+  action       = "Allow"
+
+  applications = ["any"]
+
+  protocol = "TCP:8080"
+
+  destination {
+    cidrs = ["any"]
+  }
+
+  source {
+    cidrs = ["any"]
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r LocalRuleResource) basicProtocolPorts(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_palo_alto_local_rulestack_rule" "test" {
+  name         = "testacc-palr-%[2]d"
+  rulestack_id = azurerm_palo_alto_local_rulestack.test.id
+  priority     = 100
+  action       = "Allow"
+
+  applications = ["any"]
+
+  protocol_ports = ["TCP:8080", "TCP:8081"]
+
+  destination {
+    cidrs = ["any"]
+  }
+
+  source {
+    cidrs = ["any"]
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
 func (r LocalRuleResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-
-
 %[1]s
 
 resource "azurerm_palo_alto_local_rulestack_rule" "import" {
@@ -173,6 +277,7 @@ resource "azurerm_palo_alto_local_rulestack_rule" "import" {
   priority     = azurerm_palo_alto_local_rulestack_rule.test.priority
   action       = "Allow"
   applications = azurerm_palo_alto_local_rulestack_rule.test.applications
+  protocol     = azurerm_palo_alto_local_rulestack_rule.test.protocol
 
   destination {
     cidrs = azurerm_palo_alto_local_rulestack_rule.test.destination.0.cidrs
@@ -198,6 +303,7 @@ resource "azurerm_palo_alto_local_rulestack_rule" "test" {
   rulestack_id = azurerm_palo_alto_local_rulestack.test.id
   priority     = 100
   action       = "Allow"
+  protocol     = "application-default"
 
   applications = ["any"]
 
@@ -209,14 +315,6 @@ resource "azurerm_palo_alto_local_rulestack_rule" "test" {
     countries = ["US", "GB"]
   }
 }
-
-
-
-
-
-
-
-
 `, r.template(data), data.RandomInteger)
 }
 
@@ -227,20 +325,6 @@ provider "azurerm" {
 }
 
 %[1]s
-
-resource "azurerm_palo_alto_local_rulestack_fqdn_list" "test" {
-  name         = "testacc-pafqdn-%[2]d"
-  rulestack_id = azurerm_palo_alto_local_rulestack.test.id
-
-  fully_qualified_domain_names = ["contoso.com", "test.example.com", "anothertest.example.com"]
-}
-
-resource "azurerm_palo_alto_local_rulestack_prefix_list" "test" {
-  name         = "testacc-palr-%[2]d"
-  rulestack_id = azurerm_palo_alto_local_rulestack.test.id
-
-  prefix_list = ["10.0.0.0/8", "172.16.0.0/16"]
-}
 
 resource "azurerm_palo_alto_local_rulestack_rule" "test" {
   name         = "testacc-palr-%[2]d"
@@ -327,7 +411,7 @@ resource "azurerm_palo_alto_local_rulestack_rule" "test" {
   negate_destination = false
   negate_source      = false
 
-  protocol = "TCP:8080"
+  protocol_ports = ["TCP:8080", "TCP:8081"]
 
   enabled = true
 
@@ -527,6 +611,20 @@ resource "azurerm_palo_alto_local_rulestack_certificate" "test" {
   name         = "testacc-palc-%[1]d"
   rulestack_id = azurerm_palo_alto_local_rulestack.test.id
   self_signed  = true
+}
+
+resource "azurerm_palo_alto_local_rulestack_fqdn_list" "test" {
+  name         = "testacc-pafqdn-%[1]d"
+  rulestack_id = azurerm_palo_alto_local_rulestack.test.id
+
+  fully_qualified_domain_names = ["contoso.com", "test.example.com", "anothertest.example.com"]
+}
+
+resource "azurerm_palo_alto_local_rulestack_prefix_list" "test" {
+  name         = "testacc-palr-%[1]d"
+  rulestack_id = azurerm_palo_alto_local_rulestack.test.id
+
+  prefix_list = ["10.0.0.0/8", "172.16.0.0/16"]
 }
 
 data "azurerm_client_config" "current" {}

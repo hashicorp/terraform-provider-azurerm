@@ -35,6 +35,7 @@ func (o ListOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -54,8 +55,8 @@ func (c ExportsClient) List(ctx context.Context, id commonids.ScopeId, options L
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/providers/Microsoft.CostManagement/exports", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/providers/Microsoft.CostManagement/exports", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -73,7 +74,9 @@ func (c ExportsClient) List(ctx context.Context, id commonids.ScopeId, options L
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ExportListResult
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

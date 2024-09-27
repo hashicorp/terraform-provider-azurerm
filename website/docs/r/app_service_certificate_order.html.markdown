@@ -48,7 +48,7 @@ The following arguments are supported:
 
 * `key_size` - (Optional) Certificate key size. Defaults to `2048`.
 
-* `product_type` - (Optional) Certificate product type, such as `Standard` or `WildCard`.
+* `product_type` - (Optional) Certificate product type, such as `Standard` or `WildCard`. Defaults to `Standard`.
 
 * `validity_in_years` - (Optional) Duration in years (must be between `1` and `3`). Defaults to `1`.
 

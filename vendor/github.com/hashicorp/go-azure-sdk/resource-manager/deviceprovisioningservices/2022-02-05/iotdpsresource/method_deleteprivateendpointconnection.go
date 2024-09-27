@@ -18,6 +18,7 @@ type DeletePrivateEndpointConnectionOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *PrivateEndpointConnection
 }
 
 // DeletePrivateEndpointConnection ...

@@ -1,13 +1,14 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/guestconfiguration/2020-06-25/guestconfigurationassignments` Documentation
 
-The `guestconfigurationassignments` SDK allows for interaction with the Azure Resource Manager Service `guestconfiguration` (API Version `2020-06-25`).
+The `guestconfigurationassignments` SDK allows for interaction with Azure Resource Manager `guestconfiguration` (API Version `2020-06-25`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/guestconfiguration/2020-06-25/guestconfigurationassignments"
 ```
 
@@ -24,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := guestconfigurationassignments.NewProviders2GuestConfigurationAssignmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualMachineValue", "guestConfigurationAssignmentValue")
+id := guestconfigurationassignments.NewProviders2GuestConfigurationAssignmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualMachineName", "guestConfigurationAssignmentName")
 
 payload := guestconfigurationassignments.GuestConfigurationAssignment{
 	// ...
@@ -45,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := guestconfigurationassignments.NewProviders2GuestConfigurationAssignmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualMachineValue", "guestConfigurationAssignmentValue")
+id := guestconfigurationassignments.NewProviders2GuestConfigurationAssignmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualMachineName", "guestConfigurationAssignmentName")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -61,7 +62,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := guestconfigurationassignments.NewProviders2GuestConfigurationAssignmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualMachineValue", "guestConfigurationAssignmentValue")
+id := guestconfigurationassignments.NewProviders2GuestConfigurationAssignmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualMachineName", "guestConfigurationAssignmentName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -77,7 +78,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := guestconfigurationassignments.NewVirtualMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualMachineValue")
+id := guestconfigurationassignments.NewVirtualMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualMachineName")
 
 read, err := client.List(ctx, id)
 if err != nil {
@@ -93,7 +94,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := guestconfigurationassignments.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
+id := commonids.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
 read, err := client.RGList(ctx, id)
 if err != nil {
@@ -109,7 +110,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := guestconfigurationassignments.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 read, err := client.SubscriptionList(ctx, id)
 if err != nil {

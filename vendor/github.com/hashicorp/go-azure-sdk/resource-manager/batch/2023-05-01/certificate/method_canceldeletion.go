@@ -44,7 +44,9 @@ func (c CertificateClient) CancelDeletion(ctx context.Context, id CertificateId)
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Certificate
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

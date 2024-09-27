@@ -8,7 +8,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/dedicatedhostgroups"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/dedicatedhostgroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -81,7 +82,7 @@ func TestAccDedicatedHostGroup_complete(t *testing.T) {
 }
 
 func (r DedicatedHostGroupResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := dedicatedhostgroups.ParseHostGroupID(state.ID)
+	id, err := commonids.ParseDedicatedHostGroupID(state.ID)
 	if err != nil {
 		return nil, err
 	}

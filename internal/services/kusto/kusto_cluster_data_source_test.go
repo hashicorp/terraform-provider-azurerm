@@ -21,6 +21,7 @@ func TestAccKustoClusterDataSource_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(KustoClusterResource{}),
 				check.That(data.ResourceName).Key("uri").IsSet(),
 				check.That(data.ResourceName).Key("data_ingestion_uri").IsSet(),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsSet(),
 			),
 		},
 	})
@@ -34,5 +35,5 @@ data "azurerm_kusto_cluster" "test" {
   name                = azurerm_kusto_cluster.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
-`, KustoClusterResource{}.basic(data))
+`, KustoClusterResource{}.identitySystemAssigned(data))
 }

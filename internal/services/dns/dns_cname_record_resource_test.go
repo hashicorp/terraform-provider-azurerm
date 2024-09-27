@@ -358,7 +358,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestrg-%d"
   location = "%s"
 }
 
@@ -392,7 +392,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestrg-%d"
   location = "%s"
 }
 
@@ -426,7 +426,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestrg-%d"
   location = "%s"
 }
 
@@ -460,7 +460,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestrg-%d"
   location = "%s"
 }
 

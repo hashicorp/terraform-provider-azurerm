@@ -21,7 +21,7 @@ func TestAccContainerAppEnvironmentDataSource_basic(t *testing.T) {
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("log_analytics_workspace_name").IsSet(),
+				check.That(data.ResourceName).Key("log_analytics_workspace_name").HasValue(fmt.Sprintf("acctestLAW-%d", data.RandomInteger)),
 				check.That(data.ResourceName).Key("location").IsSet(),
 				check.That(data.ResourceName).Key("internal_load_balancer_enabled").HasValue("true"),
 			),

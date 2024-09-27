@@ -20,7 +20,20 @@ type SpatialAnchorsAccountsListBySubscriptionOperationResponse struct {
 }
 
 type SpatialAnchorsAccountsListBySubscriptionCompleteResult struct {
-	Items []SpatialAnchorsAccount
+	LatestHttpResponse *http.Response
+	Items              []SpatialAnchorsAccount
+}
+
+type SpatialAnchorsAccountsListBySubscriptionCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *SpatialAnchorsAccountsListBySubscriptionCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // SpatialAnchorsAccountsListBySubscription ...
@@ -31,6 +44,7 @@ func (c ResourceClient) SpatialAnchorsAccountsListBySubscription(ctx context.Con
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &SpatialAnchorsAccountsListBySubscriptionCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.MixedReality/spatialAnchorsAccounts", id.ID()),
 	}
 
@@ -72,6 +86,7 @@ func (c ResourceClient) SpatialAnchorsAccountsListBySubscriptionCompleteMatching
 
 	resp, err := c.SpatialAnchorsAccountsListBySubscription(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -84,7 +99,8 @@ func (c ResourceClient) SpatialAnchorsAccountsListBySubscriptionCompleteMatching
 	}
 
 	result = SpatialAnchorsAccountsListBySubscriptionCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

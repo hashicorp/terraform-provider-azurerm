@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ContactId{}
+func init() {
+	recaser.RegisterResourceId(&ContactId{})
+}
+
+var _ resourceids.ResourceId = &ContactId{}
 
 // ContactId is a struct representing the Resource ID for a Contact
 type ContactId struct {
@@ -32,29 +37,15 @@ func NewContactID(subscriptionId string, resourceGroupName string, spacecraftNam
 
 // ParseContactID parses 'input' into a ContactId
 func ParseContactID(input string) (*ContactId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ContactId{})
+	parser := resourceids.NewParserFromResourceIdType(&ContactId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ContactId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.SpacecraftName, ok = parsed.Parsed["spacecraftName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "spacecraftName", *parsed)
-	}
-
-	if id.ContactName, ok = parsed.Parsed["contactName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "contactName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +54,40 @@ func ParseContactID(input string) (*ContactId, error) {
 // ParseContactIDInsensitively parses 'input' case-insensitively into a ContactId
 // note: this method should only be used for API response data and not user input
 func ParseContactIDInsensitively(input string) (*ContactId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ContactId{})
+	parser := resourceids.NewParserFromResourceIdType(&ContactId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ContactId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.SpacecraftName, ok = parsed.Parsed["spacecraftName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "spacecraftName", *parsed)
-	}
-
-	if id.ContactName, ok = parsed.Parsed["contactName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "contactName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ContactId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.SpacecraftName, ok = input.Parsed["spacecraftName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "spacecraftName", input)
+	}
+
+	if id.ContactName, ok = input.Parsed["contactName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "contactName", input)
+	}
+
+	return nil
 }
 
 // ValidateContactID checks that 'input' can be parsed as a Contact ID
@@ -122,9 +121,9 @@ func (id ContactId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftOrbital", "Microsoft.Orbital", "Microsoft.Orbital"),
 		resourceids.StaticSegment("staticSpacecrafts", "spacecrafts", "spacecrafts"),
-		resourceids.UserSpecifiedSegment("spacecraftName", "spacecraftValue"),
+		resourceids.UserSpecifiedSegment("spacecraftName", "spacecraftName"),
 		resourceids.StaticSegment("staticContacts", "contacts", "contacts"),
-		resourceids.UserSpecifiedSegment("contactName", "contactValue"),
+		resourceids.UserSpecifiedSegment("contactName", "contactName"),
 	}
 }
 

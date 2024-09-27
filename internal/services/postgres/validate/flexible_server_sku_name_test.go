@@ -106,6 +106,11 @@ func TestFlexibleServerSkuName(t *testing.T) {
 			input: "MO_Standard_E16ads_v5",
 			valid: true,
 		},
+		{
+			name:  "MO_Standard_E96ds_v5",
+			input: "MO_Standard_E96ds_v5",
+			valid: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

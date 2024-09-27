@@ -12,8 +12,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/edgezones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationfabrics"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationrecoveryplans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationfabrics"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationrecoveryplans"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -29,7 +29,7 @@ type SiteRecoveryReplicationRecoveryPlanModel struct {
 	ShutdownRecoveryGroup  []GenericRecoveryGroupModel                    `tfschema:"shutdown_recovery_group"`
 	FailoverRecoveryGroup  []GenericRecoveryGroupModel                    `tfschema:"failover_recovery_group"`
 	BootRecoveryGroup      []BootRecoveryGroupModel                       `tfschema:"boot_recovery_group"`
-	RecoveryGroup          []RecoveryGroupModel                           `tfschema:"recovery_group"`
+	RecoveryGroup          []RecoveryGroupModel                           `tfschema:"recovery_group,removedInNextMajorVersion"`
 	RecoveryVaultId        string                                         `tfschema:"recovery_vault_id"`
 	SourceRecoveryFabricId string                                         `tfschema:"source_recovery_fabric_id"`
 	TargetRecoveryFabricId string                                         `tfschema:"target_recovery_fabric_id"`

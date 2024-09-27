@@ -19,19 +19,25 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+var (
+	_ sdk.Resource           = DataCollectionEndpointResource{}
+	_ sdk.ResourceWithUpdate = DataCollectionEndpointResource{}
+)
+
+type DataCollectionEndpointResource struct{}
+
 type DataCollectionEndpoint struct {
 	ConfigurationAccessEndpoint string                 `tfschema:"configuration_access_endpoint"`
 	Description                 string                 `tfschema:"description"`
+	ImmutableId                 string                 `tfschema:"immutable_id"`
 	Kind                        string                 `tfschema:"kind"`
 	Name                        string                 `tfschema:"name"`
 	Location                    string                 `tfschema:"location"`
 	LogsIngestionEndpoint       string                 `tfschema:"logs_ingestion_endpoint"`
-	EnablePublicNetworkAccess   bool                   `tfschema:"public_network_access_enabled"`
+	PublicNetworkAccessEnabled  bool                   `tfschema:"public_network_access_enabled"`
 	ResourceGroupName           string                 `tfschema:"resource_group_name"`
 	Tags                        map[string]interface{} `tfschema:"tags"`
 }
-
-type DataCollectionEndpointResource struct{}
 
 func (r DataCollectionEndpointResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
@@ -71,6 +77,11 @@ func (r DataCollectionEndpointResource) Arguments() map[string]*pluginsdk.Schema
 func (r DataCollectionEndpointResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"configuration_access_endpoint": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"immutable_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -124,7 +135,7 @@ func (r DataCollectionEndpointResource) Create() sdk.ResourceFunc {
 				Properties: &datacollectionendpoints.DataCollectionEndpoint{
 					Description: utils.String(state.Description),
 					NetworkAcls: &datacollectionendpoints.NetworkRuleSet{
-						PublicNetworkAccess: expandDataCollectionEndpointPublicNetworkAccess(state.EnablePublicNetworkAccess),
+						PublicNetworkAccess: expandDataCollectionEndpointPublicNetworkAccess(state.PublicNetworkAccessEnabled),
 					},
 				},
 				Tags: tags.Expand(state.Tags),
@@ -159,8 +170,8 @@ func (r DataCollectionEndpointResource) Read() sdk.ResourceFunc {
 				}
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
-			var enablePublicNetWorkAccess bool
-			var description, kind, location, configurationAccessEndpoint, logsIngestionEndpoint string
+			var publicNetWorkAccessEnabled bool
+			var description, kind, location, configurationAccessEndpoint, logsIngestionEndpoint, immutableId string
 			var tag map[string]interface{}
 			if model := resp.Model; model != nil {
 				kind = flattenDataCollectionEndpointKind(model.Kind)
@@ -169,7 +180,7 @@ func (r DataCollectionEndpointResource) Read() sdk.ResourceFunc {
 				if prop := model.Properties; prop != nil {
 					description = flattenDataCollectionEndpointDescription(prop.Description)
 					if networkAcls := prop.NetworkAcls; networkAcls != nil {
-						enablePublicNetWorkAccess = flattenDataCollectionEndpointPublicNetworkAccess(networkAcls.PublicNetworkAccess)
+						publicNetWorkAccessEnabled = flattenDataCollectionEndpointPublicNetworkAccess(networkAcls.PublicNetworkAccess)
 					}
 
 					if prop.ConfigurationAccess != nil && prop.ConfigurationAccess.Endpoint != nil {
@@ -179,6 +190,10 @@ func (r DataCollectionEndpointResource) Read() sdk.ResourceFunc {
 					if prop.LogsIngestion != nil && prop.LogsIngestion.Endpoint != nil {
 						logsIngestionEndpoint = *prop.LogsIngestion.Endpoint
 					}
+
+					if prop.ImmutableId != nil {
+						immutableId = *prop.ImmutableId
+					}
 				}
 			}
 
@@ -186,10 +201,11 @@ func (r DataCollectionEndpointResource) Read() sdk.ResourceFunc {
 				ConfigurationAccessEndpoint: configurationAccessEndpoint,
 				Description:                 description,
 				Kind:                        kind,
+				ImmutableId:                 immutableId,
 				Location:                    location,
 				LogsIngestionEndpoint:       logsIngestionEndpoint,
 				Name:                        id.DataCollectionEndpointName,
-				EnablePublicNetworkAccess:   enablePublicNetWorkAccess,
+				PublicNetworkAccessEnabled:  publicNetWorkAccessEnabled,
 				ResourceGroupName:           id.ResourceGroupName,
 				Tags:                        tag,
 			})
@@ -233,9 +249,9 @@ func (r DataCollectionEndpointResource) Update() sdk.ResourceFunc {
 				existing.Kind = expandDataCollectionEndpointKind(state.Kind)
 			}
 
-			if metadata.ResourceData.HasChange("public_network_access") {
+			if metadata.ResourceData.HasChange("public_network_access_enabled") {
 				existing.Properties.NetworkAcls = &datacollectionendpoints.NetworkRuleSet{
-					PublicNetworkAccess: expandDataCollectionEndpointPublicNetworkAccess(state.EnablePublicNetworkAccess),
+					PublicNetworkAccess: expandDataCollectionEndpointPublicNetworkAccess(state.PublicNetworkAccessEnabled),
 				}
 			}
 

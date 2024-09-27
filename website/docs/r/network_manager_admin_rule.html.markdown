@@ -103,17 +103,17 @@ The following arguments are supported:
 
 A `destination` block supports the following:
 
-* `address_prefix` (Required) Specifies the address prefix. 
+* `address_prefix` - (Required) Specifies the address prefix. 
 
-* `address_prefix_type` (Required) Specifies the address prefix type. Possible values are `IPPrefix` and `ServiceTag`. For more information, please see [this document](https://learn.microsoft.com/en-us/azure/virtual-network-manager/concept-security-admins#source-and-destination-types).
+* `address_prefix_type` - (Required) Specifies the address prefix type. Possible values are `IPPrefix` and `ServiceTag`. For more information, please see [this document](https://learn.microsoft.com/en-us/azure/virtual-network-manager/concept-security-admins#source-and-destination-types).
 
 ---
 
 A `source` block supports the following:
 
-* `address_prefix` (Required) Specifies the address prefix.
+* `address_prefix` - (Required) Specifies the address prefix.
 
-* `address_prefix_type` (Required) Specifies the address prefix type. Possible values are `IPPrefix` and `ServiceTag`. For more information, please see [this document](https://learn.microsoft.com/en-us/azure/virtual-network-manager/concept-security-admins#source-and-destination-types).
+* `address_prefix_type` - (Required) Specifies the address prefix type. Possible values are `IPPrefix` and `ServiceTag`. For more information, please see [this document](https://learn.microsoft.com/en-us/azure/virtual-network-manager/concept-security-admins#source-and-destination-types).
 
 ## Attributes Reference
 

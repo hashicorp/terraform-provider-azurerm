@@ -19,11 +19,11 @@ import (
 
 type BotChannelMsTeamsResource struct{}
 
-func testAccBotChannelMsTeams_basic(t *testing.T) {
+func TestAccBotChannelMsTeams_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_ms_teams", "test")
 	r := BotChannelMsTeamsResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -34,11 +34,11 @@ func testAccBotChannelMsTeams_basic(t *testing.T) {
 	})
 }
 
-func testAccBotChannelMsTeams_update(t *testing.T) {
+func TestAccBotChannelMsTeams_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_ms_teams", "test")
 	r := BotChannelMsTeamsResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(

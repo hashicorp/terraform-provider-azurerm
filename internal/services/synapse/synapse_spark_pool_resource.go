@@ -11,6 +11,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -21,7 +22,7 @@ import (
 )
 
 func resourceSynapseSparkPool() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceSynapseSparkPoolCreate,
 		Read:   resourceSynapseSparkPoolRead,
 		Update: resourceSynapseSparkPoolUpdate,
@@ -109,8 +110,10 @@ func resourceSynapseSparkPool() *pluginsdk.Resource {
 			},
 
 			"node_count": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				// NOTE: O+C There is a bug in the API where this gets set when auto_scale is enabled resulting in a diff
+				Computed:     true,
 				ValidateFunc: validation.IntBetween(3, 200),
 				ExactlyOneOf: []string{"node_count", "auto_scale"},
 			},
@@ -219,12 +222,27 @@ func resourceSynapseSparkPool() *pluginsdk.Resource {
 					"3.1",
 					"3.2",
 					"3.3",
+					"3.4",
 				}, false),
 			},
 
 			"tags": tags.Schema(),
 		},
 	}
+
+	if features.FourPointOh() {
+		resource.Schema["spark_version"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				"3.2",
+				"3.3",
+				"3.4",
+			}, false),
+		}
+	}
+
+	return resource
 }
 
 func resourceSynapseSparkPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error {

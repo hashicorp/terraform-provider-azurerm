@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = RequestHistoryId{}
+func init() {
+	recaser.RegisterResourceId(&RequestHistoryId{})
+}
+
+var _ resourceids.ResourceId = &RequestHistoryId{}
 
 // RequestHistoryId is a struct representing the Resource ID for a Request History
 type RequestHistoryId struct {
@@ -36,37 +41,15 @@ func NewRequestHistoryID(subscriptionId string, resourceGroupName string, workfl
 
 // ParseRequestHistoryID parses 'input' into a RequestHistoryId
 func ParseRequestHistoryID(input string) (*RequestHistoryId, error) {
-	parser := resourceids.NewParserFromResourceIdType(RequestHistoryId{})
+	parser := resourceids.NewParserFromResourceIdType(&RequestHistoryId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := RequestHistoryId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.WorkflowName, ok = parsed.Parsed["workflowName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "workflowName", *parsed)
-	}
-
-	if id.RunName, ok = parsed.Parsed["runName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "runName", *parsed)
-	}
-
-	if id.ActionName, ok = parsed.Parsed["actionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "actionName", *parsed)
-	}
-
-	if id.RequestHistoryName, ok = parsed.Parsed["requestHistoryName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "requestHistoryName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -75,40 +58,48 @@ func ParseRequestHistoryID(input string) (*RequestHistoryId, error) {
 // ParseRequestHistoryIDInsensitively parses 'input' case-insensitively into a RequestHistoryId
 // note: this method should only be used for API response data and not user input
 func ParseRequestHistoryIDInsensitively(input string) (*RequestHistoryId, error) {
-	parser := resourceids.NewParserFromResourceIdType(RequestHistoryId{})
+	parser := resourceids.NewParserFromResourceIdType(&RequestHistoryId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := RequestHistoryId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.WorkflowName, ok = parsed.Parsed["workflowName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "workflowName", *parsed)
-	}
-
-	if id.RunName, ok = parsed.Parsed["runName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "runName", *parsed)
-	}
-
-	if id.ActionName, ok = parsed.Parsed["actionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "actionName", *parsed)
-	}
-
-	if id.RequestHistoryName, ok = parsed.Parsed["requestHistoryName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "requestHistoryName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *RequestHistoryId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.WorkflowName, ok = input.Parsed["workflowName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "workflowName", input)
+	}
+
+	if id.RunName, ok = input.Parsed["runName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "runName", input)
+	}
+
+	if id.ActionName, ok = input.Parsed["actionName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "actionName", input)
+	}
+
+	if id.RequestHistoryName, ok = input.Parsed["requestHistoryName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "requestHistoryName", input)
+	}
+
+	return nil
 }
 
 // ValidateRequestHistoryID checks that 'input' can be parsed as a Request History ID
@@ -142,13 +133,13 @@ func (id RequestHistoryId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftLogic", "Microsoft.Logic", "Microsoft.Logic"),
 		resourceids.StaticSegment("staticWorkflows", "workflows", "workflows"),
-		resourceids.UserSpecifiedSegment("workflowName", "workflowValue"),
+		resourceids.UserSpecifiedSegment("workflowName", "workflowName"),
 		resourceids.StaticSegment("staticRuns", "runs", "runs"),
-		resourceids.UserSpecifiedSegment("runName", "runValue"),
+		resourceids.UserSpecifiedSegment("runName", "runName"),
 		resourceids.StaticSegment("staticActions", "actions", "actions"),
-		resourceids.UserSpecifiedSegment("actionName", "actionValue"),
+		resourceids.UserSpecifiedSegment("actionName", "actionName"),
 		resourceids.StaticSegment("staticRequestHistories", "requestHistories", "requestHistories"),
-		resourceids.UserSpecifiedSegment("requestHistoryName", "requestHistoryValue"),
+		resourceids.UserSpecifiedSegment("requestHistoryName", "requestHistoryName"),
 	}
 }
 

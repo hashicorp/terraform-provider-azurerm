@@ -109,7 +109,9 @@ The following arguments are supported:
 
 * `not_before_date` - (Optional) Key not usable before the provided UTC datetime (Y-m-d'T'H:M:S'Z').
 
-* `expiration_date` - (Optional) Expiration UTC datetime (Y-m-d'T'H:M:S'Z').
+~> **Note:** Once `expiration_date` is set, it's not possible to unset the key even if it is deleted & recreated as underlying Azure API uses the restore of the purged key.
+
+* `expiration_date` - (Optional) Expiration UTC datetime (Y-m-d'T'H:M:S'Z'). When this parameter gets changed on reruns, if newer date is ahead of current date, an update is performed. If the newer date is before the current date, resource will be force created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -123,7 +125,7 @@ A `rotation_policy` block supports the following:
 
 * `automatic` - (Optional) An `automatic` block as defined below.
 
-* `notify_before_expiry` - (Optional) Notify at a given duration before expiry as an [ISO 8601 duration](https://en.wikipedia.org/wiki/ISO_8601#Durations). Default is `P30D`.
+* `notify_before_expiry` - (Optional) Notify at a given duration before expiry as an [ISO 8601 duration](https://en.wikipedia.org/wiki/ISO_8601#Durations).
 
 ---
 

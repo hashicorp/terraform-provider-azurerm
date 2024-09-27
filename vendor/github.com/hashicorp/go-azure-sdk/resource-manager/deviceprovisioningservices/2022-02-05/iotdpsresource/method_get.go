@@ -44,7 +44,9 @@ func (c IotDpsResourceClient) Get(ctx context.Context, id commonids.Provisioning
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ProvisioningServiceDescription
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

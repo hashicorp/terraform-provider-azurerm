@@ -9,9 +9,9 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/dataset"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/share"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-05-02/databases"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare/validate"
@@ -55,7 +55,7 @@ func resourceDataShareDataSetKustoDatabase() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: databases.ValidateDatabaseID,
+				ValidateFunc: commonids.ValidateKustoDatabaseID,
 			},
 
 			"display_name": {
@@ -133,8 +133,7 @@ func resourceDataShareDataSetKustoDatabaseRead(d *pluginsdk.ResourceData, meta i
 	d.Set("share_id", shareId.ID())
 
 	if model := resp.Model; model != nil {
-		m := *model
-		if ds, ok := m.(dataset.KustoDatabaseDataSet); ok {
+		if ds, ok := model.(dataset.KustoDatabaseDataSet); ok {
 			props := ds.Properties
 			d.Set("kusto_database_id", props.KustoDatabaseResourceId)
 			d.Set("display_name", props.DataSetId)

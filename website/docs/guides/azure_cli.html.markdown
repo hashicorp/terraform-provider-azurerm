@@ -15,6 +15,7 @@ Terraform supports a number of different methods for authenticating to Azure:
 * [Authenticating to Azure using a Service Principal and a Client Certificate](service_principal_client_certificate.html)
 * [Authenticating to Azure using a Service Principal and a Client Secret](service_principal_client_secret.html)
 * [Authenticating to Azure using a Service Principal and Open ID Connect](service_principal_oidc.html)
+* [Authenticating to Azure using AKS Workload Identity](aks_workload_identity.html)
 
 ---
 
@@ -24,25 +25,57 @@ We recommend using either a Service Principal or Managed Service Identity when r
 
 * Prior to version 1.20, the AzureRM Provider used a different method of authorizing via the Azure CLI where credentials reset after an hour - as such, we'd recommend upgrading to version 1.20 or later of the AzureRM Provider.
 * Terraform only supports authenticating using the `az` CLI (and this must be available on your PATH) - authenticating using the older `azure` CLI or PowerShell Cmdlets are not supported.
-* Authenticating via the Azure CLI is only supported when using a User Account. If you're using a Service Principal (for example via `az login --service-principal`) you should instead authenticate via the Service Principal directly (either using a [Client Secret](service_principal_client_secret.html) or a [Client Certificate](service_principal_client_certificate.html)).
+* Prior to version 3.44, authenticating via the Azure CLI was only supported when using a User Account. For example `az login --service-principal` was not supported and you had to use either a [Client Secret](service_principal_client_secret.html) or a [Client Certificate](service_principal_client_certificate.html). From 3.44 upwards, authenticating via the Azure CLI is supported when using a Service Principal or Managed Identity.
 
 ---
 
 ## Logging into the Azure CLI
 
-~> **Note**: If you're using the **China**, **German** or **Government** Azure Clouds - you'll need to first configure the Azure CLI to work with that Cloud.  You can do this by running:
+~> **Note:** If you're using the **China** or **Government** Azure Clouds - you'll need to first configure the Azure CLI to work with that Cloud.  You can do this by running:
 
 ```shell
-az cloud set --name AzureChinaCloud|AzureGermanCloud|AzureUSGovernment
+az cloud set --name AzureChinaCloud|AzureUSGovernment
 ```
 
 ---
 
-Firstly, login to the Azure CLI using:
+Firstly, login to the Azure CLI using a User, Service Principal or Managed Identity.
+
+User Account:
 
 ```shell
 az login
 ```
+
+Service Principal with a Secret:
+
+```shell
+az login --service-principal -u "CLIENT_ID" -p "CLIENT_SECRET" --tenant "TENANT_ID"
+```
+
+Service Principal with a Certificate:
+
+```shell
+az login --service-principal -u "CLIENT_ID" -p "CERTIFICATE_PEM" --tenant "TENANT_ID"
+```
+
+Service Principal with Open ID Connect (for use in CI / CD):
+
+```shell
+az login --service-principal -u "CLIENT_ID" --tenant "TENANT_ID"
+```
+
+Managed Identity:
+
+```shell
+az login --identity
+
+or
+
+az login --identity --username "CLIENT_ID"
+```
+
+---
 
 Once logged in - it's possible to list the Subscriptions associated with the account via:
 
@@ -81,6 +114,8 @@ az account set --subscription="SUBSCRIPTION_ID"
 
 Now that we're logged into the Azure CLI - we can configure Terraform to use these credentials.
 
+-> **Note:** In version 4.0 of the Azure Provider, it's now required to specify the Azure Subscription ID when configuring a provider instance in your configuration. This can be done by specifying the `subscription_id` provider property, or by exporting the `ARM_SUBSCRIPTION_ID` environment variable. More information can be found in the [Azure Resource Manager: 4.0 Upgrade Guide](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/4.0-upgrade-guide#specifying-subscription-id-is-now-mandatory).
+
 To configure Terraform to use the Default Subscription defined in the Azure CLI - we can use the following Provider block:
 
 ```hcl
@@ -90,7 +125,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=3.0.0"
+      version = "=4.1.0"
     }
   }
 }
@@ -116,7 +151,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=3.0.0"
+      version = "=4.1.0"
     }
   }
 }
@@ -144,7 +179,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=3.0.0"
+      version = "=4.1.0"
     }
   }
 }

@@ -8,21 +8,22 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
 )
 
 func resourceDataFactoryIntegrationRuntimeAzure() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceDataFactoryIntegrationRuntimeAzureCreateUpdate,
 		Read:   resourceDataFactoryIntegrationRuntimeAzureRead,
 		Update: resourceDataFactoryIntegrationRuntimeAzureCreateUpdate,
@@ -78,7 +79,7 @@ func resourceDataFactoryIntegrationRuntimeAzure() *pluginsdk.Resource {
 			"cleanup_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: true, // Defaults to true
+				Default:  true,
 			},
 
 			"compute_type": {
@@ -114,6 +115,16 @@ func resourceDataFactoryIntegrationRuntimeAzure() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["cleanup_enabled"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Computed: true,
+		}
+	}
+
+	return resource
 }
 
 func resourceDataFactoryIntegrationRuntimeAzureCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -272,11 +283,17 @@ func expandDataFactoryIntegrationRuntimeAzureComputeProperties(d *pluginsdk.Reso
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	coreCount := int32(d.Get("core_count").(int))
 	timeToLiveMin := int32(d.Get("time_to_live_min").(int))
+
 	cleanup := true
-	// nolint staticcheck
-	if v, ok := d.GetOkExists("cleanup_enabled"); ok {
-		cleanup = v.(bool)
+	if features.FourPointOhBeta() {
+		cleanup = d.Get("cleanup_enabled").(bool)
+	} else {
+		// nolint staticcheck
+		if v, ok := d.GetOkExists("cleanup_enabled"); ok {
+			cleanup = v.(bool)
+		}
 	}
+
 	return &datafactory.IntegrationRuntimeComputeProperties{
 		Location: &location,
 		DataFlowProperties: &datafactory.IntegrationRuntimeDataFlowProperties{

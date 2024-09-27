@@ -65,6 +65,21 @@ func TestAccMonitorDataCollectionRule_kindDirectToStore(t *testing.T) {
 	})
 }
 
+func TestAccMonitorDataCollectionRule_kindWorkspaceTransforms(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_data_collection_rule", "test")
+	r := MonitorDataCollectionRuleResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.kindWorkspaceTransforms(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccMonitorDataCollectionRule_identity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_data_collection_rule", "test")
 	r := MonitorDataCollectionRuleResource{}
@@ -265,6 +280,39 @@ resource "azurerm_monitor_data_collection_rule" "test" {
       name    = "test-datasource-syslog"
       streams = ["Microsoft-Syslog", "Microsoft-CiscoAsa"]
     }
+  }
+}
+`, r.template(data), data.RandomInteger, data.RandomString)
+}
+
+func (r MonitorDataCollectionRuleResource) kindWorkspaceTransforms(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctest-law-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
+resource "azurerm_monitor_data_collection_rule" "test" {
+  name                = "acctestmdcr-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  kind                = "WorkspaceTransforms"
+  destinations {
+    log_analytics {
+      workspace_resource_id = azurerm_log_analytics_workspace.test.id
+      name                  = "test-destination-log"
+    }
+  }
+
+  data_flow {
+    streams       = ["Microsoft-Table-LAQueryLogs"]
+    destinations  = ["test-destination-log"]
+    transform_kql = "source | where QueryText !contains 'LAQueryLogs' | extend Context = parse_json(RequestContext) | extend Resources_CF = tostring(Context['workspaces'])"
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomString)
@@ -535,13 +583,6 @@ resource "azurerm_monitor_data_collection_rule" "test" {
     destinations = ["test-destination-log"]
   }
 
-  data_flow {
-    streams       = ["Custom-MyTableRawData"]
-    destinations  = ["test-destination-log"]
-    output_stream = "Microsoft-Syslog"
-    transform_kql = "source | project TimeGenerated = Time, Computer, Message = AdditionalContext"
-  }
-
   data_sources {
     data_import {
       event_hub_data_source {
@@ -618,6 +659,19 @@ resource "azurerm_monitor_data_collection_rule" "test" {
       name = "test-datasource-perfcounter2"
     }
 
+    performance_counter {
+      streams                       = ["Microsoft-Perf"]
+      sampling_frequency_in_seconds = 1800
+      counter_specifiers = [
+        "Memory(*)\\Available MBytes Memory",
+        "Memory(*)\\%% Available Memory",
+        "Memory(*)\\Used Memory MBytes",
+        "Memory(*)\\%% Used Memory",
+        "Memory(*)\\Pages/sec"
+      ]
+      name = "test-datasource-perfcounter3"
+    }
+
     prometheus_forwarder {
       label_include_filter {
         label = "microsoft_metrics_include_label"
@@ -625,11 +679,6 @@ resource "azurerm_monitor_data_collection_rule" "test" {
       }
       streams = ["Microsoft-PrometheusMetrics"]
       name    = "test-datasource-prometheus"
-    }
-
-    platform_telemetry {
-      streams = ["Microsoft.Cache/redis:Metrics-Group-All"]
-      name    = "test-datasource-telemetry"
     }
 
     windows_event_log {

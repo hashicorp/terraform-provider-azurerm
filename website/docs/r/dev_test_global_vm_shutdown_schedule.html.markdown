@@ -55,8 +55,8 @@ resource "azurerm_linux_virtual_machine" "example" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-focal"
-    sku       = "20_04-lts"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -103,7 +103,7 @@ The following arguments are supported:
 
 * `daily_recurrence_time` - (Required) The time each day when the schedule takes effect. Must match the format HHmm where HH is 00-23 and mm is 00-59 (e.g. 0930, 2300, etc.)
 
-* `notification_settings` - (Required) The notification setting of a schedule. A `notification_settings` as defined below.
+* `notification_settings` - (Required) The notification setting of a schedule. A `notification_settings` block as defined below.
 
 ---
 

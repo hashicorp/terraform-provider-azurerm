@@ -20,7 +20,20 @@ type ClustersListByResourceGroupOperationResponse struct {
 }
 
 type ClustersListByResourceGroupCompleteResult struct {
-	Items []Cluster
+	LatestHttpResponse *http.Response
+	Items              []Cluster
+}
+
+type ClustersListByResourceGroupCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ClustersListByResourceGroupCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ClustersListByResourceGroup ...
@@ -31,6 +44,7 @@ func (c EventHubsClustersClient) ClustersListByResourceGroup(ctx context.Context
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ClustersListByResourceGroupCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.EventHub/clusters", id.ID()),
 	}
 
@@ -72,6 +86,7 @@ func (c EventHubsClustersClient) ClustersListByResourceGroupCompleteMatchingPred
 
 	resp, err := c.ClustersListByResourceGroup(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -84,7 +99,8 @@ func (c EventHubsClustersClient) ClustersListByResourceGroupCompleteMatchingPred
 	}
 
 	result = ClustersListByResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

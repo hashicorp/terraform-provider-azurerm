@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = QueueId{}
+func init() {
+	recaser.RegisterResourceId(&QueueId{})
+}
+
+var _ resourceids.ResourceId = &QueueId{}
 
 // QueueId is a struct representing the Resource ID for a Queue
 type QueueId struct {
@@ -32,29 +37,15 @@ func NewQueueID(subscriptionId string, resourceGroupName string, namespaceName s
 
 // ParseQueueID parses 'input' into a QueueId
 func ParseQueueID(input string) (*QueueId, error) {
-	parser := resourceids.NewParserFromResourceIdType(QueueId{})
+	parser := resourceids.NewParserFromResourceIdType(&QueueId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := QueueId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.NamespaceName, ok = parsed.Parsed["namespaceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "namespaceName", *parsed)
-	}
-
-	if id.QueueName, ok = parsed.Parsed["queueName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "queueName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +54,40 @@ func ParseQueueID(input string) (*QueueId, error) {
 // ParseQueueIDInsensitively parses 'input' case-insensitively into a QueueId
 // note: this method should only be used for API response data and not user input
 func ParseQueueIDInsensitively(input string) (*QueueId, error) {
-	parser := resourceids.NewParserFromResourceIdType(QueueId{})
+	parser := resourceids.NewParserFromResourceIdType(&QueueId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := QueueId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.NamespaceName, ok = parsed.Parsed["namespaceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "namespaceName", *parsed)
-	}
-
-	if id.QueueName, ok = parsed.Parsed["queueName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "queueName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *QueueId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.NamespaceName, ok = input.Parsed["namespaceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "namespaceName", input)
+	}
+
+	if id.QueueName, ok = input.Parsed["queueName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "queueName", input)
+	}
+
+	return nil
 }
 
 // ValidateQueueID checks that 'input' can be parsed as a Queue ID
@@ -122,9 +121,9 @@ func (id QueueId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftServiceBus", "Microsoft.ServiceBus", "Microsoft.ServiceBus"),
 		resourceids.StaticSegment("staticNamespaces", "namespaces", "namespaces"),
-		resourceids.UserSpecifiedSegment("namespaceName", "namespaceValue"),
+		resourceids.UserSpecifiedSegment("namespaceName", "namespaceName"),
 		resourceids.StaticSegment("staticQueues", "queues", "queues"),
-		resourceids.UserSpecifiedSegment("queueName", "queueValue"),
+		resourceids.UserSpecifiedSegment("queueName", "queueName"),
 	}
 }
 

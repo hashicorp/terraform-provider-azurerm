@@ -1,13 +1,14 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/partnertopics` Documentation
 
-The `partnertopics` SDK allows for interaction with the Azure Resource Manager Service `eventgrid` (API Version `2022-06-15`).
+The `partnertopics` SDK allows for interaction with Azure Resource Manager `eventgrid` (API Version `2022-06-15`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/partnertopics"
 ```
 
@@ -24,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := partnertopics.NewPartnerTopicID("12345678-1234-9876-4563-123456789012", "example-resource-group", "partnerTopicValue")
+id := partnertopics.NewPartnerTopicID("12345678-1234-9876-4563-123456789012", "example-resource-group", "partnerTopicName")
 
 read, err := client.Activate(ctx, id)
 if err != nil {
@@ -40,7 +41,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := partnertopics.NewPartnerTopicID("12345678-1234-9876-4563-123456789012", "example-resource-group", "partnerTopicValue")
+id := partnertopics.NewPartnerTopicID("12345678-1234-9876-4563-123456789012", "example-resource-group", "partnerTopicName")
 
 payload := partnertopics.PartnerTopic{
 	// ...
@@ -61,7 +62,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := partnertopics.NewPartnerTopicID("12345678-1234-9876-4563-123456789012", "example-resource-group", "partnerTopicValue")
+id := partnertopics.NewPartnerTopicID("12345678-1234-9876-4563-123456789012", "example-resource-group", "partnerTopicName")
 
 read, err := client.Deactivate(ctx, id)
 if err != nil {
@@ -77,7 +78,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := partnertopics.NewPartnerTopicID("12345678-1234-9876-4563-123456789012", "example-resource-group", "partnerTopicValue")
+id := partnertopics.NewPartnerTopicID("12345678-1234-9876-4563-123456789012", "example-resource-group", "partnerTopicName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -89,7 +90,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := partnertopics.NewPartnerTopicID("12345678-1234-9876-4563-123456789012", "example-resource-group", "partnerTopicValue")
+id := partnertopics.NewPartnerTopicID("12345678-1234-9876-4563-123456789012", "example-resource-group", "partnerTopicName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -105,7 +106,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := partnertopics.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
+id := commonids.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
 // alternatively `client.ListByResourceGroup(ctx, id, partnertopics.DefaultListByResourceGroupOperationOptions())` can be used to do batched pagination
 items, err := client.ListByResourceGroupComplete(ctx, id, partnertopics.DefaultListByResourceGroupOperationOptions())
@@ -122,7 +123,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := partnertopics.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 // alternatively `client.ListBySubscription(ctx, id, partnertopics.DefaultListBySubscriptionOperationOptions())` can be used to do batched pagination
 items, err := client.ListBySubscriptionComplete(ctx, id, partnertopics.DefaultListBySubscriptionOperationOptions())
@@ -139,7 +140,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := partnertopics.NewPartnerTopicID("12345678-1234-9876-4563-123456789012", "example-resource-group", "partnerTopicValue")
+id := partnertopics.NewPartnerTopicID("12345678-1234-9876-4563-123456789012", "example-resource-group", "partnerTopicName")
 
 payload := partnertopics.PartnerTopicUpdateParameters{
 	// ...

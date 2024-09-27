@@ -26,6 +26,7 @@ class serviceDetails(name: String, displayName: String, environment: String, vcs
 
             failureConditions {
                 errorMessage = true
+                executionTimeoutMin = 60 * timeout
             }
 
             features {

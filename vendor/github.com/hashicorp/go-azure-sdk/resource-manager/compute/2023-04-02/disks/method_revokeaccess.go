@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
@@ -21,7 +22,7 @@ type RevokeAccessOperationResponse struct {
 }
 
 // RevokeAccess ...
-func (c DisksClient) RevokeAccess(ctx context.Context, id DiskId) (result RevokeAccessOperationResponse, err error) {
+func (c DisksClient) RevokeAccess(ctx context.Context, id commonids.ManagedDiskId) (result RevokeAccessOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -56,7 +57,7 @@ func (c DisksClient) RevokeAccess(ctx context.Context, id DiskId) (result Revoke
 }
 
 // RevokeAccessThenPoll performs RevokeAccess then polls until it's completed
-func (c DisksClient) RevokeAccessThenPoll(ctx context.Context, id DiskId) error {
+func (c DisksClient) RevokeAccessThenPoll(ctx context.Context, id commonids.ManagedDiskId) error {
 	result, err := c.RevokeAccess(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing RevokeAccess: %+v", err)

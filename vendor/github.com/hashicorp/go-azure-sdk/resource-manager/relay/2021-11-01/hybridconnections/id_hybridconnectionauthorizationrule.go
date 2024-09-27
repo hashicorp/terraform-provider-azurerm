@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = HybridConnectionAuthorizationRuleId{}
+func init() {
+	recaser.RegisterResourceId(&HybridConnectionAuthorizationRuleId{})
+}
+
+var _ resourceids.ResourceId = &HybridConnectionAuthorizationRuleId{}
 
 // HybridConnectionAuthorizationRuleId is a struct representing the Resource ID for a Hybrid Connection Authorization Rule
 type HybridConnectionAuthorizationRuleId struct {
@@ -34,33 +39,15 @@ func NewHybridConnectionAuthorizationRuleID(subscriptionId string, resourceGroup
 
 // ParseHybridConnectionAuthorizationRuleID parses 'input' into a HybridConnectionAuthorizationRuleId
 func ParseHybridConnectionAuthorizationRuleID(input string) (*HybridConnectionAuthorizationRuleId, error) {
-	parser := resourceids.NewParserFromResourceIdType(HybridConnectionAuthorizationRuleId{})
+	parser := resourceids.NewParserFromResourceIdType(&HybridConnectionAuthorizationRuleId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := HybridConnectionAuthorizationRuleId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.NamespaceName, ok = parsed.Parsed["namespaceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "namespaceName", *parsed)
-	}
-
-	if id.HybridConnectionName, ok = parsed.Parsed["hybridConnectionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "hybridConnectionName", *parsed)
-	}
-
-	if id.AuthorizationRuleName, ok = parsed.Parsed["authorizationRuleName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "authorizationRuleName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,36 +56,44 @@ func ParseHybridConnectionAuthorizationRuleID(input string) (*HybridConnectionAu
 // ParseHybridConnectionAuthorizationRuleIDInsensitively parses 'input' case-insensitively into a HybridConnectionAuthorizationRuleId
 // note: this method should only be used for API response data and not user input
 func ParseHybridConnectionAuthorizationRuleIDInsensitively(input string) (*HybridConnectionAuthorizationRuleId, error) {
-	parser := resourceids.NewParserFromResourceIdType(HybridConnectionAuthorizationRuleId{})
+	parser := resourceids.NewParserFromResourceIdType(&HybridConnectionAuthorizationRuleId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := HybridConnectionAuthorizationRuleId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.NamespaceName, ok = parsed.Parsed["namespaceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "namespaceName", *parsed)
-	}
-
-	if id.HybridConnectionName, ok = parsed.Parsed["hybridConnectionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "hybridConnectionName", *parsed)
-	}
-
-	if id.AuthorizationRuleName, ok = parsed.Parsed["authorizationRuleName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "authorizationRuleName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *HybridConnectionAuthorizationRuleId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.NamespaceName, ok = input.Parsed["namespaceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "namespaceName", input)
+	}
+
+	if id.HybridConnectionName, ok = input.Parsed["hybridConnectionName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "hybridConnectionName", input)
+	}
+
+	if id.AuthorizationRuleName, ok = input.Parsed["authorizationRuleName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "authorizationRuleName", input)
+	}
+
+	return nil
 }
 
 // ValidateHybridConnectionAuthorizationRuleID checks that 'input' can be parsed as a Hybrid Connection Authorization Rule ID
@@ -132,11 +127,11 @@ func (id HybridConnectionAuthorizationRuleId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftRelay", "Microsoft.Relay", "Microsoft.Relay"),
 		resourceids.StaticSegment("staticNamespaces", "namespaces", "namespaces"),
-		resourceids.UserSpecifiedSegment("namespaceName", "namespaceValue"),
+		resourceids.UserSpecifiedSegment("namespaceName", "namespaceName"),
 		resourceids.StaticSegment("staticHybridConnections", "hybridConnections", "hybridConnections"),
-		resourceids.UserSpecifiedSegment("hybridConnectionName", "hybridConnectionValue"),
+		resourceids.UserSpecifiedSegment("hybridConnectionName", "hybridConnectionName"),
 		resourceids.StaticSegment("staticAuthorizationRules", "authorizationRules", "authorizationRules"),
-		resourceids.UserSpecifiedSegment("authorizationRuleName", "authorizationRuleValue"),
+		resourceids.UserSpecifiedSegment("authorizationRuleName", "authorizationRuleName"),
 	}
 }
 

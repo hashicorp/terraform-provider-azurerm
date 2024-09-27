@@ -44,7 +44,9 @@ func (c DeploymentScriptsClient) GetLogs(ctx context.Context, id DeploymentScrip
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ScriptLogsList
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

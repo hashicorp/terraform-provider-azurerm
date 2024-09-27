@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -36,7 +37,7 @@ const killChainName = "Lockheed Martin - Intrusion Kill Chain"
 type IndicatorModel struct {
 	Name                       string                   `tfschema:"guid"`
 	WorkspaceId                string                   `tfschema:"workspace_id"`
-	Confidence                 int32                    `tfschema:"confidence"`
+	Confidence                 int64                    `tfschema:"confidence"`
 	CreatedByRef               string                   `tfschema:"created_by"`
 	Description                string                   `tfschema:"description"`
 	DisplayName                string                   `tfschema:"display_name"`
@@ -141,8 +142,9 @@ func (r ThreatIntelligenceIndicator) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"extension": {
-			Type:             pluginsdk.TypeString,
-			Optional:         true,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// NOTE: O+C API sets this if omitted without issues for overwriting/reverting to default so this can remain
 			Computed:         true,
 			ValidateFunc:     validation.StringIsJSON,
 			DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
@@ -435,7 +437,7 @@ func (r ThreatIntelligenceIndicator) Create() sdk.ResourceFunc {
 			props.Pattern = &patternValue
 
 			if model.Confidence != -1 {
-				props.Confidence = utils.Int32(model.Confidence)
+				props.Confidence = pointer.To(int32(model.Confidence))
 			}
 
 			if model.CreatedByRef != "" {
@@ -561,7 +563,7 @@ func (r ThreatIntelligenceIndicator) Update() sdk.ResourceFunc {
 				if model.Confidence == -1 {
 					properties.Confidence = nil
 				} else {
-					properties.Confidence = &model.Confidence
+					properties.Confidence = pointer.To(int32(model.Confidence))
 				}
 			}
 
@@ -670,12 +672,7 @@ func (r ThreatIntelligenceIndicator) Read() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			workspaceId := workspaces.WorkspaceId{
-				SubscriptionId:    id.SubscriptionId,
-				ResourceGroupName: id.ResourceGroup,
-				WorkspaceName:     id.WorkspaceName,
-			}
-
+			workspaceId := workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName)
 			resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.IndicatorName)
 			if err != nil {
 				if utils.ResponseWasNotFound(resp.Response) {
@@ -691,11 +688,11 @@ func (r ThreatIntelligenceIndicator) Read() sdk.ResourceFunc {
 			}
 
 			state := IndicatorModel{
-				Name:        *model.Name,
-				CreatedOn:   *model.Created,
+				Name:        pointer.From(model.Name),
+				CreatedOn:   pointer.From(model.Created),
 				WorkspaceId: workspaceId.ID(),
-				PatternType: *model.PatternType,
-				Revoked:     *model.Revoked,
+				PatternType: pointer.From(model.PatternType),
+				Revoked:     pointer.From(model.Revoked),
 			}
 
 			patternValue, err := flattenIndicatorPattern(*model.Pattern)
@@ -705,7 +702,7 @@ func (r ThreatIntelligenceIndicator) Read() sdk.ResourceFunc {
 			state.Pattern = patternValue
 
 			if model.Confidence != nil {
-				state.Confidence = *model.Confidence
+				state.Confidence = int64(*model.Confidence)
 			} else {
 				state.Confidence = -1
 			}

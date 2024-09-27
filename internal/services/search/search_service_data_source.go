@@ -13,9 +13,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2022-09-01/adminkeys"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2022-09-01/querykeys"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2022-09-01/services"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2023-11-01/adminkeys"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2023-11-01/querykeys"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2023-11-01/services"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -84,6 +85,8 @@ func dataSourceSearchService() *pluginsdk.Resource {
 			},
 
 			"identity": commonschema.SystemAssignedIdentityComputed(),
+
+			"tags": commonschema.TagsDataSource(),
 		},
 	}
 }
@@ -132,6 +135,10 @@ func dataSourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) er
 
 		if err = d.Set("identity", identity.FlattenSystemAssigned(model.Identity)); err != nil {
 			return fmt.Errorf("setting `identity`: %s", err)
+		}
+
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return fmt.Errorf("setting `tags`: %+v", err)
 		}
 	}
 

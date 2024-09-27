@@ -5,13 +5,14 @@ package netapp
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -119,6 +120,26 @@ func dataSourceNetAppVolume() *pluginsdk.Resource {
 					},
 				},
 			},
+
+			"encryption_key_source": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"key_vault_private_endpoint_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"smb_non_browsable_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"smb_access_based_enumeration_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -161,6 +182,20 @@ func dataSourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) err
 		d.Set("service_level", string(pointer.From(props.ServiceLevel)))
 		d.Set("subnet_id", props.SubnetId)
 		d.Set("network_features", string(pointer.From(props.NetworkFeatures)))
+		d.Set("encryption_key_source", string(pointer.From(props.EncryptionKeySource)))
+		d.Set("key_vault_private_endpoint_id", props.KeyVaultPrivateEndpointResourceId)
+
+		smbNonBrowsable := false
+		if props.SmbNonBrowsable != nil {
+			smbNonBrowsable = strings.EqualFold(string(*props.SmbNonBrowsable), string(volumes.SmbNonBrowsableEnabled))
+		}
+		d.Set("smb_non_browsable_enabled", smbNonBrowsable)
+
+		smbAccessBasedEnumeration := false
+		if props.SmbAccessBasedEnumeration != nil {
+			smbAccessBasedEnumeration = strings.EqualFold(string(*props.SmbAccessBasedEnumeration), string(volumes.SmbAccessBasedEnumerationEnabled))
+		}
+		d.Set("smb_access_based_enumeration_enabled", smbAccessBasedEnumeration)
 
 		protocolTypes := make([]string, 0)
 		if prtclTypes := props.ProtocolTypes; prtclTypes != nil {

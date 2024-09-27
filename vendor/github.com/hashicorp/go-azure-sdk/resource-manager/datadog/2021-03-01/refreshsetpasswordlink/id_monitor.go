@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = MonitorId{}
+func init() {
+	recaser.RegisterResourceId(&MonitorId{})
+}
+
+var _ resourceids.ResourceId = &MonitorId{}
 
 // MonitorId is a struct representing the Resource ID for a Monitor
 type MonitorId struct {
@@ -30,25 +35,15 @@ func NewMonitorID(subscriptionId string, resourceGroupName string, monitorName s
 
 // ParseMonitorID parses 'input' into a MonitorId
 func ParseMonitorID(input string) (*MonitorId, error) {
-	parser := resourceids.NewParserFromResourceIdType(MonitorId{})
+	parser := resourceids.NewParserFromResourceIdType(&MonitorId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := MonitorId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.MonitorName, ok = parsed.Parsed["monitorName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "monitorName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +52,36 @@ func ParseMonitorID(input string) (*MonitorId, error) {
 // ParseMonitorIDInsensitively parses 'input' case-insensitively into a MonitorId
 // note: this method should only be used for API response data and not user input
 func ParseMonitorIDInsensitively(input string) (*MonitorId, error) {
-	parser := resourceids.NewParserFromResourceIdType(MonitorId{})
+	parser := resourceids.NewParserFromResourceIdType(&MonitorId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := MonitorId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.MonitorName, ok = parsed.Parsed["monitorName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "monitorName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *MonitorId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.MonitorName, ok = input.Parsed["monitorName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "monitorName", input)
+	}
+
+	return nil
 }
 
 // ValidateMonitorID checks that 'input' can be parsed as a Monitor ID
@@ -112,7 +115,7 @@ func (id MonitorId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDatadog", "Microsoft.Datadog", "Microsoft.Datadog"),
 		resourceids.StaticSegment("staticMonitors", "monitors", "monitors"),
-		resourceids.UserSpecifiedSegment("monitorName", "monitorValue"),
+		resourceids.UserSpecifiedSegment("monitorName", "monitorName"),
 	}
 }
 

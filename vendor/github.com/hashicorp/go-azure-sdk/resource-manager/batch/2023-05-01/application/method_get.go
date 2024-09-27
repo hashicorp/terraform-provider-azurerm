@@ -43,7 +43,9 @@ func (c ApplicationClient) Get(ctx context.Context, id ApplicationId) (result Ge
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Application
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

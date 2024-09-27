@@ -37,8 +37,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `template` - A `template` block as detailed below.
 
----
-
 * `dapr` - A `dapr` block as detailed below.
 
 * `identity` - An `identity` block as detailed below.
@@ -49,19 +47,27 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `secret` - One or more `secret` block as detailed below.
 
+* `workload_profile_name` - The name of the Workload Profile in the Container App Environment in which this Container App is running.
+
 * `tags` - A mapping of tags to assign to the Container App.
 
 ---
 
 A `secret` block supports the following:
 
-* `name` - The Secret name.
+* `identity` - The identity used for accessing the Key Vault.
+
+* `key_vault_secret_id` - The ID of a Key Vault secret.
+
+* `name` - The secret name.
 
 * `value` - The value for this secret.
 
 ---
 
 A `template` block supports the following:
+
+* `init_container` - One or more `init_container` blocks as detailed below.
 
 * `container` - One or more `container` blocks as detailed below.
 
@@ -82,6 +88,28 @@ A `volume` block supports the following:
 * `storage_name` - The name of the `AzureFile` storage.
 
 * `storage_type` - The type of storage volume. Possible values include `AzureFile` and `EmptyDir`. Defaults to `EmptyDir`.
+
+---
+
+A `init_container` block supports the following:
+
+* `args` - A list of extra arguments to pass to the container.
+
+* `command` - A command to pass to the container to override the default. This is provided as a list of command line elements without spaces.
+
+* `cpu` - The amount of vCPU to allocate to the container. Possible values include `0.25`, `0.5`, `0.75`, `1.0`, `1.25`, `1.5`, `1.75`, and `2.0`.
+
+* `env` - One or more `env` blocks as detailed below.
+
+* `ephemeral_storage` - The amount of ephemeral storage available to the Container App.
+
+* `image` - The image to use to create the container.
+
+* `memory` - The amount of memory to allocate to the container. Possible values include `0.5Gi`, `1Gi`, `1.5Gi`, `2Gi`, `2.5Gi`, `3Gi`, `3.5Gi`, and `4Gi`.
+
+* `name` - The name of the container
+
+* `volume_mounts` - A `volume_mounts` block as detailed below.
 
 ---
 
@@ -241,6 +269,8 @@ An `ingress` block supports the following:
 
 * `external_enabled` - Is this an external Ingress.
 
+* `ip_security_restriction` - One or more `ip_security_restriction` blocks for IP-filtering rules as defined below.
+
 * `target_port` - The target port on the container for the Ingress traffic.
 
 * `traffic_weight` - A `traffic_weight` block as detailed below.
@@ -256,6 +286,18 @@ A `custom_domain` block supports the following:
 * `certificate_id` - The ID of the Container App Environment Certificate.
 
 * `name` - The hostname of the Certificate. Must be the CN or a named SAN in the certificate.
+
+---
+
+A `ip_security_restriction` block exports the following:
+
+* `action` - The IP-filter action.
+
+* `description` - Description of the IP restriction rule that is being sent to the container-app.
+
+* `ip_address_range` - CIDR notation that matches the incoming IP address.
+
+* `name` - Name for the IP restriction rule.
 
 ---
 

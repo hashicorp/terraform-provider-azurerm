@@ -1,13 +1,14 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/networkfunction/2022-11-01/azuretrafficcollectors` Documentation
 
-The `azuretrafficcollectors` SDK allows for interaction with the Azure Resource Manager Service `networkfunction` (API Version `2022-11-01`).
+The `azuretrafficcollectors` SDK allows for interaction with Azure Resource Manager `networkfunction` (API Version `2022-11-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/networkfunction/2022-11-01/azuretrafficcollectors"
 ```
 
@@ -24,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := azuretrafficcollectors.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
+id := commonids.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
 // alternatively `client.ByResourceGroupList(ctx, id)` can be used to do batched pagination
 items, err := client.ByResourceGroupListComplete(ctx, id)
@@ -41,7 +42,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := azuretrafficcollectors.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 // alternatively `client.BySubscriptionList(ctx, id)` can be used to do batched pagination
 items, err := client.BySubscriptionListComplete(ctx, id)
@@ -58,7 +59,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := azuretrafficcollectors.NewAzureTrafficCollectorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "azureTrafficCollectorValue")
+id := azuretrafficcollectors.NewAzureTrafficCollectorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "azureTrafficCollectorName")
 
 payload := azuretrafficcollectors.AzureTrafficCollector{
 	// ...
@@ -75,7 +76,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := azuretrafficcollectors.NewAzureTrafficCollectorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "azureTrafficCollectorValue")
+id := azuretrafficcollectors.NewAzureTrafficCollectorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "azureTrafficCollectorName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -87,7 +88,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := azuretrafficcollectors.NewAzureTrafficCollectorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "azureTrafficCollectorValue")
+id := azuretrafficcollectors.NewAzureTrafficCollectorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "azureTrafficCollectorName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -103,7 +104,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := azuretrafficcollectors.NewAzureTrafficCollectorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "azureTrafficCollectorValue")
+id := azuretrafficcollectors.NewAzureTrafficCollectorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "azureTrafficCollectorName")
 
 payload := azuretrafficcollectors.TagsObject{
 	// ...

@@ -31,6 +31,10 @@ The following arguments are supported:
 
 * `container_access_type` - The Access Level configured for this Container.
 
+* `default_encryption_scope` - The default encryption scope in use for blobs uploaded to this container.
+
+* `encryption_scope_override_enabled` - Whether blobs are allowed to override the default encryption scope for this container.
+
 * `has_immutability_policy` - Is there an Immutability Policy configured on this Storage Container?
 
 * `has_legal_hold` - Is there a Legal Hold configured on this Storage Container?

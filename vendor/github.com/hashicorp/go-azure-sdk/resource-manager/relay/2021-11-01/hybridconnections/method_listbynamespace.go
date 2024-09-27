@@ -19,7 +19,20 @@ type ListByNamespaceOperationResponse struct {
 }
 
 type ListByNamespaceCompleteResult struct {
-	Items []HybridConnection
+	LatestHttpResponse *http.Response
+	Items              []HybridConnection
+}
+
+type ListByNamespaceCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByNamespaceCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListByNamespace ...
@@ -30,6 +43,7 @@ func (c HybridConnectionsClient) ListByNamespace(ctx context.Context, id Namespa
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByNamespaceCustomPager{},
 		Path:       fmt.Sprintf("%s/hybridConnections", id.ID()),
 	}
 
@@ -71,6 +85,7 @@ func (c HybridConnectionsClient) ListByNamespaceCompleteMatchingPredicate(ctx co
 
 	resp, err := c.ListByNamespace(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +98,8 @@ func (c HybridConnectionsClient) ListByNamespaceCompleteMatchingPredicate(ctx co
 	}
 
 	result = ListByNamespaceCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

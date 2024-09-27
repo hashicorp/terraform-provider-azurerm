@@ -16,6 +16,7 @@ import (
 type AliasCreateOperationResponse struct {
 	Poller       polling.LongRunningPoller
 	HttpResponse *http.Response
+	Model        *SubscriptionAliasResponse
 }
 
 // AliasCreate ...

@@ -50,19 +50,19 @@ The following arguments are supported:
 
 * `start_date` - (Required) The start date and time of the Scheduled Action (UTC).
 
-* `view_id` - (Required) The ID of the Cost Management View that is used by the Scheduled Action.
+* `view_id` - (Required) The ID of the Cost Management View that is used by the Scheduled Action. Changing this forces a new resource to be created.
 
 ---
 
 * `day_of_month` - (Optional) UTC day on which cost analysis data will be emailed. Must be between `1` and `31`. This property is applicable when `frequency` is `Monthly`.
 
-* `days_of_week` - (Optional) Specifies a list of day names on which cost analysis data will be emailed. This property is applicable when frequency is `Weekly` or `Monthly`.
+* `days_of_week` - (Optional) Specifies a list of day names on which cost analysis data will be emailed. This property is applicable when frequency is `Weekly` or `Monthly`. Possible values are `Friday`, `Monday`, `Saturday`, `Sunday`, `Thursday`, `Tuesday` and `Wednesday`.
 
 * `hour_of_day` - (Optional) UTC time at which cost analysis data will be emailed. Must be between `0` and `23`.
 
 * `message` - (Optional) Message to be added in the email. Length is limited to 250 characters.
 
-* `weeks_of_month` - (Optional) Specifies a list of weeks in which cost analysis data will be emailed. This property is applicable when `frequency` is `Monthly` and used in combination with `days_of_week`.
+* `weeks_of_month` - (Optional) Specifies a list of weeks in which cost analysis data will be emailed. This property is applicable when `frequency` is `Monthly` and used in combination with `days_of_week`. Possible values are `First`, `Fourth`, `Last`, `Second` and `Third`.
 
 ## Attributes Reference
 

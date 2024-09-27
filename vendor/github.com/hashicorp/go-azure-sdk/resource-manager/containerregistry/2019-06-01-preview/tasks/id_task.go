@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = TaskId{}
+func init() {
+	recaser.RegisterResourceId(&TaskId{})
+}
+
+var _ resourceids.ResourceId = &TaskId{}
 
 // TaskId is a struct representing the Resource ID for a Task
 type TaskId struct {
@@ -32,29 +37,15 @@ func NewTaskID(subscriptionId string, resourceGroupName string, registryName str
 
 // ParseTaskID parses 'input' into a TaskId
 func ParseTaskID(input string) (*TaskId, error) {
-	parser := resourceids.NewParserFromResourceIdType(TaskId{})
+	parser := resourceids.NewParserFromResourceIdType(&TaskId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := TaskId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.RegistryName, ok = parsed.Parsed["registryName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "registryName", *parsed)
-	}
-
-	if id.TaskName, ok = parsed.Parsed["taskName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "taskName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +54,40 @@ func ParseTaskID(input string) (*TaskId, error) {
 // ParseTaskIDInsensitively parses 'input' case-insensitively into a TaskId
 // note: this method should only be used for API response data and not user input
 func ParseTaskIDInsensitively(input string) (*TaskId, error) {
-	parser := resourceids.NewParserFromResourceIdType(TaskId{})
+	parser := resourceids.NewParserFromResourceIdType(&TaskId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := TaskId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.RegistryName, ok = parsed.Parsed["registryName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "registryName", *parsed)
-	}
-
-	if id.TaskName, ok = parsed.Parsed["taskName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "taskName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *TaskId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.RegistryName, ok = input.Parsed["registryName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "registryName", input)
+	}
+
+	if id.TaskName, ok = input.Parsed["taskName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "taskName", input)
+	}
+
+	return nil
 }
 
 // ValidateTaskID checks that 'input' can be parsed as a Task ID
@@ -122,9 +121,9 @@ func (id TaskId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftContainerRegistry", "Microsoft.ContainerRegistry", "Microsoft.ContainerRegistry"),
 		resourceids.StaticSegment("staticRegistries", "registries", "registries"),
-		resourceids.UserSpecifiedSegment("registryName", "registryValue"),
+		resourceids.UserSpecifiedSegment("registryName", "registryName"),
 		resourceids.StaticSegment("staticTasks", "tasks", "tasks"),
-		resourceids.UserSpecifiedSegment("taskName", "taskValue"),
+		resourceids.UserSpecifiedSegment("taskName", "taskName"),
 	}
 }
 

@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ManagedPrivateEndpointId{}
+func init() {
+	recaser.RegisterResourceId(&ManagedPrivateEndpointId{})
+}
+
+var _ resourceids.ResourceId = &ManagedPrivateEndpointId{}
 
 // ManagedPrivateEndpointId is a struct representing the Resource ID for a Managed Private Endpoint
 type ManagedPrivateEndpointId struct {
@@ -34,33 +39,15 @@ func NewManagedPrivateEndpointID(subscriptionId string, resourceGroupName string
 
 // ParseManagedPrivateEndpointID parses 'input' into a ManagedPrivateEndpointId
 func ParseManagedPrivateEndpointID(input string) (*ManagedPrivateEndpointId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ManagedPrivateEndpointId{})
+	parser := resourceids.NewParserFromResourceIdType(&ManagedPrivateEndpointId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ManagedPrivateEndpointId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.FactoryName, ok = parsed.Parsed["factoryName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "factoryName", *parsed)
-	}
-
-	if id.ManagedVirtualNetworkName, ok = parsed.Parsed["managedVirtualNetworkName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "managedVirtualNetworkName", *parsed)
-	}
-
-	if id.ManagedPrivateEndpointName, ok = parsed.Parsed["managedPrivateEndpointName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "managedPrivateEndpointName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,36 +56,44 @@ func ParseManagedPrivateEndpointID(input string) (*ManagedPrivateEndpointId, err
 // ParseManagedPrivateEndpointIDInsensitively parses 'input' case-insensitively into a ManagedPrivateEndpointId
 // note: this method should only be used for API response data and not user input
 func ParseManagedPrivateEndpointIDInsensitively(input string) (*ManagedPrivateEndpointId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ManagedPrivateEndpointId{})
+	parser := resourceids.NewParserFromResourceIdType(&ManagedPrivateEndpointId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ManagedPrivateEndpointId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.FactoryName, ok = parsed.Parsed["factoryName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "factoryName", *parsed)
-	}
-
-	if id.ManagedVirtualNetworkName, ok = parsed.Parsed["managedVirtualNetworkName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "managedVirtualNetworkName", *parsed)
-	}
-
-	if id.ManagedPrivateEndpointName, ok = parsed.Parsed["managedPrivateEndpointName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "managedPrivateEndpointName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ManagedPrivateEndpointId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.FactoryName, ok = input.Parsed["factoryName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "factoryName", input)
+	}
+
+	if id.ManagedVirtualNetworkName, ok = input.Parsed["managedVirtualNetworkName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "managedVirtualNetworkName", input)
+	}
+
+	if id.ManagedPrivateEndpointName, ok = input.Parsed["managedPrivateEndpointName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "managedPrivateEndpointName", input)
+	}
+
+	return nil
 }
 
 // ValidateManagedPrivateEndpointID checks that 'input' can be parsed as a Managed Private Endpoint ID
@@ -132,11 +127,11 @@ func (id ManagedPrivateEndpointId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDataFactory", "Microsoft.DataFactory", "Microsoft.DataFactory"),
 		resourceids.StaticSegment("staticFactories", "factories", "factories"),
-		resourceids.UserSpecifiedSegment("factoryName", "factoryValue"),
+		resourceids.UserSpecifiedSegment("factoryName", "factoryName"),
 		resourceids.StaticSegment("staticManagedVirtualNetworks", "managedVirtualNetworks", "managedVirtualNetworks"),
-		resourceids.UserSpecifiedSegment("managedVirtualNetworkName", "managedVirtualNetworkValue"),
+		resourceids.UserSpecifiedSegment("managedVirtualNetworkName", "managedVirtualNetworkName"),
 		resourceids.StaticSegment("staticManagedPrivateEndpoints", "managedPrivateEndpoints", "managedPrivateEndpoints"),
-		resourceids.UserSpecifiedSegment("managedPrivateEndpointName", "managedPrivateEndpointValue"),
+		resourceids.UserSpecifiedSegment("managedPrivateEndpointName", "managedPrivateEndpointName"),
 	}
 }
 

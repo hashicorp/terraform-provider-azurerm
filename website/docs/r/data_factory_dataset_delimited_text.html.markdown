@@ -96,7 +96,7 @@ The following supported arguments are specific to Delimited Text Dataset:
 
 * `first_row_as_header` - (Optional) When used as input, treat the first row of data as headers. When used as output, write the headers into the output as the first row of data. Defaults to `false`.
 
-* `null_value` - (Optional) The null value string. Defaults to an empty string. Defaults to `""`.
+* `null_value` - (Optional) The null value string. Defaults to `""`.
 
 * `compression_codec` - (Optional) The compression codec used to read/write text files. Valid values are `None`, `bzip2`, `gzip`, `deflate`, `ZipDeflate`, `TarGzip`, `Tar`, `snappy` and `lz4`. Please note these values are case sensitive.
 
@@ -116,11 +116,17 @@ A `schema_column` block supports the following:
 
 An `azure_blob_fs_location` block supports the following:
 
-* `file_system` - (Required) The storage data lake gen2 file system on the Azure Blob Storage Account hosting the file.
+* `file_system` - (Optional) The storage data lake gen2 file system on the Azure Blob Storage Account hosting the file.
+
+* `dynamic_file_system_enabled` - (Optional) Is the `file_system` using dynamic expression, function or system variables? Defaults to `false`.
 
 * `path` - (Optional) The folder path to the file.
 
+* `dynamic_path_enabled` - (Optional) Is the `path` using dynamic expression, function or system variables? Defaults to `false`.
+
 * `filename` - (Optional) The filename of the file.
+
+* `dynamic_filename_enabled` - (Optional) Is the `filename` using dynamic expression, function or system variables? Defaults to `false`.
 
 ---
 

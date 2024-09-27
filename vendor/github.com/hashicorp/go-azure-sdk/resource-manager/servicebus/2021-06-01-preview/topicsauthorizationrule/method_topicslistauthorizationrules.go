@@ -19,7 +19,20 @@ type TopicsListAuthorizationRulesOperationResponse struct {
 }
 
 type TopicsListAuthorizationRulesCompleteResult struct {
-	Items []SBAuthorizationRule
+	LatestHttpResponse *http.Response
+	Items              []SBAuthorizationRule
+}
+
+type TopicsListAuthorizationRulesCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *TopicsListAuthorizationRulesCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // TopicsListAuthorizationRules ...
@@ -30,6 +43,7 @@ func (c TopicsAuthorizationRuleClient) TopicsListAuthorizationRules(ctx context.
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &TopicsListAuthorizationRulesCustomPager{},
 		Path:       fmt.Sprintf("%s/authorizationRules", id.ID()),
 	}
 
@@ -71,6 +85,7 @@ func (c TopicsAuthorizationRuleClient) TopicsListAuthorizationRulesCompleteMatch
 
 	resp, err := c.TopicsListAuthorizationRules(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +98,8 @@ func (c TopicsAuthorizationRuleClient) TopicsListAuthorizationRulesCompleteMatch
 	}
 
 	result = TopicsListAuthorizationRulesCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

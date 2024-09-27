@@ -18,6 +18,7 @@ type UpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *OutboundEndpoint
 }
 
 type UpdateOperationOptions struct {
@@ -38,6 +39,7 @@ func (o UpdateOperationOptions) ToHeaders() *client.Headers {
 
 func (o UpdateOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -56,8 +58,8 @@ func (c OutboundEndpointsClient) Update(ctx context.Context, id OutboundEndpoint
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPatch,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

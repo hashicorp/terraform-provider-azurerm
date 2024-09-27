@@ -7,7 +7,8 @@ import (
 	"reflect"
 	"testing"
 
-	parseCompute "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 func TestMaintenanceAssignmentVirtualMachineID(t *testing.T) {
@@ -58,12 +59,8 @@ func TestMaintenanceAssignmentVirtualMachineID(t *testing.T) {
 			Error: false,
 			Expect: &MaintenanceAssignmentVirtualMachineId{
 				VirtualMachineIdRaw: "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/resGroup1/providers/microsoft.compute/virtualMachines/vm1",
-				VirtualMachineId: &parseCompute.VirtualMachineId{
-					SubscriptionId: "00000000-0000-0000-0000-000000000000",
-					ResourceGroup:  "resGroup1",
-					Name:           "vm1",
-				},
-				Name: "assign1",
+				VirtualMachineId:    pointer.To(commonids.NewVirtualMachineID("00000000-0000-0000-0000-000000000000", "resGroup1", "vm1")),
+				Name:                "assign1",
 			},
 		},
 		{

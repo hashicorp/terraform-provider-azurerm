@@ -41,7 +41,7 @@ The following arguments are supported:
 
 ---
 
-* `incoming_traffic_policy` - (Optional) Incoming traffic policy. Possible values are `AllowAllTraffic` and `AllowVirtualNetworksOnly`.
+* `incoming_traffic_policy` - (Optional) Incoming traffic policy. Possible values are `AllowAllTraffic` and `AllowVirtualNetworksOnly`. Defaults to `AllowAllTraffic`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Storage Sync.
 
@@ -50,6 +50,8 @@ The following arguments are supported:
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Storage Sync.
+
+* `registered_servers` - A list of registered servers owned by this Storage Sync.
 
 ## Timeouts
 

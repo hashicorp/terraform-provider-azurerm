@@ -82,10 +82,6 @@ The following arguments are supported:
 
 * `service_url` - (Optional) Absolute URL of the backend service implementing this API.
 
-* `soap_pass_through` - (Optional) Should this API expose a SOAP frontend, rather than a HTTP frontend? Defaults to `false`.
-
--> **NOTE:** This property has been deprecated in favour of the `api_type` property and will be removed in version 4.0 of the provider.
-
 * `subscription_key_parameter_names` - (Optional) A `subscription_key_parameter_names` block as documented below.
 
 * `subscription_required` - (Optional) Should this API require a subscription key? Defaults to `true`.
@@ -174,9 +170,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `is_online` - Is this API Revision online/accessible via the Gateway?
 
-* `version` - (Optional) The Version number of this API, if this API is versioned.
+* `version` - The Version number of this API, if this API is versioned.
 
-* `version_set_id` - (Optional) The ID of the Version Set which this API is associated with.
+* `version_set_id` - The ID of the Version Set which this API is associated with.
 
 ## Timeouts
 
@@ -192,5 +188,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 API Management API's can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_api_management_api.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ApiManagement/service/instance1/apis/api1
+terraform import azurerm_api_management_api.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ApiManagement/service/instance1/apis/api1;rev=1
 ```

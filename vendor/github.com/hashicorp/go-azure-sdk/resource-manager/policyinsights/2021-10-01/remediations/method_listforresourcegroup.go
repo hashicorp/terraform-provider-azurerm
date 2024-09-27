@@ -20,7 +20,8 @@ type ListForResourceGroupOperationResponse struct {
 }
 
 type ListForResourceGroupCompleteResult struct {
-	Items []Remediation
+	LatestHttpResponse *http.Response
+	Items              []Remediation
 }
 
 type ListForResourceGroupOperationOptions struct {
@@ -40,6 +41,7 @@ func (o ListForResourceGroupOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListForResourceGroupOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -54,6 +56,18 @@ func (o ListForResourceGroupOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListForResourceGroupCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListForResourceGroupCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListForResourceGroup ...
 func (c RemediationsClient) ListForResourceGroup(ctx context.Context, id commonids.ResourceGroupId, options ListForResourceGroupOperationOptions) (result ListForResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -62,8 +76,9 @@ func (c RemediationsClient) ListForResourceGroup(ctx context.Context, id commoni
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/providers/Microsoft.PolicyInsights/remediations", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListForResourceGroupCustomPager{},
+		Path:          fmt.Sprintf("%s/providers/Microsoft.PolicyInsights/remediations", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -104,6 +119,7 @@ func (c RemediationsClient) ListForResourceGroupCompleteMatchingPredicate(ctx co
 
 	resp, err := c.ListForResourceGroup(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -116,7 +132,8 @@ func (c RemediationsClient) ListForResourceGroupCompleteMatchingPredicate(ctx co
 	}
 
 	result = ListForResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

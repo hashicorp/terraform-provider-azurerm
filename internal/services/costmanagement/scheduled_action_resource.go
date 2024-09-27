@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2022-10-01/scheduledactions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2022-10-01/views"
@@ -190,7 +191,7 @@ func (r CostManagementScheduledActionResource) Create() sdk.ResourceFunc {
 			}
 
 			props := scheduledactions.ScheduledAction{
-				Kind: utils.ToPtr(scheduledactions.ScheduledActionKindEmail),
+				Kind: pointer.To(scheduledactions.ScheduledActionKindEmail),
 				Properties: &scheduledactions.ScheduledActionProperties{
 					DisplayName: metadata.ResourceData.Get("display_name").(string),
 					Status:      scheduledactions.ScheduledActionStatusEnabled,

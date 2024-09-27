@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = RuleId{}
+func init() {
+	recaser.RegisterResourceId(&RuleId{})
+}
+
+var _ resourceids.ResourceId = &RuleId{}
 
 // RuleId is a struct representing the Resource ID for a Rule
 type RuleId struct {
@@ -36,37 +41,15 @@ func NewRuleID(subscriptionId string, resourceGroupName string, namespaceName st
 
 // ParseRuleID parses 'input' into a RuleId
 func ParseRuleID(input string) (*RuleId, error) {
-	parser := resourceids.NewParserFromResourceIdType(RuleId{})
+	parser := resourceids.NewParserFromResourceIdType(&RuleId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := RuleId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.NamespaceName, ok = parsed.Parsed["namespaceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "namespaceName", *parsed)
-	}
-
-	if id.TopicName, ok = parsed.Parsed["topicName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "topicName", *parsed)
-	}
-
-	if id.SubscriptionName, ok = parsed.Parsed["subscriptionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionName", *parsed)
-	}
-
-	if id.RuleName, ok = parsed.Parsed["ruleName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "ruleName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -75,40 +58,48 @@ func ParseRuleID(input string) (*RuleId, error) {
 // ParseRuleIDInsensitively parses 'input' case-insensitively into a RuleId
 // note: this method should only be used for API response data and not user input
 func ParseRuleIDInsensitively(input string) (*RuleId, error) {
-	parser := resourceids.NewParserFromResourceIdType(RuleId{})
+	parser := resourceids.NewParserFromResourceIdType(&RuleId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := RuleId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.NamespaceName, ok = parsed.Parsed["namespaceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "namespaceName", *parsed)
-	}
-
-	if id.TopicName, ok = parsed.Parsed["topicName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "topicName", *parsed)
-	}
-
-	if id.SubscriptionName, ok = parsed.Parsed["subscriptionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionName", *parsed)
-	}
-
-	if id.RuleName, ok = parsed.Parsed["ruleName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "ruleName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *RuleId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.NamespaceName, ok = input.Parsed["namespaceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "namespaceName", input)
+	}
+
+	if id.TopicName, ok = input.Parsed["topicName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "topicName", input)
+	}
+
+	if id.SubscriptionName, ok = input.Parsed["subscriptionName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionName", input)
+	}
+
+	if id.RuleName, ok = input.Parsed["ruleName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "ruleName", input)
+	}
+
+	return nil
 }
 
 // ValidateRuleID checks that 'input' can be parsed as a Rule ID
@@ -142,13 +133,13 @@ func (id RuleId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftServiceBus", "Microsoft.ServiceBus", "Microsoft.ServiceBus"),
 		resourceids.StaticSegment("staticNamespaces", "namespaces", "namespaces"),
-		resourceids.UserSpecifiedSegment("namespaceName", "namespaceValue"),
+		resourceids.UserSpecifiedSegment("namespaceName", "namespaceName"),
 		resourceids.StaticSegment("staticTopics", "topics", "topics"),
-		resourceids.UserSpecifiedSegment("topicName", "topicValue"),
+		resourceids.UserSpecifiedSegment("topicName", "topicName"),
 		resourceids.StaticSegment("staticSubscriptions2", "subscriptions", "subscriptions"),
-		resourceids.UserSpecifiedSegment("subscriptionName", "subscriptionValue"),
+		resourceids.UserSpecifiedSegment("subscriptionName", "subscriptionName"),
 		resourceids.StaticSegment("staticRules", "rules", "rules"),
-		resourceids.UserSpecifiedSegment("ruleName", "ruleValue"),
+		resourceids.UserSpecifiedSegment("ruleName", "ruleName"),
 	}
 }
 

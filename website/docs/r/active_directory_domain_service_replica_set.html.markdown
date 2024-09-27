@@ -260,7 +260,7 @@ resource "azurerm_virtual_network_peering" "replica_primary" {
 
 resource "azurerm_virtual_network_dns_servers" "replica" {
   virtual_network_id = azurerm_virtual_network.replica.id
-  dns_servers        = azurerm_active_directory_domain_service.example.initial_replica_set.0.domain_controller_ip_addresses
+  dns_servers        = azurerm_active_directory_domain_service.example.initial_replica_set[0].domain_controller_ip_addresses
 }
 
 resource "azurerm_active_directory_domain_service_replica_set" "replica" {
@@ -303,7 +303,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 3 hours) Used when creating the Domain Service.
-* `update` - (Defaults to 2 hours) Used when updating the Domain Service.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Domain Service.
 * `delete` - (Defaults to 60 minutes) Used when deleting the Domain Service.
 

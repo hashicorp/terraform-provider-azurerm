@@ -51,7 +51,9 @@ The following arguments are supported:
 
 * `email_address` - (Required) The email address that the Bot will authenticate with.
 
-* `email_password` - (Required) The email password that the Bot will authenticate with.
+* `email_password` - (Optional) The email password that the Bot will authenticate with.
+
+* `magic_code` - (Optional) The magic code used to set up OAUTH authentication.
 
 ## Attributes Reference
 

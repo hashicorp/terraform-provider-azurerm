@@ -44,7 +44,9 @@ func (c HealthbotsClient) BotsRegenerateApiJwtSecret(ctx context.Context, id Hea
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model HealthBotKey
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -30,7 +30,7 @@ func TestAccDatabricksWorkspaceDataSource_basic(t *testing.T) {
 	})
 }
 
-func TestAccDatabricksWorkspaceDataSource_storage_account_identity(t *testing.T) {
+func TestAccDatabricksWorkspaceDataSource_storageAccountIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_databricks_workspace", "test")
 	r := DatabricksWorkspaceDataSource{}
 

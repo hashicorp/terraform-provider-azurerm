@@ -201,6 +201,24 @@ func (r KubernetesClusterTrustedAccessRoleBindingResource) Update() sdk.Resource
 	}
 }
 
+func (r KubernetesClusterTrustedAccessRoleBindingResource) mapKubernetesClusterTrustedAccessRoleBindingResourceSchemaToTrustedAccessRoleBinding(input KubernetesClusterTrustedAccessRoleBindingResourceSchema, output *trustedaccess.TrustedAccessRoleBinding) error {
+
+	if err := r.mapKubernetesClusterTrustedAccessRoleBindingResourceSchemaToTrustedAccessRoleBindingProperties(input, &output.Properties); err != nil {
+		return fmt.Errorf("mapping Schema to SDK Field %q / Model %q: %+v", "TrustedAccessRoleBindingProperties", "Properties", err)
+	}
+
+	return nil
+}
+
+func (r KubernetesClusterTrustedAccessRoleBindingResource) mapTrustedAccessRoleBindingToKubernetesClusterTrustedAccessRoleBindingResourceSchema(input trustedaccess.TrustedAccessRoleBinding, output *KubernetesClusterTrustedAccessRoleBindingResourceSchema) error {
+
+	if err := r.mapTrustedAccessRoleBindingPropertiesToKubernetesClusterTrustedAccessRoleBindingResourceSchema(input.Properties, output); err != nil {
+		return fmt.Errorf("mapping SDK Field %q / Model %q to Schema: %+v", "TrustedAccessRoleBindingProperties", "Properties", err)
+	}
+
+	return nil
+}
+
 func (r KubernetesClusterTrustedAccessRoleBindingResource) mapKubernetesClusterTrustedAccessRoleBindingResourceSchemaToTrustedAccessRoleBindingProperties(input KubernetesClusterTrustedAccessRoleBindingResourceSchema, output *trustedaccess.TrustedAccessRoleBindingProperties) error {
 
 	roles := make([]string, 0)
@@ -222,23 +240,5 @@ func (r KubernetesClusterTrustedAccessRoleBindingResource) mapTrustedAccessRoleB
 	output.Roles = roles
 
 	output.SourceResourceId = input.SourceResourceId
-	return nil
-}
-
-func (r KubernetesClusterTrustedAccessRoleBindingResource) mapKubernetesClusterTrustedAccessRoleBindingResourceSchemaToTrustedAccessRoleBinding(input KubernetesClusterTrustedAccessRoleBindingResourceSchema, output *trustedaccess.TrustedAccessRoleBinding) error {
-
-	if err := r.mapKubernetesClusterTrustedAccessRoleBindingResourceSchemaToTrustedAccessRoleBindingProperties(input, &output.Properties); err != nil {
-		return fmt.Errorf("mapping Schema to SDK Field %q / Model %q: %+v", "TrustedAccessRoleBindingProperties", "Properties", err)
-	}
-
-	return nil
-}
-
-func (r KubernetesClusterTrustedAccessRoleBindingResource) mapTrustedAccessRoleBindingToKubernetesClusterTrustedAccessRoleBindingResourceSchema(input trustedaccess.TrustedAccessRoleBinding, output *KubernetesClusterTrustedAccessRoleBindingResourceSchema) error {
-
-	if err := r.mapTrustedAccessRoleBindingPropertiesToKubernetesClusterTrustedAccessRoleBindingResourceSchema(input.Properties, output); err != nil {
-		return fmt.Errorf("mapping SDK Field %q / Model %q to Schema: %+v", "TrustedAccessRoleBindingProperties", "Properties", err)
-	}
-
 	return nil
 }

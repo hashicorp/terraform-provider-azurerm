@@ -98,8 +98,8 @@ resource "azurerm_orbital_spacecraft" "test" {
   norad_id            = "12345"
 
   links {
-    bandwidth_mhz        = 100
-    center_frequency_mhz = 101
+    bandwidth_mhz        = 30
+    center_frequency_mhz = 2050
     direction            = "Uplink"
     polarization         = "LHCP"
     name                 = "linkname"
@@ -119,12 +119,12 @@ func (r SpacecraftResource) update(data acceptance.TestData) string {
 resource "azurerm_orbital_spacecraft" "test" {
   name                = "acctestspacecraft-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
-  location            = "eastus"
+  location            = "westus"
   norad_id            = "23456"
 
   links {
-    bandwidth_mhz        = 100
-    center_frequency_mhz = 101
+    bandwidth_mhz        = 20
+    center_frequency_mhz = 2045
     direction            = "Uplink"
     polarization         = "LHCP"
     name                 = "linkname"
@@ -148,8 +148,8 @@ resource "azurerm_orbital_spacecraft" "test" {
   norad_id            = "12345"
 
   links {
-    bandwidth_mhz        = 100
-    center_frequency_mhz = 101
+    bandwidth_mhz        = 30
+    center_frequency_mhz = 2050
     direction            = "Uplink"
     polarization         = "LHCP"
     name                 = "linkname"

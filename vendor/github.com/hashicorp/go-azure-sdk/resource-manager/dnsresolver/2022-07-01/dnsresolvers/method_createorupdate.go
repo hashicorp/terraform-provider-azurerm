@@ -18,6 +18,7 @@ type CreateOrUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *DnsResolver
 }
 
 type CreateOrUpdateOperationOptions struct {
@@ -42,6 +43,7 @@ func (o CreateOrUpdateOperationOptions) ToHeaders() *client.Headers {
 
 func (o CreateOrUpdateOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -61,8 +63,8 @@ func (c DnsResolversClient) CreateOrUpdate(ctx context.Context, id DnsResolverId
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPut,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

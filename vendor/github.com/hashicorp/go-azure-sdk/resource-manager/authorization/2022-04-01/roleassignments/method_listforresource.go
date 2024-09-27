@@ -20,7 +20,8 @@ type ListForResourceOperationResponse struct {
 }
 
 type ListForResourceCompleteResult struct {
-	Items []RoleAssignment
+	LatestHttpResponse *http.Response
+	Items              []RoleAssignment
 }
 
 type ListForResourceOperationOptions struct {
@@ -40,6 +41,7 @@ func (o ListForResourceOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListForResourceOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -54,6 +56,18 @@ func (o ListForResourceOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListForResourceCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListForResourceCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListForResource ...
 func (c RoleAssignmentsClient) ListForResource(ctx context.Context, id commonids.ScopeId, options ListForResourceOperationOptions) (result ListForResourceOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -62,8 +76,9 @@ func (c RoleAssignmentsClient) ListForResource(ctx context.Context, id commonids
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/providers/Microsoft.Authorization/roleAssignments", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListForResourceCustomPager{},
+		Path:          fmt.Sprintf("%s/providers/Microsoft.Authorization/roleAssignments", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -104,6 +119,7 @@ func (c RoleAssignmentsClient) ListForResourceCompleteMatchingPredicate(ctx cont
 
 	resp, err := c.ListForResource(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -116,7 +132,8 @@ func (c RoleAssignmentsClient) ListForResourceCompleteMatchingPredicate(ctx cont
 	}
 
 	result = ListForResourceCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

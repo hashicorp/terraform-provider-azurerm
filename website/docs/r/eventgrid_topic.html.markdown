@@ -102,7 +102,7 @@ A `inbound_ip_rule` block supports the following:
 
 * `ip_mask` - (Required) The IP mask (CIDR) to match on.
 
-* `action` - (Optional) The action to take when the rule is matched. Possible values are `Allow`.
+* `action` - (Optional) The action to take when the rule is matched. Possible values are `Allow`. Defaults to `Allow`.
 
 ## Attributes Reference
 

@@ -103,11 +103,11 @@ The `backup` block supports:
 
 The `hourly` block supports:
 
-* `interval` - (Optional) Specifies the interval at which backup needs to be triggered. Possible values are `4`, `6`, `8` and `12`
+* `interval` - (Required) Specifies the interval at which backup needs to be triggered. Possible values are `4`, `6`, `8` and `12`.
 
-* `start_time` - (Optional) Specifies the start time of the hourly backup. The time format should be in 24-hour format. Times must be either on the hour or half hour (e.g. 12:00, 12:30, 13:00, etc.)
+* `start_time` - (Required) Specifies the start time of the hourly backup. The time format should be in 24-hour format. Times must be either on the hour or half hour (e.g. 12:00, 12:30, 13:00, etc.).
 
-* `window_duration` - (Optional) Species the duration of the backup window in hours. Details could be found [here](https://learn.microsoft.com/en-us/azure/backup/backup-azure-files-faq#what-does-the-duration-attribute-in-azure-files-backup-policy-signify-)
+* `window_duration` - (Required) Species the duration of the backup window in hours. Details could be found [here](https://learn.microsoft.com/en-us/azure/backup/backup-azure-files-faq#what-does-the-duration-attribute-in-azure-files-backup-policy-signify-).
 
 ---
 

@@ -1,13 +1,14 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/subscription/2021-10-01/subscriptions` Documentation
 
-The `subscriptions` SDK allows for interaction with the Azure Resource Manager Service `subscription` (API Version `2021-10-01`).
+The `subscriptions` SDK allows for interaction with Azure Resource Manager `subscription` (API Version `2021-10-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/subscription/2021-10-01/subscriptions"
 ```
 
@@ -24,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := subscriptions.NewAliasID("aliasValue")
+id := subscriptions.NewAliasID("aliasName")
 
 payload := subscriptions.PutAliasRequest{
 	// ...
@@ -41,7 +42,7 @@ if err := client.AliasCreateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := subscriptions.NewAliasID("aliasValue")
+id := subscriptions.NewAliasID("aliasName")
 
 read, err := client.AliasDelete(ctx, id)
 if err != nil {
@@ -57,7 +58,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := subscriptions.NewAliasID("aliasValue")
+id := subscriptions.NewAliasID("aliasName")
 
 read, err := client.AliasGet(ctx, id)
 if err != nil {
@@ -75,12 +76,13 @@ if model := read.Model; model != nil {
 ctx := context.TODO()
 
 
-read, err := client.AliasList(ctx)
+// alternatively `client.AliasList(ctx)` can be used to do batched pagination
+items, err := client.AliasListComplete(ctx)
 if err != nil {
 	// handle the error
 }
-if model := read.Model; model != nil {
-	// do something with the model/response object
+for _, item := range items {
+	// do something
 }
 ```
 
@@ -89,7 +91,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := subscriptions.NewBillingAccountID("billingAccountIdValue")
+id := subscriptions.NewBillingAccountID("billingAccountId")
 
 read, err := client.BillingAccountGetPolicy(ctx, id)
 if err != nil {
@@ -138,9 +140,9 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := subscriptions.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
-read, err := client.SubscriptionCancel(ctx, id)
+read, err := client.SubscriptionCancel(ctx, id, subscriptions.DefaultSubscriptionCancelOperationOptions())
 if err != nil {
 	// handle the error
 }
@@ -154,7 +156,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := subscriptions.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 read, err := client.SubscriptionEnable(ctx, id)
 if err != nil {
@@ -170,7 +172,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := subscriptions.NewSubscriptionOperationID("operationIdValue")
+id := subscriptions.NewSubscriptionOperationID("operationId")
 
 read, err := client.SubscriptionOperationGet(ctx, id)
 if err != nil {
@@ -239,7 +241,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := subscriptions.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 payload := subscriptions.SubscriptionName{
 	// ...

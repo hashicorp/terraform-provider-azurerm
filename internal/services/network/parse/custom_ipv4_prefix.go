@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package parse
 
 // NOTE: this file is generated via 'go:generate' - manual changes will be overwritten

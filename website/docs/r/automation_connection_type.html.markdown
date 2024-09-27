@@ -75,7 +75,7 @@ A `field` block supports the following:
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The the Automation Connection Type ID.
+* `id` - The Automation Connection Type ID.
 
 ## Timeouts
 

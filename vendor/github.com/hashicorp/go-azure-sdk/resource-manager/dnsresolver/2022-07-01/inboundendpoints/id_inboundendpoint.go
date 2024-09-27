@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = InboundEndpointId{}
+func init() {
+	recaser.RegisterResourceId(&InboundEndpointId{})
+}
+
+var _ resourceids.ResourceId = &InboundEndpointId{}
 
 // InboundEndpointId is a struct representing the Resource ID for a Inbound Endpoint
 type InboundEndpointId struct {
@@ -32,29 +37,15 @@ func NewInboundEndpointID(subscriptionId string, resourceGroupName string, dnsRe
 
 // ParseInboundEndpointID parses 'input' into a InboundEndpointId
 func ParseInboundEndpointID(input string) (*InboundEndpointId, error) {
-	parser := resourceids.NewParserFromResourceIdType(InboundEndpointId{})
+	parser := resourceids.NewParserFromResourceIdType(&InboundEndpointId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := InboundEndpointId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.DnsResolverName, ok = parsed.Parsed["dnsResolverName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "dnsResolverName", *parsed)
-	}
-
-	if id.InboundEndpointName, ok = parsed.Parsed["inboundEndpointName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "inboundEndpointName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +54,40 @@ func ParseInboundEndpointID(input string) (*InboundEndpointId, error) {
 // ParseInboundEndpointIDInsensitively parses 'input' case-insensitively into a InboundEndpointId
 // note: this method should only be used for API response data and not user input
 func ParseInboundEndpointIDInsensitively(input string) (*InboundEndpointId, error) {
-	parser := resourceids.NewParserFromResourceIdType(InboundEndpointId{})
+	parser := resourceids.NewParserFromResourceIdType(&InboundEndpointId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := InboundEndpointId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.DnsResolverName, ok = parsed.Parsed["dnsResolverName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "dnsResolverName", *parsed)
-	}
-
-	if id.InboundEndpointName, ok = parsed.Parsed["inboundEndpointName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "inboundEndpointName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *InboundEndpointId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.DnsResolverName, ok = input.Parsed["dnsResolverName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "dnsResolverName", input)
+	}
+
+	if id.InboundEndpointName, ok = input.Parsed["inboundEndpointName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "inboundEndpointName", input)
+	}
+
+	return nil
 }
 
 // ValidateInboundEndpointID checks that 'input' can be parsed as a Inbound Endpoint ID
@@ -122,9 +121,9 @@ func (id InboundEndpointId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticDnsResolvers", "dnsResolvers", "dnsResolvers"),
-		resourceids.UserSpecifiedSegment("dnsResolverName", "dnsResolverValue"),
+		resourceids.UserSpecifiedSegment("dnsResolverName", "dnsResolverName"),
 		resourceids.StaticSegment("staticInboundEndpoints", "inboundEndpoints", "inboundEndpoints"),
-		resourceids.UserSpecifiedSegment("inboundEndpointName", "inboundEndpointValue"),
+		resourceids.UserSpecifiedSegment("inboundEndpointName", "inboundEndpointName"),
 	}
 }
 

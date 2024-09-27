@@ -7,6 +7,20 @@ const (
 	MaxQuotaTargetIDSizeInKiB int64 = 4294967295
 )
 
+type NetAppAccountEncryption struct {
+	NetAppAccountID                   string `tfschema:"netapp_account_id"`
+	UserAssignedIdentityID            string `tfschema:"user_assigned_identity_id"`
+	SystemAssignedIdentityPrincipalID string `tfschema:"system_assigned_identity_principal_id"`
+	EncryptionKey                     string `tfschema:"encryption_key"`
+}
+
+type NetAppAccountEncryptionDataSourceModel struct {
+	NetAppAccountID                   string `tfschema:"netapp_account_id"`
+	UserAssignedIdentityID            string `tfschema:"user_assigned_identity_id"`
+	SystemAssignedIdentityPrincipalID string `tfschema:"system_assigned_identity_principal_id"`
+	EncryptionKey                     string `tfschema:"encryption_key"`
+}
+
 type NetAppVolumeGroupVolume struct {
 	Id                           string                         `tfschema:"id"`
 	Name                         string                         `tfschema:"name"`
@@ -49,7 +63,7 @@ type NetAppVolumeGroupSapHanaDataSourceModel struct {
 }
 
 type ExportPolicyRule struct {
-	RuleIndex         int    `tfschema:"rule_index"`
+	RuleIndex         int64  `tfschema:"rule_index"`
 	AllowedClients    string `tfschema:"allowed_clients"`
 	Nfsv3Enabled      bool   `tfschema:"nfsv3_enabled"`
 	Nfsv41Enabled     bool   `tfschema:"nfsv41_enabled"`

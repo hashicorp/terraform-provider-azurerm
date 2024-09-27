@@ -9,11 +9,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-04-01/datastore"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-04-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2024-04-01/datastore"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2024-04-01/workspaces"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -128,7 +129,6 @@ func (r MachineLearningDataStoreDataLakeGen2) Arguments() map[string]*pluginsdk.
 		"authority_url": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
@@ -172,38 +172,39 @@ func (r MachineLearningDataStoreDataLakeGen2) Create() sdk.ResourceFunc {
 
 			datastoreRaw := datastore.DatastoreResource{
 				Name: utils.String(model.Name),
-				Type: utils.ToPtr(string(datastore.DatastoreTypeAzureDataLakeGenTwo)),
+				Type: pointer.To(string(datastore.DatastoreTypeAzureDataLakeGenTwo)),
 			}
 
 			props := &datastore.AzureDataLakeGen2Datastore{
 				AccountName:                   containerId.StorageAccountName,
+				Endpoint:                      pointer.To(metadata.Client.Storage.StorageDomainSuffix),
 				Filesystem:                    containerId.ContainerName,
 				Description:                   utils.String(model.Description),
-				ServiceDataAccessAuthIdentity: utils.ToPtr(datastore.ServiceDataAccessAuthIdentity(model.ServiceDataIdentity)),
-				Tags:                          utils.ToPtr(model.Tags),
+				ServiceDataAccessAuthIdentity: pointer.To(datastore.ServiceDataAccessAuthIdentity(model.ServiceDataIdentity)),
+				Tags:                          pointer.To(model.Tags),
 			}
 
-			creds := map[string]interface{}{
-				"credentialsType": "None",
-			}
+			var creds datastore.DatastoreCredentials = datastore.NoneDatastoreCredentials{}
 
 			if len(model.TenantID) != 0 && len(model.ClientID) != 0 && len(model.ClientSecret) != 0 {
-				creds = map[string]interface{}{
-					"credentialsType": string(datastore.CredentialsTypeServicePrincipal),
-					"authorityUrl":    model.AuthorityUrl,
-					"resourceUrl":     "https://datalake.azure.net/",
-					"tenantId":        model.TenantID,
-					"clientId":        model.ClientID,
-					"secrets": map[string]interface{}{
-						"secretsType":  "ServicePrincipal",
-						"clientSecret": model.ClientSecret,
+				resourceId, ok := metadata.Client.Account.Environment.DataLake.ResourceIdentifier()
+				if !ok {
+					return fmt.Errorf("could not determine resource identifier for DataLake in the %q cloud environment", metadata.Client.Account.Environment.Name)
+				}
+				creds = datastore.ServicePrincipalDatastoreCredentials{
+					AuthorityUrl: pointer.To(model.AuthorityUrl),
+					ResourceUrl:  resourceId,
+					TenantId:     model.TenantID,
+					ClientId:     model.ClientID,
+					Secrets: datastore.ServicePrincipalDatastoreSecrets{
+						ClientSecret: pointer.To(model.ClientSecret),
 					},
 				}
 			}
 			props.Credentials = creds
 			datastoreRaw.Properties = props
 
-			_, err = client.CreateOrUpdate(ctx, id, datastoreRaw, datastore.DefaultCreateOrUpdateOperationOptions())
+			_, err = client.CreateOrUpdate(ctx, id, datastoreRaw, datastore.CreateOrUpdateOperationOptions{SkipValidation: pointer.To(true)})
 			if err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
@@ -236,38 +237,38 @@ func (r MachineLearningDataStoreDataLakeGen2) Update() sdk.ResourceFunc {
 
 			datastoreRaw := datastore.DatastoreResource{
 				Name: utils.String(id.DataStoreName),
-				Type: utils.ToPtr(string(datastore.DatastoreTypeAzureDataLakeGenTwo)),
+				Type: pointer.To(string(datastore.DatastoreTypeAzureDataLakeGenTwo)),
 			}
 
 			props := &datastore.AzureDataLakeGen2Datastore{
 				AccountName:                   containerId.StorageAccountName,
 				Filesystem:                    containerId.ContainerName,
 				Description:                   utils.String(state.Description),
-				ServiceDataAccessAuthIdentity: utils.ToPtr(datastore.ServiceDataAccessAuthIdentity(state.ServiceDataIdentity)),
-				Tags:                          utils.ToPtr(state.Tags),
+				ServiceDataAccessAuthIdentity: pointer.To(datastore.ServiceDataAccessAuthIdentity(state.ServiceDataIdentity)),
+				Tags:                          pointer.To(state.Tags),
 			}
 
-			creds := map[string]interface{}{
-				"credentialsType": "None",
-			}
+			var creds datastore.DatastoreCredentials = datastore.NoneDatastoreCredentials{}
 
 			if len(state.TenantID) != 0 && len(state.ClientID) != 0 && len(state.ClientSecret) != 0 {
-				creds = map[string]interface{}{
-					"credentialsType": string(datastore.CredentialsTypeServicePrincipal),
-					"authorityUrl":    state.AuthorityUrl,
-					"resourceUrl":     "https://datalake.azure.net/",
-					"tenantId":        state.TenantID,
-					"clientId":        state.ClientID,
-					"secrets": map[string]interface{}{
-						"secretsType":  "ServicePrincipal",
-						"clientSecret": state.ClientSecret,
+				resourceId, ok := metadata.Client.Account.Environment.DataLake.ResourceIdentifier()
+				if !ok {
+					return fmt.Errorf("could not determine resource identifier for DataLake in the %q cloud environment", metadata.Client.Account.Environment.Name)
+				}
+				creds = datastore.ServicePrincipalDatastoreCredentials{
+					AuthorityUrl: pointer.To(state.AuthorityUrl),
+					ResourceUrl:  resourceId,
+					TenantId:     state.TenantID,
+					ClientId:     state.ClientID,
+					Secrets: datastore.ServicePrincipalDatastoreSecrets{
+						ClientSecret: pointer.To(state.ClientSecret),
 					},
 				}
 			}
 			props.Credentials = creds
 			datastoreRaw.Properties = props
 
-			_, err = client.CreateOrUpdate(ctx, *id, datastoreRaw, datastore.DefaultCreateOrUpdateOperationOptions())
+			_, err = client.CreateOrUpdate(ctx, *id, datastoreRaw, datastore.CreateOrUpdateOperationOptions{SkipValidation: pointer.To(true)})
 			if err != nil {
 				return fmt.Errorf("creating/updating %s: %+v", id, err)
 			}
@@ -311,14 +312,14 @@ func (r MachineLearningDataStoreDataLakeGen2) Read() sdk.ResourceFunc {
 			}
 			model.ServiceDataIdentity = serviceDataIdentity
 
-			storageAccount, err := storageClient.FindAccount(ctx, data.AccountName)
+			storageAccount, err := storageClient.FindAccount(ctx, subscriptionId, data.AccountName)
 			if err != nil {
 				return fmt.Errorf("retrieving Account %q for Data Lake Gen2 File System %q: %s", data.AccountName, data.Filesystem, err)
 			}
 			if storageAccount == nil {
 				return fmt.Errorf("Unable to locate Storage Account %q!", data.AccountName)
 			}
-			containerId := commonids.NewStorageContainerID(subscriptionId, storageAccount.ResourceGroup, data.AccountName, data.Filesystem)
+			containerId := commonids.NewStorageContainerID(storageAccount.StorageAccountId.SubscriptionId, storageAccount.StorageAccountId.ResourceGroupName, data.AccountName, data.Filesystem)
 			model.StorageContainerID = containerId.ID()
 
 			model.IsDefault = *data.IsDefault

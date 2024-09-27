@@ -470,12 +470,13 @@ func expandArmCdnEndpointCustomDomainUserManagedHttpsSettings(ctx context.Contex
 		return nil, err
 	}
 
-	keyVaultIdRaw, err := clients.KeyVault.KeyVaultIDFromBaseUrl(ctx, clients.Resource, keyVaultSecretId.KeyVaultBaseUrl)
+	subscriptionId := commonids.NewSubscriptionID(clients.Account.SubscriptionId)
+	keyVaultIdRaw, err := clients.KeyVault.KeyVaultIDFromBaseUrl(ctx, subscriptionId, keyVaultSecretId.KeyVaultBaseUrl)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", keyVaultSecretId.KeyVaultBaseUrl, err)
 	}
 	if keyVaultIdRaw == nil {
-		return nil, fmt.Errorf("unexpected nil Key Vault ID retrieved at URL %q", keyVaultSecretId.KeyVaultBaseUrl)
+		return nil, fmt.Errorf("unable to find the Resource Manager ID for the Key Vault URI %q in %s", keyVaultSecretId.KeyVaultBaseUrl, subscriptionId)
 	}
 	keyVaultId, err := commonids.ParseKeyVaultID(*keyVaultIdRaw)
 	if err != nil {

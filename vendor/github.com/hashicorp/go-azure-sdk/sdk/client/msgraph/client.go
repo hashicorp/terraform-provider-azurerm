@@ -35,7 +35,7 @@ type Client struct {
 	tenantId string
 }
 
-func NewMsGraphClient(api environments.Api, serviceName string, apiVersion ApiVersion) (*Client, error) {
+func NewClient(api environments.Api, serviceName string, apiVersion ApiVersion) (*Client, error) {
 	endpoint, ok := api.Endpoint()
 	if !ok {
 		return nil, fmt.Errorf("no `endpoint` was returned for this environment")
@@ -49,7 +49,13 @@ func NewMsGraphClient(api environments.Api, serviceName string, apiVersion ApiVe
 	}, nil
 }
 
+// Deprecated: use NewClient instead
+func NewMsGraphClient(api environments.Api, serviceName string, apiVersion ApiVersion) (*Client, error) {
+	return NewClient(api, serviceName, apiVersion)
+}
+
 func (c *Client) NewRequest(ctx context.Context, input client.RequestOptions) (*client.Request, error) {
+	// TODO move these validations to base client method
 	if _, ok := ctx.Deadline(); !ok {
 		return nil, fmt.Errorf("the context used must have a deadline attached for polling purposes, but got no deadline")
 	}

@@ -48,7 +48,9 @@ func (c CommunicationServicesClient) LinkNotificationHub(ctx context.Context, id
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model LinkedNotificationHub
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

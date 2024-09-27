@@ -18,6 +18,7 @@ type BotsUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *HealthBot
 }
 
 // BotsUpdate ...

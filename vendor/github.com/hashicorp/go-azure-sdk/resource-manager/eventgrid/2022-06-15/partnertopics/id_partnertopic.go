@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = PartnerTopicId{}
+func init() {
+	recaser.RegisterResourceId(&PartnerTopicId{})
+}
+
+var _ resourceids.ResourceId = &PartnerTopicId{}
 
 // PartnerTopicId is a struct representing the Resource ID for a Partner Topic
 type PartnerTopicId struct {
@@ -30,25 +35,15 @@ func NewPartnerTopicID(subscriptionId string, resourceGroupName string, partnerT
 
 // ParsePartnerTopicID parses 'input' into a PartnerTopicId
 func ParsePartnerTopicID(input string) (*PartnerTopicId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PartnerTopicId{})
+	parser := resourceids.NewParserFromResourceIdType(&PartnerTopicId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := PartnerTopicId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.PartnerTopicName, ok = parsed.Parsed["partnerTopicName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "partnerTopicName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +52,36 @@ func ParsePartnerTopicID(input string) (*PartnerTopicId, error) {
 // ParsePartnerTopicIDInsensitively parses 'input' case-insensitively into a PartnerTopicId
 // note: this method should only be used for API response data and not user input
 func ParsePartnerTopicIDInsensitively(input string) (*PartnerTopicId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PartnerTopicId{})
+	parser := resourceids.NewParserFromResourceIdType(&PartnerTopicId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := PartnerTopicId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.PartnerTopicName, ok = parsed.Parsed["partnerTopicName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "partnerTopicName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *PartnerTopicId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.PartnerTopicName, ok = input.Parsed["partnerTopicName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "partnerTopicName", input)
+	}
+
+	return nil
 }
 
 // ValidatePartnerTopicID checks that 'input' can be parsed as a Partner Topic ID
@@ -112,7 +115,7 @@ func (id PartnerTopicId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftEventGrid", "Microsoft.EventGrid", "Microsoft.EventGrid"),
 		resourceids.StaticSegment("staticPartnerTopics", "partnerTopics", "partnerTopics"),
-		resourceids.UserSpecifiedSegment("partnerTopicName", "partnerTopicValue"),
+		resourceids.UserSpecifiedSegment("partnerTopicName", "partnerTopicName"),
 	}
 }
 

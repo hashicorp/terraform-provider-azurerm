@@ -36,6 +36,8 @@ The following attributes are exported:
 
 * `description` - A description for the Shared Image Gallery.
 
+* `image_names` - A list of Shared Image names within this Shared Image Gallery.
+
 * `unique_name` - The unique name assigned to the Shared Image Gallery.
 
 * `tags` - A mapping of tags which are assigned to the Shared Image Gallery.

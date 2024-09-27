@@ -10,7 +10,9 @@ description: |-
 
 Manages a File Share within Azure Storage.
 
-~> **Note:** The storage share supports two storage tiers: premium and standard. Standard file shares are created in general purpose (GPv1 or GPv2) storage accounts and premium file shares are created in FileStorage storage accounts. For further information, refer to the section "What storage tiers are supported in Azure Files?" of [documentation](https://docs.microsoft.com/azure/storage/files/storage-files-faq#general).
+~> **Note** The storage share supports two storage tiers: premium and standard. Standard file shares are created in general purpose (GPv1 or GPv2) storage accounts and premium file shares are created in FileStorage storage accounts. For further information, refer to the section "What storage tiers are supported in Azure Files?" of [documentation](https://docs.microsoft.com/azure/storage/files/storage-files-faq#general).
+
+~> **Note on Authentication** Shared Key authentication will always be used for this resource, as AzureAD authentication is not supported by the Storage API for files.
 
 ## Example Usage
 
@@ -61,7 +63,7 @@ The following arguments are supported:
 
 * `enabled_protocol` - (Optional) The protocol used for the share. Possible values are `SMB` and `NFS`. The `SMB` indicates the share can be accessed by SMBv3.0, SMBv2.1 and REST. The `NFS` indicates the share can be accessed by NFSv4.1. Defaults to `SMB`. Changing this forces a new resource to be created.
 
-~>**NOTE:** The `Premium` SKU of the `azurerm_storage_account` is required for the `NFS` protocol.
+~>**NOTE:** The `FileStorage` `account_kind` of the `azurerm_storage_account` is required for the `NFS` protocol.
 
 * `quota` - (Required) The maximum size of the share, in gigabytes.
 

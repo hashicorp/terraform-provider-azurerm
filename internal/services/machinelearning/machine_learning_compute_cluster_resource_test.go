@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-04-01/machinelearningcomputes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2024-04-01/machinelearningcomputes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -69,7 +69,7 @@ func TestAccComputeCluster_recreateVmSize(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_compute_cluster", "test")
 	r := ComputeClusterResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -178,7 +178,6 @@ resource "azurerm_machine_learning_compute_cluster" "test" {
   vm_priority                   = "LowPriority"
   vm_size                       = "STANDARD_DS2_V2"
   machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
-  local_auth_enabled            = false
 
   scale_settings {
     min_node_count                       = 0
@@ -318,6 +317,7 @@ resource "azurerm_user_assigned_identity" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
+
 resource "azurerm_machine_learning_compute_cluster" "test" {
   name                          = "CC-%d"
   location                      = azurerm_resource_group.test.location
@@ -343,22 +343,26 @@ func (r ComputeClusterResource) identitySystemAssignedUserAssigned(data acceptan
 	template := r.template_basic(data)
 	return fmt.Sprintf(`
 %s
+
 resource "azurerm_user_assigned_identity" "test" {
   name                = "acctestUAI-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
+
 resource "azurerm_machine_learning_compute_cluster" "test" {
-  name                          = "CC-%d"
-  location                      = azurerm_resource_group.test.location
-  vm_priority                   = "LowPriority"
-  vm_size                       = "STANDARD_DS2_V2"
+  name        = "CC-%d"
+  location    = azurerm_resource_group.test.location
+  vm_priority = "LowPriority"
+  vm_size     = "STANDARD_DS2_V2"
+
   machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
   scale_settings {
     min_node_count                       = 0
     max_node_count                       = 1
     scale_down_nodes_after_idle_duration = "PT30S" # 30 seconds
   }
+
   identity {
     type = "SystemAssigned, UserAssigned"
     identity_ids = [

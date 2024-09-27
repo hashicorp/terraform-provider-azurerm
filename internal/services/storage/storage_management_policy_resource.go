@@ -11,7 +11,7 @@ import (
 	// nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01/managementpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/managementpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
@@ -177,6 +177,24 @@ func resourceStorageManagementPolicy() *pluginsdk.Resource {
 													Default:      -1,
 													ValidateFunc: validation.IntBetween(0, 99999),
 												},
+												"tier_to_cold_after_days_since_modification_greater_than": {
+													Type:         pluginsdk.TypeInt,
+													Optional:     true,
+													Default:      -1,
+													ValidateFunc: validation.IntBetween(0, 99999),
+												},
+												"tier_to_cold_after_days_since_last_access_time_greater_than": {
+													Type:         pluginsdk.TypeInt,
+													Optional:     true,
+													Default:      -1,
+													ValidateFunc: validation.IntBetween(0, 99999),
+												},
+												"tier_to_cold_after_days_since_creation_greater_than": {
+													Type:         pluginsdk.TypeInt,
+													Optional:     true,
+													Default:      -1,
+													ValidateFunc: validation.IntBetween(0, 99999),
+												},
 												"delete_after_days_since_modification_greater_than": {
 													Type:         pluginsdk.TypeInt,
 													Optional:     true,
@@ -223,6 +241,12 @@ func resourceStorageManagementPolicy() *pluginsdk.Resource {
 													Default:      -1,
 													ValidateFunc: validation.IntBetween(0, 99999),
 												},
+												"tier_to_cold_after_days_since_creation_greater_than": {
+													Type:         pluginsdk.TypeInt,
+													Optional:     true,
+													Default:      -1,
+													ValidateFunc: validation.IntBetween(0, 99999),
+												},
 												"delete_after_days_since_creation_greater_than": {
 													Type:         pluginsdk.TypeInt,
 													Optional:     true,
@@ -251,6 +275,12 @@ func resourceStorageManagementPolicy() *pluginsdk.Resource {
 													ValidateFunc: validation.IntBetween(0, 99999),
 												},
 												"change_tier_to_cool_after_days_since_creation": {
+													Type:         pluginsdk.TypeInt,
+													Optional:     true,
+													Default:      -1,
+													ValidateFunc: validation.IntBetween(0, 99999),
+												},
+												"tier_to_cold_after_days_since_creation_greater_than": {
 													Type:         pluginsdk.TypeInt,
 													Optional:     true,
 													Default:      -1,
@@ -559,6 +589,40 @@ func expandStorageManagementPolicyRule(d *pluginsdk.ResourceData, ruleIndex int)
 				}
 			}
 
+			sinceMod = d.Get(fmt.Sprintf("rule.%d.actions.0.base_blob.0.tier_to_cold_after_days_since_modification_greater_than", ruleIndex))
+			sinceModOK = sinceMod != -1
+			sinceAccess = d.Get(fmt.Sprintf("rule.%d.actions.0.base_blob.0.tier_to_cold_after_days_since_last_access_time_greater_than", ruleIndex))
+			sinceAccessOK = sinceAccess != -1
+			sinceCreate = d.Get(fmt.Sprintf("rule.%d.actions.0.base_blob.0.tier_to_cold_after_days_since_creation_greater_than", ruleIndex))
+			sinceCreateOK = sinceCreate != -1
+
+			cnt = 0
+			if sinceModOK {
+				cnt++
+			}
+			if sinceAccessOK {
+				cnt++
+			}
+			if sinceCreateOK {
+				cnt++
+			}
+			if cnt > 1 {
+				return nil, fmt.Errorf("Only one of `tier_to_cold_after_days_since_modification_greater_than`, `tier_to_cold_after_days_since_last_access_time_greater_than` and `tier_to_cold_after_days_since_creation_greater_than` can be specified at the same time")
+			}
+
+			if sinceModOK || sinceAccessOK || sinceCreateOK {
+				baseBlob.TierToCold = &managementpolicies.DateAfterModification{}
+				if sinceModOK {
+					baseBlob.TierToCold.DaysAfterModificationGreaterThan = utils.Float(float64(sinceMod.(int)))
+				}
+				if sinceAccessOK {
+					baseBlob.TierToCold.DaysAfterLastAccessTimeGreaterThan = utils.Float(float64(sinceAccess.(int)))
+				}
+				if sinceCreateOK {
+					baseBlob.TierToCold.DaysAfterCreationGreaterThan = utils.Float(float64(sinceCreate.(int)))
+				}
+			}
+
 			definition.Actions.BaseBlob = baseBlob
 		}
 
@@ -582,6 +646,11 @@ func expandStorageManagementPolicyRule(d *pluginsdk.ResourceData, ruleIndex int)
 					DaysAfterCreationGreaterThan: float64(v.(int)),
 				}
 			}
+			if v := d.Get(fmt.Sprintf("rule.%d.actions.0.snapshot.0.tier_to_cold_after_days_since_creation_greater_than", ruleIndex)); v != -1 {
+				snapshot.TierToCold = &managementpolicies.DateAfterCreation{
+					DaysAfterCreationGreaterThan: float64(v.(int)),
+				}
+			}
 			definition.Actions.Snapshot = snapshot
 		}
 
@@ -602,6 +671,11 @@ func expandStorageManagementPolicyRule(d *pluginsdk.ResourceData, ruleIndex int)
 			}
 			if v := d.Get(fmt.Sprintf("rule.%d.actions.0.version.0.change_tier_to_cool_after_days_since_creation", ruleIndex)); v != -1 {
 				version.TierToCool = &managementpolicies.DateAfterCreation{
+					DaysAfterCreationGreaterThan: float64(v.(int)),
+				}
+			}
+			if v := d.Get(fmt.Sprintf("rule.%d.actions.0.version.0.tier_to_cold_after_days_since_creation_greater_than", ruleIndex)); v != -1 {
+				version.TierToCold = &managementpolicies.DateAfterCreation{
 					DaysAfterCreationGreaterThan: float64(v.(int)),
 				}
 			}
@@ -665,6 +739,9 @@ func flattenStorageManagementPolicyRules(armRules []managementpolicies.Managemen
 				tierToArchiveSinceAccess         = -1
 				tierToArchiveSinceCreate         = -1
 				tierToArchiveSinceLastTierChange = -1
+				tierToColdSinceMod               = -1
+				tierToColdSinceAccess            = -1
+				tierToColdSinceCreate            = -1
 				deleteSinceMod                   = -1
 				deleteSinceAccess                = -1
 				deleteSinceCreate                = -1
@@ -698,6 +775,17 @@ func flattenStorageManagementPolicyRules(armRules []managementpolicies.Managemen
 					tierToArchiveSinceCreate = int(*props.DaysAfterCreationGreaterThan)
 				}
 			}
+			if props := armActionBaseBlob.TierToCold; props != nil {
+				if props.DaysAfterModificationGreaterThan != nil {
+					tierToColdSinceMod = int(*props.DaysAfterModificationGreaterThan)
+				}
+				if props.DaysAfterLastAccessTimeGreaterThan != nil {
+					tierToColdSinceAccess = int(*props.DaysAfterLastAccessTimeGreaterThan)
+				}
+				if props.DaysAfterCreationGreaterThan != nil {
+					tierToColdSinceCreate = int(*props.DaysAfterCreationGreaterThan)
+				}
+			}
 			if props := armActionBaseBlob.Delete; props != nil {
 				if props.DaysAfterModificationGreaterThan != nil {
 					deleteSinceMod = int(*props.DaysAfterModificationGreaterThan)
@@ -719,6 +807,9 @@ func flattenStorageManagementPolicyRules(armRules []managementpolicies.Managemen
 					"tier_to_archive_after_days_since_last_access_time_greater_than": tierToArchiveSinceAccess,
 					"tier_to_archive_after_days_since_last_tier_change_greater_than": tierToArchiveSinceLastTierChange,
 					"tier_to_archive_after_days_since_creation_greater_than":         tierToArchiveSinceCreate,
+					"tier_to_cold_after_days_since_modification_greater_than":        tierToColdSinceMod,
+					"tier_to_cold_after_days_since_last_access_time_greater_than":    tierToColdSinceAccess,
+					"tier_to_cold_after_days_since_creation_greater_than":            tierToColdSinceCreate,
 					"delete_after_days_since_modification_greater_than":              deleteSinceMod,
 					"delete_after_days_since_last_access_time_greater_than":          deleteSinceAccess,
 					"delete_after_days_since_creation_greater_than":                  deleteSinceCreate,
@@ -728,7 +819,13 @@ func flattenStorageManagementPolicyRules(armRules []managementpolicies.Managemen
 
 		armActionSnaphost := armAction.Snapshot
 		if armActionSnaphost != nil {
-			deleteAfterCreation, archiveAfterCreation, archiveAfterLastTierChange, coolAfterCreation := -1, -1, -1, -1
+			var (
+				deleteAfterCreation        = -1
+				archiveAfterCreation       = -1
+				archiveAfterLastTierChange = -1
+				coolAfterCreation          = -1
+				tierToColdSinceCreate      = -1
+			)
 			if armActionSnaphost.Delete != nil {
 				deleteAfterCreation = int(armActionSnaphost.Delete.DaysAfterCreationGreaterThan)
 			}
@@ -739,6 +836,9 @@ func flattenStorageManagementPolicyRules(armRules []managementpolicies.Managemen
 					archiveAfterLastTierChange = int(*v)
 				}
 			}
+			if armActionSnaphost.TierToCold != nil {
+				tierToColdSinceCreate = int(armActionSnaphost.TierToCold.DaysAfterCreationGreaterThan)
+			}
 			if armActionSnaphost.TierToCool != nil {
 				coolAfterCreation = int(armActionSnaphost.TierToCool.DaysAfterCreationGreaterThan)
 			}
@@ -746,12 +846,19 @@ func flattenStorageManagementPolicyRules(armRules []managementpolicies.Managemen
 				"delete_after_days_since_creation_greater_than":                  deleteAfterCreation,
 				"change_tier_to_archive_after_days_since_creation":               archiveAfterCreation,
 				"tier_to_archive_after_days_since_last_tier_change_greater_than": archiveAfterLastTierChange,
+				"tier_to_cold_after_days_since_creation_greater_than":            tierToColdSinceCreate,
 				"change_tier_to_cool_after_days_since_creation":                  coolAfterCreation,
 			}}
 		}
 
 		if armActionVersion := armAction.Version; armActionVersion != nil {
-			deleteAfterCreation, archiveAfterCreation, archiveAfterLastTierChange, coolAfterCreation := -1, -1, -1, -1
+			var (
+				deleteAfterCreation        = -1
+				archiveAfterCreation       = -1
+				archiveAfterLastTierChange = -1
+				coolAfterCreation          = -1
+				tierToColdSinceCreate      = -1
+			)
 			if armActionVersion.Delete != nil {
 				deleteAfterCreation = int(armActionVersion.Delete.DaysAfterCreationGreaterThan)
 			}
@@ -762,6 +869,9 @@ func flattenStorageManagementPolicyRules(armRules []managementpolicies.Managemen
 					archiveAfterLastTierChange = int(*v)
 				}
 			}
+			if armActionVersion.TierToCold != nil {
+				tierToColdSinceCreate = int(armActionVersion.TierToCold.DaysAfterCreationGreaterThan)
+			}
 			if armActionVersion.TierToCool != nil {
 				coolAfterCreation = int(armActionVersion.TierToCool.DaysAfterCreationGreaterThan)
 			}
@@ -769,6 +879,7 @@ func flattenStorageManagementPolicyRules(armRules []managementpolicies.Managemen
 				"delete_after_days_since_creation":                               deleteAfterCreation,
 				"change_tier_to_archive_after_days_since_creation":               archiveAfterCreation,
 				"tier_to_archive_after_days_since_last_tier_change_greater_than": archiveAfterLastTierChange,
+				"tier_to_cold_after_days_since_creation_greater_than":            tierToColdSinceCreate,
 				"change_tier_to_cool_after_days_since_creation":                  coolAfterCreation,
 			}}
 		}

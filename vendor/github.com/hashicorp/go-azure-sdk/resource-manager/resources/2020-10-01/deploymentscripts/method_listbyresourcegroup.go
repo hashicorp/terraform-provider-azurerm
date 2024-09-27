@@ -2,6 +2,7 @@ package deploymentscripts
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -20,7 +21,20 @@ type ListByResourceGroupOperationResponse struct {
 }
 
 type ListByResourceGroupCompleteResult struct {
-	Items []DeploymentScript
+	LatestHttpResponse *http.Response
+	Items              []DeploymentScript
+}
+
+type ListByResourceGroupCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByResourceGroupCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListByResourceGroup ...
@@ -31,6 +45,7 @@ func (c DeploymentScriptsClient) ListByResourceGroup(ctx context.Context, id com
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByResourceGroupCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.Resources/deploymentScripts", id.ID()),
 	}
 
@@ -50,13 +65,24 @@ func (c DeploymentScriptsClient) ListByResourceGroup(ctx context.Context, id com
 	}
 
 	var values struct {
-		Values *[]DeploymentScript `json:"value"`
+		Values *[]json.RawMessage `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return
 	}
 
-	result.Model = values.Values
+	temp := make([]DeploymentScript, 0)
+	if values.Values != nil {
+		for i, v := range *values.Values {
+			val, err := UnmarshalDeploymentScriptImplementation(v)
+			if err != nil {
+				err = fmt.Errorf("unmarshalling item %d for DeploymentScript (%q): %+v", i, v, err)
+				return result, err
+			}
+			temp = append(temp, val)
+		}
+	}
+	result.Model = &temp
 
 	return
 }
@@ -72,6 +98,7 @@ func (c DeploymentScriptsClient) ListByResourceGroupCompleteMatchingPredicate(ct
 
 	resp, err := c.ListByResourceGroup(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -84,7 +111,8 @@ func (c DeploymentScriptsClient) ListByResourceGroupCompleteMatchingPredicate(ct
 	}
 
 	result = ListByResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

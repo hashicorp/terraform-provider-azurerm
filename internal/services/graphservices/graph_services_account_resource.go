@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package graphservices
 
 import (
@@ -16,22 +19,56 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-var _ sdk.Resource = ServicesAccountResource{}
-var _ sdk.ResourceWithUpdate = ServicesAccountResource{}
+var (
+	_ sdk.Resource           = ServicesAccountResource{}
+	_ sdk.ResourceWithUpdate = ServicesAccountResource{}
+)
 
-type ServicesAccountResource struct {
-	AccountResource
+type ServicesAccountResource struct{}
+
+func (r ServicesAccountResource) ModelObject() interface{} {
+	return &AccountResourceSchema{}
+}
+
+func (r ServicesAccountResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+	return graphservicesprods.ValidateAccountID
 }
 
 func (r ServicesAccountResource) ResourceType() string {
 	return "azurerm_graph_services_account"
 }
 
-var _ sdk.Resource = AccountResource{}
-var _ sdk.ResourceWithUpdate = AccountResource{}
-var _ sdk.ResourceWithDeprecationReplacedBy = AccountResource{}
+func (r ServicesAccountResource) Arguments() map[string]*pluginsdk.Schema {
+	return AccountResource{}.Arguments()
+}
 
-// AccountResource remove this in 4.0
+func (r ServicesAccountResource) Attributes() map[string]*pluginsdk.Schema {
+	return AccountResource{}.Attributes()
+}
+
+func (r ServicesAccountResource) Create() sdk.ResourceFunc {
+	return AccountResource{}.Create()
+}
+
+func (r ServicesAccountResource) Read() sdk.ResourceFunc {
+	return AccountResource{}.Read()
+}
+
+func (r ServicesAccountResource) Delete() sdk.ResourceFunc {
+	return AccountResource{}.Delete()
+}
+
+func (r ServicesAccountResource) Update() sdk.ResourceFunc {
+	return AccountResource{}.Update()
+}
+
+var (
+	_ sdk.Resource                          = AccountResource{}
+	_ sdk.ResourceWithUpdate                = AccountResource{}
+	_ sdk.ResourceWithDeprecationReplacedBy = AccountResource{}
+)
+
+// AccountResource remove this in 4.0, the resource is renamed
 type AccountResource struct{}
 
 func (r AccountResource) DeprecatedInFavourOfResource() string {

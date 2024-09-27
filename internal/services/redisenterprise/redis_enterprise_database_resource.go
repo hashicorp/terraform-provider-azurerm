@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2023-07-01/databases"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2023-07-01/redisenterprise"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2023-10-01-preview/redisenterprise"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -341,7 +341,6 @@ func resourceRedisEnterpriseDatabaseRead(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	d.Set("name", id.DatabaseName)
-	d.Set("resource_group_name", id.ResourceGroupName)
 	clusterId := redisenterprise.NewRedisEnterpriseID(id.SubscriptionId, id.ResourceGroupName, id.RedisEnterpriseName)
 	d.Set("cluster_id", clusterId.ID())
 
@@ -546,7 +545,7 @@ func flattenArmDatabaseModuleArray(input *[]databases.Module) []interface{} {
 		if item.Args != nil {
 			args = *item.Args
 			// new behavior if you do not pass args the RP sets the args to "PARTITIONS AUTO" by default
-			// (for RediSearch) which causes the the database to be force new on every plan after creation
+			// (for RediSearch) which causes the database to be force new on every plan after creation
 			// feels like an RP bug, but I added this workaround...
 			// NOTE: You also cannot set the args to PARTITIONS AUTO by default else you will get an error on create:
 			// Code="InvalidRequestBody" Message="The value of the parameter 'properties.modules' is invalid."

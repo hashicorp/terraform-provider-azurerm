@@ -9,7 +9,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
 )
 
 func resourceDataFactoryIntegrationRuntimeSelfHosted() *pluginsdk.Resource {
@@ -77,6 +78,11 @@ func resourceDataFactoryIntegrationRuntimeSelfHosted() *pluginsdk.Resource {
 				},
 			},
 
+			"self_contained_interactive_authoring_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
+
 			"primary_authorization_key": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -119,20 +125,22 @@ func resourceDataFactoryIntegrationRuntimeSelfHostedCreateUpdate(d *pluginsdk.Re
 	description := d.Get("description").(string)
 
 	selfHostedIntegrationRuntime := datafactory.SelfHostedIntegrationRuntime{
+		SelfHostedIntegrationRuntimeTypeProperties: &datafactory.SelfHostedIntegrationRuntimeTypeProperties{
+			SelfContainedInteractiveAuthoringEnabled: pointer.To(d.Get("self_contained_interactive_authoring_enabled").(bool)),
+		},
 		Description: &description,
 		Type:        datafactory.TypeBasicIntegrationRuntimeTypeSelfHosted,
 	}
 
-	properties := expandAzureRmDataFactoryIntegrationRuntimeSelfHostedTypeProperties(d)
-	if properties != nil {
-		selfHostedIntegrationRuntime.SelfHostedIntegrationRuntimeTypeProperties = properties
+	if v, ok := d.GetOk("rbac_authorization"); ok {
+		if linkedInfo := expandAzureRmDataFactoryIntegrationRuntimeSelfHostedTypePropertiesLinkedInfo(v.(*pluginsdk.Set).List()); linkedInfo != nil {
+			selfHostedIntegrationRuntime.SelfHostedIntegrationRuntimeTypeProperties.LinkedInfo = linkedInfo
+		}
 	}
-
-	basicIntegrationRuntime, _ := selfHostedIntegrationRuntime.AsBasicIntegrationRuntime()
 
 	integrationRuntime := datafactory.IntegrationRuntimeResource{
 		Name:       &id.Name,
-		Properties: basicIntegrationRuntime,
+		Properties: selfHostedIntegrationRuntime,
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.FactoryName, id.Name, integrationRuntime, ""); err != nil {
@@ -180,6 +188,7 @@ func resourceDataFactoryIntegrationRuntimeSelfHostedRead(d *pluginsdk.ResourceDa
 	}
 
 	if props := selfHostedIntegrationRuntime.SelfHostedIntegrationRuntimeTypeProperties; props != nil {
+		d.Set("self_contained_interactive_authoring_enabled", pointer.From(props.SelfContainedInteractiveAuthoringEnabled))
 		// LinkedInfo BasicLinkedIntegrationRuntimeType
 		if linkedInfo := props.LinkedInfo; linkedInfo != nil {
 			rbacAuthorization, _ := linkedInfo.AsLinkedIntegrationRuntimeRbacAuthorization()
@@ -188,8 +197,11 @@ func resourceDataFactoryIntegrationRuntimeSelfHostedRead(d *pluginsdk.ResourceDa
 					return fmt.Errorf("setting `rbac_authorization`: %#v", err)
 				}
 			}
+
+			// The ListAuthenticationKeys on integration runtime type Linked is not supported.
+			// Only skip the call to ListAuthKeys if the linkedInfo is valid.
+			return nil
 		}
-		return nil
 	}
 
 	respKey, errKey := client.ListAuthKeys(ctx, id.ResourceGroup, id.FactoryName, id.Name)
@@ -227,20 +239,17 @@ func resourceDataFactoryIntegrationRuntimeSelfHostedDelete(d *pluginsdk.Resource
 	return nil
 }
 
-func expandAzureRmDataFactoryIntegrationRuntimeSelfHostedTypeProperties(d *pluginsdk.ResourceData) *datafactory.SelfHostedIntegrationRuntimeTypeProperties {
-	if _, ok := d.GetOk("rbac_authorization"); ok {
-		rbacAuthorization := d.Get("rbac_authorization").(*pluginsdk.Set).List()
-		rbacConfig := rbacAuthorization[0].(map[string]interface{})
-		rbac := rbacConfig["resource_id"].(string)
-		linkedInfo := &datafactory.SelfHostedIntegrationRuntimeTypeProperties{
-			LinkedInfo: &datafactory.LinkedIntegrationRuntimeRbacAuthorization{
-				ResourceID:        &rbac,
-				AuthorizationType: datafactory.AuthorizationTypeRBAC,
-			},
-		}
-		return linkedInfo
+func expandAzureRmDataFactoryIntegrationRuntimeSelfHostedTypePropertiesLinkedInfo(input []interface{}) *datafactory.LinkedIntegrationRuntimeRbacAuthorization {
+	if len(input) == 0 {
+		return nil
 	}
-	return nil
+
+	rbacConfig := input[0].(map[string]interface{})
+	rbac := rbacConfig["resource_id"].(string)
+	return &datafactory.LinkedIntegrationRuntimeRbacAuthorization{
+		ResourceID:        &rbac,
+		AuthorizationType: datafactory.AuthorizationTypeRBAC,
+	}
 }
 
 func flattenAzureRmDataFactoryIntegrationRuntimeSelfHostedTypePropertiesRbacAuthorization(input *datafactory.LinkedIntegrationRuntimeRbacAuthorization) []interface{} {

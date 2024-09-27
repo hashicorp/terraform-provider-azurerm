@@ -1,13 +1,14 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/batch/2023-05-01/batchaccount` Documentation
 
-The `batchaccount` SDK allows for interaction with the Azure Resource Manager Service `batch` (API Version `2023-05-01`).
+The `batchaccount` SDK allows for interaction with Azure Resource Manager `batch` (API Version `2023-05-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/batch/2023-05-01/batchaccount"
 ```
 
@@ -24,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := batchaccount.NewBatchAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "batchAccountValue")
+id := batchaccount.NewBatchAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName")
 
 payload := batchaccount.BatchAccountCreateParameters{
 	// ...
@@ -41,7 +42,7 @@ if err := client.CreateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := batchaccount.NewBatchAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "batchAccountValue")
+id := batchaccount.NewBatchAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +54,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := batchaccount.NewBatchAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "batchAccountValue")
+id := batchaccount.NewBatchAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -69,7 +70,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := batchaccount.NewBatchAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "batchAccountValue")
+id := batchaccount.NewBatchAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName")
 
 read, err := client.GetKeys(ctx, id)
 if err != nil {
@@ -85,7 +86,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := batchaccount.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 // alternatively `client.List(ctx, id)` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id)
@@ -102,7 +103,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := batchaccount.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
+id := commonids.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
 // alternatively `client.ListByResourceGroup(ctx, id)` can be used to do batched pagination
 items, err := client.ListByResourceGroupComplete(ctx, id)
@@ -119,7 +120,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := batchaccount.NewBatchAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "batchAccountValue")
+id := batchaccount.NewBatchAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName")
 
 // alternatively `client.ListOutboundNetworkDependenciesEndpoints(ctx, id)` can be used to do batched pagination
 items, err := client.ListOutboundNetworkDependenciesEndpointsComplete(ctx, id)
@@ -136,7 +137,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := batchaccount.NewBatchAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "batchAccountValue")
+id := batchaccount.NewBatchAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName")
 
 payload := batchaccount.BatchAccountRegenerateKeyParameters{
 	// ...
@@ -157,7 +158,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := batchaccount.NewBatchAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "batchAccountValue")
+id := batchaccount.NewBatchAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName")
 
 read, err := client.SynchronizeAutoStorageKeys(ctx, id)
 if err != nil {
@@ -173,7 +174,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := batchaccount.NewBatchAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "batchAccountValue")
+id := batchaccount.NewBatchAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName")
 
 payload := batchaccount.BatchAccountUpdateParameters{
 	// ...

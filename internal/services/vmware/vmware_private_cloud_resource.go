@@ -63,7 +63,10 @@ func resourceVmwarePrivateCloud() *pluginsdk.Resource {
 					"av36",
 					"av36t",
 					"av36p",
+					"av36pt",
 					"av52",
+					"av52t",
+					"av64",
 				}, false),
 			},
 
@@ -220,12 +223,12 @@ func resourceVmwarePrivateCloudCreate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	privateCloud := privateclouds.PrivateCloud{
-		Location: location.Normalize(d.Get("location").(string)),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Sku: privateclouds.Sku{
 			Name: d.Get("sku_name").(string),
 		},
 		Properties: &privateclouds.PrivateCloudProperties{
-			ManagementCluster: privateclouds.CommonClusterProperties{
+			ManagementCluster: &privateclouds.CommonClusterProperties{
 				ClusterSize: pointer.To(int64(d.Get("management_cluster.0.size").(int))),
 			},
 			NetworkBlock:    d.Get("network_subnet_cidr").(string),
@@ -284,7 +287,7 @@ func resourceVmwarePrivateCloudRead(d *pluginsdk.ResourceData, meta interface{})
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		d.Set("location", location.Normalize(model.Location))
+		d.Set("location", location.NormalizeNilable(model.Location))
 		props := model.Properties
 
 		if err := d.Set("management_cluster", flattenPrivateCloudManagementCluster(props.ManagementCluster)); err != nil {

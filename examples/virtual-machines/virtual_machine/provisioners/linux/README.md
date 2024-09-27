@@ -1,6 +1,6 @@
 ## Example: using Provisioner over SSH to a Linux Virtual Machine
 
-This example provisions a Virtual Machine running Ubuntu 16.04-LTS with a Public IP Address and [runs a `remote-exec` provisioner](https://www.terraform.io/docs/provisioners/remote-exec.html) over SSH.
+This example provisions a Virtual Machine running Ubuntu 22.04-LTS with a Public IP Address and [runs a `remote-exec` provisioner](https://www.terraform.io/docs/provisioners/remote-exec.html) over SSH.
 
 Notes:
 

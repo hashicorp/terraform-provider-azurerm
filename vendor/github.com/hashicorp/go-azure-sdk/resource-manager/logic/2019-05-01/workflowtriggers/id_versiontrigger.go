@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = VersionTriggerId{}
+func init() {
+	recaser.RegisterResourceId(&VersionTriggerId{})
+}
+
+var _ resourceids.ResourceId = &VersionTriggerId{}
 
 // VersionTriggerId is a struct representing the Resource ID for a Version Trigger
 type VersionTriggerId struct {
@@ -34,33 +39,15 @@ func NewVersionTriggerID(subscriptionId string, resourceGroupName string, workfl
 
 // ParseVersionTriggerID parses 'input' into a VersionTriggerId
 func ParseVersionTriggerID(input string) (*VersionTriggerId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VersionTriggerId{})
+	parser := resourceids.NewParserFromResourceIdType(&VersionTriggerId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := VersionTriggerId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.WorkflowName, ok = parsed.Parsed["workflowName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "workflowName", *parsed)
-	}
-
-	if id.VersionId, ok = parsed.Parsed["versionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "versionId", *parsed)
-	}
-
-	if id.TriggerName, ok = parsed.Parsed["triggerName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "triggerName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,36 +56,44 @@ func ParseVersionTriggerID(input string) (*VersionTriggerId, error) {
 // ParseVersionTriggerIDInsensitively parses 'input' case-insensitively into a VersionTriggerId
 // note: this method should only be used for API response data and not user input
 func ParseVersionTriggerIDInsensitively(input string) (*VersionTriggerId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VersionTriggerId{})
+	parser := resourceids.NewParserFromResourceIdType(&VersionTriggerId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := VersionTriggerId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.WorkflowName, ok = parsed.Parsed["workflowName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "workflowName", *parsed)
-	}
-
-	if id.VersionId, ok = parsed.Parsed["versionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "versionId", *parsed)
-	}
-
-	if id.TriggerName, ok = parsed.Parsed["triggerName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "triggerName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *VersionTriggerId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.WorkflowName, ok = input.Parsed["workflowName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "workflowName", input)
+	}
+
+	if id.VersionId, ok = input.Parsed["versionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "versionId", input)
+	}
+
+	if id.TriggerName, ok = input.Parsed["triggerName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "triggerName", input)
+	}
+
+	return nil
 }
 
 // ValidateVersionTriggerID checks that 'input' can be parsed as a Version Trigger ID
@@ -132,11 +127,11 @@ func (id VersionTriggerId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftLogic", "Microsoft.Logic", "Microsoft.Logic"),
 		resourceids.StaticSegment("staticWorkflows", "workflows", "workflows"),
-		resourceids.UserSpecifiedSegment("workflowName", "workflowValue"),
+		resourceids.UserSpecifiedSegment("workflowName", "workflowName"),
 		resourceids.StaticSegment("staticVersions", "versions", "versions"),
-		resourceids.UserSpecifiedSegment("versionId", "versionIdValue"),
+		resourceids.UserSpecifiedSegment("versionId", "versionId"),
 		resourceids.StaticSegment("staticTriggers", "triggers", "triggers"),
-		resourceids.UserSpecifiedSegment("triggerName", "triggerValue"),
+		resourceids.UserSpecifiedSegment("triggerName", "triggerName"),
 	}
 }
 

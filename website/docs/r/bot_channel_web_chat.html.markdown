@@ -33,9 +33,9 @@ resource "azurerm_bot_channel_web_chat" "example" {
   location            = azurerm_bot_channels_registration.example.location
   resource_group_name = azurerm_resource_group.example.name
 
-  site_names = [
-    "TestSite",
-  ]
+  site {
+    name = "TestSite"
+  }
 }
 ```
 
@@ -49,7 +49,19 @@ The following arguments are supported:
 
 * `bot_name` - (Required) The name of the Bot Resource this channel will be associated with. Changing this forces a new resource to be created.
 
-* `site_names` - (Required) A list of Web Chat Site names.
+* `site` - (Optional) A site represents a client application that you want to connect to your bot. One or more `site` blocks as defined below.
+
+---
+
+A `site` block has the following properties:
+
+* `name` - (Required) The name of the site.
+
+* `user_upload_enabled` - (Optional) Is the user upload enabled for this site? Defaults to `true`.
+
+* `endpoint_parameters_enabled` - (Optional) Is the endpoint parameters enabled for this site?
+
+* `storage_enabled` - (Optional) Is the storage site enabled for detailed logging? Defaults to `true`.
 
 ## Attributes Reference
 

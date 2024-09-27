@@ -19,7 +19,20 @@ type HubsListOperationResponse struct {
 }
 
 type HubsListCompleteResult struct {
-	Items []WebPubSubHub
+	LatestHttpResponse *http.Response
+	Items              []WebPubSubHub
+}
+
+type HubsListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *HubsListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // HubsList ...
@@ -30,6 +43,7 @@ func (c WebPubSubClient) HubsList(ctx context.Context, id WebPubSubId) (result H
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &HubsListCustomPager{},
 		Path:       fmt.Sprintf("%s/hubs", id.ID()),
 	}
 
@@ -71,6 +85,7 @@ func (c WebPubSubClient) HubsListCompleteMatchingPredicate(ctx context.Context, 
 
 	resp, err := c.HubsList(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +98,8 @@ func (c WebPubSubClient) HubsListCompleteMatchingPredicate(ctx context.Context, 
 	}
 
 	result = HubsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

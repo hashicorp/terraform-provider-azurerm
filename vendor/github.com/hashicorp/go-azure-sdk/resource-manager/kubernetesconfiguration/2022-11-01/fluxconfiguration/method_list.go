@@ -20,7 +20,20 @@ type ListOperationResponse struct {
 }
 
 type ListCompleteResult struct {
-	Items []FluxConfiguration
+	LatestHttpResponse *http.Response
+	Items              []FluxConfiguration
+}
+
+type ListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // List ...
@@ -31,6 +44,7 @@ func (c FluxConfigurationClient) List(ctx context.Context, id commonids.ScopeId)
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.KubernetesConfiguration/fluxConfigurations", id.ID()),
 	}
 
@@ -72,6 +86,7 @@ func (c FluxConfigurationClient) ListCompleteMatchingPredicate(ctx context.Conte
 
 	resp, err := c.List(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -84,7 +99,8 @@ func (c FluxConfigurationClient) ListCompleteMatchingPredicate(ctx context.Conte
 	}
 
 	result = ListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

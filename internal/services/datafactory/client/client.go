@@ -6,15 +6,17 @@ package client
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/credentials"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/managedprivateendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/managedvirtualnetworks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
+	"github.com/tombuildsstuff/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
 )
 
 type Client struct {
 	Factories               *factories.FactoriesClient
+	Credentials             *credentials.CredentialsClient
 	ManagedPrivateEndpoints *managedprivateendpoints.ManagedPrivateEndpointsClient
 	ManagedVirtualNetworks  *managedvirtualnetworks.ManagedVirtualNetworksClient
 
@@ -33,6 +35,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		return nil, fmt.Errorf("building Factories client: %+v", err)
 	}
 	o.Configure(factoriesClient.Client, o.Authorizers.ResourceManager)
+
+	credentialsClient, err := credentials.NewCredentialsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Factories client: %+v", err)
+	}
+	o.Configure(credentialsClient.Client, o.Authorizers.ResourceManager)
 
 	managedPrivateEndpointsClient, err := managedprivateendpoints.NewManagedPrivateEndpointsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -67,6 +75,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	return &Client{
 		Factories:               factoriesClient,
+		Credentials:             credentialsClient,
 		ManagedPrivateEndpoints: managedPrivateEndpointsClient,
 		ManagedVirtualNetworks:  managedVirtualNetworksClient,
 

@@ -43,7 +43,9 @@ func (c AgreementsClient) MarketplaceAgreementsGetAgreement(ctx context.Context,
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model OldAgreementTerms
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

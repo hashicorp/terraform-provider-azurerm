@@ -267,7 +267,7 @@ The `site_config` block supports the following:
 
 * `dotnet_framework_version` - (Optional) The version of the .NET framework's CLR used in this function app. Possible values are `v4.0` (including .NET Core 2.1 and 3.1), `v5.0` and `v6.0`. [For more information on which .NET Framework version to use based on the runtime version you're targeting - please see this table](https://docs.microsoft.com/azure/azure-functions/functions-dotnet-class-library#supported-versions). Defaults to `v4.0`.
 
-* `elastic_instance_minimum` - (Optional) The number of minimum instances for this function app. Only affects apps on the Premium plan.
+* `elastic_instance_minimum` - (Optional) The number of minimum instances for this function app. Only affects apps on the Premium plan. Possible values are between `1` and `20`.
 
 * `ftps_state` - (Optional) State of FTP / FTPS service for this function app. Possible values include: `AllAllowed`, `FtpsOnly` and `Disabled`. Defaults to `AllAllowed`.
 
@@ -275,7 +275,7 @@ The `site_config` block supports the following:
 
 * `http2_enabled` - (Optional) Specifies whether or not the HTTP2 protocol should be enabled. Defaults to `false`.
 
-* `ip_restriction` - (Optional) A [List of objects](/docs/configuration/attr-as-blocks.html) representing IP restrictions as defined below.
+* `ip_restriction` - (Optional) A list of `ip_restriction` objects representing IP restrictions as defined below.
 
 -> **NOTE** User has to explicitly set `ip_restriction` to empty slice (`[]`) to remove it.
 
@@ -289,7 +289,7 @@ The `site_config` block supports the following:
 
 * `runtime_scale_monitoring_enabled` - (Optional) Should Runtime Scale Monitoring be enabled?. Only applicable to apps on the Premium plan. Defaults to `false`.
 
-* `scm_ip_restriction` - (Optional) A [List of objects](/docs/configuration/attr-as-blocks.html) representing IP restrictions as defined below.
+* `scm_ip_restriction` - (Optional) A list of `scm_ip_restriction` objects representing IP restrictions as defined below.
 
 -> **NOTE** User has to explicitly set `scm_ip_restriction` to empty slice (`[]`) to remove it.
 
@@ -433,7 +433,7 @@ A `ip_restriction` block supports the following:
 
 * `action` - (Optional) Does this restriction `Allow` or `Deny` access for this IP range. Defaults to `Allow`. 
 
-* `headers` - (Optional) The headers for this specific `ip_restriction` as defined below.
+* `headers` - (Optional) The `headers` block for this specific `ip_restriction` as defined below.
 
 ---
 
@@ -453,7 +453,7 @@ A `scm_ip_restriction` block supports the following:
 
 * `action` - (Optional) Allow or Deny access for this IP range. Defaults to `Allow`.
 
-* `headers` - (Optional) The headers for this specific `scm_ip_restriction` as defined below.
+* `headers` - (Optional) The `headers` block for this specific `scm_ip_restriction` as defined below.
 
 ---
 
@@ -509,7 +509,7 @@ The `identity` block exports the following:
 
 * `tenant_id` - The Tenant ID for the Service Principal associated with the Managed Service Identity of this App Service.
 
--> You can access the Principal ID via `azurerm_app_service.example.identity.0.principal_id` and the Tenant ID via `azurerm_app_service.example.identity.0.tenant_id`
+-> You can access the Principal ID via `azurerm_app_service.example.identity[0].principal_id` and the Tenant ID via `azurerm_app_service.example.identity[0].tenant_id`
 
 ---
 

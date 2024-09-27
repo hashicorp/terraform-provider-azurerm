@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ChannelId{}
+func init() {
+	recaser.RegisterResourceId(&ChannelId{})
+}
+
+var _ resourceids.ResourceId = &ChannelId{}
 
 // ChannelId is a struct representing the Resource ID for a Channel
 type ChannelId struct {
@@ -32,29 +37,15 @@ func NewChannelID(subscriptionId string, resourceGroupName string, partnerNamesp
 
 // ParseChannelID parses 'input' into a ChannelId
 func ParseChannelID(input string) (*ChannelId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ChannelId{})
+	parser := resourceids.NewParserFromResourceIdType(&ChannelId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ChannelId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.PartnerNamespaceName, ok = parsed.Parsed["partnerNamespaceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "partnerNamespaceName", *parsed)
-	}
-
-	if id.ChannelName, ok = parsed.Parsed["channelName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "channelName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +54,40 @@ func ParseChannelID(input string) (*ChannelId, error) {
 // ParseChannelIDInsensitively parses 'input' case-insensitively into a ChannelId
 // note: this method should only be used for API response data and not user input
 func ParseChannelIDInsensitively(input string) (*ChannelId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ChannelId{})
+	parser := resourceids.NewParserFromResourceIdType(&ChannelId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ChannelId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.PartnerNamespaceName, ok = parsed.Parsed["partnerNamespaceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "partnerNamespaceName", *parsed)
-	}
-
-	if id.ChannelName, ok = parsed.Parsed["channelName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "channelName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ChannelId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.PartnerNamespaceName, ok = input.Parsed["partnerNamespaceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "partnerNamespaceName", input)
+	}
+
+	if id.ChannelName, ok = input.Parsed["channelName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "channelName", input)
+	}
+
+	return nil
 }
 
 // ValidateChannelID checks that 'input' can be parsed as a Channel ID
@@ -122,9 +121,9 @@ func (id ChannelId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftEventGrid", "Microsoft.EventGrid", "Microsoft.EventGrid"),
 		resourceids.StaticSegment("staticPartnerNamespaces", "partnerNamespaces", "partnerNamespaces"),
-		resourceids.UserSpecifiedSegment("partnerNamespaceName", "partnerNamespaceValue"),
+		resourceids.UserSpecifiedSegment("partnerNamespaceName", "partnerNamespaceName"),
 		resourceids.StaticSegment("staticChannels", "channels", "channels"),
-		resourceids.UserSpecifiedSegment("channelName", "channelValue"),
+		resourceids.UserSpecifiedSegment("channelName", "channelName"),
 	}
 }
 

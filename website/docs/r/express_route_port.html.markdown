@@ -48,6 +48,8 @@ The following arguments are supported:
 
 * `link2` - (Optional) A list of `link` blocks as defined below.
 
+* `billing_type` - (Optional) The billing type of the Express Route Port. Possible values are `MeteredData` and `UnlimitedData`. Defaults to `MeteredData`.
+
 ---
 
 * `identity` - (Optional) An `identity` block as defined below.
@@ -70,11 +72,11 @@ A `link` block supports the following:
   
 * `macsec_cipher` - (Optional) The MACSec cipher used for this Express Route Port Link. Possible values are `GcmAes128` and `GcmAes256`. Defaults to `GcmAes128`.
 
-* `billing_type` - (Optional) The billing type of the Express Route Port. Possible values are `MeteredData` and `UnlimitedData`.
-
 * `macsec_ckn_keyvault_secret_id` - (Optional) The ID of the Key Vault Secret that contains the MACSec CKN key for this Express Route Port Link.
 
 * `macsec_cak_keyvault_secret_id` - (Optional) The ID of the Key Vault Secret that contains the Mac security CAK key for this Express Route Port Link.
+
+* `macsec_sci_enabled` - (Optional) Should Secure Channel Identifier on the Express Route Port Link be enabled? Defaults to `false`.
 
 ~> **NOTE** `macsec_ckn_keyvault_secret_id` and `macsec_cak_keyvault_secret_id` should be used together with `identity`, so that the Express Route Port instance have the right permission to access the Key Vault.
 

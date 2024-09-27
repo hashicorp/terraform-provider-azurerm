@@ -43,7 +43,9 @@ func (c RoleAssignmentScheduleInstancesClient) Get(ctx context.Context, id Scope
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model RoleAssignmentScheduleInstance
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -63,6 +63,10 @@ The following attributes are exported:
   
 * `volume_path` - The unique file path of the volume.
 
+* `smb_non_browsable_enabled` - Limits clients from browsing for an SMB share.
+
+* `smb_access_based_enumeration_enabled` - Limits enumeration of files and folders (that is, listing the contents) in SMB only to users with allowed access on the share.
+
 ---
 
 A `data_protection_replication` block exports the following:

@@ -163,7 +163,7 @@ The `storage_configuration` block supports the following:
 
 * `system_db_on_data_disk_enabled` - (Optional) Specifies whether to set system databases (except tempDb) location to newly created data storage. Possible values are `true` and `false`. Defaults to `false`.
 
-* `temp_db_settings` - (Optional) An `temp_db_settings` as defined below.
+* `temp_db_settings` - (Optional) An `temp_db_settings` block as defined below.
 
 ---
 
@@ -211,7 +211,7 @@ The `schedule` block supports the following:
 
 ~> **NOTE:** Either one of `weekly_interval` or `monthly_occurrence` must be specified.
 
-* `day_of_week` - (Required) What day of the week the assessment will be run. Default value is `Monday`. Possible values are `Friday`, `Monday`, `Saturday`, `Sunday`, `Thursday`, `Tuesday` and `Wednesday`.
+* `day_of_week` - (Required) What day of the week the assessment will be run. Possible values are `Friday`, `Monday`, `Saturday`, `Sunday`, `Thursday`, `Tuesday` and `Wednesday`.
 
 * `start_time` - (Required) What time the assessment will be run. Must be in the format `HH:mm`.
 

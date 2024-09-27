@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = PolicySetId{}
+func init() {
+	recaser.RegisterResourceId(&PolicySetId{})
+}
+
+var _ resourceids.ResourceId = &PolicySetId{}
 
 // PolicySetId is a struct representing the Resource ID for a Policy Set
 type PolicySetId struct {
@@ -32,29 +37,15 @@ func NewPolicySetID(subscriptionId string, resourceGroupName string, labName str
 
 // ParsePolicySetID parses 'input' into a PolicySetId
 func ParsePolicySetID(input string) (*PolicySetId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PolicySetId{})
+	parser := resourceids.NewParserFromResourceIdType(&PolicySetId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := PolicySetId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.LabName, ok = parsed.Parsed["labName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "labName", *parsed)
-	}
-
-	if id.PolicySetName, ok = parsed.Parsed["policySetName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "policySetName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +54,40 @@ func ParsePolicySetID(input string) (*PolicySetId, error) {
 // ParsePolicySetIDInsensitively parses 'input' case-insensitively into a PolicySetId
 // note: this method should only be used for API response data and not user input
 func ParsePolicySetIDInsensitively(input string) (*PolicySetId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PolicySetId{})
+	parser := resourceids.NewParserFromResourceIdType(&PolicySetId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := PolicySetId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.LabName, ok = parsed.Parsed["labName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "labName", *parsed)
-	}
-
-	if id.PolicySetName, ok = parsed.Parsed["policySetName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "policySetName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *PolicySetId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.LabName, ok = input.Parsed["labName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "labName", input)
+	}
+
+	if id.PolicySetName, ok = input.Parsed["policySetName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "policySetName", input)
+	}
+
+	return nil
 }
 
 // ValidatePolicySetID checks that 'input' can be parsed as a Policy Set ID
@@ -122,9 +121,9 @@ func (id PolicySetId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDevTestLab", "Microsoft.DevTestLab", "Microsoft.DevTestLab"),
 		resourceids.StaticSegment("staticLabs", "labs", "labs"),
-		resourceids.UserSpecifiedSegment("labName", "labValue"),
+		resourceids.UserSpecifiedSegment("labName", "labName"),
 		resourceids.StaticSegment("staticPolicySets", "policySets", "policySets"),
-		resourceids.UserSpecifiedSegment("policySetName", "policySetValue"),
+		resourceids.UserSpecifiedSegment("policySetName", "policySetName"),
 	}
 }
 

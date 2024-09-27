@@ -44,7 +44,9 @@ func (c PrivateCloudsClient) ListAdminCredentials(ctx context.Context, id Privat
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model AdminCredentials
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

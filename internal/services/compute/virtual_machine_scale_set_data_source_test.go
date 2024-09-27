@@ -27,6 +27,7 @@ func TestAccDataSourceVirtualMachineScaleSet_basicLinux(t *testing.T) {
 				check.That(data.ResourceName).Key("instances.#").HasValue("1"),
 				check.That(data.ResourceName).Key("instances.0.instance_id").HasValue("0"),
 				check.That(data.ResourceName).Key("instances.0.private_ip_address").HasValue("10.0.2.4"),
+				check.That(data.ResourceName).Key("instances.0.power_state").HasValue("running"),
 			),
 		},
 	})

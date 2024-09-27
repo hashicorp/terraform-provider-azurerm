@@ -20,11 +20,12 @@ func TestAccDataSourceHDInsightCluster_hadoop(t *testing.T) {
 		{
 			Config: r.hadoop(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("kind").HasValue("hadoop"),
-				check.That(data.ResourceName).Key("tier").HasValue("standard"),
+				check.That(data.ResourceName).Key("kind").HasValue("HADOOP"),
+				check.That(data.ResourceName).Key("tier").HasValue("Standard"),
 				check.That(data.ResourceName).Key("edge_ssh_endpoint").HasValue(""),
 				check.That(data.ResourceName).Key("https_endpoint").Exists(),
 				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
+				check.That(data.ResourceName).Key("cluster_id").Exists(),
 			),
 		},
 	})
@@ -37,11 +38,12 @@ func TestAccDataSourceHDInsightCluster_hbase(t *testing.T) {
 		{
 			Config: r.hbase(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("kind").HasValue("hbase"),
-				check.That(data.ResourceName).Key("tier").HasValue("standard"),
+				check.That(data.ResourceName).Key("kind").HasValue("HBASE"),
+				check.That(data.ResourceName).Key("tier").HasValue("Standard"),
 				check.That(data.ResourceName).Key("edge_ssh_endpoint").HasValue(""),
 				check.That(data.ResourceName).Key("https_endpoint").Exists(),
 				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
+				check.That(data.ResourceName).Key("cluster_id").Exists(),
 			),
 		},
 	})
@@ -54,11 +56,12 @@ func TestAccDataSourceHDInsightCluster_interactiveQuery(t *testing.T) {
 		{
 			Config: r.interactiveQuery(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("kind").HasValue("interactivehive"),
-				check.That(data.ResourceName).Key("tier").HasValue("standard"),
+				check.That(data.ResourceName).Key("kind").HasValue("INTERACTIVEHIVE"),
+				check.That(data.ResourceName).Key("tier").HasValue("Standard"),
 				check.That(data.ResourceName).Key("edge_ssh_endpoint").HasValue(""),
 				check.That(data.ResourceName).Key("https_endpoint").Exists(),
 				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
+				check.That(data.ResourceName).Key("cluster_id").Exists(),
 			),
 		},
 	})
@@ -71,11 +74,12 @@ func TestAccDataSourceHDInsightCluster_kafka(t *testing.T) {
 		{
 			Config: r.kafka(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("kind").HasValue("kafka"),
-				check.That(data.ResourceName).Key("tier").HasValue("standard"),
+				check.That(data.ResourceName).Key("kind").HasValue("KAFKA"),
+				check.That(data.ResourceName).Key("tier").HasValue("Standard"),
 				check.That(data.ResourceName).Key("edge_ssh_endpoint").HasValue(""),
 				check.That(data.ResourceName).Key("https_endpoint").Exists(),
 				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
+				check.That(data.ResourceName).Key("cluster_id").Exists(),
 			),
 		},
 	})
@@ -88,12 +92,13 @@ func TestAccDataSourceHDInsightCluster_kafkaWithRestProxy(t *testing.T) {
 		{
 			Config: r.kafkaWithRestProxy(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("kind").HasValue("kafka"),
-				check.That(data.ResourceName).Key("tier").HasValue("standard"),
+				check.That(data.ResourceName).Key("kind").HasValue("KAFKA"),
+				check.That(data.ResourceName).Key("tier").HasValue("Standard"),
 				check.That(data.ResourceName).Key("edge_ssh_endpoint").HasValue(""),
 				check.That(data.ResourceName).Key("https_endpoint").Exists(),
 				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
 				check.That(data.ResourceName).Key("kafka_rest_proxy_endpoint").Exists(),
+				check.That(data.ResourceName).Key("cluster_id").Exists(),
 			),
 		},
 	})
@@ -106,11 +111,12 @@ func TestAccDataSourceHDInsightCluster_spark(t *testing.T) {
 		{
 			Config: r.spark(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("kind").HasValue("spark"),
-				check.That(data.ResourceName).Key("tier").HasValue("standard"),
+				check.That(data.ResourceName).Key("kind").HasValue("SPARK"),
+				check.That(data.ResourceName).Key("tier").HasValue("Standard"),
 				check.That(data.ResourceName).Key("edge_ssh_endpoint").HasValue(""),
 				check.That(data.ResourceName).Key("https_endpoint").Exists(),
 				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
+				check.That(data.ResourceName).Key("cluster_id").Exists(),
 			),
 		},
 	})

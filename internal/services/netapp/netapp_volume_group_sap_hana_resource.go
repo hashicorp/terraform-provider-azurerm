@@ -15,10 +15,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/capacitypools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumegroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumes"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumesreplication"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/capacitypools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/volumegroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/volumes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/volumesreplication"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
@@ -525,11 +525,6 @@ func (r NetAppVolumeGroupSapHanaResource) Update() sdk.ResourceFunc {
 
 						if err = volumeClient.UpdateThenPoll(ctx, volumeId, update); err != nil {
 							return fmt.Errorf("updating %s: %+v", volumeId, err)
-						}
-
-						// Wait for volume to complete update
-						if err := waitForVolumeCreateOrUpdate(ctx, volumeClient, volumeId); err != nil {
-							return err
 						}
 					}
 				}

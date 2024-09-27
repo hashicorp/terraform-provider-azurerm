@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/topics"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -18,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
 )
 
 func resourceDataFactoryTriggerCustomEvent() *pluginsdk.Resource {
@@ -125,14 +125,12 @@ func resourceDataFactoryTriggerCustomEvent() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
-				AtLeastOneOf: []string{"subject_begins_with", "subject_ends_with"},
 			},
 
 			"subject_ends_with": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
-				AtLeastOneOf: []string{"subject_begins_with", "subject_ends_with"},
 			},
 		},
 	}

@@ -15,7 +15,7 @@ type PrivateCloudsClient struct {
 }
 
 func NewPrivateCloudsClientWithBaseURI(sdkApi sdkEnv.Api) (*PrivateCloudsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "privateclouds", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "privateclouds", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating PrivateCloudsClient: %+v", err)
 	}

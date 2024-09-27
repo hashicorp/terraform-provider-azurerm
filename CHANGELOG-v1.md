@@ -213,7 +213,7 @@ IMPROVEMENTS:
 * `azurerm_recovery_services_protection_container_mapping` - has been deprecated and renamed to `azurerm_site_recovery_protection_container_mapping` ([#5170](https://github.com/hashicorp/terraform-provider-azurerm/issues/5170))
 * `azurerm_recovery_services_replication_policy` - has been deprecated and renamed to `azurerm_site_recovery_protection_policy` ([#5170](https://github.com/hashicorp/terraform-provider-azurerm/issues/5170))
 * `azurerm_recovery_replicated_vm` - has been deprecated and renamed to `azurerm_site_recovery_replicated_vm` ([#5170](https://github.com/hashicorp/terraform-provider-azurerm/issues/5170))
-* `azurerm_recovery_services_protection_policy_vm` - has been deprecated and renamed to `	zurerm_backup_policy_vm` ([#5170](https://github.com/hashicorp/terraform-provider-azurerm/issues/5170))
+* `azurerm_recovery_services_protection_policy_vm` - has been deprecated and renamed to `azurerm_backup_policy_vm` ([#5170](https://github.com/hashicorp/terraform-provider-azurerm/issues/5170))
 * `azurerm_recovery_services_protected_vm` - has been deprecated and renamed to `azurerm_backup_protected_vm` ([#5170](https://github.com/hashicorp/terraform-provider-azurerm/issues/5170))
 * `azurerm_search_service` - exposing the `query_keys` ([#5029](https://github.com/hashicorp/terraform-provider-azurerm/issues/5029))
 * `azurerm_storage_account`  - exposing the `blob_properties` block ([#3807](https://github.com/hashicorp/terraform-provider-azurerm/issues/3807))

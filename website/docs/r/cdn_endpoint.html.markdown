@@ -52,9 +52,9 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `is_http_allowed` - (Optional) Defaults to `true`.
+* `is_http_allowed` - (Optional) Specifies if http allowed. Defaults to `true`.
 
-* `is_https_allowed` - (Optional) Defaults to `true`.
+* `is_https_allowed` - (Optional) Specifies if https allowed. Defaults to `true`.
 
 * `content_types_to_compress` - (Optional) An array of strings that indicates a content types on which compression will be applied. The value for the elements should be MIME types.
 
@@ -210,7 +210,7 @@ A `url_redirect_action` block supports the following:
 
 * `redirect_type` - (Required) Type of the redirect. Valid values are `Found`, `Moved`, `PermanentRedirect` and `TemporaryRedirect`.
 
-* `protocol` - (Optional) Specifies the protocol part of the URL. Valid values are `MatchRequest`, `Http` and `Https`.
+* `protocol` - (Optional) Specifies the protocol part of the URL. Valid values are `MatchRequest`, `Http` and `Https`. Defaults to `MatchRequest`.
 
 * `hostname` - (Optional) Specifies the hostname part of the URL.
 
@@ -228,7 +228,7 @@ A `url_rewrite_action` block supports the following:
 
 * `destination` - (Required) This value must start with a `/` and can't be longer than 260 characters.
 
-* `preserve_unmatched_path` - (Optional) Defaults to `true`.
+* `preserve_unmatched_path` - (Optional) Whether preserve an unmatched path. Defaults to `true`.
 
 ---
 
@@ -248,7 +248,7 @@ A `cookies_condition` block supports the following:
 
 A `device_condition` block supports the following:
 
-* `operator` - (Optional) Valid values are `Equal`.
+* `operator` - (Optional) Valid values are `Equal`. Defaults to `Equal`.
 
 * `negate_condition` - (Optional) Defaults to `false`.
 
@@ -258,7 +258,7 @@ A `device_condition` block supports the following:
 
 A `http_version_condition` block supports the following:
 
-* `operator` - (Optional) Valid values are `Equal`.
+* `operator` - (Optional) Valid values are `Equal`. Defaults to `Equal`.
 
 * `negate_condition` - (Optional) Defaults to `false`.
 
@@ -330,7 +330,7 @@ A `request_header_condition` block supports the following:
 
 A `request_method_condition` block supports the following:
 
-* `operator` - (Optional) Valid values are `Equal`.
+* `operator` - (Optional) Valid values are `Equal`. Defaults to `Equal`.
 
 * `negate_condition` - (Optional) Defaults to `false`.
 
@@ -340,7 +340,7 @@ A `request_method_condition` block supports the following:
 
 A `request_scheme_condition` block supports the following:
 
-* `operator` - (Optional) Valid values are `Equal`.
+* `operator` - (Optional) Valid values are `Equal`. Defaults to `Equal`.
 
 * `negate_condition` - (Optional) Defaults to `false`.
 

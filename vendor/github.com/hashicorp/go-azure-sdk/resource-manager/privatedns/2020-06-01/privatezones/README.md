@@ -1,13 +1,14 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2020-06-01/privatezones` Documentation
 
-The `privatezones` SDK allows for interaction with the Azure Resource Manager Service `privatedns` (API Version `2020-06-01`).
+The `privatezones` SDK allows for interaction with Azure Resource Manager `privatedns` (API Version `2020-06-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2020-06-01/privatezones"
 ```
 
@@ -24,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := privatezones.NewPrivateDnsZoneID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateDnsZoneValue")
+id := privatezones.NewPrivateDnsZoneID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateZoneName")
 
 payload := privatezones.PrivateZone{
 	// ...
@@ -41,7 +42,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload, privatezones.DefaultCr
 
 ```go
 ctx := context.TODO()
-id := privatezones.NewPrivateDnsZoneID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateDnsZoneValue")
+id := privatezones.NewPrivateDnsZoneID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateZoneName")
 
 if err := client.DeleteThenPoll(ctx, id, privatezones.DefaultDeleteOperationOptions()); err != nil {
 	// handle the error
@@ -53,7 +54,7 @@ if err := client.DeleteThenPoll(ctx, id, privatezones.DefaultDeleteOperationOpti
 
 ```go
 ctx := context.TODO()
-id := privatezones.NewPrivateDnsZoneID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateDnsZoneValue")
+id := privatezones.NewPrivateDnsZoneID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateZoneName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -69,7 +70,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := privatezones.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 // alternatively `client.List(ctx, id, privatezones.DefaultListOperationOptions())` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id, privatezones.DefaultListOperationOptions())
@@ -86,7 +87,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := privatezones.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
+id := commonids.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
 // alternatively `client.ListByResourceGroup(ctx, id, privatezones.DefaultListByResourceGroupOperationOptions())` can be used to do batched pagination
 items, err := client.ListByResourceGroupComplete(ctx, id, privatezones.DefaultListByResourceGroupOperationOptions())
@@ -103,7 +104,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := privatezones.NewPrivateDnsZoneID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateDnsZoneValue")
+id := privatezones.NewPrivateDnsZoneID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateZoneName")
 
 payload := privatezones.PrivateZone{
 	// ...

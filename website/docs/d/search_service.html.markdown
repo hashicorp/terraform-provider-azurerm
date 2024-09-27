@@ -50,6 +50,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `replica_count` - The number of replica's which have been created.
 
+* `tags` - A mapping of tags assigned to the resource.
+
 * `identity` - An `identity` block as defined below.
 
 ---

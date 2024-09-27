@@ -35,8 +35,8 @@ resource "azurerm_cognitive_deployment" "example" {
     version = "1"
   }
 
-  scale {
-    type = "Standard"
+  sku {
+    name = "Standard"
   }
 }
 
@@ -52,9 +52,11 @@ The following arguments are supported:
 
 * `model` - (Required) A `model` block as defined below. Changing this forces a new resource to be created.
 
-* `scale` - (Required) A `scale` block as defined below. Changing this forces a new resource to be created.
+* `sku` - (Required) A `sku` block as defined below.
 
-* `rai_policy_name` - (Optional) The name of RAI policy. Changing this forces a new resource to be created.
+* `rai_policy_name` - (Optional) The name of RAI policy.
+
+* `version_upgrade_option` - (Optional) Deployment model version upgrade option. Possible values are `OnceNewDefaultVersionAvailable`, `OnceCurrentVersionExpired`, and `NoAutoUpgrade`. Defaults to `OnceNewDefaultVersionAvailable`.
 
 ---
 
@@ -64,13 +66,13 @@ A `model` block supports the following:
 
 * `name` - (Required) The name of the Cognitive Services Account Deployment model. Changing this forces a new resource to be created.
 
-* `version` - (Required) The version of Cognitive Services Account Deployment model.
+* `version` - (Optional) The version of Cognitive Services Account Deployment model. If `version` is not specified, the default version of the model at the time will be assigned.
 
 ---
 
-A `scale` block supports the following:
+A `sku` block supports the following:
 
-* `type` - (Required) The name of the SKU. Ex - `Standard` or `P3`. It is typically a letter+number code. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the SKU. Possible values include `Standard`, `GlobalBatch`, `GlobalStandard` and `ProvisionedManaged`.
 
 * `tier` - (Optional) Possible values are `Free`, `Basic`, `Standard`, `Premium`, `Enterprise`. Changing this forces a new resource to be created.
 

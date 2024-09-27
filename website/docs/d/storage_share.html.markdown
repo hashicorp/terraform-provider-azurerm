@@ -10,6 +10,8 @@ description: |-
 
 Use this data source to access information about an existing File Share.
 
+~> **Note on Authentication** Shared Key authentication will always be used for this data source, as AzureAD authentication is not supported by the Storage API for files.
+
 ## Example Usage
 
 ```hcl

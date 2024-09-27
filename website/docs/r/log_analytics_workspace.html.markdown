@@ -41,13 +41,11 @@ The following arguments are supported:
 
 * `local_authentication_disabled` - (Optional) Specifies if the log Analytics workspace should enforce authentication using Azure AD. Defaults to `false`.
 
-* `sku` - (Optional) Specifies the SKU of the Log Analytics Workspace. Possible values are `Free`, `PerNode`, `Premium`, `Standard`, `Standalone`, `Unlimited`, `CapacityReservation`, and `PerGB2018` (new SKU as of `2018-04-03`). Defaults to `PerGB2018`.
+* `sku` - (Optional) Specifies the SKU of the Log Analytics Workspace. Possible values are `PerNode`, `Premium`, `Standard`, `Standalone`, `Unlimited`, `CapacityReservation`, and `PerGB2018` (new SKU as of `2018-04-03`). Defaults to `PerGB2018`.
 
 ~> **NOTE:** A new pricing model took effect on `2018-04-03`, which requires the SKU `PerGB2018`. If you're provisioned resources before this date you have the option of remaining with the previous Pricing SKU and using the other SKUs defined above. More information about [the Pricing SKUs is available at the following URI](https://aka.ms/PricingTierWarning).
 
 ~> **NOTE:** Changing `sku` forces a new Log Analytics Workspace to be created, except when changing between `PerGB2018` and `CapacityReservation`. However, changing `sku` to `CapacityReservation` or changing `reservation_capacity_in_gb_per_day` to a higher tier will lead to a 31-days commitment period, during which the SKU cannot be changed to a lower one. Please refer to [official documentation](https://learn.microsoft.com/en-us/azure/azure-monitor/logs/cost-logs#commitment-tiers) for further information.
-
-~> **NOTE:** The `Free` SKU has a default `daily_quota_gb` value of `0.5` (GB).
 
 * `retention_in_days` - (Optional) The workspace data retention in days. Possible values are either 7 (Free Tier only) or range between 30 and 730.
 
@@ -57,6 +55,8 @@ The following arguments are supported:
 
 * `cmk_for_query_forced` - (Optional) Is Customer Managed Storage mandatory for query management?
 
+* `identity` - (Optional) An `identity` block as defined below.
+
 * `internet_ingestion_enabled` - (Optional) Should the Log Analytics Workspace support ingestion over the Public Internet? Defaults to `true`.
 
 * `internet_query_enabled` - (Optional) Should the Log Analytics Workspace support querying over the Public Internet? Defaults to `true`.
@@ -65,9 +65,23 @@ The following arguments are supported:
 
 ~> **NOTE:** `reservation_capacity_in_gb_per_day` can only be used when the `sku` is set to `CapacityReservation`.
 
+* `data_collection_rule_id` - (Optional) The ID of the Data Collection Rule to use for this workspace.
+
+* `immediate_data_purge_on_30_days_enabled` - (Optional) Whether to remove the data in the Log Analytics Workspace immediately after 30 days.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ~> **NOTE:** If a `azurerm_log_analytics_workspace` is connected to a `azurerm_log_analytics_cluster` via a `azurerm_log_analytics_linked_service` you will not be able to modify the workspaces `sku` field until the link between the workspace and the cluster has been broken by deleting the `azurerm_log_analytics_linked_service` resource. All other fields are modifiable while the workspace is linked to a cluster.
+
+---
+
+An `identity` block supports the following:
+
+* `type` - (Required) Specifies the identity type of the Log Analytics Workspace. Possible values are `SystemAssigned` (where Azure will generate a Service Principal for you) and `UserAssigned` where you can specify the Service Principal IDs in the `identity_ids` field.
+
+~> **NOTE:** When `type` is set to `SystemAssigned`, The assigned `principal_id` and `tenant_id` can be retrieved after the Log Analytics Workspace has been created.
+
+* `identity_ids` - (Optional) Specifies a list of user managed identity ids to be assigned. Required if `type` is `UserAssigned`.
 
 ## Attributes Reference
 

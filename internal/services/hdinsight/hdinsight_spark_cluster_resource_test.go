@@ -8,10 +8,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -678,21 +678,18 @@ func TestAccHDInsightSparkCluster_computeIsolation(t *testing.T) {
 	})
 }
 
-func (t HDInsightSparkClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ClusterID(state.ID)
+func (r HDInsightSparkClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := commonids.ParseHDInsightClusterID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceGroup := id.ResourceGroup
-	name := id.Name
-
-	resp, err := clients.HDInsight.ClustersClient.Get(ctx, resourceGroup, name)
+	resp, err := clients.HDInsight.Clusters.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading HDInsight Spark Cluster (%s): %+v", id.String(), err)
+		return nil, fmt.Errorf("reading Spark %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r HDInsightSparkClusterResource) basic(data acceptance.TestData) string {
@@ -870,7 +867,7 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["172.16.11.0/26"]
 
-  enforce_private_link_service_network_policies = true
+  private_link_service_network_policies_enabled = false
 }
 
 resource "azurerm_public_ip" "test" {
@@ -934,6 +931,17 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
     filesystem_id                = azurerm_storage_data_lake_gen2_filesystem.gen2test.id
     managed_identity_resource_id = azurerm_user_assigned_identity.test.id
     is_default                   = true
+  }
+
+  private_link_configuration {
+    name     = "testconfig"
+    group_id = "headnode"
+    ip_configuration {
+      name                         = "testipconfig"
+      primary                      = false
+      private_ip_allocation_method = "dynamic"
+      subnet_id                    = azurerm_subnet.test.id
+    }
   }
 
   roles {
@@ -1302,7 +1310,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-hdi-%d"
   location = "%s"
 }
 
@@ -1329,7 +1337,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-hdi-%d"
   location = "%s"
 }
 
@@ -1740,7 +1748,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
 func (r HDInsightSparkClusterResource) allMetastores(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
-resource "azurerm_sql_server" "test" {
+resource "azurerm_mssql_server" "test" {
   name                         = "acctestsql-%d"
   resource_group_name          = azurerm_resource_group.test.name
   location                     = azurerm_resource_group.test.location
@@ -1748,39 +1756,29 @@ resource "azurerm_sql_server" "test" {
   administrator_login_password = "TerrAform123!"
   version                      = "12.0"
 }
-resource "azurerm_sql_database" "hive" {
-  name                             = "hive"
-  resource_group_name              = azurerm_resource_group.test.name
-  location                         = azurerm_resource_group.test.location
-  server_name                      = azurerm_sql_server.test.name
-  collation                        = "SQL_Latin1_General_CP1_CI_AS"
-  create_mode                      = "Default"
-  requested_service_objective_name = "GP_Gen5_2"
+resource "azurerm_mssql_database" "hive" {
+  name        = "hive"
+  server_id   = azurerm_mssql_server.test.id
+  collation   = "SQL_Latin1_General_CP1_CI_AS"
+  create_mode = "Default"
 }
-resource "azurerm_sql_database" "oozie" {
-  name                             = "oozie"
-  resource_group_name              = azurerm_resource_group.test.name
-  location                         = azurerm_resource_group.test.location
-  server_name                      = azurerm_sql_server.test.name
-  collation                        = "SQL_Latin1_General_CP1_CI_AS"
-  create_mode                      = "Default"
-  requested_service_objective_name = "GP_Gen5_2"
+resource "azurerm_mssql_database" "oozie" {
+  name        = "oozie"
+  server_id   = azurerm_mssql_server.test.id
+  collation   = "SQL_Latin1_General_CP1_CI_AS"
+  create_mode = "Default"
 }
-resource "azurerm_sql_database" "ambari" {
-  name                             = "ambari"
-  resource_group_name              = azurerm_resource_group.test.name
-  location                         = azurerm_resource_group.test.location
-  server_name                      = azurerm_sql_server.test.name
-  collation                        = "SQL_Latin1_General_CP1_CI_AS"
-  create_mode                      = "Default"
-  requested_service_objective_name = "GP_Gen5_2"
+resource "azurerm_mssql_database" "ambari" {
+  name        = "ambari"
+  server_id   = azurerm_mssql_server.test.id
+  collation   = "SQL_Latin1_General_CP1_CI_AS"
+  create_mode = "Default"
 }
-resource "azurerm_sql_firewall_rule" "AzureServices" {
-  name                = "allow-azure-services"
-  resource_group_name = azurerm_resource_group.test.name
-  server_name         = azurerm_sql_server.test.name
-  start_ip_address    = "0.0.0.0"
-  end_ip_address      = "0.0.0.0"
+resource "azurerm_mssql_firewall_rule" "AzureServices" {
+  name             = "allow-azure-services"
+  server_id        = azurerm_mssql_server.test.id
+  start_ip_address = "0.0.0.0"
+  end_ip_address   = "0.0.0.0"
 }
 resource "azurerm_hdinsight_spark_cluster" "test" {
   name                = "acctesthdi-%d"
@@ -1820,22 +1818,22 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
   }
   metastores {
     hive {
-      server        = azurerm_sql_server.test.fully_qualified_domain_name
-      database_name = azurerm_sql_database.hive.name
-      username      = azurerm_sql_server.test.administrator_login
-      password      = azurerm_sql_server.test.administrator_login_password
+      server        = azurerm_mssql_server.test.fully_qualified_domain_name
+      database_name = azurerm_mssql_database.hive.name
+      username      = azurerm_mssql_server.test.administrator_login
+      password      = azurerm_mssql_server.test.administrator_login_password
     }
     oozie {
-      server        = azurerm_sql_server.test.fully_qualified_domain_name
-      database_name = azurerm_sql_database.oozie.name
-      username      = azurerm_sql_server.test.administrator_login
-      password      = azurerm_sql_server.test.administrator_login_password
+      server        = azurerm_mssql_server.test.fully_qualified_domain_name
+      database_name = azurerm_mssql_database.oozie.name
+      username      = azurerm_mssql_server.test.administrator_login
+      password      = azurerm_mssql_server.test.administrator_login_password
     }
     ambari {
-      server        = azurerm_sql_server.test.fully_qualified_domain_name
-      database_name = azurerm_sql_database.ambari.name
-      username      = azurerm_sql_server.test.administrator_login
-      password      = azurerm_sql_server.test.administrator_login_password
+      server        = azurerm_mssql_server.test.fully_qualified_domain_name
+      database_name = azurerm_mssql_database.ambari.name
+      username      = azurerm_mssql_server.test.administrator_login
+      password      = azurerm_mssql_server.test.administrator_login_password
     }
   }
 }
@@ -1845,7 +1843,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
 func (r HDInsightSparkClusterResource) hiveMetastore(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
-resource "azurerm_sql_server" "test" {
+resource "azurerm_mssql_server" "test" {
   name                         = "acctestsql-%d"
   resource_group_name          = azurerm_resource_group.test.name
   location                     = azurerm_resource_group.test.location
@@ -1853,21 +1851,17 @@ resource "azurerm_sql_server" "test" {
   administrator_login_password = "TerrAform123!"
   version                      = "12.0"
 }
-resource "azurerm_sql_database" "hive" {
-  name                             = "hive"
-  resource_group_name              = azurerm_resource_group.test.name
-  location                         = azurerm_resource_group.test.location
-  server_name                      = azurerm_sql_server.test.name
-  collation                        = "SQL_Latin1_General_CP1_CI_AS"
-  create_mode                      = "Default"
-  requested_service_objective_name = "GP_Gen5_2"
+resource "azurerm_mssql_database" "hive" {
+  name        = "hive"
+  server_id   = azurerm_mssql_server.test.id
+  collation   = "SQL_Latin1_General_CP1_CI_AS"
+  create_mode = "Default"
 }
-resource "azurerm_sql_firewall_rule" "AzureServices" {
-  name                = "allow-azure-services"
-  resource_group_name = azurerm_resource_group.test.name
-  server_name         = azurerm_sql_server.test.name
-  start_ip_address    = "0.0.0.0"
-  end_ip_address      = "0.0.0.0"
+resource "azurerm_mssql_firewall_rule" "AzureServices" {
+  name             = "allow-azure-services"
+  server_id        = azurerm_mssql_server.test.id
+  start_ip_address = "0.0.0.0"
+  end_ip_address   = "0.0.0.0"
 }
 resource "azurerm_hdinsight_spark_cluster" "test" {
   name                = "acctesthdi-%d"
@@ -1907,10 +1901,10 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
   }
   metastores {
     hive {
-      server        = azurerm_sql_server.test.fully_qualified_domain_name
-      database_name = azurerm_sql_database.hive.name
-      username      = azurerm_sql_server.test.administrator_login
-      password      = azurerm_sql_server.test.administrator_login_password
+      server        = azurerm_mssql_server.test.fully_qualified_domain_name
+      database_name = azurerm_mssql_database.hive.name
+      username      = azurerm_mssql_server.test.administrator_login
+      password      = azurerm_mssql_server.test.administrator_login_password
     }
   }
 }

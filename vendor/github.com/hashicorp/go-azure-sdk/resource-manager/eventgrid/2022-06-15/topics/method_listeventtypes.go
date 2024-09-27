@@ -45,7 +45,9 @@ func (c TopicsClient) ListEventTypes(ctx context.Context, id commonids.ScopeId) 
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model EventTypesListResult
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -44,7 +44,9 @@ func (c CommunicationServicesClient) ListKeys(ctx context.Context, id Communicat
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model CommunicationServiceKeys
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

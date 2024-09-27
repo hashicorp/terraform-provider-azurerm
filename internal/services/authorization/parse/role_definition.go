@@ -6,12 +6,39 @@ package parse
 import (
 	"fmt"
 	"strings"
+
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type RoleDefinitionID struct {
 	ResourceID string
 	Scope      string
 	RoleID     string
+}
+
+var _ resourceids.Id = RoleDefinitionID{}
+
+func (r RoleDefinitionID) ID() string {
+	return fmt.Sprintf("%s|%s", r.ResourceID, r.Scope)
+}
+
+func (r RoleDefinitionID) String() string {
+	components := []string{
+		fmt.Sprintf("Resource ID: %q", r.ResourceID),
+		fmt.Sprintf("Scope: %q", r.Scope),
+		fmt.Sprintf("Role Definition: %q", r.RoleID),
+	}
+	return fmt.Sprintf("Role Definition (%s)", strings.Join(components, "\n"))
+}
+
+func (r RoleDefinitionID) Segments() []resourceids.Segment {
+	return []resourceids.Segment{
+		resourceids.ScopeSegment("scope", "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group"),
+		resourceids.StaticSegment("staticProviders", "providers", "providers"),
+		resourceids.ResourceProviderSegment("staticMicrosoftAuthorization", "Microsoft.Authorization", "Microsoft.Authorization"),
+		resourceids.StaticSegment("staticRoleDefinitions", "roleDefinitions", "roleDefinitions"),
+		resourceids.UserSpecifiedSegment("roleDefinitionId", "roleDefinitionIdValue"),
+	}
 }
 
 // RoleDefinitionId is a pseudo ID for storing Scope parameter as this it not retrievable from API

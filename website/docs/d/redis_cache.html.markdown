@@ -68,6 +68,8 @@ output "hostname" {
 
 * `secondary_connection_string` - The secondary connection string of the Redis Instance.
 
+* `access_keys_authentication_enabled` - Specifies if access key authentication is enabled.
+
 * `redis_configuration` - A `redis_configuration` block as defined below.
 
 * `zones` - A list of Availability Zones in which this Redis Cache is located.
@@ -90,6 +92,8 @@ A `redis_configuration` block exports the following:
 
 * `enable_authentication` - Specifies if authentication is enabled
 
+* `active_directory_authentication_enabled` - Specifies if Microsoft Entra (AAD) authentication is enabled.
+
 * `maxmemory_reserved` - The value in megabytes reserved for non-cache usage e.g. failover
 
 * `maxmemory_delta` - The max-memory delta for this Redis instance.
@@ -107,6 +111,8 @@ A `redis_configuration` block exports the following:
 * `rdb_storage_connection_string` - The Connection String to the Storage Account. Only supported for Premium SKUs.
 
 ~> **Note:** There's a bug in the Redis API where the original storage connection string isn't being returned, which [is being tracked in this issue](https://github.com/Azure/azure-rest-api-specs/issues/3037). In the interim you can use [the `ignore_changes` attribute to ignore changes to this field](https://www.terraform.io/language/meta-arguments/lifecycle#ignore_changess) e.g.:
+
+* `storage_account_subscription_id` - The ID of the Subscription containing the Storage Account.
 
 ## Timeouts
 

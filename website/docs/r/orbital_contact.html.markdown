@@ -107,7 +107,7 @@ resource "azurerm_orbital_contact" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Contact. Changing this forces a new resource to be created. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the Contact. Changing this forces a new resource to be created.
 
 * `spacecraft_id` - (Required) The ID of the spacecraft which the contact will be made to. Changing this forces a new resource to be created.
 

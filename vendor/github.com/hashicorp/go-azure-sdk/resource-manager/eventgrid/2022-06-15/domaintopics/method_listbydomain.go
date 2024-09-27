@@ -19,7 +19,8 @@ type ListByDomainOperationResponse struct {
 }
 
 type ListByDomainCompleteResult struct {
-	Items []DomainTopic
+	LatestHttpResponse *http.Response
+	Items              []DomainTopic
 }
 
 type ListByDomainOperationOptions struct {
@@ -39,6 +40,7 @@ func (o ListByDomainOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListByDomainOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -53,6 +55,18 @@ func (o ListByDomainOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListByDomainCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByDomainCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByDomain ...
 func (c DomainTopicsClient) ListByDomain(ctx context.Context, id DomainId, options ListByDomainOperationOptions) (result ListByDomainOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -61,8 +75,9 @@ func (c DomainTopicsClient) ListByDomain(ctx context.Context, id DomainId, optio
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/topics", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListByDomainCustomPager{},
+		Path:          fmt.Sprintf("%s/topics", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -103,6 +118,7 @@ func (c DomainTopicsClient) ListByDomainCompleteMatchingPredicate(ctx context.Co
 
 	resp, err := c.ListByDomain(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -115,7 +131,8 @@ func (c DomainTopicsClient) ListByDomainCompleteMatchingPredicate(ctx context.Co
 	}
 
 	result = ListByDomainCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -33,6 +33,13 @@ func TestAccKubernetesCluster_apiServerAuthorizedIPRanges(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.apiServerAuthorizedIPRangesRemovedConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -142,6 +149,7 @@ func TestAccKubernetesCluster_roleBasedAccessControlDisabled(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_roleBasedAccessControlAAD(t *testing.T) {
+	t.Skip("Azure AD Integration (legacy) (https://aka.ms/aks/aad-legacy) is deprecated, the cluster could not be created with the Azure AD integration (legacy) enabled.")
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 	clientData := data.Client()
@@ -167,6 +175,7 @@ func TestAccKubernetesCluster_roleBasedAccessControlAAD(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_roleBasedAccessControlAADUpdate(t *testing.T) {
+	t.Skip("Azure AD Integration (legacy) (https://aka.ms/aks/aad-legacy) is deprecated, the cluster could not be created with the Azure AD integration (legacy) enabled.")
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -193,6 +202,7 @@ func TestAccKubernetesCluster_roleBasedAccessControlAADUpdate(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_roleBasedAccessControlAADUpdateToManaged(t *testing.T) {
+	t.Skip("Azure AD Integration (legacy) (https://aka.ms/aks/aad-legacy) is deprecated, the cluster could not be created with the Azure AD integration (legacy) enabled.")
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 	clientData := data.Client()
@@ -458,6 +468,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     node_count     = 1
     vm_size        = "Standard_DS2_v2"
     vnet_subnet_id = azurerm_subnet.test.id
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -475,6 +488,59 @@ resource "azurerm_kubernetes_cluster" "test" {
       "8.8.4.4/32",
       "8.8.2.0/24",
     ]
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (KubernetesClusterResource) apiServerAuthorizedIPRangesRemovedConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%d"
+  address_space       = ["10.1.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsubnet%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.1.0.0/24"]
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name           = "default"
+    node_count     = 1
+    vm_size        = "Standard_DS2_v2"
+    vnet_subnet_id = azurerm_subnet.test.id
+    upgrade_settings {
+      max_surge = "10%%"
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  network_profile {
+    network_plugin    = "azure"
+    load_balancer_sku = "standard"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
@@ -501,6 +567,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = 1
     vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -537,6 +606,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = 1
     vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -575,6 +647,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = 1
     vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -630,6 +705,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = 1
     vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -675,6 +753,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = 1
     vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -715,6 +796,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = 1
     vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -755,6 +839,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = 1
     vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -800,6 +887,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = 1
     vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -808,7 +898,6 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   azure_active_directory_role_based_access_control {
     tenant_id          = var.tenant_id
-    managed            = true
     azure_rbac_enabled = false
   }
 }
@@ -845,6 +934,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = 1
     vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -853,7 +945,6 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   azure_active_directory_role_based_access_control {
     tenant_id          = var.tenant_id
-    managed            = true
     azure_rbac_enabled = false
   }
 }
@@ -890,6 +981,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = 1
     vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -898,7 +992,6 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   azure_active_directory_role_based_access_control {
     tenant_id          = var.tenant_id
-    managed            = true
     azure_rbac_enabled = false
   }
 }
@@ -934,6 +1027,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = 2
     vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -942,7 +1038,6 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   azure_active_directory_role_based_access_control {
     tenant_id = var.tenant_id
-    managed   = true
   }
 }
 `, tenantId, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
@@ -977,6 +1072,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = 1
     vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -1022,6 +1120,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = 1
     vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -1030,7 +1131,6 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   azure_active_directory_role_based_access_control {
     tenant_id          = var.tenant_id
-    managed            = true
     azure_rbac_enabled = true
   }
 }
@@ -1082,6 +1182,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = 1
     vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   service_principal {

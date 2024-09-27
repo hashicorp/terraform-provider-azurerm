@@ -108,12 +108,14 @@ func parseErrorFromApiResponse(response http.Response) (*Error, error) {
 	var err3 resourceManagerErrorType2
 	if err = json.Unmarshal(respBody, &err3); err == nil && err3.Error.Code != "" && err3.Error.Message != "" {
 		activityId := ""
-		code := err3.Error.Code
+		topLevelCode := err3.Error.Code
 		messages := []string{
 			err3.Error.Message,
 		}
+		nestedCode := ""
 		for _, v := range err3.Error.Details {
-			code = v.Code
+			nestedCode = v.Code
+			messages = append(messages, v.Message)
 			if v.PossibleCauses != "" {
 				messages = append(messages, fmt.Sprintf("Possible Causes: %q", v.PossibleCauses))
 			}
@@ -127,9 +129,9 @@ func parseErrorFromApiResponse(response http.Response) (*Error, error) {
 		}
 		return &Error{
 			ActivityId:   activityId,
-			Code:         code,
+			Code:         nestedCode,
 			Message:      strings.Join(messages, "\n"),
-			Status:       "Unknown",
+			Status:       topLevelCode,
 			FullHttpBody: string(respBody),
 		}, nil
 	}

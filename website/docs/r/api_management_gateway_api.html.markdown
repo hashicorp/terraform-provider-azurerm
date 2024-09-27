@@ -56,7 +56,6 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 * `create` - (Defaults to 30 minutes) Used when creating the API Management Gateway API.
 * `read`   - (Defaults to 5 minutes) Used when retrieving the API Management Gateway API.
-* `update` - (Defaults to 30 minutes) Used when updating the API Management Gateway API.
 * `delete` - (Defaults to 30 minutes) Used when deleting the API Management Gateway API.
 
 ## Import

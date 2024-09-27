@@ -19,7 +19,20 @@ type ListOperationResponse struct {
 }
 
 type ListCompleteResult struct {
-	Items []View
+	LatestHttpResponse *http.Response
+	Items              []View
+}
+
+type ListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // List ...
@@ -30,6 +43,7 @@ func (c ViewsClient) List(ctx context.Context) (result ListOperationResponse, er
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListCustomPager{},
 		Path:       "/providers/Microsoft.CostManagement/views",
 	}
 
@@ -71,6 +85,7 @@ func (c ViewsClient) ListCompleteMatchingPredicate(ctx context.Context, predicat
 
 	resp, err := c.List(ctx)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +98,8 @@ func (c ViewsClient) ListCompleteMatchingPredicate(ctx context.Context, predicat
 	}
 
 	result = ListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

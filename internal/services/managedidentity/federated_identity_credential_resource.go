@@ -37,22 +37,24 @@ type FederatedIdentityCredentialResourceSchema struct {
 func (r FederatedIdentityCredentialResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return managedidentities.ValidateFederatedIdentityCredentialID
 }
+
 func (r FederatedIdentityCredentialResource) ResourceType() string {
 	return "azurerm_federated_identity_credential"
 }
+
 func (r FederatedIdentityCredentialResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"audience": {
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
-			ForceNew: true,
+			ForceNew: false,
 			Required: true,
 			Type:     pluginsdk.TypeList,
 			MaxItems: 1,
 		},
 		"issuer": {
-			ForceNew: true,
+			ForceNew: false,
 			Required: true,
 			Type:     pluginsdk.TypeString,
 		},
@@ -70,15 +72,17 @@ func (r FederatedIdentityCredentialResource) Arguments() map[string]*pluginsdk.S
 			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 		},
 		"subject": {
-			ForceNew: true,
+			ForceNew: false,
 			Required: true,
 			Type:     pluginsdk.TypeString,
 		},
 	}
 }
+
 func (r FederatedIdentityCredentialResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
+
 func (r FederatedIdentityCredentialResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
@@ -100,15 +104,16 @@ func (r FederatedIdentityCredentialResource) Create() sdk.ResourceFunc {
 			defer locks.UnlockByID(parentId.ID())
 
 			id := managedidentities.NewFederatedIdentityCredentialID(subscriptionId, config.ResourceGroupName, parentId.UserAssignedIdentityName, config.Name)
-
-			existing, err := client.FederatedIdentityCredentialsGet(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+			if metadata.ResourceData.IsNewResource() {
+				existing, err := client.FederatedIdentityCredentialsGet(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			var payload managedidentities.FederatedIdentityCredential
@@ -123,6 +128,7 @@ func (r FederatedIdentityCredentialResource) Create() sdk.ResourceFunc {
 		},
 	}
 }
+
 func (r FederatedIdentityCredentialResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
@@ -155,6 +161,11 @@ func (r FederatedIdentityCredentialResource) Read() sdk.ResourceFunc {
 		},
 	}
 }
+
+func (r FederatedIdentityCredentialResource) Update() sdk.ResourceFunc {
+	return r.Create()
+}
+
 func (r FederatedIdentityCredentialResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,

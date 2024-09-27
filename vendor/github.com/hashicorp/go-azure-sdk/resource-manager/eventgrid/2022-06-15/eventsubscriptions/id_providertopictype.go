@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ProviderTopicTypeId{}
+func init() {
+	recaser.RegisterResourceId(&ProviderTopicTypeId{})
+}
+
+var _ resourceids.ResourceId = &ProviderTopicTypeId{}
 
 // ProviderTopicTypeId is a struct representing the Resource ID for a Provider Topic Type
 type ProviderTopicTypeId struct {
@@ -28,21 +33,15 @@ func NewProviderTopicTypeID(subscriptionId string, topicTypeName string) Provide
 
 // ParseProviderTopicTypeID parses 'input' into a ProviderTopicTypeId
 func ParseProviderTopicTypeID(input string) (*ProviderTopicTypeId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ProviderTopicTypeId{})
+	parser := resourceids.NewParserFromResourceIdType(&ProviderTopicTypeId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ProviderTopicTypeId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.TopicTypeName, ok = parsed.Parsed["topicTypeName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "topicTypeName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -51,24 +50,32 @@ func ParseProviderTopicTypeID(input string) (*ProviderTopicTypeId, error) {
 // ParseProviderTopicTypeIDInsensitively parses 'input' case-insensitively into a ProviderTopicTypeId
 // note: this method should only be used for API response data and not user input
 func ParseProviderTopicTypeIDInsensitively(input string) (*ProviderTopicTypeId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ProviderTopicTypeId{})
+	parser := resourceids.NewParserFromResourceIdType(&ProviderTopicTypeId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ProviderTopicTypeId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.TopicTypeName, ok = parsed.Parsed["topicTypeName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "topicTypeName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ProviderTopicTypeId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.TopicTypeName, ok = input.Parsed["topicTypeName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "topicTypeName", input)
+	}
+
+	return nil
 }
 
 // ValidateProviderTopicTypeID checks that 'input' can be parsed as a Provider Topic Type ID
@@ -100,7 +107,7 @@ func (id ProviderTopicTypeId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftEventGrid", "Microsoft.EventGrid", "Microsoft.EventGrid"),
 		resourceids.StaticSegment("staticTopicTypes", "topicTypes", "topicTypes"),
-		resourceids.UserSpecifiedSegment("topicTypeName", "topicTypeValue"),
+		resourceids.UserSpecifiedSegment("topicTypeName", "topicTypeName"),
 	}
 }
 

@@ -8,8 +8,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -76,7 +78,7 @@ func dataSourceSubscriptions() *pluginsdk.Resource {
 							Computed: true,
 						},
 
-						"tags": tags.SchemaDataSource(),
+						"tags": commonschema.TagsDataSource(),
 					},
 				},
 			},
@@ -86,7 +88,7 @@ func dataSourceSubscriptions() *pluginsdk.Resource {
 
 func dataSourceSubscriptionsRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	armClient := meta.(*clients.Client)
-	subClient := armClient.Subscription.Client
+	subClient := armClient.Subscription.SubscriptionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -99,60 +101,45 @@ func dataSourceSubscriptionsRead(d *pluginsdk.ResourceData, meta interface{}) er
 		return fmt.Errorf("listing subscriptions: %+v", err)
 	}
 
-	// iterate across each subscriptions and append them to slice
-	subscriptions := make([]map[string]interface{}, 0)
-	for results.NotDone() {
-		val := results.Value()
-
-		s := make(map[string]interface{})
-
-		if v := val.ID; v != nil {
-			s["id"] = *v
-		}
-		if v := val.SubscriptionID; v != nil {
-			s["subscription_id"] = *v
-		}
-		if v := val.TenantID; v != nil {
-			s["tenant_id"] = *v
-		}
-		if v := val.DisplayName; v != nil {
-			s["display_name"] = *v
-		}
-		s["state"] = string(val.State)
-
-		if policies := val.SubscriptionPolicies; policies != nil {
-			if v := policies.LocationPlacementID; v != nil {
-				s["location_placement_id"] = *v
-			}
-			if v := policies.QuotaID; v != nil {
-				s["quota_id"] = *v
-			}
-			s["spending_limit"] = string(policies.SpendingLimit)
-		}
-
-		if err = results.Next(); err != nil {
-			return fmt.Errorf("going to next subscriptions value: %+v", err)
-		}
-
+	subscriptions := make([]interface{}, 0)
+	for _, item := range results.Items {
 		// check if the display name prefix matches the given input
 		if displayNamePrefix != "" {
-			if !strings.HasPrefix(strings.ToLower(s["display_name"].(string)), displayNamePrefix) {
+			if item.DisplayName == nil || !strings.HasPrefix(strings.ToLower(*item.DisplayName), displayNamePrefix) {
 				// the display name does not match the given prefix
 				continue
 			}
 		}
-
 		// check if the display name matches the 'contains' comparison
 		if displayNameContains != "" {
-			if !strings.Contains(strings.ToLower(s["display_name"].(string)), displayNameContains) {
+			if item.DisplayName == nil || !strings.Contains(strings.ToLower(*item.DisplayName), displayNameContains) {
 				// the display name does not match the contains check
 				continue
 			}
 		}
 
-		s["tags"] = tags.Flatten(val.Tags)
+		quotaId := ""
+		locationPlacementId := ""
+		spendingLimit := ""
+		if policies := item.SubscriptionPolicies; policies != nil {
+			locationPlacementId = pointer.From(policies.LocationPlacementId)
+			quotaId = pointer.From(policies.QuotaId)
+			if policies.SpendingLimit != nil {
+				spendingLimit = string(*policies.SpendingLimit)
+			}
+		}
 
-		subscriptions = append(subscriptions, s)
+		subscriptions = append(subscriptions, map[string]interface{}{
+			"display_name":          pointer.From(item.DisplayName),
+			"id":                    pointer.From(item.Id),
+			"location_placement_id": locationPlacementId,
+			"quota_id":              quotaId,
+			"spending_limit":        spendingLimit,
+			"state":                 string(pointer.From(item.State)),
+			"subscription_id":       pointer.From(item.SubscriptionId),
+			"tags":                  tags.Flatten(item.Tags),
+			"tenant_id":             pointer.From(item.TenantId),
+		})
 	}
 
 	d.SetId("subscriptions-" + armClient.Account.TenantId)

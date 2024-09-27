@@ -5,8 +5,6 @@ package automation
 
 import (
 	"fmt"
-
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 func interfaceValueToString(v interface{}) (string, error) {
@@ -41,13 +39,4 @@ func flattenMap(strStrMap map[string]string) map[string]interface{} {
 	}
 
 	return output
-}
-
-func flattenAndSetTags(d *pluginsdk.ResourceData, tagMap map[string]string) error {
-	flattened := flattenMap(tagMap)
-	if err := d.Set("tags", flattened); err != nil {
-		return fmt.Errorf("setting `tags`: %s", err)
-	}
-
-	return nil
 }

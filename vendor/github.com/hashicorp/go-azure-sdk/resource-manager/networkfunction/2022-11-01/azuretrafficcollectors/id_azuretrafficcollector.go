@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = AzureTrafficCollectorId{}
+func init() {
+	recaser.RegisterResourceId(&AzureTrafficCollectorId{})
+}
+
+var _ resourceids.ResourceId = &AzureTrafficCollectorId{}
 
 // AzureTrafficCollectorId is a struct representing the Resource ID for a Azure Traffic Collector
 type AzureTrafficCollectorId struct {
@@ -30,25 +35,15 @@ func NewAzureTrafficCollectorID(subscriptionId string, resourceGroupName string,
 
 // ParseAzureTrafficCollectorID parses 'input' into a AzureTrafficCollectorId
 func ParseAzureTrafficCollectorID(input string) (*AzureTrafficCollectorId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AzureTrafficCollectorId{})
+	parser := resourceids.NewParserFromResourceIdType(&AzureTrafficCollectorId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := AzureTrafficCollectorId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.AzureTrafficCollectorName, ok = parsed.Parsed["azureTrafficCollectorName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "azureTrafficCollectorName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +52,36 @@ func ParseAzureTrafficCollectorID(input string) (*AzureTrafficCollectorId, error
 // ParseAzureTrafficCollectorIDInsensitively parses 'input' case-insensitively into a AzureTrafficCollectorId
 // note: this method should only be used for API response data and not user input
 func ParseAzureTrafficCollectorIDInsensitively(input string) (*AzureTrafficCollectorId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AzureTrafficCollectorId{})
+	parser := resourceids.NewParserFromResourceIdType(&AzureTrafficCollectorId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := AzureTrafficCollectorId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.AzureTrafficCollectorName, ok = parsed.Parsed["azureTrafficCollectorName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "azureTrafficCollectorName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *AzureTrafficCollectorId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.AzureTrafficCollectorName, ok = input.Parsed["azureTrafficCollectorName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "azureTrafficCollectorName", input)
+	}
+
+	return nil
 }
 
 // ValidateAzureTrafficCollectorID checks that 'input' can be parsed as a Azure Traffic Collector ID
@@ -112,7 +115,7 @@ func (id AzureTrafficCollectorId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetworkFunction", "Microsoft.NetworkFunction", "Microsoft.NetworkFunction"),
 		resourceids.StaticSegment("staticAzureTrafficCollectors", "azureTrafficCollectors", "azureTrafficCollectors"),
-		resourceids.UserSpecifiedSegment("azureTrafficCollectorName", "azureTrafficCollectorValue"),
+		resourceids.UserSpecifiedSegment("azureTrafficCollectorName", "azureTrafficCollectorName"),
 	}
 }
 

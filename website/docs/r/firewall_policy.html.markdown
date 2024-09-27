@@ -51,7 +51,7 @@ The following arguments are supported:
 
 * `auto_learn_private_ranges_enabled` - (Optional) Whether enable auto learn private ip range.
 
-* `sku` - (Optional) The SKU Tier of the Firewall Policy. Possible values are `Standard`, `Premium` and `Basic`. Changing this forces a new Firewall Policy to be created.
+* `sku` - (Optional) The SKU Tier of the Firewall Policy. Possible values are `Standard`, `Premium` and `Basic`. Defaults to `Standard`. Changing this forces a new Firewall Policy to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Firewall Policy.
 
@@ -79,7 +79,7 @@ A `identity` block supports the following:
 
 * `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Firewall Policy. Only possible value is `UserAssigned`.
 
-* `identity_ids` - (Required) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Firewall Policy.
+* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Firewall Policy.
 
 ---
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
@@ -18,10 +19,11 @@ type CreateOrUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *Gallery
 }
 
 // CreateOrUpdate ...
-func (c GalleriesClient) CreateOrUpdate(ctx context.Context, id GalleryId, input Gallery) (result CreateOrUpdateOperationResponse, err error) {
+func (c GalleriesClient) CreateOrUpdate(ctx context.Context, id commonids.SharedImageGalleryId, input Gallery) (result CreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -61,7 +63,7 @@ func (c GalleriesClient) CreateOrUpdate(ctx context.Context, id GalleryId, input
 }
 
 // CreateOrUpdateThenPoll performs CreateOrUpdate then polls until it's completed
-func (c GalleriesClient) CreateOrUpdateThenPoll(ctx context.Context, id GalleryId, input Gallery) error {
+func (c GalleriesClient) CreateOrUpdateThenPoll(ctx context.Context, id commonids.SharedImageGalleryId, input Gallery) error {
 	result, err := c.CreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing CreateOrUpdate: %+v", err)

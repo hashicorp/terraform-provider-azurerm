@@ -19,7 +19,8 @@ type ListGlobalByResourceGroupForTopicTypeOperationResponse struct {
 }
 
 type ListGlobalByResourceGroupForTopicTypeCompleteResult struct {
-	Items []EventSubscription
+	LatestHttpResponse *http.Response
+	Items              []EventSubscription
 }
 
 type ListGlobalByResourceGroupForTopicTypeOperationOptions struct {
@@ -39,6 +40,7 @@ func (o ListGlobalByResourceGroupForTopicTypeOperationOptions) ToHeaders() *clie
 
 func (o ListGlobalByResourceGroupForTopicTypeOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -53,6 +55,18 @@ func (o ListGlobalByResourceGroupForTopicTypeOperationOptions) ToQuery() *client
 	return &out
 }
 
+type ListGlobalByResourceGroupForTopicTypeCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListGlobalByResourceGroupForTopicTypeCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListGlobalByResourceGroupForTopicType ...
 func (c EventSubscriptionsClient) ListGlobalByResourceGroupForTopicType(ctx context.Context, id ResourceGroupProviderTopicTypeId, options ListGlobalByResourceGroupForTopicTypeOperationOptions) (result ListGlobalByResourceGroupForTopicTypeOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -61,8 +75,9 @@ func (c EventSubscriptionsClient) ListGlobalByResourceGroupForTopicType(ctx cont
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/eventSubscriptions", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListGlobalByResourceGroupForTopicTypeCustomPager{},
+		Path:          fmt.Sprintf("%s/eventSubscriptions", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -103,6 +118,7 @@ func (c EventSubscriptionsClient) ListGlobalByResourceGroupForTopicTypeCompleteM
 
 	resp, err := c.ListGlobalByResourceGroupForTopicType(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -115,7 +131,8 @@ func (c EventSubscriptionsClient) ListGlobalByResourceGroupForTopicTypeCompleteM
 	}
 
 	result = ListGlobalByResourceGroupForTopicTypeCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

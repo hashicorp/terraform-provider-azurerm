@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ScopedRegistrationDefinitionId{}
+func init() {
+	recaser.RegisterResourceId(&ScopedRegistrationDefinitionId{})
+}
+
+var _ resourceids.ResourceId = &ScopedRegistrationDefinitionId{}
 
 // ScopedRegistrationDefinitionId is a struct representing the Resource ID for a Scoped Registration Definition
 type ScopedRegistrationDefinitionId struct {
@@ -28,21 +33,15 @@ func NewScopedRegistrationDefinitionID(scope string, registrationDefinitionId st
 
 // ParseScopedRegistrationDefinitionID parses 'input' into a ScopedRegistrationDefinitionId
 func ParseScopedRegistrationDefinitionID(input string) (*ScopedRegistrationDefinitionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScopedRegistrationDefinitionId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScopedRegistrationDefinitionId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedRegistrationDefinitionId{}
-
-	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
-	}
-
-	if id.RegistrationDefinitionId, ok = parsed.Parsed["registrationDefinitionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "registrationDefinitionId", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -51,24 +50,32 @@ func ParseScopedRegistrationDefinitionID(input string) (*ScopedRegistrationDefin
 // ParseScopedRegistrationDefinitionIDInsensitively parses 'input' case-insensitively into a ScopedRegistrationDefinitionId
 // note: this method should only be used for API response data and not user input
 func ParseScopedRegistrationDefinitionIDInsensitively(input string) (*ScopedRegistrationDefinitionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScopedRegistrationDefinitionId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScopedRegistrationDefinitionId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedRegistrationDefinitionId{}
-
-	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
-	}
-
-	if id.RegistrationDefinitionId, ok = parsed.Parsed["registrationDefinitionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "registrationDefinitionId", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ScopedRegistrationDefinitionId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.Scope, ok = input.Parsed["scope"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "scope", input)
+	}
+
+	if id.RegistrationDefinitionId, ok = input.Parsed["registrationDefinitionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "registrationDefinitionId", input)
+	}
+
+	return nil
 }
 
 // ValidateScopedRegistrationDefinitionID checks that 'input' can be parsed as a Scoped Registration Definition ID
@@ -99,7 +106,7 @@ func (id ScopedRegistrationDefinitionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftManagedServices", "Microsoft.ManagedServices", "Microsoft.ManagedServices"),
 		resourceids.StaticSegment("staticRegistrationDefinitions", "registrationDefinitions", "registrationDefinitions"),
-		resourceids.UserSpecifiedSegment("registrationDefinitionId", "registrationDefinitionIdValue"),
+		resourceids.UserSpecifiedSegment("registrationDefinitionId", "registrationDefinitionId"),
 	}
 }
 

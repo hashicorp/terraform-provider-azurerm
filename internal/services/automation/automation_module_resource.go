@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/module"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/module"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
@@ -126,6 +126,7 @@ func resourceAutomationModuleCreateUpdate(d *pluginsdk.ResourceData, meta interf
 	}
 
 	// the API returns 'done' but it's not actually finished provisioning yet
+	// tracking issue: https://github.com/Azure/azure-rest-api-specs/pull/25435
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending: []string{
 			string(module.ModuleProvisioningStateActivitiesStored),

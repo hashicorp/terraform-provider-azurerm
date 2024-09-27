@@ -43,7 +43,9 @@ func (c RemediationsClient) GetAtSubscription(ctx context.Context, id Remediatio
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Remediation
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

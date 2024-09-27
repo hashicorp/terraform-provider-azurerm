@@ -1,13 +1,14 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-05-01/managementlocks` Documentation
 
-The `managementlocks` SDK allows for interaction with the Azure Resource Manager Service `resources` (API Version `2020-05-01`).
+The `managementlocks` SDK allows for interaction with Azure Resource Manager `resources` (API Version `2020-05-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-05-01/managementlocks"
 ```
 
@@ -24,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := managementlocks.NewProviderLockID("12345678-1234-9876-4563-123456789012", "example-resource-group", "lockValue")
+id := managementlocks.NewProviderLockID("12345678-1234-9876-4563-123456789012", "example-resource-group", "lockName")
 
 payload := managementlocks.ManagementLockObject{
 	// ...
@@ -45,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managementlocks.NewScopedLockID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "lockValue")
+id := managementlocks.NewScopedLockID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "lockName")
 
 payload := managementlocks.ManagementLockObject{
 	// ...
@@ -66,7 +67,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managementlocks.NewLockID("12345678-1234-9876-4563-123456789012", "lockValue")
+id := managementlocks.NewLockID("12345678-1234-9876-4563-123456789012", "lockName")
 
 payload := managementlocks.ManagementLockObject{
 	// ...
@@ -87,7 +88,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managementlocks.NewScopedLockID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "lockValue")
+id := managementlocks.NewScopedLockID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "lockName")
 
 payload := managementlocks.ManagementLockObject{
 	// ...
@@ -108,7 +109,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managementlocks.NewProviderLockID("12345678-1234-9876-4563-123456789012", "example-resource-group", "lockValue")
+id := managementlocks.NewProviderLockID("12345678-1234-9876-4563-123456789012", "example-resource-group", "lockName")
 
 read, err := client.DeleteAtResourceGroupLevel(ctx, id)
 if err != nil {
@@ -124,7 +125,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managementlocks.NewScopedLockID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "lockValue")
+id := managementlocks.NewScopedLockID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "lockName")
 
 read, err := client.DeleteAtResourceLevel(ctx, id)
 if err != nil {
@@ -140,7 +141,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managementlocks.NewLockID("12345678-1234-9876-4563-123456789012", "lockValue")
+id := managementlocks.NewLockID("12345678-1234-9876-4563-123456789012", "lockName")
 
 read, err := client.DeleteAtSubscriptionLevel(ctx, id)
 if err != nil {
@@ -156,7 +157,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managementlocks.NewScopedLockID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "lockValue")
+id := managementlocks.NewScopedLockID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "lockName")
 
 read, err := client.DeleteByScope(ctx, id)
 if err != nil {
@@ -172,7 +173,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managementlocks.NewProviderLockID("12345678-1234-9876-4563-123456789012", "example-resource-group", "lockValue")
+id := managementlocks.NewProviderLockID("12345678-1234-9876-4563-123456789012", "example-resource-group", "lockName")
 
 read, err := client.GetAtResourceGroupLevel(ctx, id)
 if err != nil {
@@ -188,7 +189,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managementlocks.NewScopedLockID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "lockValue")
+id := managementlocks.NewScopedLockID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "lockName")
 
 read, err := client.GetAtResourceLevel(ctx, id)
 if err != nil {
@@ -204,7 +205,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managementlocks.NewLockID("12345678-1234-9876-4563-123456789012", "lockValue")
+id := managementlocks.NewLockID("12345678-1234-9876-4563-123456789012", "lockName")
 
 read, err := client.GetAtSubscriptionLevel(ctx, id)
 if err != nil {
@@ -220,7 +221,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managementlocks.NewScopedLockID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "lockValue")
+id := managementlocks.NewScopedLockID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "lockName")
 
 read, err := client.GetByScope(ctx, id)
 if err != nil {
@@ -236,7 +237,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managementlocks.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
+id := commonids.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
 // alternatively `client.ListAtResourceGroupLevel(ctx, id, managementlocks.DefaultListAtResourceGroupLevelOperationOptions())` can be used to do batched pagination
 items, err := client.ListAtResourceGroupLevelComplete(ctx, id, managementlocks.DefaultListAtResourceGroupLevelOperationOptions())
@@ -253,7 +254,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := managementlocks.NewScopeID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
+id := commonids.NewScopeID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
 
 // alternatively `client.ListAtResourceLevel(ctx, id, managementlocks.DefaultListAtResourceLevelOperationOptions())` can be used to do batched pagination
 items, err := client.ListAtResourceLevelComplete(ctx, id, managementlocks.DefaultListAtResourceLevelOperationOptions())
@@ -270,7 +271,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := managementlocks.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 // alternatively `client.ListAtSubscriptionLevel(ctx, id, managementlocks.DefaultListAtSubscriptionLevelOperationOptions())` can be used to do batched pagination
 items, err := client.ListAtSubscriptionLevelComplete(ctx, id, managementlocks.DefaultListAtSubscriptionLevelOperationOptions())
@@ -287,7 +288,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := managementlocks.NewScopeID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
+id := commonids.NewScopeID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
 
 // alternatively `client.ListByScope(ctx, id, managementlocks.DefaultListByScopeOperationOptions())` can be used to do batched pagination
 items, err := client.ListByScopeComplete(ctx, id, managementlocks.DefaultListByScopeOperationOptions())

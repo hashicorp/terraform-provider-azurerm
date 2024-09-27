@@ -6,15 +6,15 @@ package applicationinsights_test
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	analyticsitems "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2015-05-01/analyticsitemsapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type AppInsightsAnalyticsItemResource struct{}
@@ -118,17 +118,21 @@ func TestAccApplicationInsightsAnalyticsItem_requiresImport(t *testing.T) {
 }
 
 func (t AppInsightsAnalyticsItemResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, resGroup, appInsightsName, itemScopePath, itemID, err := applicationinsights.ResourcesArmApplicationInsightsAnalyticsItemParseID(state.ID)
+	id, itemId, err := applicationinsights.ParseGeneratedAnalyticsItemId(state.ID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse id %s: %+v", state.ID, err)
+		return nil, err
 	}
 
-	resp, err := clients.AppInsights.AnalyticsItemsClient.Get(ctx, resGroup, appInsightsName, itemScopePath, itemID, "")
-	if err != nil {
-		return nil, fmt.Errorf("retrieving Application Insights Analytics Item %s: %+v", id, err)
+	options := analyticsitems.AnalyticsItemsGetOperationOptions{
+		Id: pointer.To(itemId),
 	}
 
-	return utils.Bool(resp.StatusCode != http.StatusNotFound), nil
+	resp, err := clients.AppInsights.AnalyticsItemsClient.AnalyticsItemsGet(ctx, *id, options)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (AppInsightsAnalyticsItemResource) basic(data acceptance.TestData) string {

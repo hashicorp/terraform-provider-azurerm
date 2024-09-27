@@ -67,6 +67,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `enabled` - Is the Function App enabled?
 
+* `ftp_publish_basic_authentication_enabled` - Are the default FTP Basic Authentication publishing credentials enabled.
+
 * `functions_extension_version` - The runtime version associated with the Function App.
 
 * `https_only` - Is the Function App only accessible via HTTPS?
@@ -84,6 +86,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `possible_outbound_ip_address_list` - A list of possible outbound IP addresses, not all of which are necessarily in use. This is a superset of `outbound_ip_address_list`. For example `["52.23.25.3", "52.143.43.12"]`.
 
 * `possible_outbound_ip_addresses` - A comma separated list of possible outbound IP addresses as a string. For example `52.23.25.3,52.143.43.12,52.143.43.17`. This is a superset of `outbound_ip_addresses`.
+
+* `public_network_access_enabled` - Is Public Network Access enabled for the Windows Function App.
 
 * `service_plan_id` - The ID of the App Service Plan.
 
@@ -104,6 +108,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `tags` - A mapping of tags assigned to the Windows Function App.
 
 * `virtual_network_subnet_id` - The subnet id which the Windows Function App is vNet Integrated with.
+
+* `webdeploy_publish_basic_authentication_enabled` - Are the default WebDeploy Basic Authentication publishing credentials enabled.
 
 ---
 
@@ -237,7 +243,7 @@ An `active_directory_v2` block supports the following:
 
 * `client_id` - The ID of the Client used to authenticate with Azure Active Directory.
 
-* `tenant_auth_endpoint` - The Azure Tenant Endpoint for the Authenticating Tenant. e.g. `https://login.microsoftonline.com/v2.0/{tenant-guid}/`
+* `tenant_auth_endpoint` - The Azure Tenant Endpoint for the Authenticating Tenant. e.g. `https://login.microsoftonline.com/{tenant-guid}/v2.0/`
 
 * `client_secret_setting_name` - The App Setting name that contains the client secret of the Client.
 
@@ -273,7 +279,7 @@ A `custom_oidc_v2` block supports the following:
 
 * `client_id` - The ID of the Client to use to authenticate with the Custom OIDC.
 
-* `openid_configuration_endpoint` - The app setting name that contains the `client_secret` value used for the Custom OIDC Login.
+* `openid_configuration_endpoint`- The endpoint used for OpenID Connect Discovery. For example `https://example.com/.well-known/openid-configuration`.
 
 * `name_claim_type` - The name of the claim that contains the users name.
 
@@ -515,6 +521,8 @@ A `site_config` block exports the following:
 
 * `ip_restriction` - One or more `ip_restriction` blocks as defined above.
 
+* `ip_restriction_default_action` - The Default action for traffic that does not match any `ip_restriction` rule.
+
 * `load_balancing_mode` - The Site load balancing mode.
 
 * `managed_pipeline_mode` - The Managed pipeline mode.
@@ -530,6 +538,8 @@ A `site_config` block exports the following:
 * `runtime_scale_monitoring_enabled` - Is Scale Monitoring of the Functions Runtime enabled?
 
 * `scm_ip_restriction` - One or more `scm_ip_restriction` blocks as defined above.
+
+* `scm_ip_restriction_default_action` - The Default action for traffic that does not match any `scm_ip_restriction` rule.
 
 * `scm_minimum_tls_version` - The minimum version of TLS required for SSL requests to the SCM site.
 

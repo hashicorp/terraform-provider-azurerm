@@ -1,13 +1,14 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/search/2022-09-01/services` Documentation
 
-The `services` SDK allows for interaction with the Azure Resource Manager Service `search` (API Version `2022-09-01`).
+The `services` SDK allows for interaction with Azure Resource Manager `search` (API Version `2022-09-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/search/2022-09-01/services"
 ```
 
@@ -24,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := services.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 payload := services.CheckNameAvailabilityInput{
 	// ...
@@ -45,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := services.NewSearchServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "searchServiceValue")
+id := services.NewSearchServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "searchServiceName")
 
 payload := services.SearchService{
 	// ...
@@ -62,7 +63,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload, services.DefaultCreate
 
 ```go
 ctx := context.TODO()
-id := services.NewSearchServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "searchServiceValue")
+id := services.NewSearchServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "searchServiceName")
 
 read, err := client.Delete(ctx, id, services.DefaultDeleteOperationOptions())
 if err != nil {
@@ -78,7 +79,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := services.NewSearchServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "searchServiceValue")
+id := services.NewSearchServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "searchServiceName")
 
 read, err := client.Get(ctx, id, services.DefaultGetOperationOptions())
 if err != nil {
@@ -94,7 +95,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := services.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
+id := commonids.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
 // alternatively `client.ListByResourceGroup(ctx, id, services.DefaultListByResourceGroupOperationOptions())` can be used to do batched pagination
 items, err := client.ListByResourceGroupComplete(ctx, id, services.DefaultListByResourceGroupOperationOptions())
@@ -111,7 +112,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := services.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 // alternatively `client.ListBySubscription(ctx, id, services.DefaultListBySubscriptionOperationOptions())` can be used to do batched pagination
 items, err := client.ListBySubscriptionComplete(ctx, id, services.DefaultListBySubscriptionOperationOptions())
@@ -128,7 +129,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := services.NewSearchServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "searchServiceValue")
+id := services.NewSearchServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "searchServiceName")
 
 payload := services.SearchServiceUpdate{
 	// ...

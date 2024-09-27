@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/api"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/api"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -34,7 +34,6 @@ func TestAccApiManagementApi_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("api_type").HasValue("http"),
-				check.That(data.ResourceName).Key("soap_pass_through").HasValue("false"),
 				check.That(data.ResourceName).Key("is_current").HasValue("true"),
 				check.That(data.ResourceName).Key("is_online").HasValue("false"),
 				check.That(data.ResourceName).Key("subscription_required").HasValue("true"),
@@ -70,7 +69,6 @@ func TestAccApiManagementApi_blankPath(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("api_type").HasValue("http"),
-				check.That(data.ResourceName).Key("soap_pass_through").HasValue("false"),
 				check.That(data.ResourceName).Key("is_current").HasValue("true"),
 				check.That(data.ResourceName).Key("is_online").HasValue("false"),
 				check.That(data.ResourceName).Key("path").HasValue(""),
@@ -231,6 +229,67 @@ func TestAccApiManagementApi_importSwagger(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.importSwagger(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			ResourceName:      data.ResourceName,
+			ImportState:       true,
+			ImportStateVerify: true,
+			ImportStateVerifyIgnore: []string{
+				// not returned from the API
+				"import",
+			},
+		},
+	})
+}
+
+func TestAccApiManagementApi_importOpenapi(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
+	r := ApiManagementApiResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.importOpenapi(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			ResourceName:      data.ResourceName,
+			ImportState:       true,
+			ImportStateVerify: true,
+			ImportStateVerifyIgnore: []string{
+				// not returned from the API
+				"import",
+			},
+		},
+	})
+}
+
+func TestAccApiManagementApi_importSwaggerWithServiceUrl(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
+	r := ApiManagementApiResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.importSwaggerWithServiceUrl(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			ResourceName:      data.ResourceName,
+			ImportState:       true,
+			ImportStateVerify: true,
+			ImportStateVerifyIgnore: []string{
+				// not returned from the API
+				"import",
+			},
+		},
+		{
+			Config: r.importSwaggerWithServiceUrlUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -547,7 +606,7 @@ resource "azurerm_api_management_api" "test" {
   path                = "api1"
   protocols           = ["https"]
   revision            = "1"
-  soap_pass_through   = true
+  api_type            = "soap"
 }
 `, r.template(data, SkuNameConsumption), data.RandomInteger)
 }
@@ -597,6 +656,73 @@ resource "azurerm_api_management_api" "test" {
   path                = "api1"
   protocols           = ["https"]
   revision            = "1"
+
+  import {
+    content_value  = file("testdata/api_management_api_swagger.json")
+    content_format = "swagger-json"
+  }
+}
+`, r.template(data, SkuNameConsumption), data.RandomInteger)
+}
+
+func (r ApiManagementApiResource) importOpenapi(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_api" "test" {
+  name                = "acctestapi-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
+  display_name        = "api1"
+  path                = "api1"
+  protocols           = ["https"]
+  revision            = "current"
+
+  import {
+    content_value  = file("testdata/api_management_api_openapi.yaml")
+    content_format = "openapi"
+  }
+}
+`, r.template(data, SkuNameConsumption), data.RandomInteger)
+}
+
+func (r ApiManagementApiResource) importSwaggerWithServiceUrl(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_api" "test" {
+  name                = "acctestapi-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
+  display_name        = "api1"
+  path                = "api1"
+  protocols           = ["https"]
+  revision            = "1"
+  description         = "import swagger"
+  service_url         = "https://example.com/foo/bar"
+
+  import {
+    content_value  = file("testdata/api_management_api_swagger.json")
+    content_format = "swagger-json"
+  }
+}
+`, r.template(data, SkuNameConsumption), data.RandomInteger)
+}
+
+func (r ApiManagementApiResource) importSwaggerWithServiceUrlUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_api" "test" {
+  name                = "acctestapi-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
+  display_name        = "api1"
+  path                = "api1"
+  protocols           = ["https"]
+  revision            = "1"
+  description         = "import swagger update"
+  service_url         = "https://example.com/foo/bar"
 
   import {
     content_value  = file("testdata/api_management_api_swagger.json")

@@ -34,7 +34,7 @@ resource "azurerm_data_factory_pipeline" "example" {
 
 ```hcl
 resource "azurerm_data_factory_pipeline" "test" {
-  name            = "acctest%d"
+  name            = "example"
   data_factory_id = azurerm_data_factory.test.id
   variables = {
     "bob" = "item1"

@@ -44,7 +44,9 @@ func (c EventSubscriptionsClient) GetFullUrl(ctx context.Context, id ScopedEvent
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model EventSubscriptionFullUrl
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -9,10 +9,11 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/dedicatedhostgroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/dedicatedhostgroups"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
@@ -30,7 +31,7 @@ func resourceDedicatedHostGroup() *pluginsdk.Resource {
 		Delete: resourceDedicatedHostGroupDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := dedicatedhostgroups.ParseHostGroupID(id)
+			_, err := commonids.ParseDedicatedHostGroupID(id)
 			return err
 		}),
 
@@ -79,7 +80,7 @@ func resourceDedicatedHostGroupCreate(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := dedicatedhostgroups.NewHostGroupID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := commonids.NewDedicatedHostGroupID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id, dedicatedhostgroups.DefaultGetOperationOptions())
 		if err != nil {
@@ -126,7 +127,7 @@ func resourceDedicatedHostGroupRead(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := dedicatedhostgroups.ParseHostGroupID(d.Id())
+	id, err := commonids.ParseDedicatedHostGroupID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -172,7 +173,7 @@ func resourceDedicatedHostGroupUpdate(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := dedicatedhostgroups.ParseHostGroupID(d.Id())
+	id, err := commonids.ParseDedicatedHostGroupID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -193,7 +194,7 @@ func resourceDedicatedHostGroupDelete(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := dedicatedhostgroups.ParseHostGroupID(d.Id())
+	id, err := commonids.ParseDedicatedHostGroupID(d.Id())
 	if err != nil {
 		return err
 	}

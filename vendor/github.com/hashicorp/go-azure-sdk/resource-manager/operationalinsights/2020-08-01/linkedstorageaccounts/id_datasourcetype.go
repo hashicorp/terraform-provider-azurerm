@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = DataSourceTypeId{}
+func init() {
+	recaser.RegisterResourceId(&DataSourceTypeId{})
+}
+
+var _ resourceids.ResourceId = &DataSourceTypeId{}
 
 // DataSourceTypeId is a struct representing the Resource ID for a Data Source Type
 type DataSourceTypeId struct {
@@ -32,37 +37,15 @@ func NewDataSourceTypeID(subscriptionId string, resourceGroupName string, worksp
 
 // ParseDataSourceTypeID parses 'input' into a DataSourceTypeId
 func ParseDataSourceTypeID(input string) (*DataSourceTypeId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DataSourceTypeId{})
+	parser := resourceids.NewParserFromResourceIdType(&DataSourceTypeId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := DataSourceTypeId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.WorkspaceName, ok = parsed.Parsed["workspaceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "workspaceName", *parsed)
-	}
-
-	if v, ok := parsed.Parsed["dataSourceType"]; true {
-		if !ok {
-			return nil, resourceids.NewSegmentNotSpecifiedError(id, "dataSourceType", *parsed)
-		}
-
-		dataSourceType, err := parseDataSourceType(v)
-		if err != nil {
-			return nil, fmt.Errorf("parsing %q: %+v", v, err)
-		}
-		id.DataSourceType = *dataSourceType
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -71,40 +54,48 @@ func ParseDataSourceTypeID(input string) (*DataSourceTypeId, error) {
 // ParseDataSourceTypeIDInsensitively parses 'input' case-insensitively into a DataSourceTypeId
 // note: this method should only be used for API response data and not user input
 func ParseDataSourceTypeIDInsensitively(input string) (*DataSourceTypeId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DataSourceTypeId{})
+	parser := resourceids.NewParserFromResourceIdType(&DataSourceTypeId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := DataSourceTypeId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
+	return &id, nil
+}
+
+func (id *DataSourceTypeId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
 	}
 
-	if id.WorkspaceName, ok = parsed.Parsed["workspaceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "workspaceName", *parsed)
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
 	}
 
-	if v, ok := parsed.Parsed["dataSourceType"]; true {
+	if id.WorkspaceName, ok = input.Parsed["workspaceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "workspaceName", input)
+	}
+
+	if v, ok := input.Parsed["dataSourceType"]; true {
 		if !ok {
-			return nil, resourceids.NewSegmentNotSpecifiedError(id, "dataSourceType", *parsed)
+			return resourceids.NewSegmentNotSpecifiedError(id, "dataSourceType", input)
 		}
 
 		dataSourceType, err := parseDataSourceType(v)
 		if err != nil {
-			return nil, fmt.Errorf("parsing %q: %+v", v, err)
+			return fmt.Errorf("parsing %q: %+v", v, err)
 		}
 		id.DataSourceType = *dataSourceType
 	}
 
-	return &id, nil
+	return nil
 }
 
 // ValidateDataSourceTypeID checks that 'input' can be parsed as a Data Source Type ID
@@ -138,7 +129,7 @@ func (id DataSourceTypeId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftOperationalInsights", "Microsoft.OperationalInsights", "Microsoft.OperationalInsights"),
 		resourceids.StaticSegment("staticWorkspaces", "workspaces", "workspaces"),
-		resourceids.UserSpecifiedSegment("workspaceName", "workspaceValue"),
+		resourceids.UserSpecifiedSegment("workspaceName", "workspaceName"),
 		resourceids.StaticSegment("staticLinkedStorageAccounts", "linkedStorageAccounts", "linkedStorageAccounts"),
 		resourceids.ConstantSegment("dataSourceType", PossibleValuesForDataSourceType(), "Alerts"),
 	}

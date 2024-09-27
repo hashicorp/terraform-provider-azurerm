@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = AppServiceEnvironmentId{}
+var _ resourceids.ResourceId = &AppServiceEnvironmentId{}
 
 // AppServiceEnvironmentId is a struct representing the Resource ID for a App Service Environment
 type AppServiceEnvironmentId struct {
@@ -30,25 +30,15 @@ func NewAppServiceEnvironmentID(subscriptionId string, resourceGroupName string,
 
 // ParseAppServiceEnvironmentID parses 'input' into a AppServiceEnvironmentId
 func ParseAppServiceEnvironmentID(input string) (*AppServiceEnvironmentId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AppServiceEnvironmentId{})
+	parser := resourceids.NewParserFromResourceIdType(&AppServiceEnvironmentId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := AppServiceEnvironmentId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.HostingEnvironmentName, ok = parsed.Parsed["hostingEnvironmentName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "hostingEnvironmentName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,25 +47,15 @@ func ParseAppServiceEnvironmentID(input string) (*AppServiceEnvironmentId, error
 // ParseAppServiceEnvironmentIDInsensitively parses 'input' case-insensitively into a AppServiceEnvironmentId
 // note: this method should only be used for API response data and not user input
 func ParseAppServiceEnvironmentIDInsensitively(input string) (*AppServiceEnvironmentId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AppServiceEnvironmentId{})
+	parser := resourceids.NewParserFromResourceIdType(&AppServiceEnvironmentId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := AppServiceEnvironmentId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.HostingEnvironmentName, ok = parsed.Parsed["hostingEnvironmentName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "hostingEnvironmentName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -94,6 +74,24 @@ func ValidateAppServiceEnvironmentID(input interface{}, key string) (warnings []
 	}
 
 	return
+}
+
+func (id *AppServiceEnvironmentId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.HostingEnvironmentName, ok = input.Parsed["hostingEnvironmentName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "hostingEnvironmentName", input)
+	}
+
+	return nil
 }
 
 // ID returns the formatted App Service Environment ID

@@ -10,7 +10,7 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -29,6 +29,22 @@ func TestAccNetAppVolume_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNetAppVolume_smbEncryption(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
+	r := NetAppVolumeResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.smbEncryption(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("smb3_protocol_encryption_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -141,6 +157,22 @@ func TestAccNetAppVolume_nfsv3SnapshotDirectoryVisibleFalse(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("snapshot_directory_visible").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNetAppVolume_nfsv3SnapshotDirectoryVisibleTrue(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test_snapshot_directory_visible_true")
+	r := NetAppVolumeResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.nfsv3SnapshotDirectoryVisibleTrue(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("snapshot_directory_visible").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -276,6 +308,40 @@ func TestAccNetAppVolume_updateExportPolicyRule(t *testing.T) {
 	})
 }
 
+func TestAccNetAppVolume_volEncryptionCmkUserAssigned(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
+	r := NetAppVolumeResource{}
+
+	tenantID := os.Getenv("ARM_TENANT_ID")
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.volEncryptionCmkUserAssigned(data, tenantID),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNetAppVolume_volEncryptionCmkSystemAssigned(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
+	r := NetAppVolumeResource{}
+
+	tenantID := os.Getenv("ARM_TENANT_ID")
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.volEncryptionCmkSystemAssigned(data, tenantID),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t NetAppVolumeResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := volumes.ParseVolumeID(state.ID)
 	if err != nil {
@@ -288,6 +354,148 @@ func (t NetAppVolumeResource) Exists(ctx context.Context, clients *clients.Clien
 	}
 
 	return utils.Bool(resp.Model != nil), nil
+}
+
+func (NetAppVolumeResource) volEncryptionCmkUserAssigned(data acceptance.TestData, tenantID string) string {
+	cmkUserAssginedTemplate := NetAppAccountEncryptionResource{}.cmkUserAssigned(data, tenantID)
+	networkTemplate := NetAppVolumeResource{}.networkTemplate(data)
+	return fmt.Sprintf(`
+%[1]s
+
+%[2]s
+
+resource "azurerm_private_endpoint" "test" {
+  name                = "acctest-pe-akv-%[3]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  subnet_id           = azurerm_subnet.test-non-delegated.id
+
+  private_service_connection {
+    name                           = "acctest-pe-sc-akv-%[3]d"
+    private_connection_resource_id = azurerm_key_vault.test.id
+    is_manual_connection           = false
+    subresource_names              = ["Vault"]
+  }
+
+  tags = {
+    CreatedOnDate = "2023-10-03T19:58:43.6509795Z"
+  }
+}
+
+resource "azurerm_netapp_pool" "test" {
+  name                = "acctest-NetAppPool-%[3]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test.name
+  service_level       = "Standard"
+  size_in_tb          = 4
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+
+  depends_on = [
+    azurerm_netapp_account_encryption.test
+  ]
+}
+
+resource "azurerm_netapp_volume" "test" {
+  name                          = "acctest-NetAppVolume-%[3]d"
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  account_name                  = azurerm_netapp_account.test.name
+  pool_name                     = azurerm_netapp_pool.test.name
+  volume_path                   = "my-unique-file-path-%[3]d"
+  service_level                 = "Standard"
+  subnet_id                     = azurerm_subnet.test-delegated.id
+  storage_quota_in_gb           = 100
+  network_features              = "Standard"
+  encryption_key_source         = "Microsoft.KeyVault"
+  key_vault_private_endpoint_id = azurerm_private_endpoint.test.id
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+
+  depends_on = [
+    azurerm_netapp_account_encryption.test,
+    azurerm_private_endpoint.test
+  ]
+}
+`, cmkUserAssginedTemplate, networkTemplate, data.RandomInteger)
+}
+
+func (NetAppVolumeResource) volEncryptionCmkSystemAssigned(data acceptance.TestData, tenantID string) string {
+	cmkUserAssginedTemplate := NetAppAccountEncryptionResource{}.cmkSystemAssigned(data, tenantID)
+	networkTemplate := NetAppVolumeResource{}.networkTemplate(data)
+	return fmt.Sprintf(`
+%[1]s
+
+%[2]s
+
+resource "azurerm_private_endpoint" "test" {
+  name                = "acctest-pe-akv-%[3]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  subnet_id           = azurerm_subnet.test-non-delegated.id
+
+  private_service_connection {
+    name                           = "acctest-pe-sc-akv-%[3]d"
+    private_connection_resource_id = azurerm_key_vault.test.id
+    is_manual_connection           = false
+    subresource_names              = ["Vault"]
+  }
+
+  tags = {
+    CreatedOnDate = "2023-10-03T19:58:43.6509795Z"
+  }
+}
+
+resource "azurerm_netapp_pool" "test" {
+  name                = "acctest-NetAppPool-%[3]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test.name
+  service_level       = "Standard"
+  size_in_tb          = 4
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+
+  depends_on = [
+    azurerm_netapp_account_encryption.test
+  ]
+}
+
+resource "azurerm_netapp_volume" "test" {
+  name                          = "acctest-NetAppVolume-%[3]d"
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  account_name                  = azurerm_netapp_account.test.name
+  pool_name                     = azurerm_netapp_pool.test.name
+  volume_path                   = "my-unique-file-path-%[3]d"
+  service_level                 = "Standard"
+  subnet_id                     = azurerm_subnet.test-delegated.id
+  storage_quota_in_gb           = 100
+  network_features              = "Standard"
+  encryption_key_source         = "Microsoft.KeyVault"
+  key_vault_private_endpoint_id = azurerm_private_endpoint.test.id
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+
+  depends_on = [
+    azurerm_netapp_account_encryption.test,
+    azurerm_private_endpoint.test
+  ]
+}
+`, cmkUserAssginedTemplate, networkTemplate, data.RandomInteger)
 }
 
 func (NetAppVolumeResource) basic(data acceptance.TestData) string {
@@ -306,6 +514,33 @@ resource "azurerm_netapp_volume" "test" {
   subnet_id           = azurerm_subnet.test.id
   storage_quota_in_gb = 100
   throughput_in_mibps = 1.562
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+`, template, data.RandomInteger, data.RandomInteger)
+}
+
+func (NetAppVolumeResource) smbEncryption(data acceptance.TestData) string {
+	template := NetAppVolumeResource{}.templateSmbEncryption(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_netapp_volume" "test" {
+  name                             = "acctest-NetAppVolume-smbencryption-%d"
+  location                         = azurerm_resource_group.test.location
+  resource_group_name              = azurerm_resource_group.test.name
+  account_name                     = azurerm_netapp_account.test.name
+  pool_name                        = azurerm_netapp_pool.test.name
+  volume_path                      = "my-unique-file-path-%d"
+  service_level                    = "Standard"
+  subnet_id                        = azurerm_subnet.test.id
+  storage_quota_in_gb              = 100
+  throughput_in_mibps              = 1.562
+  protocols                        = ["CIFS"]
+  smb3_protocol_encryption_enabled = true
 
   tags = {
     "CreatedOnDate"    = "2022-07-08T23:50:21Z",
@@ -455,17 +690,18 @@ func (NetAppVolumeResource) crossRegionReplication(data acceptance.TestData) str
 %[1]s
 
 resource "azurerm_netapp_volume" "test_primary" {
-  name                = "acctest-NetAppVolume-primary-%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  account_name        = azurerm_netapp_account.test.name
-  pool_name           = azurerm_netapp_pool.test.name
-  volume_path         = "my-unique-file-path-primary-%[2]d"
-  service_level       = "Standard"
-  subnet_id           = azurerm_subnet.test.id
-  protocols           = ["NFSv3"]
-  storage_quota_in_gb = 100
-  throughput_in_mibps = 1.562
+  name                       = "acctest-NetAppVolume-primary-%[2]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  account_name               = azurerm_netapp_account.test.name
+  pool_name                  = azurerm_netapp_pool.test.name
+  volume_path                = "my-unique-file-path-primary-%[2]d"
+  service_level              = "Standard"
+  subnet_id                  = azurerm_subnet.test.id
+  protocols                  = ["NFSv3"]
+  storage_quota_in_gb        = 100
+  snapshot_directory_visible = false
+  throughput_in_mibps        = 1.562
 
   export_policy_rule {
     rule_index        = 1
@@ -577,6 +813,41 @@ resource "azurerm_netapp_volume" "test_snapshot_vol" {
     rule_index        = 1
     allowed_clients   = ["0.0.0.0/0"]
     protocols_enabled = ["NFSv3"]
+    unix_read_write   = true
+  }
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (NetAppVolumeResource) nfsv3SnapshotDirectoryVisibleTrue(data acceptance.TestData) string {
+	template := NetAppVolumeResource{}.template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_netapp_volume" "test_snapshot_directory_visible_true" {
+  name                       = "acctest-NetAppVolume-%[2]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  account_name               = azurerm_netapp_account.test.name
+  pool_name                  = azurerm_netapp_pool.test.name
+  volume_path                = "my-unique-file-path-%[2]d"
+  service_level              = "Standard"
+  subnet_id                  = azurerm_subnet.test.id
+  protocols                  = ["NFSv3"]
+  storage_quota_in_gb        = 100
+  snapshot_directory_visible = true
+  throughput_in_mibps        = 1.562
+
+  export_policy_rule {
+    rule_index        = 1
+    allowed_clients   = ["1.2.3.0/24"]
+    protocols_enabled = ["NFSv3"]
+    unix_read_only    = false
     unix_read_write   = true
   }
 
@@ -932,6 +1203,101 @@ resource "azurerm_netapp_pool" "test_secondary" {
 `, r.template(data), data.RandomInteger, "eastus2")
 }
 
+func (NetAppVolumeResource) templateSmbEncryption(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  alias = "all1"
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-netapp-%d"
+  location = "%s"
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true",
+    "SkipNRMSNSG"      = "true"
+  }
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctest-VirtualNetwork-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.6.0.0/16"]
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctest-Subnet-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.6.2.0/24"]
+
+  delegation {
+    name = "testdelegation"
+
+    service_delegation {
+      name    = "Microsoft.Netapp/volumes"
+      actions = ["Microsoft.Network/networkinterfaces/*", "Microsoft.Network/virtualNetworks/subnets/join/action"]
+    }
+  }
+}
+
+resource "azurerm_netapp_account" "test" {
+  name                = "acctest-NetAppAccount-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  active_directory {
+    username                          = "aduser"
+    password                          = "aduserpwd"
+    smb_server_name                   = "SMB-SERVER"
+    dns_servers                       = ["1.2.3.4", "1.2.3.5"]
+    domain                            = "westcentralus.com"
+    organizational_unit               = "OU=FirstLevel"
+    site_name                         = "My-Site-Name"
+    kerberos_ad_name                  = "My-AD-Server"
+    kerberos_kdc_ip                   = "192.168.1.1"
+    aes_encryption_enabled            = true
+    local_nfs_users_with_ldap_allowed = true
+    ldap_over_tls_enabled             = true
+    server_root_ca_certificate        = "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUNZekNDQWN5Z0F3SUJBZ0lCQURBTkJna3Foa2lHOXcwQkFRVUZBREF1TVFzd0NRWURWUVFHRXdKVlV6RU0gCk1Bb0dBMVVFQ2hNRFNVSk5NUkV3RHdZRFZRUUxFd2hNYjJOaGJDQkRRVEFlRncwNU9URXlNakl3TlRBd01EQmEgCkZ3MHdNREV5TWpNd05EVTVOVGxhTUM0eEN6QUpCZ05WQkFZVEFsVlRNUXd3Q2dZRFZRUUtFd05KUWsweEVUQVAgCkJnTlZCQXNUQ0V4dlkyRnNJRU5CTUlHZk1BMEdDU3FHU0liM0RRRUJBUVVBQTRHTkFEQ0JpUUtCZ1FEMmJaRW8gCjd4R2FYMi8wR0hrck5GWnZseEJvdTl2MUptdC9QRGlUTVB2ZThyOUZlSkFRMFFkdkZTVC8wSlBRWUQyMHJIMGIgCmltZERMZ05kTnlubXlSb1MyUy9JSW5mcG1mNjlpeWMyRzBUUHlSdm1ISWlPWmJkQ2QrWUJIUWkxYWRrajE3TkQgCmNXajZTMTR0VnVyRlg3M3p4MHNOb01TNzlxM3R1WEtyRHN4ZXV3SURBUUFCbzRHUU1JR05NRXNHQ1ZVZER3R0cgCitFSUJEUVErRXp4SFpXNWxjbUYwWldRZ1lua2dkR2hsSUZObFkzVnlaVmRoZVNCVFpXTjFjbWwwZVNCVFpYSjIgClpYSWdabTl5SUU5VEx6TTVNQ0FvVWtGRFJpa3dEZ1lEVlIwUEFRSC9CQVFEQWdBR01BOEdBMVVkRXdFQi93UUYgCk1BTUJBZjh3SFFZRFZSME9CQllFRkozK29jUnlDVEp3MDY3ZExTd3IvbmFseDZZTU1BMEdDU3FHU0liM0RRRUIgCkJRVUFBNEdCQU1hUXp0K3phajFHVTc3eXpscjhpaU1CWGdkUXJ3c1paV0pvNWV4bkF1Y0pBRVlRWm1PZnlMaU0gCkQ2b1lxK1puZnZNMG44Ry9ZNzlxOG5od3Z1eHBZT25SU0FYRnA2eFNrcklPZVp0Sk1ZMWgwMExLcC9KWDNOZzEgCnN2WjJhZ0UxMjZKSHNRMGJoek41VEtzWWZid2ZUd2ZqZFdBR3k2VmYxbllpL3JPK3J5TU8KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLSA="
+    ldap_signing_enabled              = true
+  }
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+
+resource "azurerm_netapp_pool" "test" {
+  name                = "acctest-NetAppPool-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test.name
+  service_level       = "Standard"
+  size_in_tb          = 4
+  qos_type            = "Manual"
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+`, data.RandomInteger, "westeurope", data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
 func (NetAppVolumeResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1028,6 +1394,7 @@ resource "azurerm_resource_group" "test" {
   tags = {
     "CreatedOnDate"    = "2022-07-08T23:50:21Z",
     "SkipASMAzSecPack" = "true"
+    "SkipNRMSNSG"      = "true"
   }
 }
 
@@ -1097,4 +1464,43 @@ resource "azurerm_netapp_pool" "test" {
   }
 }
 `, data.RandomInteger, "westus2", data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (NetAppVolumeResource) networkTemplate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_virtual_network" "test" {
+  name                = "acctest-VirtualNetwork-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.6.0.0/16"]
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+
+resource "azurerm_subnet" "test-delegated" {
+  name                 = "acctest-Delegated-Subnet-%[1]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.6.1.0/24"]
+
+  delegation {
+    name = "testdelegation"
+
+    service_delegation {
+      name    = "Microsoft.Netapp/volumes"
+      actions = ["Microsoft.Network/networkinterfaces/*", "Microsoft.Network/virtualNetworks/subnets/join/action"]
+    }
+  }
+}
+
+resource "azurerm_subnet" "test-non-delegated" {
+  name                 = "acctest-Non-Delegated-Subnet-%[1]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.6.0.0/24"]
+}
+`, data.RandomInteger)
 }

@@ -20,7 +20,8 @@ type LedgerListBySubscriptionOperationResponse struct {
 }
 
 type LedgerListBySubscriptionCompleteResult struct {
-	Items []ConfidentialLedger
+	LatestHttpResponse *http.Response
+	Items              []ConfidentialLedger
 }
 
 type LedgerListBySubscriptionOperationOptions struct {
@@ -39,6 +40,7 @@ func (o LedgerListBySubscriptionOperationOptions) ToHeaders() *client.Headers {
 
 func (o LedgerListBySubscriptionOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -50,6 +52,18 @@ func (o LedgerListBySubscriptionOperationOptions) ToQuery() *client.QueryParams 
 	return &out
 }
 
+type LedgerListBySubscriptionCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *LedgerListBySubscriptionCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // LedgerListBySubscription ...
 func (c ConfidentialLedgerClient) LedgerListBySubscription(ctx context.Context, id commonids.SubscriptionId, options LedgerListBySubscriptionOperationOptions) (result LedgerListBySubscriptionOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -58,8 +72,9 @@ func (c ConfidentialLedgerClient) LedgerListBySubscription(ctx context.Context, 
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/providers/Microsoft.ConfidentialLedger/ledgers", id.ID()),
 		OptionsObject: options,
+		Pager:         &LedgerListBySubscriptionCustomPager{},
+		Path:          fmt.Sprintf("%s/providers/Microsoft.ConfidentialLedger/ledgers", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -100,6 +115,7 @@ func (c ConfidentialLedgerClient) LedgerListBySubscriptionCompleteMatchingPredic
 
 	resp, err := c.LedgerListBySubscription(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -112,7 +128,8 @@ func (c ConfidentialLedgerClient) LedgerListBySubscriptionCompleteMatchingPredic
 	}
 
 	result = LedgerListBySubscriptionCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

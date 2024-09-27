@@ -16,7 +16,7 @@ tools:
 	go install github.com/katbyte/terrafmt@latest
 	go install golang.org/x/tools/cmd/goimports@latest
 	go install mvdan.cc/gofumpt@latest
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH || $$GOPATH)/bin v1.51.1
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH || $$GOPATH)/bin v1.55.1
 
 build: fmtcheck generate
 	go install
@@ -126,6 +126,9 @@ ifeq (,$(wildcard $(GOPATH)/src/$(WEBSITE_REPO)))
 	git clone https://$(WEBSITE_REPO) $(GOPATH)/src/$(WEBSITE_REPO)
 endif
 	@$(MAKE) -C $(GOPATH)/src/$(WEBSITE_REPO) website-provider PROVIDER_PATH=$(shell pwd) PROVIDER_NAME=azurerm
+
+document-lint:
+	go run $(CURDIR)/internal/tools/document-lint/main.go check
 
 scaffold-website:
 	./scripts/scaffold-website.sh

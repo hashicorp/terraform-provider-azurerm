@@ -43,7 +43,9 @@ func (c CognitiveServicesAccountsClient) AccountsGet(ctx context.Context, id Acc
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Account
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

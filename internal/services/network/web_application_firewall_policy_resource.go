@@ -4,7 +4,6 @@
 package network
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"time"
@@ -14,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/webapplicationfirewallpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -29,9 +28,9 @@ import (
 
 func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 	resource := &pluginsdk.Resource{
-		Create: resourceWebApplicationFirewallPolicyCreateUpdate,
+		Create: resourceWebApplicationFirewallPolicyCreate,
 		Read:   resourceWebApplicationFirewallPolicyRead,
-		Update: resourceWebApplicationFirewallPolicyCreateUpdate,
+		Update: resourceWebApplicationFirewallPolicyUpdate,
 		Delete: resourceWebApplicationFirewallPolicyDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := webapplicationfirewallpolicies.ParseApplicationGatewayWebApplicationFirewallPolicyID(id)
@@ -168,12 +167,29 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(webapplicationfirewallpolicies.WebApplicationFirewallRuleTypeMatchRule),
+								string(webapplicationfirewallpolicies.WebApplicationFirewallRuleTypeRateLimitRule),
 								string(webapplicationfirewallpolicies.WebApplicationFirewallRuleTypeInvalid),
 							}, false),
 						},
 						"name": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
+						},
+						"rate_limit_duration": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForApplicationGatewayFirewallRateLimitDuration(), false),
+						},
+						"rate_limit_threshold": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntAtLeast(1),
+						},
+						"group_rate_limit_by": {
+							// group variables combination not supported yet, use a single variable name
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForApplicationGatewayFirewallUserSessionVariable(), false),
 						},
 					},
 				},
@@ -322,6 +338,7 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 																	string(webapplicationfirewallpolicies.ActionTypeAllow),
 																	string(webapplicationfirewallpolicies.ActionTypeAnomalyScoring),
 																	string(webapplicationfirewallpolicies.ActionTypeBlock),
+																	string(webapplicationfirewallpolicies.ActionTypeJSChallenge),
 																	string(webapplicationfirewallpolicies.ActionTypeLog),
 																}, false),
 															},
@@ -349,6 +366,7 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 							Optional: true,
 							Default:  true,
 						},
+
 						"mode": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
@@ -358,23 +376,47 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 							}, false),
 							Default: string(webapplicationfirewallpolicies.WebApplicationFirewallModePrevention),
 						},
+
 						"request_body_check": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  true,
 						},
+
 						"file_upload_limit_in_mb": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntBetween(1, 4000),
 							Default:      100,
 						},
+
+						"request_body_enforcement": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+
 						"max_request_body_size_in_kb": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntBetween(8, 2000),
 							Default:      128,
 						},
+
+						"request_body_inspect_limit_in_kb": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							Default:      128,
+							ValidateFunc: validation.IntAtLeast(0),
+						},
+
+						"js_challenge_cookie_expiration_in_minutes": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							Default:      30,
+							ValidateFunc: validation.IntBetween(5, 1440),
+						},
+
 						"log_scrubbing": {
 							Type:     pluginsdk.TypeList,
 							MaxItems: 1,
@@ -444,25 +486,6 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 
 			"tags": commonschema.Tags(),
 		},
-
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
-			if !features.FourPointOhBeta() {
-				// Since ConflictsWith cannot be used on these properties and the properties are optional and computed, diff.GetOK may still return value even the property is not configured. Have to check the configuration with GetRawConfig
-				managedRuleSetList := diff.GetRawConfig().AsValueMap()["managed_rules"].AsValueSlice()[0].AsValueMap()["managed_rule_set"].AsValueSlice()
-				for _, managedRuleSetVal := range managedRuleSetList {
-					ruleGroupOverrideList := managedRuleSetVal.AsValueMap()["rule_group_override"].AsValueSlice()
-					for _, ruleGroupOverrideVal := range ruleGroupOverrideList {
-						disabledRules := ruleGroupOverrideVal.AsValueMap()["disabled_rules"]
-						ruleList := ruleGroupOverrideVal.AsValueMap()["rule"].AsValueSlice()
-						if !disabledRules.IsNull() && len(ruleList) != 0 {
-							return fmt.Errorf("`disabled_rules` cannot be set when `rule` is set under `rule_group_override`")
-						}
-					}
-				}
-			}
-
-			return nil
-		}),
 	}
 
 	if !features.FourPointOhBeta() {
@@ -480,24 +503,22 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 	return resource
 }
 
-func resourceWebApplicationFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceWebApplicationFirewallPolicyCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.WebApplicationFirewallPolicies
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := webapplicationfirewallpolicies.NewApplicationGatewayWebApplicationFirewallPolicyID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
-		resp, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(resp.HttpResponse) {
-				return fmt.Errorf("checking for present of existing %s: %+v", id, err)
-			}
-		}
+	resp, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(resp.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_web_application_firewall_policy", id.ID())
+			return fmt.Errorf("checking for present of existing %s: %+v", id, err)
 		}
+	}
+	if !response.WasNotFound(resp.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_web_application_firewall_policy", id.ID())
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
@@ -526,6 +547,55 @@ func resourceWebApplicationFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData,
 	}
 
 	d.SetId(id.ID())
+
+	return resourceWebApplicationFirewallPolicyRead(d, meta)
+}
+
+func resourceWebApplicationFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.WebApplicationFirewallPolicies
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id := webapplicationfirewallpolicies.NewApplicationGatewayWebApplicationFirewallPolicyID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+
+	resp, err := client.Get(ctx, id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	if resp.Model == nil {
+		return fmt.Errorf("retrieving %s: model was nil", id)
+	}
+	if resp.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: properties was nil", id)
+	}
+
+	model := resp.Model
+
+	if d.HasChange("custom_rules") {
+		model.Properties.CustomRules = expandWebApplicationFirewallPolicyWebApplicationFirewallCustomRule(d.Get("custom_rules").([]interface{}))
+	}
+
+	if d.HasChange("policy_settings") {
+		model.Properties.PolicySettings = expandWebApplicationFirewallPolicyPolicySettings(d.Get("policy_settings").([]interface{}))
+	}
+
+	if d.HasChange("managed_rules") {
+		expandedManagedRules, err := expandWebApplicationFirewallPolicyManagedRulesDefinition(d.Get("managed_rules").([]interface{}), d)
+		if err != nil {
+			return err
+		}
+		model.Properties.ManagedRules = pointer.From(expandedManagedRules)
+	}
+
+	if d.HasChange("tags") {
+		model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if _, err := client.CreateOrUpdate(ctx, id, *model); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
+	}
 
 	return resourceWebApplicationFirewallPolicyRead(d, meta)
 }
@@ -618,6 +688,27 @@ func expandWebApplicationFirewallPolicyWebApplicationFirewallCustomRule(input []
 			RuleType:        webapplicationfirewallpolicies.WebApplicationFirewallRuleType(ruleType),
 		}
 
+		if rateLimitDuration, ok := v["rate_limit_duration"]; ok && rateLimitDuration.(string) != "" {
+			result.RateLimitDuration = pointer.To(webapplicationfirewallpolicies.ApplicationGatewayFirewallRateLimitDuration(rateLimitDuration.(string)))
+		}
+
+		if rateLimitThreshHold, ok := v["rate_limit_threshold"]; ok && rateLimitThreshHold.(int) > 0 {
+			result.RateLimitThreshold = pointer.To(int64(rateLimitThreshHold.(int)))
+		}
+
+		if groupBy, ok := v["group_rate_limit_by"]; ok && groupBy.(string) != "" {
+			groups := []webapplicationfirewallpolicies.GroupByUserSession{
+				{
+					GroupByVariables: []webapplicationfirewallpolicies.GroupByVariable{
+						{
+							VariableName: webapplicationfirewallpolicies.ApplicationGatewayFirewallUserSessionVariable(groupBy.(string)),
+						},
+					},
+				},
+			}
+			result.GroupByUserSession = &groups
+		}
+
 		results = append(results, result)
 	}
 	return &results
@@ -635,17 +726,22 @@ func expandWebApplicationFirewallPolicyPolicySettings(input []interface{}) *weba
 	}
 	mode := v["mode"].(string)
 	requestBodyCheck := v["request_body_check"].(bool)
+	requestBodyEnforcement := v["request_body_enforcement"].(bool)
 	maxRequestBodySizeInKb := v["max_request_body_size_in_kb"].(int)
 	fileUploadLimitInMb := v["file_upload_limit_in_mb"].(int)
 
 	result := webapplicationfirewallpolicies.PolicySettings{
-		State:                  pointer.To(enabled),
-		Mode:                   pointer.To(webapplicationfirewallpolicies.WebApplicationFirewallMode(mode)),
-		RequestBodyCheck:       pointer.To(requestBodyCheck),
-		MaxRequestBodySizeInKb: pointer.To(int64(maxRequestBodySizeInKb)),
-		FileUploadLimitInMb:    pointer.To(int64(fileUploadLimitInMb)),
-		LogScrubbing:           expandWebApplicationFirewallPolicyLogScrubbing(v["log_scrubbing"].([]interface{})),
+		State:                             pointer.To(enabled),
+		Mode:                              pointer.To(webapplicationfirewallpolicies.WebApplicationFirewallMode(mode)),
+		RequestBodyCheck:                  pointer.To(requestBodyCheck),
+		RequestBodyEnforcement:            pointer.To(requestBodyEnforcement),
+		MaxRequestBodySizeInKb:            pointer.To(int64(maxRequestBodySizeInKb)),
+		FileUploadLimitInMb:               pointer.To(int64(fileUploadLimitInMb)),
+		LogScrubbing:                      expandWebApplicationFirewallPolicyLogScrubbing(v["log_scrubbing"].([]interface{})),
+		RequestBodyInspectLimitInKB:       pointer.To(int64(v["request_body_inspect_limit_in_kb"].(int))),
+		JsChallengeCookieExpirationInMins: pointer.To(int64(v["js_challenge_cookie_expiration_in_minutes"].(int))),
 	}
+
 	return &result
 }
 
@@ -841,6 +937,11 @@ func expandWebApplicationFirewallPolicyRuleGroupOverrides(input []interface{}, d
 				return nil, fmt.Errorf("rule group override index %d exceeds raw config length %d", i, len(ruleGroupOverrideList))
 			}
 
+			// Since ConflictsWith cannot be used on these properties and the properties are optional and computed, Have to check the configuration with GetRawConfig
+			if !ruleGroupOverrideList[i].AsValueMap()["rule"].IsNull() && len(ruleGroupOverrideList[i].AsValueMap()["rule"].AsValueSlice()) > 0 && !ruleGroupOverrideList[i].AsValueMap()["disabled_rules"].IsNull() {
+				return nil, fmt.Errorf("`disabled_rules` cannot be set when `rule` is set under `rule_group_override`")
+			}
+
 			if disabledRules := v["disabled_rules"].([]interface{}); !ruleGroupOverrideList[i].AsValueMap()["disabled_rules"].IsNull() {
 				result.Rules = expandWebApplicationFirewallPolicyRules(disabledRules)
 			}
@@ -961,6 +1062,14 @@ func flattenWebApplicationFirewallPolicyWebApplicationFirewallCustomRule(input *
 		v["match_conditions"] = flattenWebApplicationFirewallPolicyMatchCondition(item.MatchConditions)
 		v["priority"] = int(item.Priority)
 		v["rule_type"] = string(item.RuleType)
+		v["rate_limit_duration"] = pointer.From(item.RateLimitDuration)
+		v["rate_limit_threshold"] = pointer.From(item.RateLimitThreshold)
+
+		if item.GroupByUserSession != nil && len(*item.GroupByUserSession) > 0 {
+			if groupVariable := (*item.GroupByUserSession)[0].GroupByVariables; len(groupVariable) > 0 {
+				v["group_rate_limit_by"] = groupVariable[0].VariableName
+			}
+		}
 
 		results = append(results, v)
 	}
@@ -978,9 +1087,12 @@ func flattenWebApplicationFirewallPolicyPolicySettings(input *webapplicationfire
 	result["enabled"] = pointer.From(input.State) == webapplicationfirewallpolicies.WebApplicationFirewallEnabledStateEnabled
 	result["mode"] = string(pointer.From(input.Mode))
 	result["request_body_check"] = input.RequestBodyCheck
+	result["request_body_enforcement"] = input.RequestBodyEnforcement
 	result["max_request_body_size_in_kb"] = int(pointer.From(input.MaxRequestBodySizeInKb))
 	result["file_upload_limit_in_mb"] = int(pointer.From(input.FileUploadLimitInMb))
 	result["log_scrubbing"] = flattenWebApplicationFirewallPolicyLogScrubbing(input.LogScrubbing)
+	result["request_body_inspect_limit_in_kb"] = pointer.From(input.RequestBodyInspectLimitInKB)
+	result["js_challenge_cookie_expiration_in_minutes"] = pointer.From(input.JsChallengeCookieExpirationInMins)
 
 	return []interface{}{result}
 }

@@ -29,7 +29,7 @@ resource "azurerm_dedicated_host" "example" {
   name                    = "example-host"
   location                = azurerm_resource_group.example.location
   dedicated_host_group_id = azurerm_dedicated_host_group.example.id
-  sku_name                = "DSv3-Type1"
+  sku_name                = "DSv3-Type3"
   platform_fault_domain   = 1
 }
 ```

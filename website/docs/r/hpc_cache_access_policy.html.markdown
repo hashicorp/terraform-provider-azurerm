@@ -60,7 +60,7 @@ The following arguments are supported:
 
 * `hpc_cache_id` - (Required) The ID of the HPC Cache that this HPC Cache Access Policy resides in. Changing this forces a new HPC Cache Access Policy to be created.
 
-* `access_rule` - (Required) Up to three `access_rule` blocks as defined below.
+* `access_rule` - (Required) One or more `access_rule` blocks (up to three) as defined below.
 
 ---
 

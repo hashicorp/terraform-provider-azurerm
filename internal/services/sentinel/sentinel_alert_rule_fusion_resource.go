@@ -67,7 +67,8 @@ func resourceSentinelAlertRuleFusion() *pluginsdk.Resource {
 			"source": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				// Service will auto-fill this if not given in request, based on the "alert_rule_template_guid".
+				// NOTE: O+C The API creates a source if omitted based on the `alert_rule_template_guid`
+				// but overwriting this/reverting to the default can be done without issue so this can remain
 				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -205,19 +206,19 @@ func resourceSentinelAlertRuleFusionRead(d *pluginsdk.ResourceData, meta interfa
 		if err := assertAlertRuleKind(resp.Model, alertrules.AlertRuleKindFusion); err != nil {
 			return fmt.Errorf("asserting alert rule of %q: %+v", id, err)
 		}
-		modelPtr := *model
-		rule := modelPtr.(alertrules.FusionAlertRule)
 
-		d.Set("name", id.RuleId)
+		if rule, ok := model.(alertrules.FusionAlertRule); ok {
+			d.Set("name", id.RuleId)
 
-		workspaceId := alertrules.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName)
-		d.Set("log_analytics_workspace_id", workspaceId.ID())
+			workspaceId := alertrules.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName)
+			d.Set("log_analytics_workspace_id", workspaceId.ID())
 
-		if prop := rule.Properties; prop != nil {
-			d.Set("enabled", prop.Enabled)
-			d.Set("alert_rule_template_guid", prop.AlertRuleTemplateName)
-			if err := d.Set("source", flattenFusionSourceSettings(prop.SourceSettings)); err != nil {
-				return fmt.Errorf("setting `source`: %v", err)
+			if prop := rule.Properties; prop != nil {
+				d.Set("enabled", prop.Enabled)
+				d.Set("alert_rule_template_guid", prop.AlertRuleTemplateName)
+				if err := d.Set("source", flattenFusionSourceSettings(prop.SourceSettings)); err != nil {
+					return fmt.Errorf("setting `source`: %v", err)
+				}
 			}
 		}
 	}

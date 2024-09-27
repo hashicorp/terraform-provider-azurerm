@@ -10,7 +10,6 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -100,6 +99,24 @@ func schemaContainsSensitiveFieldsNotMarkedAsSensitive(input map[string]*plugins
 	return nil
 }
 
+func TestDataSourcesShouldNotSupportImport(t *testing.T) {
+	provider := TestAzureProvider()
+
+	// intentionally sorting these so the output is consistent
+	dataSourceNames := make([]string, 0)
+	for dataSourceName := range provider.DataSourcesMap {
+		dataSourceNames = append(dataSourceNames, dataSourceName)
+	}
+	sort.Strings(dataSourceNames)
+
+	for _, dataSourceName := range dataSourceNames {
+		dataSource := provider.DataSourcesMap[dataSourceName]
+		if dataSource.Importer != nil {
+			t.Fatalf("the Data Source %q supports Import but Terraform does not support this - please remove the `Importer` from this Data Source", dataSourceName)
+		}
+	}
+}
+
 func TestDataSourcesHaveEnabledFieldsMarkedAsBooleans(t *testing.T) {
 	// This test validates that Data Sources do not contain a field suffixed with `_enabled` that isn't a Boolean.
 	//
@@ -166,9 +183,11 @@ func TestResourcesHaveEnabledFieldsMarkedAsBooleans(t *testing.T) {
 			"recommendations_enabled": {},
 		},
 	}
+	/* these fields should be look at post 4.0
 	if features.FourPointOhBeta() {
 		resourceFieldsWhichNeedToBeAddressed = map[string]map[string]struct{}{}
 	}
+	*/
 
 	for _, resourceName := range resourceNames {
 		resource := provider.ResourcesMap[resourceName]
@@ -309,9 +328,12 @@ func TestResourcesDoNotContainANameFieldWithADefaultOfDefault(t *testing.T) {
 			"name": {},
 		},
 	}
+
+	/* these fields should be look at post 4.0
 	if features.FourPointOhBeta() {
 		resourceFieldsWhichNeedToBeAddressed = map[string]map[string]struct{}{}
 	}
+	*/
 
 	for _, resourceName := range resourceNames {
 		resource := provider.ResourcesMap[resourceName]
@@ -394,48 +416,6 @@ func runInputForValidateFunction(validateFunc pluginsdk.SchemaValidateFunc, inpu
 	return len(warnings) == 0 && len(errs) == 0
 }
 
-func TestDataSourcesWithAnEncryptionBlockBehaveConsistently(t *testing.T) {
-	// This test validates that Data Sources do not contain an `encryption` block which is marked as Computed: true
-	// or a field named `enabled` or `key_source`.
-	//
-	// This hides the fact that encryption is enabled on this resource - and (rather than exposing an `encryption`
-	// block as Computed) should instead be exposed as a non-Computed block.
-	//
-	// In cases where the block contains `key_source`, this field should be removed and instead inferred based on
-	// the presence of the block, using a custom encryption key (and thus a `key_source` of {likely} `Microsoft.KeyVault`)
-	// when the block is specified - and the default value (generally the RP name) when the block is omitted.
-	provider := TestAzureProvider()
-
-	// intentionally sorting these so the output is consistent
-	dataSourceNames := make([]string, 0)
-	for dataSourceName := range provider.DataSourcesMap {
-		dataSourceNames = append(dataSourceNames, dataSourceName)
-	}
-	sort.Strings(dataSourceNames)
-
-	// TODO: 4.0 - work through this list
-	dataSourcesWhichNeedToBeAddressed := map[string]struct{}{
-		"azurerm_app_configuration": {},
-		"azurerm_batch_pool":        {},
-		"azurerm_managed_disk":      {},
-		"azurerm_snapshot":          {},
-	}
-	if features.FourPointOhBeta() {
-		dataSourcesWhichNeedToBeAddressed = map[string]struct{}{}
-	}
-
-	for _, dataSourceName := range dataSourceNames {
-		dataSource := provider.DataSourcesMap[dataSourceName]
-		if err := schemaContainsAnEncryptionBlock(dataSource.Schema); err != nil {
-			if _, ok := dataSourcesWhichNeedToBeAddressed[dataSourceName]; ok {
-				continue
-			}
-
-			t.Fatalf("the Data Source %q contains an `encryption` block marked as Computed - this should be marked as non-Computed (and the key source automatically inferred): %+v", dataSourceName, err)
-		}
-	}
-}
-
 func TestResourcesWithAnEncryptionBlockBehaveConsistently(t *testing.T) {
 	// This test validates that Resources do not contain an `encryption` block which is marked as Computed: true
 	// or a field named `enabled` or `key_source`.
@@ -462,15 +442,19 @@ func TestResourcesWithAnEncryptionBlockBehaveConsistently(t *testing.T) {
 		"azurerm_managed_disk":           {},
 		"azurerm_media_services_account": {},
 		"azurerm_snapshot":               {},
+		"azurerm_load_test":              {},
 	}
+
+	/* these fields should be look at post 4.0
 	if features.FourPointOhBeta() {
 		resourcesWhichNeedToBeAddressed = map[string]struct{}{}
 	}
+	*/
 
 	for _, resourceName := range resourceNames {
 		resource := provider.ResourcesMap[resourceName]
 
-		if err := schemaContainsAnEncryptionBlock(resource.Schema); err != nil {
+		if err := schemaContainsAnEncryptionBlock(resource.Schema, true); err != nil {
 			if _, ok := resourcesWhichNeedToBeAddressed[resourceName]; ok {
 				continue
 			}
@@ -479,7 +463,7 @@ func TestResourcesWithAnEncryptionBlockBehaveConsistently(t *testing.T) {
 	}
 }
 
-func schemaContainsAnEncryptionBlock(input map[string]*schema.Schema) error {
+func schemaContainsAnEncryptionBlock(input map[string]*schema.Schema, isResource bool) error {
 	// intentionally sorting these so the output is consistent
 	fieldNames := make([]string, 0)
 	for fieldName := range input {
@@ -493,7 +477,7 @@ func schemaContainsAnEncryptionBlock(input map[string]*schema.Schema) error {
 
 		if field.Type == pluginsdk.TypeList && field.Elem != nil {
 			if strings.Contains(key, "encryption") {
-				if field.Computed {
+				if isResource && field.Computed {
 					return fmt.Errorf("the block %q is marked as Computed when it shouldn't be", fieldName)
 				}
 
@@ -521,7 +505,7 @@ func schemaContainsAnEncryptionBlock(input map[string]*schema.Schema) error {
 			}
 
 			if val, ok := field.Elem.(*pluginsdk.Resource); ok && val.Schema != nil {
-				if err := schemaContainsAnEncryptionBlock(val.Schema); err != nil {
+				if err := schemaContainsAnEncryptionBlock(val.Schema, isResource); err != nil {
 					return fmt.Errorf("field %q: %+v", fieldName, err)
 				}
 			}
@@ -577,9 +561,9 @@ func TestResourcesDoNotContainLocalAuthenticationDisabled(t *testing.T) {
 		"azurerm_log_analytics_workspace": {},
 		"azurerm_search_service":          {},
 	}
-	if features.FourPointOhBeta() {
+	/*if features.FourPointOhBeta() {
 		resourcesWhichNeedToBeAddressed = map[string]struct{}{}
-	}
+	}*/
 
 	for _, resourceName := range resourceNames {
 		resource := provider.ResourcesMap[resourceName]

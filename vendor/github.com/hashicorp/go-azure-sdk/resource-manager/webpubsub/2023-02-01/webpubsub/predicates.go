@@ -146,6 +146,19 @@ func (p SignalRServiceUsageOperationPredicate) Matches(input SignalRServiceUsage
 	return true
 }
 
+type SkuOperationPredicate struct {
+	ResourceType *string
+}
+
+func (p SkuOperationPredicate) Matches(input Sku) bool {
+
+	if p.ResourceType != nil && (input.ResourceType == nil || *p.ResourceType != *input.ResourceType) {
+		return false
+	}
+
+	return true
+}
+
 type WebPubSubHubOperationPredicate struct {
 	Id   *string
 	Name *string

@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ScopedEventSubscriptionId{}
+func init() {
+	recaser.RegisterResourceId(&ScopedEventSubscriptionId{})
+}
+
+var _ resourceids.ResourceId = &ScopedEventSubscriptionId{}
 
 // ScopedEventSubscriptionId is a struct representing the Resource ID for a Scoped Event Subscription
 type ScopedEventSubscriptionId struct {
@@ -28,21 +33,15 @@ func NewScopedEventSubscriptionID(scope string, eventSubscriptionName string) Sc
 
 // ParseScopedEventSubscriptionID parses 'input' into a ScopedEventSubscriptionId
 func ParseScopedEventSubscriptionID(input string) (*ScopedEventSubscriptionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScopedEventSubscriptionId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScopedEventSubscriptionId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedEventSubscriptionId{}
-
-	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
-	}
-
-	if id.EventSubscriptionName, ok = parsed.Parsed["eventSubscriptionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "eventSubscriptionName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -51,24 +50,32 @@ func ParseScopedEventSubscriptionID(input string) (*ScopedEventSubscriptionId, e
 // ParseScopedEventSubscriptionIDInsensitively parses 'input' case-insensitively into a ScopedEventSubscriptionId
 // note: this method should only be used for API response data and not user input
 func ParseScopedEventSubscriptionIDInsensitively(input string) (*ScopedEventSubscriptionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScopedEventSubscriptionId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScopedEventSubscriptionId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedEventSubscriptionId{}
-
-	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
-	}
-
-	if id.EventSubscriptionName, ok = parsed.Parsed["eventSubscriptionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "eventSubscriptionName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ScopedEventSubscriptionId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.Scope, ok = input.Parsed["scope"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "scope", input)
+	}
+
+	if id.EventSubscriptionName, ok = input.Parsed["eventSubscriptionName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "eventSubscriptionName", input)
+	}
+
+	return nil
 }
 
 // ValidateScopedEventSubscriptionID checks that 'input' can be parsed as a Scoped Event Subscription ID
@@ -99,7 +106,7 @@ func (id ScopedEventSubscriptionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftEventGrid", "Microsoft.EventGrid", "Microsoft.EventGrid"),
 		resourceids.StaticSegment("staticEventSubscriptions", "eventSubscriptions", "eventSubscriptions"),
-		resourceids.UserSpecifiedSegment("eventSubscriptionName", "eventSubscriptionValue"),
+		resourceids.UserSpecifiedSegment("eventSubscriptionName", "eventSubscriptionName"),
 	}
 }
 

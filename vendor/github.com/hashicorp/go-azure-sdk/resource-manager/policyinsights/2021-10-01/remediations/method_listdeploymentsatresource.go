@@ -19,7 +19,8 @@ type ListDeploymentsAtResourceOperationResponse struct {
 }
 
 type ListDeploymentsAtResourceCompleteResult struct {
-	Items []RemediationDeployment
+	LatestHttpResponse *http.Response
+	Items              []RemediationDeployment
 }
 
 type ListDeploymentsAtResourceOperationOptions struct {
@@ -38,6 +39,7 @@ func (o ListDeploymentsAtResourceOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListDeploymentsAtResourceOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -49,6 +51,18 @@ func (o ListDeploymentsAtResourceOperationOptions) ToQuery() *client.QueryParams
 	return &out
 }
 
+type ListDeploymentsAtResourceCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListDeploymentsAtResourceCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListDeploymentsAtResource ...
 func (c RemediationsClient) ListDeploymentsAtResource(ctx context.Context, id ScopedRemediationId, options ListDeploymentsAtResourceOperationOptions) (result ListDeploymentsAtResourceOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -57,8 +71,9 @@ func (c RemediationsClient) ListDeploymentsAtResource(ctx context.Context, id Sc
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPost,
-		Path:          fmt.Sprintf("%s/listDeployments", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListDeploymentsAtResourceCustomPager{},
+		Path:          fmt.Sprintf("%s/listDeployments", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -99,6 +114,7 @@ func (c RemediationsClient) ListDeploymentsAtResourceCompleteMatchingPredicate(c
 
 	resp, err := c.ListDeploymentsAtResource(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -111,7 +127,8 @@ func (c RemediationsClient) ListDeploymentsAtResourceCompleteMatchingPredicate(c
 	}
 
 	result = ListDeploymentsAtResourceCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

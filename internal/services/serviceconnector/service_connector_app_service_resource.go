@@ -8,10 +8,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicelinker/2022-05-01/links"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicelinker/2022-05-01/servicelinker"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicelinker/2024-04-01/servicelinker"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -20,6 +21,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+var _ sdk.ResourceWithUpdate = AppServiceConnectorResource{}
 
 type AppServiceConnectorResource struct{}
 
@@ -122,7 +125,7 @@ func (r AppServiceConnectorResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			authInfo, err := expandServiceConnectorAuthInfo(model.AuthInfo)
+			authInfo, err := expandServiceConnectorAuthInfoForCreate(model.AuthInfo)
 			if err != nil {
 				return fmt.Errorf("expanding `authentication`: %+v", err)
 			}
@@ -281,11 +284,16 @@ func (r AppServiceConnectorResource) Update() sdk.ResourceFunc {
 			}
 
 			if d.HasChange("secret_store") {
-				linkerProps.SecretStore = (*links.SecretStore)(expandSecretStore(state.SecretStore))
+				linkerProps.SecretStore = pointer.To(links.SecretStore{KeyVaultId: expandSecretStore(state.SecretStore).KeyVaultId})
 			}
 
 			if d.HasChange("authentication") {
-				linkerProps.AuthInfo = state.AuthInfo
+				authInfo, err := expandServiceConnectorAuthInfoForUpdate(state.AuthInfo)
+				if err != nil {
+					return fmt.Errorf("expanding `authentication`: %+v", err)
+				}
+
+				linkerProps.AuthInfo = authInfo
 			}
 
 			props := links.LinkerPatch{

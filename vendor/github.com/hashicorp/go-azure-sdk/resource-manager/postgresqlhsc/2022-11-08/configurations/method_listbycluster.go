@@ -19,7 +19,20 @@ type ListByClusterOperationResponse struct {
 }
 
 type ListByClusterCompleteResult struct {
-	Items []Configuration
+	LatestHttpResponse *http.Response
+	Items              []Configuration
+}
+
+type ListByClusterCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByClusterCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListByCluster ...
@@ -30,6 +43,7 @@ func (c ConfigurationsClient) ListByCluster(ctx context.Context, id ServerGroups
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByClusterCustomPager{},
 		Path:       fmt.Sprintf("%s/configurations", id.ID()),
 	}
 
@@ -71,6 +85,7 @@ func (c ConfigurationsClient) ListByClusterCompleteMatchingPredicate(ctx context
 
 	resp, err := c.ListByCluster(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +98,8 @@ func (c ConfigurationsClient) ListByClusterCompleteMatchingPredicate(ctx context
 	}
 
 	result = ListByClusterCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

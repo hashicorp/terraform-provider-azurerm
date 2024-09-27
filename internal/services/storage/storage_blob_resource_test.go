@@ -8,14 +8,18 @@ import (
 	"crypto/rand"
 	"fmt"
 	"os"
+	"regexp"
+	"strings"
 	"testing"
+	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/blob/blobs"
+	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/blobs"
 )
 
 type StorageBlobResource struct{}
@@ -140,12 +144,31 @@ func TestAccStorageBlob_blockEmptyAccessTier(t *testing.T) {
 func TestAccStorageBlob_blockFromInlineContent(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
 	r := StorageBlobResource{}
+	content := "Wubba Lubba Dub Dub"
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.blockFromInlineContent(data),
+			Config: r.blockFromInlineContent(data, content),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				data.CheckWithClient(r.blobMatchesContent(blobs.BlockBlob, []byte(content))),
+			),
+		},
+		data.ImportStep("parallelism", "size", "source_content", "type"),
+	})
+}
+
+func TestAccStorageBlob_blockFromInlineContentWithContentType(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
+	r := StorageBlobResource{}
+	content := `{"hello":"world"}`
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.blockFromInlineContentWithContentType(data, content),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				data.CheckWithClient(r.blobMatchesContent(blobs.BlockBlob, []byte(content))),
 			),
 		},
 		data.ImportStep("parallelism", "size", "source_content", "type"),
@@ -305,6 +328,59 @@ func TestAccStorageBlob_contentTypePremium(t *testing.T) {
 	})
 }
 
+func TestAccStorageBlob_encryptionScope(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
+	r := StorageBlobResource{}
+	content := "Wubba Lubba Dub Dub"
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.encryptionScope(data, content),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("parallelism", "size", "source_content", "type"),
+	})
+}
+
+func TestAccStorageBlob_encryptionScopeUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
+	r := StorageBlobResource{}
+	content := "Wubba Lubba Dub Dub"
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.encryptionScope(data, content),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("parallelism", "size", "source_content", "type"),
+		{
+			Config: r.encryptionScopeUpdateMetadata(data, content),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("parallelism", "size", "source_content", "type"),
+		{
+			Config: r.encryptionScopeUpdateProperties(data, content),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("parallelism", "size", "source_content", "type"),
+		{
+			Config: r.encryptionScopeUpdateAccessTier(data, content),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("parallelism", "size", "source_content", "type"),
+	})
+}
+
 func TestAccStorageBlob_pageEmpty(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
 	r := StorageBlobResource{}
@@ -389,6 +465,32 @@ func TestAccStorageBlob_pageFromLocalFile(t *testing.T) {
 	})
 }
 
+func TestAccStorageBlob_pageFromInlineContent(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
+	r := StorageBlobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.pageFromInlineContent(data, 512),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("parallelism", "size", "source_content", "type"),
+		{
+			Config: r.pageFromInlineContent(data, 1024),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("parallelism", "size", "source_content", "type"),
+		{
+			Config:      r.pageFromInlineContent(data, 511),
+			ExpectError: regexp.MustCompile(`"source" must be aligned to 512-byte boundary for "type" set to "Page"`),
+		},
+	})
+}
+
 func TestAccStorageBlob_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
 	r := StorageBlobResource{}
@@ -426,102 +528,133 @@ func TestAccStorageBlob_update(t *testing.T) {
 	})
 }
 
+func TestAccStorageBlob_archive(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
+	r := StorageBlobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.archive(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("parallelism", "size", "type", "source_content"),
+	})
+}
+
 func (r StorageBlobResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := blobs.ParseResourceID(state.ID)
+	id, err := blobs.ParseBlobID(state.ID, client.Storage.StorageDomainSuffix)
 	if err != nil {
 		return nil, err
 	}
-	account, err := client.Storage.FindAccount(ctx, id.AccountName)
+	account, err := client.Storage.FindAccount(ctx, client.Account.SubscriptionId, id.AccountId.AccountName)
 	if err != nil {
 		return nil, err
 	}
 	if account == nil {
-		return nil, fmt.Errorf("unable to locate Account %q for Blob %q (Container %q)", id.AccountName, id.BlobName, id.ContainerName)
+		return nil, fmt.Errorf("unable to locate Account %q for Blob %q (Container %q)", id.AccountId.AccountName, id.BlobName, id.ContainerName)
 	}
-	blobsClient, err := client.Storage.BlobsClient(ctx, *account)
+	blobsClient, err := client.Storage.BlobsDataPlaneClient(ctx, *account, client.Storage.DataPlaneOperationSupportingAnyAuthMethod())
 	if err != nil {
 		return nil, fmt.Errorf("building Blobs Client: %+v", err)
 	}
 	input := blobs.GetPropertiesInput{}
-	resp, err := blobsClient.GetProperties(ctx, id.AccountName, id.ContainerName, id.BlobName, input)
+	resp, err := blobsClient.GetProperties(ctx, id.ContainerName, id.BlobName, input)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving Blob %q (Container %q / Account %q): %+v", id.BlobName, id.ContainerName, id.AccountName, err)
+		return nil, fmt.Errorf("retrieving Blob %q (Container %q / Account %q): %+v", id.BlobName, id.ContainerName, id.AccountId.AccountName, err)
 	}
 	return utils.Bool(true), nil
 }
 
 func (r StorageBlobResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := blobs.ParseResourceID(state.ID)
+	id, err := blobs.ParseBlobID(state.ID, client.Storage.StorageDomainSuffix)
 	if err != nil {
 		return nil, err
 	}
-	account, err := client.Storage.FindAccount(ctx, id.AccountName)
+	account, err := client.Storage.FindAccount(ctx, client.Account.SubscriptionId, id.AccountId.AccountName)
 	if err != nil {
-		return nil, fmt.Errorf("retrievign Account %q for Blob %q (Container %q): %+v", id.AccountName, id.BlobName, id.ContainerName, err)
+		return nil, fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %+v", id.AccountId.AccountName, id.BlobName, id.ContainerName, err)
 	}
-	blobsClient, err := client.Storage.BlobsClient(ctx, *account)
+	blobsClient, err := client.Storage.BlobsDataPlaneClient(ctx, *account, client.Storage.DataPlaneOperationSupportingAnyAuthMethod())
 	if err != nil {
 		return nil, fmt.Errorf("building Blobs Client: %+v", err)
 	}
 	input := blobs.DeleteInput{
 		DeleteSnapshots: false,
 	}
-	if _, err := blobsClient.Delete(ctx, id.AccountName, id.ContainerName, id.BlobName, input); err != nil {
-		return nil, fmt.Errorf("deleting Blob %q (Container %q / Account %q): %+v", id.BlobName, id.ContainerName, id.AccountName, err)
+	if _, err = blobsClient.Delete(ctx, id.ContainerName, id.BlobName, input); err != nil {
+		return nil, fmt.Errorf("deleting Blob %q (Container %q / Account %q): %+v", id.BlobName, id.ContainerName, id.AccountId.AccountName, err)
 	}
 	return utils.Bool(true), nil
 }
 
 func (r StorageBlobResource) blobMatchesFile(kind blobs.BlobType, filePath string) func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
+	expectedContents, err := os.ReadFile(filePath)
+	if err != nil {
+		return func(_ context.Context, _ *clients.Client, _ *pluginsdk.InstanceState) error {
+			return fmt.Errorf("could not read local file for comparison: %v", err)
+		}
+	}
+
+	return r.blobMatchesContent(kind, expectedContents)
+}
+
+func (r StorageBlobResource) blobMatchesContent(kind blobs.BlobType, expectedContents []byte) func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
+		if _, ok := ctx.Deadline(); !ok {
+			var cancel context.CancelFunc
+			ctx, cancel = context.WithDeadline(ctx, time.Now().Add(10*time.Minute))
+			defer cancel()
+		}
+
 		name := state.Attributes["name"]
 		containerName := state.Attributes["storage_container_name"]
 		accountName := state.Attributes["storage_account_name"]
 
-		account, err := clients.Storage.FindAccount(ctx, accountName)
+		account, err := clients.Storage.FindAccount(ctx, clients.Account.SubscriptionId, accountName)
 		if err != nil {
 			return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %s", accountName, name, containerName, err)
 		}
 		if account == nil {
-			return fmt.Errorf("Unable to locate Storage Account %q!", accountName)
+			return fmt.Errorf("unable to locate Storage Account %q!", accountName)
 		}
 
-		client, err := clients.Storage.BlobsClient(ctx, *account)
+		client, err := clients.Storage.BlobsDataPlaneClient(ctx, *account, clients.Storage.DataPlaneOperationSupportingAnyAuthMethod())
 		if err != nil {
 			return fmt.Errorf("building Blobs Client: %s", err)
 		}
 
 		// first check the type
 		getPropsInput := blobs.GetPropertiesInput{}
-		props, err := client.GetProperties(ctx, accountName, containerName, name, getPropsInput)
+		props, err := client.GetProperties(ctx, containerName, name, getPropsInput)
 		if err != nil {
 			return fmt.Errorf("retrieving Properties for Blob %q (Container %q): %s", name, containerName, err)
 		}
 
 		if props.BlobType != kind {
-			return fmt.Errorf("Bad: blob type %q does not match expected type %q", props.BlobType, kind)
+			return fmt.Errorf("bad: blob type %q does not match expected type %q", props.BlobType, kind)
 		}
 
 		// then compare the content itself
 		getInput := blobs.GetInput{}
-		actualProps, err := client.Get(ctx, accountName, containerName, name, getInput)
+		actualProps, err := client.Get(ctx, containerName, name, getInput)
 		if err != nil {
 			return fmt.Errorf("retrieving Blob %q (Container %q): %s", name, containerName, err)
 		}
 
 		actualContents := actualProps.Contents
 
-		// local file for comparison
-		expectedContents, err := os.ReadFile(filePath)
-		if err != nil {
-			return err
+		if actualContents == nil {
+			return fmt.Errorf("bad: Storage Blob %q (storage container: %q) returned nil contents", name, containerName)
 		}
 
-		if string(actualContents) != string(expectedContents) {
-			return fmt.Errorf("Bad: Storage Blob %q (storage container: %q) does not match contents", name, containerName)
+		// retrieved blob content may have arbitrary newline appended
+		if strings.TrimSpace(string(*actualContents)) != strings.TrimSpace(string(expectedContents)) {
+			return fmt.Errorf("bad: Storage Blob %q (storage container: %q) does not match contents", name, containerName)
 		}
 
 		return nil
@@ -639,7 +772,7 @@ resource "azurerm_storage_blob" "test" {
 `, template, string(accessTier))
 }
 
-func (r StorageBlobResource) blockFromInlineContent(data acceptance.TestData) string {
+func (r StorageBlobResource) blockFromInlineContent(data acceptance.TestData, content string) string {
 	template := r.template(data, "blob")
 	return fmt.Sprintf(`
 %s
@@ -653,9 +786,33 @@ resource "azurerm_storage_blob" "test" {
   storage_account_name   = azurerm_storage_account.test.name
   storage_container_name = azurerm_storage_container.test.name
   type                   = "Block"
-  source_content         = "Wubba Lubba Dub Dub"
+  source_content         = <<EOT
+%s
+EOT
 }
-`, template)
+`, template, content)
+}
+
+func (r StorageBlobResource) blockFromInlineContentWithContentType(data acceptance.TestData, content string) string {
+	template := r.template(data, "blob")
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_storage_blob" "test" {
+  name                   = "blob.json"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
+  type                   = "Block"
+  content_type           = "application/json"
+  source_content         = <<EOT
+%s
+EOT
+}
+`, template, content)
 }
 
 func (r StorageBlobResource) blockFromPublicBlob(data acceptance.TestData) string {
@@ -841,6 +998,135 @@ resource "azurerm_storage_blob" "test" {
 `, template)
 }
 
+func (r StorageBlobResource) encryptionScope(data acceptance.TestData, content string) string {
+	template := r.template(data, "blob")
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_storage_encryption_scope" "test" {
+  name               = "acctestEScontainer%[2]d"
+  storage_account_id = azurerm_storage_account.test.id
+  source             = "Microsoft.Storage"
+}
+
+resource "azurerm_storage_blob" "test" {
+  name                   = "rick.morty"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
+  type                   = "Block"
+  encryption_scope       = azurerm_storage_encryption_scope.test.name
+  source_content         = <<EOT
+%[3]s
+EOT
+}
+`, template, data.RandomInteger, content)
+}
+
+func (r StorageBlobResource) encryptionScopeUpdateMetadata(data acceptance.TestData, content string) string {
+	template := r.template(data, "blob")
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_storage_encryption_scope" "test" {
+  name               = "acctestEScontainer%[2]d"
+  storage_account_id = azurerm_storage_account.test.id
+  source             = "Microsoft.Storage"
+}
+
+resource "azurerm_storage_blob" "test" {
+  name                   = "rick.morty"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
+  type                   = "Block"
+  encryption_scope       = azurerm_storage_encryption_scope.test.name
+  source_content         = <<EOT
+%[3]s
+EOT
+
+  metadata = {
+    hello = "world"
+  }
+}
+`, template, data.RandomInteger, content)
+}
+
+func (r StorageBlobResource) encryptionScopeUpdateProperties(data acceptance.TestData, content string) string {
+	template := r.template(data, "blob")
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_storage_encryption_scope" "test" {
+  name               = "acctestEScontainer%[2]d"
+  storage_account_id = azurerm_storage_account.test.id
+  source             = "Microsoft.Storage"
+}
+
+resource "azurerm_storage_blob" "test" {
+  name                   = "rick.morty"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
+  type                   = "Block"
+  encryption_scope       = azurerm_storage_encryption_scope.test.name
+  source_content         = <<EOT
+%[3]s
+EOT
+
+  metadata = {
+    hello = "world"
+  }
+
+  content_type = "text/plain"
+}
+`, template, data.RandomInteger, content)
+}
+
+func (r StorageBlobResource) encryptionScopeUpdateAccessTier(data acceptance.TestData, content string) string {
+	template := r.template(data, "blob")
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_storage_encryption_scope" "test" {
+  name               = "acctestEScontainer%[2]d"
+  storage_account_id = azurerm_storage_account.test.id
+  source             = "Microsoft.Storage"
+}
+
+resource "azurerm_storage_blob" "test" {
+  name                   = "rick.morty"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
+  type                   = "Block"
+  encryption_scope       = azurerm_storage_encryption_scope.test.name
+  source_content         = <<EOT
+%[3]s
+EOT
+
+  metadata = {
+    hello = "world"
+  }
+
+  content_type = "text/plain"
+  access_tier  = "Hot"
+}
+`, template, data.RandomInteger, content)
+}
+
 func (r StorageBlobResource) pageEmpty(data acceptance.TestData) string {
 	template := r.template(data, "private")
 	return fmt.Sprintf(`
@@ -948,6 +1234,25 @@ resource "azurerm_storage_blob" "test" {
   source                 = "%s"
 }
 `, template, fileName)
+}
+
+func (r StorageBlobResource) pageFromInlineContent(data acceptance.TestData, length int) string {
+	template := r.template(data, "private")
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_storage_blob" "test" {
+  name                   = "rick.morty"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
+  type                   = "Page"
+  source_content         = join("", [for i in range(0, %d) : "a"])
+}
+`, template, length)
 }
 
 func (r StorageBlobResource) requiresImport(data acceptance.TestData) string {
@@ -1104,6 +1409,24 @@ resource "azurerm_storage_container" "test" {
   container_access_type = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, accessLevel)
+}
+
+func (r StorageBlobResource) archive(data acceptance.TestData) string {
+	template := r.template(data, "private")
+	return fmt.Sprintf(`
+provider "azurerm" {}
+
+%s
+
+resource "azurerm_storage_blob" "test" {
+  name                   = "rick.morty"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
+  type                   = "Block"
+  source_content         = "Wubba Lubba Dub Dub"
+  access_tier            = "Archive"
+}
+`, template)
 }
 
 func populateTempFile(input *os.File) error {

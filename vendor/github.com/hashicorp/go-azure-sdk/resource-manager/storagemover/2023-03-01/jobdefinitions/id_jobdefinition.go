@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = JobDefinitionId{}
+func init() {
+	recaser.RegisterResourceId(&JobDefinitionId{})
+}
+
+var _ resourceids.ResourceId = &JobDefinitionId{}
 
 // JobDefinitionId is a struct representing the Resource ID for a Job Definition
 type JobDefinitionId struct {
@@ -34,33 +39,15 @@ func NewJobDefinitionID(subscriptionId string, resourceGroupName string, storage
 
 // ParseJobDefinitionID parses 'input' into a JobDefinitionId
 func ParseJobDefinitionID(input string) (*JobDefinitionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(JobDefinitionId{})
+	parser := resourceids.NewParserFromResourceIdType(&JobDefinitionId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := JobDefinitionId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.StorageMoverName, ok = parsed.Parsed["storageMoverName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "storageMoverName", *parsed)
-	}
-
-	if id.ProjectName, ok = parsed.Parsed["projectName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "projectName", *parsed)
-	}
-
-	if id.JobDefinitionName, ok = parsed.Parsed["jobDefinitionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "jobDefinitionName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,36 +56,44 @@ func ParseJobDefinitionID(input string) (*JobDefinitionId, error) {
 // ParseJobDefinitionIDInsensitively parses 'input' case-insensitively into a JobDefinitionId
 // note: this method should only be used for API response data and not user input
 func ParseJobDefinitionIDInsensitively(input string) (*JobDefinitionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(JobDefinitionId{})
+	parser := resourceids.NewParserFromResourceIdType(&JobDefinitionId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := JobDefinitionId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.StorageMoverName, ok = parsed.Parsed["storageMoverName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "storageMoverName", *parsed)
-	}
-
-	if id.ProjectName, ok = parsed.Parsed["projectName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "projectName", *parsed)
-	}
-
-	if id.JobDefinitionName, ok = parsed.Parsed["jobDefinitionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "jobDefinitionName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *JobDefinitionId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.StorageMoverName, ok = input.Parsed["storageMoverName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "storageMoverName", input)
+	}
+
+	if id.ProjectName, ok = input.Parsed["projectName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "projectName", input)
+	}
+
+	if id.JobDefinitionName, ok = input.Parsed["jobDefinitionName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "jobDefinitionName", input)
+	}
+
+	return nil
 }
 
 // ValidateJobDefinitionID checks that 'input' can be parsed as a Job Definition ID
@@ -132,11 +127,11 @@ func (id JobDefinitionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftStorageMover", "Microsoft.StorageMover", "Microsoft.StorageMover"),
 		resourceids.StaticSegment("staticStorageMovers", "storageMovers", "storageMovers"),
-		resourceids.UserSpecifiedSegment("storageMoverName", "storageMoverValue"),
+		resourceids.UserSpecifiedSegment("storageMoverName", "storageMoverName"),
 		resourceids.StaticSegment("staticProjects", "projects", "projects"),
-		resourceids.UserSpecifiedSegment("projectName", "projectValue"),
+		resourceids.UserSpecifiedSegment("projectName", "projectName"),
 		resourceids.StaticSegment("staticJobDefinitions", "jobDefinitions", "jobDefinitions"),
-		resourceids.UserSpecifiedSegment("jobDefinitionName", "jobDefinitionValue"),
+		resourceids.UserSpecifiedSegment("jobDefinitionName", "jobDefinitionName"),
 	}
 }
 

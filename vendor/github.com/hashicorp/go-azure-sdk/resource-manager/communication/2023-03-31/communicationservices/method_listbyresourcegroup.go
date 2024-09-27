@@ -20,7 +20,20 @@ type ListByResourceGroupOperationResponse struct {
 }
 
 type ListByResourceGroupCompleteResult struct {
-	Items []CommunicationServiceResource
+	LatestHttpResponse *http.Response
+	Items              []CommunicationServiceResource
+}
+
+type ListByResourceGroupCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByResourceGroupCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListByResourceGroup ...
@@ -31,6 +44,7 @@ func (c CommunicationServicesClient) ListByResourceGroup(ctx context.Context, id
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByResourceGroupCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.Communication/communicationServices", id.ID()),
 	}
 
@@ -72,6 +86,7 @@ func (c CommunicationServicesClient) ListByResourceGroupCompleteMatchingPredicat
 
 	resp, err := c.ListByResourceGroup(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -84,7 +99,8 @@ func (c CommunicationServicesClient) ListByResourceGroupCompleteMatchingPredicat
 	}
 
 	result = ListByResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

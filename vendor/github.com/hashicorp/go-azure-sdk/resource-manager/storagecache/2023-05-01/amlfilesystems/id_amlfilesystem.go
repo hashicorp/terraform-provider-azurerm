@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = AmlFilesystemId{}
+func init() {
+	recaser.RegisterResourceId(&AmlFilesystemId{})
+}
+
+var _ resourceids.ResourceId = &AmlFilesystemId{}
 
 // AmlFilesystemId is a struct representing the Resource ID for a Aml Filesystem
 type AmlFilesystemId struct {
@@ -30,25 +35,15 @@ func NewAmlFilesystemID(subscriptionId string, resourceGroupName string, amlFile
 
 // ParseAmlFilesystemID parses 'input' into a AmlFilesystemId
 func ParseAmlFilesystemID(input string) (*AmlFilesystemId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AmlFilesystemId{})
+	parser := resourceids.NewParserFromResourceIdType(&AmlFilesystemId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := AmlFilesystemId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.AmlFilesystemName, ok = parsed.Parsed["amlFilesystemName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "amlFilesystemName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +52,36 @@ func ParseAmlFilesystemID(input string) (*AmlFilesystemId, error) {
 // ParseAmlFilesystemIDInsensitively parses 'input' case-insensitively into a AmlFilesystemId
 // note: this method should only be used for API response data and not user input
 func ParseAmlFilesystemIDInsensitively(input string) (*AmlFilesystemId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AmlFilesystemId{})
+	parser := resourceids.NewParserFromResourceIdType(&AmlFilesystemId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := AmlFilesystemId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.AmlFilesystemName, ok = parsed.Parsed["amlFilesystemName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "amlFilesystemName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *AmlFilesystemId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.AmlFilesystemName, ok = input.Parsed["amlFilesystemName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "amlFilesystemName", input)
+	}
+
+	return nil
 }
 
 // ValidateAmlFilesystemID checks that 'input' can be parsed as a Aml Filesystem ID
@@ -112,7 +115,7 @@ func (id AmlFilesystemId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftStorageCache", "Microsoft.StorageCache", "Microsoft.StorageCache"),
 		resourceids.StaticSegment("staticAmlFilesystems", "amlFilesystems", "amlFilesystems"),
-		resourceids.UserSpecifiedSegment("amlFilesystemName", "amlFilesystemValue"),
+		resourceids.UserSpecifiedSegment("amlFilesystemName", "amlFilesystemName"),
 	}
 }
 

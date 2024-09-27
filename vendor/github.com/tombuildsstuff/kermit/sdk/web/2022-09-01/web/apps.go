@@ -577,7 +577,7 @@ func (client AppsClient) ApplySlotConfigurationSlotResponder(resp *http.Response
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the site.
-func (client AppsClient) ApproveOrRejectPrivateEndpointConnection(ctx context.Context, resourceGroupName string, name string, privateEndpointConnectionName string, privateEndpointWrapper PrivateLinkConnectionApprovalRequestResource) (result AppsApproveOrRejectPrivateEndpointConnectionFuture, err error) {
+func (client AppsClient) ApproveOrRejectPrivateEndpointConnection(ctx context.Context, resourceGroupName string, name string, privateEndpointConnectionName string, privateEndpointWrapper RemotePrivateEndpointConnectionARMResource) (result AppsApproveOrRejectPrivateEndpointConnectionFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AppsClient.ApproveOrRejectPrivateEndpointConnection")
 		defer func() {
@@ -612,7 +612,7 @@ func (client AppsClient) ApproveOrRejectPrivateEndpointConnection(ctx context.Co
 }
 
 // ApproveOrRejectPrivateEndpointConnectionPreparer prepares the ApproveOrRejectPrivateEndpointConnection request.
-func (client AppsClient) ApproveOrRejectPrivateEndpointConnectionPreparer(ctx context.Context, resourceGroupName string, name string, privateEndpointConnectionName string, privateEndpointWrapper PrivateLinkConnectionApprovalRequestResource) (*http.Request, error) {
+func (client AppsClient) ApproveOrRejectPrivateEndpointConnectionPreparer(ctx context.Context, resourceGroupName string, name string, privateEndpointConnectionName string, privateEndpointWrapper RemotePrivateEndpointConnectionARMResource) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"name":                          autorest.Encode("path", name),
 		"privateEndpointConnectionName": autorest.Encode("path", privateEndpointConnectionName),
@@ -667,7 +667,7 @@ func (client AppsClient) ApproveOrRejectPrivateEndpointConnectionResponder(resp 
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the site.
-func (client AppsClient) ApproveOrRejectPrivateEndpointConnectionSlot(ctx context.Context, resourceGroupName string, name string, privateEndpointConnectionName string, privateEndpointWrapper PrivateLinkConnectionApprovalRequestResource, slot string) (result AppsApproveOrRejectPrivateEndpointConnectionSlotFuture, err error) {
+func (client AppsClient) ApproveOrRejectPrivateEndpointConnectionSlot(ctx context.Context, resourceGroupName string, name string, privateEndpointConnectionName string, privateEndpointWrapper RemotePrivateEndpointConnectionARMResource, slot string) (result AppsApproveOrRejectPrivateEndpointConnectionSlotFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AppsClient.ApproveOrRejectPrivateEndpointConnectionSlot")
 		defer func() {
@@ -702,7 +702,7 @@ func (client AppsClient) ApproveOrRejectPrivateEndpointConnectionSlot(ctx contex
 }
 
 // ApproveOrRejectPrivateEndpointConnectionSlotPreparer prepares the ApproveOrRejectPrivateEndpointConnectionSlot request.
-func (client AppsClient) ApproveOrRejectPrivateEndpointConnectionSlotPreparer(ctx context.Context, resourceGroupName string, name string, privateEndpointConnectionName string, privateEndpointWrapper PrivateLinkConnectionApprovalRequestResource, slot string) (*http.Request, error) {
+func (client AppsClient) ApproveOrRejectPrivateEndpointConnectionSlotPreparer(ctx context.Context, resourceGroupName string, name string, privateEndpointConnectionName string, privateEndpointWrapper RemotePrivateEndpointConnectionARMResource, slot string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"name":                          autorest.Encode("path", name),
 		"privateEndpointConnectionName": autorest.Encode("path", privateEndpointConnectionName),

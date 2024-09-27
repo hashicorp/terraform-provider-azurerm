@@ -34,6 +34,7 @@ func (o GetOperationOptions) ToHeaders() *client.Headers {
 
 func (o GetOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -53,8 +54,8 @@ func (c ExportsClient) Get(ctx context.Context, id ScopedExportId, options GetOp
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -72,7 +73,9 @@ func (c ExportsClient) Get(ctx context.Context, id ScopedExportId, options GetOp
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Export
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

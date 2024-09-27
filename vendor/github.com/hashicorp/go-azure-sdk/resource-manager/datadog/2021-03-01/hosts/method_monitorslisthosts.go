@@ -19,7 +19,20 @@ type MonitorsListHostsOperationResponse struct {
 }
 
 type MonitorsListHostsCompleteResult struct {
-	Items []DatadogHost
+	LatestHttpResponse *http.Response
+	Items              []DatadogHost
+}
+
+type MonitorsListHostsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *MonitorsListHostsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // MonitorsListHosts ...
@@ -30,6 +43,7 @@ func (c HostsClient) MonitorsListHosts(ctx context.Context, id MonitorId) (resul
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodPost,
+		Pager:      &MonitorsListHostsCustomPager{},
 		Path:       fmt.Sprintf("%s/listHosts", id.ID()),
 	}
 
@@ -71,6 +85,7 @@ func (c HostsClient) MonitorsListHostsCompleteMatchingPredicate(ctx context.Cont
 
 	resp, err := c.MonitorsListHosts(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +98,8 @@ func (c HostsClient) MonitorsListHostsCompleteMatchingPredicate(ctx context.Cont
 	}
 
 	result = MonitorsListHostsCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

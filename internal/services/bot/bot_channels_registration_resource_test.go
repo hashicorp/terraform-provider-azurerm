@@ -19,11 +19,11 @@ import (
 
 type BotChannelsRegistrationResource struct{}
 
-func testAccBotChannelsRegistration_basic(t *testing.T) {
+func TestAccBotChannelsRegistration_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channels_registration", "test")
 	r := BotChannelsRegistrationResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -34,11 +34,11 @@ func testAccBotChannelsRegistration_basic(t *testing.T) {
 	})
 }
 
-func testAccBotChannelsRegistration_update(t *testing.T) {
+func TestAccBotChannelsRegistration_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channels_registration", "test")
 	r := BotChannelsRegistrationResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -77,11 +77,11 @@ func testAccBotChannelsRegistration_update(t *testing.T) {
 	})
 }
 
-func testAccBotChannelsRegistration_complete(t *testing.T) {
+func TestAccBotChannelsRegistration_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channels_registration", "test")
 	r := BotChannelsRegistrationResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.completeConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -92,11 +92,11 @@ func testAccBotChannelsRegistration_complete(t *testing.T) {
 	})
 }
 
-func testAccBotChannelsRegistration_streamingEndpointEnabled(t *testing.T) {
+func TestAccBotChannelsRegistration_streamingEndpointEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channels_registration", "test")
 	r := BotChannelsRegistrationResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.streamingEndpointEnabled(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -147,18 +147,22 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
+resource "azuread_application_registration" "test" {
+  display_name = "acctestReg-%d"
+}
+
 resource "azurerm_bot_channels_registration" "test" {
   name                = "acctestdf%d"
   location            = "global"
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "F0"
-  microsoft_app_id    = data.azurerm_client_config.current.client_id
+  microsoft_app_id    = azuread_application_registration.test.client_id
 
   tags = {
     environment = "production"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func (BotChannelsRegistrationResource) updateConfig(data acceptance.TestData) string {
@@ -264,16 +268,21 @@ resource "azurerm_key_vault_key" "test2" {
   ]
 }
 
+resource "azuread_application_registration" "test" {
+  display_name = "acctestReg-%d"
+}
+
 resource "azurerm_bot_channels_registration" "test" {
   name                = "acctestdf%d"
   location            = "global"
   resource_group_name = azurerm_resource_group.test.name
-  microsoft_app_id    = data.azurerm_client_config.current.client_id
+  microsoft_app_id    = azuread_application_registration.test.client_id
   sku                 = "F0"
 
   endpoint                              = "https://example2.com"
   developer_app_insights_api_key        = azurerm_application_insights_api_key.test2.api_key
   developer_app_insights_application_id = azurerm_application_insights.test2.app_id
+  developer_app_insights_key            = azurerm_application_insights.test2.instrumentation_key
 
   description              = "TestDescription2"
   isolated_network_enabled = false
@@ -284,7 +293,7 @@ resource "azurerm_bot_channels_registration" "test" {
     environment = "production2"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString, data.RandomString, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString, data.RandomString, data.RandomInteger, data.RandomInteger)
 	}
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -387,16 +396,21 @@ resource "azurerm_key_vault_key" "test2" {
   ]
 }
 
+resource "azuread_application_registration" "test" {
+  display_name = "acctestReg-%d"
+}
+
 resource "azurerm_bot_channels_registration" "test" {
   name                = "acctestdf%d"
   location            = "global"
   resource_group_name = azurerm_resource_group.test.name
-  microsoft_app_id    = data.azurerm_client_config.current.client_id
+  microsoft_app_id    = azuread_application_registration.test.client_id
   sku                 = "F0"
 
   endpoint                              = "https://example2.com"
   developer_app_insights_api_key        = azurerm_application_insights_api_key.test2.api_key
   developer_app_insights_application_id = azurerm_application_insights.test2.app_id
+  developer_app_insights_key            = azurerm_application_insights.test2.instrumentation_key
 
   description                   = "TestDescription2"
   public_network_access_enabled = false
@@ -407,7 +421,7 @@ resource "azurerm_bot_channels_registration" "test" {
     environment = "production2"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString, data.RandomString, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
 func (BotChannelsRegistrationResource) completeConfig(data acceptance.TestData) string {
@@ -487,16 +501,21 @@ resource "azurerm_key_vault_key" "test" {
   ]
 }
 
+resource "azuread_application_registration" "test" {
+  display_name = "acctestReg-%d"
+}
+
 resource "azurerm_bot_channels_registration" "test" {
   name                = "acctestdf%d"
   location            = "global"
   resource_group_name = azurerm_resource_group.test.name
-  microsoft_app_id    = data.azurerm_client_config.current.client_id
+  microsoft_app_id    = azuread_application_registration.test.client_id
   sku                 = "F0"
 
   endpoint                              = "https://example.com"
   developer_app_insights_api_key        = azurerm_application_insights_api_key.test.api_key
   developer_app_insights_application_id = azurerm_application_insights.test.app_id
+  developer_app_insights_key            = azurerm_application_insights.test.instrumentation_key
 
   description              = "TestDescription"
   isolated_network_enabled = true
@@ -507,7 +526,7 @@ resource "azurerm_bot_channels_registration" "test" {
     environment = "production"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString, data.RandomInteger, data.RandomInteger)
 	}
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -584,16 +603,21 @@ resource "azurerm_key_vault_key" "test" {
   ]
 }
 
+resource "azuread_application_registration" "test" {
+  display_name = "acctestReg-%d"
+}
+
 resource "azurerm_bot_channels_registration" "test" {
   name                = "acctestdf%d"
   location            = "global"
   resource_group_name = azurerm_resource_group.test.name
-  microsoft_app_id    = data.azurerm_client_config.current.client_id
+  microsoft_app_id    = azuread_application_registration.test.client_id
   sku                 = "F0"
 
   endpoint                              = "https://example.com"
   developer_app_insights_api_key        = azurerm_application_insights_api_key.test.api_key
   developer_app_insights_application_id = azurerm_application_insights.test.app_id
+  developer_app_insights_key            = azurerm_application_insights.test.instrumentation_key
 
   description                   = "TestDescription"
   public_network_access_enabled = true
@@ -604,7 +628,7 @@ resource "azurerm_bot_channels_registration" "test" {
     environment = "production"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
 func (BotChannelsRegistrationResource) withoutCMKKeyVaultURL(data acceptance.TestData) string {
@@ -710,16 +734,21 @@ resource "azurerm_key_vault_key" "test2" {
   ]
 }
 
+resource "azuread_application_registration" "test" {
+  display_name = "acctestReg-%d"
+}
+
 resource "azurerm_bot_channels_registration" "test" {
   name                = "acctestdf%d"
   location            = "global"
   resource_group_name = azurerm_resource_group.test.name
-  microsoft_app_id    = data.azurerm_client_config.current.client_id
+  microsoft_app_id    = azuread_application_registration.test.client_id
   sku                 = "F0"
 
   endpoint                              = "https://example2.com"
   developer_app_insights_api_key        = azurerm_application_insights_api_key.test2.api_key
   developer_app_insights_application_id = azurerm_application_insights.test2.app_id
+  developer_app_insights_key            = azurerm_application_insights.test2.instrumentation_key
 
   description              = "TestDescription2"
   isolated_network_enabled = false
@@ -729,7 +758,7 @@ resource "azurerm_bot_channels_registration" "test" {
     environment = "production2"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString, data.RandomString, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString, data.RandomString, data.RandomInteger, data.RandomInteger)
 	}
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -832,16 +861,21 @@ resource "azurerm_key_vault_key" "test2" {
   ]
 }
 
+resource "azuread_application_registration" "test" {
+  display_name = "acctestReg-%d"
+}
+
 resource "azurerm_bot_channels_registration" "test" {
   name                = "acctestdf%d"
   location            = "global"
   resource_group_name = azurerm_resource_group.test.name
-  microsoft_app_id    = data.azurerm_client_config.current.client_id
+  microsoft_app_id    = azuread_application_registration.test.client_id
   sku                 = "F0"
 
   endpoint                              = "https://example2.com"
   developer_app_insights_api_key        = azurerm_application_insights_api_key.test2.api_key
   developer_app_insights_application_id = azurerm_application_insights.test2.app_id
+  developer_app_insights_key            = azurerm_application_insights.test2.instrumentation_key
 
   description                   = "TestDescription2"
   public_network_access_enabled = false
@@ -851,7 +885,7 @@ resource "azurerm_bot_channels_registration" "test" {
     environment = "production2"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString, data.RandomString, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
 func (BotChannelsRegistrationResource) streamingEndpointEnabled(data acceptance.TestData, streamingEndpointEnabled bool) string {
@@ -873,13 +907,17 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
+resource "azuread_application_registration" "test" {
+  display_name = "acctestReg-%d"
+}
+
 resource "azurerm_bot_channels_registration" "test" {
   name                       = "acctestdf%d"
   location                   = "global"
   resource_group_name        = azurerm_resource_group.test.name
   sku                        = "F0"
-  microsoft_app_id           = data.azurerm_client_config.current.client_id
+  microsoft_app_id           = azuread_application_registration.test.client_id
   streaming_endpoint_enabled = %t
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, streamingEndpointEnabled)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, streamingEndpointEnabled)
 }

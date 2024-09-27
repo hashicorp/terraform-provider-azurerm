@@ -50,21 +50,12 @@ func CdnFrontDoorCacheDuration(i interface{}, k string) (_ []string, errors []er
 		return nil, []error{fmt.Errorf(`%q must be in the d.HH:MM:SS or HH:MM:SS format and must be equal to or lower than %q, got %q`, k, "365.23:59:59", v)}
 	}
 
-	if v == "00:00:00" {
-		return nil, []error{fmt.Errorf(`%q must be longer than zero seconds, got %q`, k, v)}
-	}
-
 	return nil, nil
 }
 
 func CdnFrontDoorUrlPathConditionMatchValue(i interface{}, k string) (_ []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
+	if _, ok := i.(string); !ok {
 		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
-	}
-
-	if strings.HasPrefix(v, "/") && len(v) != 1 {
-		return nil, []error{fmt.Errorf(`%q must not begin with the URLs leading slash(e.g. /), got %q`, k, v)}
 	}
 
 	return nil, nil

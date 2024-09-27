@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = PacketCoreDataPlaneId{}
+func init() {
+	recaser.RegisterResourceId(&PacketCoreDataPlaneId{})
+}
+
+var _ resourceids.ResourceId = &PacketCoreDataPlaneId{}
 
 // PacketCoreDataPlaneId is a struct representing the Resource ID for a Packet Core Data Plane
 type PacketCoreDataPlaneId struct {
@@ -32,29 +37,15 @@ func NewPacketCoreDataPlaneID(subscriptionId string, resourceGroupName string, p
 
 // ParsePacketCoreDataPlaneID parses 'input' into a PacketCoreDataPlaneId
 func ParsePacketCoreDataPlaneID(input string) (*PacketCoreDataPlaneId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PacketCoreDataPlaneId{})
+	parser := resourceids.NewParserFromResourceIdType(&PacketCoreDataPlaneId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := PacketCoreDataPlaneId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.PacketCoreControlPlaneName, ok = parsed.Parsed["packetCoreControlPlaneName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "packetCoreControlPlaneName", *parsed)
-	}
-
-	if id.PacketCoreDataPlaneName, ok = parsed.Parsed["packetCoreDataPlaneName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "packetCoreDataPlaneName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +54,40 @@ func ParsePacketCoreDataPlaneID(input string) (*PacketCoreDataPlaneId, error) {
 // ParsePacketCoreDataPlaneIDInsensitively parses 'input' case-insensitively into a PacketCoreDataPlaneId
 // note: this method should only be used for API response data and not user input
 func ParsePacketCoreDataPlaneIDInsensitively(input string) (*PacketCoreDataPlaneId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PacketCoreDataPlaneId{})
+	parser := resourceids.NewParserFromResourceIdType(&PacketCoreDataPlaneId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := PacketCoreDataPlaneId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.PacketCoreControlPlaneName, ok = parsed.Parsed["packetCoreControlPlaneName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "packetCoreControlPlaneName", *parsed)
-	}
-
-	if id.PacketCoreDataPlaneName, ok = parsed.Parsed["packetCoreDataPlaneName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "packetCoreDataPlaneName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *PacketCoreDataPlaneId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.PacketCoreControlPlaneName, ok = input.Parsed["packetCoreControlPlaneName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "packetCoreControlPlaneName", input)
+	}
+
+	if id.PacketCoreDataPlaneName, ok = input.Parsed["packetCoreDataPlaneName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "packetCoreDataPlaneName", input)
+	}
+
+	return nil
 }
 
 // ValidatePacketCoreDataPlaneID checks that 'input' can be parsed as a Packet Core Data Plane ID
@@ -122,9 +121,9 @@ func (id PacketCoreDataPlaneId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftMobileNetwork", "Microsoft.MobileNetwork", "Microsoft.MobileNetwork"),
 		resourceids.StaticSegment("staticPacketCoreControlPlanes", "packetCoreControlPlanes", "packetCoreControlPlanes"),
-		resourceids.UserSpecifiedSegment("packetCoreControlPlaneName", "packetCoreControlPlaneValue"),
+		resourceids.UserSpecifiedSegment("packetCoreControlPlaneName", "packetCoreControlPlaneName"),
 		resourceids.StaticSegment("staticPacketCoreDataPlanes", "packetCoreDataPlanes", "packetCoreDataPlanes"),
-		resourceids.UserSpecifiedSegment("packetCoreDataPlaneName", "packetCoreDataPlaneValue"),
+		resourceids.UserSpecifiedSegment("packetCoreDataPlaneName", "packetCoreDataPlaneName"),
 	}
 }
 

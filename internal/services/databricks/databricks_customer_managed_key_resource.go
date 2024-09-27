@@ -12,7 +12,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2023-02-01/workspaces"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2024-05-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -36,6 +37,8 @@ func resourceDatabricksWorkspaceCustomerManagedKey() *pluginsdk.Resource {
 			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
+
+		DeprecationMessage: "The resource `azurerm_databricks_workspace_customer_managed_key` will be removed in v4.0 of the AzureRM Provider in favour of the `azurerm_databricks_workspace_root_dbfs_customer_managed_key` resource.",
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := workspaces.ParseWorkspaceID(id)
@@ -62,7 +65,6 @@ func resourceDatabricksWorkspaceCustomerManagedKey() *pluginsdk.Resource {
 		Schema: map[string]*pluginsdk.Schema{
 			"workspace_id": {
 				Type:         pluginsdk.TypeString,
-				Deprecated:   "this resource has been deprecated in favour of the `azurerm_databricks_workspace_root_dbfs_customer_managed_key` resource and will be removed from the v4.0 azurerm provider.",
 				Required:     true,
 				ValidateFunc: workspaces.ValidateWorkspaceID,
 			},
@@ -129,7 +131,8 @@ func databricksWorkspaceCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData
 	}
 
 	// make sure the key vault exists
-	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, meta.(*clients.Client).Resource, key.KeyVaultBaseUrl)
+	subscriptionId := commonids.NewSubscriptionID(id.SubscriptionId)
+	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionId, key.KeyVaultBaseUrl)
 	if err != nil || keyVaultIdRaw == nil {
 		return fmt.Errorf("retrieving the Resource ID for the Key Vault at URL %q: %+v", key.KeyVaultBaseUrl, err)
 	}

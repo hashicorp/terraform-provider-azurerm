@@ -48,7 +48,9 @@ func (c PartnerNamespacesClient) RegenerateKey(ctx context.Context, id PartnerNa
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model PartnerNamespaceSharedAccessKeys
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

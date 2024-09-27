@@ -10,12 +10,12 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	components "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2019-10-17-preview/privatelinkscopedresources"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-06-01/datacollectionendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	applicationinsightsvalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -26,14 +26,13 @@ import (
 
 func resourceMonitorPrivateLinkScopedService() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceMonitorPrivateLinkScopedServiceCreateUpdate,
+		Create: resourceMonitorPrivateLinkScopedServiceCreate,
 		Read:   resourceMonitorPrivateLinkScopedServiceRead,
 		Delete: resourceMonitorPrivateLinkScopedServiceDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
@@ -65,7 +64,7 @@ func resourceMonitorPrivateLinkScopedService() *pluginsdk.Resource {
 				ForceNew:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.Any(
-					applicationinsightsvalidate.ComponentID,
+					components.ValidateComponentID,
 					workspaces.ValidateWorkspaceID,
 					datacollectionendpoints.ValidateDataCollectionEndpointID,
 				),
@@ -74,7 +73,7 @@ func resourceMonitorPrivateLinkScopedService() *pluginsdk.Resource {
 	}
 }
 
-func resourceMonitorPrivateLinkScopedServiceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMonitorPrivateLinkScopedServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Monitor.PrivateLinkScopedResourcesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -135,7 +134,7 @@ func resourceMonitorPrivateLinkScopedServiceRead(d *pluginsdk.ResourceData, meta
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			d.Set("linked_resource_id", props.LinkedResourceId)
+			d.Set("linked_resource_id", normalizeLinkedResourceId(props.LinkedResourceId))
 		}
 	}
 
@@ -158,4 +157,25 @@ func resourceMonitorPrivateLinkScopedServiceDelete(d *pluginsdk.ResourceData, me
 	}
 
 	return nil
+}
+
+func normalizeLinkedResourceId(input *string) *string {
+	if input == nil {
+		return input
+	}
+
+	if resourceId, err := components.ParseComponentIDInsensitively(*input); err == nil {
+		nomalizedId := resourceId.ID()
+		return &nomalizedId
+	}
+	if resourceId, err := workspaces.ParseWorkspaceIDInsensitively(*input); err == nil {
+		nomalizedId := resourceId.ID()
+		return &nomalizedId
+	}
+	if resourceId, err := datacollectionendpoints.ParseDataCollectionEndpointIDInsensitively(*input); err == nil {
+		nomalizedId := resourceId.ID()
+		return &nomalizedId
+	}
+
+	return input
 }

@@ -19,7 +19,20 @@ type ListByFactoryOperationResponse struct {
 }
 
 type ListByFactoryCompleteResult struct {
-	Items []ManagedVirtualNetworkResource
+	LatestHttpResponse *http.Response
+	Items              []ManagedVirtualNetworkResource
+}
+
+type ListByFactoryCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByFactoryCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListByFactory ...
@@ -30,6 +43,7 @@ func (c ManagedVirtualNetworksClient) ListByFactory(ctx context.Context, id Fact
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByFactoryCustomPager{},
 		Path:       fmt.Sprintf("%s/managedVirtualNetworks", id.ID()),
 	}
 
@@ -71,6 +85,7 @@ func (c ManagedVirtualNetworksClient) ListByFactoryCompleteMatchingPredicate(ctx
 
 	resp, err := c.ListByFactory(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +98,8 @@ func (c ManagedVirtualNetworksClient) ListByFactoryCompleteMatchingPredicate(ctx
 	}
 
 	result = ListByFactoryCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

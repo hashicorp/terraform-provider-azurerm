@@ -44,7 +44,9 @@ func (c AzureADAdministratorsClient) Get(ctx context.Context, id FlexibleServerI
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model AzureADAdministrator
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

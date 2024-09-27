@@ -47,7 +47,9 @@ func (c ScalingPlanClient) Update(ctx context.Context, id ScalingPlanId, input S
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ScalingPlan
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

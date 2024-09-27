@@ -12,7 +12,7 @@ func DatabaseCharset(v interface{}, k string) (warnings []string, errors []error
 	value, ok := v.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
-		return
+		return warnings, errors
 	}
 
 	// https://www.postgresql.org/docs/13/multibyte.html#CHARSET-TABLE

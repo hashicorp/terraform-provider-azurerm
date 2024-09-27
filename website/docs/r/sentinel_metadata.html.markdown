@@ -96,9 +96,9 @@ The following arguments are supported:
 
 * `last_publish_date` - (Optional) The last publish date of solution content item.
 
-* `preview_image` - (Optional) Specifies a list of preview image file names. These will be taken from solution artifacts.
+* `preview_images` - (Optional) Specifies a list of preview image file names. These will be taken from solution artifacts.
 
-* `preview_image_dark` - (Optional) Specifies a list of preview image file names used for dark theme. These will be taken from solution artifacts.
+* `preview_images_dark` - (Optional) Specifies a list of preview image file names used for dark theme. These will be taken from solution artifacts.
 
 * `providers` - (Optional) Specifies a list of providers for the solution content item.
 
@@ -106,7 +106,7 @@ The following arguments are supported:
 
 * `support` - (Optional) A `support` block as defined below.
 
-* `threat_analysis_tactics` - (Optional) Specifies a list of tactics the resource covers.
+* `threat_analysis_tactics` - (Optional) Specifies a list of tactics the resource covers. Possible values are `Reconnaissance`, `ResourceDevelopment`, `InitialAccess`, `Execution`, `Persistence`, `PrivilegeEscalation`, `DefenseEvasion`, `CredentialAccess`, `Discovery`, `LateralMovement`, `Collection`, `CommandAndControl`, `Exfiltration`, `Impact`, `ImpairProcessControl` and `InhibitResponseFunction`.
 
 * `threat_analysis_techniques` - (Optional) Specifies a list of techniques the resource covers.
 
@@ -150,7 +150,7 @@ A `source` block supports the following:
 
 * `name` - (Optional) The name of the content source, repo name, solution name, Log Analytics Workspace name, etc.
 
-* `kind` - (Required) The kind of the content source. Possible values are `LocalWorkspace`, `Communtity`, `Solution` and `SourceRepository`.
+* `kind` - (Required) The kind of the content source. Possible values are `Community`, `LocalWorkspace`, `Solution` and `SourceRepository`.
 
 * `id` - (Optional) The id of the content source, the solution ID, Log Analytics Workspace name etc.
 

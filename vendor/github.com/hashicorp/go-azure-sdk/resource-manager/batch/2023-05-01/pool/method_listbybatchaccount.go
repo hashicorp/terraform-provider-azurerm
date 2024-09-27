@@ -19,7 +19,8 @@ type ListByBatchAccountOperationResponse struct {
 }
 
 type ListByBatchAccountCompleteResult struct {
-	Items []Pool
+	LatestHttpResponse *http.Response
+	Items              []Pool
 }
 
 type ListByBatchAccountOperationOptions struct {
@@ -40,6 +41,7 @@ func (o ListByBatchAccountOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListByBatchAccountOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -57,6 +59,18 @@ func (o ListByBatchAccountOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListByBatchAccountCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByBatchAccountCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByBatchAccount ...
 func (c PoolClient) ListByBatchAccount(ctx context.Context, id BatchAccountId, options ListByBatchAccountOperationOptions) (result ListByBatchAccountOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -65,8 +79,9 @@ func (c PoolClient) ListByBatchAccount(ctx context.Context, id BatchAccountId, o
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/pools", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListByBatchAccountCustomPager{},
+		Path:          fmt.Sprintf("%s/pools", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -107,6 +122,7 @@ func (c PoolClient) ListByBatchAccountCompleteMatchingPredicate(ctx context.Cont
 
 	resp, err := c.ListByBatchAccount(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -119,7 +135,8 @@ func (c PoolClient) ListByBatchAccountCompleteMatchingPredicate(ctx context.Cont
 	}
 
 	result = ListByBatchAccountCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

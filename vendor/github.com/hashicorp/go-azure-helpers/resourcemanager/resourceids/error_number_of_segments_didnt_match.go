@@ -19,7 +19,11 @@ type NumberOfSegmentsDidntMatchError struct {
 
 func NewNumberOfSegmentsDidntMatchError(id ResourceId, parseResult ParseResult) NumberOfSegmentsDidntMatchError {
 	// Resource ID types must be in the format {Name}Id
-	resourceIdName := strings.TrimSuffix(reflect.ValueOf(id).Type().Name(), "Id")
+	resourceIdTypeName := reflect.ValueOf(id).Type().Name()
+	if resourceIdTypeName == "" {
+		resourceIdTypeName = reflect.ValueOf(id).Elem().Type().Name()
+	}
+	resourceIdName := strings.TrimSuffix(resourceIdTypeName, "Id")
 	return NumberOfSegmentsDidntMatchError{
 		parseResult:    parseResult,
 		resourceId:     id,

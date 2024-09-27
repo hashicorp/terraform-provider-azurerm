@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = VirtualMachineScaleSetIPConfigurationId{}
+var _ resourceids.ResourceId = &VirtualMachineScaleSetIPConfigurationId{}
 
 // VirtualMachineScaleSetIPConfigurationId is a struct representing the Resource ID for a Virtual Machine Scale Set Public I P Address
 type VirtualMachineScaleSetIPConfigurationId struct {
@@ -36,37 +36,15 @@ func NewVirtualMachineScaleSetIPConfigurationID(subscriptionId string, resourceG
 
 // ParseVirtualMachineScaleSetIPConfigurationId parses 'input' into a VirtualMachineScaleSetIPConfigurationId
 func ParseVirtualMachineScaleSetIPConfigurationId(input string) (*VirtualMachineScaleSetIPConfigurationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VirtualMachineScaleSetIPConfigurationId{})
+	parser := resourceids.NewParserFromResourceIdType(&VirtualMachineScaleSetIPConfigurationId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := VirtualMachineScaleSetIPConfigurationId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.VirtualMachineScaleSetName, ok = parsed.Parsed["virtualMachineScaleSetName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "virtualMachineScaleSetName", *parsed)
-	}
-
-	if id.VirtualMachineIndex, ok = parsed.Parsed["virtualMachineIndex"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "virtualMachineIndex", *parsed)
-	}
-
-	if id.NetworkInterfaceName, ok = parsed.Parsed["networkInterfaceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "networkInterfaceName", *parsed)
-	}
-
-	if id.IpConfigurationName, ok = parsed.Parsed["ipConfigurationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "ipConfigurationName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -75,40 +53,48 @@ func ParseVirtualMachineScaleSetIPConfigurationId(input string) (*VirtualMachine
 // ParseVirtualMachineScaleSetIPConfigurationIdInsensitively parses 'input' case-insensitively into a VirtualMachineScaleSetIPConfigurationId
 // note: this method should only be used for API response data and not user input
 func ParseVirtualMachineScaleSetIPConfigurationIdInsensitively(input string) (*VirtualMachineScaleSetIPConfigurationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VirtualMachineScaleSetIPConfigurationId{})
+	parser := resourceids.NewParserFromResourceIdType(&VirtualMachineScaleSetIPConfigurationId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := VirtualMachineScaleSetIPConfigurationId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.VirtualMachineScaleSetName, ok = parsed.Parsed["virtualMachineScaleSetName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "virtualMachineScaleSetName", *parsed)
-	}
-
-	if id.VirtualMachineIndex, ok = parsed.Parsed["virtualMachineIndex"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "virtualMachineIndex", *parsed)
-	}
-
-	if id.NetworkInterfaceName, ok = parsed.Parsed["networkInterfaceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "networkInterfaceName", *parsed)
-	}
-
-	if id.IpConfigurationName, ok = parsed.Parsed["ipConfigurationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "ipConfigurationName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *VirtualMachineScaleSetIPConfigurationId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.VirtualMachineScaleSetName, ok = input.Parsed["virtualMachineScaleSetName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "virtualMachineScaleSetName", input)
+	}
+
+	if id.VirtualMachineIndex, ok = input.Parsed["virtualMachineIndex"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "virtualMachineIndex", input)
+	}
+
+	if id.NetworkInterfaceName, ok = input.Parsed["networkInterfaceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "networkInterfaceName", input)
+	}
+
+	if id.IpConfigurationName, ok = input.Parsed["ipConfigurationName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "ipConfigurationName", input)
+	}
+
+	return nil
 }
 
 // ValidateVirtualMachineScaleSetIPConfigurationId checks that 'input' can be parsed as a Virtual Machine Scale Set Public I P Address ID

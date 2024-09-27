@@ -172,7 +172,7 @@ func dataSourceVmwarePrivateCloudRead(d *pluginsdk.ResourceData, meta interface{
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		d.Set("location", location.Normalize(model.Location))
+		d.Set("location", location.NormalizeNilable(model.Location))
 
 		props := model.Properties
 		if err := d.Set("management_cluster", flattenPrivateCloudManagementCluster(props.ManagementCluster)); err != nil {

@@ -20,7 +20,20 @@ type MonitorsListOperationResponse struct {
 }
 
 type MonitorsListCompleteResult struct {
-	Items []ElasticMonitorResource
+	LatestHttpResponse *http.Response
+	Items              []ElasticMonitorResource
+}
+
+type MonitorsListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *MonitorsListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // MonitorsList ...
@@ -31,6 +44,7 @@ func (c MonitorsResourceClient) MonitorsList(ctx context.Context, id commonids.S
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &MonitorsListCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.Elastic/monitors", id.ID()),
 	}
 
@@ -72,6 +86,7 @@ func (c MonitorsResourceClient) MonitorsListCompleteMatchingPredicate(ctx contex
 
 	resp, err := c.MonitorsList(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -84,7 +99,8 @@ func (c MonitorsResourceClient) MonitorsListCompleteMatchingPredicate(ctx contex
 	}
 
 	result = MonitorsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

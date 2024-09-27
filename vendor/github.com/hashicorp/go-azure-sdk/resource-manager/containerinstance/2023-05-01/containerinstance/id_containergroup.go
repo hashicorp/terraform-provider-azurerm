@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ContainerGroupId{}
+func init() {
+	recaser.RegisterResourceId(&ContainerGroupId{})
+}
+
+var _ resourceids.ResourceId = &ContainerGroupId{}
 
 // ContainerGroupId is a struct representing the Resource ID for a Container Group
 type ContainerGroupId struct {
@@ -30,25 +35,15 @@ func NewContainerGroupID(subscriptionId string, resourceGroupName string, contai
 
 // ParseContainerGroupID parses 'input' into a ContainerGroupId
 func ParseContainerGroupID(input string) (*ContainerGroupId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ContainerGroupId{})
+	parser := resourceids.NewParserFromResourceIdType(&ContainerGroupId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ContainerGroupId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ContainerGroupName, ok = parsed.Parsed["containerGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "containerGroupName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +52,36 @@ func ParseContainerGroupID(input string) (*ContainerGroupId, error) {
 // ParseContainerGroupIDInsensitively parses 'input' case-insensitively into a ContainerGroupId
 // note: this method should only be used for API response data and not user input
 func ParseContainerGroupIDInsensitively(input string) (*ContainerGroupId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ContainerGroupId{})
+	parser := resourceids.NewParserFromResourceIdType(&ContainerGroupId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ContainerGroupId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ContainerGroupName, ok = parsed.Parsed["containerGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "containerGroupName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ContainerGroupId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.ContainerGroupName, ok = input.Parsed["containerGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "containerGroupName", input)
+	}
+
+	return nil
 }
 
 // ValidateContainerGroupID checks that 'input' can be parsed as a Container Group ID
@@ -112,7 +115,7 @@ func (id ContainerGroupId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftContainerInstance", "Microsoft.ContainerInstance", "Microsoft.ContainerInstance"),
 		resourceids.StaticSegment("staticContainerGroups", "containerGroups", "containerGroups"),
-		resourceids.UserSpecifiedSegment("containerGroupName", "containerGroupValue"),
+		resourceids.UserSpecifiedSegment("containerGroupName", "containerGroupName"),
 	}
 }
 

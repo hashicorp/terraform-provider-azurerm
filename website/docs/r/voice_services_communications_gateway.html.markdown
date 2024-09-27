@@ -79,7 +79,7 @@ The following arguments are supported:
 
 * `service_location` - (Required) A `service_location` block as defined below.
 
-* `auto_generated_domain_name_label_scope` - (Optional) Specifies the scope at which the auto-generated domain name can be re-used. Possible values are `TenantReuse`, `SubscriptionReuse`, `ResourceGroupReuse` and `NoReuse` . Changing this forces a new resource to be created.
+* `auto_generated_domain_name_label_scope` - (Optional) Specifies the scope at which the auto-generated domain name can be re-used. Possible values are `TenantReuse`, `SubscriptionReuse`, `ResourceGroupReuse` and `NoReuse` . Changing this forces a new resource to be created. Defaults to `TenantReuse`.
 
 * `api_bridge` - (Optional) Details of API bridge functionality, if required.
 
@@ -90,6 +90,7 @@ The following arguments are supported:
 * `tags` - (Optional) A mapping of tags which should be assigned to the Voice Services Communications Gateways.
 
 * `microsoft_teams_voicemail_pilot_number` - (Optional) This number is used in Teams Phone Mobile scenarios for access to the voicemail IVR from the native dialer.
+
 ---
 
 A `service_location` block supports the following:

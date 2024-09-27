@@ -10,9 +10,9 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleries"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplications"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
@@ -55,7 +55,7 @@ func (r GalleryApplicationResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: galleries.ValidateGalleryID,
+			ValidateFunc: commonids.ValidateSharedImageGalleryID,
 		},
 
 		"location": commonschema.Location(),
@@ -128,7 +128,7 @@ func (r GalleryApplicationResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.Compute.GalleryApplicationsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			galleryId, err := galleries.ParseGalleryID(state.GalleryId)
+			galleryId, err := commonids.ParseSharedImageGalleryID(state.GalleryId)
 			if err != nil {
 				return err
 			}
@@ -203,7 +203,7 @@ func (r GalleryApplicationResource) Read() sdk.ResourceFunc {
 
 			state := &GalleryApplicationModel{
 				Name:      id.ApplicationName,
-				GalleryId: galleries.NewGalleryID(id.SubscriptionId, id.ResourceGroupName, id.GalleryName).ID(),
+				GalleryId: commonids.NewSharedImageGalleryID(id.SubscriptionId, id.ResourceGroupName, id.GalleryName).ID(),
 			}
 
 			if model := resp.Model; model != nil {

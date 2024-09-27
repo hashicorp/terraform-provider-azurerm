@@ -7,12 +7,14 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceSubscription() *pluginsdk.Resource {
@@ -58,14 +60,14 @@ func dataSourceSubscription() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.SchemaDataSource(),
+			"tags": commonschema.TagsDataSource(),
 		},
 	}
 }
 
 func dataSourceSubscriptionRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client)
-	groupClient := client.Subscription.Client
+	groupClient := client.Subscription.SubscriptionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -75,9 +77,9 @@ func dataSourceSubscriptionRead(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	id := commonids.NewSubscriptionID(subscriptionId)
-	resp, err := groupClient.Get(ctx, subscriptionId)
+	resp, err := groupClient.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 
@@ -85,15 +87,22 @@ func dataSourceSubscriptionRead(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	d.SetId(id.ID())
-	d.Set("subscription_id", resp.SubscriptionID)
-	d.Set("display_name", resp.DisplayName)
-	d.Set("tenant_id", resp.TenantID)
-	d.Set("state", resp.State)
-	if props := resp.SubscriptionPolicies; props != nil {
-		d.Set("location_placement_id", props.LocationPlacementID)
-		d.Set("quota_id", props.QuotaID)
-		d.Set("spending_limit", props.SpendingLimit)
+
+	if model := resp.Model; model != nil {
+		d.Set("subscription_id", model.SubscriptionId)
+		d.Set("display_name", model.DisplayName)
+		d.Set("tenant_id", model.TenantId)
+		d.Set("state", string(pointer.From(model.State)))
+		if props := model.SubscriptionPolicies; props != nil {
+			d.Set("location_placement_id", props.LocationPlacementId)
+			d.Set("quota_id", props.QuotaId)
+			d.Set("spending_limit", string(pointer.From(props.SpendingLimit)))
+		}
+
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }

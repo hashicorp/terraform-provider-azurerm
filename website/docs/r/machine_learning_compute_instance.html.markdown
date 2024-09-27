@@ -78,7 +78,6 @@ variable "ssh_key" {
 
 resource "azurerm_machine_learning_compute_instance" "example" {
   name                          = "example"
-  location                      = azurerm_resource_group.example.location
   machine_learning_workspace_id = azurerm_machine_learning_workspace.example.id
   virtual_machine_size          = "STANDARD_DS2_V2"
   authorization_type            = "personal"
@@ -98,8 +97,6 @@ resource "azurerm_machine_learning_compute_instance" "example" {
 The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Machine Learning Compute Instance. Changing this forces a new Machine Learning Compute Instance to be created.
-
-* `location` - (Required) The Azure Region where the Machine Learning Compute Instance should exist. Changing this forces a new Machine Learning Compute Instance to be created.
 
 * `machine_learning_workspace_id` - (Required) The ID of the Machine Learning Workspace. Changing this forces a new Machine Learning Compute Instance to be created.
 
