@@ -49,7 +49,6 @@ func (c DdosCustomPoliciesClient) UpdateTags(ctx context.Context, id DdosCustomP
 
 	var model DdosCustomPolicy
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

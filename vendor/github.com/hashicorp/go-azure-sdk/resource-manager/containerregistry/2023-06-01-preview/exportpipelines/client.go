@@ -15,7 +15,7 @@ type ExportPipelinesClient struct {
 }
 
 func NewExportPipelinesClientWithBaseURI(sdkApi sdkEnv.Api) (*ExportPipelinesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "exportpipelines", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "exportpipelines", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ExportPipelinesClient: %+v", err)
 	}

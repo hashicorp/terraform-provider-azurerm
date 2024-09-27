@@ -14,11 +14,24 @@ type AzureBackupRecoveryPointBasedRestoreRequest struct {
 	RecoveryPointId string `json:"recoveryPointId"`
 
 	// Fields inherited from AzureBackupRestoreRequest
+
 	IdentityDetails                *IdentityDetails      `json:"identityDetails,omitempty"`
+	ObjectType                     string                `json:"objectType"`
 	ResourceGuardOperationRequests *[]string             `json:"resourceGuardOperationRequests,omitempty"`
 	RestoreTargetInfo              RestoreTargetInfoBase `json:"restoreTargetInfo"`
 	SourceDataStoreType            SourceDataStoreType   `json:"sourceDataStoreType"`
 	SourceResourceId               *string               `json:"sourceResourceId,omitempty"`
+}
+
+func (s AzureBackupRecoveryPointBasedRestoreRequest) AzureBackupRestoreRequest() BaseAzureBackupRestoreRequestImpl {
+	return BaseAzureBackupRestoreRequestImpl{
+		IdentityDetails:                s.IdentityDetails,
+		ObjectType:                     s.ObjectType,
+		ResourceGuardOperationRequests: s.ResourceGuardOperationRequests,
+		RestoreTargetInfo:              s.RestoreTargetInfo,
+		SourceDataStoreType:            s.SourceDataStoreType,
+		SourceResourceId:               s.SourceResourceId,
+	}
 }
 
 var _ json.Marshaler = AzureBackupRecoveryPointBasedRestoreRequest{}
@@ -32,9 +45,10 @@ func (s AzureBackupRecoveryPointBasedRestoreRequest) MarshalJSON() ([]byte, erro
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling AzureBackupRecoveryPointBasedRestoreRequest: %+v", err)
 	}
+
 	decoded["objectType"] = "AzureBackupRecoveryPointBasedRestoreRequest"
 
 	encoded, err = json.Marshal(decoded)
@@ -48,14 +62,21 @@ func (s AzureBackupRecoveryPointBasedRestoreRequest) MarshalJSON() ([]byte, erro
 var _ json.Unmarshaler = &AzureBackupRecoveryPointBasedRestoreRequest{}
 
 func (s *AzureBackupRecoveryPointBasedRestoreRequest) UnmarshalJSON(bytes []byte) error {
-	type alias AzureBackupRecoveryPointBasedRestoreRequest
-	var decoded alias
+	var decoded struct {
+		RecoveryPointId                string              `json:"recoveryPointId"`
+		IdentityDetails                *IdentityDetails    `json:"identityDetails,omitempty"`
+		ObjectType                     string              `json:"objectType"`
+		ResourceGuardOperationRequests *[]string           `json:"resourceGuardOperationRequests,omitempty"`
+		SourceDataStoreType            SourceDataStoreType `json:"sourceDataStoreType"`
+		SourceResourceId               *string             `json:"sourceResourceId,omitempty"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into AzureBackupRecoveryPointBasedRestoreRequest: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
-	s.IdentityDetails = decoded.IdentityDetails
 	s.RecoveryPointId = decoded.RecoveryPointId
+	s.IdentityDetails = decoded.IdentityDetails
+	s.ObjectType = decoded.ObjectType
 	s.ResourceGuardOperationRequests = decoded.ResourceGuardOperationRequests
 	s.SourceDataStoreType = decoded.SourceDataStoreType
 	s.SourceResourceId = decoded.SourceResourceId
@@ -66,11 +87,12 @@ func (s *AzureBackupRecoveryPointBasedRestoreRequest) UnmarshalJSON(bytes []byte
 	}
 
 	if v, ok := temp["restoreTargetInfo"]; ok {
-		impl, err := unmarshalRestoreTargetInfoBaseImplementation(v)
+		impl, err := UnmarshalRestoreTargetInfoBaseImplementation(v)
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'RestoreTargetInfo' for 'AzureBackupRecoveryPointBasedRestoreRequest': %+v", err)
 		}
 		s.RestoreTargetInfo = impl
 	}
+
 	return nil
 }

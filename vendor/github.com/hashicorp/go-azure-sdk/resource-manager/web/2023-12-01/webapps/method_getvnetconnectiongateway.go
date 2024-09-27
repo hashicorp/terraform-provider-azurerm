@@ -45,7 +45,6 @@ func (c WebAppsClient) GetVnetConnectionGateway(ctx context.Context, id GatewayI
 
 	var model VnetGateway
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

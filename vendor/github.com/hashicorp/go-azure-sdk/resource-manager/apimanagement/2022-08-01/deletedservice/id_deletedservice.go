@@ -42,7 +42,7 @@ func ParseDeletedServiceID(input string) (*DeletedServiceId, error) {
 	}
 
 	id := DeletedServiceId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseDeletedServiceIDInsensitively(input string) (*DeletedServiceId, error)
 	}
 
 	id := DeletedServiceId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -113,9 +113,9 @@ func (id DeletedServiceId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftApiManagement", "Microsoft.ApiManagement", "Microsoft.ApiManagement"),
 		resourceids.StaticSegment("staticLocations", "locations", "locations"),
-		resourceids.UserSpecifiedSegment("locationName", "locationValue"),
+		resourceids.UserSpecifiedSegment("locationName", "location"),
 		resourceids.StaticSegment("staticDeletedServices", "deletedServices", "deletedServices"),
-		resourceids.UserSpecifiedSegment("deletedServiceName", "deletedServiceValue"),
+		resourceids.UserSpecifiedSegment("deletedServiceName", "serviceName"),
 	}
 }
 

@@ -15,7 +15,7 @@ type ConnectedClustersClient struct {
 }
 
 func NewConnectedClustersClientWithBaseURI(sdkApi sdkEnv.Api) (*ConnectedClustersClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "connectedclusters", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "connectedclusters", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ConnectedClustersClient: %+v", err)
 	}

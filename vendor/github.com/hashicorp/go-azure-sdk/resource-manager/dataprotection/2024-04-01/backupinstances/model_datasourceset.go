@@ -22,10 +22,17 @@ type DatasourceSet struct {
 var _ json.Unmarshaler = &DatasourceSet{}
 
 func (s *DatasourceSet) UnmarshalJSON(bytes []byte) error {
-	type alias DatasourceSet
-	var decoded alias
+	var decoded struct {
+		DatasourceType   *string `json:"datasourceType,omitempty"`
+		ObjectType       *string `json:"objectType,omitempty"`
+		ResourceID       string  `json:"resourceID"`
+		ResourceLocation *string `json:"resourceLocation,omitempty"`
+		ResourceName     *string `json:"resourceName,omitempty"`
+		ResourceType     *string `json:"resourceType,omitempty"`
+		ResourceUri      *string `json:"resourceUri,omitempty"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into DatasourceSet: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
 	s.DatasourceType = decoded.DatasourceType
@@ -42,11 +49,12 @@ func (s *DatasourceSet) UnmarshalJSON(bytes []byte) error {
 	}
 
 	if v, ok := temp["resourceProperties"]; ok {
-		impl, err := unmarshalBaseResourcePropertiesImplementation(v)
+		impl, err := UnmarshalBaseResourcePropertiesImplementation(v)
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'ResourceProperties' for 'DatasourceSet': %+v", err)
 		}
 		s.ResourceProperties = impl
 	}
+
 	return nil
 }

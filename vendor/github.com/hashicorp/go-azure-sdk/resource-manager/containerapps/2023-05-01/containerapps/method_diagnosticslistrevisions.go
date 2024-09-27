@@ -39,6 +39,7 @@ func (o DiagnosticsListRevisionsOperationOptions) ToHeaders() *client.Headers {
 
 func (o DiagnosticsListRevisionsOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

@@ -50,7 +50,6 @@ func (c WorkflowTriggersClient) WorkflowVersionTriggersListCallbackUrl(ctx conte
 
 	var model WorkflowTriggerCallbackUrl
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

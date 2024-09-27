@@ -49,7 +49,6 @@ func (c ProjectsClient) CreateOrUpdate(ctx context.Context, id ProjectId, input 
 
 	var model Project
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

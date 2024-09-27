@@ -49,7 +49,6 @@ func (c ConnectionMonitorsClient) UpdateTags(ctx context.Context, id ConnectionM
 
 	var model ConnectionMonitorResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

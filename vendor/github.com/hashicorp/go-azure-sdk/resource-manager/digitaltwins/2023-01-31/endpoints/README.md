@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/digitaltwins/2023-01-31/endpoints` Documentation
 
-The `endpoints` SDK allows for interaction with the Azure Resource Manager Service `digitaltwins` (API Version `2023-01-31`).
+The `endpoints` SDK allows for interaction with Azure Resource Manager `digitaltwins` (API Version `2023-01-31`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := endpoints.NewEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "digitalTwinsInstanceValue", "endpointValue")
+id := endpoints.NewEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "endpointName")
 
 payload := endpoints.DigitalTwinsEndpointResource{
 	// ...
@@ -41,7 +41,7 @@ if err := client.DigitalTwinsEndpointCreateOrUpdateThenPoll(ctx, id, payload); e
 
 ```go
 ctx := context.TODO()
-id := endpoints.NewEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "digitalTwinsInstanceValue", "endpointValue")
+id := endpoints.NewEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "endpointName")
 
 if err := client.DigitalTwinsEndpointDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +53,7 @@ if err := client.DigitalTwinsEndpointDeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := endpoints.NewEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "digitalTwinsInstanceValue", "endpointValue")
+id := endpoints.NewEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "endpointName")
 
 read, err := client.DigitalTwinsEndpointGet(ctx, id)
 if err != nil {
@@ -69,7 +69,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := endpoints.NewDigitalTwinsInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "digitalTwinsInstanceValue")
+id := endpoints.NewDigitalTwinsInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
 
 // alternatively `client.DigitalTwinsEndpointList(ctx, id)` can be used to do batched pagination
 items, err := client.DigitalTwinsEndpointListComplete(ctx, id)

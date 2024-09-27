@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2024-02-02-preview/jobs` Documentation
 
-The `jobs` SDK allows for interaction with the Azure Resource Manager Service `containerapps` (API Version `2024-02-02-preview`).
+The `jobs` SDK allows for interaction with Azure Resource Manager `containerapps` (API Version `2024-02-02-preview`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := jobs.NewJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "jobValue")
+id := jobs.NewJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "jobName")
 
 payload := jobs.Job{
 	// ...
@@ -42,7 +42,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := jobs.NewJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "jobValue")
+id := jobs.NewJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "jobName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -54,7 +54,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := jobs.NewJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "jobValue")
+id := jobs.NewJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "jobName")
 
 // alternatively `client.ExecutionsList(ctx, id, jobs.DefaultExecutionsListOperationOptions())` can be used to do batched pagination
 items, err := client.ExecutionsListComplete(ctx, id, jobs.DefaultExecutionsListOperationOptions())
@@ -71,7 +71,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := jobs.NewJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "jobValue")
+id := jobs.NewJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "jobName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -87,7 +87,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := jobs.NewDetectorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "jobValue", "detectorValue")
+id := jobs.NewDetectorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "jobName", "detectorName")
 
 read, err := client.GetDetector(ctx, id)
 if err != nil {
@@ -103,7 +103,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := jobs.NewExecutionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "jobValue", "executionValue")
+id := jobs.NewExecutionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "jobName", "jobExecutionName")
 
 read, err := client.JobExecution(ctx, id)
 if err != nil {
@@ -153,7 +153,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := jobs.NewJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "jobValue")
+id := jobs.NewJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "jobName")
 
 // alternatively `client.ListDetectors(ctx, id)` can be used to do batched pagination
 items, err := client.ListDetectorsComplete(ctx, id)
@@ -170,7 +170,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := jobs.NewJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "jobValue")
+id := jobs.NewJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "jobName")
 
 read, err := client.ListSecrets(ctx, id)
 if err != nil {
@@ -186,7 +186,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := jobs.NewJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "jobValue")
+id := jobs.NewJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "jobName")
 
 read, err := client.ProxyGet(ctx, id)
 if err != nil {
@@ -202,7 +202,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := jobs.NewJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "jobValue")
+id := jobs.NewJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "jobName")
 
 payload := jobs.JobExecutionTemplate{
 	// ...
@@ -219,7 +219,7 @@ if err := client.StartThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := jobs.NewExecutionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "jobValue", "executionValue")
+id := jobs.NewExecutionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "jobName", "jobExecutionName")
 
 if err := client.StopExecutionThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -231,7 +231,7 @@ if err := client.StopExecutionThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := jobs.NewJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "jobValue")
+id := jobs.NewJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "jobName")
 
 // alternatively `client.StopMultipleExecutions(ctx, id)` can be used to do batched pagination
 items, err := client.StopMultipleExecutionsComplete(ctx, id)
@@ -248,7 +248,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := jobs.NewJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "jobValue")
+id := jobs.NewJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "jobName")
 
 payload := jobs.JobPatchProperties{
 	// ...

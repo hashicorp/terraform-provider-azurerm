@@ -39,6 +39,7 @@ func (o ListByStreamingJobOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListByStreamingJobOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

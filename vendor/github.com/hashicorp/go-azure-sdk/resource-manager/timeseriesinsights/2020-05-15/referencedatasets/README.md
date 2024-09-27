@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/timeseriesinsights/2020-05-15/referencedatasets` Documentation
 
-The `referencedatasets` SDK allows for interaction with the Azure Resource Manager Service `timeseriesinsights` (API Version `2020-05-15`).
+The `referencedatasets` SDK allows for interaction with Azure Resource Manager `timeseriesinsights` (API Version `2020-05-15`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := referencedatasets.NewReferenceDataSetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "environmentValue", "referenceDataSetValue")
+id := referencedatasets.NewReferenceDataSetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "environmentName", "referenceDataSetName")
 
 payload := referencedatasets.ReferenceDataSetCreateOrUpdateParameters{
 	// ...
@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := referencedatasets.NewReferenceDataSetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "environmentValue", "referenceDataSetValue")
+id := referencedatasets.NewReferenceDataSetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "environmentName", "referenceDataSetName")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -61,7 +61,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := referencedatasets.NewReferenceDataSetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "environmentValue", "referenceDataSetValue")
+id := referencedatasets.NewReferenceDataSetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "environmentName", "referenceDataSetName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -77,7 +77,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := referencedatasets.NewEnvironmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "environmentValue")
+id := referencedatasets.NewEnvironmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "environmentName")
 
 read, err := client.ListByEnvironment(ctx, id)
 if err != nil {
@@ -93,7 +93,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := referencedatasets.NewReferenceDataSetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "environmentValue", "referenceDataSetValue")
+id := referencedatasets.NewReferenceDataSetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "environmentName", "referenceDataSetName")
 
 payload := referencedatasets.ReferenceDataSetUpdateParameters{
 	// ...

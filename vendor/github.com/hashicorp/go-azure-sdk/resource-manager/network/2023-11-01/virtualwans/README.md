@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/virtualwans` Documentation
 
-The `virtualwans` SDK allows for interaction with the Azure Resource Manager Service `network` (API Version `2023-11-01`).
+The `virtualwans` SDK allows for interaction with Azure Resource Manager `network` (API Version `2023-11-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewConfigurationPolicyGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vpnServerConfigurationValue", "configurationPolicyGroupValue")
+id := virtualwans.NewConfigurationPolicyGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vpnServerConfigurationName", "configurationPolicyGroupName")
 
 payload := virtualwans.VpnServerConfigurationPolicyGroup{
 	// ...
@@ -42,7 +42,7 @@ if err := client.ConfigurationPolicyGroupsCreateOrUpdateThenPoll(ctx, id, payloa
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewConfigurationPolicyGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vpnServerConfigurationValue", "configurationPolicyGroupValue")
+id := virtualwans.NewConfigurationPolicyGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vpnServerConfigurationName", "configurationPolicyGroupName")
 
 if err := client.ConfigurationPolicyGroupsDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -54,7 +54,7 @@ if err := client.ConfigurationPolicyGroupsDeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewConfigurationPolicyGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vpnServerConfigurationValue", "configurationPolicyGroupValue")
+id := virtualwans.NewConfigurationPolicyGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vpnServerConfigurationName", "configurationPolicyGroupName")
 
 read, err := client.ConfigurationPolicyGroupsGet(ctx, id)
 if err != nil {
@@ -70,7 +70,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewVpnServerConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vpnServerConfigurationValue")
+id := virtualwans.NewVpnServerConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vpnServerConfigurationName")
 
 // alternatively `client.ConfigurationPolicyGroupsListByVpnServerConfiguration(ctx, id)` can be used to do batched pagination
 items, err := client.ConfigurationPolicyGroupsListByVpnServerConfigurationComplete(ctx, id)
@@ -87,7 +87,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewVirtualWANID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualWanValue")
+id := virtualwans.NewVirtualWANID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualWANName")
 
 payload := virtualwans.VirtualWanVpnProfileParameters{
 	// ...
@@ -104,7 +104,7 @@ if err := client.GeneratevirtualwanvpnserverconfigurationvpnprofileThenPoll(ctx,
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewHubRouteTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubValue", "hubRouteTableValue")
+id := virtualwans.NewHubRouteTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubName", "routeTableName")
 
 payload := virtualwans.HubRouteTable{
 	// ...
@@ -121,7 +121,7 @@ if err := client.HubRouteTablesCreateOrUpdateThenPoll(ctx, id, payload); err != 
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewHubRouteTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubValue", "hubRouteTableValue")
+id := virtualwans.NewHubRouteTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubName", "routeTableName")
 
 if err := client.HubRouteTablesDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -133,7 +133,7 @@ if err := client.HubRouteTablesDeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewHubRouteTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubValue", "hubRouteTableValue")
+id := virtualwans.NewHubRouteTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubName", "routeTableName")
 
 read, err := client.HubRouteTablesGet(ctx, id)
 if err != nil {
@@ -149,7 +149,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewVirtualHubID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubValue")
+id := virtualwans.NewVirtualHubID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubName")
 
 // alternatively `client.HubRouteTablesList(ctx, id)` can be used to do batched pagination
 items, err := client.HubRouteTablesListComplete(ctx, id)
@@ -166,7 +166,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewHubVirtualNetworkConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubValue", "hubVirtualNetworkConnectionValue")
+id := virtualwans.NewHubVirtualNetworkConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubName", "connectionName")
 
 payload := virtualwans.HubVirtualNetworkConnection{
 	// ...
@@ -183,7 +183,7 @@ if err := client.HubVirtualNetworkConnectionsCreateOrUpdateThenPoll(ctx, id, pay
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewHubVirtualNetworkConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubValue", "hubVirtualNetworkConnectionValue")
+id := virtualwans.NewHubVirtualNetworkConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubName", "connectionName")
 
 if err := client.HubVirtualNetworkConnectionsDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -195,7 +195,7 @@ if err := client.HubVirtualNetworkConnectionsDeleteThenPoll(ctx, id); err != nil
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewHubVirtualNetworkConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubValue", "hubVirtualNetworkConnectionValue")
+id := virtualwans.NewHubVirtualNetworkConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubName", "connectionName")
 
 read, err := client.HubVirtualNetworkConnectionsGet(ctx, id)
 if err != nil {
@@ -211,7 +211,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewVirtualHubID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubValue")
+id := virtualwans.NewVirtualHubID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubName")
 
 // alternatively `client.HubVirtualNetworkConnectionsList(ctx, id)` can be used to do batched pagination
 items, err := client.HubVirtualNetworkConnectionsListComplete(ctx, id)
@@ -228,7 +228,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewNatRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vpnGatewayValue", "natRuleValue")
+id := virtualwans.NewNatRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "gatewayName", "natRuleName")
 
 payload := virtualwans.VpnGatewayNatRule{
 	// ...
@@ -245,7 +245,7 @@ if err := client.NatRulesCreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewNatRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vpnGatewayValue", "natRuleValue")
+id := virtualwans.NewNatRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "gatewayName", "natRuleName")
 
 if err := client.NatRulesDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -257,7 +257,7 @@ if err := client.NatRulesDeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewNatRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vpnGatewayValue", "natRuleValue")
+id := virtualwans.NewNatRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "gatewayName", "natRuleName")
 
 read, err := client.NatRulesGet(ctx, id)
 if err != nil {
@@ -273,7 +273,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewVpnGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vpnGatewayValue")
+id := virtualwans.NewVpnGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "gatewayName")
 
 // alternatively `client.NatRulesListByVpnGateway(ctx, id)` can be used to do batched pagination
 items, err := client.NatRulesListByVpnGatewayComplete(ctx, id)
@@ -290,7 +290,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewNetworkVirtualApplianceConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkVirtualApplianceValue", "networkVirtualApplianceConnectionValue")
+id := virtualwans.NewNetworkVirtualApplianceConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkVirtualApplianceName", "connectionName")
 
 payload := virtualwans.NetworkVirtualApplianceConnection{
 	// ...
@@ -307,7 +307,7 @@ if err := client.NetworkVirtualApplianceConnectionsCreateOrUpdateThenPoll(ctx, i
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewNetworkVirtualApplianceConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkVirtualApplianceValue", "networkVirtualApplianceConnectionValue")
+id := virtualwans.NewNetworkVirtualApplianceConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkVirtualApplianceName", "connectionName")
 
 if err := client.NetworkVirtualApplianceConnectionsDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -319,7 +319,7 @@ if err := client.NetworkVirtualApplianceConnectionsDeleteThenPoll(ctx, id); err 
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewNetworkVirtualApplianceConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkVirtualApplianceValue", "networkVirtualApplianceConnectionValue")
+id := virtualwans.NewNetworkVirtualApplianceConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkVirtualApplianceName", "connectionName")
 
 read, err := client.NetworkVirtualApplianceConnectionsGet(ctx, id)
 if err != nil {
@@ -335,7 +335,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewNetworkVirtualApplianceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkVirtualApplianceValue")
+id := virtualwans.NewNetworkVirtualApplianceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkVirtualApplianceName")
 
 // alternatively `client.NetworkVirtualApplianceConnectionsList(ctx, id)` can be used to do batched pagination
 items, err := client.NetworkVirtualApplianceConnectionsListComplete(ctx, id)
@@ -352,7 +352,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewVirtualWANP2SVPNGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "p2sVpnGatewayValue")
+id := commonids.NewVirtualWANP2SVPNGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "gatewayName")
 
 payload := virtualwans.P2SVpnGateway{
 	// ...
@@ -369,7 +369,7 @@ if err := client.P2sVpnGatewaysCreateOrUpdateThenPoll(ctx, id, payload); err != 
 
 ```go
 ctx := context.TODO()
-id := commonids.NewVirtualWANP2SVPNGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "p2sVpnGatewayValue")
+id := commonids.NewVirtualWANP2SVPNGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "gatewayName")
 
 if err := client.P2sVpnGatewaysDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -381,7 +381,7 @@ if err := client.P2sVpnGatewaysDeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewVirtualWANP2SVPNGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "p2sVpnGatewayValue")
+id := commonids.NewVirtualWANP2SVPNGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "gatewayName")
 
 read, err := client.P2sVpnGatewaysGet(ctx, id)
 if err != nil {
@@ -431,7 +431,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewRouteMapID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubValue", "routeMapValue")
+id := virtualwans.NewRouteMapID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubName", "routeMapName")
 
 payload := virtualwans.RouteMap{
 	// ...
@@ -448,7 +448,7 @@ if err := client.RouteMapsCreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewRouteMapID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubValue", "routeMapValue")
+id := virtualwans.NewRouteMapID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubName", "routeMapName")
 
 if err := client.RouteMapsDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -460,7 +460,7 @@ if err := client.RouteMapsDeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewRouteMapID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubValue", "routeMapValue")
+id := virtualwans.NewRouteMapID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubName", "routeMapName")
 
 read, err := client.RouteMapsGet(ctx, id)
 if err != nil {
@@ -476,7 +476,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewVirtualHubID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubValue")
+id := virtualwans.NewVirtualHubID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubName")
 
 // alternatively `client.RouteMapsList(ctx, id)` can be used to do batched pagination
 items, err := client.RouteMapsListComplete(ctx, id)
@@ -493,7 +493,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewRoutingIntentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubValue", "routingIntentValue")
+id := virtualwans.NewRoutingIntentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubName", "routingIntentName")
 
 payload := virtualwans.RoutingIntent{
 	// ...
@@ -510,7 +510,7 @@ if err := client.RoutingIntentCreateOrUpdateThenPoll(ctx, id, payload); err != n
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewRoutingIntentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubValue", "routingIntentValue")
+id := virtualwans.NewRoutingIntentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubName", "routingIntentName")
 
 if err := client.RoutingIntentDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -522,7 +522,7 @@ if err := client.RoutingIntentDeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewRoutingIntentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubValue", "routingIntentValue")
+id := virtualwans.NewRoutingIntentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubName", "routingIntentName")
 
 read, err := client.RoutingIntentGet(ctx, id)
 if err != nil {
@@ -538,7 +538,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewVirtualHubID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubValue")
+id := virtualwans.NewVirtualHubID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubName")
 
 // alternatively `client.RoutingIntentList(ctx, id)` can be used to do batched pagination
 items, err := client.RoutingIntentListComplete(ctx, id)
@@ -555,7 +555,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewVirtualWANID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualWanValue")
+id := virtualwans.NewVirtualWANID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualWANName")
 
 read, err := client.SupportedSecurityProviders(ctx, id)
 if err != nil {
@@ -571,7 +571,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewVirtualWANID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualWanValue")
+id := virtualwans.NewVirtualWANID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualWANName")
 
 payload := virtualwans.TagsObject{
 	// ...
@@ -592,7 +592,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewVirtualHubBGPConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubValue", "bgpConnectionValue")
+id := commonids.NewVirtualHubBGPConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "hubName", "connectionName")
 
 payload := virtualwans.BgpConnection{
 	// ...
@@ -609,7 +609,7 @@ if err := client.VirtualHubBgpConnectionCreateOrUpdateThenPoll(ctx, id, payload)
 
 ```go
 ctx := context.TODO()
-id := commonids.NewVirtualHubBGPConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubValue", "bgpConnectionValue")
+id := commonids.NewVirtualHubBGPConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "hubName", "connectionName")
 
 if err := client.VirtualHubBgpConnectionDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -621,7 +621,7 @@ if err := client.VirtualHubBgpConnectionDeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewVirtualHubBGPConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubValue", "bgpConnectionValue")
+id := commonids.NewVirtualHubBGPConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "hubName", "connectionName")
 
 read, err := client.VirtualHubBgpConnectionGet(ctx, id)
 if err != nil {
@@ -637,7 +637,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewVirtualHubID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubValue")
+id := virtualwans.NewVirtualHubID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubName")
 
 // alternatively `client.VirtualHubBgpConnectionsList(ctx, id)` can be used to do batched pagination
 items, err := client.VirtualHubBgpConnectionsListComplete(ctx, id)
@@ -654,7 +654,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewVirtualHubBGPConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubValue", "bgpConnectionValue")
+id := commonids.NewVirtualHubBGPConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "hubName", "connectionName")
 
 if err := client.VirtualHubBgpConnectionsListAdvertisedRoutesThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -666,7 +666,7 @@ if err := client.VirtualHubBgpConnectionsListAdvertisedRoutesThenPoll(ctx, id); 
 
 ```go
 ctx := context.TODO()
-id := commonids.NewVirtualHubBGPConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubValue", "bgpConnectionValue")
+id := commonids.NewVirtualHubBGPConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "hubName", "connectionName")
 
 if err := client.VirtualHubBgpConnectionsListLearnedRoutesThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -678,7 +678,7 @@ if err := client.VirtualHubBgpConnectionsListLearnedRoutesThenPoll(ctx, id); err
 
 ```go
 ctx := context.TODO()
-id := commonids.NewVirtualHubIPConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubValue", "ipConfigurationValue")
+id := commonids.NewVirtualHubIPConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubName", "ipConfigName")
 
 payload := virtualwans.HubIPConfiguration{
 	// ...
@@ -695,7 +695,7 @@ if err := client.VirtualHubIPConfigurationCreateOrUpdateThenPoll(ctx, id, payloa
 
 ```go
 ctx := context.TODO()
-id := commonids.NewVirtualHubIPConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubValue", "ipConfigurationValue")
+id := commonids.NewVirtualHubIPConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubName", "ipConfigName")
 
 if err := client.VirtualHubIPConfigurationDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -707,7 +707,7 @@ if err := client.VirtualHubIPConfigurationDeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewVirtualHubIPConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubValue", "ipConfigurationValue")
+id := commonids.NewVirtualHubIPConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubName", "ipConfigName")
 
 read, err := client.VirtualHubIPConfigurationGet(ctx, id)
 if err != nil {
@@ -723,7 +723,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewVirtualHubID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubValue")
+id := virtualwans.NewVirtualHubID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubName")
 
 // alternatively `client.VirtualHubIPConfigurationList(ctx, id)` can be used to do batched pagination
 items, err := client.VirtualHubIPConfigurationListComplete(ctx, id)
@@ -740,7 +740,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewVirtualHubRouteTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubValue", "routeTableValue")
+id := virtualwans.NewVirtualHubRouteTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubName", "routeTableName")
 
 payload := virtualwans.VirtualHubRouteTableV2{
 	// ...
@@ -757,7 +757,7 @@ if err := client.VirtualHubRouteTableV2sCreateOrUpdateThenPoll(ctx, id, payload)
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewVirtualHubRouteTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubValue", "routeTableValue")
+id := virtualwans.NewVirtualHubRouteTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubName", "routeTableName")
 
 if err := client.VirtualHubRouteTableV2sDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -769,7 +769,7 @@ if err := client.VirtualHubRouteTableV2sDeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewVirtualHubRouteTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubValue", "routeTableValue")
+id := virtualwans.NewVirtualHubRouteTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubName", "routeTableName")
 
 read, err := client.VirtualHubRouteTableV2sGet(ctx, id)
 if err != nil {
@@ -785,7 +785,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewVirtualHubID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubValue")
+id := virtualwans.NewVirtualHubID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubName")
 
 // alternatively `client.VirtualHubRouteTableV2sList(ctx, id)` can be used to do batched pagination
 items, err := client.VirtualHubRouteTableV2sListComplete(ctx, id)
@@ -802,7 +802,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewVirtualHubID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubValue")
+id := virtualwans.NewVirtualHubID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubName")
 
 payload := virtualwans.VirtualHub{
 	// ...
@@ -819,7 +819,7 @@ if err := client.VirtualHubsCreateOrUpdateThenPoll(ctx, id, payload); err != nil
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewVirtualHubID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubValue")
+id := virtualwans.NewVirtualHubID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubName")
 
 if err := client.VirtualHubsDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -831,7 +831,7 @@ if err := client.VirtualHubsDeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewVirtualHubID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubValue")
+id := virtualwans.NewVirtualHubID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubName")
 
 read, err := client.VirtualHubsGet(ctx, id)
 if err != nil {
@@ -847,7 +847,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewVirtualHubID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubValue")
+id := virtualwans.NewVirtualHubID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubName")
 
 payload := virtualwans.EffectiveRoutesParameters{
 	// ...
@@ -864,7 +864,7 @@ if err := client.VirtualHubsGetEffectiveVirtualHubRoutesThenPoll(ctx, id, payloa
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewVirtualHubID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubValue")
+id := virtualwans.NewVirtualHubID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubName")
 
 payload := virtualwans.GetInboundRoutesParameters{
 	// ...
@@ -881,7 +881,7 @@ if err := client.VirtualHubsGetInboundRoutesThenPoll(ctx, id, payload); err != n
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewVirtualHubID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubValue")
+id := virtualwans.NewVirtualHubID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubName")
 
 payload := virtualwans.GetOutboundRoutesParameters{
 	// ...
@@ -932,7 +932,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewVirtualHubID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubValue")
+id := virtualwans.NewVirtualHubID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualHubName")
 
 payload := virtualwans.TagsObject{
 	// ...
@@ -953,7 +953,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewVirtualWANID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualWanValue")
+id := virtualwans.NewVirtualWANID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualWANName")
 
 payload := virtualwans.VirtualWAN{
 	// ...
@@ -970,7 +970,7 @@ if err := client.VirtualWansCreateOrUpdateThenPoll(ctx, id, payload); err != nil
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewVirtualWANID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualWanValue")
+id := virtualwans.NewVirtualWANID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualWANName")
 
 if err := client.VirtualWansDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -982,7 +982,7 @@ if err := client.VirtualWansDeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewVirtualWANID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualWanValue")
+id := virtualwans.NewVirtualWANID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualWANName")
 
 read, err := client.VirtualWansGet(ctx, id)
 if err != nil {
@@ -1032,7 +1032,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewVPNConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vpnGatewayValue", "vpnConnectionValue")
+id := commonids.NewVPNConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "gatewayName", "connectionName")
 
 payload := virtualwans.VpnConnection{
 	// ...
@@ -1049,7 +1049,7 @@ if err := client.VpnConnectionsCreateOrUpdateThenPoll(ctx, id, payload); err != 
 
 ```go
 ctx := context.TODO()
-id := commonids.NewVPNConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vpnGatewayValue", "vpnConnectionValue")
+id := commonids.NewVPNConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "gatewayName", "connectionName")
 
 if err := client.VpnConnectionsDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -1061,7 +1061,7 @@ if err := client.VpnConnectionsDeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewVPNConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vpnGatewayValue", "vpnConnectionValue")
+id := commonids.NewVPNConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "gatewayName", "connectionName")
 
 read, err := client.VpnConnectionsGet(ctx, id)
 if err != nil {
@@ -1077,7 +1077,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewVpnGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vpnGatewayValue")
+id := virtualwans.NewVpnGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "gatewayName")
 
 // alternatively `client.VpnConnectionsListByVpnGateway(ctx, id)` can be used to do batched pagination
 items, err := client.VpnConnectionsListByVpnGatewayComplete(ctx, id)
@@ -1094,7 +1094,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewVPNConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vpnGatewayValue", "vpnConnectionValue")
+id := commonids.NewVPNConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "gatewayName", "connectionName")
 
 payload := virtualwans.VpnConnectionPacketCaptureStartParameters{
 	// ...
@@ -1111,7 +1111,7 @@ if err := client.VpnConnectionsStartPacketCaptureThenPoll(ctx, id, payload); err
 
 ```go
 ctx := context.TODO()
-id := commonids.NewVPNConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vpnGatewayValue", "vpnConnectionValue")
+id := commonids.NewVPNConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "gatewayName", "connectionName")
 
 payload := virtualwans.VpnConnectionPacketCaptureStopParameters{
 	// ...
@@ -1128,7 +1128,7 @@ if err := client.VpnConnectionsStopPacketCaptureThenPoll(ctx, id, payload); err 
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewVpnGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vpnGatewayValue")
+id := virtualwans.NewVpnGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "gatewayName")
 
 payload := virtualwans.VpnGateway{
 	// ...
@@ -1145,7 +1145,7 @@ if err := client.VpnGatewaysCreateOrUpdateThenPoll(ctx, id, payload); err != nil
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewVpnGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vpnGatewayValue")
+id := virtualwans.NewVpnGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "gatewayName")
 
 if err := client.VpnGatewaysDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -1157,7 +1157,7 @@ if err := client.VpnGatewaysDeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewVpnGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vpnGatewayValue")
+id := virtualwans.NewVpnGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "gatewayName")
 
 read, err := client.VpnGatewaysGet(ctx, id)
 if err != nil {
@@ -1207,7 +1207,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewVpnLinkConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vpnGatewayValue", "vpnConnectionValue", "vpnLinkConnectionValue")
+id := virtualwans.NewVpnLinkConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "gatewayName", "connectionName", "linkConnectionName")
 
 if err := client.VpnLinkConnectionsGetIkeSasThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -1219,7 +1219,7 @@ if err := client.VpnLinkConnectionsGetIkeSasThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewVPNConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vpnGatewayValue", "vpnConnectionValue")
+id := commonids.NewVPNConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "gatewayName", "connectionName")
 
 // alternatively `client.VpnLinkConnectionsListByVpnConnection(ctx, id)` can be used to do batched pagination
 items, err := client.VpnLinkConnectionsListByVpnConnectionComplete(ctx, id)
@@ -1236,7 +1236,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewVirtualWANID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualWanValue")
+id := virtualwans.NewVirtualWANID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualWANName")
 
 if err := client.VpnServerConfigurationsAssociatedWithVirtualWanListThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -1248,7 +1248,7 @@ if err := client.VpnServerConfigurationsAssociatedWithVirtualWanListThenPoll(ctx
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewVpnServerConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vpnServerConfigurationValue")
+id := virtualwans.NewVpnServerConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vpnServerConfigurationName")
 
 payload := virtualwans.VpnServerConfiguration{
 	// ...
@@ -1265,7 +1265,7 @@ if err := client.VpnServerConfigurationsCreateOrUpdateThenPoll(ctx, id, payload)
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewVpnServerConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vpnServerConfigurationValue")
+id := virtualwans.NewVpnServerConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vpnServerConfigurationName")
 
 if err := client.VpnServerConfigurationsDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -1277,7 +1277,7 @@ if err := client.VpnServerConfigurationsDeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewVpnServerConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vpnServerConfigurationValue")
+id := virtualwans.NewVpnServerConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vpnServerConfigurationName")
 
 read, err := client.VpnServerConfigurationsGet(ctx, id)
 if err != nil {
@@ -1327,7 +1327,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewVpnLinkConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vpnGatewayValue", "vpnConnectionValue", "vpnLinkConnectionValue")
+id := virtualwans.NewVpnLinkConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "gatewayName", "connectionName", "linkConnectionName")
 
 read, err := client.VpnSiteLinkConnectionsGet(ctx, id)
 if err != nil {
@@ -1343,7 +1343,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewVpnSiteLinkID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vpnSiteValue", "vpnSiteLinkValue")
+id := virtualwans.NewVpnSiteLinkID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vpnSiteName", "vpnSiteLinkName")
 
 read, err := client.VpnSiteLinksGet(ctx, id)
 if err != nil {
@@ -1359,7 +1359,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewVpnSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vpnSiteValue")
+id := virtualwans.NewVpnSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vpnSiteName")
 
 // alternatively `client.VpnSiteLinksListByVpnSite(ctx, id)` can be used to do batched pagination
 items, err := client.VpnSiteLinksListByVpnSiteComplete(ctx, id)
@@ -1376,7 +1376,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewVirtualWANID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualWanValue")
+id := virtualwans.NewVirtualWANID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualWANName")
 
 payload := virtualwans.GetVpnSitesConfigurationRequest{
 	// ...
@@ -1393,7 +1393,7 @@ if err := client.VpnSitesConfigurationDownloadThenPoll(ctx, id, payload); err !=
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewVpnSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vpnSiteValue")
+id := virtualwans.NewVpnSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vpnSiteName")
 
 payload := virtualwans.VpnSite{
 	// ...
@@ -1410,7 +1410,7 @@ if err := client.VpnSitesCreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewVpnSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vpnSiteValue")
+id := virtualwans.NewVpnSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vpnSiteName")
 
 if err := client.VpnSitesDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -1422,7 +1422,7 @@ if err := client.VpnSitesDeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualwans.NewVpnSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vpnSiteValue")
+id := virtualwans.NewVpnSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vpnSiteName")
 
 read, err := client.VpnSitesGet(ctx, id)
 if err != nil {

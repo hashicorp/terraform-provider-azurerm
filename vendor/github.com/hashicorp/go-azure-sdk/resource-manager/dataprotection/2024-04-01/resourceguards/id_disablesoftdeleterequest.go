@@ -44,7 +44,7 @@ func ParseDisableSoftDeleteRequestID(input string) (*DisableSoftDeleteRequestId,
 	}
 
 	id := DisableSoftDeleteRequestId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseDisableSoftDeleteRequestIDInsensitively(input string) (*DisableSoftDel
 	}
 
 	id := DisableSoftDeleteRequestId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id DisableSoftDeleteRequestId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDataProtection", "Microsoft.DataProtection", "Microsoft.DataProtection"),
 		resourceids.StaticSegment("staticResourceGuards", "resourceGuards", "resourceGuards"),
-		resourceids.UserSpecifiedSegment("resourceGuardName", "resourceGuardValue"),
+		resourceids.UserSpecifiedSegment("resourceGuardName", "resourceGuardsName"),
 		resourceids.StaticSegment("staticDisableSoftDeleteRequests", "disableSoftDeleteRequests", "disableSoftDeleteRequests"),
-		resourceids.UserSpecifiedSegment("disableSoftDeleteRequestName", "disableSoftDeleteRequestValue"),
+		resourceids.UserSpecifiedSegment("disableSoftDeleteRequestName", "requestName"),
 	}
 }
 

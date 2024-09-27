@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/deletedservice` Documentation
 
-The `deletedservice` SDK allows for interaction with the Azure Resource Manager Service `apimanagement` (API Version `2022-08-01`).
+The `deletedservice` SDK allows for interaction with Azure Resource Manager `apimanagement` (API Version `2022-08-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := deletedservice.NewDeletedServiceID("12345678-1234-9876-4563-123456789012", "locationValue", "deletedServiceValue")
+id := deletedservice.NewDeletedServiceID("12345678-1234-9876-4563-123456789012", "location", "serviceName")
 
 read, err := client.GetByName(ctx, id)
 if err != nil {
@@ -58,7 +58,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := deletedservice.NewDeletedServiceID("12345678-1234-9876-4563-123456789012", "locationValue", "deletedServiceValue")
+id := deletedservice.NewDeletedServiceID("12345678-1234-9876-4563-123456789012", "location", "serviceName")
 
 if err := client.PurgeThenPoll(ctx, id); err != nil {
 	// handle the error

@@ -44,7 +44,7 @@ func ParseEndpointID(input string) (*EndpointId, error) {
 	}
 
 	id := EndpointId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseEndpointIDInsensitively(input string) (*EndpointId, error) {
 	}
 
 	id := EndpointId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id EndpointId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDigitalTwins", "Microsoft.DigitalTwins", "Microsoft.DigitalTwins"),
 		resourceids.StaticSegment("staticDigitalTwinsInstances", "digitalTwinsInstances", "digitalTwinsInstances"),
-		resourceids.UserSpecifiedSegment("digitalTwinsInstanceName", "digitalTwinsInstanceValue"),
+		resourceids.UserSpecifiedSegment("digitalTwinsInstanceName", "resourceName"),
 		resourceids.StaticSegment("staticEndpoints", "endpoints", "endpoints"),
-		resourceids.UserSpecifiedSegment("endpointName", "endpointValue"),
+		resourceids.UserSpecifiedSegment("endpointName", "endpointName"),
 	}
 }
 

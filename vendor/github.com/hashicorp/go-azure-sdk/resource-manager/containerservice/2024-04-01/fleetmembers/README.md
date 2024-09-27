@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-04-01/fleetmembers` Documentation
 
-The `fleetmembers` SDK allows for interaction with the Azure Resource Manager Service `containerservice` (API Version `2024-04-01`).
+The `fleetmembers` SDK allows for interaction with Azure Resource Manager `containerservice` (API Version `2024-04-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := fleetmembers.NewMemberID("12345678-1234-9876-4563-123456789012", "example-resource-group", "fleetValue", "memberValue")
+id := fleetmembers.NewMemberID("12345678-1234-9876-4563-123456789012", "example-resource-group", "fleetName", "fleetMemberName")
 
 payload := fleetmembers.FleetMember{
 	// ...
@@ -41,7 +41,7 @@ if err := client.CreateThenPoll(ctx, id, payload, fleetmembers.DefaultCreateOper
 
 ```go
 ctx := context.TODO()
-id := fleetmembers.NewMemberID("12345678-1234-9876-4563-123456789012", "example-resource-group", "fleetValue", "memberValue")
+id := fleetmembers.NewMemberID("12345678-1234-9876-4563-123456789012", "example-resource-group", "fleetName", "fleetMemberName")
 
 if err := client.DeleteThenPoll(ctx, id, fleetmembers.DefaultDeleteOperationOptions()); err != nil {
 	// handle the error
@@ -53,7 +53,7 @@ if err := client.DeleteThenPoll(ctx, id, fleetmembers.DefaultDeleteOperationOpti
 
 ```go
 ctx := context.TODO()
-id := fleetmembers.NewMemberID("12345678-1234-9876-4563-123456789012", "example-resource-group", "fleetValue", "memberValue")
+id := fleetmembers.NewMemberID("12345678-1234-9876-4563-123456789012", "example-resource-group", "fleetName", "fleetMemberName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -69,7 +69,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := fleetmembers.NewFleetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "fleetValue")
+id := fleetmembers.NewFleetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "fleetName")
 
 // alternatively `client.ListByFleet(ctx, id)` can be used to do batched pagination
 items, err := client.ListByFleetComplete(ctx, id)
@@ -86,7 +86,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := fleetmembers.NewMemberID("12345678-1234-9876-4563-123456789012", "example-resource-group", "fleetValue", "memberValue")
+id := fleetmembers.NewMemberID("12345678-1234-9876-4563-123456789012", "example-resource-group", "fleetName", "fleetMemberName")
 
 payload := fleetmembers.FleetMemberUpdate{
 	// ...

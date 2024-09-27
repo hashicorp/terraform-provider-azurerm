@@ -50,7 +50,6 @@ func (c ClustersClient) CheckNameAvailability(ctx context.Context, id LocationId
 
 	var model CheckNameResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

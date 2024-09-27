@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2022-01-01/configurations` Documentation
 
-The `configurations` SDK allows for interaction with the Azure Resource Manager Service `mysql` (API Version `2022-01-01`).
+The `configurations` SDK allows for interaction with Azure Resource Manager `mysql` (API Version `2022-01-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := configurations.NewFlexibleServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "flexibleServerValue")
+id := configurations.NewFlexibleServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverName")
 
 payload := configurations.ConfigurationListForBatchUpdate{
 	// ...
@@ -46,7 +46,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := configurations.NewConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "flexibleServerValue", "configurationValue")
+id := configurations.NewConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverName", "configurationName")
 
 payload := configurations.Configuration{
 	// ...
@@ -63,7 +63,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := configurations.NewConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "flexibleServerValue", "configurationValue")
+id := configurations.NewConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverName", "configurationName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -79,7 +79,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := configurations.NewFlexibleServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "flexibleServerValue")
+id := configurations.NewFlexibleServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverName")
 
 // alternatively `client.ListByServer(ctx, id, configurations.DefaultListByServerOperationOptions())` can be used to do batched pagination
 items, err := client.ListByServerComplete(ctx, id, configurations.DefaultListByServerOperationOptions())
@@ -96,7 +96,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := configurations.NewConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "flexibleServerValue", "configurationValue")
+id := configurations.NewConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverName", "configurationName")
 
 payload := configurations.Configuration{
 	// ...

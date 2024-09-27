@@ -40,7 +40,7 @@ func ParseProviders2NetworkManagerConnectionID(input string) (*Providers2Network
 	}
 
 	id := Providers2NetworkManagerConnectionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -57,7 +57,7 @@ func ParseProviders2NetworkManagerConnectionIDInsensitively(input string) (*Prov
 	}
 
 	id := Providers2NetworkManagerConnectionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -105,11 +105,11 @@ func (id Providers2NetworkManagerConnectionId) Segments() []resourceids.Segment 
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftManagement", "Microsoft.Management", "Microsoft.Management"),
 		resourceids.StaticSegment("staticManagementGroups", "managementGroups", "managementGroups"),
-		resourceids.UserSpecifiedSegment("managementGroupId", "managementGroupIdValue"),
+		resourceids.UserSpecifiedSegment("managementGroupId", "managementGroupId"),
 		resourceids.StaticSegment("staticProviders2", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticNetworkManagerConnections", "networkManagerConnections", "networkManagerConnections"),
-		resourceids.UserSpecifiedSegment("networkManagerConnectionName", "networkManagerConnectionValue"),
+		resourceids.UserSpecifiedSegment("networkManagerConnectionName", "networkManagerConnectionName"),
 	}
 }
 

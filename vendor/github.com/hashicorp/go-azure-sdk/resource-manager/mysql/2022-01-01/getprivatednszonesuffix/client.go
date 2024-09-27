@@ -15,7 +15,7 @@ type GetPrivateDnsZoneSuffixClient struct {
 }
 
 func NewGetPrivateDnsZoneSuffixClientWithBaseURI(sdkApi sdkEnv.Api) (*GetPrivateDnsZoneSuffixClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "getprivatednszonesuffix", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "getprivatednszonesuffix", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating GetPrivateDnsZoneSuffixClient: %+v", err)
 	}

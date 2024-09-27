@@ -14,6 +14,14 @@ type AzureKeyVaultProperties struct {
 	ConnectAsKubernetesCsiDriver *bool `json:"connectAsKubernetesCsiDriver,omitempty"`
 
 	// Fields inherited from AzureResourcePropertiesBase
+
+	Type AzureResourceType `json:"type"`
+}
+
+func (s AzureKeyVaultProperties) AzureResourcePropertiesBase() BaseAzureResourcePropertiesBaseImpl {
+	return BaseAzureResourcePropertiesBaseImpl{
+		Type: s.Type,
+	}
 }
 
 var _ json.Marshaler = AzureKeyVaultProperties{}
@@ -27,9 +35,10 @@ func (s AzureKeyVaultProperties) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling AzureKeyVaultProperties: %+v", err)
 	}
+
 	decoded["type"] = "KeyVault"
 
 	encoded, err = json.Marshal(decoded)

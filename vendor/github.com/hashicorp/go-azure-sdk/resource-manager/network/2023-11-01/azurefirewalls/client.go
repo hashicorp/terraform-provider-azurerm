@@ -15,7 +15,7 @@ type AzureFirewallsClient struct {
 }
 
 func NewAzureFirewallsClientWithBaseURI(sdkApi sdkEnv.Api) (*AzureFirewallsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "azurefirewalls", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "azurefirewalls", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating AzureFirewallsClient: %+v", err)
 	}

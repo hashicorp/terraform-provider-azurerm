@@ -44,7 +44,7 @@ func ParseSecurityAdminConfigurationID(input string) (*SecurityAdminConfiguratio
 	}
 
 	id := SecurityAdminConfigurationId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseSecurityAdminConfigurationIDInsensitively(input string) (*SecurityAdmi
 	}
 
 	id := SecurityAdminConfigurationId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id SecurityAdminConfigurationId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticNetworkManagers", "networkManagers", "networkManagers"),
-		resourceids.UserSpecifiedSegment("networkManagerName", "networkManagerValue"),
+		resourceids.UserSpecifiedSegment("networkManagerName", "networkManagerName"),
 		resourceids.StaticSegment("staticSecurityAdminConfigurations", "securityAdminConfigurations", "securityAdminConfigurations"),
-		resourceids.UserSpecifiedSegment("securityAdminConfigurationName", "securityAdminConfigurationValue"),
+		resourceids.UserSpecifiedSegment("securityAdminConfigurationName", "configurationName"),
 	}
 }
 

@@ -44,7 +44,7 @@ func ParseCustomCertificateID(input string) (*CustomCertificateId, error) {
 	}
 
 	id := CustomCertificateId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseCustomCertificateIDInsensitively(input string) (*CustomCertificateId, 
 	}
 
 	id := CustomCertificateId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id CustomCertificateId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftSignalRService", "Microsoft.SignalRService", "Microsoft.SignalRService"),
 		resourceids.StaticSegment("staticSignalR", "signalR", "signalR"),
-		resourceids.UserSpecifiedSegment("signalRName", "signalRValue"),
+		resourceids.UserSpecifiedSegment("signalRName", "resourceName"),
 		resourceids.StaticSegment("staticCustomCertificates", "customCertificates", "customCertificates"),
-		resourceids.UserSpecifiedSegment("customCertificateName", "customCertificateValue"),
+		resourceids.UserSpecifiedSegment("customCertificateName", "certificateName"),
 	}
 }
 

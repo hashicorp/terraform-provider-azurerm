@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-07-01/vaults` Documentation
 
-The `vaults` SDK allows for interaction with the Azure Resource Manager Service `keyvault` (API Version `2023-07-01`).
+The `vaults` SDK allows for interaction with Azure Resource Manager `keyvault` (API Version `2023-07-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -46,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewKeyVaultID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultValue")
+id := commonids.NewKeyVaultID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultName")
 
 payload := vaults.VaultCreateOrUpdateParameters{
 	// ...
@@ -63,7 +63,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewKeyVaultID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultValue")
+id := commonids.NewKeyVaultID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultName")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -79,7 +79,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewKeyVaultID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultValue")
+id := commonids.NewKeyVaultID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -95,7 +95,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := vaults.NewDeletedVaultID("12345678-1234-9876-4563-123456789012", "locationValue", "deletedVaultValue")
+id := vaults.NewDeletedVaultID("12345678-1234-9876-4563-123456789012", "location", "vaultName")
 
 read, err := client.GetDeleted(ctx, id)
 if err != nil {
@@ -179,7 +179,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := vaults.NewDeletedVaultID("12345678-1234-9876-4563-123456789012", "locationValue", "deletedVaultValue")
+id := vaults.NewDeletedVaultID("12345678-1234-9876-4563-123456789012", "location", "vaultName")
 
 if err := client.PurgeDeletedThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -191,7 +191,7 @@ if err := client.PurgeDeletedThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewKeyVaultID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultValue")
+id := commonids.NewKeyVaultID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultName")
 
 payload := vaults.VaultPatchParameters{
 	// ...
@@ -212,7 +212,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := vaults.NewOperationKindID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultValue", "add")
+id := vaults.NewOperationKindID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultName", "add")
 
 payload := vaults.VaultAccessPolicyParameters{
 	// ...

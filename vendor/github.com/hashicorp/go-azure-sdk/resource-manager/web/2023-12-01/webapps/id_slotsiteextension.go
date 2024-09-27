@@ -46,7 +46,7 @@ func ParseSlotSiteExtensionID(input string) (*SlotSiteExtensionId, error) {
 	}
 
 	id := SlotSiteExtensionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -63,7 +63,7 @@ func ParseSlotSiteExtensionIDInsensitively(input string) (*SlotSiteExtensionId, 
 	}
 
 	id := SlotSiteExtensionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -127,11 +127,11 @@ func (id SlotSiteExtensionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftWeb", "Microsoft.Web", "Microsoft.Web"),
 		resourceids.StaticSegment("staticSites", "sites", "sites"),
-		resourceids.UserSpecifiedSegment("siteName", "siteValue"),
+		resourceids.UserSpecifiedSegment("siteName", "name"),
 		resourceids.StaticSegment("staticSlots", "slots", "slots"),
-		resourceids.UserSpecifiedSegment("slotName", "slotValue"),
+		resourceids.UserSpecifiedSegment("slotName", "slot"),
 		resourceids.StaticSegment("staticSiteExtensions", "siteExtensions", "siteExtensions"),
-		resourceids.UserSpecifiedSegment("siteExtensionId", "siteExtensionIdValue"),
+		resourceids.UserSpecifiedSegment("siteExtensionId", "siteExtensionId"),
 	}
 }
 

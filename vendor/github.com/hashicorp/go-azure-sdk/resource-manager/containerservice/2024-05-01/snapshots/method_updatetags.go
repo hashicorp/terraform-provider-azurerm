@@ -49,7 +49,6 @@ func (c SnapshotsClient) UpdateTags(ctx context.Context, id SnapshotId, input Ta
 
 	var model Snapshot
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -44,7 +44,7 @@ func ParseVirtualNetworkLinkID(input string) (*VirtualNetworkLinkId, error) {
 	}
 
 	id := VirtualNetworkLinkId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseVirtualNetworkLinkIDInsensitively(input string) (*VirtualNetworkLinkId
 	}
 
 	id := VirtualNetworkLinkId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id VirtualNetworkLinkId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticPrivateDnsZones", "privateDnsZones", "privateDnsZones"),
-		resourceids.UserSpecifiedSegment("privateDnsZoneName", "privateDnsZoneValue"),
+		resourceids.UserSpecifiedSegment("privateDnsZoneName", "privateZoneName"),
 		resourceids.StaticSegment("staticVirtualNetworkLinks", "virtualNetworkLinks", "virtualNetworkLinks"),
-		resourceids.UserSpecifiedSegment("virtualNetworkLinkName", "virtualNetworkLinkValue"),
+		resourceids.UserSpecifiedSegment("virtualNetworkLinkName", "virtualNetworkLinkName"),
 	}
 }
 

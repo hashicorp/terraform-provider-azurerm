@@ -34,6 +34,7 @@ func (o AnalyzeCustomHostnameSlotOperationOptions) ToHeaders() *client.Headers {
 
 func (o AnalyzeCustomHostnameSlotOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -74,7 +75,6 @@ func (c WebAppsClient) AnalyzeCustomHostnameSlot(ctx context.Context, id SlotId,
 
 	var model CustomHostnameAnalysisResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

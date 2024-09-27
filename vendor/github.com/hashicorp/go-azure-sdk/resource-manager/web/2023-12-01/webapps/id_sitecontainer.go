@@ -44,7 +44,7 @@ func ParseSitecontainerID(input string) (*SitecontainerId, error) {
 	}
 
 	id := SitecontainerId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseSitecontainerIDInsensitively(input string) (*SitecontainerId, error) {
 	}
 
 	id := SitecontainerId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id SitecontainerId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftWeb", "Microsoft.Web", "Microsoft.Web"),
 		resourceids.StaticSegment("staticSites", "sites", "sites"),
-		resourceids.UserSpecifiedSegment("siteName", "siteValue"),
+		resourceids.UserSpecifiedSegment("siteName", "name"),
 		resourceids.StaticSegment("staticSitecontainers", "sitecontainers", "sitecontainers"),
-		resourceids.UserSpecifiedSegment("sitecontainerName", "sitecontainerValue"),
+		resourceids.UserSpecifiedSegment("sitecontainerName", "containerName"),
 	}
 }
 

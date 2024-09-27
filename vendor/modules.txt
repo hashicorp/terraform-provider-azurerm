@@ -148,7 +148,7 @@ github.com/hashicorp/go-azure-helpers/resourcemanager/tags
 github.com/hashicorp/go-azure-helpers/resourcemanager/zones
 github.com/hashicorp/go-azure-helpers/sender
 github.com/hashicorp/go-azure-helpers/storage
-# github.com/hashicorp/go-azure-sdk/resource-manager v0.20240906.1232634
+# github.com/hashicorp/go-azure-sdk/resource-manager v0.20240923.1151247
 ## explicit; go 1.21
 github.com/hashicorp/go-azure-sdk/resource-manager/aad/2021-05-01/domainservices
 github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview
@@ -356,7 +356,6 @@ github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/cert
 github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/containerapps
 github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/containerappsrevisions
 github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/daprcomponents
-github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/jobs
 github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/managedenvironments
 github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/managedenvironmentsstorages
 github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2024-02-02-preview/jobs
@@ -656,27 +655,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/simg
 github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/simpolicy
 github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/site
 github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/slice
-github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2017-12-01
-github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2017-12-01/checknameavailability
-github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2017-12-01/configurations
-github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2017-12-01/configurationsupdate
-github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2017-12-01/databases
-github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2017-12-01/firewallrules
-github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2017-12-01/locationbasedperformancetier
-github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2017-12-01/logfiles
-github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2017-12-01/recoverableservers
-github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2017-12-01/replicas
-github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2017-12-01/serveradministrators
-github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2017-12-01/serverbasedperformancetier
-github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2017-12-01/serverrestart
 github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2017-12-01/servers
-github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2017-12-01/serversecurityalertpolicies
-github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2017-12-01/virtualnetworkrules
-github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2020-01-01
-github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2020-01-01/serverkeys
-github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2020-01-01/serverstart
-github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2020-01-01/serverstop
-github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2020-01-01/serverupgrade
 github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2022-01-01
 github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2022-01-01/azureadadministrators
 github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2022-01-01/backups
@@ -1125,7 +1104,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/saplands
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/saprecommendations
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/sapsupportedsku
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/sapvirtualinstances
-# github.com/hashicorp/go-azure-sdk/sdk v0.20240906.1232634
+# github.com/hashicorp/go-azure-sdk/sdk v0.20240923.1151247
 ## explicit; go 1.21
 github.com/hashicorp/go-azure-sdk/sdk/auth
 github.com/hashicorp/go-azure-sdk/sdk/auth/autorest

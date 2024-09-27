@@ -45,7 +45,6 @@ func (c SqlVirtualMachineGroupsClient) Get(ctx context.Context, id SqlVirtualMac
 
 	var model SqlVirtualMachineGroup
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

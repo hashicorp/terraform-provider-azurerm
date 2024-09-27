@@ -44,7 +44,7 @@ func ParsePeeringID(input string) (*PeeringId, error) {
 	}
 
 	id := PeeringId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParsePeeringIDInsensitively(input string) (*PeeringId, error) {
 	}
 
 	id := PeeringId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id PeeringId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticExpressRouteCrossConnections", "expressRouteCrossConnections", "expressRouteCrossConnections"),
-		resourceids.UserSpecifiedSegment("expressRouteCrossConnectionName", "expressRouteCrossConnectionValue"),
+		resourceids.UserSpecifiedSegment("expressRouteCrossConnectionName", "crossConnectionName"),
 		resourceids.StaticSegment("staticPeerings", "peerings", "peerings"),
-		resourceids.UserSpecifiedSegment("peeringName", "peeringValue"),
+		resourceids.UserSpecifiedSegment("peeringName", "peeringName"),
 	}
 }
 

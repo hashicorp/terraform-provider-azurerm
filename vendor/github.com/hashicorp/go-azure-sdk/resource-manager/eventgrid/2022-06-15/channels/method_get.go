@@ -45,7 +45,6 @@ func (c ChannelsClient) Get(ctx context.Context, id ChannelId) (result GetOperat
 
 	var model Channel
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

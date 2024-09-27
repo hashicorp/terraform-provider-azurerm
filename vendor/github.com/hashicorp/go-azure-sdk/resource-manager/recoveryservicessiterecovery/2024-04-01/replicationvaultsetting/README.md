@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationvaultsetting` Documentation
 
-The `replicationvaultsetting` SDK allows for interaction with the Azure Resource Manager Service `recoveryservicessiterecovery` (API Version `2024-04-01`).
+The `replicationvaultsetting` SDK allows for interaction with Azure Resource Manager `recoveryservicessiterecovery` (API Version `2024-04-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := replicationvaultsetting.NewReplicationVaultSettingID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultValue", "replicationVaultSettingValue")
+id := replicationvaultsetting.NewReplicationVaultSettingID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "vaultSettingName")
 
 payload := replicationvaultsetting.VaultSettingCreationInput{
 	// ...
@@ -41,7 +41,7 @@ if err := client.CreateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := replicationvaultsetting.NewReplicationVaultSettingID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultValue", "replicationVaultSettingValue")
+id := replicationvaultsetting.NewReplicationVaultSettingID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "vaultSettingName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -57,7 +57,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := replicationvaultsetting.NewVaultID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultValue")
+id := replicationvaultsetting.NewVaultID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
 
 // alternatively `client.List(ctx, id)` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id)

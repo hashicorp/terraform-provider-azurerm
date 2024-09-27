@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-03-02-preview/privatelinkresources` Documentation
 
-The `privatelinkresources` SDK allows for interaction with the Azure Resource Manager Service `containerservice` (API Version `2023-03-02-preview`).
+The `privatelinkresources` SDK allows for interaction with Azure Resource Manager `containerservice` (API Version `2023-03-02-preview`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := commonids.NewKubernetesClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterValue")
+id := commonids.NewKubernetesClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterName")
 
 read, err := client.List(ctx, id)
 if err != nil {

@@ -44,7 +44,7 @@ func ParsePowerShell72ModuleID(input string) (*PowerShell72ModuleId, error) {
 	}
 
 	id := PowerShell72ModuleId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParsePowerShell72ModuleIDInsensitively(input string) (*PowerShell72ModuleId
 	}
 
 	id := PowerShell72ModuleId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id PowerShell72ModuleId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAutomation", "Microsoft.Automation", "Microsoft.Automation"),
 		resourceids.StaticSegment("staticAutomationAccounts", "automationAccounts", "automationAccounts"),
-		resourceids.UserSpecifiedSegment("automationAccountName", "automationAccountValue"),
+		resourceids.UserSpecifiedSegment("automationAccountName", "automationAccountName"),
 		resourceids.StaticSegment("staticPowerShell72Modules", "powerShell72Modules", "powerShell72Modules"),
-		resourceids.UserSpecifiedSegment("powerShell72ModuleName", "powerShell72ModuleValue"),
+		resourceids.UserSpecifiedSegment("powerShell72ModuleName", "moduleName"),
 	}
 }
 

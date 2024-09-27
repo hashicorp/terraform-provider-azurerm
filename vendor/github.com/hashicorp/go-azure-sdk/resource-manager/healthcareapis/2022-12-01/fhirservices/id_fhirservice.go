@@ -44,7 +44,7 @@ func ParseFhirServiceID(input string) (*FhirServiceId, error) {
 	}
 
 	id := FhirServiceId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseFhirServiceIDInsensitively(input string) (*FhirServiceId, error) {
 	}
 
 	id := FhirServiceId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id FhirServiceId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftHealthcareApis", "Microsoft.HealthcareApis", "Microsoft.HealthcareApis"),
 		resourceids.StaticSegment("staticWorkspaces", "workspaces", "workspaces"),
-		resourceids.UserSpecifiedSegment("workspaceName", "workspaceValue"),
+		resourceids.UserSpecifiedSegment("workspaceName", "workspaceName"),
 		resourceids.StaticSegment("staticFhirServices", "fhirServices", "fhirServices"),
-		resourceids.UserSpecifiedSegment("fhirServiceName", "fhirServiceValue"),
+		resourceids.UserSpecifiedSegment("fhirServiceName", "fhirServiceName"),
 	}
 }
 

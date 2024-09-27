@@ -45,7 +45,6 @@ func (c GrafanaResourceClient) GrafanaGet(ctx context.Context, id GrafanaId) (re
 
 	var model ManagedGrafana
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

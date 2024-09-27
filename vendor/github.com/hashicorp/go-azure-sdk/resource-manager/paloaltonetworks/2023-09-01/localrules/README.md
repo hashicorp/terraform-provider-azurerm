@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2023-09-01/localrules` Documentation
 
-The `localrules` SDK allows for interaction with the Azure Resource Manager Service `paloaltonetworks` (API Version `2023-09-01`).
+The `localrules` SDK allows for interaction with Azure Resource Manager `paloaltonetworks` (API Version `2023-09-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := localrules.NewLocalRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackValue", "localRuleValue")
+id := localrules.NewLocalRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackName", "priority")
 
 payload := localrules.LocalRulesResource{
 	// ...
@@ -41,7 +41,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := localrules.NewLocalRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackValue", "localRuleValue")
+id := localrules.NewLocalRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackName", "priority")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +53,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := localrules.NewLocalRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackValue", "localRuleValue")
+id := localrules.NewLocalRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackName", "priority")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -69,7 +69,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := localrules.NewLocalRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackValue", "localRuleValue")
+id := localrules.NewLocalRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackName", "priority")
 
 read, err := client.GetCounters(ctx, id, localrules.DefaultGetCountersOperationOptions())
 if err != nil {
@@ -85,7 +85,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := localrules.NewLocalRulestackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackValue")
+id := localrules.NewLocalRulestackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackName")
 
 // alternatively `client.ListByLocalRulestacks(ctx, id)` can be used to do batched pagination
 items, err := client.ListByLocalRulestacksComplete(ctx, id)
@@ -102,7 +102,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := localrules.NewLocalRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackValue", "localRuleValue")
+id := localrules.NewLocalRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackName", "priority")
 
 read, err := client.RefreshCounters(ctx, id, localrules.DefaultRefreshCountersOperationOptions())
 if err != nil {
@@ -118,7 +118,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := localrules.NewLocalRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackValue", "localRuleValue")
+id := localrules.NewLocalRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackName", "priority")
 
 read, err := client.ResetCounters(ctx, id, localrules.DefaultResetCountersOperationOptions())
 if err != nil {

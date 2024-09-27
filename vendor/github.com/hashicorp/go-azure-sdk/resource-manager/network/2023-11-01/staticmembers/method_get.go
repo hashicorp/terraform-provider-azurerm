@@ -45,7 +45,6 @@ func (c StaticMembersClient) Get(ctx context.Context, id StaticMemberId) (result
 
 	var model StaticMember
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

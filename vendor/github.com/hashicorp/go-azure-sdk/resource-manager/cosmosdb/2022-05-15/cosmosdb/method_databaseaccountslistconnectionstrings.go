@@ -46,7 +46,6 @@ func (c CosmosDBClient) DatabaseAccountsListConnectionStrings(ctx context.Contex
 
 	var model DatabaseAccountListConnectionStringsResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

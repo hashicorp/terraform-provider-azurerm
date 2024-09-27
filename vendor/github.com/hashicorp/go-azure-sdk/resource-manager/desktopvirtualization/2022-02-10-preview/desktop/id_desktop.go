@@ -44,7 +44,7 @@ func ParseDesktopID(input string) (*DesktopId, error) {
 	}
 
 	id := DesktopId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseDesktopIDInsensitively(input string) (*DesktopId, error) {
 	}
 
 	id := DesktopId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id DesktopId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDesktopVirtualization", "Microsoft.DesktopVirtualization", "Microsoft.DesktopVirtualization"),
 		resourceids.StaticSegment("staticApplicationGroups", "applicationGroups", "applicationGroups"),
-		resourceids.UserSpecifiedSegment("applicationGroupName", "applicationGroupValue"),
+		resourceids.UserSpecifiedSegment("applicationGroupName", "applicationGroupName"),
 		resourceids.StaticSegment("staticDesktops", "desktops", "desktops"),
-		resourceids.UserSpecifiedSegment("desktopName", "desktopValue"),
+		resourceids.UserSpecifiedSegment("desktopName", "desktopName"),
 	}
 }
 

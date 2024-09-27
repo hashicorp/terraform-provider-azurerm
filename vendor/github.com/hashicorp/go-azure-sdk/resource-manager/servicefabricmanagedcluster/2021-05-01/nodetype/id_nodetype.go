@@ -44,7 +44,7 @@ func ParseNodeTypeID(input string) (*NodeTypeId, error) {
 	}
 
 	id := NodeTypeId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseNodeTypeIDInsensitively(input string) (*NodeTypeId, error) {
 	}
 
 	id := NodeTypeId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id NodeTypeId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftServiceFabric", "Microsoft.ServiceFabric", "Microsoft.ServiceFabric"),
 		resourceids.StaticSegment("staticManagedClusters", "managedClusters", "managedClusters"),
-		resourceids.UserSpecifiedSegment("managedClusterName", "managedClusterValue"),
+		resourceids.UserSpecifiedSegment("managedClusterName", "clusterName"),
 		resourceids.StaticSegment("staticNodeTypes", "nodeTypes", "nodeTypes"),
-		resourceids.UserSpecifiedSegment("nodeTypeName", "nodeTypeValue"),
+		resourceids.UserSpecifiedSegment("nodeTypeName", "nodeTypeName"),
 	}
 }
 

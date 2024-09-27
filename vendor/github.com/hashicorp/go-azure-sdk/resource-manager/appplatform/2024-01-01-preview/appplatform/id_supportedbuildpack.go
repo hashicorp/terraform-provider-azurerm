@@ -46,7 +46,7 @@ func ParseSupportedBuildPackID(input string) (*SupportedBuildPackId, error) {
 	}
 
 	id := SupportedBuildPackId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -63,7 +63,7 @@ func ParseSupportedBuildPackIDInsensitively(input string) (*SupportedBuildPackId
 	}
 
 	id := SupportedBuildPackId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -127,11 +127,11 @@ func (id SupportedBuildPackId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAppPlatform", "Microsoft.AppPlatform", "Microsoft.AppPlatform"),
 		resourceids.StaticSegment("staticSpring", "spring", "spring"),
-		resourceids.UserSpecifiedSegment("springName", "springValue"),
+		resourceids.UserSpecifiedSegment("springName", "serviceName"),
 		resourceids.StaticSegment("staticBuildServices", "buildServices", "buildServices"),
-		resourceids.UserSpecifiedSegment("buildServiceName", "buildServiceValue"),
+		resourceids.UserSpecifiedSegment("buildServiceName", "buildServiceName"),
 		resourceids.StaticSegment("staticSupportedBuildPacks", "supportedBuildPacks", "supportedBuildPacks"),
-		resourceids.UserSpecifiedSegment("supportedBuildPackName", "supportedBuildPackValue"),
+		resourceids.UserSpecifiedSegment("supportedBuildPackName", "buildpackName"),
 	}
 }
 
