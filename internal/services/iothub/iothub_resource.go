@@ -376,6 +376,14 @@ func resourceIotHub() *pluginsdk.Resource {
 						},
 
 						"resource_group_name": commonschema.ResourceGroupNameOptional(),
+
+						// We have to add "Computed: true" since this property would always be set when it isn't specified in the tf config, otherwise it would block the existing users
+						"subscription_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validation.IsUUID,
+						},
 					},
 				},
 			},
@@ -1276,7 +1284,12 @@ func expandIoTHubEndpoints(d *pluginsdk.ResourceData, subscriptionId string) (*d
 		name := endpoint["name"].(string)
 		resourceGroup := endpoint["resource_group_name"].(string)
 		authenticationType := devices.AuthenticationType(endpoint["authentication_type"].(string))
-		subscriptionID := subscriptionId
+
+		subscriptionID := endpoint["subscription_id"].(string)
+		// We have to set `subscription_id` with the subscription Id in the current context when `subscription_id` isn't specified in the tf config, otherwise it would block the existing users
+		if subscriptionID == "" {
+			subscriptionID = subscriptionId
+		}
 
 		var identity *devices.ManagedIdentity
 		var endpointUri *string
@@ -1595,6 +1608,7 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 
 				output["encoding"] = string(container.Encoding)
 				output["type"] = "AzureIotHub.StorageContainer"
+				output["subscription_id"] = pointer.From(container.SubscriptionID)
 
 				results = append(results, output)
 			}
@@ -1642,6 +1656,7 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 				}
 
 				output["type"] = "AzureIotHub.ServiceBusQueue"
+				output["subscription_id"] = pointer.From(queue.SubscriptionID)
 
 				results = append(results, output)
 			}
@@ -1689,6 +1704,7 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 				}
 
 				output["type"] = "AzureIotHub.ServiceBusTopic"
+				output["subscription_id"] = pointer.From(topic.SubscriptionID)
 
 				results = append(results, output)
 			}
@@ -1736,6 +1752,7 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 				}
 
 				output["type"] = "AzureIotHub.EventHub"
+				output["subscription_id"] = pointer.From(eventHub.SubscriptionID)
 
 				results = append(results, output)
 			}
