@@ -37,7 +37,7 @@ func TestAccSignalrServiceCustomDomainResource_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service_custom_domain", "test")
 	r := SignalrServiceCustomDomainResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
