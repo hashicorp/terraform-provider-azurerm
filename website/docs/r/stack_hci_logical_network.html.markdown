@@ -80,8 +80,6 @@ A `route` block supports the following:
 
 * `name` - (Optional) The name of the route. Changing this forces a new resource to be created.
 
--> **Note:** `name` is deprecated and will be removed in the next major release.
-
 ---
 
 A `subnet` block supports the following:
