@@ -71,6 +71,7 @@ func (r Registration) Resources() []sdk.Resource {
 	resources := []sdk.Resource{
 		ContainerRegistryCacheRule{},
 		ContainerRegistryTaskResource{},
+		ContainerRegistryCredentialSetResource{},
 		ContainerRegistryTaskScheduleResource{},
 		ContainerRegistryTokenPasswordResource{},
 		ContainerConnectedRegistryResource{},

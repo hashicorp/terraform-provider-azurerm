@@ -10,6 +10,7 @@ import (
 	containerregistry_v2019_06_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview"
 	containerregistry_v2023_06_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-06-01-preview"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-07-01/cacherules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-07-01/credentialsets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2019-08-01/containerservices"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-04-01/fleetupdatestrategies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-04-01/updateruns"
@@ -28,6 +29,7 @@ type Client struct {
 	AgentPoolsClient                            *agentpools.AgentPoolsClient
 	ContainerInstanceClient                     *containerinstance.ContainerInstanceClient
 	CacheRulesClient                            *cacherules.CacheRulesClient
+	CredentialSetsClient                        *credentialsets.CredentialSetsClient
 	ContainerRegistryClient_v2023_06_01_preview *containerregistry_v2023_06_01_preview.Client
 	// v2019_06_01_preview is needed for container registry agent pools and tasks
 	ContainerRegistryClient_v2019_06_01_preview *containerregistry_v2019_06_01_preview.Client
@@ -68,6 +70,12 @@ func NewContainersClient(o *common.ClientOptions) (*Client, error) {
 		return nil, fmt.Errorf("building Cache Rules client: %+v", err)
 	}
 	o.Configure(cacheRulesClient.Client, o.Authorizers.ResourceManager)
+
+	credentialSetsClient, err := credentialsets.NewCredentialSetsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Credential Sets client: %+v", err)
+	}
+	o.Configure(credentialSetsClient.Client, o.Authorizers.ResourceManager)
 
 	// AKS
 	fleetUpdateRunsClient, err := updateruns.NewUpdateRunsClientWithBaseURI(o.Environment.ResourceManager)
@@ -128,6 +136,7 @@ func NewContainersClient(o *common.ClientOptions) (*Client, error) {
 		AgentPoolsClient:                            agentPoolsClient,
 		ContainerInstanceClient:                     containerInstanceClient,
 		CacheRulesClient:                            cacheRulesClient,
+		CredentialSetsClient:                        credentialSetsClient,
 		ContainerRegistryClient_v2023_06_01_preview: containerRegistryClient_v2023_06_01_preview,
 		ContainerRegistryClient_v2019_06_01_preview: containerRegistryClient_v2019_06_01_preview,
 		FleetUpdateRunsClient:                       fleetUpdateRunsClient,
