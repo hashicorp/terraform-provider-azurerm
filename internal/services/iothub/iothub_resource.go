@@ -1277,7 +1277,7 @@ func expandIoTHubEndpoints(d *pluginsdk.ResourceData, subscriptionId string) (*d
 	eventHubProperties := make([]devices.RoutingEventHubProperties, 0)
 	storageContainerProperties := make([]devices.RoutingStorageContainerProperties, 0)
 
-	for _, endpointRaw := range routeEndpointList {
+	for k, endpointRaw := range routeEndpointList {
 		endpoint := endpointRaw.(map[string]interface{})
 
 		t := endpoint["type"]
@@ -1287,7 +1287,8 @@ func expandIoTHubEndpoints(d *pluginsdk.ResourceData, subscriptionId string) (*d
 
 		subscriptionID := endpoint["subscription_id"].(string)
 		// We have to set `subscription_id` with the subscription Id in the current context when `subscription_id` isn't specified in the tf config, otherwise it would block the existing users
-		if subscriptionID == "" {
+		// As `Computed: true` is enabled, TF would always get the value from the last apply when this property isn't set. So we have to use IsExplicitlyNullInConfig to determine if it's set in the tf config
+		if pluginsdk.IsExplicitlyNullInConfig(d, fmt.Sprintf("endpoint.%d.subscription_id", k)) {
 			subscriptionID = subscriptionId
 		}
 
