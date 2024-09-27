@@ -138,6 +138,7 @@ resource "azurerm_oracledatabase_exadata_infrastructure" "test" {
   storage_count       = "3"
   zones               = ["3"]
   customer_contacts   = ["test@test.com"]
+
   maintenance_window {
     custom_action_timeout_in_mins    = 0
     days_of_week                     = ["Monday"]
@@ -150,6 +151,7 @@ resource "azurerm_oracledatabase_exadata_infrastructure" "test" {
     patching_mode                    = "Rolling"
     preference                       = "NoPreference"
   }
+
   tags = {
     test = "testTag1"
   }
