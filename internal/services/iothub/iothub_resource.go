@@ -1288,7 +1288,7 @@ func expandIoTHubEndpoints(d *pluginsdk.ResourceData, subscriptionId string) (*d
 		subscriptionID := endpoint["subscription_id"].(string)
 		// We have to set `subscription_id` with the subscription Id in the current context when `subscription_id` isn't specified in the tf config, otherwise it would block the existing users
 		// As `Computed: true` is enabled, TF would always get the value from the last apply when this property isn't set. So we have to use IsExplicitlyNullInConfig to determine if it's set in the tf config
-		if pluginsdk.IsExplicitlyNullInConfig(d, fmt.Sprintf("endpoint.%d.subscription_id", k)) {
+		if v := d.GetRawConfig().AsValueMap()["endpoint"].AsValueSlice()[k].AsValueMap()["subscription_id"]; v.IsNull() {
 			subscriptionID = subscriptionId
 		}
 
