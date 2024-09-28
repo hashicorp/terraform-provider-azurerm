@@ -63,31 +63,31 @@ resource "azurerm_virtual_network" "test-2" {
 }
 
 resource "azurerm_virtual_network_peering" "test-1" {
-  name                      	= "peer1to2"
-  resource_group_name       	= azurerm_resource_group.test.name
-  virtual_network_name      	= azurerm_virtual_network.test-1.name
-  remote_virtual_network_id 	= azurerm_virtual_network.test-2.id
-  allow_virtual_network_access 	= true
+  name                         = "peer1to2"
+  resource_group_name          = azurerm_resource_group.test.name
+  virtual_network_name         = azurerm_virtual_network.test-1.name
+  remote_virtual_network_id    = azurerm_virtual_network.test-2.id
+  allow_virtual_network_access = true
 }
 
 resource "azurerm_virtual_network_peering" "test-2" {
-  name                      	= "peer2to1"
-  resource_group_name       	= azurerm_resource_group.test.name
-  virtual_network_name      	= azurerm_virtual_network.test-2.name
-  remote_virtual_network_id 	= azurerm_virtual_network.test-1.id
-  allow_virtual_network_access 	= true
+  name                         = "peer2to1"
+  resource_group_name          = azurerm_resource_group.test.name
+  virtual_network_name         = azurerm_virtual_network.test-2.name
+  remote_virtual_network_id    = azurerm_virtual_network.test-1.id
+  allow_virtual_network_access = true
 }
 
 data "azurerm_virtual_network_peering" "test-1" {
-  name 					= "peer1to2"
-  virtual_network_name 	= azurerm_virtual_network.test-1.name
-  resource_group_name 	= azurerm_resource_group.test.name
+  name                 = "peer1to2"
+  virtual_network_name = azurerm_virtual_network.test-1.name
+  resource_group_name  = azurerm_resource_group.test.name
 }
 
 data "azurerm_virtual_network_peering" "test-2" {
-  name 					= "peer2to1"
-  virtual_network_name 	= azurerm_virtual_network.test-2.name
-  resource_group_name 	= azurerm_resource_group.test.name
+  name                 = "peer2to1"
+  virtual_network_name = azurerm_virtual_network.test-2.name
+  resource_group_name  = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary)
 }

@@ -19,9 +19,9 @@ data "azurerm_virtual_network" "example" {
 }
 
 data "azurerm_virtual_network_peering" "example" {
-  name                  = "peer-vnet01-to-vnet02"
-  resource_group_name   = "networking"
-  virtual_network_name  = data.azurerm_virtual_network.example.name
+  name                 = "peer-vnet01-to-vnet02"
+  resource_group_name  = "networking"
+  virtual_network_name = data.azurerm_virtual_network.example.name
 }
 
 output "id" {
