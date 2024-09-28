@@ -45,7 +45,6 @@ func (c ManagedEnvironmentsClient) Get(ctx context.Context, id ManagedEnvironmen
 
 	var model ManagedEnvironment
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

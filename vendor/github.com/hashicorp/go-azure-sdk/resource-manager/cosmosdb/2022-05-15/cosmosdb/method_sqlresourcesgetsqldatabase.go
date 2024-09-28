@@ -45,7 +45,6 @@ func (c CosmosDBClient) SqlResourcesGetSqlDatabase(ctx context.Context, id SqlDa
 
 	var model SqlDatabaseGetResults
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

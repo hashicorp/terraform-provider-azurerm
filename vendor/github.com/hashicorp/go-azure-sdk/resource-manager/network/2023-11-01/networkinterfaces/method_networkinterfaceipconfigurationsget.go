@@ -46,7 +46,6 @@ func (c NetworkInterfacesClient) NetworkInterfaceIPConfigurationsGet(ctx context
 
 	var model NetworkInterfaceIPConfiguration
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

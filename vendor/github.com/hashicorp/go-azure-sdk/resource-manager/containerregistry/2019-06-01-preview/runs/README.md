@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview/runs` Documentation
 
-The `runs` SDK allows for interaction with the Azure Resource Manager Service `containerregistry` (API Version `2019-06-01-preview`).
+The `runs` SDK allows for interaction with Azure Resource Manager `containerregistry` (API Version `2019-06-01-preview`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := runs.NewRunID("12345678-1234-9876-4563-123456789012", "example-resource-group", "registryValue", "runIdValue")
+id := runs.NewRunID("12345678-1234-9876-4563-123456789012", "example-resource-group", "registryName", "runId")
 
 if err := client.CancelThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -36,7 +36,7 @@ if err := client.CancelThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := runs.NewRunID("12345678-1234-9876-4563-123456789012", "example-resource-group", "registryValue", "runIdValue")
+id := runs.NewRunID("12345678-1234-9876-4563-123456789012", "example-resource-group", "registryName", "runId")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -52,7 +52,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := runs.NewRunID("12345678-1234-9876-4563-123456789012", "example-resource-group", "registryValue", "runIdValue")
+id := runs.NewRunID("12345678-1234-9876-4563-123456789012", "example-resource-group", "registryName", "runId")
 
 read, err := client.GetLogSasUrl(ctx, id)
 if err != nil {
@@ -68,7 +68,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := runs.NewRegistryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "registryValue")
+id := runs.NewRegistryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "registryName")
 
 // alternatively `client.List(ctx, id, runs.DefaultListOperationOptions())` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id, runs.DefaultListOperationOptions())
@@ -85,7 +85,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := runs.NewRunID("12345678-1234-9876-4563-123456789012", "example-resource-group", "registryValue", "runIdValue")
+id := runs.NewRunID("12345678-1234-9876-4563-123456789012", "example-resource-group", "registryName", "runId")
 
 payload := runs.RunUpdateParameters{
 	// ...

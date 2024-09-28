@@ -36,6 +36,7 @@ func (o ListOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -82,7 +83,6 @@ func (c VirtualMachineImagesClient) List(ctx context.Context, id SkuId, options 
 
 	var model []VirtualMachineImageResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

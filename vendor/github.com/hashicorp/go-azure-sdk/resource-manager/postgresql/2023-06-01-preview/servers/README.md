@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2023-06-01-preview/servers` Documentation
 
-The `servers` SDK allows for interaction with the Azure Resource Manager Service `postgresql` (API Version `2023-06-01-preview`).
+The `servers` SDK allows for interaction with Azure Resource Manager `postgresql` (API Version `2023-06-01-preview`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := servers.NewFlexibleServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "flexibleServerValue")
+id := servers.NewFlexibleServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverName")
 
 payload := servers.Server{
 	// ...
@@ -42,7 +42,7 @@ if err := client.CreateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := servers.NewFlexibleServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "flexibleServerValue")
+id := servers.NewFlexibleServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -54,7 +54,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := servers.NewFlexibleServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "flexibleServerValue")
+id := servers.NewFlexibleServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -104,7 +104,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := servers.NewFlexibleServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "flexibleServerValue")
+id := servers.NewFlexibleServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverName")
 
 payload := servers.ServerForUpdate{
 	// ...

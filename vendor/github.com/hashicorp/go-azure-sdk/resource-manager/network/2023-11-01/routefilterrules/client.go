@@ -15,7 +15,7 @@ type RouteFilterRulesClient struct {
 }
 
 func NewRouteFilterRulesClientWithBaseURI(sdkApi sdkEnv.Api) (*RouteFilterRulesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "routefilterrules", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "routefilterrules", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating RouteFilterRulesClient: %+v", err)
 	}

@@ -15,7 +15,7 @@ type BackendClient struct {
 }
 
 func NewBackendClientWithBaseURI(sdkApi sdkEnv.Api) (*BackendClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "backend", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "backend", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating BackendClient: %+v", err)
 	}

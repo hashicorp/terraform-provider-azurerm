@@ -44,7 +44,7 @@ func ParsePrivateEndpointConnectionID(input string) (*PrivateEndpointConnectionI
 	}
 
 	id := PrivateEndpointConnectionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParsePrivateEndpointConnectionIDInsensitively(input string) (*PrivateEndpoi
 	}
 
 	id := PrivateEndpointConnectionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id PrivateEndpointConnectionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftSignalRService", "Microsoft.SignalRService", "Microsoft.SignalRService"),
 		resourceids.StaticSegment("staticWebPubSub", "webPubSub", "webPubSub"),
-		resourceids.UserSpecifiedSegment("webPubSubName", "webPubSubValue"),
+		resourceids.UserSpecifiedSegment("webPubSubName", "resourceName"),
 		resourceids.StaticSegment("staticPrivateEndpointConnections", "privateEndpointConnections", "privateEndpointConnections"),
-		resourceids.UserSpecifiedSegment("privateEndpointConnectionName", "privateEndpointConnectionValue"),
+		resourceids.UserSpecifiedSegment("privateEndpointConnectionName", "privateEndpointConnectionName"),
 	}
 }
 

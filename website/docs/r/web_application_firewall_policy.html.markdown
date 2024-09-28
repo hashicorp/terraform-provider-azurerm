@@ -190,6 +190,8 @@ The `policy_settings` block supports the following:
 
 * `log_scrubbing` - (Optional) One `log_scrubbing` block as defined below.
 
+* `request_body_enforcement` - (Optional) Whether the firewall should block a request with body size greater then `max_request_body_size_in_kb`. Defaults to `true`.
+
 * `request_body_inspect_limit_in_kb` - (Optional) Specifies the maximum request body inspection limit in KB for the Web Application Firewall. Defaults to `128`.
 
 * `js_challenge_cookie_expiration_in_minutes` - (Optional) Specifies the JavaScript challenge cookie validity lifetime in minutes. The user is challenged after the lifetime expires. Accepted values are in the range `5` to `1440`. Defaults to `30`.
@@ -257,7 +259,7 @@ The `rule` block supports the following:
 
 * `id` - (Required) Identifier for the managed rule.
 
-* `enabled` - (Optional) Describes if the managed rule is in enabled state or disabled state.
+* `enabled` - (Optional) Describes if the managed rule is in enabled state or disabled state. Defaults to `false`.
 
 * `action` - (Optional) Describes the override action to be applied when rule matches. Possible values are `Allow`, `AnomalyScoring`, `Block`, `JSChallenge` and `Log`. `JSChallenge` is only valid for rulesets of type `Microsoft_BotManagerRuleSet`.
 

@@ -103,12 +103,12 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 				target = targetRaw.(map[string]interface{})
 			}
 
-			updatedRules = append(updatedRules, map[string]interface{}{
-				"id":                   id,
-				"ruleType":             ruleType,
-				"target":               target,
-				"isExpirationRequired": expirationRequired,
-				"maximumDuration":      maximumDuration,
+			updatedRules = append(updatedRules, RoleManagementPolicyRule{
+				Id:                   pointer.To(id),
+				RuleType:             rolemanagementpolicies.RoleManagementPolicyRuleType(ruleType),
+				Target:               target,
+				IsExpirationRequired: pointer.To(expirationRequired),
+				MaximumDuration:      pointer.To(maximumDuration),
 			})
 		}
 	}
@@ -143,11 +143,11 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 				target = targetRaw.(map[string]interface{})
 			}
 
-			updatedRules = append(updatedRules, map[string]interface{}{
-				"id":           id,
-				"ruleType":     ruleType,
-				"target":       target,
-				"enabledRules": enabledRules,
+			updatedRules = append(updatedRules, RoleManagementPolicyRule{
+				Id:           pointer.To(id),
+				RuleType:     rolemanagementpolicies.RoleManagementPolicyRuleType(ruleType),
+				Target:       target,
+				EnabledRules: pointer.To(enabledRules),
 			})
 		}
 	}
@@ -187,12 +187,12 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 				target = targetRaw.(map[string]interface{})
 			}
 
-			updatedRules = append(updatedRules, map[string]interface{}{
-				"id":                   id,
-				"ruleType":             ruleType,
-				"target":               target,
-				"isExpirationRequired": expirationRequired,
-				"maximumDuration":      maximumDuration,
+			updatedRules = append(updatedRules, RoleManagementPolicyRule{
+				Id:                   pointer.To(id),
+				RuleType:             rolemanagementpolicies.RoleManagementPolicyRuleType(ruleType),
+				Target:               target,
+				IsExpirationRequired: pointer.To(expirationRequired),
+				MaximumDuration:      pointer.To(maximumDuration),
 			})
 		}
 	}
@@ -214,11 +214,11 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 				maximumDuration = model.ActivationRules[0].MaximumDuration
 			}
 
-			updatedRules = append(updatedRules, map[string]interface{}{
-				"id":              id,
-				"ruleType":        ruleType,
-				"target":          target,
-				"maximumDuration": maximumDuration,
+			updatedRules = append(updatedRules, RoleManagementPolicyRule{
+				Id:              pointer.To(id),
+				RuleType:        rolemanagementpolicies.RoleManagementPolicyRuleType(ruleType),
+				Target:          target,
+				MaximumDuration: pointer.To(maximumDuration),
 			})
 		}
 	}
@@ -288,11 +288,11 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 				target = targetRaw.(map[string]interface{})
 			}
 
-			updatedRules = append(updatedRules, map[string]interface{}{
-				"id":       id,
-				"ruleType": ruleType,
-				"target":   target,
-				"setting": map[string]interface{}{
+			updatedRules = append(updatedRules, RoleManagementPolicyRule{
+				Id:       pointer.To(id),
+				RuleType: rolemanagementpolicies.RoleManagementPolicyRuleType(ruleType),
+				Target:   target,
+				Setting: map[string]interface{}{
 					"isApprovalRequired": approvalReqd,
 					"approvalStages":     approvalStages,
 				},
@@ -327,12 +327,12 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 				target = targetRaw.(map[string]interface{})
 			}
 
-			updatedRules = append(updatedRules, map[string]interface{}{
-				"id":         id,
-				"ruleType":   ruleType,
-				"target":     target,
-				"isEnabled":  isEnabled,
-				"claimValue": claimValue,
+			updatedRules = append(updatedRules, RoleManagementPolicyRule{
+				Id:         pointer.To(id),
+				RuleType:   rolemanagementpolicies.RoleManagementPolicyRuleType(ruleType),
+				Target:     target,
+				IsEnabled:  pointer.To(isEnabled),
+				ClaimValue: pointer.To(claimValue),
 			})
 		}
 	}
@@ -366,11 +366,11 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 				target = targetRaw.(map[string]interface{})
 			}
 
-			updatedRules = append(updatedRules, map[string]interface{}{
-				"id":           id,
-				"ruleType":     ruleType,
-				"target":       target,
-				"enabledRules": enabledRules,
+			updatedRules = append(updatedRules, RoleManagementPolicyRule{
+				Id:           pointer.To(id),
+				RuleType:     rolemanagementpolicies.RoleManagementPolicyRuleType(ruleType),
+				Target:       target,
+				EnabledRules: pointer.To(enabledRules),
 			})
 		}
 	}
@@ -595,15 +595,15 @@ func expandNotificationSettings(rule rolemanagementpolicies.RawRoleManagementPol
 		notificationType = notificationTypeRaw.(string)
 	}
 
-	return map[string]interface{}{
-		"id":                         id,
-		"ruleType":                   ruleType,
-		"target":                     target,
-		"recipientType":              recipientType,
-		"notificationType":           notificationType,
-		"notificationLevel":          level,
-		"isDefaultRecipientsEnabled": defaultRecipients,
-		"notificationRecipients":     additionalRecipients,
+	return RoleManagementPolicyRule{
+		Id:                         pointer.To(id),
+		RuleType:                   rolemanagementpolicies.RoleManagementPolicyRuleType(ruleType),
+		Target:                     target,
+		RecipientType:              pointer.To(recipientType),
+		NotificationType:           pointer.To(notificationType),
+		NotificationLevel:          pointer.To(level),
+		IsDefaultRecipientsEnabled: pointer.To(defaultRecipients),
+		NotificationRecipients:     pointer.To(additionalRecipients),
 	}
 }
 

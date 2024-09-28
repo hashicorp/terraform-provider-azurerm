@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/timeseriesinsights/2020-05-15/environments` Documentation
 
-The `environments` SDK allows for interaction with the Azure Resource Manager Service `timeseriesinsights` (API Version `2020-05-15`).
+The `environments` SDK allows for interaction with Azure Resource Manager `timeseriesinsights` (API Version `2020-05-15`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := environments.NewEnvironmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "environmentValue")
+id := environments.NewEnvironmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "environmentName")
 
 payload := environments.EnvironmentCreateOrUpdateParameters{
 	// ...
@@ -42,7 +42,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := environments.NewEnvironmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "environmentValue")
+id := environments.NewEnvironmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "environmentName")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -58,7 +58,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := environments.NewEnvironmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "environmentValue")
+id := environments.NewEnvironmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "environmentName")
 
 read, err := client.Get(ctx, id, environments.DefaultGetOperationOptions())
 if err != nil {
@@ -106,7 +106,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := environments.NewEnvironmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "environmentValue")
+id := environments.NewEnvironmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "environmentName")
 
 payload := environments.EnvironmentUpdateParameters{
 	// ...

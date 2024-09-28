@@ -45,7 +45,6 @@ func (c WebPubSubClient) SharedPrivateLinkResourcesGet(ctx context.Context, id S
 
 	var model SharedPrivateLinkResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

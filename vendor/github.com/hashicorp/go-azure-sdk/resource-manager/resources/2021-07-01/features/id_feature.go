@@ -42,7 +42,7 @@ func ParseFeatureID(input string) (*FeatureId, error) {
 	}
 
 	id := FeatureId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseFeatureIDInsensitively(input string) (*FeatureId, error) {
 	}
 
 	id := FeatureId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -113,9 +113,9 @@ func (id FeatureId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftFeatures", "Microsoft.Features", "Microsoft.Features"),
 		resourceids.StaticSegment("staticProviders2", "providers", "providers"),
-		resourceids.UserSpecifiedSegment("providerName", "providerValue"),
+		resourceids.UserSpecifiedSegment("providerName", "resourceProviderNamespace"),
 		resourceids.StaticSegment("staticFeatures", "features", "features"),
-		resourceids.UserSpecifiedSegment("featureName", "featureValue"),
+		resourceids.UserSpecifiedSegment("featureName", "featureName"),
 	}
 }
 

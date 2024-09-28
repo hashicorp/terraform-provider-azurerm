@@ -49,7 +49,6 @@ func (c StorageMoversClient) CreateOrUpdate(ctx context.Context, id StorageMover
 
 	var model StorageMover
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

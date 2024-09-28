@@ -14,6 +14,14 @@ type ExecAction struct {
 	Command *[]string `json:"command,omitempty"`
 
 	// Fields inherited from ProbeAction
+
+	Type ProbeActionType `json:"type"`
+}
+
+func (s ExecAction) ProbeAction() BaseProbeActionImpl {
+	return BaseProbeActionImpl{
+		Type: s.Type,
+	}
 }
 
 var _ json.Marshaler = ExecAction{}
@@ -27,9 +35,10 @@ func (s ExecAction) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling ExecAction: %+v", err)
 	}
+
 	decoded["type"] = "ExecAction"
 
 	encoded, err = json.Marshal(decoded)

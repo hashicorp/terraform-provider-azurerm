@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2024-04-01/datastore` Documentation
 
-The `datastore` SDK allows for interaction with the Azure Resource Manager Service `machinelearningservices` (API Version `2024-04-01`).
+The `datastore` SDK allows for interaction with Azure Resource Manager `machinelearningservices` (API Version `2024-04-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := datastore.NewDataStoreID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue", "dataStoreValue")
+id := datastore.NewDataStoreID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName", "name")
 
 payload := datastore.DatastoreResource{
 	// ...
@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := datastore.NewDataStoreID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue", "dataStoreValue")
+id := datastore.NewDataStoreID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName", "name")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -61,7 +61,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := datastore.NewDataStoreID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue", "dataStoreValue")
+id := datastore.NewDataStoreID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName", "name")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -77,7 +77,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := datastore.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue")
+id := datastore.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName")
 
 // alternatively `client.List(ctx, id, datastore.DefaultListOperationOptions())` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id, datastore.DefaultListOperationOptions())
@@ -94,7 +94,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := datastore.NewDataStoreID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue", "dataStoreValue")
+id := datastore.NewDataStoreID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName", "name")
 
 read, err := client.ListSecrets(ctx, id)
 if err != nil {

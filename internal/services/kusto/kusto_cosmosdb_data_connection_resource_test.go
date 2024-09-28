@@ -29,7 +29,7 @@ func (k KustoCosmosDBDataConnectionResource) Exists(ctx context.Context, clients
 	}
 
 	if resp.Model != nil {
-		value, ok := (*resp.Model).(dataconnections.CosmosDbDataConnection)
+		value, ok := resp.Model.(dataconnections.CosmosDbDataConnection)
 		if !ok {
 			return nil, fmt.Errorf("%s is not an CosmosDB Data Connection", id.String())
 		}

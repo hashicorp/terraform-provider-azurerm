@@ -46,7 +46,6 @@ func (c BlobContainersClient) Get(ctx context.Context, id commonids.StorageConta
 
 	var model BlobContainer
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

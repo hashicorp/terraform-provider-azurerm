@@ -40,6 +40,7 @@ func (o SubscriptionNetworkManagerConnectionsListOperationOptions) ToHeaders() *
 
 func (o SubscriptionNetworkManagerConnectionsListOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

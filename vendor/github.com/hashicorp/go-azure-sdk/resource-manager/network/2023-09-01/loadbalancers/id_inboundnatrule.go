@@ -44,7 +44,7 @@ func ParseInboundNatRuleID(input string) (*InboundNatRuleId, error) {
 	}
 
 	id := InboundNatRuleId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseInboundNatRuleIDInsensitively(input string) (*InboundNatRuleId, error)
 	}
 
 	id := InboundNatRuleId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id InboundNatRuleId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticLoadBalancers", "loadBalancers", "loadBalancers"),
-		resourceids.UserSpecifiedSegment("loadBalancerName", "loadBalancerValue"),
+		resourceids.UserSpecifiedSegment("loadBalancerName", "loadBalancerName"),
 		resourceids.StaticSegment("staticInboundNatRules", "inboundNatRules", "inboundNatRules"),
-		resourceids.UserSpecifiedSegment("inboundNatRuleName", "inboundNatRuleValue"),
+		resourceids.UserSpecifiedSegment("inboundNatRuleName", "inboundNatRuleName"),
 	}
 }
 

@@ -15,7 +15,7 @@ type ServerRestartClient struct {
 }
 
 func NewServerRestartClientWithBaseURI(sdkApi sdkEnv.Api) (*ServerRestartClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "serverrestart", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "serverrestart", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ServerRestartClient: %+v", err)
 	}

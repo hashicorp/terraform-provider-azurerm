@@ -47,7 +47,6 @@ func (c DiagnosticSettingsCategoriesClient) DiagnosticSettingsCategoryList(ctx c
 
 	var model DiagnosticSettingsCategoryResourceCollection
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

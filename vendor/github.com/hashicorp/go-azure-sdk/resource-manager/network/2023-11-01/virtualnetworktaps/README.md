@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/virtualnetworktaps` Documentation
 
-The `virtualnetworktaps` SDK allows for interaction with the Azure Resource Manager Service `network` (API Version `2023-11-01`).
+The `virtualnetworktaps` SDK allows for interaction with Azure Resource Manager `network` (API Version `2023-11-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 

@@ -34,6 +34,7 @@ func (o DatabaseAccountRegionListMetricsOperationOptions) ToHeaders() *client.He
 
 func (o DatabaseAccountRegionListMetricsOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -74,7 +75,6 @@ func (c CosmosDBClient) DatabaseAccountRegionListMetrics(ctx context.Context, id
 
 	var model MetricListResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

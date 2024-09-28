@@ -50,7 +50,7 @@ func ParseOfferSkuVersionID(input string) (*OfferSkuVersionId, error) {
 	}
 
 	id := OfferSkuVersionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -67,7 +67,7 @@ func ParseOfferSkuVersionIDInsensitively(input string) (*OfferSkuVersionId, erro
 	}
 
 	id := OfferSkuVersionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -137,19 +137,19 @@ func (id OfferSkuVersionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftCompute", "Microsoft.Compute", "Microsoft.Compute"),
 		resourceids.StaticSegment("staticLocations", "locations", "locations"),
-		resourceids.UserSpecifiedSegment("locationName", "locationValue"),
+		resourceids.UserSpecifiedSegment("locationName", "location"),
 		resourceids.StaticSegment("staticEdgeZones", "edgeZones", "edgeZones"),
-		resourceids.UserSpecifiedSegment("edgeZoneName", "edgeZoneValue"),
+		resourceids.UserSpecifiedSegment("edgeZoneName", "edgeZone"),
 		resourceids.StaticSegment("staticPublishers", "publishers", "publishers"),
-		resourceids.UserSpecifiedSegment("publisherName", "publisherValue"),
+		resourceids.UserSpecifiedSegment("publisherName", "publisherName"),
 		resourceids.StaticSegment("staticArtifactTypes", "artifactTypes", "artifactTypes"),
 		resourceids.StaticSegment("staticVmImage", "vmImage", "vmImage"),
 		resourceids.StaticSegment("staticOffers", "offers", "offers"),
-		resourceids.UserSpecifiedSegment("offerName", "offerValue"),
+		resourceids.UserSpecifiedSegment("offerName", "offer"),
 		resourceids.StaticSegment("staticSkus", "skus", "skus"),
-		resourceids.UserSpecifiedSegment("skuName", "skuValue"),
+		resourceids.UserSpecifiedSegment("skuName", "skus"),
 		resourceids.StaticSegment("staticVersions", "versions", "versions"),
-		resourceids.UserSpecifiedSegment("versionName", "versionValue"),
+		resourceids.UserSpecifiedSegment("versionName", "version"),
 	}
 }
 

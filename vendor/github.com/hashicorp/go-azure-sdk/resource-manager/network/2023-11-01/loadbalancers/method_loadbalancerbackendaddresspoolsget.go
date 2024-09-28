@@ -45,7 +45,6 @@ func (c LoadBalancersClient) LoadBalancerBackendAddressPoolsGet(ctx context.Cont
 
 	var model BackendAddressPool
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

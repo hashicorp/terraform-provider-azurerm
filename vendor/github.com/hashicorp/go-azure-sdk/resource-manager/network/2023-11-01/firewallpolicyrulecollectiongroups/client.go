@@ -15,7 +15,7 @@ type FirewallPolicyRuleCollectionGroupsClient struct {
 }
 
 func NewFirewallPolicyRuleCollectionGroupsClientWithBaseURI(sdkApi sdkEnv.Api) (*FirewallPolicyRuleCollectionGroupsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "firewallpolicyrulecollectiongroups", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "firewallpolicyrulecollectiongroups", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating FirewallPolicyRuleCollectionGroupsClient: %+v", err)
 	}

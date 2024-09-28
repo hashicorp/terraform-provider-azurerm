@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2023-04-01/environmenttypes` Documentation
 
-The `environmenttypes` SDK allows for interaction with the Azure Resource Manager Service `devcenter` (API Version `2023-04-01`).
+The `environmenttypes` SDK allows for interaction with Azure Resource Manager `devcenter` (API Version `2023-04-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := environmenttypes.NewDevCenterEnvironmentTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "devCenterValue", "environmentTypeValue")
+id := environmenttypes.NewDevCenterEnvironmentTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "devCenterName", "environmentTypeName")
 
 payload := environmenttypes.EnvironmentType{
 	// ...
@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := environmenttypes.NewDevCenterEnvironmentTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "devCenterValue", "environmentTypeValue")
+id := environmenttypes.NewDevCenterEnvironmentTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "devCenterName", "environmentTypeName")
 
 read, err := client.EnvironmentTypesDelete(ctx, id)
 if err != nil {
@@ -61,7 +61,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := environmenttypes.NewDevCenterEnvironmentTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "devCenterValue", "environmentTypeValue")
+id := environmenttypes.NewDevCenterEnvironmentTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "devCenterName", "environmentTypeName")
 
 read, err := client.EnvironmentTypesGet(ctx, id)
 if err != nil {
@@ -77,7 +77,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := environmenttypes.NewDevCenterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "devCenterValue")
+id := environmenttypes.NewDevCenterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "devCenterName")
 
 // alternatively `client.EnvironmentTypesListByDevCenter(ctx, id, environmenttypes.DefaultEnvironmentTypesListByDevCenterOperationOptions())` can be used to do batched pagination
 items, err := client.EnvironmentTypesListByDevCenterComplete(ctx, id, environmenttypes.DefaultEnvironmentTypesListByDevCenterOperationOptions())
@@ -94,7 +94,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := environmenttypes.NewDevCenterEnvironmentTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "devCenterValue", "environmentTypeValue")
+id := environmenttypes.NewDevCenterEnvironmentTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "devCenterName", "environmentTypeName")
 
 payload := environmenttypes.EnvironmentTypeUpdate{
 	// ...
@@ -115,7 +115,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := environmenttypes.NewAllowedEnvironmentTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "projectValue", "allowedEnvironmentTypeValue")
+id := environmenttypes.NewAllowedEnvironmentTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "projectName", "environmentTypeName")
 
 read, err := client.ProjectAllowedEnvironmentTypesGet(ctx, id)
 if err != nil {
@@ -131,7 +131,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := environmenttypes.NewProjectID("12345678-1234-9876-4563-123456789012", "example-resource-group", "projectValue")
+id := environmenttypes.NewProjectID("12345678-1234-9876-4563-123456789012", "example-resource-group", "projectName")
 
 // alternatively `client.ProjectAllowedEnvironmentTypesList(ctx, id, environmenttypes.DefaultProjectAllowedEnvironmentTypesListOperationOptions())` can be used to do batched pagination
 items, err := client.ProjectAllowedEnvironmentTypesListComplete(ctx, id, environmenttypes.DefaultProjectAllowedEnvironmentTypesListOperationOptions())
@@ -148,7 +148,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := environmenttypes.NewEnvironmentTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "projectValue", "environmentTypeValue")
+id := environmenttypes.NewEnvironmentTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "projectName", "environmentTypeName")
 
 payload := environmenttypes.ProjectEnvironmentType{
 	// ...
@@ -169,7 +169,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := environmenttypes.NewEnvironmentTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "projectValue", "environmentTypeValue")
+id := environmenttypes.NewEnvironmentTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "projectName", "environmentTypeName")
 
 read, err := client.ProjectEnvironmentTypesDelete(ctx, id)
 if err != nil {
@@ -185,7 +185,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := environmenttypes.NewEnvironmentTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "projectValue", "environmentTypeValue")
+id := environmenttypes.NewEnvironmentTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "projectName", "environmentTypeName")
 
 read, err := client.ProjectEnvironmentTypesGet(ctx, id)
 if err != nil {
@@ -201,7 +201,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := environmenttypes.NewProjectID("12345678-1234-9876-4563-123456789012", "example-resource-group", "projectValue")
+id := environmenttypes.NewProjectID("12345678-1234-9876-4563-123456789012", "example-resource-group", "projectName")
 
 // alternatively `client.ProjectEnvironmentTypesList(ctx, id, environmenttypes.DefaultProjectEnvironmentTypesListOperationOptions())` can be used to do batched pagination
 items, err := client.ProjectEnvironmentTypesListComplete(ctx, id, environmenttypes.DefaultProjectEnvironmentTypesListOperationOptions())
@@ -218,7 +218,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := environmenttypes.NewEnvironmentTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "projectValue", "environmentTypeValue")
+id := environmenttypes.NewEnvironmentTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "projectName", "environmentTypeName")
 
 payload := environmenttypes.ProjectEnvironmentTypeUpdate{
 	// ...

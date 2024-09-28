@@ -44,7 +44,7 @@ func ParseVolumeGroupID(input string) (*VolumeGroupId, error) {
 	}
 
 	id := VolumeGroupId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseVolumeGroupIDInsensitively(input string) (*VolumeGroupId, error) {
 	}
 
 	id := VolumeGroupId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id VolumeGroupId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetApp", "Microsoft.NetApp", "Microsoft.NetApp"),
 		resourceids.StaticSegment("staticNetAppAccounts", "netAppAccounts", "netAppAccounts"),
-		resourceids.UserSpecifiedSegment("netAppAccountName", "netAppAccountValue"),
+		resourceids.UserSpecifiedSegment("netAppAccountName", "accountName"),
 		resourceids.StaticSegment("staticVolumeGroups", "volumeGroups", "volumeGroups"),
-		resourceids.UserSpecifiedSegment("volumeGroupName", "volumeGroupValue"),
+		resourceids.UserSpecifiedSegment("volumeGroupName", "volumeGroupName"),
 	}
 }
 

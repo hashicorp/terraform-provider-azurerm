@@ -42,7 +42,7 @@ func ParseDscpConfigurationID(input string) (*DscpConfigurationId, error) {
 	}
 
 	id := DscpConfigurationId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseDscpConfigurationIDInsensitively(input string) (*DscpConfigurationId, 
 	}
 
 	id := DscpConfigurationId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id DscpConfigurationId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticDscpConfigurations", "dscpConfigurations", "dscpConfigurations"),
-		resourceids.UserSpecifiedSegment("dscpConfigurationName", "dscpConfigurationValue"),
+		resourceids.UserSpecifiedSegment("dscpConfigurationName", "dscpConfigurationName"),
 	}
 }
 

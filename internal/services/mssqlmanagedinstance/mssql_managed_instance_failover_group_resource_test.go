@@ -8,10 +8,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/instancefailovergroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -52,14 +53,14 @@ func TestAccMsSqlManagedInstanceFailoverGroup_update(t *testing.T) {
 }
 
 func (r MsSqlManagedInstanceFailoverGroupResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ManagedInstanceFailoverGroupID(state.ID)
+	id, err := instancefailovergroups.ParseInstanceFailoverGroupID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.MSSQLManagedInstance.ManagedInstanceFailoverGroupsClient.Get(ctx, id.ResourceGroup, id.LocationName, id.InstanceFailoverGroupName)
+	resp, err := client.MSSQLManagedInstance.ManagedInstanceFailoverGroupsClient.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)

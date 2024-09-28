@@ -46,7 +46,6 @@ func (c NamedValueClient) ListValue(ctx context.Context, id NamedValueId) (resul
 
 	var model NamedValueSecretContract
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

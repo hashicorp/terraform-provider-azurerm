@@ -692,8 +692,6 @@ A `site_config` block supports the following:
 
 * `application_stack` - (Optional) A `application_stack` block as defined above.
 
-* `auto_heal_enabled` - (Optional) Should Auto heal rules be enabled? Required with `auto_heal_setting`.
-
 * `auto_heal_setting` - (Optional) A `auto_heal_setting` block as defined above. Required with `auto_heal`.
 
 * `container_registry_managed_identity_client_id` - (Optional) The Client ID of the Managed Service Identity to use for connections to the Azure Container Registry.
@@ -755,10 +753,6 @@ A `slow_request` block supports the following:
 * `interval` - (Required) The time interval in the form `hh:mm:ss`.
 
 * `time_taken` - (Required) The threshold of time passed to qualify as a Slow Request in `hh:mm:ss`.
-
-* `path` - (Optional) The path for which this slow request rule applies.
-
-~> **NOTE:** `path` in `slow_request` block will be deprecated in 4.0 provider. Please use `slow_request_with_path` to set a slow request trigger with path specified.
 
 ---
 

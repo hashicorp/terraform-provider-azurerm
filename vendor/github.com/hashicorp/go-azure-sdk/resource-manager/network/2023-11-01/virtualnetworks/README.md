@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/virtualnetworks` Documentation
 
-The `virtualnetworks` SDK allows for interaction with the Azure Resource Manager Service `network` (API Version `2023-11-01`).
+The `virtualnetworks` SDK allows for interaction with Azure Resource Manager `network` (API Version `2023-11-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := commonids.NewVirtualNetworkID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkValue")
+id := commonids.NewVirtualNetworkID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkName")
 
 payload := virtualnetworks.VirtualNetwork{
 	// ...
@@ -42,7 +42,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewVirtualNetworkID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkValue")
+id := commonids.NewVirtualNetworkID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -54,7 +54,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewVirtualNetworkID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkValue")
+id := commonids.NewVirtualNetworkID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkName")
 
 read, err := client.Get(ctx, id, virtualnetworks.DefaultGetOperationOptions())
 if err != nil {
@@ -104,7 +104,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewSubnetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkValue", "subnetValue")
+id := commonids.NewSubnetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkName", "subnetName")
 
 // alternatively `client.ResourceNavigationLinksList(ctx, id)` can be used to do batched pagination
 items, err := client.ResourceNavigationLinksListComplete(ctx, id)
@@ -121,7 +121,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewSubnetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkValue", "subnetValue")
+id := commonids.NewSubnetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkName", "subnetName")
 
 // alternatively `client.ServiceAssociationLinksList(ctx, id)` can be used to do batched pagination
 items, err := client.ServiceAssociationLinksListComplete(ctx, id)
@@ -138,7 +138,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewSubnetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkValue", "subnetValue")
+id := commonids.NewSubnetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkName", "subnetName")
 
 payload := virtualnetworks.PrepareNetworkPoliciesRequest{
 	// ...
@@ -155,7 +155,7 @@ if err := client.SubnetsPrepareNetworkPoliciesThenPoll(ctx, id, payload); err !=
 
 ```go
 ctx := context.TODO()
-id := commonids.NewSubnetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkValue", "subnetValue")
+id := commonids.NewSubnetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkName", "subnetName")
 
 payload := virtualnetworks.UnprepareNetworkPoliciesRequest{
 	// ...
@@ -172,7 +172,7 @@ if err := client.SubnetsUnprepareNetworkPoliciesThenPoll(ctx, id, payload); err 
 
 ```go
 ctx := context.TODO()
-id := commonids.NewVirtualNetworkID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkValue")
+id := commonids.NewVirtualNetworkID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkName")
 
 payload := virtualnetworks.TagsObject{
 	// ...
@@ -193,7 +193,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewVirtualNetworkID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkValue")
+id := commonids.NewVirtualNetworkID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkName")
 
 read, err := client.VirtualNetworksCheckIPAddressAvailability(ctx, id, virtualnetworks.DefaultVirtualNetworksCheckIPAddressAvailabilityOperationOptions())
 if err != nil {
@@ -209,7 +209,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewVirtualNetworkID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkValue")
+id := commonids.NewVirtualNetworkID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkName")
 
 // alternatively `client.VirtualNetworksListDdosProtectionStatus(ctx, id, virtualnetworks.DefaultVirtualNetworksListDdosProtectionStatusOperationOptions())` can be used to do batched pagination
 items, err := client.VirtualNetworksListDdosProtectionStatusComplete(ctx, id, virtualnetworks.DefaultVirtualNetworksListDdosProtectionStatusOperationOptions())
@@ -226,7 +226,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewVirtualNetworkID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkValue")
+id := commonids.NewVirtualNetworkID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkName")
 
 // alternatively `client.VirtualNetworksListUsage(ctx, id)` can be used to do batched pagination
 items, err := client.VirtualNetworksListUsageComplete(ctx, id)

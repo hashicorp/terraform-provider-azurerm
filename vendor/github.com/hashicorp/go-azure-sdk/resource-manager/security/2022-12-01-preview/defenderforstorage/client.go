@@ -15,7 +15,7 @@ type DefenderForStorageClient struct {
 }
 
 func NewDefenderForStorageClientWithBaseURI(sdkApi sdkEnv.Api) (*DefenderForStorageClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "defenderforstorage", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "defenderforstorage", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating DefenderForStorageClient: %+v", err)
 	}

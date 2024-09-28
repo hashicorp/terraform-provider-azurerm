@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/analysisservices/2017-08-01/servers` Documentation
 
-The `servers` SDK allows for interaction with the Azure Resource Manager Service `analysisservices` (API Version `2017-08-01`).
+The `servers` SDK allows for interaction with Azure Resource Manager `analysisservices` (API Version `2017-08-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := servers.NewLocationID("12345678-1234-9876-4563-123456789012", "locationValue")
+id := servers.NewLocationID("12345678-1234-9876-4563-123456789012", "location")
 
 payload := servers.CheckServerNameAvailabilityParameters{
 	// ...
@@ -46,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := servers.NewServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue")
+id := servers.NewServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverName")
 
 payload := servers.AnalysisServicesServer{
 	// ...
@@ -63,7 +63,7 @@ if err := client.CreateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := servers.NewServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue")
+id := servers.NewServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -75,7 +75,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := servers.NewServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue")
+id := servers.NewServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverName")
 
 read, err := client.DissociateGateway(ctx, id)
 if err != nil {
@@ -91,7 +91,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := servers.NewServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue")
+id := servers.NewServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverName")
 
 read, err := client.GetDetails(ctx, id)
 if err != nil {
@@ -139,7 +139,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := servers.NewServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue")
+id := servers.NewServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverName")
 
 read, err := client.ListGatewayStatus(ctx, id)
 if err != nil {
@@ -155,7 +155,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := servers.NewServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue")
+id := servers.NewServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverName")
 
 read, err := client.ListSkusForExisting(ctx, id)
 if err != nil {
@@ -171,7 +171,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := servers.NewServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue")
+id := servers.NewServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverName")
 
 if err := client.ResumeThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -183,7 +183,7 @@ if err := client.ResumeThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := servers.NewServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue")
+id := servers.NewServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverName")
 
 if err := client.SuspendThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -195,7 +195,7 @@ if err := client.SuspendThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := servers.NewServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue")
+id := servers.NewServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverName")
 
 payload := servers.AnalysisServicesServerUpdateParameters{
 	// ...

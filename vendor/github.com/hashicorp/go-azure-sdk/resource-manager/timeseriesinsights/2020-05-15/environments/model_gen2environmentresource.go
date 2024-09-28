@@ -14,12 +14,26 @@ type Gen2EnvironmentResource struct {
 	Properties Gen2EnvironmentResourceProperties `json:"properties"`
 
 	// Fields inherited from EnvironmentResource
+
 	Id       *string            `json:"id,omitempty"`
+	Kind     Kind               `json:"kind"`
 	Location string             `json:"location"`
 	Name     *string            `json:"name,omitempty"`
 	Sku      Sku                `json:"sku"`
 	Tags     *map[string]string `json:"tags,omitempty"`
 	Type     *string            `json:"type,omitempty"`
+}
+
+func (s Gen2EnvironmentResource) EnvironmentResource() BaseEnvironmentResourceImpl {
+	return BaseEnvironmentResourceImpl{
+		Id:       s.Id,
+		Kind:     s.Kind,
+		Location: s.Location,
+		Name:     s.Name,
+		Sku:      s.Sku,
+		Tags:     s.Tags,
+		Type:     s.Type,
+	}
 }
 
 var _ json.Marshaler = Gen2EnvironmentResource{}
@@ -33,9 +47,10 @@ func (s Gen2EnvironmentResource) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling Gen2EnvironmentResource: %+v", err)
 	}
+
 	decoded["kind"] = "Gen2"
 
 	encoded, err = json.Marshal(decoded)

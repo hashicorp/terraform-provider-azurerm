@@ -15,7 +15,7 @@ type WatcherClient struct {
 }
 
 func NewWatcherClientWithBaseURI(sdkApi sdkEnv.Api) (*WatcherClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "watcher", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "watcher", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating WatcherClient: %+v", err)
 	}

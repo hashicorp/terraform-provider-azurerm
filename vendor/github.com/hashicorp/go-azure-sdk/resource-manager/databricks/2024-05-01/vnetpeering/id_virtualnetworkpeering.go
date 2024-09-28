@@ -44,7 +44,7 @@ func ParseVirtualNetworkPeeringID(input string) (*VirtualNetworkPeeringId, error
 	}
 
 	id := VirtualNetworkPeeringId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseVirtualNetworkPeeringIDInsensitively(input string) (*VirtualNetworkPee
 	}
 
 	id := VirtualNetworkPeeringId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id VirtualNetworkPeeringId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDatabricks", "Microsoft.Databricks", "Microsoft.Databricks"),
 		resourceids.StaticSegment("staticWorkspaces", "workspaces", "workspaces"),
-		resourceids.UserSpecifiedSegment("workspaceName", "workspaceValue"),
+		resourceids.UserSpecifiedSegment("workspaceName", "workspaceName"),
 		resourceids.StaticSegment("staticVirtualNetworkPeerings", "virtualNetworkPeerings", "virtualNetworkPeerings"),
-		resourceids.UserSpecifiedSegment("virtualNetworkPeeringName", "virtualNetworkPeeringValue"),
+		resourceids.UserSpecifiedSegment("virtualNetworkPeeringName", "peeringName"),
 	}
 }
 

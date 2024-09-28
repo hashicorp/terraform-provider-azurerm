@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/regions` Documentation
 
-The `regions` SDK allows for interaction with the Azure Resource Manager Service `hdinsight` (API Version `2021-06-01`).
+The `regions` SDK allows for interaction with Azure Resource Manager `hdinsight` (API Version `2021-06-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := regions.NewLocationID("12345678-1234-9876-4563-123456789012", "locationValue")
+id := regions.NewLocationID("12345678-1234-9876-4563-123456789012", "location")
 
 payload := regions.NameAvailabilityCheckRequestParameters{
 	// ...
@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := regions.NewLocationID("12345678-1234-9876-4563-123456789012", "locationValue")
+id := regions.NewLocationID("12345678-1234-9876-4563-123456789012", "location")
 
 read, err := client.LocationsGetCapabilities(ctx, id)
 if err != nil {
@@ -61,7 +61,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := regions.NewLocationID("12345678-1234-9876-4563-123456789012", "locationValue")
+id := regions.NewLocationID("12345678-1234-9876-4563-123456789012", "location")
 
 read, err := client.LocationsListBillingSpecs(ctx, id)
 if err != nil {
@@ -77,7 +77,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := regions.NewLocationID("12345678-1234-9876-4563-123456789012", "locationValue")
+id := regions.NewLocationID("12345678-1234-9876-4563-123456789012", "location")
 
 read, err := client.LocationsListUsages(ctx, id)
 if err != nil {
@@ -93,7 +93,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := regions.NewLocationID("12345678-1234-9876-4563-123456789012", "locationValue")
+id := regions.NewLocationID("12345678-1234-9876-4563-123456789012", "location")
 
 payload := regions.ClusterCreateRequestValidationParameters{
 	// ...

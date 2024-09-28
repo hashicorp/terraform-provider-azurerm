@@ -40,7 +40,7 @@ func ParseAzureWebCategoryID(input string) (*AzureWebCategoryId, error) {
 	}
 
 	id := AzureWebCategoryId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -57,7 +57,7 @@ func ParseAzureWebCategoryIDInsensitively(input string) (*AzureWebCategoryId, er
 	}
 
 	id := AzureWebCategoryId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -107,7 +107,7 @@ func (id AzureWebCategoryId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticAzureWebCategories", "azureWebCategories", "azureWebCategories"),
-		resourceids.UserSpecifiedSegment("azureWebCategoryName", "azureWebCategoryValue"),
+		resourceids.UserSpecifiedSegment("azureWebCategoryName", "name"),
 	}
 }
 

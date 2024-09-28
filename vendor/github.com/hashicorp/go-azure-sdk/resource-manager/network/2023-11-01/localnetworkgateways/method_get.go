@@ -45,7 +45,6 @@ func (c LocalNetworkGatewaysClient) Get(ctx context.Context, id LocalNetworkGate
 
 	var model LocalNetworkGateway
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -67,8 +67,6 @@ The following arguments are supported:
 
 * `http_request_logs_enabled` - (Optional) Specifies if Http Request Logs are enabled or not. Defaults to `false`.
 
-* `live_trace_enabled` - (Optional) Specifies if Live Trace is enabled or not. Defaults to `false`.
-
 * `identity` - (Optional) An `identity` block as defined below.
 
 * `public_network_access_enabled` - (Optional) Whether to enable public network access? Defaults to `true`.

@@ -42,7 +42,7 @@ func ParseConnectedClusterID(input string) (*ConnectedClusterId, error) {
 	}
 
 	id := ConnectedClusterId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseConnectedClusterIDInsensitively(input string) (*ConnectedClusterId, er
 	}
 
 	id := ConnectedClusterId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id ConnectedClusterId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftKubernetes", "Microsoft.Kubernetes", "Microsoft.Kubernetes"),
 		resourceids.StaticSegment("staticConnectedClusters", "connectedClusters", "connectedClusters"),
-		resourceids.UserSpecifiedSegment("connectedClusterName", "connectedClusterValue"),
+		resourceids.UserSpecifiedSegment("connectedClusterName", "clusterName"),
 	}
 }
 

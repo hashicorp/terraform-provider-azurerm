@@ -6,8 +6,6 @@ description: |-
   Manages a Kubernetes Fleet Manager.
 ---
 
-<!-- Note: This documentation is generated. Any manual changes will be overwritten -->
-
 # azurerm_kubernetes_fleet_manager
 
 Manages a Kubernetes Fleet Manager.
@@ -43,23 +41,6 @@ The following arguments are supported:
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Kubernetes Fleet Manager.
-
----
-
-## Blocks Reference
-
-### `hub_profile` Block
-
-
-The `hub_profile` block supports the following arguments:
-
-* `dns_prefix` - (Required) 
-
-
-In addition to the arguments defined above, the `hub_profile` block exports the following attributes:
-
-* `fqdn` - 
-* `kubernetes_version` -
 
 ## Timeouts
 
