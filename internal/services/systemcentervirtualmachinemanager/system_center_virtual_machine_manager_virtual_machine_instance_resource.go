@@ -589,8 +589,8 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfil
 
 	result := virtualmachineinstances.HardwareProfile{}
 
-	// As TF always sets bool value to false when it isn't set, so it has to use IsExplicitlyNullInConfig to determine whether it is set in the tf config
-	if !pluginsdk.IsExplicitlyNullInConfig(d, fmt.Sprintf("hardware.0.limit_cpu_for_migration_enabled")) {
+	// As TF always sets bool value to false when it isn't set, so it has to use d.GetRawConfig() to determine whether it is set in the tf config
+	if v := d.GetRawConfig().AsValueMap()["hardware"].AsValueSlice()[0].AsValueMap()["limit_cpu_for_migration_enabled"]; !v.IsNull() {
 		result.LimitCPUForMigration = pointer.To(virtualmachineinstances.LimitCPUForMigration(strconv.FormatBool(hardwareProfile.LimitCpuForMigrationEnabled)))
 	}
 
@@ -679,12 +679,12 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceStorageDisksFo
 	for k, v := range input {
 		virtualDisk := virtualmachineinstances.VirtualDisk{}
 
-		// As API allows zero value for this property, so TF has to use IsExplicitlyNullInConfig to determine whether it's set in tf config
-		if !pluginsdk.IsExplicitlyNullInConfig(d, fmt.Sprintf("storage_disk.%d.bus", k)) {
+		// As API allows zero value for this property, so TF has to use d.GetRawConfig() to determine whether it's set in tf config
+		if bus := d.GetRawConfig().AsValueMap()["storage_disk"].AsValueSlice()[k].AsValueMap()["bus"]; !bus.IsNull() {
 			virtualDisk.Bus = pointer.To(v.Bus)
 		}
 
-		if !pluginsdk.IsExplicitlyNullInConfig(d, fmt.Sprintf("storage_disk.%d.lun", k)) {
+		if lun := d.GetRawConfig().AsValueMap()["storage_disk"].AsValueSlice()[k].AsValueMap()["lun"]; !lun.IsNull() {
 			virtualDisk.Lun = pointer.To(v.Lun)
 		}
 
@@ -766,8 +766,8 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfil
 
 	hardwareProfile := input[0]
 
-	// As TF always sets bool value to false when it isn't set, so it has to use IsExplicitlyNullInConfig to determine whether it is set in the tf config
-	if !pluginsdk.IsExplicitlyNullInConfig(d, fmt.Sprintf("hardware.0.limit_cpu_for_migration_enabled")) {
+	// As TF always sets bool value to false when it isn't set, so it has to use d.GetRawConfig() to determine whether it is set in the tf config
+	if v := d.GetRawConfig().AsValueMap()["hardware"].AsValueSlice()[0].AsValueMap()["limit_cpu_for_migration_enabled"]; !v.IsNull() {
 		result.LimitCPUForMigration = pointer.To(virtualmachineinstances.LimitCPUForMigration(strconv.FormatBool(hardwareProfile.LimitCpuForMigrationEnabled)))
 	}
 
@@ -838,12 +838,12 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceStorageDisksFo
 	for k, v := range input {
 		virtualDisk := virtualmachineinstances.VirtualDiskUpdate{}
 
-		// As API allows zero value for this property, so TF has to use IsExplicitlyNullInConfig to determine whether it's set in tf config
-		if !pluginsdk.IsExplicitlyNullInConfig(d, fmt.Sprintf("storage_disk.%d.bus", k)) {
+		// As API allows zero value for this property, so TF has to use d.GetRawConfig() to determine whether it's set in tf config
+		if bus := d.GetRawConfig().AsValueMap()["storage_disk"].AsValueSlice()[k].AsValueMap()["bus"]; !bus.IsNull() {
 			virtualDisk.Bus = pointer.To(v.Bus)
 		}
 
-		if !pluginsdk.IsExplicitlyNullInConfig(d, fmt.Sprintf("storage_disk.%d.lun", k)) {
+		if lun := d.GetRawConfig().AsValueMap()["storage_disk"].AsValueSlice()[k].AsValueMap()["lun"]; !lun.IsNull() {
 			virtualDisk.Lun = pointer.To(v.Lun)
 		}
 
