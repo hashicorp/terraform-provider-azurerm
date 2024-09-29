@@ -70,12 +70,7 @@ func (StackHCIVirtualHardDiskResource) Arguments() map[string]*pluginsdk.Schema 
 
 		"location": commonschema.Location(),
 
-		"custom_location_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: customlocations.ValidateCustomLocationID,
-		},
+		"custom_location_id": commonschema.ResourceIDReferenceRequiredForceNew(&customlocations.CustomLocationId{}),
 
 		"block_size_in_bytes": {
 			Type:         pluginsdk.TypeInt,

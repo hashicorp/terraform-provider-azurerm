@@ -78,6 +78,13 @@ func TestAccStackHCIVirtualHardDisk_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
+			Config: r.updateTag(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -162,7 +169,34 @@ resource "azurerm_stack_hci_virtual_hard_disk" "test" {
 
   tags = {
     foo = "bar"
+  }
+
+  lifecycle {
+    ignore_changes = [storage_path_id]
+  }
+}
+`, template, data.RandomString, os.Getenv(customLocationIdEnv))
+}
+
+func (r StackHCIVirtualHardDiskResource) updateTag(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_stack_hci_virtual_hard_disk" "test" {
+  name                = "acctest-vhd-%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  custom_location_id  = %q
+  disk_size_in_gb     = 2
+
+  tags = {
     env = "test"
+    foo = "bar"
   }
 
   lifecycle {
