@@ -364,6 +364,11 @@ service/mobile-network:
   - any-glob-to-any-file:
     - internal/services/mobilenetwork/**/*
 
+service/mongo-cluster:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/mongocluster/**/*
+
 service/monitor:
 - changed-files:
   - any-glob-to-any-file:
