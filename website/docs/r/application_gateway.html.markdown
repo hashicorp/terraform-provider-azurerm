@@ -579,7 +579,7 @@ A `exclusion` block supports the following:
 
 A `custom_error_configuration` block supports the following:
 
-* `status_code` - (Required) Status code of the application gateway customer error. Possible values are `HttpStatus403` and `HttpStatus502`
+* `status_code` - (Required) Status code of the application gateway customer error. Possible values are `HttpStatus400`, `HttpStatus403`, `HttpStatus404`, `HttpStatus405`, `HttpStatus408`, `HttpStatus500`, `HttpStatus502`, `HttpStatus503` and `HttpStatus504`
 
 * `custom_error_page_url` - (Required) Error page URL of the application gateway customer error.
 
