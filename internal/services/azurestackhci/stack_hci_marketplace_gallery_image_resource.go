@@ -252,7 +252,7 @@ func (r StackHCIMarketplaceGalleryImageResource) Read() sdk.ResourceFunc {
 				}
 
 				if props := model.Properties; props != nil {
-					schema.StoragePathId = string(pointer.From(props.ContainerId))
+					schema.StoragePathId = pointer.From(props.ContainerId)
 					schema.OsType = string(props.OsType)
 					schema.HypervGeneration = string(pointer.From(props.HyperVGeneration))
 					schema.Identifier = flattenStackHCIMarketplaceGalleryImageIdentifier(props.Identifier)
