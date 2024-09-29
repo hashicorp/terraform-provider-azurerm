@@ -221,7 +221,7 @@ An `endpoint` block supports the following:
 
 * `subscription_id` - (Optional) The subscription ID for the endpoint.
 
-~> **NOTE:** When `subscription_id` isn't specified, it would be set with the subscription ID in the current context.
+~> **NOTE:** When `subscription_id` isn't specified in the tf config, it would be set with the provider's subscription ID.
 
 ---
 
