@@ -1341,6 +1341,7 @@ resource "azurerm_container_app" "test" {
       volume_mounts {
         name = azurerm_container_app_environment_storage.test.name
         path = "/tmp/testdata"
+        sub_path = "subdirectory"
       }
     }
 
@@ -1352,6 +1353,7 @@ resource "azurerm_container_app" "test" {
       volume_mounts {
         name = azurerm_container_app_environment_storage.test.name
         path = "/tmp/testdata"
+        sub_path = "subdirectory"
       }
     }
 
