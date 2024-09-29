@@ -686,6 +686,21 @@ func TestAccLinuxFunctionApp_flexConsumptionSystemAssignedIdentity(t *testing.T)
 	})
 }
 
+func TestAccLinuxFunctionApp_flexConsumptionUserAssignedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
+	r := LinuxFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.flexConsumptionUserAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
 // Individual Settings / Blocks
 
 func TestAccLinuxFunctionApp_withAuthSettingsStandard(t *testing.T) {

@@ -478,7 +478,10 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("the site is running in %q sku while `flex_function_app_deployment` can only be set for sites whose ServerFarm has `FlexConsumption` SKU", *planSKU)
 			}
 
-			flexFunctionAppConfig, storageStringFlex := helpers.ExpandFlexFunctionAppDeployment(functionApp.FlexFunctionAppDeployment, *storageDomainSuffix)
+			flexFunctionAppConfig, storageStringFlex, err := helpers.ExpandFlexFunctionAppDeployment(functionApp.FlexFunctionAppDeployment, *storageDomainSuffix)
+			if err != nil {
+				return fmt.Errorf("expanding flex_function_app_deployment for Linux flex consumption %s: %+v", id, err)
+			}
 
 			var storageString string
 			if functionApp.StorageAccountName != "" {
@@ -1024,7 +1027,10 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("the site is running in %q sku while `flex_function_app_deployment` can only be set for sites whose ServerFarm has `FlexConsumption` SKU", *planSKU)
 			}
 
-			flexFunctionAppConfig, storageStringFlex := helpers.ExpandFlexFunctionAppDeployment(state.FlexFunctionAppDeployment, *storageDomainSuffix)
+			flexFunctionAppConfig, storageStringFlex, err := helpers.ExpandFlexFunctionAppDeployment(state.FlexFunctionAppDeployment, *storageDomainSuffix)
+			if err != nil {
+				return fmt.Errorf("expanding flex_function_app_deployment for Linux flex consumption %s: %+v", id, err)
+			}
 
 			var storageString string
 			if state.StorageAccountName != "" {

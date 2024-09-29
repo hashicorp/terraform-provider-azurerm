@@ -2417,9 +2417,9 @@ func ParseContentSettings(input *webapps.StringDictionary, existing map[string]s
 	return out
 }
 
-func ExpandFlexFunctionAppDeployment(input []FlexFunctionAppDeployment, storageDomainSuffix string) (*webapps.FunctionAppConfig, string) {
+func ExpandFlexFunctionAppDeployment(input []FlexFunctionAppDeployment, storageDomainSuffix string) (*webapps.FunctionAppConfig, string, error) {
 	if len(input) == 0 {
-		return nil, ""
+		return nil, "", nil
 	}
 	flexFaDeployment := input[0]
 	blobContainerType := webapps.FunctionsDeploymentStorageType(flexFaDeployment.StorageContainerType)
@@ -2433,8 +2433,13 @@ func ExpandFlexFunctionAppDeployment(input []FlexFunctionAppDeployment, storageD
 	storageAuthType := webapps.AuthenticationTypeStorageAccountConnectionString
 	storageConnectionStringName := "DEPLOYMENT_STORAGE_CONNECTION_STRING"
 	endpoint := strings.TrimPrefix(flexFaDeployment.StorageContainerEndpoint, "https://")
-	storageName := endpoint[:strings.Index(endpoint, ".")]
-	storageString := fmt.Sprintf(StorageStringFmt, storageName, flexFaDeployment.StorageAccessKey, storageDomainSuffix)
+	storageString := ""
+	if storageNameIndex := strings.Index(endpoint, "."); storageNameIndex != -1 {
+		storageName := endpoint[:storageNameIndex]
+		storageString = fmt.Sprintf(StorageStringFmt, storageName, flexFaDeployment.StorageAccessKey, storageDomainSuffix)
+	} else {
+		return nil, "", fmt.Errorf("reading storage container endpoint error, the expected format is https://storagename.blob.core.windows.net/containername, the received value is %s", flexFaDeployment.StorageContainerEndpoint)
+	}
 
 	storageAuth := webapps.FunctionsDeploymentStorageAuthentication{
 		Type: &storageAuthType,
@@ -2468,7 +2473,7 @@ func ExpandFlexFunctionAppDeployment(input []FlexFunctionAppDeployment, storageD
 		ScaleAndConcurrency: &scaleAndConcurrencyConfig,
 	}
 
-	return expanded, storageString
+	return expanded, storageString, nil
 }
 
 func FlattenFlexFunctionAppDeployment(input *webapps.FunctionAppConfig) []FlexFunctionAppDeployment {
