@@ -14,14 +14,19 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type StackHCIMarketplaceGalleryImageResource struct{}
+type StackHCIMarketplaceGalleryImageResource struct {
+	// az vm image list --all --output table --sku 2022-datacenter-azure-edition-core
+	imageVersion string
+}
 
 func TestAccStackHCIMarketplaceGalleryImage_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_stack_hci_marketplace_gallery_image", "test")
-	r := StackHCIMarketplaceGalleryImageResource{}
-
 	if os.Getenv(customLocationIdEnv) == "" {
 		t.Skipf("skipping since %q has not been specified", customLocationIdEnv)
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_stack_hci_marketplace_gallery_image", "test")
+	r := StackHCIMarketplaceGalleryImageResource{
+		imageVersion: "20348.2402.240607",
 	}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -41,7 +46,9 @@ func TestAccStackHCIMarketplaceGalleryImage_complete(t *testing.T) {
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_stack_hci_marketplace_gallery_image", "test")
-	r := StackHCIMarketplaceGalleryImageResource{}
+	r := StackHCIMarketplaceGalleryImageResource{
+		imageVersion: "20348.2582.240703",
+	}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -55,11 +62,13 @@ func TestAccStackHCIMarketplaceGalleryImage_complete(t *testing.T) {
 }
 
 func TestAccStackHCIMarketplaceGalleryImage_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_stack_hci_marketplace_gallery_image", "test")
-	r := StackHCIMarketplaceGalleryImageResource{}
-
 	if os.Getenv(customLocationIdEnv) == "" {
 		t.Skipf("skipping since %q has not been specified", customLocationIdEnv)
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_stack_hci_marketplace_gallery_image", "test")
+	r := StackHCIMarketplaceGalleryImageResource{
+		imageVersion: "20348.2655.240810",
 	}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -93,7 +102,9 @@ func TestAccStackHCIMarketplaceGalleryImage_requiresImport(t *testing.T) {
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_stack_hci_marketplace_gallery_image", "test")
-	r := StackHCIMarketplaceGalleryImageResource{}
+	r := StackHCIMarketplaceGalleryImageResource{
+		imageVersion: "20348.2655.240905",
+	}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -137,16 +148,16 @@ resource "azurerm_stack_hci_marketplace_gallery_image" "test" {
   custom_location_id  = %q
   hyperv_generation   = "V2"
   os_type             = "Windows"
-  version             = "20348.2655.240810"
+  version             = "%s"
   identifier {
     publisher = "MicrosoftWindowsServer"
     offer     = "WindowsServer"
-    sku       = "2022-datacenter-azure-edition"
+    sku       = "2022-datacenter-azure-edition-core"
   }
 
   depends_on = [azurerm_role_assignment.test]
 }
-`, template, data.RandomString, os.Getenv(customLocationIdEnv))
+`, template, data.RandomString, os.Getenv(customLocationIdEnv), r.imageVersion)
 }
 
 func (r StackHCIMarketplaceGalleryImageResource) requiresImport(data acceptance.TestData) string {
@@ -186,7 +197,7 @@ resource "azurerm_stack_hci_storage_path" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   custom_location_id  = %[3]q
-  path                = "C:\\ClusterStorage\\UserStorage_2\\sp-${var.random_string}"
+  path                = "C:\\ClusterStorage\\UserStorage_2\\sp-mgi-%[2]s"
 }
 
 resource "azurerm_stack_hci_marketplace_gallery_image" "test" {
@@ -196,18 +207,18 @@ resource "azurerm_stack_hci_marketplace_gallery_image" "test" {
   custom_location_id  = %[3]q
   hyperv_generation   = "V2"
   os_type             = "Windows"
-  version             = "20348.2655.240810"
+  version             = "%s"
   storage_path_id     = azurerm_stack_hci_storage_path.test.id
   identifier {
     publisher = "MicrosoftWindowsServer"
     offer     = "WindowsServer"
-    sku       = "2022-datacenter-azure-edition"
+    sku       = "2022-datacenter-azure-edition-core"
   }
   tags = {
     foo = "bar"
   }
 }
-`, template, data.RandomString, os.Getenv(customLocationIdEnv))
+`, template, data.RandomString, os.Getenv(customLocationIdEnv), r.imageVersion)
 }
 
 func (r StackHCIMarketplaceGalleryImageResource) complete(data acceptance.TestData) string {
@@ -224,7 +235,7 @@ resource "azurerm_stack_hci_storage_path" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   custom_location_id  = %[3]q
-  path                = "C:\\ClusterStorage\\UserStorage_2\\sp-${var.random_string}"
+  path                = "C:\\ClusterStorage\\UserStorage_2\\sp-mgi-%[2]s"
 }
 
 resource "azurerm_stack_hci_marketplace_gallery_image" "test" {
@@ -234,19 +245,19 @@ resource "azurerm_stack_hci_marketplace_gallery_image" "test" {
   custom_location_id  = %[3]q
   hyperv_generation   = "V2"
   os_type             = "Windows"
-  version             = "20348.2655.240810"
+  version             = "%s"
   storage_path_id     = azurerm_stack_hci_storage_path.test.id
   identifier {
     publisher = "MicrosoftWindowsServer"
     offer     = "WindowsServer"
-    sku       = "2022-datacenter-azure-edition"
+    sku       = "2022-datacenter-azure-edition-core"
   }
   tags = {
     foo = "bar"
     env = "test"
   }
 }
-`, template, data.RandomString, os.Getenv(customLocationIdEnv))
+`, template, data.RandomString, os.Getenv(customLocationIdEnv), r.imageVersion)
 }
 
 func (r StackHCIMarketplaceGalleryImageResource) template(data acceptance.TestData) string {

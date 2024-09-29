@@ -39,17 +39,16 @@ func (StackHCIMarketplaceGalleryImageResource) ModelObject() interface{} {
 }
 
 type StackHCIMarketplaceGalleryImageResourceModel struct {
-	Name                string                                      `tfschema:"name"`
-	ResourceGroupName   string                                      `tfschema:"resource_group_name"`
-	Location            string                                      `tfschema:"location"`
-	CustomLocationId    string                                      `tfschema:"custom_location_id"`
-	CloudInitDataSource string                                      `tfschema:"cloud_init_data_source"`
-	HypervGeneration    string                                      `tfschema:"hyperv_generation"`
-	Identifier          []StackHCIMarketplaceGalleryImageIdentifier `tfschema:"identifier"`
-	OsType              string                                      `tfschema:"os_type"`
-	Version             string                                      `tfschema:"version"`
-	StoragePathId       string                                      `tfschema:"storage_path_id"`
-	Tags                map[string]interface{}                      `tfschema:"tags"`
+	Name              string                                      `tfschema:"name"`
+	ResourceGroupName string                                      `tfschema:"resource_group_name"`
+	Location          string                                      `tfschema:"location"`
+	CustomLocationId  string                                      `tfschema:"custom_location_id"`
+	HypervGeneration  string                                      `tfschema:"hyperv_generation"`
+	Identifier        []StackHCIMarketplaceGalleryImageIdentifier `tfschema:"identifier"`
+	OsType            string                                      `tfschema:"os_type"`
+	Version           string                                      `tfschema:"version"`
+	StoragePathId     string                                      `tfschema:"storage_path_id"`
+	Tags              map[string]interface{}                      `tfschema:"tags"`
 }
 
 type StackHCIMarketplaceGalleryImageIdentifier struct {
@@ -138,16 +137,6 @@ func (StackHCIMarketplaceGalleryImageResource) Arguments() map[string]*pluginsdk
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"cloud_init_data_source": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(marketplacegalleryimages.CloudInitDataSourceAzure),
-				string(marketplacegalleryimages.CloudInitDataSourceNoCloud),
-			}, false),
-		},
-
 		"storage_path_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -165,7 +154,7 @@ func (StackHCIMarketplaceGalleryImageResource) Attributes() map[string]*pluginsd
 
 func (r StackHCIMarketplaceGalleryImageResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 2 * time.Hour,
+		Timeout: 3 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AzureStackHCI.MarketplaceGalleryImages
 
@@ -197,10 +186,6 @@ func (r StackHCIMarketplaceGalleryImageResource) Create() sdk.ResourceFunc {
 					Identifier: expandStackHCIMarketplaceGalleryImageIdentifier(config.Identifier),
 					OsType:     marketplacegalleryimages.OperatingSystemTypes(config.OsType),
 				},
-			}
-
-			if config.CloudInitDataSource != "" {
-				payload.Properties.CloudInitDataSource = pointer.To(marketplacegalleryimages.CloudInitDataSource(config.CloudInitDataSource))
 			}
 
 			if config.StoragePathId != "" {
@@ -267,10 +252,14 @@ func (r StackHCIMarketplaceGalleryImageResource) Read() sdk.ResourceFunc {
 				}
 
 				if props := model.Properties; props != nil {
-					schema.CloudInitDataSource = string(pointer.From(props.CloudInitDataSource))
 					schema.StoragePathId = string(pointer.From(props.ContainerId))
 					schema.OsType = string(props.OsType)
 					schema.HypervGeneration = string(pointer.From(props.HyperVGeneration))
+					schema.Identifier = flattenStackHCIMarketplaceGalleryImageIdentifier(props.Identifier)
+
+					if props.Version != nil {
+						schema.Version = pointer.From(props.Version.Name)
+					}
 				}
 
 			}
@@ -310,7 +299,7 @@ func (r StackHCIMarketplaceGalleryImageResource) Update() sdk.ResourceFunc {
 
 func (r StackHCIMarketplaceGalleryImageResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 1 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AzureStackHCI.MarketplaceGalleryImages
 
