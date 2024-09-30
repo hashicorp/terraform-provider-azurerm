@@ -27,7 +27,7 @@ output "azurerm_healthcare_dicom_service" {
 
 * `name` - The name of the Healthcare DICOM Service
 
-* `workspace_id` - The id of the Healthcare Workspace in which the Healthcare DICOM Service exists.
+* `workspace_id` - The ID of the Healthcare Workspace in which the Healthcare DICOM Service exists.
 
 ## Attributes Reference
 
@@ -45,10 +45,6 @@ The following attributes are exported:
 
 * `encryption_key_url` - The URL of the key to use for encryption as part of the customer-managed key encryption settings.
 
-* `event_state` - The event support status of the Healthcare DICOM Service.
-
-* `provision_state` - The provisioning state of the Healthcare DICOM Service.
-
 * `service_url` - The url of the Healthcare DICOM Services.
 
 * `storage` - The `storage` block as defined below.
@@ -56,7 +52,7 @@ The following attributes are exported:
 * `tags` - A map of tags assigned to the Healthcare DICOM Service.
 
 ---
-An `authentication` supports the following:
+An `authentication` exports the following:
 
 * `authority` - The Azure Active Directory (tenant) that serves as the authentication authority to access the service. The default authority is the Directory defined in the authentication scheme in use when running Terraform.
   Authority must be registered to Azure AD and in the following format: <https://{Azure-AD-endpoint}/{tenant-id>}.
@@ -65,7 +61,7 @@ An `authentication` supports the following:
 
 ---
 
-A `cors` supports the following:
+A `cors` exports the following:
 
 * `allowed_origins` - A list of allowed origins for CORS.
 
@@ -79,11 +75,11 @@ A `cors` supports the following:
 
 ---
 
-A `storage` block supports the following:
+A `storage` block exports the following:
 
 * `file_system_name` - The filesystem name of connected storage account.
 
-* `storage_account_id` - The resource id of connected storage account.
+* `storage_account_id` - The resource ID of connected storage account.
 
 
 ## Timeouts

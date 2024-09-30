@@ -40,7 +40,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Healthcare DICOM Service. Changing this forces a new Healthcare DICOM Service to be created.
 
-* `workspace_id` - (Required) Specifies the id of the Healthcare Workspace where the Healthcare DICOM Service should exist. Changing this forces a new Healthcare DICOM Service to be created.
+* `workspace_id` - (Required) Specifies the ID of the Healthcare Workspace where the Healthcare DICOM Service should exist. Changing this forces a new Healthcare DICOM Service to be created.
 
 * `location` - (Required) Specifies the Azure Region where the Healthcare DICOM Service should be created. Changing this forces a new Healthcare DICOM Service to be created.
 
@@ -86,7 +86,7 @@ A `storage` block supports the following:
 
 * `file_system_name` - (Required) The filesystem name of connected storage account. Changing this forces a new Healthcare DICOM Service to be created.
 
-* `storage_account_id` - (Required) The resource id of connected storage account. Changing this forces a new Healthcare DICOM Service to be created.
+* `storage_account_id` - (Required) The resource ID of connected storage account. Changing this forces a new Healthcare DICOM Service to be created.
 
 ~> **Note:** The `is_hns_enabled` needs to be set to `true` for the storage account to be used with the Healthcare DICOM Service.
 
