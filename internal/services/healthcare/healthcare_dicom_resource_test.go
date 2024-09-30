@@ -105,7 +105,7 @@ func (r HealthCareDicomResource) basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_healthcare_dicom_service" "test" {
-  name         = "dicom%[2]s"
+  name         = "acctestdicom%[2]s"
   workspace_id = azurerm_healthcare_workspace.test.id
   location     = azurerm_resource_group.test.location
   depends_on   = [azurerm_healthcare_workspace.test]
@@ -178,7 +178,7 @@ func (r HealthCareDicomResource) update(data acceptance.TestData) string {
 %s
 
 resource "azurerm_healthcare_dicom_service" "test" {
-  name         = "dicom%[2]s"
+  name         = "acctestdicom%[2]s"
   workspace_id = azurerm_healthcare_workspace.test.id
   location     = azurerm_resource_group.test.location
 
@@ -235,20 +235,20 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-dicom-%[1]d"
-  location = "%[2]s"
+  name     = "acctestrg%[2]s"
+  location = "%[1]s"
 }
 
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_user_assigned_identity" "test" {
-  name                = "acctestuaident-%[1]d"
+  name                = "acctestuai%[2]s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
 
 resource "azurerm_key_vault" "test" {
-  name                       = "acctestkv-%[1]d"
+  name                       = "acctestkv%[2]s"
   resource_group_name        = azurerm_resource_group.test.name
   location                   = azurerm_resource_group.test.location
   sku_name                   = "standard"
@@ -270,7 +270,7 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_key" "test" {
-  name         = "acctestkvkey%[3]s"
+  name         = "acctestkvkey%[2]s"
   key_vault_id = azurerm_key_vault.test.id
   key_type     = "RSA"
   key_size     = 2048
@@ -279,9 +279,9 @@ resource "azurerm_key_vault_key" "test" {
 }
 
 resource "azurerm_healthcare_workspace" "test" {
-  name                = "wk%[3]s"
+  name                = "acctesthw%[2]s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.Locations.Primary, data.RandomString)
 }
