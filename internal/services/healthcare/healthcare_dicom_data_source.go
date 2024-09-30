@@ -204,7 +204,11 @@ func dataSourceHealthcareApisDicomServiceRead(d *pluginsdk.ResourceData, meta in
 				d.Set("encryption_key_url", pointer.From(props.Encryption.CustomerManagedKeyEncryption.KeyEncryptionKeyUrl))
 			}
 
-			d.Set("storage", flattenStorageConfiguration(props.StorageConfiguration))
+			storage, err := flattenStorageConfiguration(props.StorageConfiguration)
+			if err != nil {
+				return err
+			}
+			d.Set("storage", storage)
 		}
 
 		i, err := identity.FlattenLegacySystemAndUserAssignedMap(m.Identity)

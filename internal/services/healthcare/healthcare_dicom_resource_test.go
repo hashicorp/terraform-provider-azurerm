@@ -125,7 +125,7 @@ func (r HealthCareDicomResource) complete(data acceptance.TestData) string {
 %s
 
 resource "azurerm_storage_account" "test" {
-  name                     = "mystorageaccount%[2]s"
+  name                     = "acctestsa%[2]s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_kind             = "StorageV2"
@@ -135,12 +135,12 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_data_lake_gen2_filesystem" "test" {
-  name               = "myfilesystem%[2]s"
+  name               = "acctestfs%[2]s"
   storage_account_id = azurerm_storage_account.test.id
 }
 
 resource "azurerm_healthcare_dicom_service" "test" {
-  name         = "dicom%[2]s"
+  name         = "acctestdicom%[2]s"
   workspace_id = azurerm_healthcare_workspace.test.id
   location     = azurerm_resource_group.test.location
 
@@ -242,13 +242,13 @@ resource "azurerm_resource_group" "test" {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_user_assigned_identity" "test" {
-  name                = "myidentity%[3]s"
+  name                = "acctestuaident-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
 
 resource "azurerm_key_vault" "test" {
-  name                       = "mykeyvault%[3]s"
+  name                       = "acctestkv-%[1]d"
   resource_group_name        = azurerm_resource_group.test.name
   location                   = azurerm_resource_group.test.location
   sku_name                   = "standard"
@@ -270,7 +270,7 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_key" "test" {
-  name         = "mykey%[3]s"
+  name         = "acctestkvkey%[3]s"
   key_vault_id = azurerm_key_vault.test.id
   key_type     = "RSA"
   key_size     = 2048

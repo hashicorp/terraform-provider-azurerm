@@ -327,11 +327,7 @@ func resourceHealthcareApisDicomServiceRead(d *pluginsdk.ResourceData, meta inte
 				d.Set("public_network_access_enabled", pointer.From(props.PublicNetworkAccess) == dicomservices.PublicNetworkAccessEnabled)
 			}
 
-			enableDataPartitions := false
-			if props.EnableDataPartitions != nil {
-				enableDataPartitions = pointer.From(props.EnableDataPartitions)
-			}
-			d.Set("data_partitions_enabled", enableDataPartitions)
+			d.Set("data_partitions_enabled", pointer.From(props.EnableDataPartitions))
 
 			d.Set("cors", flattenDicomServiceCorsConfiguration(props.CorsConfiguration))
 
@@ -339,7 +335,11 @@ func resourceHealthcareApisDicomServiceRead(d *pluginsdk.ResourceData, meta inte
 				d.Set("encryption_key_url", pointer.From(props.Encryption.CustomerManagedKeyEncryption.KeyEncryptionKeyUrl))
 			}
 
-			d.Set("storage", flattenStorageConfiguration(props.StorageConfiguration))
+			storage, err := flattenStorageConfiguration(props.StorageConfiguration)
+			if err != nil {
+				return err
+			}
+			d.Set("storage", storage)
 		}
 
 		i, err := identity.FlattenLegacySystemAndUserAssignedMap(m.Identity)
@@ -365,49 +365,51 @@ func resourceHealthcareApisDicomServiceUpdate(d *pluginsdk.ResourceData, meta in
 		return err
 	}
 
-	i, err := identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+	// Retrieve the existing resource
+	existing, err := client.Get(ctx, *id)
 	if err != nil {
-		return fmt.Errorf("expanding `identity`: %+v", err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	var enableDataPartitions *bool
-	if v, ok := d.GetOk("data_partitions_enabled"); ok {
-		enableDataPartitions = pointer.To(v.(bool))
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", id)
 	}
 
-	var corsConfiguration *dicomservices.CorsConfiguration
-	if v, ok := d.GetOk("cors"); ok {
-		corsConfiguration = expandDicomServiceCorsConfiguration(v.([]interface{}))
+	payload := existing.Model
+
+	if d.HasChange("cors") {
+		payload.Properties.CorsConfiguration = expandDicomServiceCorsConfiguration(d.Get("cors").([]interface{}))
 	}
 
-	var encryption *dicomservices.Encryption
-	if v, ok := d.GetOk("encryption_key_url"); ok {
-		encryption = &dicomservices.Encryption{
+	if d.HasChange("encryption_key_url") {
+		payload.Properties.Encryption = &dicomservices.Encryption{
 			CustomerManagedKeyEncryption: &dicomservices.EncryptionCustomerManagedKeyEncryption{
-				KeyEncryptionKeyUrl: pointer.To(v.(string)),
+				KeyEncryptionKeyUrl: pointer.To(d.Get("encryption_key_url").(string)),
 			},
 		}
 	}
 
-	var storageConfiguration *dicomservices.StorageConfiguration
-	if v, ok := d.GetOk("storage"); ok {
-		storageConfiguration = expandStorageConfiguration(v.([]interface{}))
+	if d.HasChange("public_network_access_enabled") {
+		if enabled := d.Get("public_network_access_enabled").(bool); !enabled {
+			payload.Properties.PublicNetworkAccess = pointer.To(dicomservices.PublicNetworkAccessDisabled)
+		} else {
+			payload.Properties.PublicNetworkAccess = pointer.To(dicomservices.PublicNetworkAccessEnabled)
+		}
 	}
 
-	parameters := dicomservices.DicomService{
-		Location: pointer.To(location.Normalize(d.Get("location").(string))),
-		Properties: &dicomservices.DicomServiceProperties{
-			CorsConfiguration:    corsConfiguration,
-			EnableDataPartitions: enableDataPartitions,
-			Encryption:           encryption,
-			PublicNetworkAccess:  pointer.To(dicomservices.PublicNetworkAccessEnabled),
-			StorageConfiguration: storageConfiguration,
-		},
-		Identity: i,
+	if d.HasChange("identity") {
+		i, err := identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+		payload.Identity = i
 	}
 
-	if enabled := d.Get("public_network_access_enabled").(bool); !enabled {
-		parameters.Properties.PublicNetworkAccess = pointer.To(dicomservices.PublicNetworkAccessDisabled)
+	if d.HasChange("location") {
+		payload.Location = pointer.To(location.Normalize(d.Get("location").(string)))
 	}
 
 	if d.HasChange("tags") {
@@ -416,7 +418,7 @@ func resourceHealthcareApisDicomServiceUpdate(d *pluginsdk.ResourceData, meta in
 		}
 	}
 
-	err = client.CreateOrUpdateThenPoll(ctx, *id, parameters)
+	err = client.CreateOrUpdateThenPoll(ctx, *id, *payload)
 	if err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
@@ -555,21 +557,25 @@ func expandStorageConfiguration(input []interface{}) *dicomservices.StorageConfi
 	}
 }
 
-func flattenStorageConfiguration(configuration *dicomservices.StorageConfiguration) interface{} {
+func flattenStorageConfiguration(configuration *dicomservices.StorageConfiguration) (interface{}, error) {
 	if configuration == nil {
-		return []interface{}{}
+		return []interface{}{}, nil
 	}
 
 	result := make(map[string]interface{})
 	if configuration.FileSystemName != nil {
-		result["file_system_name"] = *configuration.FileSystemName
+		result["file_system_name"] = pointer.From(configuration.FileSystemName)
 	}
 
-	if configuration.StorageResourceId != nil {
-		result["storage_account_id"] = *configuration.StorageResourceId
+	if v := pointer.From(configuration.StorageResourceId); v != "" {
+		id, err := commonids.ParseStorageAccountID(v)
+		if err != nil {
+			return nil, err
+		}
+		result["storage_account_id"] = id.ID()
 	}
 
-	return []interface{}{result}
+	return []interface{}{result}, nil
 }
 
 func expandDicomServiceCorsConfiguration(inputList []interface{}) *dicomservices.CorsConfiguration {
@@ -610,17 +616,13 @@ func flattenDicomServiceCorsConfiguration(input *dicomservices.CorsConfiguration
 	}
 
 	output := make(map[string]interface{})
-	if input.AllowCredentials != nil {
-		output["allow_credentials"] = pointer.From(input.AllowCredentials)
-	}
+	output["allow_credentials"] = pointer.From(input.AllowCredentials)
 
 	if input.Headers != nil {
 		output["allowed_headers"] = utils.FlattenStringSlice(input.Headers)
 	}
 
-	if input.MaxAge != nil {
-		output["max_age_in_seconds"] = pointer.From(input.MaxAge)
-	}
+	output["max_age_in_seconds"] = pointer.From(input.MaxAge)
 
 	if input.Methods != nil {
 		output["allowed_methods"] = utils.FlattenStringSlice(input.Methods)
