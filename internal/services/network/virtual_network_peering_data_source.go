@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -102,10 +101,8 @@ func dataSourceVirtualNetworkPeeringRead(d *pluginsdk.ResourceData, meta interfa
 			d.Set("allow_virtual_network_access", peer.AllowVirtualNetworkAccess)
 			d.Set("allow_forwarded_traffic", peer.AllowForwardedTraffic)
 			d.Set("allow_gateway_transit", peer.AllowGatewayTransit)
-			d.Set("peer_complete_virtual_networks_enabled", pointer.From(peer.PeerCompleteVnets))
-			d.Set("only_ipv6_peering_enabled", pointer.From(peer.EnableOnlyIPv6Peering))
-			d.Set("local_subnet_names", pointer.From(peer.LocalSubnetNames))
-			d.Set("remote_subnet_names", pointer.From(peer.RemoteSubnetNames))
+			d.Set("peer_complete_virtual_networks_enabled", peer.PeerCompleteVnets)
+			d.Set("only_ipv6_peering_enabled", peer.EnableOnlyIPv6Peering)
 			d.Set("use_remote_gateways", peer.UseRemoteGateways)
 
 			remoteVirtualNetworkId := ""
