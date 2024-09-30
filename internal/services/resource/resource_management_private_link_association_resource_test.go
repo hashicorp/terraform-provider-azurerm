@@ -22,10 +22,11 @@ type ResourceManagementPrivateLinkAssociationTestResource struct{}
 func TestAccResourceManagementPrivateLinkAssociation_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_management_private_link_association", "test")
 	r := ResourceManagementPrivateLinkAssociationTestResource{}
+	randomUUID, _ := uuid.GenerateUUID()
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.basic(data, randomUUID),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -37,15 +38,18 @@ func TestAccResourceManagementPrivateLinkAssociation_basic(t *testing.T) {
 func TestAccResourceManagementPrivateLinkAssociation_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_management_private_link_association", "test")
 	r := ResourceManagementPrivateLinkAssociationTestResource{}
+	randomUUID, _ := uuid.GenerateUUID()
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.basic(data, randomUUID),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.RequiresImportErrorStep(r.requiresImport),
+		data.RequiresImportErrorStep(func(data acceptance.TestData) string {
+			return r.requiresImport(data, randomUUID)
+		}),
 	})
 }
 
@@ -78,8 +82,7 @@ func (r ResourceManagementPrivateLinkAssociationTestResource) Exists(ctx context
 	return utils.Bool(resp.Model != nil), nil
 }
 
-func (r ResourceManagementPrivateLinkAssociationTestResource) basic(data acceptance.TestData) string {
-	randomUUID, _ := uuid.GenerateUUID()
+func (r ResourceManagementPrivateLinkAssociationTestResource) basic(data acceptance.TestData, uuid string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -93,7 +96,7 @@ resource "azurerm_resource_management_private_link_association" "test" {
   resource_management_private_link_id = azurerm_resource_management_private_link.test.id
   public_network_access_enabled       = true
 }
-`, r.template(data), randomUUID)
+`, r.template(data), uuid)
 }
 
 func (r ResourceManagementPrivateLinkAssociationTestResource) generateName(data acceptance.TestData) string {
@@ -115,7 +118,7 @@ resource "azurerm_resource_management_private_link_association" "test" {
 `, r.template(data))
 }
 
-func (r ResourceManagementPrivateLinkAssociationTestResource) requiresImport(data acceptance.TestData) string {
+func (r ResourceManagementPrivateLinkAssociationTestResource) requiresImport(data acceptance.TestData, uuid string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -125,7 +128,7 @@ resource "azurerm_resource_management_private_link_association" "import" {
   resource_management_private_link_id = azurerm_resource_management_private_link_association.test.resource_management_private_link_id
   public_network_access_enabled       = azurerm_resource_management_private_link_association.test.public_network_access_enabled
 }
-`, r.basic(data))
+`, r.basic(data, uuid))
 }
 
 func (r ResourceManagementPrivateLinkAssociationTestResource) template(data acceptance.TestData) string {

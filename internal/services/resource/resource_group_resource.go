@@ -195,6 +195,9 @@ func resourceResourceGroupDelete(d *pluginsdk.ResourceData, meta interface{}) er
 		err = pluginsdk.Retry(10*time.Minute, func() *pluginsdk.RetryError {
 			results, err := resourceClient.ListByResourceGroupComplete(ctx, id.ResourceGroup, "", "provisioningState", utils.Int32(500))
 			if err != nil {
+				if strings.Contains(err.Error(), "could not be found") {
+					return nil
+				}
 				return pluginsdk.NonRetryableError(fmt.Errorf("listing resources in %s: %v", *id, err))
 			}
 			nestedResourceIds := make([]string, 0)
@@ -222,6 +225,9 @@ func resourceResourceGroupDelete(d *pluginsdk.ResourceData, meta interface{}) er
 
 	deleteFuture, err := client.Delete(ctx, id.ResourceGroup, "")
 	if err != nil {
+		if strings.Contains(err.Error(), "could not be found") {
+			return nil
+		}
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
