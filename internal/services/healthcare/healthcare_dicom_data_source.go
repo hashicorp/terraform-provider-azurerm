@@ -158,16 +158,6 @@ func dataSourceHealthcareDicomService() *pluginsdk.Resource {
 				},
 			},
 
-			"provision_state": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"event_state": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
 			"tags": commonschema.TagsDataSource(),
 		},
 	}
@@ -206,11 +196,7 @@ func dataSourceHealthcareApisDicomServiceRead(d *pluginsdk.ResourceData, meta in
 			d.Set("private_endpoint", flattenDicomServicePrivateEndpoint(props.PrivateEndpointConnections))
 			d.Set("service_url", props.ServiceUrl)
 
-			enableDataPartitions := false
-			if props.EnableDataPartitions != nil {
-				enableDataPartitions = pointer.From(props.EnableDataPartitions)
-			}
-			d.Set("data_partitions_enabled", enableDataPartitions)
+			d.Set("data_partitions_enabled", pointer.From(props.EnableDataPartitions))
 
 			d.Set("cors", flattenDicomServiceCorsConfiguration(props.CorsConfiguration))
 
@@ -219,14 +205,6 @@ func dataSourceHealthcareApisDicomServiceRead(d *pluginsdk.ResourceData, meta in
 			}
 
 			d.Set("storage", flattenStorageConfiguration(props.StorageConfiguration))
-
-			if props.ProvisioningState != nil {
-				d.Set("provision_state", pointer.From(props.ProvisioningState))
-			}
-
-			if props.EventState != nil {
-				d.Set("event_state", pointer.From(props.EventState))
-			}
 		}
 
 		i, err := identity.FlattenLegacySystemAndUserAssignedMap(m.Identity)
