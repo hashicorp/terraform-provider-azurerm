@@ -206,7 +206,7 @@ func dataSourceHealthcareApisDicomServiceRead(d *pluginsdk.ResourceData, meta in
 
 			storage, err := flattenStorageConfiguration(props.StorageConfiguration)
 			if err != nil {
-				return err
+				return fmt.Errorf("flattening `storage`: %+v", err)
 			}
 			d.Set("storage", storage)
 		}
