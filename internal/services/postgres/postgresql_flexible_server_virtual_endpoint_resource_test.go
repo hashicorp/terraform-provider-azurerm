@@ -66,14 +66,14 @@ func TestAccPostgresqlFlexibleServerVirtualEndpoint_cross_region(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.crossRegion(),
+			Config: r.crossRegion(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		data.DisappearsStep(acceptance.DisappearsStepData{
-			Config:       r.basic,
+			Config:       r.crossRegion,
 			TestResource: r,
 		}),
 	})
@@ -220,32 +220,28 @@ resource "azurerm_postgresql_flexible_server_virtual_endpoint" "test" {
 }
 
 /** Complex test cases across regions and resource groups */
-func (PostgresqlFlexibleServerVirtualEndpointResource) crossRegion() string {
-	return `
+func (PostgresqlFlexibleServerVirtualEndpointResource) crossRegion(data acceptance.TestData) string {
+	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
-}
-
-resource "random_pet" "name_prefix" {
-  length = 1
 }
 
 ###### EAST RG ######
 
 resource "azurerm_resource_group" "east" {
-  name     = "${random_pet.name_prefix.id}-east"
+  name     = "%[1]d-east"
   location = "eastus"
 }
 
 resource "azurerm_virtual_network" "east" {
-  name                = "${random_pet.name_prefix.id}-east-vn"
+  name                = "%[1]d-east-vn"
   location            = azurerm_resource_group.east.location
   resource_group_name = azurerm_resource_group.east.name
   address_space       = ["10.0.0.0/16"]
 }
 
 resource "azurerm_network_security_group" "east" {
-  name                = "${random_pet.name_prefix.id}-east-nsg"
+  name                = "%[1]d-east-nsg"
   location            = azurerm_resource_group.east.location
   resource_group_name = azurerm_resource_group.east.name
 
@@ -263,7 +259,7 @@ resource "azurerm_network_security_group" "east" {
 }
 
 resource "azurerm_subnet" "east" {
-  name                 = "${random_pet.name_prefix.id}-east-sn"
+  name                 = "%[1]d-east-sn"
   resource_group_name  = azurerm_resource_group.east.name
   virtual_network_name = azurerm_virtual_network.east.name
   address_prefixes     = ["10.0.1.0/24"]
@@ -286,7 +282,7 @@ resource "azurerm_subnet_network_security_group_association" "east" {
 }
 
 resource "azurerm_private_dns_zone" "east" {
-  name                = "${random_pet.name_prefix.id}-pdz.postgres.database.azure.com"
+  name                = "%[1]d-pdz.postgres.database.azure.com"
   resource_group_name = azurerm_resource_group.east.name
 
   depends_on = [azurerm_subnet_network_security_group_association.east]
@@ -302,7 +298,7 @@ resource "azurerm_virtual_network_peering" "east" {
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "east" {
-  name                  = "${random_pet.name_prefix.id}-east-pdzvnetlink.com"
+  name                  = "%[1]d-east-pdzvnetlink.com"
   private_dns_zone_name = azurerm_private_dns_zone.east.name
   virtual_network_id    = azurerm_virtual_network.east.id
   resource_group_name   = azurerm_resource_group.east.name
@@ -310,18 +306,14 @@ resource "azurerm_private_dns_zone_virtual_network_link" "east" {
   depends_on = [azurerm_virtual_network_peering.east]
 }
 
-resource "random_password" "pass" {
-  length = 20
-}
-
 resource "azurerm_postgresql_flexible_server" "east" {
-  name                          = "${random_pet.name_prefix.id}-east-pg"
+  name                          = "%[1]d-east-pg"
   resource_group_name           = azurerm_resource_group.east.name
   location                      = azurerm_resource_group.east.location
   version                       = "13"
   public_network_access_enabled = false
   administrator_login           = "adminTerraform"
-  administrator_password        = random_password.pass.result
+  administrator_password        = "maLTq5SnDBrWfyban7Wz"
   sku_name                      = "GP_Standard_D2s_v3"
 
   delegated_subnet_id = azurerm_subnet.east.id
@@ -339,7 +331,7 @@ resource "azurerm_postgresql_flexible_server" "east" {
 }
 
 resource "azurerm_postgresql_flexible_server_virtual_endpoint" "test" {
-  name              = "${random_pet.name_prefix.id}-endpoint"
+  name              = "%[1]d-endpoint"
   source_server_id  = azurerm_postgresql_flexible_server.east.id
   replica_server_id = azurerm_postgresql_flexible_server.west.id
   type              = "ReadWrite"
@@ -348,19 +340,19 @@ resource "azurerm_postgresql_flexible_server_virtual_endpoint" "test" {
 ###### WEST RG ######
 
 resource "azurerm_resource_group" "west" {
-  name     = "${random_pet.name_prefix.id}-west"
+  name     = "%[1]d-west"
   location = "westus"
 }
 
 resource "azurerm_virtual_network" "west" {
-  name                = "${random_pet.name_prefix.id}-west-vn"
+  name                = "%[1]d-west-vn"
   location            = azurerm_resource_group.west.location
   resource_group_name = azurerm_resource_group.west.name
   address_space       = ["11.0.0.0/16"]
 }
 
 resource "azurerm_network_security_group" "west" {
-  name                = "${random_pet.name_prefix.id}-west-nsg"
+  name                = "%[1]d-west-nsg"
   location            = azurerm_resource_group.west.location
   resource_group_name = azurerm_resource_group.west.name
 
@@ -378,7 +370,7 @@ resource "azurerm_network_security_group" "west" {
 }
 
 resource "azurerm_subnet" "west" {
-  name                 = "${random_pet.name_prefix.id}-west-sn"
+  name                 = "%[1]d-west-sn"
   resource_group_name  = azurerm_resource_group.west.name
   virtual_network_name = azurerm_virtual_network.west.name
   address_prefixes     = ["11.0.1.0/24"]
@@ -401,7 +393,7 @@ resource "azurerm_subnet_network_security_group_association" "west" {
 }
 
 resource "azurerm_private_dns_zone" "west" {
-  name                = "${random_pet.name_prefix.id}-pdz.postgres.database.azure.com"
+  name                = "%[1]d-pdz.postgres.database.azure.com"
   resource_group_name = azurerm_resource_group.west.name
 
   depends_on = [azurerm_subnet_network_security_group_association.west]
@@ -417,7 +409,7 @@ resource "azurerm_virtual_network_peering" "west" {
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "west" {
-  name                  = "${random_pet.name_prefix.id}-west-pdzvnetlink.com"
+  name                  = "%[1]d-west-pdzvnetlink.com"
   private_dns_zone_name = azurerm_private_dns_zone.west.name
   virtual_network_id    = azurerm_virtual_network.west.id
   resource_group_name   = azurerm_resource_group.west.name
@@ -426,7 +418,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "west" {
 }
 
 resource "azurerm_postgresql_flexible_server" "west" {
-  name                          = "${random_pet.name_prefix.id}-west-pg"
+  name                          = "%[1]d-west-pg"
   resource_group_name           = azurerm_resource_group.west.name
   location                      = azurerm_resource_group.west.location
   create_mode                   = "Replica"
@@ -448,5 +440,5 @@ resource "azurerm_postgresql_flexible_server" "west" {
     create = "120m"
   }
 }
-`
+`, data.RandomInteger)
 }

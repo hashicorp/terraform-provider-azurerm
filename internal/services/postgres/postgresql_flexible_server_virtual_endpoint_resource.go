@@ -253,12 +253,12 @@ func lookupFlexibleServerByName(ctx context.Context, flexibleServerClient *serve
 	}
 
 	// loop to find the replica server associated with this flexible endpoint
-	var replicaServer servers.Server
 	for i := 0; i < len(postgresServers.Items); i++ {
 		postgresServer := postgresServers.Items[i]
 		if postgresServer.Properties.SourceServerResourceId != nil && *postgresServer.Properties.SourceServerResourceId == sourceServerId {
-			replicaServer = postgresServer
+			return &postgresServer, nil
 		}
 	}
-	return &replicaServer, nil
+
+	return nil, fmt.Errorf("could not locate postgres replica server with name %s", replicaServerName)
 }
