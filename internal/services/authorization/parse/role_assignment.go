@@ -192,7 +192,7 @@ func RoleAssignmentID(input string) (*RoleAssignmentId, error) {
 	case strings.HasPrefix(input, "/providers/") && !strings.HasPrefix(input, "/providers/Microsoft.Authorization/roleAssignments"):
 		idParts := strings.Split(input, "/providers/Microsoft.Authorization/roleAssignments/")
 		if len(idParts) != 2 {
-			return nil, fmt.Errorf("could not parse Role Assignment ID %q for Ressource Provider", input)
+			return nil, fmt.Errorf("could not parse Role Assignment ID %q for Resource Provider", input)
 		}
 		if idParts[1] == "" {
 			return nil, fmt.Errorf("ID was missing a value for the roleAssignments element")
