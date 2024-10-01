@@ -464,6 +464,32 @@ func TestAccLogAnalyticsWorkspace_toggleIdentity(t *testing.T) {
 	})
 }
 
+func TestAccLogAnalyticsWorkspace_attachToLACDeleteThenRecreate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace", "test")
+	r := LogAnalyticsWorkspaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withLACLink(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withDeletedLAW(data),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withRestoredLAW(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t LogAnalyticsWorkspaceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := workspaces.ParseWorkspaceID(state.ID)
 	if err != nil {
@@ -988,4 +1014,110 @@ resource "azurerm_log_analytics_workspace" "test" {
   immediate_data_purge_on_30_days_enabled = %[4]t
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enable)
+}
+
+func (LogAnalyticsWorkspaceResource) withLACLink(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    log_analytics_workspace {
+      permanently_delete_on_destroy = false
+    }
+  }
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_log_analytics_cluster" "test" {
+  name                = "acctestLAC-%d"
+  location            = "%s"
+  resource_group_name = azurerm_resource_group.test.name
+  identity {
+    type = "SystemAssigned"
+  }
+  size_gb = 100
+}
+
+resource "azurerm_log_analytics_linked_service" "example" {
+  resource_group_name = azurerm_resource_group.test.name
+  workspace_id        = azurerm_log_analytics_workspace.test.id
+  write_access_id     = azurerm_log_analytics_cluster.test.id
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestLAW-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (LogAnalyticsWorkspaceResource) withDeletedLAW(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    log_analytics_workspace {
+      permanently_delete_on_destroy = false
+    }
+  }
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_log_analytics_cluster" "test" {
+  name                = "acctestLAC-%d"
+  location            = "%s"
+  resource_group_name = azurerm_resource_group.test.name
+  identity {
+    type = "SystemAssigned"
+  }
+  size_gb = 100
+}
+
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
+}
+
+func (LogAnalyticsWorkspaceResource) withRestoredLAW(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    log_analytics_workspace {
+      permanently_delete_on_destroy = false
+    }
+  }
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_log_analytics_cluster" "test" {
+  name                = "acctestLAC-%d"
+  location            = "%s"
+  resource_group_name = azurerm_resource_group.test.name
+  identity {
+    type = "SystemAssigned"
+  }
+  size_gb = 100
+}
+
+resource "azurerm_log_analytics_linked_service" "example" {
+  resource_group_name = azurerm_resource_group.test.name
+  workspace_id        = azurerm_log_analytics_workspace.test.id
+  write_access_id     = azurerm_log_analytics_cluster.test.id
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestLAW-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
