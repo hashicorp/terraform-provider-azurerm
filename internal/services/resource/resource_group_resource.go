@@ -5,6 +5,7 @@ package resource
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"log"
 	"sort"
 	"strings"
@@ -193,16 +194,16 @@ func resourceResourceGroupDelete(d *pluginsdk.ResourceData, meta interface{}) er
 		resourceClient := meta.(*clients.Client).Resource.ResourcesClient
 		// Resource groups sometimes hold on to resource information after the resources have been deleted. We'll retry this check to account for that eventual consistency.
 		err = pluginsdk.Retry(10*time.Minute, func() *pluginsdk.RetryError {
-			results, err := resourceClient.ListByResourceGroupComplete(ctx, id.ResourceGroup, "", "provisioningState", utils.Int32(500))
+			results, err := resourceClient.ListByResourceGroup(ctx, id.ResourceGroup, "", "provisioningState", utils.Int32(500))
 			if err != nil {
-				if strings.Contains(err.Error(), "could not be found") {
+				if response.WasNotFound(results.Response().Response.Response) {
 					return nil
 				}
 				return pluginsdk.NonRetryableError(fmt.Errorf("listing resources in %s: %v", *id, err))
 			}
 			nestedResourceIds := make([]string, 0)
-			for results.NotDone() {
-				val := results.Value()
+			for _, value := range results.Values() {
+				val := value
 				if val.ID != nil {
 					nestedResourceIds = append(nestedResourceIds, *val.ID)
 				}
