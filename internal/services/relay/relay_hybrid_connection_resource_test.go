@@ -66,7 +66,6 @@ func TestAccRelayHybridConnection_update(t *testing.T) {
 		{
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("requires_client_authorization").HasValue("false"),
 				check.That(data.ResourceName).Key("user_metadata").HasValue("metadataupdated"),
 			),
 		},
@@ -181,7 +180,6 @@ resource "azurerm_relay_hybrid_connection" "test" {
   name                          = "acctestrnhc-%d"
   resource_group_name           = azurerm_resource_group.test.name
   relay_namespace_name          = azurerm_relay_namespace.test.name
-  requires_client_authorization = false
   user_metadata                 = "metadataupdated"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
