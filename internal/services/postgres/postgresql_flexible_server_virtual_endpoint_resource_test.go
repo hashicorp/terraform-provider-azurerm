@@ -259,7 +259,7 @@ resource "azurerm_network_security_group" "east" {
 }
 
 resource "azurerm_subnet" "east" {
-  name                 = "%[1]d-east-sn"
+  name                 = "acctest%[1]d-east-sn"
   resource_group_name  = azurerm_resource_group.east.name
   virtual_network_name = azurerm_virtual_network.east.name
   address_prefixes     = ["10.0.1.0/24"]
