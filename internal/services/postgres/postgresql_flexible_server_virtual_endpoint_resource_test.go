@@ -352,7 +352,7 @@ resource "azurerm_virtual_network" "west" {
 }
 
 resource "azurerm_network_security_group" "west" {
-  name                = "%[1]d-west-nsg"
+  name                = "acctest%[1]d-west-nsg"
   location            = azurerm_resource_group.west.location
   resource_group_name = azurerm_resource_group.west.name
 
