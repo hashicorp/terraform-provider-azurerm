@@ -27,12 +27,12 @@ func (r Registration) Resources() []sdk.Resource {
 
 // Name is the name of this Service
 func (r Registration) Name() string {
-	return "App Service"
+	return "Oracle Database"
 }
 
 // WebsiteCategories returns a list of categories which can be used for the sidebar
 func (r Registration) WebsiteCategories() []string {
 	return []string{
-		"App Service",
+		"Oracle Database",
 	}
 }
