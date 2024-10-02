@@ -241,7 +241,7 @@ resource "azurerm_virtual_network" "east" {
 }
 
 resource "azurerm_network_security_group" "east" {
-  name                = "%[1]d-east-nsg"
+  name                = "acctest%[1]d-east-nsg"
   location            = azurerm_resource_group.east.location
   resource_group_name = azurerm_resource_group.east.name
 
