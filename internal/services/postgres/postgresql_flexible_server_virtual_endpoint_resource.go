@@ -172,7 +172,13 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Read() sdk.ResourceFunc
 					}
 
 					state.SourceServerId = sourceServerId
-					state.ReplicaServerId = *replicaServer.Id
+
+					replicaId, err := servers.ParseFlexibleServerID(*replicaServer.Id)
+					if err != nil {
+						return err
+					}
+
+					state.ReplicaServerId = replicaId.ID()
 				}
 			}
 
