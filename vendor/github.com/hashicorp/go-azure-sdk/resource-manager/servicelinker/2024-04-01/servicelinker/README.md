@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/servicelinker/2024-04-01/servicelinker` Documentation
 
-The `servicelinker` SDK allows for interaction with the Azure Resource Manager Service `servicelinker` (API Version `2024-04-01`).
+The `servicelinker` SDK allows for interaction with Azure Resource Manager `servicelinker` (API Version `2024-04-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := servicelinker.NewConnectorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "locationValue", "connectorValue")
+id := servicelinker.NewConnectorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "location", "connectorName")
 
 payload := servicelinker.LinkerResource{
 	// ...
@@ -42,7 +42,7 @@ if err := client.ConnectorCreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := servicelinker.NewConnectorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "locationValue", "connectorValue")
+id := servicelinker.NewConnectorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "location", "connectorName")
 
 read, err := client.ConnectorGet(ctx, id)
 if err != nil {
@@ -58,7 +58,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := servicelinker.NewLocationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "locationValue")
+id := servicelinker.NewLocationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "location")
 
 // alternatively `client.ConnectorList(ctx, id)` can be used to do batched pagination
 items, err := client.ConnectorListComplete(ctx, id)
@@ -75,7 +75,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := servicelinker.NewScopedLinkerID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "linkerValue")
+id := servicelinker.NewScopedLinkerID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "linkerName")
 
 payload := servicelinker.LinkerResource{
 	// ...
@@ -92,7 +92,7 @@ if err := client.LinkerCreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := servicelinker.NewScopedLinkerID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "linkerValue")
+id := servicelinker.NewScopedLinkerID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "linkerName")
 
 read, err := client.LinkerGet(ctx, id)
 if err != nil {

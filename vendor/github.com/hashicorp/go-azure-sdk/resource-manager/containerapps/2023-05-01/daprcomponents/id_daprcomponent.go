@@ -44,7 +44,7 @@ func ParseDaprComponentID(input string) (*DaprComponentId, error) {
 	}
 
 	id := DaprComponentId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseDaprComponentIDInsensitively(input string) (*DaprComponentId, error) {
 	}
 
 	id := DaprComponentId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id DaprComponentId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftApp", "Microsoft.App", "Microsoft.App"),
 		resourceids.StaticSegment("staticManagedEnvironments", "managedEnvironments", "managedEnvironments"),
-		resourceids.UserSpecifiedSegment("managedEnvironmentName", "managedEnvironmentValue"),
+		resourceids.UserSpecifiedSegment("managedEnvironmentName", "environmentName"),
 		resourceids.StaticSegment("staticDaprComponents", "daprComponents", "daprComponents"),
-		resourceids.UserSpecifiedSegment("daprComponentName", "daprComponentValue"),
+		resourceids.UserSpecifiedSegment("daprComponentName", "componentName"),
 	}
 }
 

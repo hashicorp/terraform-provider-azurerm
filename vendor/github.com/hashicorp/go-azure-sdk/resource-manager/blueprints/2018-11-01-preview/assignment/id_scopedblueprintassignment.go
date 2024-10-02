@@ -40,7 +40,7 @@ func ParseScopedBlueprintAssignmentID(input string) (*ScopedBlueprintAssignmentI
 	}
 
 	id := ScopedBlueprintAssignmentId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -57,7 +57,7 @@ func ParseScopedBlueprintAssignmentIDInsensitively(input string) (*ScopedBluepri
 	}
 
 	id := ScopedBlueprintAssignmentId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -106,7 +106,7 @@ func (id ScopedBlueprintAssignmentId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftBlueprint", "Microsoft.Blueprint", "Microsoft.Blueprint"),
 		resourceids.StaticSegment("staticBlueprintAssignments", "blueprintAssignments", "blueprintAssignments"),
-		resourceids.UserSpecifiedSegment("blueprintAssignmentName", "blueprintAssignmentValue"),
+		resourceids.UserSpecifiedSegment("blueprintAssignmentName", "assignmentName"),
 	}
 }
 

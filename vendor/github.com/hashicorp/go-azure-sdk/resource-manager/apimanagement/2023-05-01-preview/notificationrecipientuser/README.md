@@ -1,4 +1,3 @@
-
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/notificationrecipientuser` Documentation
 
 The `notificationrecipientuser` SDK allows for interaction with the Azure Resource Manager Service `apimanagement` (API Version `2023-05-01-preview`).
@@ -11,7 +10,6 @@ This readme covers example usages, but further information on [using this SDK ca
 import "github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/notificationrecipientuser"
 ```
 
-
 ### Client Initialization
 
 ```go
@@ -19,12 +17,11 @@ client := notificationrecipientuser.NewNotificationRecipientUserClientWithBaseUR
 client.Client.Authorizer = authorizer
 ```
 
-
 ### Example Usage: `NotificationRecipientUserClient.CheckEntityExists`
 
 ```go
 ctx := context.TODO()
-id := notificationrecipientuser.NewRecipientUserID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "AccountClosedPublisher", "userIdValue")
+id := notificationrecipientuser.NewRecipientUserID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "AccountClosedPublisher", "userId")
 
 read, err := client.CheckEntityExists(ctx, id)
 if err != nil {
@@ -35,12 +32,11 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `NotificationRecipientUserClient.CreateOrUpdate`
 
 ```go
 ctx := context.TODO()
-id := notificationrecipientuser.NewRecipientUserID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "AccountClosedPublisher", "userIdValue")
+id := notificationrecipientuser.NewRecipientUserID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "AccountClosedPublisher", "userId")
 
 read, err := client.CreateOrUpdate(ctx, id)
 if err != nil {
@@ -51,12 +47,11 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `NotificationRecipientUserClient.Delete`
 
 ```go
 ctx := context.TODO()
-id := notificationrecipientuser.NewRecipientUserID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "AccountClosedPublisher", "userIdValue")
+id := notificationrecipientuser.NewRecipientUserID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "AccountClosedPublisher", "userId")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -67,12 +62,11 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `NotificationRecipientUserClient.ListByNotification`
 
 ```go
 ctx := context.TODO()
-id := notificationrecipientuser.NewNotificationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "AccountClosedPublisher")
+id := notificationrecipientuser.NewNotificationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "AccountClosedPublisher")
 
 // alternatively `client.ListByNotification(ctx, id)` can be used to do batched pagination
 items, err := client.ListByNotificationComplete(ctx, id)
@@ -83,7 +77,6 @@ for _, item := range items {
 	// do something
 }
 ```
-
 
 ### Example Usage: `NotificationRecipientUserClient.WorkspaceNotificationRecipientUserCheckEntityExists`
 
@@ -100,7 +93,6 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `NotificationRecipientUserClient.WorkspaceNotificationRecipientUserCreateOrUpdate`
 
 ```go
@@ -116,7 +108,6 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `NotificationRecipientUserClient.WorkspaceNotificationRecipientUserDelete`
 
 ```go
@@ -131,7 +122,6 @@ if model := read.Model; model != nil {
 	// do something with the model/response object
 }
 ```
-
 
 ### Example Usage: `NotificationRecipientUserClient.WorkspaceNotificationRecipientUserListByNotification`
 

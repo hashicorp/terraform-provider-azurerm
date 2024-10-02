@@ -46,7 +46,6 @@ func (c CosmosDBClient) SqlResourcesListSqlTriggers(ctx context.Context, id Cont
 
 	var model SqlTriggerListResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

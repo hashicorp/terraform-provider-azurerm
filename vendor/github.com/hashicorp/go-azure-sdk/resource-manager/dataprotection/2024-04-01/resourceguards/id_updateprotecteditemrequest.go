@@ -44,7 +44,7 @@ func ParseUpdateProtectedItemRequestID(input string) (*UpdateProtectedItemReques
 	}
 
 	id := UpdateProtectedItemRequestId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseUpdateProtectedItemRequestIDInsensitively(input string) (*UpdateProtec
 	}
 
 	id := UpdateProtectedItemRequestId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id UpdateProtectedItemRequestId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDataProtection", "Microsoft.DataProtection", "Microsoft.DataProtection"),
 		resourceids.StaticSegment("staticResourceGuards", "resourceGuards", "resourceGuards"),
-		resourceids.UserSpecifiedSegment("resourceGuardName", "resourceGuardValue"),
+		resourceids.UserSpecifiedSegment("resourceGuardName", "resourceGuardsName"),
 		resourceids.StaticSegment("staticUpdateProtectedItemRequests", "updateProtectedItemRequests", "updateProtectedItemRequests"),
-		resourceids.UserSpecifiedSegment("updateProtectedItemRequestName", "updateProtectedItemRequestValue"),
+		resourceids.UserSpecifiedSegment("updateProtectedItemRequestName", "requestName"),
 	}
 }
 

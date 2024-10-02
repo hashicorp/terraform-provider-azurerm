@@ -44,7 +44,7 @@ func ParseMongodbRoleDefinitionID(input string) (*MongodbRoleDefinitionId, error
 	}
 
 	id := MongodbRoleDefinitionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseMongodbRoleDefinitionIDInsensitively(input string) (*MongodbRoleDefini
 	}
 
 	id := MongodbRoleDefinitionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id MongodbRoleDefinitionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDocumentDB", "Microsoft.DocumentDB", "Microsoft.DocumentDB"),
 		resourceids.StaticSegment("staticDatabaseAccounts", "databaseAccounts", "databaseAccounts"),
-		resourceids.UserSpecifiedSegment("databaseAccountName", "databaseAccountValue"),
+		resourceids.UserSpecifiedSegment("databaseAccountName", "accountName"),
 		resourceids.StaticSegment("staticMongodbRoleDefinitions", "mongodbRoleDefinitions", "mongodbRoleDefinitions"),
-		resourceids.UserSpecifiedSegment("mongoRoleDefinitionId", "mongoRoleDefinitionIdValue"),
+		resourceids.UserSpecifiedSegment("mongoRoleDefinitionId", "mongoRoleDefinitionId"),
 	}
 }
 

@@ -14,7 +14,16 @@ type EventHubEventSourceUpdateParameters struct {
 	Properties *EventHubEventSourceMutableProperties `json:"properties,omitempty"`
 
 	// Fields inherited from EventSourceUpdateParameters
+
+	Kind EventSourceKind    `json:"kind"`
 	Tags *map[string]string `json:"tags,omitempty"`
+}
+
+func (s EventHubEventSourceUpdateParameters) EventSourceUpdateParameters() BaseEventSourceUpdateParametersImpl {
+	return BaseEventSourceUpdateParametersImpl{
+		Kind: s.Kind,
+		Tags: s.Tags,
+	}
 }
 
 var _ json.Marshaler = EventHubEventSourceUpdateParameters{}
@@ -28,9 +37,10 @@ func (s EventHubEventSourceUpdateParameters) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling EventHubEventSourceUpdateParameters: %+v", err)
 	}
+
 	decoded["kind"] = "Microsoft.EventHub"
 
 	encoded, err = json.Marshal(decoded)

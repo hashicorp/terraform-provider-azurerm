@@ -1,4 +1,3 @@
-
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/delegationsettings` Documentation
 
 The `delegationsettings` SDK allows for interaction with the Azure Resource Manager Service `apimanagement` (API Version `2023-05-01-preview`).
@@ -11,7 +10,6 @@ This readme covers example usages, but further information on [using this SDK ca
 import "github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/delegationsettings"
 ```
 
-
 ### Client Initialization
 
 ```go
@@ -19,12 +17,11 @@ client := delegationsettings.NewDelegationSettingsClientWithBaseURI("https://man
 client.Client.Authorizer = authorizer
 ```
 
-
 ### Example Usage: `DelegationSettingsClient.CreateOrUpdate`
 
 ```go
 ctx := context.TODO()
-id := delegationsettings.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue")
+id := delegationsettings.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName")
 
 payload := delegationsettings.PortalDelegationSettings{
 	// ...
@@ -40,12 +37,11 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `DelegationSettingsClient.Get`
 
 ```go
 ctx := context.TODO()
-id := delegationsettings.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue")
+id := delegationsettings.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -56,12 +52,11 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `DelegationSettingsClient.GetEntityTag`
 
 ```go
 ctx := context.TODO()
-id := delegationsettings.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue")
+id := delegationsettings.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName")
 
 read, err := client.GetEntityTag(ctx, id)
 if err != nil {
@@ -72,12 +67,11 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `DelegationSettingsClient.ListSecrets`
 
 ```go
 ctx := context.TODO()
-id := delegationsettings.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue")
+id := delegationsettings.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName")
 
 read, err := client.ListSecrets(ctx, id)
 if err != nil {
@@ -88,12 +82,11 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `DelegationSettingsClient.Update`
 
 ```go
 ctx := context.TODO()
-id := delegationsettings.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue")
+id := delegationsettings.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName")
 
 payload := delegationsettings.PortalDelegationSettings{
 	// ...

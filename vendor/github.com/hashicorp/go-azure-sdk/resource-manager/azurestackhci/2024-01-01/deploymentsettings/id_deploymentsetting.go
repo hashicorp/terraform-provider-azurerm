@@ -44,7 +44,7 @@ func ParseDeploymentSettingID(input string) (*DeploymentSettingId, error) {
 	}
 
 	id := DeploymentSettingId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseDeploymentSettingIDInsensitively(input string) (*DeploymentSettingId, 
 	}
 
 	id := DeploymentSettingId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id DeploymentSettingId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAzureStackHCI", "Microsoft.AzureStackHCI", "Microsoft.AzureStackHCI"),
 		resourceids.StaticSegment("staticClusters", "clusters", "clusters"),
-		resourceids.UserSpecifiedSegment("clusterName", "clusterValue"),
+		resourceids.UserSpecifiedSegment("clusterName", "clusterName"),
 		resourceids.StaticSegment("staticDeploymentSettings", "deploymentSettings", "deploymentSettings"),
-		resourceids.UserSpecifiedSegment("deploymentSettingName", "deploymentSettingValue"),
+		resourceids.UserSpecifiedSegment("deploymentSettingName", "deploymentSettingsName"),
 	}
 }
 

@@ -42,7 +42,7 @@ func ParseAvailabilitySetID(input string) (*AvailabilitySetId, error) {
 	}
 
 	id := AvailabilitySetId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseAvailabilitySetIDInsensitively(input string) (*AvailabilitySetId, erro
 	}
 
 	id := AvailabilitySetId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id AvailabilitySetId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftScVmm", "Microsoft.ScVmm", "Microsoft.ScVmm"),
 		resourceids.StaticSegment("staticAvailabilitySets", "availabilitySets", "availabilitySets"),
-		resourceids.UserSpecifiedSegment("availabilitySetName", "availabilitySetValue"),
+		resourceids.UserSpecifiedSegment("availabilitySetName", "availabilitySetResourceName"),
 	}
 }
 

@@ -44,7 +44,7 @@ func ParseTrustedAccessRoleBindingID(input string) (*TrustedAccessRoleBindingId,
 	}
 
 	id := TrustedAccessRoleBindingId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseTrustedAccessRoleBindingIDInsensitively(input string) (*TrustedAccessR
 	}
 
 	id := TrustedAccessRoleBindingId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id TrustedAccessRoleBindingId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftContainerService", "Microsoft.ContainerService", "Microsoft.ContainerService"),
 		resourceids.StaticSegment("staticManagedClusters", "managedClusters", "managedClusters"),
-		resourceids.UserSpecifiedSegment("managedClusterName", "managedClusterValue"),
+		resourceids.UserSpecifiedSegment("managedClusterName", "resourceName"),
 		resourceids.StaticSegment("staticTrustedAccessRoleBindings", "trustedAccessRoleBindings", "trustedAccessRoleBindings"),
-		resourceids.UserSpecifiedSegment("trustedAccessRoleBindingName", "trustedAccessRoleBindingValue"),
+		resourceids.UserSpecifiedSegment("trustedAccessRoleBindingName", "trustedAccessRoleBindingName"),
 	}
 }
 

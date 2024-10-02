@@ -1,4 +1,3 @@
-
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/apidiagnostic` Documentation
 
 The `apidiagnostic` SDK allows for interaction with the Azure Resource Manager Service `apimanagement` (API Version `2023-05-01-preview`).
@@ -11,7 +10,6 @@ This readme covers example usages, but further information on [using this SDK ca
 import "github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/apidiagnostic"
 ```
 
-
 ### Client Initialization
 
 ```go
@@ -19,12 +17,11 @@ client := apidiagnostic.NewApiDiagnosticClientWithBaseURI("https://management.az
 client.Client.Authorizer = authorizer
 ```
 
-
 ### Example Usage: `ApiDiagnosticClient.CreateOrUpdate`
 
 ```go
 ctx := context.TODO()
-id := apidiagnostic.NewApiDiagnosticID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "apiIdValue", "diagnosticIdValue")
+id := apidiagnostic.NewApiDiagnosticID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "apiId", "diagnosticId")
 
 payload := apidiagnostic.DiagnosticContract{
 	// ...
@@ -40,12 +37,11 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `ApiDiagnosticClient.Delete`
 
 ```go
 ctx := context.TODO()
-id := apidiagnostic.NewApiDiagnosticID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "apiIdValue", "diagnosticIdValue")
+id := apidiagnostic.NewApiDiagnosticID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "apiId", "diagnosticId")
 
 read, err := client.Delete(ctx, id, apidiagnostic.DefaultDeleteOperationOptions())
 if err != nil {
@@ -56,12 +52,11 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `ApiDiagnosticClient.Get`
 
 ```go
 ctx := context.TODO()
-id := apidiagnostic.NewApiDiagnosticID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "apiIdValue", "diagnosticIdValue")
+id := apidiagnostic.NewApiDiagnosticID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "apiId", "diagnosticId")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -72,12 +67,11 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `ApiDiagnosticClient.GetEntityTag`
 
 ```go
 ctx := context.TODO()
-id := apidiagnostic.NewApiDiagnosticID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "apiIdValue", "diagnosticIdValue")
+id := apidiagnostic.NewApiDiagnosticID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "apiId", "diagnosticId")
 
 read, err := client.GetEntityTag(ctx, id)
 if err != nil {
@@ -88,12 +82,11 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `ApiDiagnosticClient.ListByService`
 
 ```go
 ctx := context.TODO()
-id := apidiagnostic.NewApiID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "apiIdValue")
+id := apidiagnostic.NewApiID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "apiId")
 
 // alternatively `client.ListByService(ctx, id, apidiagnostic.DefaultListByServiceOperationOptions())` can be used to do batched pagination
 items, err := client.ListByServiceComplete(ctx, id, apidiagnostic.DefaultListByServiceOperationOptions())
@@ -105,12 +98,11 @@ for _, item := range items {
 }
 ```
 
-
 ### Example Usage: `ApiDiagnosticClient.Update`
 
 ```go
 ctx := context.TODO()
-id := apidiagnostic.NewApiDiagnosticID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "apiIdValue", "diagnosticIdValue")
+id := apidiagnostic.NewApiDiagnosticID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "apiId", "diagnosticId")
 
 payload := apidiagnostic.DiagnosticContract{
 	// ...

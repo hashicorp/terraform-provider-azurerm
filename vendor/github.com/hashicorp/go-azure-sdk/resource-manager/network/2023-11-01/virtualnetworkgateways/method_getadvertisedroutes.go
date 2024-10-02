@@ -37,6 +37,7 @@ func (o GetAdvertisedRoutesOperationOptions) ToHeaders() *client.Headers {
 
 func (o GetAdvertisedRoutesOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

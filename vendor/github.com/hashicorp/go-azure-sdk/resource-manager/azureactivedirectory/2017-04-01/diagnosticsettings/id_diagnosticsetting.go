@@ -38,7 +38,7 @@ func ParseDiagnosticSettingID(input string) (*DiagnosticSettingId, error) {
 	}
 
 	id := DiagnosticSettingId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -55,7 +55,7 @@ func ParseDiagnosticSettingIDInsensitively(input string) (*DiagnosticSettingId, 
 	}
 
 	id := DiagnosticSettingId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -99,7 +99,7 @@ func (id DiagnosticSettingId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAADIAM", "Microsoft.AADIAM", "Microsoft.AADIAM"),
 		resourceids.StaticSegment("staticDiagnosticSettings", "diagnosticSettings", "diagnosticSettings"),
-		resourceids.UserSpecifiedSegment("diagnosticSettingName", "diagnosticSettingValue"),
+		resourceids.UserSpecifiedSegment("diagnosticSettingName", "name"),
 	}
 }
 

@@ -16,7 +16,7 @@ import (
 type SAPSizingRecommendationsOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *SAPSizingRecommendationResult
+	Model        SAPSizingRecommendationResult
 }
 
 // SAPSizingRecommendations ...
@@ -53,11 +53,11 @@ func (c SAPRecommendationsClient) SAPSizingRecommendations(ctx context.Context, 
 	if err = resp.Unmarshal(&respObj); err != nil {
 		return
 	}
-	model, err := unmarshalSAPSizingRecommendationResultImplementation(respObj)
+	model, err := UnmarshalSAPSizingRecommendationResultImplementation(respObj)
 	if err != nil {
 		return
 	}
-	result.Model = &model
+	result.Model = model
 
 	return
 }

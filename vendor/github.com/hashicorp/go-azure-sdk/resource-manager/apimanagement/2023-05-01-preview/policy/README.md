@@ -1,4 +1,3 @@
-
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/policy` Documentation
 
 The `policy` SDK allows for interaction with the Azure Resource Manager Service `apimanagement` (API Version `2023-05-01-preview`).
@@ -11,7 +10,6 @@ This readme covers example usages, but further information on [using this SDK ca
 import "github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/policy"
 ```
 
-
 ### Client Initialization
 
 ```go
@@ -19,12 +17,11 @@ client := policy.NewPolicyClientWithBaseURI("https://management.azure.com")
 client.Client.Authorizer = authorizer
 ```
 
-
 ### Example Usage: `PolicyClient.CreateOrUpdate`
 
 ```go
 ctx := context.TODO()
-id := policy.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue")
+id := policy.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName")
 
 payload := policy.PolicyContract{
 	// ...
@@ -40,12 +37,11 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `PolicyClient.Delete`
 
 ```go
 ctx := context.TODO()
-id := policy.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue")
+id := policy.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName")
 
 read, err := client.Delete(ctx, id, policy.DefaultDeleteOperationOptions())
 if err != nil {
@@ -56,12 +52,11 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `PolicyClient.Get`
 
 ```go
 ctx := context.TODO()
-id := policy.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue")
+id := policy.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName")
 
 read, err := client.Get(ctx, id, policy.DefaultGetOperationOptions())
 if err != nil {
@@ -72,12 +67,11 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `PolicyClient.GetEntityTag`
 
 ```go
 ctx := context.TODO()
-id := policy.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue")
+id := policy.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName")
 
 read, err := client.GetEntityTag(ctx, id)
 if err != nil {
@@ -88,12 +82,11 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `PolicyClient.ListByService`
 
 ```go
 ctx := context.TODO()
-id := policy.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue")
+id := policy.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName")
 
 // alternatively `client.ListByService(ctx, id)` can be used to do batched pagination
 items, err := client.ListByServiceComplete(ctx, id)

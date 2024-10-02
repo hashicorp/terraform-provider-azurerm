@@ -1,4 +1,3 @@
-
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/user` Documentation
 
 The `user` SDK allows for interaction with the Azure Resource Manager Service `apimanagement` (API Version `2023-05-01-preview`).
@@ -11,7 +10,6 @@ This readme covers example usages, but further information on [using this SDK ca
 import "github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/user"
 ```
 
-
 ### Client Initialization
 
 ```go
@@ -19,12 +17,11 @@ client := user.NewUserClientWithBaseURI("https://management.azure.com")
 client.Client.Authorizer = authorizer
 ```
 
-
 ### Example Usage: `UserClient.CreateOrUpdate`
 
 ```go
 ctx := context.TODO()
-id := user.NewUserID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "userIdValue")
+id := user.NewUserID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "userId")
 
 payload := user.UserCreateParameters{
 	// ...
@@ -40,24 +37,22 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `UserClient.Delete`
 
 ```go
 ctx := context.TODO()
-id := user.NewUserID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "userIdValue")
+id := user.NewUserID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "userId")
 
 if err := client.DeleteThenPoll(ctx, id, user.DefaultDeleteOperationOptions()); err != nil {
 	// handle the error
 }
 ```
 
-
 ### Example Usage: `UserClient.Get`
 
 ```go
 ctx := context.TODO()
-id := user.NewUserID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "userIdValue")
+id := user.NewUserID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "userId")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -68,12 +63,11 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `UserClient.GetEntityTag`
 
 ```go
 ctx := context.TODO()
-id := user.NewUserID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "userIdValue")
+id := user.NewUserID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "userId")
 
 read, err := client.GetEntityTag(ctx, id)
 if err != nil {
@@ -84,12 +78,11 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `UserClient.ListByService`
 
 ```go
 ctx := context.TODO()
-id := user.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue")
+id := user.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName")
 
 // alternatively `client.ListByService(ctx, id, user.DefaultListByServiceOperationOptions())` can be used to do batched pagination
 items, err := client.ListByServiceComplete(ctx, id, user.DefaultListByServiceOperationOptions())
@@ -101,12 +94,11 @@ for _, item := range items {
 }
 ```
 
-
 ### Example Usage: `UserClient.Update`
 
 ```go
 ctx := context.TODO()
-id := user.NewUserID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "userIdValue")
+id := user.NewUserID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "userId")
 
 payload := user.UserUpdateParameters{
 	// ...

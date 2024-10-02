@@ -1,4 +1,3 @@
-
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/identityprovider` Documentation
 
 The `identityprovider` SDK allows for interaction with the Azure Resource Manager Service `apimanagement` (API Version `2023-05-01-preview`).
@@ -11,7 +10,6 @@ This readme covers example usages, but further information on [using this SDK ca
 import "github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/identityprovider"
 ```
 
-
 ### Client Initialization
 
 ```go
@@ -19,12 +17,11 @@ client := identityprovider.NewIdentityProviderClientWithBaseURI("https://managem
 client.Client.Authorizer = authorizer
 ```
 
-
 ### Example Usage: `IdentityProviderClient.CreateOrUpdate`
 
 ```go
 ctx := context.TODO()
-id := identityprovider.NewIdentityProviderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "aad")
+id := identityprovider.NewIdentityProviderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "aad")
 
 payload := identityprovider.IdentityProviderCreateContract{
 	// ...
@@ -40,12 +37,11 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `IdentityProviderClient.Delete`
 
 ```go
 ctx := context.TODO()
-id := identityprovider.NewIdentityProviderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "aad")
+id := identityprovider.NewIdentityProviderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "aad")
 
 read, err := client.Delete(ctx, id, identityprovider.DefaultDeleteOperationOptions())
 if err != nil {
@@ -56,12 +52,11 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `IdentityProviderClient.Get`
 
 ```go
 ctx := context.TODO()
-id := identityprovider.NewIdentityProviderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "aad")
+id := identityprovider.NewIdentityProviderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "aad")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -72,12 +67,11 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `IdentityProviderClient.GetEntityTag`
 
 ```go
 ctx := context.TODO()
-id := identityprovider.NewIdentityProviderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "aad")
+id := identityprovider.NewIdentityProviderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "aad")
 
 read, err := client.GetEntityTag(ctx, id)
 if err != nil {
@@ -88,12 +82,11 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `IdentityProviderClient.ListByService`
 
 ```go
 ctx := context.TODO()
-id := identityprovider.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue")
+id := identityprovider.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName")
 
 // alternatively `client.ListByService(ctx, id)` can be used to do batched pagination
 items, err := client.ListByServiceComplete(ctx, id)
@@ -105,12 +98,11 @@ for _, item := range items {
 }
 ```
 
-
 ### Example Usage: `IdentityProviderClient.ListSecrets`
 
 ```go
 ctx := context.TODO()
-id := identityprovider.NewIdentityProviderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "aad")
+id := identityprovider.NewIdentityProviderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "aad")
 
 read, err := client.ListSecrets(ctx, id)
 if err != nil {
@@ -121,12 +113,11 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `IdentityProviderClient.Update`
 
 ```go
 ctx := context.TODO()
-id := identityprovider.NewIdentityProviderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "aad")
+id := identityprovider.NewIdentityProviderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "aad")
 
 payload := identityprovider.IdentityProviderUpdateParameters{
 	// ...

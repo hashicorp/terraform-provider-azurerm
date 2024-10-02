@@ -15,7 +15,7 @@ type VirtualApplianceSitesClient struct {
 }
 
 func NewVirtualApplianceSitesClientWithBaseURI(sdkApi sdkEnv.Api) (*VirtualApplianceSitesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "virtualappliancesites", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "virtualappliancesites", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating VirtualApplianceSitesClient: %+v", err)
 	}

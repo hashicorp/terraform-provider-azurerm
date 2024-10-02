@@ -14,9 +14,20 @@ type Gen2EnvironmentCreateOrUpdateParameters struct {
 	Properties Gen2EnvironmentCreationProperties `json:"properties"`
 
 	// Fields inherited from EnvironmentCreateOrUpdateParameters
+
+	Kind     EnvironmentKind    `json:"kind"`
 	Location string             `json:"location"`
 	Sku      Sku                `json:"sku"`
 	Tags     *map[string]string `json:"tags,omitempty"`
+}
+
+func (s Gen2EnvironmentCreateOrUpdateParameters) EnvironmentCreateOrUpdateParameters() BaseEnvironmentCreateOrUpdateParametersImpl {
+	return BaseEnvironmentCreateOrUpdateParametersImpl{
+		Kind:     s.Kind,
+		Location: s.Location,
+		Sku:      s.Sku,
+		Tags:     s.Tags,
+	}
 }
 
 var _ json.Marshaler = Gen2EnvironmentCreateOrUpdateParameters{}
@@ -30,9 +41,10 @@ func (s Gen2EnvironmentCreateOrUpdateParameters) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling Gen2EnvironmentCreateOrUpdateParameters: %+v", err)
 	}
+
 	decoded["kind"] = "Gen2"
 
 	encoded, err = json.Marshal(decoded)

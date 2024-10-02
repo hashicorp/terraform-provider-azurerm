@@ -15,7 +15,7 @@ type BastionHostsClient struct {
 }
 
 func NewBastionHostsClientWithBaseURI(sdkApi sdkEnv.Api) (*BastionHostsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "bastionhosts", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "bastionhosts", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating BastionHostsClient: %+v", err)
 	}

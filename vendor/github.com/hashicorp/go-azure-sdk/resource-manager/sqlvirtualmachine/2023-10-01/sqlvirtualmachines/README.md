@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2023-10-01/sqlvirtualmachines` Documentation
 
-The `sqlvirtualmachines` SDK allows for interaction with the Azure Resource Manager Service `sqlvirtualmachine` (API Version `2023-10-01`).
+The `sqlvirtualmachines` SDK allows for interaction with Azure Resource Manager `sqlvirtualmachine` (API Version `2023-10-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := sqlvirtualmachines.NewSqlVirtualMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "sqlVirtualMachineValue")
+id := sqlvirtualmachines.NewSqlVirtualMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "sqlVirtualMachineName")
 
 payload := sqlvirtualmachines.SqlVirtualMachine{
 	// ...
@@ -42,7 +42,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := sqlvirtualmachines.NewSqlVirtualMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "sqlVirtualMachineValue")
+id := sqlvirtualmachines.NewSqlVirtualMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "sqlVirtualMachineName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -54,7 +54,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := sqlvirtualmachines.NewSqlVirtualMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "sqlVirtualMachineValue")
+id := sqlvirtualmachines.NewSqlVirtualMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "sqlVirtualMachineName")
 
 payload := sqlvirtualmachines.DiskConfigAssessmentRequest{
 	// ...
@@ -71,7 +71,7 @@ if err := client.FetchDCAssessmentThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := sqlvirtualmachines.NewSqlVirtualMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "sqlVirtualMachineValue")
+id := sqlvirtualmachines.NewSqlVirtualMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "sqlVirtualMachineName")
 
 read, err := client.Get(ctx, id, sqlvirtualmachines.DefaultGetOperationOptions())
 if err != nil {
@@ -121,7 +121,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := sqlvirtualmachines.NewSqlVirtualMachineGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "sqlVirtualMachineGroupValue")
+id := sqlvirtualmachines.NewSqlVirtualMachineGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "sqlVirtualMachineGroupName")
 
 // alternatively `client.ListBySqlVMGroup(ctx, id)` can be used to do batched pagination
 items, err := client.ListBySqlVMGroupComplete(ctx, id)
@@ -138,7 +138,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := sqlvirtualmachines.NewSqlVirtualMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "sqlVirtualMachineValue")
+id := sqlvirtualmachines.NewSqlVirtualMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "sqlVirtualMachineName")
 
 if err := client.RedeployThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -150,7 +150,7 @@ if err := client.RedeployThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := sqlvirtualmachines.NewSqlVirtualMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "sqlVirtualMachineValue")
+id := sqlvirtualmachines.NewSqlVirtualMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "sqlVirtualMachineName")
 
 if err := client.StartAssessmentThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -162,7 +162,7 @@ if err := client.StartAssessmentThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := sqlvirtualmachines.NewSqlVirtualMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "sqlVirtualMachineValue")
+id := sqlvirtualmachines.NewSqlVirtualMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "sqlVirtualMachineName")
 
 payload := sqlvirtualmachines.SqlVirtualMachineUpdate{
 	// ...

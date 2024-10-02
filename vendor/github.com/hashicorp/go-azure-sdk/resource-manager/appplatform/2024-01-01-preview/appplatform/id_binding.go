@@ -46,7 +46,7 @@ func ParseBindingID(input string) (*BindingId, error) {
 	}
 
 	id := BindingId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -63,7 +63,7 @@ func ParseBindingIDInsensitively(input string) (*BindingId, error) {
 	}
 
 	id := BindingId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -127,11 +127,11 @@ func (id BindingId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAppPlatform", "Microsoft.AppPlatform", "Microsoft.AppPlatform"),
 		resourceids.StaticSegment("staticSpring", "spring", "spring"),
-		resourceids.UserSpecifiedSegment("springName", "springValue"),
+		resourceids.UserSpecifiedSegment("springName", "serviceName"),
 		resourceids.StaticSegment("staticApps", "apps", "apps"),
-		resourceids.UserSpecifiedSegment("appName", "appValue"),
+		resourceids.UserSpecifiedSegment("appName", "appName"),
 		resourceids.StaticSegment("staticBindings", "bindings", "bindings"),
-		resourceids.UserSpecifiedSegment("bindingName", "bindingValue"),
+		resourceids.UserSpecifiedSegment("bindingName", "bindingName"),
 	}
 }
 

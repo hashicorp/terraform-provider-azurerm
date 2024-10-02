@@ -38,7 +38,7 @@ func ParseBuiltInTemplateSpecID(input string) (*BuiltInTemplateSpecId, error) {
 	}
 
 	id := BuiltInTemplateSpecId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -55,7 +55,7 @@ func ParseBuiltInTemplateSpecIDInsensitively(input string) (*BuiltInTemplateSpec
 	}
 
 	id := BuiltInTemplateSpecId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -99,7 +99,7 @@ func (id BuiltInTemplateSpecId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftResources", "Microsoft.Resources", "Microsoft.Resources"),
 		resourceids.StaticSegment("staticBuiltInTemplateSpecs", "builtInTemplateSpecs", "builtInTemplateSpecs"),
-		resourceids.UserSpecifiedSegment("builtInTemplateSpecName", "builtInTemplateSpecValue"),
+		resourceids.UserSpecifiedSegment("builtInTemplateSpecName", "templateSpecName"),
 	}
 }
 

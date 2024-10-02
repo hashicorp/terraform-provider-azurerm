@@ -1,4 +1,3 @@
-
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/productgroup` Documentation
 
 The `productgroup` SDK allows for interaction with the Azure Resource Manager Service `apimanagement` (API Version `2023-05-01-preview`).
@@ -11,7 +10,6 @@ This readme covers example usages, but further information on [using this SDK ca
 import "github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/productgroup"
 ```
 
-
 ### Client Initialization
 
 ```go
@@ -19,12 +17,11 @@ client := productgroup.NewProductGroupClientWithBaseURI("https://management.azur
 client.Client.Authorizer = authorizer
 ```
 
-
 ### Example Usage: `ProductGroupClient.CheckEntityExists`
 
 ```go
 ctx := context.TODO()
-id := productgroup.NewProductGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "productIdValue", "groupIdValue")
+id := productgroup.NewProductGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "productId", "groupId")
 
 read, err := client.CheckEntityExists(ctx, id)
 if err != nil {
@@ -35,12 +32,11 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `ProductGroupClient.CreateOrUpdate`
 
 ```go
 ctx := context.TODO()
-id := productgroup.NewProductGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "productIdValue", "groupIdValue")
+id := productgroup.NewProductGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "productId", "groupId")
 
 read, err := client.CreateOrUpdate(ctx, id)
 if err != nil {
@@ -51,12 +47,11 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `ProductGroupClient.Delete`
 
 ```go
 ctx := context.TODO()
-id := productgroup.NewProductGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "productIdValue", "groupIdValue")
+id := productgroup.NewProductGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "productId", "groupId")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -67,12 +62,11 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `ProductGroupClient.ListByProduct`
 
 ```go
 ctx := context.TODO()
-id := productgroup.NewProductID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "productIdValue")
+id := productgroup.NewProductID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "productId")
 
 // alternatively `client.ListByProduct(ctx, id, productgroup.DefaultListByProductOperationOptions())` can be used to do batched pagination
 items, err := client.ListByProductComplete(ctx, id, productgroup.DefaultListByProductOperationOptions())

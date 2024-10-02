@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/resourceconnector/2022-10-27/appliances` Documentation
 
-The `appliances` SDK allows for interaction with the Azure Resource Manager Service `resourceconnector` (API Version `2022-10-27`).
+The `appliances` SDK allows for interaction with Azure Resource Manager `resourceconnector` (API Version `2022-10-27`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := appliances.NewApplianceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applianceValue")
+id := appliances.NewApplianceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
 
 payload := appliances.Appliance{
 	// ...
@@ -42,7 +42,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := appliances.NewApplianceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applianceValue")
+id := appliances.NewApplianceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -54,7 +54,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := appliances.NewApplianceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applianceValue")
+id := appliances.NewApplianceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -86,7 +86,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := appliances.NewUpgradeGraphID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applianceValue", "upgradeGraphValue")
+id := appliances.NewUpgradeGraphID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "upgradeGraph")
 
 read, err := client.GetUpgradeGraph(ctx, id)
 if err != nil {
@@ -136,7 +136,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := appliances.NewApplianceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applianceValue")
+id := appliances.NewApplianceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
 
 read, err := client.ListClusterUserCredential(ctx, id)
 if err != nil {
@@ -152,7 +152,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := appliances.NewApplianceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applianceValue")
+id := appliances.NewApplianceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
 
 read, err := client.ListKeys(ctx, id, appliances.DefaultListKeysOperationOptions())
 if err != nil {
@@ -168,7 +168,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := appliances.NewApplianceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applianceValue")
+id := appliances.NewApplianceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
 
 payload := appliances.PatchableAppliance{
 	// ...

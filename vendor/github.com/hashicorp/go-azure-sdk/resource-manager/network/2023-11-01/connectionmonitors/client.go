@@ -15,7 +15,7 @@ type ConnectionMonitorsClient struct {
 }
 
 func NewConnectionMonitorsClientWithBaseURI(sdkApi sdkEnv.Api) (*ConnectionMonitorsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "connectionmonitors", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "connectionmonitors", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ConnectionMonitorsClient: %+v", err)
 	}

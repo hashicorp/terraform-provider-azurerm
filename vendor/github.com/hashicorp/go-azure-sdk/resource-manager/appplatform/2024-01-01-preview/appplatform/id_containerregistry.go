@@ -44,7 +44,7 @@ func ParseContainerRegistryID(input string) (*ContainerRegistryId, error) {
 	}
 
 	id := ContainerRegistryId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseContainerRegistryIDInsensitively(input string) (*ContainerRegistryId, 
 	}
 
 	id := ContainerRegistryId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id ContainerRegistryId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAppPlatform", "Microsoft.AppPlatform", "Microsoft.AppPlatform"),
 		resourceids.StaticSegment("staticSpring", "spring", "spring"),
-		resourceids.UserSpecifiedSegment("springName", "springValue"),
+		resourceids.UserSpecifiedSegment("springName", "serviceName"),
 		resourceids.StaticSegment("staticContainerRegistries", "containerRegistries", "containerRegistries"),
-		resourceids.UserSpecifiedSegment("containerRegistryName", "containerRegistryValue"),
+		resourceids.UserSpecifiedSegment("containerRegistryName", "containerRegistryName"),
 	}
 }
 

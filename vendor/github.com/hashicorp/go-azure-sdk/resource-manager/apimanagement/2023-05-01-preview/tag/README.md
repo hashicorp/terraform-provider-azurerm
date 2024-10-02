@@ -1,4 +1,3 @@
-
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/tag` Documentation
 
 The `tag` SDK allows for interaction with the Azure Resource Manager Service `apimanagement` (API Version `2023-05-01-preview`).
@@ -11,7 +10,6 @@ This readme covers example usages, but further information on [using this SDK ca
 import "github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/tag"
 ```
 
-
 ### Client Initialization
 
 ```go
@@ -19,12 +17,11 @@ client := tag.NewTagClientWithBaseURI("https://management.azure.com")
 client.Client.Authorizer = authorizer
 ```
 
-
 ### Example Usage: `TagClient.CreateOrUpdate`
 
 ```go
 ctx := context.TODO()
-id := tag.NewTagID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "tagIdValue")
+id := tag.NewTagID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "tagId")
 
 payload := tag.TagCreateUpdateParameters{
 	// ...
@@ -40,12 +37,11 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `TagClient.Delete`
 
 ```go
 ctx := context.TODO()
-id := tag.NewTagID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "tagIdValue")
+id := tag.NewTagID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "tagId")
 
 read, err := client.Delete(ctx, id, tag.DefaultDeleteOperationOptions())
 if err != nil {
@@ -56,12 +52,11 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `TagClient.Get`
 
 ```go
 ctx := context.TODO()
-id := tag.NewTagID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "tagIdValue")
+id := tag.NewTagID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "tagId")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -72,12 +67,11 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `TagClient.GetEntityState`
 
 ```go
 ctx := context.TODO()
-id := tag.NewTagID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "tagIdValue")
+id := tag.NewTagID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "tagId")
 
 read, err := client.GetEntityState(ctx, id)
 if err != nil {
@@ -88,12 +82,11 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `TagClient.ListByService`
 
 ```go
 ctx := context.TODO()
-id := tag.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue")
+id := tag.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName")
 
 // alternatively `client.ListByService(ctx, id, tag.DefaultListByServiceOperationOptions())` can be used to do batched pagination
 items, err := client.ListByServiceComplete(ctx, id, tag.DefaultListByServiceOperationOptions())
@@ -105,12 +98,11 @@ for _, item := range items {
 }
 ```
 
-
 ### Example Usage: `TagClient.Update`
 
 ```go
 ctx := context.TODO()
-id := tag.NewTagID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "tagIdValue")
+id := tag.NewTagID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "tagId")
 
 payload := tag.TagCreateUpdateParameters{
 	// ...
@@ -125,7 +117,6 @@ if model := read.Model; model != nil {
 	// do something with the model/response object
 }
 ```
-
 
 ### Example Usage: `TagClient.WorkspaceTagCreateOrUpdate`
 
@@ -147,7 +138,6 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `TagClient.WorkspaceTagDelete`
 
 ```go
@@ -162,7 +152,6 @@ if model := read.Model; model != nil {
 	// do something with the model/response object
 }
 ```
-
 
 ### Example Usage: `TagClient.WorkspaceTagGet`
 
@@ -179,7 +168,6 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `TagClient.WorkspaceTagGetEntityState`
 
 ```go
@@ -194,7 +182,6 @@ if model := read.Model; model != nil {
 	// do something with the model/response object
 }
 ```
-
 
 ### Example Usage: `TagClient.WorkspaceTagListByService`
 
@@ -211,7 +198,6 @@ for _, item := range items {
 	// do something
 }
 ```
-
 
 ### Example Usage: `TagClient.WorkspaceTagUpdate`
 

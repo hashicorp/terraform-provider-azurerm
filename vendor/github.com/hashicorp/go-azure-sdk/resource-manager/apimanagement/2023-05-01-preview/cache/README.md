@@ -1,4 +1,3 @@
-
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/cache` Documentation
 
 The `cache` SDK allows for interaction with the Azure Resource Manager Service `apimanagement` (API Version `2023-05-01-preview`).
@@ -11,7 +10,6 @@ This readme covers example usages, but further information on [using this SDK ca
 import "github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/cache"
 ```
 
-
 ### Client Initialization
 
 ```go
@@ -19,12 +17,11 @@ client := cache.NewCacheClientWithBaseURI("https://management.azure.com")
 client.Client.Authorizer = authorizer
 ```
 
-
 ### Example Usage: `CacheClient.CreateOrUpdate`
 
 ```go
 ctx := context.TODO()
-id := cache.NewCacheID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "cacheIdValue")
+id := cache.NewCacheID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "cacheId")
 
 payload := cache.CacheContract{
 	// ...
@@ -40,12 +37,11 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `CacheClient.Delete`
 
 ```go
 ctx := context.TODO()
-id := cache.NewCacheID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "cacheIdValue")
+id := cache.NewCacheID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "cacheId")
 
 read, err := client.Delete(ctx, id, cache.DefaultDeleteOperationOptions())
 if err != nil {
@@ -56,12 +52,11 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `CacheClient.Get`
 
 ```go
 ctx := context.TODO()
-id := cache.NewCacheID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "cacheIdValue")
+id := cache.NewCacheID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "cacheId")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -72,12 +67,11 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `CacheClient.GetEntityTag`
 
 ```go
 ctx := context.TODO()
-id := cache.NewCacheID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "cacheIdValue")
+id := cache.NewCacheID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "cacheId")
 
 read, err := client.GetEntityTag(ctx, id)
 if err != nil {
@@ -88,12 +82,11 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `CacheClient.ListByService`
 
 ```go
 ctx := context.TODO()
-id := cache.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue")
+id := cache.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName")
 
 // alternatively `client.ListByService(ctx, id, cache.DefaultListByServiceOperationOptions())` can be used to do batched pagination
 items, err := client.ListByServiceComplete(ctx, id, cache.DefaultListByServiceOperationOptions())
@@ -105,12 +98,11 @@ for _, item := range items {
 }
 ```
 
-
 ### Example Usage: `CacheClient.Update`
 
 ```go
 ctx := context.TODO()
-id := cache.NewCacheID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "cacheIdValue")
+id := cache.NewCacheID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "cacheId")
 
 payload := cache.CacheUpdateParameters{
 	// ...

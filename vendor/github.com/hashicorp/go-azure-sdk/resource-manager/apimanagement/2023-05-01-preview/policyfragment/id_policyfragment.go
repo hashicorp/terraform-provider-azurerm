@@ -44,7 +44,7 @@ func ParsePolicyFragmentID(input string) (*PolicyFragmentId, error) {
 	}
 
 	id := PolicyFragmentId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParsePolicyFragmentIDInsensitively(input string) (*PolicyFragmentId, error)
 	}
 
 	id := PolicyFragmentId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id PolicyFragmentId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftApiManagement", "Microsoft.ApiManagement", "Microsoft.ApiManagement"),
 		resourceids.StaticSegment("staticService", "service", "service"),
-		resourceids.UserSpecifiedSegment("serviceName", "serviceValue"),
+		resourceids.UserSpecifiedSegment("serviceName", "serviceName"),
 		resourceids.StaticSegment("staticPolicyFragments", "policyFragments", "policyFragments"),
-		resourceids.UserSpecifiedSegment("policyFragmentName", "policyFragmentValue"),
+		resourceids.UserSpecifiedSegment("policyFragmentName", "id"),
 	}
 }
 

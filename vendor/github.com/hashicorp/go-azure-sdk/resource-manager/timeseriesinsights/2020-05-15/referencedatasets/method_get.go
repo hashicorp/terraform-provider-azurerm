@@ -45,7 +45,6 @@ func (c ReferenceDataSetsClient) Get(ctx context.Context, id ReferenceDataSetId)
 
 	var model ReferenceDataSetResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

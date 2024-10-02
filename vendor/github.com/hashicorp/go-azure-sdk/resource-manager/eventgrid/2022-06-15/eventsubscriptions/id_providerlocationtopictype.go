@@ -44,7 +44,7 @@ func ParseProviderLocationTopicTypeID(input string) (*ProviderLocationTopicTypeI
 	}
 
 	id := ProviderLocationTopicTypeId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseProviderLocationTopicTypeIDInsensitively(input string) (*ProviderLocat
 	}
 
 	id := ProviderLocationTopicTypeId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id ProviderLocationTopicTypeId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftEventGrid", "Microsoft.EventGrid", "Microsoft.EventGrid"),
 		resourceids.StaticSegment("staticLocations", "locations", "locations"),
-		resourceids.UserSpecifiedSegment("locationName", "locationValue"),
+		resourceids.UserSpecifiedSegment("locationName", "location"),
 		resourceids.StaticSegment("staticTopicTypes", "topicTypes", "topicTypes"),
-		resourceids.UserSpecifiedSegment("topicTypeName", "topicTypeValue"),
+		resourceids.UserSpecifiedSegment("topicTypeName", "topicTypeName"),
 	}
 }
 

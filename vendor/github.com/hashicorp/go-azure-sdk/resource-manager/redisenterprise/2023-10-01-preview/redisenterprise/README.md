@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2023-10-01-preview/redisenterprise` Documentation
 
-The `redisenterprise` SDK allows for interaction with the Azure Resource Manager Service `redisenterprise` (API Version `2023-10-01-preview`).
+The `redisenterprise` SDK allows for interaction with Azure Resource Manager `redisenterprise` (API Version `2023-10-01-preview`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -46,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := redisenterprise.NewRedisEnterpriseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisEnterpriseValue")
+id := redisenterprise.NewRedisEnterpriseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName")
 
 payload := redisenterprise.Cluster{
 	// ...
@@ -63,7 +63,7 @@ if err := client.CreateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := redisenterprise.NewDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisEnterpriseValue", "databaseValue")
+id := redisenterprise.NewDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName", "databaseName")
 
 payload := redisenterprise.Database{
 	// ...
@@ -80,7 +80,7 @@ if err := client.DatabasesCreateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := redisenterprise.NewDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisEnterpriseValue", "databaseValue")
+id := redisenterprise.NewDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName", "databaseName")
 
 if err := client.DatabasesDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -92,7 +92,7 @@ if err := client.DatabasesDeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := redisenterprise.NewDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisEnterpriseValue", "databaseValue")
+id := redisenterprise.NewDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName", "databaseName")
 
 payload := redisenterprise.ExportClusterParameters{
 	// ...
@@ -109,7 +109,7 @@ if err := client.DatabasesExportThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := redisenterprise.NewDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisEnterpriseValue", "databaseValue")
+id := redisenterprise.NewDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName", "databaseName")
 
 payload := redisenterprise.FlushParameters{
 	// ...
@@ -126,7 +126,7 @@ if err := client.DatabasesFlushThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := redisenterprise.NewDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisEnterpriseValue", "databaseValue")
+id := redisenterprise.NewDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName", "databaseName")
 
 payload := redisenterprise.ForceUnlinkParameters{
 	// ...
@@ -143,7 +143,7 @@ if err := client.DatabasesForceUnlinkThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := redisenterprise.NewDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisEnterpriseValue", "databaseValue")
+id := redisenterprise.NewDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName", "databaseName")
 
 read, err := client.DatabasesGet(ctx, id)
 if err != nil {
@@ -159,7 +159,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := redisenterprise.NewDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisEnterpriseValue", "databaseValue")
+id := redisenterprise.NewDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName", "databaseName")
 
 payload := redisenterprise.ImportClusterParameters{
 	// ...
@@ -176,7 +176,7 @@ if err := client.DatabasesImportThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := redisenterprise.NewRedisEnterpriseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisEnterpriseValue")
+id := redisenterprise.NewRedisEnterpriseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName")
 
 // alternatively `client.DatabasesListByCluster(ctx, id)` can be used to do batched pagination
 items, err := client.DatabasesListByClusterComplete(ctx, id)
@@ -193,7 +193,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := redisenterprise.NewDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisEnterpriseValue", "databaseValue")
+id := redisenterprise.NewDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName", "databaseName")
 
 read, err := client.DatabasesListKeys(ctx, id)
 if err != nil {
@@ -209,7 +209,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := redisenterprise.NewDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisEnterpriseValue", "databaseValue")
+id := redisenterprise.NewDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName", "databaseName")
 
 payload := redisenterprise.RegenerateKeyParameters{
 	// ...
@@ -226,7 +226,7 @@ if err := client.DatabasesRegenerateKeyThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := redisenterprise.NewDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisEnterpriseValue", "databaseValue")
+id := redisenterprise.NewDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName", "databaseName")
 
 payload := redisenterprise.DatabaseUpdate{
 	// ...
@@ -243,7 +243,7 @@ if err := client.DatabasesUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := redisenterprise.NewRedisEnterpriseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisEnterpriseValue")
+id := redisenterprise.NewRedisEnterpriseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -255,7 +255,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := redisenterprise.NewRedisEnterpriseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisEnterpriseValue")
+id := redisenterprise.NewRedisEnterpriseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -305,7 +305,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := redisenterprise.NewRedisEnterpriseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisEnterpriseValue")
+id := redisenterprise.NewRedisEnterpriseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName")
 
 payload := redisenterprise.ClusterUpdate{
 	// ...

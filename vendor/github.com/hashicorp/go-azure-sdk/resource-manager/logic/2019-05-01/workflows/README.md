@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/workflows` Documentation
 
-The `workflows` SDK allows for interaction with the Azure Resource Manager Service `logic` (API Version `2019-05-01`).
+The `workflows` SDK allows for interaction with Azure Resource Manager `logic` (API Version `2019-05-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := workflows.NewWorkflowID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workflowValue")
+id := workflows.NewWorkflowID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workflowName")
 
 payload := workflows.Workflow{
 	// ...
@@ -46,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := workflows.NewWorkflowID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workflowValue")
+id := workflows.NewWorkflowID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workflowName")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -62,7 +62,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := workflows.NewWorkflowID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workflowValue")
+id := workflows.NewWorkflowID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workflowName")
 
 read, err := client.Disable(ctx, id)
 if err != nil {
@@ -78,7 +78,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := workflows.NewWorkflowID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workflowValue")
+id := workflows.NewWorkflowID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workflowName")
 
 read, err := client.Enable(ctx, id)
 if err != nil {
@@ -94,7 +94,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := workflows.NewWorkflowID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workflowValue")
+id := workflows.NewWorkflowID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workflowName")
 
 payload := workflows.GenerateUpgradedDefinitionParameters{
 	// ...
@@ -115,7 +115,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := workflows.NewWorkflowID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workflowValue")
+id := workflows.NewWorkflowID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workflowName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -165,7 +165,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := workflows.NewWorkflowID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workflowValue")
+id := workflows.NewWorkflowID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workflowName")
 
 payload := workflows.GetCallbackUrlParameters{
 	// ...
@@ -186,7 +186,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := workflows.NewWorkflowID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workflowValue")
+id := workflows.NewWorkflowID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workflowName")
 
 read, err := client.ListSwagger(ctx, id)
 if err != nil {
@@ -202,7 +202,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := workflows.NewWorkflowID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workflowValue")
+id := workflows.NewWorkflowID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workflowName")
 
 payload := workflows.WorkflowReference{
 	// ...
@@ -219,7 +219,7 @@ if err := client.MoveThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := workflows.NewWorkflowID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workflowValue")
+id := workflows.NewWorkflowID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workflowName")
 
 payload := workflows.RegenerateActionParameter{
 	// ...
@@ -240,7 +240,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := workflows.NewWorkflowID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workflowValue")
+id := workflows.NewWorkflowID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workflowName")
 
 read, err := client.Update(ctx, id)
 if err != nil {
@@ -256,7 +256,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := workflows.NewLocationWorkflowID("12345678-1234-9876-4563-123456789012", "example-resource-group", "locationValue", "workflowValue")
+id := workflows.NewLocationWorkflowID("12345678-1234-9876-4563-123456789012", "example-resource-group", "location", "workflowName")
 
 payload := workflows.Workflow{
 	// ...
@@ -277,7 +277,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := workflows.NewWorkflowID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workflowValue")
+id := workflows.NewWorkflowID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workflowName")
 
 payload := workflows.Workflow{
 	// ...

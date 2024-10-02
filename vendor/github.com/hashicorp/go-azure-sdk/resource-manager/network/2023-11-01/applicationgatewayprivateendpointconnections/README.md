@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/applicationgatewayprivateendpointconnections` Documentation
 
-The `applicationgatewayprivateendpointconnections` SDK allows for interaction with the Azure Resource Manager Service `network` (API Version `2023-11-01`).
+The `applicationgatewayprivateendpointconnections` SDK allows for interaction with Azure Resource Manager `network` (API Version `2023-11-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := applicationgatewayprivateendpointconnections.NewApplicationGatewayPrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applicationGatewayValue", "privateEndpointConnectionValue")
+id := applicationgatewayprivateendpointconnections.NewApplicationGatewayPrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applicationGatewayName", "connectionName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -36,7 +36,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := applicationgatewayprivateendpointconnections.NewApplicationGatewayPrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applicationGatewayValue", "privateEndpointConnectionValue")
+id := applicationgatewayprivateendpointconnections.NewApplicationGatewayPrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applicationGatewayName", "connectionName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -52,7 +52,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := applicationgatewayprivateendpointconnections.NewApplicationGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applicationGatewayValue")
+id := applicationgatewayprivateendpointconnections.NewApplicationGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applicationGatewayName")
 
 // alternatively `client.List(ctx, id)` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id)
@@ -69,7 +69,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := applicationgatewayprivateendpointconnections.NewApplicationGatewayPrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applicationGatewayValue", "privateEndpointConnectionValue")
+id := applicationgatewayprivateendpointconnections.NewApplicationGatewayPrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applicationGatewayName", "connectionName")
 
 payload := applicationgatewayprivateendpointconnections.ApplicationGatewayPrivateEndpointConnection{
 	// ...

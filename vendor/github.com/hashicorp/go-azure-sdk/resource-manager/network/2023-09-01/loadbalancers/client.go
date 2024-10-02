@@ -15,7 +15,7 @@ type LoadBalancersClient struct {
 }
 
 func NewLoadBalancersClientWithBaseURI(sdkApi sdkEnv.Api) (*LoadBalancersClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "loadbalancers", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "loadbalancers", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating LoadBalancersClient: %+v", err)
 	}

@@ -1,4 +1,3 @@
-
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/gatewayhostnameconfiguration` Documentation
 
 The `gatewayhostnameconfiguration` SDK allows for interaction with the Azure Resource Manager Service `apimanagement` (API Version `2023-05-01-preview`).
@@ -11,7 +10,6 @@ This readme covers example usages, but further information on [using this SDK ca
 import "github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/gatewayhostnameconfiguration"
 ```
 
-
 ### Client Initialization
 
 ```go
@@ -19,12 +17,11 @@ client := gatewayhostnameconfiguration.NewGatewayHostnameConfigurationClientWith
 client.Client.Authorizer = authorizer
 ```
 
-
 ### Example Usage: `GatewayHostnameConfigurationClient.CreateOrUpdate`
 
 ```go
 ctx := context.TODO()
-id := gatewayhostnameconfiguration.NewHostnameConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "gatewayIdValue", "hcIdValue")
+id := gatewayhostnameconfiguration.NewHostnameConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "gatewayId", "hcId")
 
 payload := gatewayhostnameconfiguration.GatewayHostnameConfigurationContract{
 	// ...
@@ -40,12 +37,11 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `GatewayHostnameConfigurationClient.Delete`
 
 ```go
 ctx := context.TODO()
-id := gatewayhostnameconfiguration.NewHostnameConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "gatewayIdValue", "hcIdValue")
+id := gatewayhostnameconfiguration.NewHostnameConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "gatewayId", "hcId")
 
 read, err := client.Delete(ctx, id, gatewayhostnameconfiguration.DefaultDeleteOperationOptions())
 if err != nil {
@@ -56,12 +52,11 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `GatewayHostnameConfigurationClient.Get`
 
 ```go
 ctx := context.TODO()
-id := gatewayhostnameconfiguration.NewHostnameConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "gatewayIdValue", "hcIdValue")
+id := gatewayhostnameconfiguration.NewHostnameConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "gatewayId", "hcId")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -72,12 +67,11 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `GatewayHostnameConfigurationClient.GetEntityTag`
 
 ```go
 ctx := context.TODO()
-id := gatewayhostnameconfiguration.NewHostnameConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "gatewayIdValue", "hcIdValue")
+id := gatewayhostnameconfiguration.NewHostnameConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "gatewayId", "hcId")
 
 read, err := client.GetEntityTag(ctx, id)
 if err != nil {
@@ -88,12 +82,11 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `GatewayHostnameConfigurationClient.ListByService`
 
 ```go
 ctx := context.TODO()
-id := gatewayhostnameconfiguration.NewGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "gatewayIdValue")
+id := gatewayhostnameconfiguration.NewGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "gatewayId")
 
 // alternatively `client.ListByService(ctx, id, gatewayhostnameconfiguration.DefaultListByServiceOperationOptions())` can be used to do batched pagination
 items, err := client.ListByServiceComplete(ctx, id, gatewayhostnameconfiguration.DefaultListByServiceOperationOptions())

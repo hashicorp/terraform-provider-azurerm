@@ -44,7 +44,7 @@ func ParseTransformationID(input string) (*TransformationId, error) {
 	}
 
 	id := TransformationId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseTransformationIDInsensitively(input string) (*TransformationId, error)
 	}
 
 	id := TransformationId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id TransformationId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftStreamAnalytics", "Microsoft.StreamAnalytics", "Microsoft.StreamAnalytics"),
 		resourceids.StaticSegment("staticStreamingJobs", "streamingJobs", "streamingJobs"),
-		resourceids.UserSpecifiedSegment("streamingJobName", "streamingJobValue"),
+		resourceids.UserSpecifiedSegment("streamingJobName", "jobName"),
 		resourceids.StaticSegment("staticTransformations", "transformations", "transformations"),
-		resourceids.UserSpecifiedSegment("transformationName", "transformationValue"),
+		resourceids.UserSpecifiedSegment("transformationName", "transformationName"),
 	}
 }
 

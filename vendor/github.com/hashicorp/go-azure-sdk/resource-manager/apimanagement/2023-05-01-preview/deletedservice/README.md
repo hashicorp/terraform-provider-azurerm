@@ -1,4 +1,3 @@
-
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/deletedservice` Documentation
 
 The `deletedservice` SDK allows for interaction with the Azure Resource Manager Service `apimanagement` (API Version `2023-05-01-preview`).
@@ -12,7 +11,6 @@ import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/deletedservice"
 ```
 
-
 ### Client Initialization
 
 ```go
@@ -20,12 +18,11 @@ client := deletedservice.NewDeletedServiceClientWithBaseURI("https://management.
 client.Client.Authorizer = authorizer
 ```
 
-
 ### Example Usage: `DeletedServiceClient.GetByName`
 
 ```go
 ctx := context.TODO()
-id := deletedservice.NewDeletedServiceID("12345678-1234-9876-4563-123456789012", "locationValue", "deletedServiceValue")
+id := deletedservice.NewDeletedServiceID("12345678-1234-9876-4563-123456789012", "location", "serviceName")
 
 read, err := client.GetByName(ctx, id)
 if err != nil {
@@ -35,7 +32,6 @@ if model := read.Model; model != nil {
 	// do something with the model/response object
 }
 ```
-
 
 ### Example Usage: `DeletedServiceClient.ListBySubscription`
 
@@ -53,12 +49,11 @@ for _, item := range items {
 }
 ```
 
-
 ### Example Usage: `DeletedServiceClient.Purge`
 
 ```go
 ctx := context.TODO()
-id := deletedservice.NewDeletedServiceID("12345678-1234-9876-4563-123456789012", "locationValue", "deletedServiceValue")
+id := deletedservice.NewDeletedServiceID("12345678-1234-9876-4563-123456789012", "location", "serviceName")
 
 if err := client.PurgeThenPoll(ctx, id); err != nil {
 	// handle the error

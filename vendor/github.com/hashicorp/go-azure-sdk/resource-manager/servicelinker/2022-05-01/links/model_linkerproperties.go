@@ -21,10 +21,15 @@ type LinkerProperties struct {
 var _ json.Unmarshaler = &LinkerProperties{}
 
 func (s *LinkerProperties) UnmarshalJSON(bytes []byte) error {
-	type alias LinkerProperties
-	var decoded alias
+	var decoded struct {
+		ClientType        *ClientType   `json:"clientType,omitempty"`
+		ProvisioningState *string       `json:"provisioningState,omitempty"`
+		Scope             *string       `json:"scope,omitempty"`
+		SecretStore       *SecretStore  `json:"secretStore,omitempty"`
+		VNetSolution      *VNetSolution `json:"vNetSolution,omitempty"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into LinkerProperties: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
 	s.ClientType = decoded.ClientType
@@ -39,7 +44,7 @@ func (s *LinkerProperties) UnmarshalJSON(bytes []byte) error {
 	}
 
 	if v, ok := temp["authInfo"]; ok {
-		impl, err := unmarshalAuthInfoBaseImplementation(v)
+		impl, err := UnmarshalAuthInfoBaseImplementation(v)
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'AuthInfo' for 'LinkerProperties': %+v", err)
 		}
@@ -47,11 +52,12 @@ func (s *LinkerProperties) UnmarshalJSON(bytes []byte) error {
 	}
 
 	if v, ok := temp["targetService"]; ok {
-		impl, err := unmarshalTargetServiceBaseImplementation(v)
+		impl, err := UnmarshalTargetServiceBaseImplementation(v)
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'TargetService' for 'LinkerProperties': %+v", err)
 		}
 		s.TargetService = impl
 	}
+
 	return nil
 }

@@ -45,7 +45,6 @@ func (c CosmosDBClient) GremlinResourcesGetGremlinGraph(ctx context.Context, id 
 
 	var model GremlinGraphGetResults
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

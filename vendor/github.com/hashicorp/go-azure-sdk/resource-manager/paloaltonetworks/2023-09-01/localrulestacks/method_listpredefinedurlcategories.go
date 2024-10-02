@@ -40,6 +40,7 @@ func (o ListPredefinedUrlCategoriesOperationOptions) ToHeaders() *client.Headers
 
 func (o ListPredefinedUrlCategoriesOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

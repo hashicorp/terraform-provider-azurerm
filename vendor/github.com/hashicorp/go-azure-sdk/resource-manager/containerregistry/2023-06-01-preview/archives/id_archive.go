@@ -46,7 +46,7 @@ func ParseArchiveID(input string) (*ArchiveId, error) {
 	}
 
 	id := ArchiveId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -63,7 +63,7 @@ func ParseArchiveIDInsensitively(input string) (*ArchiveId, error) {
 	}
 
 	id := ArchiveId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -127,11 +127,11 @@ func (id ArchiveId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftContainerRegistry", "Microsoft.ContainerRegistry", "Microsoft.ContainerRegistry"),
 		resourceids.StaticSegment("staticRegistries", "registries", "registries"),
-		resourceids.UserSpecifiedSegment("registryName", "registryValue"),
+		resourceids.UserSpecifiedSegment("registryName", "registryName"),
 		resourceids.StaticSegment("staticPackages", "packages", "packages"),
-		resourceids.UserSpecifiedSegment("packageName", "packageValue"),
+		resourceids.UserSpecifiedSegment("packageName", "packageType"),
 		resourceids.StaticSegment("staticArchives", "archives", "archives"),
-		resourceids.UserSpecifiedSegment("archiveName", "archiveValue"),
+		resourceids.UserSpecifiedSegment("archiveName", "archiveName"),
 	}
 }
 

@@ -16,10 +16,11 @@ type AutomationRuleBooleanCondition struct {
 var _ json.Unmarshaler = &AutomationRuleBooleanCondition{}
 
 func (s *AutomationRuleBooleanCondition) UnmarshalJSON(bytes []byte) error {
-	type alias AutomationRuleBooleanCondition
-	var decoded alias
+	var decoded struct {
+		Operator *AutomationRuleBooleanConditionSupportedOperator `json:"operator,omitempty"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into AutomationRuleBooleanCondition: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
 	s.Operator = decoded.Operator
@@ -37,7 +38,7 @@ func (s *AutomationRuleBooleanCondition) UnmarshalJSON(bytes []byte) error {
 
 		output := make([]AutomationRuleCondition, 0)
 		for i, val := range listTemp {
-			impl, err := unmarshalAutomationRuleConditionImplementation(val)
+			impl, err := UnmarshalAutomationRuleConditionImplementation(val)
 			if err != nil {
 				return fmt.Errorf("unmarshaling index %d field 'InnerConditions' for 'AutomationRuleBooleanCondition': %+v", i, err)
 			}
@@ -45,5 +46,6 @@ func (s *AutomationRuleBooleanCondition) UnmarshalJSON(bytes []byte) error {
 		}
 		s.InnerConditions = &output
 	}
+
 	return nil
 }

@@ -1,4 +1,3 @@
-
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/signinsettings` Documentation
 
 The `signinsettings` SDK allows for interaction with the Azure Resource Manager Service `apimanagement` (API Version `2023-05-01-preview`).
@@ -11,7 +10,6 @@ This readme covers example usages, but further information on [using this SDK ca
 import "github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/signinsettings"
 ```
 
-
 ### Client Initialization
 
 ```go
@@ -19,12 +17,11 @@ client := signinsettings.NewSignInSettingsClientWithBaseURI("https://management.
 client.Client.Authorizer = authorizer
 ```
 
-
 ### Example Usage: `SignInSettingsClient.CreateOrUpdate`
 
 ```go
 ctx := context.TODO()
-id := signinsettings.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue")
+id := signinsettings.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName")
 
 payload := signinsettings.PortalSigninSettings{
 	// ...
@@ -40,12 +37,11 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `SignInSettingsClient.Get`
 
 ```go
 ctx := context.TODO()
-id := signinsettings.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue")
+id := signinsettings.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -56,12 +52,11 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `SignInSettingsClient.GetEntityTag`
 
 ```go
 ctx := context.TODO()
-id := signinsettings.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue")
+id := signinsettings.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName")
 
 read, err := client.GetEntityTag(ctx, id)
 if err != nil {
@@ -72,12 +67,11 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `SignInSettingsClient.Update`
 
 ```go
 ctx := context.TODO()
-id := signinsettings.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue")
+id := signinsettings.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName")
 
 payload := signinsettings.PortalSigninSettings{
 	// ...

@@ -15,7 +15,16 @@ type Gen1EnvironmentUpdateParameters struct {
 	Sku        *Sku                              `json:"sku,omitempty"`
 
 	// Fields inherited from EnvironmentUpdateParameters
+
+	Kind EnvironmentKind    `json:"kind"`
 	Tags *map[string]string `json:"tags,omitempty"`
+}
+
+func (s Gen1EnvironmentUpdateParameters) EnvironmentUpdateParameters() BaseEnvironmentUpdateParametersImpl {
+	return BaseEnvironmentUpdateParametersImpl{
+		Kind: s.Kind,
+		Tags: s.Tags,
+	}
 }
 
 var _ json.Marshaler = Gen1EnvironmentUpdateParameters{}
@@ -29,9 +38,10 @@ func (s Gen1EnvironmentUpdateParameters) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling Gen1EnvironmentUpdateParameters: %+v", err)
 	}
+
 	decoded["kind"] = "Gen1"
 
 	encoded, err = json.Marshal(decoded)

@@ -1,4 +1,3 @@
-
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/emailtemplates` Documentation
 
 The `emailtemplates` SDK allows for interaction with the Azure Resource Manager Service `apimanagement` (API Version `2023-05-01-preview`).
@@ -11,7 +10,6 @@ This readme covers example usages, but further information on [using this SDK ca
 import "github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/emailtemplates"
 ```
 
-
 ### Client Initialization
 
 ```go
@@ -19,12 +17,11 @@ client := emailtemplates.NewEmailTemplatesClientWithBaseURI("https://management.
 client.Client.Authorizer = authorizer
 ```
 
-
 ### Example Usage: `EmailTemplatesClient.EmailTemplateCreateOrUpdate`
 
 ```go
 ctx := context.TODO()
-id := emailtemplates.NewTemplateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "accountClosedDeveloper")
+id := emailtemplates.NewTemplateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "accountClosedDeveloper")
 
 payload := emailtemplates.EmailTemplateUpdateParameters{
 	// ...
@@ -40,12 +37,11 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `EmailTemplatesClient.EmailTemplateDelete`
 
 ```go
 ctx := context.TODO()
-id := emailtemplates.NewTemplateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "accountClosedDeveloper")
+id := emailtemplates.NewTemplateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "accountClosedDeveloper")
 
 read, err := client.EmailTemplateDelete(ctx, id, emailtemplates.DefaultEmailTemplateDeleteOperationOptions())
 if err != nil {
@@ -56,12 +52,11 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `EmailTemplatesClient.EmailTemplateGet`
 
 ```go
 ctx := context.TODO()
-id := emailtemplates.NewTemplateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "accountClosedDeveloper")
+id := emailtemplates.NewTemplateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "accountClosedDeveloper")
 
 read, err := client.EmailTemplateGet(ctx, id)
 if err != nil {
@@ -72,12 +67,11 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `EmailTemplatesClient.EmailTemplateGetEntityTag`
 
 ```go
 ctx := context.TODO()
-id := emailtemplates.NewTemplateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "accountClosedDeveloper")
+id := emailtemplates.NewTemplateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "accountClosedDeveloper")
 
 read, err := client.EmailTemplateGetEntityTag(ctx, id)
 if err != nil {
@@ -88,12 +82,11 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `EmailTemplatesClient.EmailTemplateUpdate`
 
 ```go
 ctx := context.TODO()
-id := emailtemplates.NewTemplateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "accountClosedDeveloper")
+id := emailtemplates.NewTemplateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "accountClosedDeveloper")
 
 payload := emailtemplates.EmailTemplateUpdateParameters{
 	// ...

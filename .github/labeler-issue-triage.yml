@@ -15,7 +15,7 @@ service/aadb2c:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_aadb2c_directory((.|\n)*)###'
 
 service/advisor:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_advisor_recommendations((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_advisor_((.|\n)*)###'
 
 service/analysis:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_analysis_services_server((.|\n)*)###'
@@ -42,7 +42,7 @@ service/authorization:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(client_config|federated_identity_credential|marketplace_role_assignment|pim_|role_|user_assigned_identity)((.|\n)*)###'
 
 service/automanage:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(automanage_configuration|virtual_machine_automanage_configuration_assignment)((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(arc_machine_automanage_configuration_assignment|automanage_configuration|virtual_machine_automanage_configuration_assignment)((.|\n)*)###'
 
 service/automation:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_automation_((.|\n)*)###'
@@ -165,7 +165,7 @@ service/hsm:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_dedicated_hardware_security_module((.|\n)*)###'
 
 service/hybrid-compute:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(arc_machine\W+|arc_machine_extension\W+|arc_private_link_scope\W+)((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(arc_machine\W+|arc_machine\W+|arc_machine_extension\W+|arc_private_link_scope\W+)((.|\n)*)###'
 
 service/iot-central:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_iotcentral_((.|\n)*)###'
@@ -211,9 +211,6 @@ service/management-groups:
 
 service/maps:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_maps_((.|\n)*)###'
-
-service/media:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_media_services_account_filter((.|\n)*)###'
 
 service/mixed-reality:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_spatial_anchors_account((.|\n)*)###'

@@ -1,4 +1,3 @@
-
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/gatewayapi` Documentation
 
 The `gatewayapi` SDK allows for interaction with the Azure Resource Manager Service `apimanagement` (API Version `2023-05-01-preview`).
@@ -11,7 +10,6 @@ This readme covers example usages, but further information on [using this SDK ca
 import "github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/gatewayapi"
 ```
 
-
 ### Client Initialization
 
 ```go
@@ -19,12 +17,11 @@ client := gatewayapi.NewGatewayApiClientWithBaseURI("https://management.azure.co
 client.Client.Authorizer = authorizer
 ```
 
-
 ### Example Usage: `GatewayApiClient.CreateOrUpdate`
 
 ```go
 ctx := context.TODO()
-id := gatewayapi.NewGatewayApiID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "gatewayIdValue", "apiIdValue")
+id := gatewayapi.NewGatewayApiID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "gatewayId", "apiId")
 
 payload := gatewayapi.AssociationContract{
 	// ...
@@ -40,12 +37,11 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `GatewayApiClient.Delete`
 
 ```go
 ctx := context.TODO()
-id := gatewayapi.NewGatewayApiID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "gatewayIdValue", "apiIdValue")
+id := gatewayapi.NewGatewayApiID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "gatewayId", "apiId")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -56,12 +52,11 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `GatewayApiClient.GetEntityTag`
 
 ```go
 ctx := context.TODO()
-id := gatewayapi.NewGatewayApiID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "gatewayIdValue", "apiIdValue")
+id := gatewayapi.NewGatewayApiID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "gatewayId", "apiId")
 
 read, err := client.GetEntityTag(ctx, id)
 if err != nil {
@@ -72,12 +67,11 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `GatewayApiClient.ListByService`
 
 ```go
 ctx := context.TODO()
-id := gatewayapi.NewGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "gatewayIdValue")
+id := gatewayapi.NewGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "gatewayId")
 
 // alternatively `client.ListByService(ctx, id, gatewayapi.DefaultListByServiceOperationOptions())` can be used to do batched pagination
 items, err := client.ListByServiceComplete(ctx, id, gatewayapi.DefaultListByServiceOperationOptions())

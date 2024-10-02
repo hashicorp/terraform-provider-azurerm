@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/virtualmachinetemplates` Documentation
 
-The `virtualmachinetemplates` SDK allows for interaction with the Azure Resource Manager Service `systemcentervirtualmachinemanager` (API Version `2023-10-07`).
+The `virtualmachinetemplates` SDK allows for interaction with Azure Resource Manager `systemcentervirtualmachinemanager` (API Version `2023-10-07`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := virtualmachinetemplates.NewVirtualMachineTemplateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualMachineTemplateValue")
+id := virtualmachinetemplates.NewVirtualMachineTemplateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualMachineTemplateName")
 
 payload := virtualmachinetemplates.VirtualMachineTemplate{
 	// ...
@@ -42,7 +42,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualmachinetemplates.NewVirtualMachineTemplateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualMachineTemplateValue")
+id := virtualmachinetemplates.NewVirtualMachineTemplateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualMachineTemplateName")
 
 if err := client.DeleteThenPoll(ctx, id, virtualmachinetemplates.DefaultDeleteOperationOptions()); err != nil {
 	// handle the error
@@ -54,7 +54,7 @@ if err := client.DeleteThenPoll(ctx, id, virtualmachinetemplates.DefaultDeleteOp
 
 ```go
 ctx := context.TODO()
-id := virtualmachinetemplates.NewVirtualMachineTemplateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualMachineTemplateValue")
+id := virtualmachinetemplates.NewVirtualMachineTemplateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualMachineTemplateName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -104,7 +104,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := virtualmachinetemplates.NewVirtualMachineTemplateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualMachineTemplateValue")
+id := virtualmachinetemplates.NewVirtualMachineTemplateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualMachineTemplateName")
 
 payload := virtualmachinetemplates.VirtualMachineTemplateTagsUpdate{
 	// ...

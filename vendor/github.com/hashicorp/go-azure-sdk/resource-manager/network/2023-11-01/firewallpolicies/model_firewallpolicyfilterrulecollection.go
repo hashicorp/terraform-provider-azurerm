@@ -15,8 +15,18 @@ type FirewallPolicyFilterRuleCollection struct {
 	Rules  *[]FirewallPolicyRule                     `json:"rules,omitempty"`
 
 	// Fields inherited from FirewallPolicyRuleCollection
-	Name     *string `json:"name,omitempty"`
-	Priority *int64  `json:"priority,omitempty"`
+
+	Name               *string                          `json:"name,omitempty"`
+	Priority           *int64                           `json:"priority,omitempty"`
+	RuleCollectionType FirewallPolicyRuleCollectionType `json:"ruleCollectionType"`
+}
+
+func (s FirewallPolicyFilterRuleCollection) FirewallPolicyRuleCollection() BaseFirewallPolicyRuleCollectionImpl {
+	return BaseFirewallPolicyRuleCollectionImpl{
+		Name:               s.Name,
+		Priority:           s.Priority,
+		RuleCollectionType: s.RuleCollectionType,
+	}
 }
 
 var _ json.Marshaler = FirewallPolicyFilterRuleCollection{}
@@ -30,9 +40,10 @@ func (s FirewallPolicyFilterRuleCollection) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling FirewallPolicyFilterRuleCollection: %+v", err)
 	}
+
 	decoded["ruleCollectionType"] = "FirewallPolicyFilterRuleCollection"
 
 	encoded, err = json.Marshal(decoded)
@@ -46,15 +57,20 @@ func (s FirewallPolicyFilterRuleCollection) MarshalJSON() ([]byte, error) {
 var _ json.Unmarshaler = &FirewallPolicyFilterRuleCollection{}
 
 func (s *FirewallPolicyFilterRuleCollection) UnmarshalJSON(bytes []byte) error {
-	type alias FirewallPolicyFilterRuleCollection
-	var decoded alias
+	var decoded struct {
+		Action             *FirewallPolicyFilterRuleCollectionAction `json:"action,omitempty"`
+		Name               *string                                   `json:"name,omitempty"`
+		Priority           *int64                                    `json:"priority,omitempty"`
+		RuleCollectionType FirewallPolicyRuleCollectionType          `json:"ruleCollectionType"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into FirewallPolicyFilterRuleCollection: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
 	s.Action = decoded.Action
 	s.Name = decoded.Name
 	s.Priority = decoded.Priority
+	s.RuleCollectionType = decoded.RuleCollectionType
 
 	var temp map[string]json.RawMessage
 	if err := json.Unmarshal(bytes, &temp); err != nil {
@@ -69,7 +85,7 @@ func (s *FirewallPolicyFilterRuleCollection) UnmarshalJSON(bytes []byte) error {
 
 		output := make([]FirewallPolicyRule, 0)
 		for i, val := range listTemp {
-			impl, err := unmarshalFirewallPolicyRuleImplementation(val)
+			impl, err := UnmarshalFirewallPolicyRuleImplementation(val)
 			if err != nil {
 				return fmt.Errorf("unmarshaling index %d field 'Rules' for 'FirewallPolicyFilterRuleCollection': %+v", i, err)
 			}
@@ -77,5 +93,6 @@ func (s *FirewallPolicyFilterRuleCollection) UnmarshalJSON(bytes []byte) error {
 		}
 		s.Rules = &output
 	}
+
 	return nil
 }

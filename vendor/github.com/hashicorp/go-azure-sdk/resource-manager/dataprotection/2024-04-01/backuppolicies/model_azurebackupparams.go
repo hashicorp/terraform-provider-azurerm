@@ -14,6 +14,14 @@ type AzureBackupParams struct {
 	BackupType string `json:"backupType"`
 
 	// Fields inherited from BackupParameters
+
+	ObjectType string `json:"objectType"`
+}
+
+func (s AzureBackupParams) BackupParameters() BaseBackupParametersImpl {
+	return BaseBackupParametersImpl{
+		ObjectType: s.ObjectType,
+	}
 }
 
 var _ json.Marshaler = AzureBackupParams{}
@@ -27,9 +35,10 @@ func (s AzureBackupParams) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling AzureBackupParams: %+v", err)
 	}
+
 	decoded["objectType"] = "AzureBackupParams"
 
 	encoded, err = json.Marshal(decoded)

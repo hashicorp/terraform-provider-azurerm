@@ -1,4 +1,3 @@
-
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/producttag` Documentation
 
 The `producttag` SDK allows for interaction with the Azure Resource Manager Service `apimanagement` (API Version `2023-05-01-preview`).
@@ -11,7 +10,6 @@ This readme covers example usages, but further information on [using this SDK ca
 import "github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/producttag"
 ```
 
-
 ### Client Initialization
 
 ```go
@@ -19,12 +17,11 @@ client := producttag.NewProductTagClientWithBaseURI("https://management.azure.co
 client.Client.Authorizer = authorizer
 ```
 
-
 ### Example Usage: `ProductTagClient.TagAssignToProduct`
 
 ```go
 ctx := context.TODO()
-id := producttag.NewProductTagID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "productIdValue", "tagIdValue")
+id := producttag.NewProductTagID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "productId", "tagId")
 
 read, err := client.TagAssignToProduct(ctx, id)
 if err != nil {
@@ -35,12 +32,11 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `ProductTagClient.TagDetachFromProduct`
 
 ```go
 ctx := context.TODO()
-id := producttag.NewProductTagID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "productIdValue", "tagIdValue")
+id := producttag.NewProductTagID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "productId", "tagId")
 
 read, err := client.TagDetachFromProduct(ctx, id)
 if err != nil {
@@ -51,12 +47,11 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `ProductTagClient.TagGetByProduct`
 
 ```go
 ctx := context.TODO()
-id := producttag.NewProductTagID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "productIdValue", "tagIdValue")
+id := producttag.NewProductTagID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "productId", "tagId")
 
 read, err := client.TagGetByProduct(ctx, id)
 if err != nil {
@@ -67,12 +62,11 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `ProductTagClient.TagGetEntityStateByProduct`
 
 ```go
 ctx := context.TODO()
-id := producttag.NewProductTagID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "productIdValue", "tagIdValue")
+id := producttag.NewProductTagID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "productId", "tagId")
 
 read, err := client.TagGetEntityStateByProduct(ctx, id)
 if err != nil {
@@ -83,12 +77,11 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `ProductTagClient.TagListByProduct`
 
 ```go
 ctx := context.TODO()
-id := producttag.NewProductID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "productIdValue")
+id := producttag.NewProductID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "productId")
 
 // alternatively `client.TagListByProduct(ctx, id, producttag.DefaultTagListByProductOperationOptions())` can be used to do batched pagination
 items, err := client.TagListByProductComplete(ctx, id, producttag.DefaultTagListByProductOperationOptions())

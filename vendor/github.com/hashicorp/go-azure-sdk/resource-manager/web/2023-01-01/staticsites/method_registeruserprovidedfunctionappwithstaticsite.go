@@ -37,6 +37,7 @@ func (o RegisterUserProvidedFunctionAppWithStaticSiteOperationOptions) ToHeaders
 
 func (o RegisterUserProvidedFunctionAppWithStaticSiteOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

@@ -1,4 +1,3 @@
-
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/apioperationtag` Documentation
 
 The `apioperationtag` SDK allows for interaction with the Azure Resource Manager Service `apimanagement` (API Version `2023-05-01-preview`).
@@ -11,7 +10,6 @@ This readme covers example usages, but further information on [using this SDK ca
 import "github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/apioperationtag"
 ```
 
-
 ### Client Initialization
 
 ```go
@@ -19,12 +17,11 @@ client := apioperationtag.NewApiOperationTagClientWithBaseURI("https://managemen
 client.Client.Authorizer = authorizer
 ```
 
-
 ### Example Usage: `ApiOperationTagClient.TagAssignToOperation`
 
 ```go
 ctx := context.TODO()
-id := apioperationtag.NewOperationTagID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "apiIdValue", "operationIdValue", "tagIdValue")
+id := apioperationtag.NewOperationTagID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "apiId", "operationId", "tagId")
 
 read, err := client.TagAssignToOperation(ctx, id)
 if err != nil {
@@ -35,12 +32,11 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `ApiOperationTagClient.TagDetachFromOperation`
 
 ```go
 ctx := context.TODO()
-id := apioperationtag.NewOperationTagID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "apiIdValue", "operationIdValue", "tagIdValue")
+id := apioperationtag.NewOperationTagID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "apiId", "operationId", "tagId")
 
 read, err := client.TagDetachFromOperation(ctx, id)
 if err != nil {
@@ -51,12 +47,11 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `ApiOperationTagClient.TagGetByOperation`
 
 ```go
 ctx := context.TODO()
-id := apioperationtag.NewOperationTagID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "apiIdValue", "operationIdValue", "tagIdValue")
+id := apioperationtag.NewOperationTagID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "apiId", "operationId", "tagId")
 
 read, err := client.TagGetByOperation(ctx, id)
 if err != nil {
@@ -67,12 +62,11 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `ApiOperationTagClient.TagGetEntityStateByOperation`
 
 ```go
 ctx := context.TODO()
-id := apioperationtag.NewOperationTagID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "apiIdValue", "operationIdValue", "tagIdValue")
+id := apioperationtag.NewOperationTagID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "apiId", "operationId", "tagId")
 
 read, err := client.TagGetEntityStateByOperation(ctx, id)
 if err != nil {
@@ -83,12 +77,11 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `ApiOperationTagClient.TagListByOperation`
 
 ```go
 ctx := context.TODO()
-id := apioperationtag.NewOperationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "apiIdValue", "operationIdValue")
+id := apioperationtag.NewOperationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "apiId", "operationId")
 
 // alternatively `client.TagListByOperation(ctx, id, apioperationtag.DefaultTagListByOperationOperationOptions())` can be used to do batched pagination
 items, err := client.TagListByOperationComplete(ctx, id, apioperationtag.DefaultTagListByOperationOperationOptions())

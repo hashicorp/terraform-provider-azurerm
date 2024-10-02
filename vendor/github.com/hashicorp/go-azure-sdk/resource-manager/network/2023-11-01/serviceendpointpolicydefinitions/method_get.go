@@ -45,7 +45,6 @@ func (c ServiceEndpointPolicyDefinitionsClient) Get(ctx context.Context, id Serv
 
 	var model ServiceEndpointPolicyDefinition
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

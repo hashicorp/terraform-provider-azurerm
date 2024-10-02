@@ -49,7 +49,6 @@ func (c ResourceClient) RemoteRenderingAccountsUpdate(ctx context.Context, id Re
 
 	var model RemoteRenderingAccount
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

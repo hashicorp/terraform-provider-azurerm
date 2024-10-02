@@ -46,7 +46,6 @@ func (c CosmosDBClient) MongoDBResourcesListMongoDBCollections(ctx context.Conte
 
 	var model MongoDBCollectionListResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

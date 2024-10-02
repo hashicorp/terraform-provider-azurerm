@@ -47,7 +47,6 @@ func (c ConfigurationAssignmentsClient) WithinSubscriptionList(ctx context.Conte
 
 	var model ListConfigurationAssignmentsResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

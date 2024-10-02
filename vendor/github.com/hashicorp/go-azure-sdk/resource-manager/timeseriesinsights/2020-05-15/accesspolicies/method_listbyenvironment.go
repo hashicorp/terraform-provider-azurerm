@@ -46,7 +46,6 @@ func (c AccessPoliciesClient) ListByEnvironment(ctx context.Context, id Environm
 
 	var model AccessPolicyListResponse
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

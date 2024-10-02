@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/expressroutecircuitstats` Documentation
 
-The `expressroutecircuitstats` SDK allows for interaction with the Azure Resource Manager Service `network` (API Version `2023-11-01`).
+The `expressroutecircuitstats` SDK allows for interaction with Azure Resource Manager `network` (API Version `2023-11-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := commonids.NewExpressRouteCircuitPeeringID("12345678-1234-9876-4563-123456789012", "example-resource-group", "expressRouteCircuitValue", "peeringValue")
+id := commonids.NewExpressRouteCircuitPeeringID("12345678-1234-9876-4563-123456789012", "example-resource-group", "circuitName", "peeringName")
 
 read, err := client.ExpressRouteCircuitsGetPeeringStats(ctx, id)
 if err != nil {
@@ -41,7 +41,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := expressroutecircuitstats.NewExpressRouteCircuitID("12345678-1234-9876-4563-123456789012", "example-resource-group", "expressRouteCircuitValue")
+id := expressroutecircuitstats.NewExpressRouteCircuitID("12345678-1234-9876-4563-123456789012", "example-resource-group", "circuitName")
 
 read, err := client.ExpressRouteCircuitsGetStats(ctx, id)
 if err != nil {

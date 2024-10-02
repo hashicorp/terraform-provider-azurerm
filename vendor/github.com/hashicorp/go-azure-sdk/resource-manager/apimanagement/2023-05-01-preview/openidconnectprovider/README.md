@@ -1,4 +1,3 @@
-
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/openidconnectprovider` Documentation
 
 The `openidconnectprovider` SDK allows for interaction with the Azure Resource Manager Service `apimanagement` (API Version `2023-05-01-preview`).
@@ -11,7 +10,6 @@ This readme covers example usages, but further information on [using this SDK ca
 import "github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/openidconnectprovider"
 ```
 
-
 ### Client Initialization
 
 ```go
@@ -19,12 +17,11 @@ client := openidconnectprovider.NewOpenidConnectProviderClientWithBaseURI("https
 client.Client.Authorizer = authorizer
 ```
 
-
 ### Example Usage: `OpenidConnectProviderClient.CreateOrUpdate`
 
 ```go
 ctx := context.TODO()
-id := openidconnectprovider.NewOpenidConnectProviderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "openidConnectProviderValue")
+id := openidconnectprovider.NewOpenidConnectProviderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "opid")
 
 payload := openidconnectprovider.OpenidConnectProviderContract{
 	// ...
@@ -40,12 +37,11 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `OpenidConnectProviderClient.Delete`
 
 ```go
 ctx := context.TODO()
-id := openidconnectprovider.NewOpenidConnectProviderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "openidConnectProviderValue")
+id := openidconnectprovider.NewOpenidConnectProviderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "opid")
 
 read, err := client.Delete(ctx, id, openidconnectprovider.DefaultDeleteOperationOptions())
 if err != nil {
@@ -56,12 +52,11 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `OpenidConnectProviderClient.Get`
 
 ```go
 ctx := context.TODO()
-id := openidconnectprovider.NewOpenidConnectProviderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "openidConnectProviderValue")
+id := openidconnectprovider.NewOpenidConnectProviderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "opid")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -72,12 +67,11 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `OpenidConnectProviderClient.GetEntityTag`
 
 ```go
 ctx := context.TODO()
-id := openidconnectprovider.NewOpenidConnectProviderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "openidConnectProviderValue")
+id := openidconnectprovider.NewOpenidConnectProviderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "opid")
 
 read, err := client.GetEntityTag(ctx, id)
 if err != nil {
@@ -88,12 +82,11 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `OpenidConnectProviderClient.ListByService`
 
 ```go
 ctx := context.TODO()
-id := openidconnectprovider.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue")
+id := openidconnectprovider.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName")
 
 // alternatively `client.ListByService(ctx, id, openidconnectprovider.DefaultListByServiceOperationOptions())` can be used to do batched pagination
 items, err := client.ListByServiceComplete(ctx, id, openidconnectprovider.DefaultListByServiceOperationOptions())
@@ -105,12 +98,11 @@ for _, item := range items {
 }
 ```
 
-
 ### Example Usage: `OpenidConnectProviderClient.ListSecrets`
 
 ```go
 ctx := context.TODO()
-id := openidconnectprovider.NewOpenidConnectProviderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "openidConnectProviderValue")
+id := openidconnectprovider.NewOpenidConnectProviderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "opid")
 
 read, err := client.ListSecrets(ctx, id)
 if err != nil {
@@ -121,12 +113,11 @@ if model := read.Model; model != nil {
 }
 ```
 
-
 ### Example Usage: `OpenidConnectProviderClient.Update`
 
 ```go
 ctx := context.TODO()
-id := openidconnectprovider.NewOpenidConnectProviderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "openidConnectProviderValue")
+id := openidconnectprovider.NewOpenidConnectProviderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "opid")
 
 payload := openidconnectprovider.OpenidConnectProviderUpdateContract{
 	// ...
