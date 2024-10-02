@@ -298,7 +298,7 @@ resource "azurerm_virtual_network_peering" "east" {
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "east" {
-  name                  = "%[1]d-east-pdzvnetlink.com"
+  name                  = "acctest%[1]d-east-pdzvnetlink.com"
   private_dns_zone_name = azurerm_private_dns_zone.east.name
   virtual_network_id    = azurerm_virtual_network.east.id
   resource_group_name   = azurerm_resource_group.east.name
