@@ -393,7 +393,7 @@ resource "azurerm_subnet_network_security_group_association" "west" {
 }
 
 resource "azurerm_private_dns_zone" "west" {
-  name                = "%[1]d-pdz.postgres.database.azure.com"
+  name                = "acctest%[1]d-pdz.postgres.database.azure.com"
   resource_group_name = azurerm_resource_group.west.name
 
   depends_on = [azurerm_subnet_network_security_group_association.west]
