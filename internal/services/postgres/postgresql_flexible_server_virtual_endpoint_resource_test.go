@@ -340,7 +340,7 @@ resource "azurerm_postgresql_flexible_server_virtual_endpoint" "test" {
 ###### WEST RG ######
 
 resource "azurerm_resource_group" "west" {
-  name     = "%[1]d-west"
+  name     = "acctest%[1]d-west"
   location = "westus"
 }
 
