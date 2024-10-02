@@ -331,7 +331,7 @@ resource "azurerm_postgresql_flexible_server" "east" {
 }
 
 resource "azurerm_postgresql_flexible_server_virtual_endpoint" "test" {
-  name              = "%[1]d-endpoint"
+  name              = "acctest%[1]d-endpoint"
   source_server_id  = azurerm_postgresql_flexible_server.east.id
   replica_server_id = azurerm_postgresql_flexible_server.west.id
   type              = "ReadWrite"
