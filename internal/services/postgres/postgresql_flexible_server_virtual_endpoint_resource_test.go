@@ -400,7 +400,7 @@ resource "azurerm_private_dns_zone" "west" {
 }
 
 resource "azurerm_virtual_network_peering" "west" {
-  name                         = "west-to-east"
+  name                         = "acctest-pfs%[1]d-west-to-east"
   resource_group_name          = azurerm_resource_group.west.name
   virtual_network_name         = azurerm_virtual_network.west.name
   remote_virtual_network_id    = azurerm_virtual_network.east.id
