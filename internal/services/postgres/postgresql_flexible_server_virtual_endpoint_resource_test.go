@@ -234,7 +234,7 @@ resource "azurerm_resource_group" "east" {
 }
 
 resource "azurerm_virtual_network" "east" {
-  name                = "%[1]d-east-vn"
+  name                = "acctest%[1]d-east-vn"
   location            = azurerm_resource_group.east.location
   resource_group_name = azurerm_resource_group.east.name
   address_space       = ["10.0.0.0/16"]
