@@ -229,7 +229,7 @@ provider "azurerm" {
 ###### EAST RG ######
 
 resource "azurerm_resource_group" "east" {
-  name     = "%[1]d-east"
+  name     = "acctest%[1]d-east"
   location = "eastus"
 }
 
