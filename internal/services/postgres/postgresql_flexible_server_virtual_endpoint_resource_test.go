@@ -307,7 +307,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "east" {
 }
 
 resource "azurerm_postgresql_flexible_server" "east" {
-  name                          = "%[1]d-east-pg"
+  name                          = "acctest%[1]d-east-pg"
   resource_group_name           = azurerm_resource_group.east.name
   location                      = azurerm_resource_group.east.location
   version                       = "13"
