@@ -418,7 +418,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "west" {
 }
 
 resource "azurerm_postgresql_flexible_server" "west" {
-  name                          = "%[1]d-west-pg"
+  name                          = "acctest%[1]d-west-pg"
   resource_group_name           = azurerm_resource_group.west.name
   location                      = azurerm_resource_group.west.location
   create_mode                   = "Replica"
