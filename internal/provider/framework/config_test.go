@@ -13,6 +13,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+
+	providerfeatures "github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 var (
@@ -137,8 +139,16 @@ func TestProviderConfig_LoadDefault(t *testing.T) {
 		t.Errorf("expected key_vault.recover_soft_deleted_hsm_keys to be true")
 	}
 
-	if !features.LogAnalyticsWorkspace.PermanentlyDeleteOnDestroy {
-		t.Errorf("expected log_analytics_workspace.permanently_delete_on_destroy to be true")
+	if !providerfeatures.FourPointOhBeta() {
+		if !features.LogAnalyticsWorkspace.PermanentlyDeleteOnDestroy {
+			t.Errorf("expected log_analytics_workspace.permanently_delete_on_destroy to be true")
+		}
+	}
+
+	if providerfeatures.FourPointOhBeta() {
+		if features.LogAnalyticsWorkspace.PermanentlyDeleteOnDestroy {
+			t.Errorf("expected log_analytics_workspace.permanently_delete_on_destroy to be false")
+		}
 	}
 
 	if features.TemplateDeployment.DeleteNestedItemsDuringDeletion {
@@ -199,6 +209,10 @@ func TestProviderConfig_LoadDefault(t *testing.T) {
 
 	if features.RecoveryService.PurgeProtectedItemsFromVaultOnDestroy {
 		t.Errorf("expected recovery_service.PurgeProtectedItemsFromVaultOnDestroy to be false")
+	}
+
+	if !features.Storage.DataPlaneAvailable {
+		t.Errorf("expected storage.DataPlaneAvailable to be true")
 	}
 }
 
@@ -275,6 +289,11 @@ func defaultFeaturesList() types.List {
 	})
 	managedDiskList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(ManagedDiskAttributes), []attr.Value{managedDisk})
 
+	storage, _ := basetypes.NewObjectValueFrom(context.Background(), StorageAttributes, map[string]attr.Value{
+		"data_plane_available": basetypes.NewBoolNull(),
+	})
+	storageList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(StorageAttributes), []attr.Value{storage})
+
 	subscription, _ := basetypes.NewObjectValueFrom(context.Background(), SubscriptionAttributes, map[string]attr.Value{
 		"prevent_cancellation_on_destroy": basetypes.NewBoolNull(),
 	})
@@ -314,6 +333,7 @@ func defaultFeaturesList() types.List {
 		"virtual_machine_scale_set":  virtualMachineScaleSetList,
 		"resource_group":             resourceGroupList,
 		"managed_disk":               managedDiskList,
+		"storage":                    storageList,
 		"subscription":               subscriptionList,
 		"postgresql_flexible_server": postgresqlFlexibleServerList,
 		"machine_learning":           machineLearningList,

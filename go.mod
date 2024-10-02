@@ -18,7 +18,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/go-azure-helpers v0.70.1
 	github.com/hashicorp/go-azure-sdk/resource-manager v0.20240731.1212841
-	github.com/hashicorp/go-azure-sdk/sdk v0.20240731.1212841
+	github.com/hashicorp/go-azure-sdk/sdk v0.20241025.1143247 // out of sync with rm due to drift of versions but required network fixes
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/go-uuid v1.0.3
@@ -94,6 +94,3 @@ require (
 )
 
 go 1.21
-
-// TODO - This must not ship in a release and is to facilitte testing ONLY
-replace github.com/hashicorp/go-azure-sdk/sdk => github.com/hashicorp/go-azure-sdk/sdk v0.20240927.1005215-0.20241001133652-05bb6f160afa
