@@ -32,7 +32,7 @@ resource "azurerm_monitor_diagnostic_setting" "example" {
   target_resource_id         = "${azurerm_mssql_server.example.id}/databases/master"
   log_analytics_workspace_id = azurerm_log_analytics_workspace.example.id
 
-  enable_log {
+  enabled_log {
     category = "SQLSecurityAuditEvents"
   }
 
