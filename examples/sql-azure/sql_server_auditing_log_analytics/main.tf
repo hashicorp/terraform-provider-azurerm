@@ -41,7 +41,7 @@ resource "azurerm_monitor_diagnostic_setting" "example" {
   }
 
   lifecycle {
-    ignore_changes = [enable_log, metric]
+    ignore_changes = [enabled_log, metric]
   }
 }
 
