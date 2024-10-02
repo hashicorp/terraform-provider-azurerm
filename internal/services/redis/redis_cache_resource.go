@@ -846,7 +846,7 @@ func resourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		d.Set("redis_version", props.RedisVersion)
 		d.Set("tenant_settings", flattenTenantSettings(props.TenantSettings))
 
-		redisConfiguration, err := flattenRedisConfiguration(props.RedisConfiguration)
+		redisConfiguration, err := flattenRedisConfiguration(d, props.RedisConfiguration)
 		if err != nil {
 			return fmt.Errorf("flattening `redis_configuration`: %+v", err)
 		}
@@ -1092,7 +1092,7 @@ func flattenTenantSettings(input *map[string]string) map[string]string {
 	return output
 }
 
-func flattenRedisConfiguration(input *redis.RedisCommonPropertiesRedisConfiguration) ([]interface{}, error) {
+func flattenRedisConfiguration(d *pluginsdk.ResourceData, input *redis.RedisCommonPropertiesRedisConfiguration) ([]interface{}, error) {
 	outputs := make(map[string]interface{})
 
 	if input.AadEnabled != nil {
@@ -1163,7 +1163,12 @@ func flattenRedisConfiguration(input *redis.RedisCommonPropertiesRedisConfigurat
 		outputs["rdb_backup_max_snapshot_count"] = i
 	}
 	if input.RdbStorageConnectionString != nil {
-		outputs["rdb_storage_connection_string"] = *input.RdbStorageConnectionString
+		// The API returns AccountKey=[key hidden] instead of the value being passed in so we'll just set that value to what Terraform thinks the value is
+		if len(strings.Split(*input.RdbStorageConnectionString, "AccountKey=[key hidden]")) > 1 {
+			outputs["rdb_storage_connection_string"] = d.Get("redis_configuration.0.rdb_storage_connection_string")
+		} else {
+			outputs["rdb_storage_connection_string"] = *input.RdbStorageConnectionString
+		}
 	}
 	outputs["notify_keyspace_events"] = pointer.From(input.NotifyKeyspaceEvents)
 
@@ -1175,10 +1180,20 @@ func flattenRedisConfiguration(input *redis.RedisCommonPropertiesRedisConfigurat
 		outputs["aof_backup_enabled"] = b
 	}
 	if input.AofStorageConnectionString0 != nil {
-		outputs["aof_storage_connection_string_0"] = *input.AofStorageConnectionString0
+		// The API returns AccountKey=[key hidden] instead of the value being passed in so we'll just set that value to what Terraform thinks the value is
+		if len(strings.Split(*input.AofStorageConnectionString0, "AccountKey=[key hidden]")) > 1 {
+			outputs["aof_storage_connection_string_0"] = d.Get("redis_configuration.0.aof_storage_connection_string_0")
+		} else {
+			outputs["aof_storage_connection_string_0"] = *input.AofStorageConnectionString0
+		}
 	}
 	if input.AofStorageConnectionString1 != nil {
-		outputs["aof_storage_connection_string_1"] = *input.AofStorageConnectionString1
+		// The API returns AccountKey=[key hidden] instead of the value being passed in so we'll just set that value to what Terraform thinks the value is
+		if len(strings.Split(*input.AofStorageConnectionString1, "AccountKey=[key hidden]")) > 1 {
+			outputs["aof_storage_connection_string_1"] = d.Get("redis_configuration.0.aof_storage_connection_string_1")
+		} else {
+			outputs["aof_storage_connection_string_1"] = *input.AofStorageConnectionString1
+		}
 	}
 
 	// `authnotrequired` is not set for instances launched outside a VNET
