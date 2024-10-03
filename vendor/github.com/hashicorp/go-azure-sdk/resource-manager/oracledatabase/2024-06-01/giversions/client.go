@@ -15,7 +15,7 @@ type GiVersionsClient struct {
 }
 
 func NewGiVersionsClientWithBaseURI(sdkApi sdkEnv.Api) (*GiVersionsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "giversions", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "giversions", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating GiVersionsClient: %+v", err)
 	}

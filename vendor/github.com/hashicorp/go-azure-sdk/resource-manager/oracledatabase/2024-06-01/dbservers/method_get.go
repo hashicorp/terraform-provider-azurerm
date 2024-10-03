@@ -45,7 +45,6 @@ func (c DbServersClient) Get(ctx context.Context, id DbServerId) (result GetOper
 
 	var model DbServer
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

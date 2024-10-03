@@ -50,7 +50,6 @@ func (c CloudVMClustersClient) ListPrivateIPAddresses(ctx context.Context, id Cl
 
 	var model []PrivateIPAddressProperties
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

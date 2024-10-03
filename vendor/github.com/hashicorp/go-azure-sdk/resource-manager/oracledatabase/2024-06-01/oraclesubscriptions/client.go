@@ -15,7 +15,7 @@ type OracleSubscriptionsClient struct {
 }
 
 func NewOracleSubscriptionsClientWithBaseURI(sdkApi sdkEnv.Api) (*OracleSubscriptionsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "oraclesubscriptions", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "oraclesubscriptions", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating OracleSubscriptionsClient: %+v", err)
 	}

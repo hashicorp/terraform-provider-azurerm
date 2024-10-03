@@ -15,7 +15,7 @@ type VirtualNetworkAddressesClient struct {
 }
 
 func NewVirtualNetworkAddressesClientWithBaseURI(sdkApi sdkEnv.Api) (*VirtualNetworkAddressesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "virtualnetworkaddresses", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "virtualnetworkaddresses", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating VirtualNetworkAddressesClient: %+v", err)
 	}

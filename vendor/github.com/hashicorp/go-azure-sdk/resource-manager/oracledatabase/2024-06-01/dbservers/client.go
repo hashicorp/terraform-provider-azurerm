@@ -15,7 +15,7 @@ type DbServersClient struct {
 }
 
 func NewDbServersClientWithBaseURI(sdkApi sdkEnv.Api) (*DbServersClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "dbservers", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "dbservers", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating DbServersClient: %+v", err)
 	}

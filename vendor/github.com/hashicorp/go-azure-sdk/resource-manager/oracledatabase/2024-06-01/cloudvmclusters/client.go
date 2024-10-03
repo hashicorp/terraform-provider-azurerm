@@ -15,7 +15,7 @@ type CloudVMClustersClient struct {
 }
 
 func NewCloudVMClustersClientWithBaseURI(sdkApi sdkEnv.Api) (*CloudVMClustersClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "cloudvmclusters", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "cloudvmclusters", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating CloudVMClustersClient: %+v", err)
 	}
