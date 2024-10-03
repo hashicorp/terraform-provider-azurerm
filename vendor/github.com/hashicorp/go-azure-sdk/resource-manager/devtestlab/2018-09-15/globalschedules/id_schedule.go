@@ -42,7 +42,7 @@ func ParseScheduleID(input string) (*ScheduleId, error) {
 	}
 
 	id := ScheduleId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseScheduleIDInsensitively(input string) (*ScheduleId, error) {
 	}
 
 	id := ScheduleId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id ScheduleId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDevTestLab", "Microsoft.DevTestLab", "Microsoft.DevTestLab"),
 		resourceids.StaticSegment("staticSchedules", "schedules", "schedules"),
-		resourceids.UserSpecifiedSegment("scheduleName", "scheduleValue"),
+		resourceids.UserSpecifiedSegment("scheduleName", "name"),
 	}
 }
 

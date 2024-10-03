@@ -44,7 +44,7 @@ func ParseServiceRegistryID(input string) (*ServiceRegistryId, error) {
 	}
 
 	id := ServiceRegistryId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseServiceRegistryIDInsensitively(input string) (*ServiceRegistryId, erro
 	}
 
 	id := ServiceRegistryId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id ServiceRegistryId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAppPlatform", "Microsoft.AppPlatform", "Microsoft.AppPlatform"),
 		resourceids.StaticSegment("staticSpring", "spring", "spring"),
-		resourceids.UserSpecifiedSegment("springName", "springValue"),
+		resourceids.UserSpecifiedSegment("springName", "serviceName"),
 		resourceids.StaticSegment("staticServiceRegistries", "serviceRegistries", "serviceRegistries"),
-		resourceids.UserSpecifiedSegment("serviceRegistryName", "serviceRegistryValue"),
+		resourceids.UserSpecifiedSegment("serviceRegistryName", "serviceRegistryName"),
 	}
 }
 

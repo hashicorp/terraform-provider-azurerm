@@ -17,6 +17,14 @@ type SAPInstallWithoutOSConfigSoftwareConfiguration struct {
 	SoftwareVersion                       string                                 `json:"softwareVersion"`
 
 	// Fields inherited from SoftwareConfiguration
+
+	SoftwareInstallationType SAPSoftwareInstallationType `json:"softwareInstallationType"`
+}
+
+func (s SAPInstallWithoutOSConfigSoftwareConfiguration) SoftwareConfiguration() BaseSoftwareConfigurationImpl {
+	return BaseSoftwareConfigurationImpl{
+		SoftwareInstallationType: s.SoftwareInstallationType,
+	}
 }
 
 var _ json.Marshaler = SAPInstallWithoutOSConfigSoftwareConfiguration{}
@@ -30,9 +38,10 @@ func (s SAPInstallWithoutOSConfigSoftwareConfiguration) MarshalJSON() ([]byte, e
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling SAPInstallWithoutOSConfigSoftwareConfiguration: %+v", err)
 	}
+
 	decoded["softwareInstallationType"] = "SAPInstallWithoutOSConfig"
 
 	encoded, err = json.Marshal(decoded)

@@ -15,7 +15,7 @@ type SAPCentralInstancesClient struct {
 }
 
 func NewSAPCentralInstancesClientWithBaseURI(sdkApi sdkEnv.Api) (*SAPCentralInstancesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "sapcentralinstances", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "sapcentralinstances", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating SAPCentralInstancesClient: %+v", err)
 	}

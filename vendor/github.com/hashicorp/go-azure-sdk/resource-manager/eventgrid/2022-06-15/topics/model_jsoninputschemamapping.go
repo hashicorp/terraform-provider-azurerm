@@ -14,6 +14,14 @@ type JsonInputSchemaMapping struct {
 	Properties *JsonInputSchemaMappingProperties `json:"properties,omitempty"`
 
 	// Fields inherited from InputSchemaMapping
+
+	InputSchemaMappingType InputSchemaMappingType `json:"inputSchemaMappingType"`
+}
+
+func (s JsonInputSchemaMapping) InputSchemaMapping() BaseInputSchemaMappingImpl {
+	return BaseInputSchemaMappingImpl{
+		InputSchemaMappingType: s.InputSchemaMappingType,
+	}
 }
 
 var _ json.Marshaler = JsonInputSchemaMapping{}
@@ -27,9 +35,10 @@ func (s JsonInputSchemaMapping) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling JsonInputSchemaMapping: %+v", err)
 	}
+
 	decoded["inputSchemaMappingType"] = "Json"
 
 	encoded, err = json.Marshal(decoded)

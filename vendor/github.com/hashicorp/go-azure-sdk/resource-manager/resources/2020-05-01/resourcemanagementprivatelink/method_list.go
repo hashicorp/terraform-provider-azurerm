@@ -47,7 +47,6 @@ func (c ResourceManagementPrivateLinkClient) List(ctx context.Context, id common
 
 	var model ResourceManagementPrivateLinkListResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

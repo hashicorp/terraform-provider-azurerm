@@ -15,7 +15,7 @@ import (
 type GetOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *EventSourceResource
+	Model        EventSourceResource
 }
 
 // Get ...
@@ -48,11 +48,11 @@ func (c EventSourcesClient) Get(ctx context.Context, id EventSourceId) (result G
 	if err = resp.Unmarshal(&respObj); err != nil {
 		return
 	}
-	model, err := unmarshalEventSourceResourceImplementation(respObj)
+	model, err := UnmarshalEventSourceResourceImplementation(respObj)
 	if err != nil {
 		return
 	}
-	result.Model = &model
+	result.Model = model
 
 	return
 }

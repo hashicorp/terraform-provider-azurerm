@@ -15,7 +15,7 @@ type NetworkWatchersClient struct {
 }
 
 func NewNetworkWatchersClientWithBaseURI(sdkApi sdkEnv.Api) (*NetworkWatchersClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "networkwatchers", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "networkwatchers", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating NetworkWatchersClient: %+v", err)
 	}

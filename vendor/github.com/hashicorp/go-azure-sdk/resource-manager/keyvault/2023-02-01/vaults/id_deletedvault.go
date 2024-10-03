@@ -42,7 +42,7 @@ func ParseDeletedVaultID(input string) (*DeletedVaultId, error) {
 	}
 
 	id := DeletedVaultId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseDeletedVaultIDInsensitively(input string) (*DeletedVaultId, error) {
 	}
 
 	id := DeletedVaultId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -113,9 +113,9 @@ func (id DeletedVaultId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftKeyVault", "Microsoft.KeyVault", "Microsoft.KeyVault"),
 		resourceids.StaticSegment("staticLocations", "locations", "locations"),
-		resourceids.UserSpecifiedSegment("locationName", "locationValue"),
+		resourceids.UserSpecifiedSegment("locationName", "location"),
 		resourceids.StaticSegment("staticDeletedVaults", "deletedVaults", "deletedVaults"),
-		resourceids.UserSpecifiedSegment("deletedVaultName", "deletedVaultValue"),
+		resourceids.UserSpecifiedSegment("deletedVaultName", "vaultName"),
 	}
 }
 

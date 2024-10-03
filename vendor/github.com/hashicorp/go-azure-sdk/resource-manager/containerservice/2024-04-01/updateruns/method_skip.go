@@ -39,6 +39,7 @@ func (o SkipOperationOptions) ToHeaders() *client.Headers {
 
 func (o SkipOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

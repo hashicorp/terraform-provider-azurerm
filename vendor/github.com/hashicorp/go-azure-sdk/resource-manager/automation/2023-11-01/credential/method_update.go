@@ -49,7 +49,6 @@ func (c CredentialClient) Update(ctx context.Context, id CredentialId, input Cre
 
 	var model Credential
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

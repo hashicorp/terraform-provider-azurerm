@@ -15,7 +15,7 @@ type ApiOperationPolicyClient struct {
 }
 
 func NewApiOperationPolicyClientWithBaseURI(sdkApi sdkEnv.Api) (*ApiOperationPolicyClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "apioperationpolicy", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "apioperationpolicy", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ApiOperationPolicyClient: %+v", err)
 	}

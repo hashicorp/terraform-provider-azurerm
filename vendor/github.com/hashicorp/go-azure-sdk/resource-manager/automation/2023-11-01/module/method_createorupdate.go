@@ -50,7 +50,6 @@ func (c ModuleClient) CreateOrUpdate(ctx context.Context, id ModuleId, input Mod
 
 	var model Module
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

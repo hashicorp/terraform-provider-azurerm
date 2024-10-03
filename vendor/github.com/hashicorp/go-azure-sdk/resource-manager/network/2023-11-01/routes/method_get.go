@@ -45,7 +45,6 @@ func (c RoutesClient) Get(ctx context.Context, id RouteId) (result GetOperationR
 
 	var model Route
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

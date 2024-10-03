@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/insights/2018-03-01/metricalerts` Documentation
 
-The `metricalerts` SDK allows for interaction with the Azure Resource Manager Service `insights` (API Version `2018-03-01`).
+The `metricalerts` SDK allows for interaction with Azure Resource Manager `insights` (API Version `2018-03-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := metricalerts.NewMetricAlertID("12345678-1234-9876-4563-123456789012", "example-resource-group", "metricAlertValue")
+id := metricalerts.NewMetricAlertID("12345678-1234-9876-4563-123456789012", "example-resource-group", "ruleName")
 
 payload := metricalerts.MetricAlertResource{
 	// ...
@@ -46,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := metricalerts.NewMetricAlertID("12345678-1234-9876-4563-123456789012", "example-resource-group", "metricAlertValue")
+id := metricalerts.NewMetricAlertID("12345678-1234-9876-4563-123456789012", "example-resource-group", "ruleName")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -62,7 +62,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := metricalerts.NewMetricAlertID("12345678-1234-9876-4563-123456789012", "example-resource-group", "metricAlertValue")
+id := metricalerts.NewMetricAlertID("12345678-1234-9876-4563-123456789012", "example-resource-group", "ruleName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -110,7 +110,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := metricalerts.NewMetricAlertID("12345678-1234-9876-4563-123456789012", "example-resource-group", "metricAlertValue")
+id := metricalerts.NewMetricAlertID("12345678-1234-9876-4563-123456789012", "example-resource-group", "ruleName")
 
 payload := metricalerts.MetricAlertResourcePatch{
 	// ...

@@ -45,7 +45,6 @@ func (c GetPrivateDnsZoneSuffixClient) Execute(ctx context.Context) (result Exec
 
 	var model GetPrivateDnsZoneSuffixResponse
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -19,6 +19,14 @@ type ServiceInitiatedSoftwareConfiguration struct {
 	SshPrivateKey                         string                                 `json:"sshPrivateKey"`
 
 	// Fields inherited from SoftwareConfiguration
+
+	SoftwareInstallationType SAPSoftwareInstallationType `json:"softwareInstallationType"`
+}
+
+func (s ServiceInitiatedSoftwareConfiguration) SoftwareConfiguration() BaseSoftwareConfigurationImpl {
+	return BaseSoftwareConfigurationImpl{
+		SoftwareInstallationType: s.SoftwareInstallationType,
+	}
 }
 
 var _ json.Marshaler = ServiceInitiatedSoftwareConfiguration{}
@@ -32,9 +40,10 @@ func (s ServiceInitiatedSoftwareConfiguration) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling ServiceInitiatedSoftwareConfiguration: %+v", err)
 	}
+
 	decoded["softwareInstallationType"] = "ServiceInitiated"
 
 	encoded, err = json.Marshal(decoded)

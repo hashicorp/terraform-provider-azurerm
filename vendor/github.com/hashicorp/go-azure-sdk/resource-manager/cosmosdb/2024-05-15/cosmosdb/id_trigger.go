@@ -48,7 +48,7 @@ func ParseTriggerID(input string) (*TriggerId, error) {
 	}
 
 	id := TriggerId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -65,7 +65,7 @@ func ParseTriggerIDInsensitively(input string) (*TriggerId, error) {
 	}
 
 	id := TriggerId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -133,13 +133,13 @@ func (id TriggerId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDocumentDB", "Microsoft.DocumentDB", "Microsoft.DocumentDB"),
 		resourceids.StaticSegment("staticDatabaseAccounts", "databaseAccounts", "databaseAccounts"),
-		resourceids.UserSpecifiedSegment("databaseAccountName", "databaseAccountValue"),
+		resourceids.UserSpecifiedSegment("databaseAccountName", "accountName"),
 		resourceids.StaticSegment("staticSqlDatabases", "sqlDatabases", "sqlDatabases"),
-		resourceids.UserSpecifiedSegment("sqlDatabaseName", "sqlDatabaseValue"),
+		resourceids.UserSpecifiedSegment("sqlDatabaseName", "databaseName"),
 		resourceids.StaticSegment("staticContainers", "containers", "containers"),
-		resourceids.UserSpecifiedSegment("containerName", "containerValue"),
+		resourceids.UserSpecifiedSegment("containerName", "containerName"),
 		resourceids.StaticSegment("staticTriggers", "triggers", "triggers"),
-		resourceids.UserSpecifiedSegment("triggerName", "triggerValue"),
+		resourceids.UserSpecifiedSegment("triggerName", "triggerName"),
 	}
 }
 

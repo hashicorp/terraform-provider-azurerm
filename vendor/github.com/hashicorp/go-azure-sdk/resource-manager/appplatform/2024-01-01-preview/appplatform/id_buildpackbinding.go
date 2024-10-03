@@ -48,7 +48,7 @@ func ParseBuildPackBindingID(input string) (*BuildPackBindingId, error) {
 	}
 
 	id := BuildPackBindingId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -65,7 +65,7 @@ func ParseBuildPackBindingIDInsensitively(input string) (*BuildPackBindingId, er
 	}
 
 	id := BuildPackBindingId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -133,13 +133,13 @@ func (id BuildPackBindingId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAppPlatform", "Microsoft.AppPlatform", "Microsoft.AppPlatform"),
 		resourceids.StaticSegment("staticSpring", "spring", "spring"),
-		resourceids.UserSpecifiedSegment("springName", "springValue"),
+		resourceids.UserSpecifiedSegment("springName", "serviceName"),
 		resourceids.StaticSegment("staticBuildServices", "buildServices", "buildServices"),
-		resourceids.UserSpecifiedSegment("buildServiceName", "buildServiceValue"),
+		resourceids.UserSpecifiedSegment("buildServiceName", "buildServiceName"),
 		resourceids.StaticSegment("staticBuilders", "builders", "builders"),
-		resourceids.UserSpecifiedSegment("builderName", "builderValue"),
+		resourceids.UserSpecifiedSegment("builderName", "builderName"),
 		resourceids.StaticSegment("staticBuildPackBindings", "buildPackBindings", "buildPackBindings"),
-		resourceids.UserSpecifiedSegment("buildPackBindingName", "buildPackBindingValue"),
+		resourceids.UserSpecifiedSegment("buildPackBindingName", "buildpackBindingName"),
 	}
 }
 

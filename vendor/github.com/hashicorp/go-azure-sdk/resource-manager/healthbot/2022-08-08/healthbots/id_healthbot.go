@@ -42,7 +42,7 @@ func ParseHealthBotID(input string) (*HealthBotId, error) {
 	}
 
 	id := HealthBotId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseHealthBotIDInsensitively(input string) (*HealthBotId, error) {
 	}
 
 	id := HealthBotId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id HealthBotId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftHealthBot", "Microsoft.HealthBot", "Microsoft.HealthBot"),
 		resourceids.StaticSegment("staticHealthBots", "healthBots", "healthBots"),
-		resourceids.UserSpecifiedSegment("healthBotName", "healthBotValue"),
+		resourceids.UserSpecifiedSegment("healthBotName", "botName"),
 	}
 }
 

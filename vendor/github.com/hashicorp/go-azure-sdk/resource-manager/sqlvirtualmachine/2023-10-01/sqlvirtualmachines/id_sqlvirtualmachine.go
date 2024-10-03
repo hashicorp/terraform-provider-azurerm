@@ -42,7 +42,7 @@ func ParseSqlVirtualMachineID(input string) (*SqlVirtualMachineId, error) {
 	}
 
 	id := SqlVirtualMachineId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseSqlVirtualMachineIDInsensitively(input string) (*SqlVirtualMachineId, 
 	}
 
 	id := SqlVirtualMachineId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id SqlVirtualMachineId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftSqlVirtualMachine", "Microsoft.SqlVirtualMachine", "Microsoft.SqlVirtualMachine"),
 		resourceids.StaticSegment("staticSqlVirtualMachines", "sqlVirtualMachines", "sqlVirtualMachines"),
-		resourceids.UserSpecifiedSegment("sqlVirtualMachineName", "sqlVirtualMachineValue"),
+		resourceids.UserSpecifiedSegment("sqlVirtualMachineName", "sqlVirtualMachineName"),
 	}
 }
 

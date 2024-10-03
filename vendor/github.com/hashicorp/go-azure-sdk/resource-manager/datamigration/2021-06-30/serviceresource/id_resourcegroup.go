@@ -40,7 +40,7 @@ func ParseResourceGroupID(input string) (*ResourceGroupId, error) {
 	}
 
 	id := ResourceGroupId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -57,7 +57,7 @@ func ParseResourceGroupIDInsensitively(input string) (*ResourceGroupId, error) {
 	}
 
 	id := ResourceGroupId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -105,7 +105,7 @@ func (id ResourceGroupId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticSubscriptions", "subscriptions", "subscriptions"),
 		resourceids.SubscriptionIdSegment("subscriptionId", "12345678-1234-9876-4563-123456789012"),
 		resourceids.StaticSegment("staticResourceGroups", "resourceGroups", "resourceGroups"),
-		resourceids.UserSpecifiedSegment("resourceGroupName", "resourceGroupValue"),
+		resourceids.UserSpecifiedSegment("resourceGroupName", "groupName"),
 	}
 }
 

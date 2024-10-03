@@ -46,7 +46,7 @@ func ParsePeeringRouteTableID(input string) (*PeeringRouteTableId, error) {
 	}
 
 	id := PeeringRouteTableId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -63,7 +63,7 @@ func ParsePeeringRouteTableIDInsensitively(input string) (*PeeringRouteTableId, 
 	}
 
 	id := PeeringRouteTableId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -127,11 +127,11 @@ func (id PeeringRouteTableId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticExpressRouteCircuits", "expressRouteCircuits", "expressRouteCircuits"),
-		resourceids.UserSpecifiedSegment("expressRouteCircuitName", "expressRouteCircuitValue"),
+		resourceids.UserSpecifiedSegment("expressRouteCircuitName", "circuitName"),
 		resourceids.StaticSegment("staticPeerings", "peerings", "peerings"),
-		resourceids.UserSpecifiedSegment("peeringName", "peeringValue"),
+		resourceids.UserSpecifiedSegment("peeringName", "peeringName"),
 		resourceids.StaticSegment("staticRouteTables", "routeTables", "routeTables"),
-		resourceids.UserSpecifiedSegment("routeTableName", "routeTableValue"),
+		resourceids.UserSpecifiedSegment("routeTableName", "devicePath"),
 	}
 }
 

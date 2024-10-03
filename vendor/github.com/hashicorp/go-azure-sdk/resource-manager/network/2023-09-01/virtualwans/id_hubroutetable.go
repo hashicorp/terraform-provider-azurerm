@@ -44,7 +44,7 @@ func ParseHubRouteTableID(input string) (*HubRouteTableId, error) {
 	}
 
 	id := HubRouteTableId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseHubRouteTableIDInsensitively(input string) (*HubRouteTableId, error) {
 	}
 
 	id := HubRouteTableId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id HubRouteTableId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticVirtualHubs", "virtualHubs", "virtualHubs"),
-		resourceids.UserSpecifiedSegment("virtualHubName", "virtualHubValue"),
+		resourceids.UserSpecifiedSegment("virtualHubName", "virtualHubName"),
 		resourceids.StaticSegment("staticHubRouteTables", "hubRouteTables", "hubRouteTables"),
-		resourceids.UserSpecifiedSegment("hubRouteTableName", "hubRouteTableValue"),
+		resourceids.UserSpecifiedSegment("hubRouteTableName", "routeTableName"),
 	}
 }
 

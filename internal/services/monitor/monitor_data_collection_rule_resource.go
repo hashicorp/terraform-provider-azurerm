@@ -20,15 +20,16 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-var _ sdk.ResourceWithUpdate = DataCollectionRuleResource{}
-var _ sdk.ResourceWithCustomizeDiff = DataCollectionRuleResource{}
+var (
+	_ sdk.ResourceWithUpdate        = DataCollectionRuleResource{}
+	_ sdk.ResourceWithCustomizeDiff = DataCollectionRuleResource{}
+)
 
 type DataCollectionRule struct {
 	DataCollectionEndpointId string                 `tfschema:"data_collection_endpoint_id"`
@@ -781,9 +782,7 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 								// lintignore:S013
 								"streams": {
 									Type:     pluginsdk.TypeList,
-									Optional: !features.FourPointOhBeta(),
-									Computed: !features.FourPointOhBeta(),
-									Required: features.FourPointOhBeta(),
+									Required: true,
 									MinItems: 1,
 									Elem: &pluginsdk.Schema{
 										Type:         pluginsdk.TypeString,
@@ -1256,7 +1255,6 @@ func expandDataCollectionRuleDataSourceDataImports(input []DataImport) *datacoll
 	}
 
 	return result
-
 }
 
 func expandDataCollectionRuleDataSourceExtensions(input []Extension) (*[]datacollectionrules.ExtensionDataSource, error) {
@@ -1447,9 +1445,6 @@ func expandDataCollectionRuleDataSourceSyslog(input []Syslog) *[]datacollectionr
 
 func expandDataCollectionRuleDataSourceSyslogStreams(input []string) *[]datacollectionrules.KnownSyslogDataSourceStreams {
 	if len(input) == 0 {
-		if !features.FourPointOhBeta() {
-			return &[]datacollectionrules.KnownSyslogDataSourceStreams{datacollectionrules.KnownSyslogDataSourceStreamsMicrosoftNegativeSyslog}
-		}
 		return nil
 	}
 
@@ -1854,7 +1849,6 @@ func flattenDataCollectionRuleDataSourceLogFiles(input *[]datacollectionrules.Lo
 		})
 	}
 	return result
-
 }
 
 func flattenDataCollectionRuleDataSourcePerfCounters(input *[]datacollectionrules.PerfCounterDataSource) []PerfCounter {

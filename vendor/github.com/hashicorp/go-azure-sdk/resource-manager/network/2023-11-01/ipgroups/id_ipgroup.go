@@ -42,7 +42,7 @@ func ParseIPGroupID(input string) (*IPGroupId, error) {
 	}
 
 	id := IPGroupId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseIPGroupIDInsensitively(input string) (*IPGroupId, error) {
 	}
 
 	id := IPGroupId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id IPGroupId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticIpGroups", "ipGroups", "ipGroups"),
-		resourceids.UserSpecifiedSegment("ipGroupName", "ipGroupValue"),
+		resourceids.UserSpecifiedSegment("ipGroupName", "ipGroupsName"),
 	}
 }
 

@@ -46,7 +46,7 @@ func ParseAgentPoolID(input string) (*AgentPoolId, error) {
 	}
 
 	id := AgentPoolId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -63,7 +63,7 @@ func ParseAgentPoolIDInsensitively(input string) (*AgentPoolId, error) {
 	}
 
 	id := AgentPoolId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -127,11 +127,11 @@ func (id AgentPoolId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAppPlatform", "Microsoft.AppPlatform", "Microsoft.AppPlatform"),
 		resourceids.StaticSegment("staticSpring", "spring", "spring"),
-		resourceids.UserSpecifiedSegment("springName", "springValue"),
+		resourceids.UserSpecifiedSegment("springName", "serviceName"),
 		resourceids.StaticSegment("staticBuildServices", "buildServices", "buildServices"),
-		resourceids.UserSpecifiedSegment("buildServiceName", "buildServiceValue"),
+		resourceids.UserSpecifiedSegment("buildServiceName", "buildServiceName"),
 		resourceids.StaticSegment("staticAgentPools", "agentPools", "agentPools"),
-		resourceids.UserSpecifiedSegment("agentPoolName", "agentPoolValue"),
+		resourceids.UserSpecifiedSegment("agentPoolName", "agentPoolName"),
 	}
 }
 

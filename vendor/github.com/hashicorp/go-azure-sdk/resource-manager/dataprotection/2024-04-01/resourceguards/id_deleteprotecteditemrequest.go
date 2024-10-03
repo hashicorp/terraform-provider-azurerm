@@ -44,7 +44,7 @@ func ParseDeleteProtectedItemRequestID(input string) (*DeleteProtectedItemReques
 	}
 
 	id := DeleteProtectedItemRequestId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseDeleteProtectedItemRequestIDInsensitively(input string) (*DeleteProtec
 	}
 
 	id := DeleteProtectedItemRequestId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id DeleteProtectedItemRequestId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDataProtection", "Microsoft.DataProtection", "Microsoft.DataProtection"),
 		resourceids.StaticSegment("staticResourceGuards", "resourceGuards", "resourceGuards"),
-		resourceids.UserSpecifiedSegment("resourceGuardName", "resourceGuardValue"),
+		resourceids.UserSpecifiedSegment("resourceGuardName", "resourceGuardsName"),
 		resourceids.StaticSegment("staticDeleteProtectedItemRequests", "deleteProtectedItemRequests", "deleteProtectedItemRequests"),
-		resourceids.UserSpecifiedSegment("deleteProtectedItemRequestName", "deleteProtectedItemRequestValue"),
+		resourceids.UserSpecifiedSegment("deleteProtectedItemRequestName", "requestName"),
 	}
 }
 

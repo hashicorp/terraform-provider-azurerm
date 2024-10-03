@@ -14,6 +14,14 @@ type DatabricksComputeSecrets struct {
 	DatabricksAccessToken *string `json:"databricksAccessToken,omitempty"`
 
 	// Fields inherited from ComputeSecrets
+
+	ComputeType ComputeType `json:"computeType"`
+}
+
+func (s DatabricksComputeSecrets) ComputeSecrets() BaseComputeSecretsImpl {
+	return BaseComputeSecretsImpl{
+		ComputeType: s.ComputeType,
+	}
 }
 
 var _ json.Marshaler = DatabricksComputeSecrets{}
@@ -27,9 +35,10 @@ func (s DatabricksComputeSecrets) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling DatabricksComputeSecrets: %+v", err)
 	}
+
 	decoded["computeType"] = "Databricks"
 
 	encoded, err = json.Marshal(decoded)

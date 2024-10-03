@@ -44,7 +44,7 @@ func ParseTimeSeriesDatabaseConnectionID(input string) (*TimeSeriesDatabaseConne
 	}
 
 	id := TimeSeriesDatabaseConnectionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseTimeSeriesDatabaseConnectionIDInsensitively(input string) (*TimeSeries
 	}
 
 	id := TimeSeriesDatabaseConnectionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id TimeSeriesDatabaseConnectionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDigitalTwins", "Microsoft.DigitalTwins", "Microsoft.DigitalTwins"),
 		resourceids.StaticSegment("staticDigitalTwinsInstances", "digitalTwinsInstances", "digitalTwinsInstances"),
-		resourceids.UserSpecifiedSegment("digitalTwinsInstanceName", "digitalTwinsInstanceValue"),
+		resourceids.UserSpecifiedSegment("digitalTwinsInstanceName", "resourceName"),
 		resourceids.StaticSegment("staticTimeSeriesDatabaseConnections", "timeSeriesDatabaseConnections", "timeSeriesDatabaseConnections"),
-		resourceids.UserSpecifiedSegment("timeSeriesDatabaseConnectionName", "timeSeriesDatabaseConnectionValue"),
+		resourceids.UserSpecifiedSegment("timeSeriesDatabaseConnectionName", "timeSeriesDatabaseConnectionName"),
 	}
 }
 

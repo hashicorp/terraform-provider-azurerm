@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2015-05-01/analyticsitemsapis` Documentation
 
-The `analyticsitemsapis` SDK allows for interaction with the Azure Resource Manager Service `applicationinsights` (API Version `2015-05-01`).
+The `analyticsitemsapis` SDK allows for interaction with Azure Resource Manager `applicationinsights` (API Version `2015-05-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := analyticsitemsapis.NewProviderComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "componentValue", "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
+id := analyticsitemsapis.NewProviderComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
 
 read, err := client.AnalyticsItemsDelete(ctx, id, analyticsitemsapis.DefaultAnalyticsItemsDeleteOperationOptions())
 if err != nil {
@@ -40,7 +40,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := analyticsitemsapis.NewProviderComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "componentValue", "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
+id := analyticsitemsapis.NewProviderComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
 
 read, err := client.AnalyticsItemsGet(ctx, id, analyticsitemsapis.DefaultAnalyticsItemsGetOperationOptions())
 if err != nil {
@@ -56,7 +56,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := analyticsitemsapis.NewProviderComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "componentValue", "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
+id := analyticsitemsapis.NewProviderComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
 
 read, err := client.AnalyticsItemsList(ctx, id, analyticsitemsapis.DefaultAnalyticsItemsListOperationOptions())
 if err != nil {
@@ -72,7 +72,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := analyticsitemsapis.NewProviderComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "componentValue", "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
+id := analyticsitemsapis.NewProviderComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
 
 payload := analyticsitemsapis.ApplicationInsightsComponentAnalyticsItem{
 	// ...
