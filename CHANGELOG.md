@@ -8,6 +8,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_storage_blob` - `source_content` is now ForceNew [GH-27508]
+* `azurerm_app_service_certificate` - `key_vault_secret_id` can now be versionless [GH-27537]
 
 ## 4.3.0 (September 19, 2024)
 
