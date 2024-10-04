@@ -15,7 +15,7 @@ type SystemVersionsClient struct {
 }
 
 func NewSystemVersionsClientWithBaseURI(sdkApi sdkEnv.Api) (*SystemVersionsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "systemversions", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "systemversions", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating SystemVersionsClient: %+v", err)
 	}

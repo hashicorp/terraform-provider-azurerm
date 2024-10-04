@@ -42,7 +42,7 @@ func ParseCloudVMClusterID(input string) (*CloudVMClusterId, error) {
 	}
 
 	id := CloudVMClusterId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseCloudVMClusterIDInsensitively(input string) (*CloudVMClusterId, error)
 	}
 
 	id := CloudVMClusterId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id CloudVMClusterId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticOracleDatabase", "Oracle.Database", "Oracle.Database"),
 		resourceids.StaticSegment("staticCloudVmClusters", "cloudVmClusters", "cloudVmClusters"),
-		resourceids.UserSpecifiedSegment("cloudVmClusterName", "cloudVmClusterValue"),
+		resourceids.UserSpecifiedSegment("cloudVmClusterName", "cloudvmclustername"),
 	}
 }
 

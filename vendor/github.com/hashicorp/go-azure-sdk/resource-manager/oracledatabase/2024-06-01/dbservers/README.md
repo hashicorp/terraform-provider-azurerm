@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/dbservers` Documentation
 
-The `dbservers` SDK allows for interaction with the Azure Resource Manager Service `oracledatabase` (API Version `2024-06-01`).
+The `dbservers` SDK allows for interaction with Azure Resource Manager `oracledatabase` (API Version `2024-06-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := dbservers.NewDbServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudExadataInfrastructureValue", "dbServerValue")
+id := dbservers.NewDbServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudexadatainfrastructurename", "dbserverocid")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -40,7 +40,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := dbservers.NewCloudExadataInfrastructureID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudExadataInfrastructureValue")
+id := dbservers.NewCloudExadataInfrastructureID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudexadatainfrastructurename")
 
 // alternatively `client.ListByCloudExadataInfrastructure(ctx, id)` can be used to do batched pagination
 items, err := client.ListByCloudExadataInfrastructureComplete(ctx, id)

@@ -15,7 +15,7 @@ type AutonomousDatabaseNationalCharacterSetsClient struct {
 }
 
 func NewAutonomousDatabaseNationalCharacterSetsClientWithBaseURI(sdkApi sdkEnv.Api) (*AutonomousDatabaseNationalCharacterSetsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "autonomousdatabasenationalcharactersets", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "autonomousdatabasenationalcharactersets", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating AutonomousDatabaseNationalCharacterSetsClient: %+v", err)
 	}

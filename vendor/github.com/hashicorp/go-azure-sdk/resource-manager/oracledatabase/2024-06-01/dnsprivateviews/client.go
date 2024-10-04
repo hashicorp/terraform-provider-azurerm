@@ -15,7 +15,7 @@ type DnsPrivateViewsClient struct {
 }
 
 func NewDnsPrivateViewsClientWithBaseURI(sdkApi sdkEnv.Api) (*DnsPrivateViewsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "dnsprivateviews", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "dnsprivateviews", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating DnsPrivateViewsClient: %+v", err)
 	}

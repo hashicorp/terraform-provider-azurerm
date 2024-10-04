@@ -45,7 +45,6 @@ func (c CloudVMClustersClient) Get(ctx context.Context, id CloudVMClusterId) (re
 
 	var model CloudVMCluster
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -42,7 +42,7 @@ func ParseAutonomousDatabaseNationalCharacterSetID(input string) (*AutonomousDat
 	}
 
 	id := AutonomousDatabaseNationalCharacterSetId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseAutonomousDatabaseNationalCharacterSetIDInsensitively(input string) (*
 	}
 
 	id := AutonomousDatabaseNationalCharacterSetId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -113,9 +113,9 @@ func (id AutonomousDatabaseNationalCharacterSetId) Segments() []resourceids.Segm
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticOracleDatabase", "Oracle.Database", "Oracle.Database"),
 		resourceids.StaticSegment("staticLocations", "locations", "locations"),
-		resourceids.UserSpecifiedSegment("locationName", "locationValue"),
+		resourceids.UserSpecifiedSegment("locationName", "location"),
 		resourceids.StaticSegment("staticAutonomousDatabaseNationalCharacterSets", "autonomousDatabaseNationalCharacterSets", "autonomousDatabaseNationalCharacterSets"),
-		resourceids.UserSpecifiedSegment("autonomousDatabaseNationalCharacterSetName", "autonomousDatabaseNationalCharacterSetValue"),
+		resourceids.UserSpecifiedSegment("autonomousDatabaseNationalCharacterSetName", "adbsncharsetname"),
 	}
 }
 
