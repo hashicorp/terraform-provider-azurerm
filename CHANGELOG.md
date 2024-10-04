@@ -1,3 +1,9 @@
+## 4.5.0 (Unreleased)
+
+BUG FIXES:
+
+* `azurerm_mssql_database` - now creates successfully when elastic pool is hyperscale [GH-27505]
+
 ## 4.4.0 (October 04, 2024)
 
 ENHANCEMENTS: 
