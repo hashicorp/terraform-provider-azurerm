@@ -291,7 +291,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 		if elasticPool.Model != nil && elasticPool.Model.Properties != nil {
 
-			if elasticPool.Model.Properties != nil && elasticPool.Model.Properties.PreferredEnclaveType != nil {
+			if elasticPool.Model.Properties.PreferredEnclaveType != nil {
 				elasticEnclaveType := string(pointer.From(elasticPool.Model.Properties.PreferredEnclaveType))
 				databaseEnclaveType := string(enclaveType)
 
