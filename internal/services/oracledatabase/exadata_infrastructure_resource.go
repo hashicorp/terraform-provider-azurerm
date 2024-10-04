@@ -177,7 +177,7 @@ func (ExadataInfraResource) ResourceType() string {
 
 func (r ExadataInfraResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 120 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.OracleDatabase.OracleDatabaseClient.CloudExadataInfrastructures
 			subscriptionId := metadata.Client.Account.SubscriptionId
@@ -319,7 +319,7 @@ func (ExadataInfraResource) Read() sdk.ResourceFunc {
 
 func (ExadataInfraResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.OracleDatabase.OracleDatabaseClient.CloudExadataInfrastructures
 
