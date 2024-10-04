@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2022-01-01/checknameavailability` Documentation
 
-The `checknameavailability` SDK allows for interaction with the Azure Resource Manager Service `mysql` (API Version `2022-01-01`).
+The `checknameavailability` SDK allows for interaction with Azure Resource Manager `mysql` (API Version `2022-01-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := checknameavailability.NewLocationID("12345678-1234-9876-4563-123456789012", "locationValue")
+id := checknameavailability.NewLocationID("12345678-1234-9876-4563-123456789012", "locationName")
 
 payload := checknameavailability.NameAvailabilityRequest{
 	// ...

@@ -44,7 +44,7 @@ func ParseWorkerPoolID(input string) (*WorkerPoolId, error) {
 	}
 
 	id := WorkerPoolId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseWorkerPoolIDInsensitively(input string) (*WorkerPoolId, error) {
 	}
 
 	id := WorkerPoolId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id WorkerPoolId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftWeb", "Microsoft.Web", "Microsoft.Web"),
 		resourceids.StaticSegment("staticHostingEnvironments", "hostingEnvironments", "hostingEnvironments"),
-		resourceids.UserSpecifiedSegment("hostingEnvironmentName", "hostingEnvironmentValue"),
+		resourceids.UserSpecifiedSegment("hostingEnvironmentName", "name"),
 		resourceids.StaticSegment("staticWorkerPools", "workerPools", "workerPools"),
-		resourceids.UserSpecifiedSegment("workerPoolName", "workerPoolValue"),
+		resourceids.UserSpecifiedSegment("workerPoolName", "workerPoolName"),
 	}
 }
 

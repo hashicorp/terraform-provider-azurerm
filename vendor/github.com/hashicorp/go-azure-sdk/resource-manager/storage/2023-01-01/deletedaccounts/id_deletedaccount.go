@@ -42,7 +42,7 @@ func ParseDeletedAccountID(input string) (*DeletedAccountId, error) {
 	}
 
 	id := DeletedAccountId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseDeletedAccountIDInsensitively(input string) (*DeletedAccountId, error)
 	}
 
 	id := DeletedAccountId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -113,9 +113,9 @@ func (id DeletedAccountId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftStorage", "Microsoft.Storage", "Microsoft.Storage"),
 		resourceids.StaticSegment("staticLocations", "locations", "locations"),
-		resourceids.UserSpecifiedSegment("locationName", "locationValue"),
+		resourceids.UserSpecifiedSegment("locationName", "location"),
 		resourceids.StaticSegment("staticDeletedAccounts", "deletedAccounts", "deletedAccounts"),
-		resourceids.UserSpecifiedSegment("deletedAccountName", "deletedAccountValue"),
+		resourceids.UserSpecifiedSegment("deletedAccountName", "deletedAccountName"),
 	}
 }
 

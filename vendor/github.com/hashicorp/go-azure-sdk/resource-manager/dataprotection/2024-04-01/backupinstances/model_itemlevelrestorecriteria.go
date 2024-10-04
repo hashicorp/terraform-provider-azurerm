@@ -10,18 +10,35 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ItemLevelRestoreCriteria interface {
+	ItemLevelRestoreCriteria() BaseItemLevelRestoreCriteriaImpl
 }
 
-// RawItemLevelRestoreCriteriaImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ ItemLevelRestoreCriteria = BaseItemLevelRestoreCriteriaImpl{}
+
+type BaseItemLevelRestoreCriteriaImpl struct {
+	ObjectType string `json:"objectType"`
+}
+
+func (s BaseItemLevelRestoreCriteriaImpl) ItemLevelRestoreCriteria() BaseItemLevelRestoreCriteriaImpl {
+	return s
+}
+
+var _ ItemLevelRestoreCriteria = RawItemLevelRestoreCriteriaImpl{}
+
+// RawItemLevelRestoreCriteriaImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawItemLevelRestoreCriteriaImpl struct {
-	Type   string
-	Values map[string]interface{}
+	itemLevelRestoreCriteria BaseItemLevelRestoreCriteriaImpl
+	Type                     string
+	Values                   map[string]interface{}
 }
 
-func unmarshalItemLevelRestoreCriteriaImplementation(input []byte) (ItemLevelRestoreCriteria, error) {
+func (s RawItemLevelRestoreCriteriaImpl) ItemLevelRestoreCriteria() BaseItemLevelRestoreCriteriaImpl {
+	return s.itemLevelRestoreCriteria
+}
+
+func UnmarshalItemLevelRestoreCriteriaImplementation(input []byte) (ItemLevelRestoreCriteria, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +48,9 @@ func unmarshalItemLevelRestoreCriteriaImplementation(input []byte) (ItemLevelRes
 		return nil, fmt.Errorf("unmarshaling ItemLevelRestoreCriteria into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["objectType"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["objectType"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "ItemPathBasedRestoreCriteria") {
@@ -84,10 +101,15 @@ func unmarshalItemLevelRestoreCriteriaImplementation(input []byte) (ItemLevelRes
 		return out, nil
 	}
 
-	out := RawItemLevelRestoreCriteriaImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseItemLevelRestoreCriteriaImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseItemLevelRestoreCriteriaImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawItemLevelRestoreCriteriaImpl{
+		itemLevelRestoreCriteria: parent,
+		Type:                     value,
+		Values:                   temp,
+	}, nil
 
 }

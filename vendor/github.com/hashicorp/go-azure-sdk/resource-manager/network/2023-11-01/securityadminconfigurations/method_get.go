@@ -45,7 +45,6 @@ func (c SecurityAdminConfigurationsClient) Get(ctx context.Context, id SecurityA
 
 	var model SecurityAdminConfiguration
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

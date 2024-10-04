@@ -34,6 +34,7 @@ func (o DatabaseListUsagesOperationOptions) ToHeaders() *client.Headers {
 
 func (o DatabaseListUsagesOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -74,7 +75,6 @@ func (c CosmosDBClient) DatabaseListUsages(ctx context.Context, id DatabaseId, o
 
 	var model UsagesResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

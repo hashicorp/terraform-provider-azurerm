@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/postgresqlhsc/2022-11-08/configurations` Documentation
 
-The `configurations` SDK allows for interaction with the Azure Resource Manager Service `postgresqlhsc` (API Version `2022-11-08`).
+The `configurations` SDK allows for interaction with Azure Resource Manager `postgresqlhsc` (API Version `2022-11-08`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := configurations.NewConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverGroupsv2Value", "configurationValue")
+id := configurations.NewConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName", "configurationName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -40,7 +40,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := configurations.NewCoordinatorConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverGroupsv2Value", "coordinatorConfigurationValue")
+id := configurations.NewCoordinatorConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName", "configurationName")
 
 read, err := client.GetCoordinator(ctx, id)
 if err != nil {
@@ -56,7 +56,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := configurations.NewNodeConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverGroupsv2Value", "nodeConfigurationValue")
+id := configurations.NewNodeConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName", "configurationName")
 
 read, err := client.GetNode(ctx, id)
 if err != nil {
@@ -72,7 +72,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := configurations.NewServerGroupsv2ID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverGroupsv2Value")
+id := configurations.NewServerGroupsv2ID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName")
 
 // alternatively `client.ListByCluster(ctx, id)` can be used to do batched pagination
 items, err := client.ListByClusterComplete(ctx, id)
@@ -89,7 +89,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := configurations.NewServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverGroupsv2Value", "serverValue")
+id := configurations.NewServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName", "serverName")
 
 // alternatively `client.ListByServer(ctx, id)` can be used to do batched pagination
 items, err := client.ListByServerComplete(ctx, id)
@@ -106,7 +106,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := configurations.NewCoordinatorConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverGroupsv2Value", "coordinatorConfigurationValue")
+id := configurations.NewCoordinatorConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName", "configurationName")
 
 payload := configurations.ServerConfiguration{
 	// ...
@@ -123,7 +123,7 @@ if err := client.UpdateOnCoordinatorThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := configurations.NewNodeConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverGroupsv2Value", "nodeConfigurationValue")
+id := configurations.NewNodeConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName", "configurationName")
 
 payload := configurations.ServerConfiguration{
 	// ...

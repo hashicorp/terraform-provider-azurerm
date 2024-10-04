@@ -14,11 +14,24 @@ type IoTHubEventSourceResource struct {
 	Properties IoTHubEventSourceCommonProperties `json:"properties"`
 
 	// Fields inherited from EventSourceResource
+
 	Id       *string            `json:"id,omitempty"`
+	Kind     Kind               `json:"kind"`
 	Location string             `json:"location"`
 	Name     *string            `json:"name,omitempty"`
 	Tags     *map[string]string `json:"tags,omitempty"`
 	Type     *string            `json:"type,omitempty"`
+}
+
+func (s IoTHubEventSourceResource) EventSourceResource() BaseEventSourceResourceImpl {
+	return BaseEventSourceResourceImpl{
+		Id:       s.Id,
+		Kind:     s.Kind,
+		Location: s.Location,
+		Name:     s.Name,
+		Tags:     s.Tags,
+		Type:     s.Type,
+	}
 }
 
 var _ json.Marshaler = IoTHubEventSourceResource{}
@@ -32,9 +45,10 @@ func (s IoTHubEventSourceResource) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling IoTHubEventSourceResource: %+v", err)
 	}
+
 	decoded["kind"] = "Microsoft.IoTHub"
 
 	encoded, err = json.Marshal(decoded)

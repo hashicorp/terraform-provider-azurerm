@@ -48,7 +48,7 @@ func ParseRuleID(input string) (*RuleId, error) {
 	}
 
 	id := RuleId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -65,7 +65,7 @@ func ParseRuleIDInsensitively(input string) (*RuleId, error) {
 	}
 
 	id := RuleId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -133,13 +133,13 @@ func (id RuleId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftServiceBus", "Microsoft.ServiceBus", "Microsoft.ServiceBus"),
 		resourceids.StaticSegment("staticNamespaces", "namespaces", "namespaces"),
-		resourceids.UserSpecifiedSegment("namespaceName", "namespaceValue"),
+		resourceids.UserSpecifiedSegment("namespaceName", "namespaceName"),
 		resourceids.StaticSegment("staticTopics", "topics", "topics"),
-		resourceids.UserSpecifiedSegment("topicName", "topicValue"),
+		resourceids.UserSpecifiedSegment("topicName", "topicName"),
 		resourceids.StaticSegment("staticSubscriptions2", "subscriptions", "subscriptions"),
-		resourceids.UserSpecifiedSegment("subscriptionName", "subscriptionValue"),
+		resourceids.UserSpecifiedSegment("subscriptionName", "subscriptionName"),
 		resourceids.StaticSegment("staticRules", "rules", "rules"),
-		resourceids.UserSpecifiedSegment("ruleName", "ruleValue"),
+		resourceids.UserSpecifiedSegment("ruleName", "ruleName"),
 	}
 }
 

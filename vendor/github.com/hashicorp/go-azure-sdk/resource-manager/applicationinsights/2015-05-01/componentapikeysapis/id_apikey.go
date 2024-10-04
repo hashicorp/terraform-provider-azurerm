@@ -44,7 +44,7 @@ func ParseApiKeyID(input string) (*ApiKeyId, error) {
 	}
 
 	id := ApiKeyId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseApiKeyIDInsensitively(input string) (*ApiKeyId, error) {
 	}
 
 	id := ApiKeyId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id ApiKeyId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftInsights", "Microsoft.Insights", "Microsoft.Insights"),
 		resourceids.StaticSegment("staticComponents", "components", "components"),
-		resourceids.UserSpecifiedSegment("componentName", "componentValue"),
+		resourceids.UserSpecifiedSegment("componentName", "resourceName"),
 		resourceids.StaticSegment("staticApiKeys", "apiKeys", "apiKeys"),
-		resourceids.UserSpecifiedSegment("keyId", "keyIdValue"),
+		resourceids.UserSpecifiedSegment("keyId", "keyId"),
 	}
 }
 

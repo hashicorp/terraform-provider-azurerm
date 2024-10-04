@@ -42,7 +42,7 @@ func ParseIPAllocationID(input string) (*IPAllocationId, error) {
 	}
 
 	id := IPAllocationId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseIPAllocationIDInsensitively(input string) (*IPAllocationId, error) {
 	}
 
 	id := IPAllocationId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id IPAllocationId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticIpAllocations", "ipAllocations", "ipAllocations"),
-		resourceids.UserSpecifiedSegment("ipAllocationName", "ipAllocationValue"),
+		resourceids.UserSpecifiedSegment("ipAllocationName", "ipAllocationName"),
 	}
 }
 

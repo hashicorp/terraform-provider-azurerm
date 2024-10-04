@@ -45,7 +45,6 @@ func (c CognitiveServicesAccountsClient) DeletedAccountsGet(ctx context.Context,
 
 	var model Account
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

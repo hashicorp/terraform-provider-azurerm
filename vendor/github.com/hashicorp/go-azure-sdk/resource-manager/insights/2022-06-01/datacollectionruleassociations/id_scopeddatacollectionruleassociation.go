@@ -40,7 +40,7 @@ func ParseScopedDataCollectionRuleAssociationID(input string) (*ScopedDataCollec
 	}
 
 	id := ScopedDataCollectionRuleAssociationId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -57,7 +57,7 @@ func ParseScopedDataCollectionRuleAssociationIDInsensitively(input string) (*Sco
 	}
 
 	id := ScopedDataCollectionRuleAssociationId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -106,7 +106,7 @@ func (id ScopedDataCollectionRuleAssociationId) Segments() []resourceids.Segment
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftInsights", "Microsoft.Insights", "Microsoft.Insights"),
 		resourceids.StaticSegment("staticDataCollectionRuleAssociations", "dataCollectionRuleAssociations", "dataCollectionRuleAssociations"),
-		resourceids.UserSpecifiedSegment("dataCollectionRuleAssociationName", "dataCollectionRuleAssociationValue"),
+		resourceids.UserSpecifiedSegment("dataCollectionRuleAssociationName", "associationName"),
 	}
 }
 

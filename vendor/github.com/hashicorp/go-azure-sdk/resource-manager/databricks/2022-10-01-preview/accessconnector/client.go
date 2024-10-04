@@ -15,7 +15,7 @@ type AccessConnectorClient struct {
 }
 
 func NewAccessConnectorClientWithBaseURI(sdkApi sdkEnv.Api) (*AccessConnectorClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "accessconnector", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "accessconnector", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating AccessConnectorClient: %+v", err)
 	}

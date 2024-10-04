@@ -15,7 +15,7 @@ type AvailableDelegationsClient struct {
 }
 
 func NewAvailableDelegationsClientWithBaseURI(sdkApi sdkEnv.Api) (*AvailableDelegationsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "availabledelegations", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "availabledelegations", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating AvailableDelegationsClient: %+v", err)
 	}

@@ -279,7 +279,7 @@ func dataSourceNetworkInterfaceRead(d *pluginsdk.ResourceData, meta interface{})
 
 		d.Set("applied_dns_servers", appliedDNSServers)
 		d.Set("dns_servers", dnsServers)
-		if !features.FourPointOh() {
+		if !features.FourPointOhBeta() {
 			d.Set("enable_ip_forwarding", props.EnableIPForwarding)
 			d.Set("enable_accelerated_networking", props.EnableAcceleratedNetworking)
 		}

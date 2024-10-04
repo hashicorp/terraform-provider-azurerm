@@ -16,6 +16,14 @@ type LinuxConfiguration struct {
 	SshKeyPair                    *SshKeyPair       `json:"sshKeyPair,omitempty"`
 
 	// Fields inherited from OSConfiguration
+
+	OsType OSType `json:"osType"`
+}
+
+func (s LinuxConfiguration) OSConfiguration() BaseOSConfigurationImpl {
+	return BaseOSConfigurationImpl{
+		OsType: s.OsType,
+	}
 }
 
 var _ json.Marshaler = LinuxConfiguration{}
@@ -29,9 +37,10 @@ func (s LinuxConfiguration) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling LinuxConfiguration: %+v", err)
 	}
+
 	decoded["osType"] = "Linux"
 
 	encoded, err = json.Marshal(decoded)

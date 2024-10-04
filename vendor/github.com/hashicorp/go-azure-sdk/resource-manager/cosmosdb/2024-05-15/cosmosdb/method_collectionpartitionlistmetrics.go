@@ -34,6 +34,7 @@ func (o CollectionPartitionListMetricsOperationOptions) ToHeaders() *client.Head
 
 func (o CollectionPartitionListMetricsOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -74,7 +75,6 @@ func (c CosmosDBClient) CollectionPartitionListMetrics(ctx context.Context, id C
 
 	var model PartitionMetricListResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

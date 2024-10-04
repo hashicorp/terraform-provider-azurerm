@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-11-10/privatelinkscopes` Documentation
 
-The `privatelinkscopes` SDK allows for interaction with the Azure Resource Manager Service `hybridcompute` (API Version `2022-11-10`).
+The `privatelinkscopes` SDK allows for interaction with Azure Resource Manager `hybridcompute` (API Version `2022-11-10`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := privatelinkscopes.NewProviderPrivateLinkScopeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateLinkScopeValue")
+id := privatelinkscopes.NewProviderPrivateLinkScopeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "scopeName")
 
 payload := privatelinkscopes.HybridComputePrivateLinkScope{
 	// ...
@@ -46,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := privatelinkscopes.NewProviderPrivateLinkScopeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateLinkScopeValue")
+id := privatelinkscopes.NewProviderPrivateLinkScopeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "scopeName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -58,7 +58,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := privatelinkscopes.NewProviderPrivateLinkScopeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateLinkScopeValue")
+id := privatelinkscopes.NewProviderPrivateLinkScopeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "scopeName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -74,7 +74,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := privatelinkscopes.NewPrivateLinkScopeID("12345678-1234-9876-4563-123456789012", "locationValue", "privateLinkScopeIdValue")
+id := privatelinkscopes.NewPrivateLinkScopeID("12345678-1234-9876-4563-123456789012", "location", "privateLinkScopeId")
 
 read, err := client.GetValidationDetails(ctx, id)
 if err != nil {
@@ -90,7 +90,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := privatelinkscopes.NewMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "machineValue")
+id := privatelinkscopes.NewMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "machineName")
 
 read, err := client.GetValidationDetailsForMachine(ctx, id)
 if err != nil {
@@ -140,7 +140,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := privatelinkscopes.NewProviderPrivateLinkScopeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateLinkScopeValue")
+id := privatelinkscopes.NewProviderPrivateLinkScopeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "scopeName")
 
 payload := privatelinkscopes.TagsResource{
 	// ...

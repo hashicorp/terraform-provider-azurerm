@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/scriptactions` Documentation
 
-The `scriptactions` SDK allows for interaction with the Azure Resource Manager Service `hdinsight` (API Version `2021-06-01`).
+The `scriptactions` SDK allows for interaction with Azure Resource Manager `hdinsight` (API Version `2021-06-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := scriptactions.NewScriptActionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue", "scriptActionValue")
+id := scriptactions.NewScriptActionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName", "scriptName")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -41,7 +41,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewHDInsightClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
+id := commonids.NewHDInsightClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName")
 
 // alternatively `client.ListByCluster(ctx, id)` can be used to do batched pagination
 items, err := client.ListByClusterComplete(ctx, id)

@@ -218,10 +218,6 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
 
 * `tags` - (Optional) A mapping of tags which should be assigned to this Virtual Machine Scale Set.
 
-* `terminate_notification` - (Optional) A `terminate_notification` block as defined below.
-
--> **Note:** This property has been deprecated in favour of the `termination_notification` property and will be removed in version 4.0 of the provider.
-
 * `termination_notification` - (Optional) A `termination_notification` block as defined below.
 
 * `upgrade_mode` - (Optional) Specifies how Upgrades (e.g. changing the Image/SKU) should be performed to Virtual Machine Instances. Possible values are `Automatic`, `Manual` and `Rolling`. Defaults to `Manual`. Changing this forces a new resource to be created.
@@ -236,7 +232,9 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
 
 -> **Note:** This can only be set to `true` when one or more `zones` are configured.
 
-* `zones` - (Optional) Specifies a list of Availability Zones in which this Linux Virtual Machine Scale Set should be located. Changing this forces a new Linux Virtual Machine Scale Set to be created.
+* `zones` - (Optional) Specifies a list of Availability Zones in which this Linux Virtual Machine Scale Set should be located.
+
+-> **Note:** Updating `zones` to remove an existing zone forces a new Virtual Machine Scale Set to be created.
 
 ---
 
@@ -248,7 +246,7 @@ An `additional_capabilities` block supports the following:
 
 An `admin_ssh_key` block supports the following:
 
-* `public_key` - (Required) The Public Key which should be used for authentication, which needs to be at least 2048-bit and in `ssh-rsa` format.
+* `public_key` - (Required) The Public Key which should be used for authentication, which needs to be in `ssh-rsa` format with at least 2048-bit or in `ssh-ed25519` format.
 
 * `username` - (Required) The Username for which this Public SSH Key should be configured.
 
@@ -559,16 +557,6 @@ A `secret` block supports the following:
 * `certificate` - (Required) One or more `certificate` blocks as defined above.
 
 * `key_vault_id` - (Required) The ID of the Key Vault from which all Secrets should be sourced.
-
----
-
-A `terminate_notification` block supports the following:
-
-* `enabled` - (Required) Should the terminate notification be enabled on this Virtual Machine Scale Set? 
-
-* `timeout` - (Optional) Length of time (in minutes, between 5 and 15) a notification to be sent to the VM on the instance metadata server till the VM gets deleted. The time duration should be specified in ISO 8601 format. Defaults to `PT5M`.
-
--> **Note:** For more information about the terminate notification, please [refer to this doc](https://docs.microsoft.com/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-terminate-notification).
 
 ---
 

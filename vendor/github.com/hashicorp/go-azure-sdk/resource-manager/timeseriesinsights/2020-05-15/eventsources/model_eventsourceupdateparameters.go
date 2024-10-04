@@ -10,18 +10,36 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type EventSourceUpdateParameters interface {
+	EventSourceUpdateParameters() BaseEventSourceUpdateParametersImpl
 }
 
-// RawEventSourceUpdateParametersImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ EventSourceUpdateParameters = BaseEventSourceUpdateParametersImpl{}
+
+type BaseEventSourceUpdateParametersImpl struct {
+	Kind EventSourceKind    `json:"kind"`
+	Tags *map[string]string `json:"tags,omitempty"`
+}
+
+func (s BaseEventSourceUpdateParametersImpl) EventSourceUpdateParameters() BaseEventSourceUpdateParametersImpl {
+	return s
+}
+
+var _ EventSourceUpdateParameters = RawEventSourceUpdateParametersImpl{}
+
+// RawEventSourceUpdateParametersImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawEventSourceUpdateParametersImpl struct {
-	Type   string
-	Values map[string]interface{}
+	eventSourceUpdateParameters BaseEventSourceUpdateParametersImpl
+	Type                        string
+	Values                      map[string]interface{}
 }
 
-func unmarshalEventSourceUpdateParametersImplementation(input []byte) (EventSourceUpdateParameters, error) {
+func (s RawEventSourceUpdateParametersImpl) EventSourceUpdateParameters() BaseEventSourceUpdateParametersImpl {
+	return s.eventSourceUpdateParameters
+}
+
+func UnmarshalEventSourceUpdateParametersImplementation(input []byte) (EventSourceUpdateParameters, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +49,9 @@ func unmarshalEventSourceUpdateParametersImplementation(input []byte) (EventSour
 		return nil, fmt.Errorf("unmarshaling EventSourceUpdateParameters into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["kind"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["kind"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "Microsoft.EventHub") {
@@ -52,10 +70,15 @@ func unmarshalEventSourceUpdateParametersImplementation(input []byte) (EventSour
 		return out, nil
 	}
 
-	out := RawEventSourceUpdateParametersImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseEventSourceUpdateParametersImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseEventSourceUpdateParametersImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawEventSourceUpdateParametersImpl{
+		eventSourceUpdateParameters: parent,
+		Type:                        value,
+		Values:                      temp,
+	}, nil
 
 }

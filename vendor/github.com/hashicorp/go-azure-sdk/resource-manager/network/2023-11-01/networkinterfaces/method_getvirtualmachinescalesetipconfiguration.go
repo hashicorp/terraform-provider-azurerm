@@ -35,6 +35,7 @@ func (o GetVirtualMachineScaleSetIPConfigurationOperationOptions) ToHeaders() *c
 
 func (o GetVirtualMachineScaleSetIPConfigurationOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -75,7 +76,6 @@ func (c NetworkInterfacesClient) GetVirtualMachineScaleSetIPConfiguration(ctx co
 
 	var model NetworkInterfaceIPConfiguration
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2022-04-01/profiles` Documentation
 
-The `profiles` SDK allows for interaction with the Azure Resource Manager Service `trafficmanager` (API Version `2022-04-01`).
+The `profiles` SDK allows for interaction with Azure Resource Manager `trafficmanager` (API Version `2022-04-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -66,7 +66,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := profiles.NewTrafficManagerProfileID("12345678-1234-9876-4563-123456789012", "example-resource-group", "trafficManagerProfileValue")
+id := profiles.NewTrafficManagerProfileID("12345678-1234-9876-4563-123456789012", "example-resource-group", "profileName")
 
 payload := profiles.Profile{
 	// ...
@@ -87,7 +87,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := profiles.NewTrafficManagerProfileID("12345678-1234-9876-4563-123456789012", "example-resource-group", "trafficManagerProfileValue")
+id := profiles.NewTrafficManagerProfileID("12345678-1234-9876-4563-123456789012", "example-resource-group", "profileName")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -103,7 +103,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := profiles.NewTrafficManagerProfileID("12345678-1234-9876-4563-123456789012", "example-resource-group", "trafficManagerProfileValue")
+id := profiles.NewTrafficManagerProfileID("12345678-1234-9876-4563-123456789012", "example-resource-group", "profileName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -151,7 +151,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := profiles.NewTrafficManagerProfileID("12345678-1234-9876-4563-123456789012", "example-resource-group", "trafficManagerProfileValue")
+id := profiles.NewTrafficManagerProfileID("12345678-1234-9876-4563-123456789012", "example-resource-group", "profileName")
 
 payload := profiles.Profile{
 	// ...

@@ -49,7 +49,6 @@ func (c TableServiceClient) TableCreate(ctx context.Context, id TableId, input T
 
 	var model Table
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

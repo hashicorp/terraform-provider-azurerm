@@ -44,7 +44,7 @@ func ParseGetBackupSecurityPINRequestID(input string) (*GetBackupSecurityPINRequ
 	}
 
 	id := GetBackupSecurityPINRequestId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseGetBackupSecurityPINRequestIDInsensitively(input string) (*GetBackupSe
 	}
 
 	id := GetBackupSecurityPINRequestId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id GetBackupSecurityPINRequestId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDataProtection", "Microsoft.DataProtection", "Microsoft.DataProtection"),
 		resourceids.StaticSegment("staticResourceGuards", "resourceGuards", "resourceGuards"),
-		resourceids.UserSpecifiedSegment("resourceGuardName", "resourceGuardValue"),
+		resourceids.UserSpecifiedSegment("resourceGuardName", "resourceGuardsName"),
 		resourceids.StaticSegment("staticGetBackupSecurityPINRequests", "getBackupSecurityPINRequests", "getBackupSecurityPINRequests"),
-		resourceids.UserSpecifiedSegment("getBackupSecurityPINRequestName", "getBackupSecurityPINRequestValue"),
+		resourceids.UserSpecifiedSegment("getBackupSecurityPINRequestName", "requestName"),
 	}
 }
 

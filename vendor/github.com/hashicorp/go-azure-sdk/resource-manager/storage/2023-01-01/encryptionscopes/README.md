@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/encryptionscopes` Documentation
 
-The `encryptionscopes` SDK allows for interaction with the Azure Resource Manager Service `storage` (API Version `2023-01-01`).
+The `encryptionscopes` SDK allows for interaction with Azure Resource Manager `storage` (API Version `2023-01-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := encryptionscopes.NewEncryptionScopeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "encryptionScopeValue")
+id := encryptionscopes.NewEncryptionScopeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "encryptionScopeName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -41,7 +41,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewStorageAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue")
+id := commonids.NewStorageAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountName")
 
 // alternatively `client.List(ctx, id, encryptionscopes.DefaultListOperationOptions())` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id, encryptionscopes.DefaultListOperationOptions())
@@ -58,7 +58,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := encryptionscopes.NewEncryptionScopeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "encryptionScopeValue")
+id := encryptionscopes.NewEncryptionScopeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "encryptionScopeName")
 
 payload := encryptionscopes.EncryptionScope{
 	// ...
@@ -79,7 +79,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := encryptionscopes.NewEncryptionScopeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "encryptionScopeValue")
+id := encryptionscopes.NewEncryptionScopeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "encryptionScopeName")
 
 payload := encryptionscopes.EncryptionScope{
 	// ...

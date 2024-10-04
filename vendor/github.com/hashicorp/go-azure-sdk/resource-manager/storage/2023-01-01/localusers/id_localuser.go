@@ -44,7 +44,7 @@ func ParseLocalUserID(input string) (*LocalUserId, error) {
 	}
 
 	id := LocalUserId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseLocalUserIDInsensitively(input string) (*LocalUserId, error) {
 	}
 
 	id := LocalUserId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id LocalUserId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftStorage", "Microsoft.Storage", "Microsoft.Storage"),
 		resourceids.StaticSegment("staticStorageAccounts", "storageAccounts", "storageAccounts"),
-		resourceids.UserSpecifiedSegment("storageAccountName", "storageAccountValue"),
+		resourceids.UserSpecifiedSegment("storageAccountName", "accountName"),
 		resourceids.StaticSegment("staticLocalUsers", "localUsers", "localUsers"),
-		resourceids.UserSpecifiedSegment("localUserName", "localUserValue"),
+		resourceids.UserSpecifiedSegment("localUserName", "username"),
 	}
 }
 

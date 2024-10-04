@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/privateendpoints` Documentation
 
-The `privateendpoints` SDK allows for interaction with the Azure Resource Manager Service `network` (API Version `2023-09-01`).
+The `privateendpoints` SDK allows for interaction with Azure Resource Manager `network` (API Version `2023-09-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := privateendpoints.NewLocationID("12345678-1234-9876-4563-123456789012", "locationValue")
+id := privateendpoints.NewLocationID("12345678-1234-9876-4563-123456789012", "location")
 
 // alternatively `client.AvailablePrivateEndpointTypesList(ctx, id)` can be used to do batched pagination
 items, err := client.AvailablePrivateEndpointTypesListComplete(ctx, id)
@@ -42,7 +42,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := privateendpoints.NewProviderLocationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "locationValue")
+id := privateendpoints.NewProviderLocationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "location")
 
 // alternatively `client.AvailablePrivateEndpointTypesListByResourceGroup(ctx, id)` can be used to do batched pagination
 items, err := client.AvailablePrivateEndpointTypesListByResourceGroupComplete(ctx, id)
@@ -59,7 +59,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := privateendpoints.NewPrivateEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateEndpointValue")
+id := privateendpoints.NewPrivateEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateEndpointName")
 
 payload := privateendpoints.PrivateEndpoint{
 	// ...
@@ -76,7 +76,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := privateendpoints.NewPrivateEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateEndpointValue")
+id := privateendpoints.NewPrivateEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateEndpointName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -88,7 +88,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := privateendpoints.NewPrivateEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateEndpointValue")
+id := privateendpoints.NewPrivateEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateEndpointName")
 
 read, err := client.Get(ctx, id, privateendpoints.DefaultGetOperationOptions())
 if err != nil {

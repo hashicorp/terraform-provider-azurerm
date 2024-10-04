@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-07-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -3459,7 +3459,8 @@ resource "azurerm_public_ip" "test" {
   name                = "acctest-pubip-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_application_gateway" "test" {
@@ -3468,9 +3469,9 @@ resource "azurerm_application_gateway" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   sku {
-    name     = "Standard_Medium"
-    tier     = "Standard"
-    capacity = 1
+    name     = "Standard_v2"
+    tier     = "Standard_v2"
+    capacity = 2
   }
 
   gateway_ip_configuration {
@@ -3483,15 +3484,6 @@ resource "azurerm_application_gateway" "test" {
     # id = computed
     name                 = "ip-config-public"
     public_ip_address_id = azurerm_public_ip.test.id
-  }
-
-  frontend_ip_configuration {
-    # id = computed
-    name      = "ip-config-private"
-    subnet_id = azurerm_subnet.gwtest.id
-
-    # private_ip_address = computed
-    private_ip_address_allocation = "Dynamic"
   }
 
   frontend_port {
@@ -3553,6 +3545,8 @@ resource "azurerm_application_gateway" "test" {
 
     # backend_http_settings_id = computed
     backend_http_settings_name = "backend-http-1"
+
+    priority = 10
   }
 
   tags = {
@@ -4990,12 +4984,14 @@ resource "azurerm_public_ip" "test" {
   resource_group_name     = azurerm_resource_group.test.name
   allocation_method       = "Dynamic"
   idle_timeout_in_minutes = 4
+  sku                     = "Basic"
 }
 
 resource "azurerm_lb" "test" {
   name                = "acctestlb-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Basic"
 
   frontend_ip_configuration {
     name                 = "PublicIPAddress"
@@ -5133,12 +5129,14 @@ resource "azurerm_public_ip" "test" {
   resource_group_name     = azurerm_resource_group.test.name
   allocation_method       = "Dynamic"
   idle_timeout_in_minutes = 4
+  sku                     = "Basic"
 }
 
 resource "azurerm_lb" "test" {
   name                = "acctestlb-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Basic"
 
   frontend_ip_configuration {
     name                 = "PublicIPAddress"

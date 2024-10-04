@@ -44,7 +44,7 @@ func ParseDatabaseConnectionID(input string) (*DatabaseConnectionId, error) {
 	}
 
 	id := DatabaseConnectionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseDatabaseConnectionIDInsensitively(input string) (*DatabaseConnectionId
 	}
 
 	id := DatabaseConnectionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id DatabaseConnectionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftWeb", "Microsoft.Web", "Microsoft.Web"),
 		resourceids.StaticSegment("staticStaticSites", "staticSites", "staticSites"),
-		resourceids.UserSpecifiedSegment("staticSiteName", "staticSiteValue"),
+		resourceids.UserSpecifiedSegment("staticSiteName", "name"),
 		resourceids.StaticSegment("staticDatabaseConnections", "databaseConnections", "databaseConnections"),
-		resourceids.UserSpecifiedSegment("databaseConnectionName", "databaseConnectionValue"),
+		resourceids.UserSpecifiedSegment("databaseConnectionName", "databaseConnectionName"),
 	}
 }
 

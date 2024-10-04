@@ -14,6 +14,14 @@ type RawReferenceInputDataSource struct {
 	Properties *RawInputDatasourceProperties `json:"properties,omitempty"`
 
 	// Fields inherited from ReferenceInputDataSource
+
+	Type string `json:"type"`
+}
+
+func (s RawReferenceInputDataSource) ReferenceInputDataSource() BaseReferenceInputDataSourceImpl {
+	return BaseReferenceInputDataSourceImpl{
+		Type: s.Type,
+	}
 }
 
 var _ json.Marshaler = RawReferenceInputDataSource{}
@@ -27,9 +35,10 @@ func (s RawReferenceInputDataSource) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling RawReferenceInputDataSource: %+v", err)
 	}
+
 	decoded["type"] = "Raw"
 
 	encoded, err = json.Marshal(decoded)

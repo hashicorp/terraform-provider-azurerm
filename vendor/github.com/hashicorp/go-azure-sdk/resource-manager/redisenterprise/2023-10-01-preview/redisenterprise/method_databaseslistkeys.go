@@ -46,7 +46,6 @@ func (c RedisEnterpriseClient) DatabasesListKeys(ctx context.Context, id Databas
 
 	var model AccessKeys
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

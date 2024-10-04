@@ -15,7 +15,7 @@ type PacketCapturesClient struct {
 }
 
 func NewPacketCapturesClientWithBaseURI(sdkApi sdkEnv.Api) (*PacketCapturesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "packetcaptures", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "packetcaptures", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating PacketCapturesClient: %+v", err)
 	}

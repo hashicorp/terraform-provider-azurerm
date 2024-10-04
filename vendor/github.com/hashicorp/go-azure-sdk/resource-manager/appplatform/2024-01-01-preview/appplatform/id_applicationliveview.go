@@ -44,7 +44,7 @@ func ParseApplicationLiveViewID(input string) (*ApplicationLiveViewId, error) {
 	}
 
 	id := ApplicationLiveViewId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseApplicationLiveViewIDInsensitively(input string) (*ApplicationLiveView
 	}
 
 	id := ApplicationLiveViewId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id ApplicationLiveViewId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAppPlatform", "Microsoft.AppPlatform", "Microsoft.AppPlatform"),
 		resourceids.StaticSegment("staticSpring", "spring", "spring"),
-		resourceids.UserSpecifiedSegment("springName", "springValue"),
+		resourceids.UserSpecifiedSegment("springName", "serviceName"),
 		resourceids.StaticSegment("staticApplicationLiveViews", "applicationLiveViews", "applicationLiveViews"),
-		resourceids.UserSpecifiedSegment("applicationLiveViewName", "applicationLiveViewValue"),
+		resourceids.UserSpecifiedSegment("applicationLiveViewName", "applicationLiveViewName"),
 	}
 }
 

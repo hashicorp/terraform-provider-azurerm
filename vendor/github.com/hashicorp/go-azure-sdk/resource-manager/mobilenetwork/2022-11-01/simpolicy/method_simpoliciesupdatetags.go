@@ -49,7 +49,6 @@ func (c SIMPolicyClient) SimPoliciesUpdateTags(ctx context.Context, id SimPolicy
 
 	var model SimPolicy
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
