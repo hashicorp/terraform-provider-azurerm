@@ -39,21 +39,6 @@ func StorageCount(i interface{}, k string) (warnings []string, errors []error) {
 
 // MaintenanceWindow validation
 
-func CustomActionTimeoutInMins(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(int)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %s to be int", k))
-		return
-	}
-
-	if v < 15 || v > 120 {
-		errors = append(errors, fmt.Errorf("the custom action timeout in minutes must be between %d and %d", 15, 120))
-		return
-	}
-
-	return
-}
-
 func DaysOfWeek(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {

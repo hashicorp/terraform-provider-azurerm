@@ -83,16 +83,13 @@ type EstimatedPatchingTimeModel struct {
 }
 
 type MaintenanceWindowModel struct {
-	CustomActionTimeoutInMins    int64    `tfschema:"custom_action_timeout_in_mins"`
-	DaysOfWeek                   []string `tfschema:"days_of_week"`
-	HoursOfDay                   []int64  `tfschema:"hours_of_day"`
-	IsCustomActionTimeoutEnabled bool     `tfschema:"is_custom_action_timeout_enabled"`
-	IsMonthlyPatchingEnabled     bool     `tfschema:"is_monthly_patching_enabled"`
-	LeadTimeInWeeks              int64    `tfschema:"lead_time_in_weeks"`
-	Months                       []string `tfschema:"months"`
-	PatchingMode                 string   `tfschema:"patching_mode"`
-	Preference                   string   `tfschema:"preference"`
-	WeeksOfMonth                 []int64  `tfschema:"weeks_of_month"`
+	DaysOfWeek      []string `tfschema:"days_of_week"`
+	HoursOfDay      []int64  `tfschema:"hours_of_day"`
+	LeadTimeInWeeks int64    `tfschema:"lead_time_in_weeks"`
+	Months          []string `tfschema:"months"`
+	PatchingMode    string   `tfschema:"patching_mode"`
+	Preference      string   `tfschema:"preference"`
+	WeeksOfMonth    []int64  `tfschema:"weeks_of_month"`
 }
 
 func (d ExadataInfraDataSource) Arguments() map[string]*pluginsdk.Schema {
@@ -540,16 +537,13 @@ func FlattenMaintenanceWindow(maintenanceWindow *cloudexadatainfrastructures.Mai
 	if maintenanceWindow != nil {
 		return []MaintenanceWindowModel{
 			{
-				CustomActionTimeoutInMins:    pointer.From(maintenanceWindow.CustomActionTimeoutInMins),
-				DaysOfWeek:                   FlattenDayOfWeek(maintenanceWindow.DaysOfWeek),
-				HoursOfDay:                   pointer.From(maintenanceWindow.HoursOfDay),
-				IsCustomActionTimeoutEnabled: pointer.From(maintenanceWindow.IsCustomActionTimeoutEnabled),
-				IsMonthlyPatchingEnabled:     pointer.From(maintenanceWindow.IsMonthlyPatchingEnabled),
-				LeadTimeInWeeks:              pointer.From(maintenanceWindow.LeadTimeInWeeks),
-				Months:                       FlattenMonths(maintenanceWindow.Months),
-				PatchingMode:                 string(pointer.From(maintenanceWindow.PatchingMode)),
-				Preference:                   string(pointer.From(maintenanceWindow.Preference)),
-				WeeksOfMonth:                 pointer.From(maintenanceWindow.WeeksOfMonth),
+				DaysOfWeek:      FlattenDayOfWeek(maintenanceWindow.DaysOfWeek),
+				HoursOfDay:      pointer.From(maintenanceWindow.HoursOfDay),
+				LeadTimeInWeeks: pointer.From(maintenanceWindow.LeadTimeInWeeks),
+				Months:          FlattenMonths(maintenanceWindow.Months),
+				PatchingMode:    string(pointer.From(maintenanceWindow.PatchingMode)),
+				Preference:      string(pointer.From(maintenanceWindow.Preference)),
+				WeeksOfMonth:    pointer.From(maintenanceWindow.WeeksOfMonth),
 			},
 		}
 	}

@@ -93,13 +93,6 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 			Computed: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"custom_action_timeout_in_mins": {
-						Type:         pluginsdk.TypeInt,
-						Optional:     true,
-						Computed:     true,
-						ValidateFunc: validate.CustomActionTimeoutInMins,
-					},
-
 					"days_of_week": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
@@ -118,18 +111,6 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 							Type:         pluginsdk.TypeInt,
 							ValidateFunc: validate.HoursOfDay,
 						},
-					},
-
-					"is_custom_action_timeout_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Computed: true,
-					},
-
-					"is_monthly_patching_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Computed: true,
 					},
 
 					"lead_time_in_weeks": {
@@ -234,16 +215,13 @@ func (r ExadataInfraResource) Create() sdk.ResourceFunc {
 
 			if len(model.MaintenanceWindow) > 0 {
 				param.Properties.MaintenanceWindow = &cloudexadatainfrastructures.MaintenanceWindow{
-					CustomActionTimeoutInMins:    pointer.To(model.MaintenanceWindow[0].CustomActionTimeoutInMins),
-					DaysOfWeek:                   pointer.To(ExpandDayOfWeekTo(model.MaintenanceWindow[0].DaysOfWeek)),
-					HoursOfDay:                   pointer.To(model.MaintenanceWindow[0].HoursOfDay),
-					IsCustomActionTimeoutEnabled: pointer.To(model.MaintenanceWindow[0].IsCustomActionTimeoutEnabled),
-					IsMonthlyPatchingEnabled:     pointer.To(model.MaintenanceWindow[0].IsMonthlyPatchingEnabled),
-					LeadTimeInWeeks:              pointer.To(model.MaintenanceWindow[0].LeadTimeInWeeks),
-					Months:                       pointer.To(ExpandMonths(model.MaintenanceWindow[0].Months)),
-					PatchingMode:                 pointer.To(cloudexadatainfrastructures.PatchingMode(model.MaintenanceWindow[0].PatchingMode)),
-					Preference:                   pointer.To(cloudexadatainfrastructures.Preference(model.MaintenanceWindow[0].Preference)),
-					WeeksOfMonth:                 pointer.To(model.MaintenanceWindow[0].WeeksOfMonth),
+					DaysOfWeek:      pointer.To(ExpandDayOfWeekTo(model.MaintenanceWindow[0].DaysOfWeek)),
+					HoursOfDay:      pointer.To(model.MaintenanceWindow[0].HoursOfDay),
+					LeadTimeInWeeks: pointer.To(model.MaintenanceWindow[0].LeadTimeInWeeks),
+					Months:          pointer.To(ExpandMonths(model.MaintenanceWindow[0].Months)),
+					PatchingMode:    pointer.To(cloudexadatainfrastructures.PatchingMode(model.MaintenanceWindow[0].PatchingMode)),
+					Preference:      pointer.To(cloudexadatainfrastructures.Preference(model.MaintenanceWindow[0].Preference)),
+					WeeksOfMonth:    pointer.To(model.MaintenanceWindow[0].WeeksOfMonth),
 				}
 			}
 

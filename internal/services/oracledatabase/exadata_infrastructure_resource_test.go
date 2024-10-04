@@ -140,11 +140,8 @@ resource "azurerm_oracledatabase_exadata_infrastructure" "test" {
   customer_contacts   = ["test@test.com"]
 
   maintenance_window {
-    custom_action_timeout_in_mins    = 15
     days_of_week                     = ["Monday"]
     hours_of_day                     = [4]
-    is_custom_action_timeout_enabled = false
-    is_monthly_patching_enabled      = true
     months                           = ["January"]
     weeks_of_month                   = [2]
     lead_time_in_weeks               = 1
