@@ -1,5 +1,5 @@
 ---
-subcategory: "App Service"
+subcategory: "Oracle Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_oracledatabase_exadata_infrastructure"
 description: |-

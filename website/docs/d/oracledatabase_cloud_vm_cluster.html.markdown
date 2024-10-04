@@ -1,5 +1,5 @@
 ---
-subcategory: "App Service"
+subcategory: "Oracle Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: Data Source: azurerm_oracledatabase_cloud_vm_cluster"
 description: |-
