@@ -45,7 +45,6 @@ func (c CosmosDBClient) CassandraResourcesGetCassandraKeyspace(ctx context.Conte
 
 	var model CassandraKeyspaceGetResults
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

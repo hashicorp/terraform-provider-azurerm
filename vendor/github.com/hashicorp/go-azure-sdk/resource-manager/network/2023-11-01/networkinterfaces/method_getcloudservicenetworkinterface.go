@@ -34,6 +34,7 @@ func (o GetCloudServiceNetworkInterfaceOperationOptions) ToHeaders() *client.Hea
 
 func (o GetCloudServiceNetworkInterfaceOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -74,7 +75,6 @@ func (c NetworkInterfacesClient) GetCloudServiceNetworkInterface(ctx context.Con
 
 	var model NetworkInterface
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -15,7 +15,7 @@ import (
 type CreateOrUpdateOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *AlertRule
+	Model        AlertRule
 }
 
 // CreateOrUpdate ...
@@ -53,11 +53,11 @@ func (c AlertRulesClient) CreateOrUpdate(ctx context.Context, id AlertRuleId, in
 	if err = resp.Unmarshal(&respObj); err != nil {
 		return
 	}
-	model, err := unmarshalAlertRuleImplementation(respObj)
+	model, err := UnmarshalAlertRuleImplementation(respObj)
 	if err != nil {
 		return
 	}
-	result.Model = &model
+	result.Model = model
 
 	return
 }

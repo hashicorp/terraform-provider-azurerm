@@ -44,7 +44,7 @@ func ParseScriptActionID(input string) (*ScriptActionId, error) {
 	}
 
 	id := ScriptActionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseScriptActionIDInsensitively(input string) (*ScriptActionId, error) {
 	}
 
 	id := ScriptActionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id ScriptActionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftHDInsight", "Microsoft.HDInsight", "Microsoft.HDInsight"),
 		resourceids.StaticSegment("staticClusters", "clusters", "clusters"),
-		resourceids.UserSpecifiedSegment("clusterName", "clusterValue"),
+		resourceids.UserSpecifiedSegment("clusterName", "clusterName"),
 		resourceids.StaticSegment("staticScriptActions", "scriptActions", "scriptActions"),
-		resourceids.UserSpecifiedSegment("scriptActionName", "scriptActionValue"),
+		resourceids.UserSpecifiedSegment("scriptActionName", "scriptName"),
 	}
 }
 

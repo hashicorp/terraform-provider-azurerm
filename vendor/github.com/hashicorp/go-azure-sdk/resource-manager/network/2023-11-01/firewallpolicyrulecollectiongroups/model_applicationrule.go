@@ -23,8 +23,18 @@ type ApplicationRule struct {
 	WebCategories        *[]string                                `json:"webCategories,omitempty"`
 
 	// Fields inherited from FirewallPolicyRule
-	Description *string `json:"description,omitempty"`
-	Name        *string `json:"name,omitempty"`
+
+	Description *string                `json:"description,omitempty"`
+	Name        *string                `json:"name,omitempty"`
+	RuleType    FirewallPolicyRuleType `json:"ruleType"`
+}
+
+func (s ApplicationRule) FirewallPolicyRule() BaseFirewallPolicyRuleImpl {
+	return BaseFirewallPolicyRuleImpl{
+		Description: s.Description,
+		Name:        s.Name,
+		RuleType:    s.RuleType,
+	}
 }
 
 var _ json.Marshaler = ApplicationRule{}
@@ -38,9 +48,10 @@ func (s ApplicationRule) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling ApplicationRule: %+v", err)
 	}
+
 	decoded["ruleType"] = "ApplicationRule"
 
 	encoded, err = json.Marshal(decoded)

@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/localrulestacks` Documentation
 
-The `localrulestacks` SDK allows for interaction with the Azure Resource Manager Service `paloaltonetworks` (API Version `2022-08-29`).
+The `localrulestacks` SDK allows for interaction with Azure Resource Manager `paloaltonetworks` (API Version `2022-08-29`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := localrulestacks.NewLocalRulestackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackValue")
+id := localrulestacks.NewLocalRulestackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackName")
 
 if err := client.CommitThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -37,7 +37,7 @@ if err := client.CommitThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := localrulestacks.NewLocalRulestackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackValue")
+id := localrulestacks.NewLocalRulestackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackName")
 
 payload := localrulestacks.LocalRulestackResource{
 	// ...
@@ -54,7 +54,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := localrulestacks.NewLocalRulestackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackValue")
+id := localrulestacks.NewLocalRulestackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -66,7 +66,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := localrulestacks.NewLocalRulestackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackValue")
+id := localrulestacks.NewLocalRulestackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -82,7 +82,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := localrulestacks.NewLocalRulestackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackValue")
+id := localrulestacks.NewLocalRulestackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackName")
 
 read, err := client.GetChangeLog(ctx, id)
 if err != nil {
@@ -98,7 +98,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := localrulestacks.NewLocalRulestackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackValue")
+id := localrulestacks.NewLocalRulestackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackName")
 
 read, err := client.GetSupportInfo(ctx, id, localrulestacks.DefaultGetSupportInfoOperationOptions())
 if err != nil {
@@ -114,7 +114,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := localrulestacks.NewLocalRulestackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackValue")
+id := localrulestacks.NewLocalRulestackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackName")
 
 // alternatively `client.ListAdvancedSecurityObjects(ctx, id, localrulestacks.DefaultListAdvancedSecurityObjectsOperationOptions())` can be used to do batched pagination
 items, err := client.ListAdvancedSecurityObjectsComplete(ctx, id, localrulestacks.DefaultListAdvancedSecurityObjectsOperationOptions())
@@ -131,7 +131,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := localrulestacks.NewLocalRulestackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackValue")
+id := localrulestacks.NewLocalRulestackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackName")
 
 // alternatively `client.ListAppIds(ctx, id, localrulestacks.DefaultListAppIdsOperationOptions())` can be used to do batched pagination
 items, err := client.ListAppIdsComplete(ctx, id, localrulestacks.DefaultListAppIdsOperationOptions())
@@ -182,7 +182,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := localrulestacks.NewLocalRulestackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackValue")
+id := localrulestacks.NewLocalRulestackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackName")
 
 // alternatively `client.ListCountries(ctx, id, localrulestacks.DefaultListCountriesOperationOptions())` can be used to do batched pagination
 items, err := client.ListCountriesComplete(ctx, id, localrulestacks.DefaultListCountriesOperationOptions())
@@ -199,7 +199,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := localrulestacks.NewLocalRulestackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackValue")
+id := localrulestacks.NewLocalRulestackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackName")
 
 // alternatively `client.ListFirewalls(ctx, id)` can be used to do batched pagination
 items, err := client.ListFirewallsComplete(ctx, id)
@@ -216,7 +216,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := localrulestacks.NewLocalRulestackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackValue")
+id := localrulestacks.NewLocalRulestackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackName")
 
 // alternatively `client.ListPredefinedUrlCategories(ctx, id, localrulestacks.DefaultListPredefinedUrlCategoriesOperationOptions())` can be used to do batched pagination
 items, err := client.ListPredefinedUrlCategoriesComplete(ctx, id, localrulestacks.DefaultListPredefinedUrlCategoriesOperationOptions())
@@ -233,7 +233,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := localrulestacks.NewLocalRulestackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackValue")
+id := localrulestacks.NewLocalRulestackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackName")
 
 // alternatively `client.ListSecurityServices(ctx, id, localrulestacks.DefaultListSecurityServicesOperationOptions())` can be used to do batched pagination
 items, err := client.ListSecurityServicesComplete(ctx, id, localrulestacks.DefaultListSecurityServicesOperationOptions())
@@ -250,7 +250,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := localrulestacks.NewLocalRulestackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackValue")
+id := localrulestacks.NewLocalRulestackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackName")
 
 read, err := client.Revert(ctx, id)
 if err != nil {
@@ -266,7 +266,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := localrulestacks.NewLocalRulestackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackValue")
+id := localrulestacks.NewLocalRulestackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackName")
 
 payload := localrulestacks.LocalRulestackResourceUpdate{
 	// ...

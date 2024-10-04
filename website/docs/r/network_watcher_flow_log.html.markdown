@@ -97,7 +97,7 @@ The following arguments are supported:
 
 * `traffic_analytics` - (Optional) A `traffic_analytics` block as documented below.
 
-* `version` - (Optional) The version (revision) of the flow log. Possible values are `1` and `2`.
+* `version` - (Optional) The version (revision) of the flow log. Possible values are `1` and `2`. Defaults to `1`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Network Watcher Flow Log.
 
@@ -107,7 +107,7 @@ The `retention_policy` block supports the following:
 
 * `enabled` - (Required) Boolean flag to enable/disable retention.
 * `days` - (Required) The number of days to retain flow log records.
-
+ 
 ---
 
 The `traffic_analytics` block supports the following:

@@ -44,7 +44,7 @@ func ParseConnectionMonitorID(input string) (*ConnectionMonitorId, error) {
 	}
 
 	id := ConnectionMonitorId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseConnectionMonitorIDInsensitively(input string) (*ConnectionMonitorId, 
 	}
 
 	id := ConnectionMonitorId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id ConnectionMonitorId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticNetworkWatchers", "networkWatchers", "networkWatchers"),
-		resourceids.UserSpecifiedSegment("networkWatcherName", "networkWatcherValue"),
+		resourceids.UserSpecifiedSegment("networkWatcherName", "networkWatcherName"),
 		resourceids.StaticSegment("staticConnectionMonitors", "connectionMonitors", "connectionMonitors"),
-		resourceids.UserSpecifiedSegment("connectionMonitorName", "connectionMonitorValue"),
+		resourceids.UserSpecifiedSegment("connectionMonitorName", "connectionMonitorName"),
 	}
 }
 

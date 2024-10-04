@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-05-01/resourcemanagementprivatelink` Documentation
 
-The `resourcemanagementprivatelink` SDK allows for interaction with the Azure Resource Manager Service `resources` (API Version `2020-05-01`).
+The `resourcemanagementprivatelink` SDK allows for interaction with Azure Resource Manager `resources` (API Version `2020-05-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := resourcemanagementprivatelink.NewResourceManagementPrivateLinkID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceManagementPrivateLinkValue")
+id := resourcemanagementprivatelink.NewResourceManagementPrivateLinkID("12345678-1234-9876-4563-123456789012", "example-resource-group", "rmplName")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -41,7 +41,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := resourcemanagementprivatelink.NewResourceManagementPrivateLinkID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceManagementPrivateLinkValue")
+id := resourcemanagementprivatelink.NewResourceManagementPrivateLinkID("12345678-1234-9876-4563-123456789012", "example-resource-group", "rmplName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -89,7 +89,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := resourcemanagementprivatelink.NewResourceManagementPrivateLinkID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceManagementPrivateLinkValue")
+id := resourcemanagementprivatelink.NewResourceManagementPrivateLinkID("12345678-1234-9876-4563-123456789012", "example-resource-group", "rmplName")
 
 payload := resourcemanagementprivatelink.ResourceManagementPrivateLinkLocation{
 	// ...

@@ -42,7 +42,7 @@ func ParsePrometheusRuleGroupID(input string) (*PrometheusRuleGroupId, error) {
 	}
 
 	id := PrometheusRuleGroupId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParsePrometheusRuleGroupIDInsensitively(input string) (*PrometheusRuleGroup
 	}
 
 	id := PrometheusRuleGroupId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id PrometheusRuleGroupId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAlertsManagement", "Microsoft.AlertsManagement", "Microsoft.AlertsManagement"),
 		resourceids.StaticSegment("staticPrometheusRuleGroups", "prometheusRuleGroups", "prometheusRuleGroups"),
-		resourceids.UserSpecifiedSegment("prometheusRuleGroupName", "prometheusRuleGroupValue"),
+		resourceids.UserSpecifiedSegment("prometheusRuleGroupName", "ruleGroupName"),
 	}
 }
 

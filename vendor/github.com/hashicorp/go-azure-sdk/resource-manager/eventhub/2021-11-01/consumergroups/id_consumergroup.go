@@ -46,7 +46,7 @@ func ParseConsumerGroupID(input string) (*ConsumerGroupId, error) {
 	}
 
 	id := ConsumerGroupId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -63,7 +63,7 @@ func ParseConsumerGroupIDInsensitively(input string) (*ConsumerGroupId, error) {
 	}
 
 	id := ConsumerGroupId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -127,11 +127,11 @@ func (id ConsumerGroupId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftEventHub", "Microsoft.EventHub", "Microsoft.EventHub"),
 		resourceids.StaticSegment("staticNamespaces", "namespaces", "namespaces"),
-		resourceids.UserSpecifiedSegment("namespaceName", "namespaceValue"),
+		resourceids.UserSpecifiedSegment("namespaceName", "namespaceName"),
 		resourceids.StaticSegment("staticEventhubs", "eventhubs", "eventhubs"),
-		resourceids.UserSpecifiedSegment("eventhubName", "eventhubValue"),
+		resourceids.UserSpecifiedSegment("eventhubName", "eventHubName"),
 		resourceids.StaticSegment("staticConsumerGroups", "consumerGroups", "consumerGroups"),
-		resourceids.UserSpecifiedSegment("consumerGroupName", "consumerGroupValue"),
+		resourceids.UserSpecifiedSegment("consumerGroupName", "consumerGroupName"),
 	}
 }
 

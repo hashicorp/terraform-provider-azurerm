@@ -44,7 +44,7 @@ func ParseDeleteResourceGuardProxyRequestID(input string) (*DeleteResourceGuardP
 	}
 
 	id := DeleteResourceGuardProxyRequestId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseDeleteResourceGuardProxyRequestIDInsensitively(input string) (*DeleteR
 	}
 
 	id := DeleteResourceGuardProxyRequestId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id DeleteResourceGuardProxyRequestId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDataProtection", "Microsoft.DataProtection", "Microsoft.DataProtection"),
 		resourceids.StaticSegment("staticResourceGuards", "resourceGuards", "resourceGuards"),
-		resourceids.UserSpecifiedSegment("resourceGuardName", "resourceGuardValue"),
+		resourceids.UserSpecifiedSegment("resourceGuardName", "resourceGuardsName"),
 		resourceids.StaticSegment("staticDeleteResourceGuardProxyRequests", "deleteResourceGuardProxyRequests", "deleteResourceGuardProxyRequests"),
-		resourceids.UserSpecifiedSegment("deleteResourceGuardProxyRequestName", "deleteResourceGuardProxyRequestValue"),
+		resourceids.UserSpecifiedSegment("deleteResourceGuardProxyRequestName", "requestName"),
 	}
 }
 

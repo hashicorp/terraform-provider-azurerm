@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-06-01/datacollectionruleassociations` Documentation
 
-The `datacollectionruleassociations` SDK allows for interaction with the Azure Resource Manager Service `insights` (API Version `2022-06-01`).
+The `datacollectionruleassociations` SDK allows for interaction with Azure Resource Manager `insights` (API Version `2022-06-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := datacollectionruleassociations.NewScopedDataCollectionRuleAssociationID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "dataCollectionRuleAssociationValue")
+id := datacollectionruleassociations.NewScopedDataCollectionRuleAssociationID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "associationName")
 
 payload := datacollectionruleassociations.DataCollectionRuleAssociationProxyOnlyResource{
 	// ...
@@ -46,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := datacollectionruleassociations.NewScopedDataCollectionRuleAssociationID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "dataCollectionRuleAssociationValue")
+id := datacollectionruleassociations.NewScopedDataCollectionRuleAssociationID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "associationName")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -62,7 +62,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := datacollectionruleassociations.NewScopedDataCollectionRuleAssociationID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "dataCollectionRuleAssociationValue")
+id := datacollectionruleassociations.NewScopedDataCollectionRuleAssociationID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "associationName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -78,7 +78,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := datacollectionruleassociations.NewDataCollectionEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dataCollectionEndpointValue")
+id := datacollectionruleassociations.NewDataCollectionEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dataCollectionEndpointName")
 
 // alternatively `client.ListByDataCollectionEndpoint(ctx, id)` can be used to do batched pagination
 items, err := client.ListByDataCollectionEndpointComplete(ctx, id)
@@ -112,7 +112,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := datacollectionruleassociations.NewDataCollectionRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dataCollectionRuleValue")
+id := datacollectionruleassociations.NewDataCollectionRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dataCollectionRuleName")
 
 // alternatively `client.ListByRule(ctx, id)` can be used to do batched pagination
 items, err := client.ListByRuleComplete(ctx, id)

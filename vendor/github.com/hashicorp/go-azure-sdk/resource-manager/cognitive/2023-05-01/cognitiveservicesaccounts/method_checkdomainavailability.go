@@ -51,7 +51,6 @@ func (c CognitiveServicesAccountsClient) CheckDomainAvailability(ctx context.Con
 
 	var model DomainAvailability
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

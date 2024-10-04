@@ -45,7 +45,6 @@ func (c DisasterRecoveryConfigsClient) Get(ctx context.Context, id DisasterRecov
 
 	var model ArmDisasterRecovery
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

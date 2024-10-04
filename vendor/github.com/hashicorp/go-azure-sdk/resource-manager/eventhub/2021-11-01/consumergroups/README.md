@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/consumergroups` Documentation
 
-The `consumergroups` SDK allows for interaction with the Azure Resource Manager Service `eventhub` (API Version `2021-11-01`).
+The `consumergroups` SDK allows for interaction with Azure Resource Manager `eventhub` (API Version `2021-11-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := consumergroups.NewConsumerGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "eventhubValue", "consumerGroupValue")
+id := consumergroups.NewConsumerGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName", "eventHubName", "consumerGroupName")
 
 payload := consumergroups.ConsumerGroup{
 	// ...
@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := consumergroups.NewConsumerGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "eventhubValue", "consumerGroupValue")
+id := consumergroups.NewConsumerGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName", "eventHubName", "consumerGroupName")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -61,7 +61,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := consumergroups.NewConsumerGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "eventhubValue", "consumerGroupValue")
+id := consumergroups.NewConsumerGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName", "eventHubName", "consumerGroupName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -77,7 +77,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := consumergroups.NewEventhubID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "eventhubValue")
+id := consumergroups.NewEventhubID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName", "eventHubName")
 
 // alternatively `client.ListByEventHub(ctx, id, consumergroups.DefaultListByEventHubOperationOptions())` can be used to do batched pagination
 items, err := client.ListByEventHubComplete(ctx, id, consumergroups.DefaultListByEventHubOperationOptions())

@@ -49,7 +49,6 @@ func (c EncryptionScopesClient) Patch(ctx context.Context, id EncryptionScopeId,
 
 	var model EncryptionScope
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

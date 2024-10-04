@@ -15,7 +15,7 @@ type NetworkProfilesClient struct {
 }
 
 func NewNetworkProfilesClientWithBaseURI(sdkApi sdkEnv.Api) (*NetworkProfilesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "networkprofiles", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "networkprofiles", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating NetworkProfilesClient: %+v", err)
 	}

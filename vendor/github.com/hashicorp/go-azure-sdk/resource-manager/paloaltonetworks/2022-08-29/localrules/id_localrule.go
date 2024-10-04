@@ -44,7 +44,7 @@ func ParseLocalRuleID(input string) (*LocalRuleId, error) {
 	}
 
 	id := LocalRuleId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseLocalRuleIDInsensitively(input string) (*LocalRuleId, error) {
 	}
 
 	id := LocalRuleId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id LocalRuleId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticPaloAltoNetworksCloudngfw", "PaloAltoNetworks.Cloudngfw", "PaloAltoNetworks.Cloudngfw"),
 		resourceids.StaticSegment("staticLocalRulestacks", "localRulestacks", "localRulestacks"),
-		resourceids.UserSpecifiedSegment("localRulestackName", "localRulestackValue"),
+		resourceids.UserSpecifiedSegment("localRulestackName", "localRulestackName"),
 		resourceids.StaticSegment("staticLocalRules", "localRules", "localRules"),
-		resourceids.UserSpecifiedSegment("localRuleName", "localRuleValue"),
+		resourceids.UserSpecifiedSegment("localRuleName", "priority"),
 	}
 }
 

@@ -45,7 +45,6 @@ func (c RedisEnterpriseClient) Get(ctx context.Context, id RedisEnterpriseId) (r
 
 	var model Cluster
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

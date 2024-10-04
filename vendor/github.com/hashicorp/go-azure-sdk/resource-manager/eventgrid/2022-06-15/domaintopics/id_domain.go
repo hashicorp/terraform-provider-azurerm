@@ -42,7 +42,7 @@ func ParseDomainID(input string) (*DomainId, error) {
 	}
 
 	id := DomainId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseDomainIDInsensitively(input string) (*DomainId, error) {
 	}
 
 	id := DomainId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id DomainId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftEventGrid", "Microsoft.EventGrid", "Microsoft.EventGrid"),
 		resourceids.StaticSegment("staticDomains", "domains", "domains"),
-		resourceids.UserSpecifiedSegment("domainName", "domainValue"),
+		resourceids.UserSpecifiedSegment("domainName", "domainName"),
 	}
 }
 

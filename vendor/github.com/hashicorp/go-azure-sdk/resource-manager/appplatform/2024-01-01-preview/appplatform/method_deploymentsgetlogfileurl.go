@@ -47,7 +47,6 @@ func (c AppPlatformClient) DeploymentsGetLogFileUrl(ctx context.Context, id Depl
 
 	var model LogFileUrlResponse
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

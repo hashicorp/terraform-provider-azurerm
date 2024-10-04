@@ -44,7 +44,7 @@ func ParseSubscriptions2ID(input string) (*Subscriptions2Id, error) {
 	}
 
 	id := Subscriptions2Id{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseSubscriptions2IDInsensitively(input string) (*Subscriptions2Id, error)
 	}
 
 	id := Subscriptions2Id{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id Subscriptions2Id) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftApiManagement", "Microsoft.ApiManagement", "Microsoft.ApiManagement"),
 		resourceids.StaticSegment("staticService", "service", "service"),
-		resourceids.UserSpecifiedSegment("serviceName", "serviceValue"),
+		resourceids.UserSpecifiedSegment("serviceName", "serviceName"),
 		resourceids.StaticSegment("staticSubscriptions2", "subscriptions", "subscriptions"),
-		resourceids.UserSpecifiedSegment("subscriptionName", "subscriptionValue"),
+		resourceids.UserSpecifiedSegment("subscriptionName", "sid"),
 	}
 }
 

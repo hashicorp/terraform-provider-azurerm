@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2023-09-01/certificateobjectglobalrulestack` Documentation
 
-The `certificateobjectglobalrulestack` SDK allows for interaction with the Azure Resource Manager Service `paloaltonetworks` (API Version `2023-09-01`).
+The `certificateobjectglobalrulestack` SDK allows for interaction with Azure Resource Manager `paloaltonetworks` (API Version `2023-09-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := certificateobjectglobalrulestack.NewCertificateID("globalRulestackValue", "certificateValue")
+id := certificateobjectglobalrulestack.NewCertificateID("globalRulestackName", "name")
 
 payload := certificateobjectglobalrulestack.CertificateObjectGlobalRulestackResource{
 	// ...
@@ -41,7 +41,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := certificateobjectglobalrulestack.NewCertificateID("globalRulestackValue", "certificateValue")
+id := certificateobjectglobalrulestack.NewCertificateID("globalRulestackName", "name")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +53,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := certificateobjectglobalrulestack.NewCertificateID("globalRulestackValue", "certificateValue")
+id := certificateobjectglobalrulestack.NewCertificateID("globalRulestackName", "name")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -69,7 +69,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := certificateobjectglobalrulestack.NewGlobalRulestackID("globalRulestackValue")
+id := certificateobjectglobalrulestack.NewGlobalRulestackID("globalRulestackName")
 
 // alternatively `client.List(ctx, id)` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id)

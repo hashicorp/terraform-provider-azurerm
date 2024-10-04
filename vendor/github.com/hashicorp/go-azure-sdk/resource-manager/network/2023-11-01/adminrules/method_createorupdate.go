@@ -15,7 +15,7 @@ import (
 type CreateOrUpdateOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *BaseAdminRule
+	Model        BaseAdminRule
 }
 
 // CreateOrUpdate ...
@@ -53,11 +53,11 @@ func (c AdminRulesClient) CreateOrUpdate(ctx context.Context, id RuleId, input B
 	if err = resp.Unmarshal(&respObj); err != nil {
 		return
 	}
-	model, err := unmarshalBaseAdminRuleImplementation(respObj)
+	model, err := UnmarshalBaseAdminRuleImplementation(respObj)
 	if err != nil {
 		return
 	}
-	result.Model = &model
+	result.Model = model
 
 	return
 }

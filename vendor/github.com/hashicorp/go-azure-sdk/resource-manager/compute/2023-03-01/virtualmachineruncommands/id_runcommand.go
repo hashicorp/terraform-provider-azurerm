@@ -42,7 +42,7 @@ func ParseRunCommandID(input string) (*RunCommandId, error) {
 	}
 
 	id := RunCommandId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseRunCommandIDInsensitively(input string) (*RunCommandId, error) {
 	}
 
 	id := RunCommandId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -113,9 +113,9 @@ func (id RunCommandId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftCompute", "Microsoft.Compute", "Microsoft.Compute"),
 		resourceids.StaticSegment("staticLocations", "locations", "locations"),
-		resourceids.UserSpecifiedSegment("locationName", "locationValue"),
+		resourceids.UserSpecifiedSegment("locationName", "location"),
 		resourceids.StaticSegment("staticRunCommands", "runCommands", "runCommands"),
-		resourceids.UserSpecifiedSegment("commandId", "commandIdValue"),
+		resourceids.UserSpecifiedSegment("commandId", "commandId"),
 	}
 }
 

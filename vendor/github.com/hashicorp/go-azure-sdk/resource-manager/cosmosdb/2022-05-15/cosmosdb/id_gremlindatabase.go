@@ -44,7 +44,7 @@ func ParseGremlinDatabaseID(input string) (*GremlinDatabaseId, error) {
 	}
 
 	id := GremlinDatabaseId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseGremlinDatabaseIDInsensitively(input string) (*GremlinDatabaseId, erro
 	}
 
 	id := GremlinDatabaseId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id GremlinDatabaseId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDocumentDB", "Microsoft.DocumentDB", "Microsoft.DocumentDB"),
 		resourceids.StaticSegment("staticDatabaseAccounts", "databaseAccounts", "databaseAccounts"),
-		resourceids.UserSpecifiedSegment("databaseAccountName", "databaseAccountValue"),
+		resourceids.UserSpecifiedSegment("databaseAccountName", "accountName"),
 		resourceids.StaticSegment("staticGremlinDatabases", "gremlinDatabases", "gremlinDatabases"),
-		resourceids.UserSpecifiedSegment("gremlinDatabaseName", "gremlinDatabaseValue"),
+		resourceids.UserSpecifiedSegment("gremlinDatabaseName", "databaseName"),
 	}
 }
 

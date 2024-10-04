@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2023-05-01/cognitiveservicesaccounts` Documentation
 
-The `cognitiveservicesaccounts` SDK allows for interaction with the Azure Resource Manager Service `cognitive` (API Version `2023-05-01`).
+The `cognitiveservicesaccounts` SDK allows for interaction with Azure Resource Manager `cognitive` (API Version `2023-05-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := cognitiveservicesaccounts.NewAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+id := cognitiveservicesaccounts.NewAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName")
 
 payload := cognitiveservicesaccounts.Account{
 	// ...
@@ -42,7 +42,7 @@ if err := client.AccountsCreateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := cognitiveservicesaccounts.NewAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+id := cognitiveservicesaccounts.NewAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName")
 
 if err := client.AccountsDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -54,7 +54,7 @@ if err := client.AccountsDeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := cognitiveservicesaccounts.NewAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+id := cognitiveservicesaccounts.NewAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName")
 
 read, err := client.AccountsGet(ctx, id)
 if err != nil {
@@ -104,7 +104,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := cognitiveservicesaccounts.NewAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+id := cognitiveservicesaccounts.NewAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName")
 
 read, err := client.AccountsListKeys(ctx, id)
 if err != nil {
@@ -120,7 +120,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cognitiveservicesaccounts.NewAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+id := cognitiveservicesaccounts.NewAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName")
 
 // alternatively `client.AccountsListModels(ctx, id)` can be used to do batched pagination
 items, err := client.AccountsListModelsComplete(ctx, id)
@@ -137,7 +137,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := cognitiveservicesaccounts.NewAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+id := cognitiveservicesaccounts.NewAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName")
 
 read, err := client.AccountsListSkus(ctx, id)
 if err != nil {
@@ -153,7 +153,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cognitiveservicesaccounts.NewAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+id := cognitiveservicesaccounts.NewAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName")
 
 // alternatively `client.AccountsListUsages(ctx, id, cognitiveservicesaccounts.DefaultAccountsListUsagesOperationOptions())` can be used to do batched pagination
 items, err := client.AccountsListUsagesComplete(ctx, id, cognitiveservicesaccounts.DefaultAccountsListUsagesOperationOptions())
@@ -170,7 +170,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := cognitiveservicesaccounts.NewAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+id := cognitiveservicesaccounts.NewAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName")
 
 payload := cognitiveservicesaccounts.RegenerateKeyParameters{
 	// ...
@@ -191,7 +191,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cognitiveservicesaccounts.NewAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+id := cognitiveservicesaccounts.NewAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName")
 
 payload := cognitiveservicesaccounts.Account{
 	// ...
@@ -229,7 +229,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cognitiveservicesaccounts.NewLocationID("12345678-1234-9876-4563-123456789012", "locationValue")
+id := cognitiveservicesaccounts.NewLocationID("12345678-1234-9876-4563-123456789012", "location")
 
 payload := cognitiveservicesaccounts.CheckSkuAvailabilityParameter{
 	// ...
@@ -250,7 +250,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cognitiveservicesaccounts.NewDeletedAccountID("12345678-1234-9876-4563-123456789012", "locationValue", "example-resource-group", "deletedAccountValue")
+id := cognitiveservicesaccounts.NewDeletedAccountID("12345678-1234-9876-4563-123456789012", "location", "example-resource-group", "accountName")
 
 read, err := client.DeletedAccountsGet(ctx, id)
 if err != nil {
@@ -283,7 +283,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := cognitiveservicesaccounts.NewDeletedAccountID("12345678-1234-9876-4563-123456789012", "locationValue", "example-resource-group", "deletedAccountValue")
+id := cognitiveservicesaccounts.NewDeletedAccountID("12345678-1234-9876-4563-123456789012", "location", "example-resource-group", "accountName")
 
 if err := client.DeletedAccountsPurgeThenPoll(ctx, id); err != nil {
 	// handle the error

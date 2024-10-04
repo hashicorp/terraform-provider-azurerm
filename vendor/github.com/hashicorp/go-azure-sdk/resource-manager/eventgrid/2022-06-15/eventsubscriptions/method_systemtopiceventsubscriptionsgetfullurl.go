@@ -46,7 +46,6 @@ func (c EventSubscriptionsClient) SystemTopicEventSubscriptionsGetFullUrl(ctx co
 
 	var model EventSubscriptionFullUrl
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

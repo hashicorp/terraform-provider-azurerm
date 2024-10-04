@@ -44,7 +44,7 @@ func ParseProactiveDetectionConfigID(input string) (*ProactiveDetectionConfigId,
 	}
 
 	id := ProactiveDetectionConfigId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseProactiveDetectionConfigIDInsensitively(input string) (*ProactiveDetec
 	}
 
 	id := ProactiveDetectionConfigId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id ProactiveDetectionConfigId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftInsights", "Microsoft.Insights", "Microsoft.Insights"),
 		resourceids.StaticSegment("staticComponents", "components", "components"),
-		resourceids.UserSpecifiedSegment("componentName", "componentValue"),
+		resourceids.UserSpecifiedSegment("componentName", "resourceName"),
 		resourceids.StaticSegment("staticProactiveDetectionConfigs", "proactiveDetectionConfigs", "proactiveDetectionConfigs"),
-		resourceids.UserSpecifiedSegment("configurationId", "configurationIdValue"),
+		resourceids.UserSpecifiedSegment("configurationId", "configurationId"),
 	}
 }
 

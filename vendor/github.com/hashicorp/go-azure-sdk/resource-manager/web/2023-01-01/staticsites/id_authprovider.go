@@ -44,7 +44,7 @@ func ParseAuthProviderID(input string) (*AuthProviderId, error) {
 	}
 
 	id := AuthProviderId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseAuthProviderIDInsensitively(input string) (*AuthProviderId, error) {
 	}
 
 	id := AuthProviderId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id AuthProviderId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftWeb", "Microsoft.Web", "Microsoft.Web"),
 		resourceids.StaticSegment("staticStaticSites", "staticSites", "staticSites"),
-		resourceids.UserSpecifiedSegment("staticSiteName", "staticSiteValue"),
+		resourceids.UserSpecifiedSegment("staticSiteName", "name"),
 		resourceids.StaticSegment("staticAuthProviders", "authProviders", "authProviders"),
-		resourceids.UserSpecifiedSegment("authProviderName", "authProviderValue"),
+		resourceids.UserSpecifiedSegment("authProviderName", "authprovider"),
 	}
 }
 

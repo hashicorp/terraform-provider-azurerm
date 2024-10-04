@@ -9,8 +9,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/serveradministrators"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -58,7 +58,10 @@ func (PostgresqlAADAdministratorV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFun
 		// summary:
 		// Remove administrators chunk
 		oldId := rawState["id"].(string)
-		id, err := parse.AzureActiveDirectoryAdministratorID(oldId)
+
+		// This appeared to be using the wrong AAD Admin ID parser from the deprecated sql package which was removed post 4.0
+		// but since this is a state migration this cannot be changed or reapplied retroactively
+		id, err := parse.SqlAzureActiveDirectoryAdministratorID(oldId)
 		if err != nil {
 			return rawState, err
 		}

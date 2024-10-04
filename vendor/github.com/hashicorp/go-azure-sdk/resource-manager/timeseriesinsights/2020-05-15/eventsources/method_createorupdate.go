@@ -15,7 +15,7 @@ import (
 type CreateOrUpdateOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *EventSourceResource
+	Model        EventSourceResource
 }
 
 // CreateOrUpdate ...
@@ -53,11 +53,11 @@ func (c EventSourcesClient) CreateOrUpdate(ctx context.Context, id EventSourceId
 	if err = resp.Unmarshal(&respObj); err != nil {
 		return
 	}
-	model, err := unmarshalEventSourceResourceImplementation(respObj)
+	model, err := UnmarshalEventSourceResourceImplementation(respObj)
 	if err != nil {
 		return
 	}
-	result.Model = &model
+	result.Model = model
 
 	return
 }

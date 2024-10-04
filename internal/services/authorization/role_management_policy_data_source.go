@@ -13,7 +13,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/rolemanagementpolicies"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	billingValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/billing/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -109,9 +111,16 @@ func (r RoleManagementPolicyDataSource) Arguments() map[string]*pluginsdk.Schema
 			Type:        pluginsdk.TypeString,
 			Required:    true,
 			ValidateFunc: validation.Any(
+				// Elevated access for a global admin is needed to assign roles in this scope:
+				// https://docs.microsoft.com/en-us/azure/role-based-access-control/elevate-access-global-admin#azure-cli
+				// It seems only user account is allowed to be elevated access.
+				validation.StringMatch(regexp.MustCompile("/providers/Microsoft.Subscription.*"), "Subscription scope is invalid"),
+
+				billingValidate.EnrollmentID,
 				commonids.ValidateManagementGroupID,
-				commonids.ValidateResourceGroupID,
 				commonids.ValidateSubscriptionID,
+				commonids.ValidateResourceGroupID,
+				azure.ValidateResourceID,
 			),
 		},
 	}

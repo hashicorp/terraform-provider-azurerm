@@ -15,7 +15,7 @@ type DscpConfigurationClient struct {
 }
 
 func NewDscpConfigurationClientWithBaseURI(sdkApi sdkEnv.Api) (*DscpConfigurationClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "dscpconfiguration", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "dscpconfiguration", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating DscpConfigurationClient: %+v", err)
 	}

@@ -46,7 +46,6 @@ func (c ChannelsClient) GetFullUrl(ctx context.Context, id ChannelId) (result Ge
 
 	var model EventSubscriptionFullUrl
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

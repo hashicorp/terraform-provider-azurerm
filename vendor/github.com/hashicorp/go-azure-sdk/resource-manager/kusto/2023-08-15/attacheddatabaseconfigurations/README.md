@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/attacheddatabaseconfigurations` Documentation
 
-The `attacheddatabaseconfigurations` SDK allows for interaction with the Azure Resource Manager Service `kusto` (API Version `2023-08-15`).
+The `attacheddatabaseconfigurations` SDK allows for interaction with Azure Resource Manager `kusto` (API Version `2023-08-15`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := commonids.NewKustoClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
+id := commonids.NewKustoClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "kustoClusterName")
 
 payload := attacheddatabaseconfigurations.AttachedDatabaseConfigurationsCheckNameRequest{
 	// ...
@@ -46,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := attacheddatabaseconfigurations.NewAttachedDatabaseConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue", "attachedDatabaseConfigurationValue")
+id := attacheddatabaseconfigurations.NewAttachedDatabaseConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName", "attachedDatabaseConfigurationName")
 
 payload := attacheddatabaseconfigurations.AttachedDatabaseConfiguration{
 	// ...
@@ -63,7 +63,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := attacheddatabaseconfigurations.NewAttachedDatabaseConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue", "attachedDatabaseConfigurationValue")
+id := attacheddatabaseconfigurations.NewAttachedDatabaseConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName", "attachedDatabaseConfigurationName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -75,7 +75,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := attacheddatabaseconfigurations.NewAttachedDatabaseConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue", "attachedDatabaseConfigurationValue")
+id := attacheddatabaseconfigurations.NewAttachedDatabaseConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName", "attachedDatabaseConfigurationName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -91,7 +91,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewKustoClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
+id := commonids.NewKustoClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "kustoClusterName")
 
 read, err := client.ListByCluster(ctx, id)
 if err != nil {

@@ -44,7 +44,7 @@ func ParseEdgeZonePublisherID(input string) (*EdgeZonePublisherId, error) {
 	}
 
 	id := EdgeZonePublisherId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseEdgeZonePublisherIDInsensitively(input string) (*EdgeZonePublisherId, 
 	}
 
 	id := EdgeZonePublisherId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -119,11 +119,11 @@ func (id EdgeZonePublisherId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftCompute", "Microsoft.Compute", "Microsoft.Compute"),
 		resourceids.StaticSegment("staticLocations", "locations", "locations"),
-		resourceids.UserSpecifiedSegment("locationName", "locationValue"),
+		resourceids.UserSpecifiedSegment("locationName", "location"),
 		resourceids.StaticSegment("staticEdgeZones", "edgeZones", "edgeZones"),
-		resourceids.UserSpecifiedSegment("edgeZoneName", "edgeZoneValue"),
+		resourceids.UserSpecifiedSegment("edgeZoneName", "edgeZone"),
 		resourceids.StaticSegment("staticPublishers", "publishers", "publishers"),
-		resourceids.UserSpecifiedSegment("publisherName", "publisherValue"),
+		resourceids.UserSpecifiedSegment("publisherName", "publisherName"),
 	}
 }
 

@@ -42,7 +42,7 @@ func ParseVMwareSiteID(input string) (*VMwareSiteId, error) {
 	}
 
 	id := VMwareSiteId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseVMwareSiteIDInsensitively(input string) (*VMwareSiteId, error) {
 	}
 
 	id := VMwareSiteId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id VMwareSiteId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftOffAzure", "Microsoft.OffAzure", "Microsoft.OffAzure"),
 		resourceids.StaticSegment("staticVmwareSites", "vmwareSites", "vmwareSites"),
-		resourceids.UserSpecifiedSegment("vmwareSiteName", "vmwareSiteValue"),
+		resourceids.UserSpecifiedSegment("vmwareSiteName", "siteName"),
 	}
 }
 

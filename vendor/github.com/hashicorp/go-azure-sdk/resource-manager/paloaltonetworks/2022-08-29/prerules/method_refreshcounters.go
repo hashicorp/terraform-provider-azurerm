@@ -33,6 +33,7 @@ func (o RefreshCountersOperationOptions) ToHeaders() *client.Headers {
 
 func (o RefreshCountersOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

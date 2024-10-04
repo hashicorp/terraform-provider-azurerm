@@ -42,7 +42,7 @@ func ParseVirtualNetworkTapID(input string) (*VirtualNetworkTapId, error) {
 	}
 
 	id := VirtualNetworkTapId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseVirtualNetworkTapIDInsensitively(input string) (*VirtualNetworkTapId, 
 	}
 
 	id := VirtualNetworkTapId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id VirtualNetworkTapId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticVirtualNetworkTaps", "virtualNetworkTaps", "virtualNetworkTaps"),
-		resourceids.UserSpecifiedSegment("virtualNetworkTapName", "virtualNetworkTapValue"),
+		resourceids.UserSpecifiedSegment("virtualNetworkTapName", "tapName"),
 	}
 }
 

@@ -42,7 +42,7 @@ func ParseVpnGatewayID(input string) (*VpnGatewayId, error) {
 	}
 
 	id := VpnGatewayId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseVpnGatewayIDInsensitively(input string) (*VpnGatewayId, error) {
 	}
 
 	id := VpnGatewayId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id VpnGatewayId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticVpnGateways", "vpnGateways", "vpnGateways"),
-		resourceids.UserSpecifiedSegment("vpnGatewayName", "vpnGatewayValue"),
+		resourceids.UserSpecifiedSegment("vpnGatewayName", "gatewayName"),
 	}
 }
 

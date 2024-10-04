@@ -45,7 +45,6 @@ func (c NetAppAccountsClient) AccountsGet(ctx context.Context, id NetAppAccountI
 
 	var model NetAppAccount
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
