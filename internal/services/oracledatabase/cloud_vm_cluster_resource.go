@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/cloudvmclusters"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracledatabase/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"time"
 
@@ -58,15 +59,17 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		// Azure
 		"location": commonschema.Location(),
+
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validate.Name,
 		},
+
 		"resource_group_name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 		},
-		"tags": commonschema.Tags(),
 
 		// Required
 		"cloud_exadata_infrastructure_id": {
@@ -74,19 +77,25 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			Required: true,
 			ForceNew: true,
 		},
+
 		"cpu_core_count": {
 			Type:     pluginsdk.TypeInt,
 			Required: true,
 		},
+
 		"data_storage_size_in_tbs": {
 			Type:     pluginsdk.TypeFloat,
-			Required: true,
+			Optional: true,
+			Computed: true,
 			ForceNew: true,
 		},
+
 		"db_node_storage_size_in_gbs": {
 			Type:     pluginsdk.TypeInt,
-			Required: true,
+			Optional: true,
+			Computed: true,
 		},
+
 		"db_servers": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
@@ -95,30 +104,38 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 				Type: pluginsdk.TypeString,
 			},
 		},
+
 		"display_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validate.Name,
 		},
+
 		"gi_version": {
 			Type:             pluginsdk.TypeString,
 			Required:         true,
 			ForceNew:         true,
 			DiffSuppressFunc: GiVersionDiffSuppress,
 		},
+
 		"hostname": {
 			Type:             pluginsdk.TypeString,
 			Required:         true,
 			ForceNew:         true,
 			DiffSuppressFunc: DbSystemHostnameDiffSuppress,
 		},
+
 		"license_model": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 		},
+
 		"memory_size_in_gbs": {
 			Type:     pluginsdk.TypeInt,
-			Required: true,
+			Optional: true,
+			Computed: true,
 		},
+
 		"ssh_public_keys": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
@@ -126,11 +143,13 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 				Type: pluginsdk.TypeString,
 			},
 		},
+
 		"subnet_id": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
+
 		"vnet_id": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
@@ -142,12 +161,14 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 		},
+
 		"cluster_name": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			Computed: true,
 			ForceNew: true,
 		},
+
 		"data_collection_options": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -161,11 +182,13 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 						Optional: true,
 						Computed: true,
 					},
+
 					"is_health_monitoring_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Computed: true,
 					},
+
 					"is_incident_logs_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
@@ -174,30 +197,36 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 				},
 			},
 		},
+
 		"data_storage_percentage": {
 			Type:     schema.TypeInt,
 			Optional: true,
 			Computed: true,
 			ForceNew: true,
 		},
+
 		"is_local_backup_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Computed: true,
 			ForceNew: true,
 		},
+
 		"is_sparse_diskgroup_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Computed: true,
 			ForceNew: true,
 		},
+
 		"time_zone": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			Computed: true,
 			ForceNew: true,
 		},
+
+		"tags": commonschema.Tags(),
 	}
 }
 
@@ -206,7 +235,7 @@ func (CloudVmClusterResource) Attributes() map[string]*pluginsdk.Schema {
 }
 
 func (CloudVmClusterResource) ModelObject() interface{} {
-	return &ExadataInfraResource{}
+	return &CloudVmClusterResource{}
 }
 
 func (CloudVmClusterResource) ResourceType() string {

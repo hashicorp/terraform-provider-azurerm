@@ -36,7 +36,7 @@ func (d CloudVmClusterDataSource) basic(data acceptance.TestData) string {
 %s
 
 data "azurerm_oracledatabase_cloud_vm_cluster" "test" {
-  name = azurerm_oracledatabase_cloud_vm_cluster.test.name
+  name                = azurerm_oracledatabase_cloud_vm_cluster.test.name
   resource_group_name = azurerm_oracledatabase_cloud_vm_cluster.test.resource_group_name
 }
 `, CloudVmClusterResource{}.basic(data))

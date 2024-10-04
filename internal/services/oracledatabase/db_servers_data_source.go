@@ -48,6 +48,7 @@ func (d DBServersDataSource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 		},
+
 		"cloud_exadata_infrastructure_name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
@@ -69,6 +70,7 @@ func (d DBServersDataSource) Attributes() map[string]*pluginsdk.Schema {
 							Type: pluginsdk.TypeString,
 						},
 					},
+
 					"autonomous_virtual_machine_ds": {
 						Type:     pluginsdk.TypeList,
 						Computed: true,
@@ -76,14 +78,17 @@ func (d DBServersDataSource) Attributes() map[string]*pluginsdk.Schema {
 							Type: pluginsdk.TypeString,
 						},
 					},
+
 					"compartment_id": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
+
 					"cpu_core_count": {
 						Type:     pluginsdk.TypeInt,
 						Computed: true,
 					},
+
 					"db_node_ids": {
 						Type:     pluginsdk.TypeList,
 						Computed: true,
@@ -91,58 +96,72 @@ func (d DBServersDataSource) Attributes() map[string]*pluginsdk.Schema {
 							Type: pluginsdk.TypeString,
 						},
 					},
+
 					"db_node_storage_size_in_gbs": {
 						Type:     pluginsdk.TypeInt,
 						Computed: true,
 					},
+
 					"display_name": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
+
 					"exadata_infrastructure_id": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
+
 					"lifecycle_details": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
+
 					"lifecycle_state": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
+
 					"max_cpu_count": {
 						Type:     pluginsdk.TypeInt,
 						Computed: true,
 					},
+
 					"max_db_node_storage_in_gbs": {
 						Type:     pluginsdk.TypeInt,
 						Computed: true,
 					},
+
 					"max_memory_in_gbs": {
 						Type:     pluginsdk.TypeInt,
 						Computed: true,
 					},
+
 					"memory_size_in_gbs": {
 						Type:     pluginsdk.TypeInt,
 						Computed: true,
 					},
+
 					"ocid": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
+
 					"provisioning_state": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
+
 					"shape": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
+
 					"time_created": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
+
 					"vm_cluster_ids": {
 						Type:     pluginsdk.TypeList,
 						Computed: true,

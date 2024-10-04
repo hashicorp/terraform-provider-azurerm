@@ -4,10 +4,11 @@ package oracledatabase_test
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracledatabase"
-	"testing"
 )
 
 type ExadataInfraDataSource struct{}
@@ -38,7 +39,7 @@ func (d ExadataInfraDataSource) basic(data acceptance.TestData) string {
 %s
 
 data "azurerm_oracledatabase_exadata_infrastructure" "test" {
-  name = azurerm_oracledatabase_exadata_infrastructure.test.name
+  name                = azurerm_oracledatabase_exadata_infrastructure.test.name
   resource_group_name = azurerm_oracledatabase_exadata_infrastructure.test.resource_group_name
 }
 `, ExadataInfraResource{}.basic(data))

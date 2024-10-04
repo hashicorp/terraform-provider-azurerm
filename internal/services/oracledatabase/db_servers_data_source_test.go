@@ -28,11 +28,12 @@ func TestDBServersDataSource_basic(t *testing.T) {
 func (d DBServersDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
+
 %s
 
 data "azurerm_oracledatabase_db_servers" "test" {
-	resource_group_name = azurerm_resource_group.test.name
-	cloud_exadata_infrastructure_name = azurerm_oracledatabase_exadata_infrastructure.test.name
+  resource_group_name               = azurerm_resource_group.test.name
+  cloud_exadata_infrastructure_name = azurerm_oracledatabase_exadata_infrastructure.test.name
 }
 `, d.template(data))
 }

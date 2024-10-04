@@ -55,7 +55,7 @@ func TestCloudVmClusterResource_basic(t *testing.T) {
 	})
 }
 
-func TestCloudVmClusterResource_allFields(t *testing.T) {
+func TestCloudVmClusterResource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracledatabase.CloudVmClusterResource{}.ResourceType(), "test")
 	r := CloudVmClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -108,22 +108,22 @@ func (a CloudVmClusterResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
   %s
 resource "azurerm_oracledatabase_cloud_vm_cluster" "test" {
-	location = "%[3]s"
-  	name = "OFakeVmacctest%[2]d"
-  	resource_group_name = azurerm_resource_group.test.name
-	cloud_exadata_infrastructure_id = azurerm_oracledatabase_exadata_infrastructure.test.id
-	cpu_core_count = 4
-	data_storage_size_in_tbs = 2
-	db_node_storage_size_in_gbs = 120
-	db_servers = [for obj in data.azurerm_oracledatabase_db_servers.test.db_servers : obj.ocid]
-	display_name = "OFakeVmacctest%[2]d"
-	gi_version = "23.0.0.0"
-    license_model = "BringYourOwnLicense"
-	memory_size_in_gbs = 60
-  	hostname = "hostname"
-	ssh_public_keys = ["ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+wWK73dCr+jgQOAxNsHAnNNNMEMWOHYEccp6wJm2gotpr9katuF/ZAdou5AaW1C61slRkHRkpRRX9FA9CYBiitZgvCCz+3nWNN7l/Up54Zps/pHWGZLHNJZRYyAB6j5yVLMVHIHriY49d/GZTZVNB8GoJv9Gakwc/fuEZYYl4YDFiGMBP///TzlI4jhiJzjKnEvqPFki5p2ZRJqcbCiF4pJrxUQR/RXqVFQdbRLZgYfJ8xGB878RENq3yQ39d8dVOkq4edbkzwcUmwwwkYVPIoDGsYLaRHnG+To7FvMeyO7xDVQkMKzopTQV8AuKpyvpqu0a9pWOMaiCyDytO7GGN you@me.com"]
-	subnet_id = azurerm_subnet.virtual_network_subnet.id
-	vnet_id = azurerm_virtual_network.virtual_network.id
+  location                        = "%[3]s"
+  name                            = "OFakeVmacctest%[2]d"
+  resource_group_name             = azurerm_resource_group.test.name
+  cloud_exadata_infrastructure_id = azurerm_oracledatabase_exadata_infrastructure.test.id
+  cpu_core_count                  = 4
+  data_storage_size_in_tbs        = 2
+  db_node_storage_size_in_gbs     = 120
+  db_servers                      = [for obj in data.azurerm_oracledatabase_db_servers.test.db_servers : obj.ocid]
+  display_name                    = "OFakeVmacctest%[2]d"
+  gi_version                      = "23.0.0.0"
+  license_model                   = "BringYourOwnLicense"
+  memory_size_in_gbs              = 60
+  hostname                        = "hostname"
+  ssh_public_keys                 = ["ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+wWK73dCr+jgQOAxNsHAnNNNMEMWOHYEccp6wJm2gotpr9katuF/ZAdou5AaW1C61slRkHRkpRRX9FA9CYBiitZgvCCz+3nWNN7l/Up54Zps/pHWGZLHNJZRYyAB6j5yVLMVHIHriY49d/GZTZVNB8GoJv9Gakwc/fuEZYYl4YDFiGMBP///TzlI4jhiJzjKnEvqPFki5p2ZRJqcbCiF4pJrxUQR/RXqVFQdbRLZgYfJ8xGB878RENq3yQ39d8dVOkq4edbkzwcUmwwwkYVPIoDGsYLaRHnG+To7FvMeyO7xDVQkMKzopTQV8AuKpyvpqu0a9pWOMaiCyDytO7GGN you@me.com"]
+  subnet_id                       = azurerm_subnet.virtual_network_subnet.id
+  vnet_id                         = azurerm_virtual_network.virtual_network.id
 }`, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
@@ -131,33 +131,33 @@ func (a CloudVmClusterResource) allFields(data acceptance.TestData) string {
 	return fmt.Sprintf(`
   %s
 resource "azurerm_oracledatabase_cloud_vm_cluster" "test" {
-	location = "%[3]s"
-  	name = "OFakeVmacctest%[2]d"
-  	resource_group_name = azurerm_resource_group.test.name
-	cloud_exadata_infrastructure_id = azurerm_oracledatabase_exadata_infrastructure.test.id
-	cpu_core_count = 4
-	data_collection_options {
-		is_diagnostics_events_enabled = true
-		is_health_monitoring_enabled = true
-		is_incident_logs_enabled = true
-	}
-	data_storage_size_in_tbs = 2
-	db_node_storage_size_in_gbs = 120
-	db_servers = [for obj in data.azurerm_oracledatabase_db_servers.test.db_servers : obj.ocid]
-	display_name = "OFakeVmacctest%[2]d"
-	gi_version = "23.0.0.0"
-	is_local_backup_enabled = true
-	is_sparse_diskgroup_enabled = true
-    license_model = "BringYourOwnLicense"
-	memory_size_in_gbs = 60
-  	hostname = "hostname"
-	ssh_public_keys = ["ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+wWK73dCr+jgQOAxNsHAnNNNMEMWOHYEccp6wJm2gotpr9katuF/ZAdou5AaW1C61slRkHRkpRRX9FA9CYBiitZgvCCz+3nWNN7l/Up54Zps/pHWGZLHNJZRYyAB6j5yVLMVHIHriY49d/GZTZVNB8GoJv9Gakwc/fuEZYYl4YDFiGMBP///TzlI4jhiJzjKnEvqPFki5p2ZRJqcbCiF4pJrxUQR/RXqVFQdbRLZgYfJ8xGB878RENq3yQ39d8dVOkq4edbkzwcUmwwwkYVPIoDGsYLaRHnG+To7FvMeyO7xDVQkMKzopTQV8AuKpyvpqu0a9pWOMaiCyDytO7GGN you@me.com"]
-	subnet_id = azurerm_subnet.virtual_network_subnet.id
- 	tags = {
-   		test = "testTag1"
- 	}
-	time_zone = "UTC"
-	vnet_id = azurerm_virtual_network.virtual_network.id
+  location                        = "%[3]s"
+  name                            = "OFakeVmacctest%[2]d"
+  resource_group_name             = azurerm_resource_group.test.name
+  cloud_exadata_infrastructure_id = azurerm_oracledatabase_exadata_infrastructure.test.id
+  cpu_core_count                  = 4
+  data_collection_options {
+    is_diagnostics_events_enabled = true
+    is_health_monitoring_enabled  = true
+    is_incident_logs_enabled      = true
+  }
+  data_storage_size_in_tbs    = 2
+  db_node_storage_size_in_gbs = 120
+  db_servers                  = [for obj in data.azurerm_oracledatabase_db_servers.test.db_servers : obj.ocid]
+  display_name                = "OFakeVmacctest%[2]d"
+  gi_version                  = "23.0.0.0"
+  is_local_backup_enabled     = true
+  is_sparse_diskgroup_enabled = true
+  license_model               = "BringYourOwnLicense"
+  memory_size_in_gbs          = 60
+  hostname                    = "hostname"
+  ssh_public_keys             = ["ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+wWK73dCr+jgQOAxNsHAnNNNMEMWOHYEccp6wJm2gotpr9katuF/ZAdou5AaW1C61slRkHRkpRRX9FA9CYBiitZgvCCz+3nWNN7l/Up54Zps/pHWGZLHNJZRYyAB6j5yVLMVHIHriY49d/GZTZVNB8GoJv9Gakwc/fuEZYYl4YDFiGMBP///TzlI4jhiJzjKnEvqPFki5p2ZRJqcbCiF4pJrxUQR/RXqVFQdbRLZgYfJ8xGB878RENq3yQ39d8dVOkq4edbkzwcUmwwwkYVPIoDGsYLaRHnG+To7FvMeyO7xDVQkMKzopTQV8AuKpyvpqu0a9pWOMaiCyDytO7GGN you@me.com"]
+  subnet_id                   = azurerm_subnet.virtual_network_subnet.id
+  tags = {
+    test = "testTag1"
+  }
+  time_zone = "UTC"
+  vnet_id   = azurerm_virtual_network.virtual_network.id
 }`, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
@@ -165,25 +165,25 @@ func (a CloudVmClusterResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_oracledatabase_cloud_vm_cluster" "test" {
-	location = "%[3]s"
-  	name = "OFakeVmacctest%[2]d"
-  	resource_group_name = azurerm_resource_group.test.name
-	cloud_exadata_infrastructure_id = azurerm_oracledatabase_exadata_infrastructure.test.id
-	cpu_core_count = 4
-	data_storage_size_in_tbs = 2
-	db_node_storage_size_in_gbs = 120
-	db_servers = [for obj in data.azurerm_oracledatabase_db_servers.test.db_servers : obj.ocid]
-	display_name = "OFakeVmacctest%[2]d"
-	gi_version = "23.0.0.0"
-    license_model = "BringYourOwnLicense"
-	memory_size_in_gbs = 60
-  	hostname = "hostname"
-	ssh_public_keys = ["ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+wWK73dCr+jgQOAxNsHAnNNNMEMWOHYEccp6wJm2gotpr9katuF/ZAdou5AaW1C61slRkHRkpRRX9FA9CYBiitZgvCCz+3nWNN7l/Up54Zps/pHWGZLHNJZRYyAB6j5yVLMVHIHriY49d/GZTZVNB8GoJv9Gakwc/fuEZYYl4YDFiGMBP///TzlI4jhiJzjKnEvqPFki5p2ZRJqcbCiF4pJrxUQR/RXqVFQdbRLZgYfJ8xGB878RENq3yQ39d8dVOkq4edbkzwcUmwwwkYVPIoDGsYLaRHnG+To7FvMeyO7xDVQkMKzopTQV8AuKpyvpqu0a9pWOMaiCyDytO7GGN you@me.com"]
-	subnet_id = azurerm_subnet.virtual_network_subnet.id
- 	tags = {
-   		test = "testTag1"
- 	}
-	vnet_id = azurerm_virtual_network.virtual_network.id
+  location                        = "%[3]s"
+  name                            = "OFakeVmacctest%[2]d"
+  resource_group_name             = azurerm_resource_group.test.name
+  cloud_exadata_infrastructure_id = azurerm_oracledatabase_exadata_infrastructure.test.id
+  cpu_core_count                  = 4
+  data_storage_size_in_tbs        = 2
+  db_node_storage_size_in_gbs     = 120
+  db_servers                      = [for obj in data.azurerm_oracledatabase_db_servers.test.db_servers : obj.ocid]
+  display_name                    = "OFakeVmacctest%[2]d"
+  gi_version                      = "23.0.0.0"
+  license_model                   = "BringYourOwnLicense"
+  memory_size_in_gbs              = 60
+  hostname                        = "hostname"
+  ssh_public_keys                 = ["ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+wWK73dCr+jgQOAxNsHAnNNNMEMWOHYEccp6wJm2gotpr9katuF/ZAdou5AaW1C61slRkHRkpRRX9FA9CYBiitZgvCCz+3nWNN7l/Up54Zps/pHWGZLHNJZRYyAB6j5yVLMVHIHriY49d/GZTZVNB8GoJv9Gakwc/fuEZYYl4YDFiGMBP///TzlI4jhiJzjKnEvqPFki5p2ZRJqcbCiF4pJrxUQR/RXqVFQdbRLZgYfJ8xGB878RENq3yQ39d8dVOkq4edbkzwcUmwwwkYVPIoDGsYLaRHnG+To7FvMeyO7xDVQkMKzopTQV8AuKpyvpqu0a9pWOMaiCyDytO7GGN you@me.com"]
+  subnet_id                       = azurerm_subnet.virtual_network_subnet.id
+  tags = {
+    test = "testTag1"
+  }
+  vnet_id = azurerm_virtual_network.virtual_network.id
 }`, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
@@ -192,22 +192,22 @@ func (a CloudVmClusterResource) requiresImport(data acceptance.TestData) string 
 %s
 
 resource "azurerm_oracledatabase_cloud_vm_cluster" "import" {
-	location = azurerm_oracledatabase_cloud_vm_cluster.test.location
-  	name = azurerm_oracledatabase_cloud_vm_cluster.test.name
-  	resource_group_name = azurerm_oracledatabase_cloud_vm_cluster.test.resource_group_name
-	cloud_exadata_infrastructure_id = azurerm_oracledatabase_cloud_vm_cluster.test.cloud_exadata_infrastructure_id
-	cpu_core_count = azurerm_oracledatabase_cloud_vm_cluster.test.cpu_core_count
-	data_storage_size_in_tbs = azurerm_oracledatabase_cloud_vm_cluster.test.data_storage_size_in_tbs
-	db_node_storage_size_in_gbs = azurerm_oracledatabase_cloud_vm_cluster.test.db_node_storage_size_in_gbs
-	db_servers = azurerm_oracledatabase_cloud_vm_cluster.test.db_servers
-	display_name = azurerm_oracledatabase_cloud_vm_cluster.test.display_name
-	gi_version = azurerm_oracledatabase_cloud_vm_cluster.test.gi_version
-    license_model = azurerm_oracledatabase_cloud_vm_cluster.test.license_model
-	memory_size_in_gbs = azurerm_oracledatabase_cloud_vm_cluster.test.memory_size_in_gbs
-  	hostname = azurerm_oracledatabase_cloud_vm_cluster.test.hostname
-	ssh_public_keys = azurerm_oracledatabase_cloud_vm_cluster.test.ssh_public_keys
-	subnet_id = azurerm_oracledatabase_cloud_vm_cluster.test.subnet_id
-	vnet_id = azurerm_oracledatabase_cloud_vm_cluster.test.vnet_id
+  location                        = azurerm_oracledatabase_cloud_vm_cluster.test.location
+  name                            = azurerm_oracledatabase_cloud_vm_cluster.test.name
+  resource_group_name             = azurerm_oracledatabase_cloud_vm_cluster.test.resource_group_name
+  cloud_exadata_infrastructure_id = azurerm_oracledatabase_cloud_vm_cluster.test.cloud_exadata_infrastructure_id
+  cpu_core_count                  = azurerm_oracledatabase_cloud_vm_cluster.test.cpu_core_count
+  data_storage_size_in_tbs        = azurerm_oracledatabase_cloud_vm_cluster.test.data_storage_size_in_tbs
+  db_node_storage_size_in_gbs     = azurerm_oracledatabase_cloud_vm_cluster.test.db_node_storage_size_in_gbs
+  db_servers                      = azurerm_oracledatabase_cloud_vm_cluster.test.db_servers
+  display_name                    = azurerm_oracledatabase_cloud_vm_cluster.test.display_name
+  gi_version                      = azurerm_oracledatabase_cloud_vm_cluster.test.gi_version
+  license_model                   = azurerm_oracledatabase_cloud_vm_cluster.test.license_model
+  memory_size_in_gbs              = azurerm_oracledatabase_cloud_vm_cluster.test.memory_size_in_gbs
+  hostname                        = azurerm_oracledatabase_cloud_vm_cluster.test.hostname
+  ssh_public_keys                 = azurerm_oracledatabase_cloud_vm_cluster.test.ssh_public_keys
+  subnet_id                       = azurerm_oracledatabase_cloud_vm_cluster.test.subnet_id
+  vnet_id                         = azurerm_oracledatabase_cloud_vm_cluster.test.vnet_id
 }
 `, a.basic(data))
 }
@@ -244,7 +244,7 @@ resource "azurerm_subnet" "virtual_network_subnet" {
     service_delegation {
       actions = [
         "Microsoft.Network/networkinterfaces/*",
-		"Microsoft.Network/virtualNetworks/subnets/join/action",
+        "Microsoft.Network/virtualNetworks/subnets/join/action",
       ]
       name = "Oracle.Database/networkAttachments"
     }
@@ -252,20 +252,21 @@ resource "azurerm_subnet" "virtual_network_subnet" {
 }
 
 resource "azurerm_oracledatabase_exadata_infrastructure" "test" {
-  name = "OFakeacctest%[1]d"
-  location = "%[2]s"
+  name                = "OFakeacctest%[1]d"
+  location            = "%[2]s"
   resource_group_name = azurerm_resource_group.test.name
-  compute_count = "2"
-  display_name = "OFakeacctest%[1]d"
-  shape = "Exadata.X9M"
-  storage_count = "3"
-  zones = ["3"]
+  compute_count       = "2"
+  display_name        = "OFakeacctest%[1]d"
+  shape               = "Exadata.X9M"
+  storage_count       = "3"
+  zones               = ["3"]
 }
 
 data "azurerm_oracledatabase_db_servers" "test" {
-  resource_group_name = azurerm_resource_group.test.name
+  resource_group_name               = azurerm_resource_group.test.name
   cloud_exadata_infrastructure_name = azurerm_oracledatabase_exadata_infrastructure.test.name
 }
+
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

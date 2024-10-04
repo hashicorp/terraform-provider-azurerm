@@ -5,9 +5,10 @@ package oracledatabase_test
 import (
 	"context"
 	"fmt"
+	"testing"
+
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/cloudexadatainfrastructures"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracledatabase"
-	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -106,18 +107,17 @@ func TestExaInfra_update(t *testing.T) {
 
 func (a ExadataInfraResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-
 %s
 
 resource "azurerm_oracledatabase_exadata_infrastructure" "test" {
-  name = "OFakeacctest%[2]d"
-  location = "%[3]s"
+  name                = "OFakeacctest%[2]d"
+  location            = "%[3]s"
   resource_group_name = azurerm_resource_group.test.name
-  compute_count = "2"
-  display_name = "OFakeacctest%[2]d"
-  shape = "Exadata.X9M"
-  storage_count = "3"
-  zones = ["3"]
+  compute_count       = "2"
+  display_name        = "OFakeacctest%[2]d"
+  shape               = "Exadata.X9M"
+  storage_count       = "3"
+  zones               = ["3"]
 }
 `, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
@@ -125,33 +125,33 @@ resource "azurerm_oracledatabase_exadata_infrastructure" "test" {
 func (a ExadataInfraResource) allFields(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
+
 %s
 
 resource "azurerm_oracledatabase_exadata_infrastructure" "test" {
-  name = "OFakeacctest%[2]d"
-  location = "%[3]s"
+  name                = "OFakeacctest%[2]d"
+  location            = "%[3]s"
   resource_group_name = azurerm_resource_group.test.name
-  compute_count = "2"
-  display_name = "OFakeacctest%[2]d"
-  shape = "Exadata.X9M"
-  storage_count = "3"
-  zones = ["3"]
-  customer_contacts = ["test@test.com"]
+  compute_count       = "2"
+  display_name        = "OFakeacctest%[2]d"
+  shape               = "Exadata.X9M"
+  storage_count       = "3"
+  zones               = ["3"]
+  customer_contacts   = ["test@test.com"]
+
   maintenance_window {
-	custom_action_timeout_in_mins    = 0
-	days_of_week                     = ["Monday"]
-	hours_of_day                     = [1]
-	is_custom_action_timeout_enabled = false
-	is_monthly_patching_enabled      = true
-	months                           = ["January"]
-	weeks_of_month                   = [2]
+    days_of_week                     = ["Monday"]
+    hours_of_day                     = [4]
+    months                           = ["January"]
+    weeks_of_month                   = [2]
     lead_time_in_weeks               = 1
     patching_mode                    = "Rolling"
     preference                       = "NoPreference"
   }
- tags = {
-   test = "testTag1"
- }
+
+  tags = {
+    test = "testTag1"
+  }
 }
 `, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
@@ -159,20 +159,21 @@ resource "azurerm_oracledatabase_exadata_infrastructure" "test" {
 func (a ExadataInfraResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
+
 %s
 
 resource "azurerm_oracledatabase_exadata_infrastructure" "test" {
- name = "OFakeacctest%[2]d"
- location = "%[3]s"
- resource_group_name = azurerm_resource_group.test.name
- compute_count = "2"
- display_name = "OFakeacctest%[2]d"
- shape = "Exadata.X9M"
- storage_count = "3"
- zones = ["3"]
- tags = {
-   test = "testTag1"
- }
+  name                = "OFakeacctest%[2]d"
+  location            = "%[3]s"
+  resource_group_name = azurerm_resource_group.test.name
+  compute_count       = "2"
+  display_name        = "OFakeacctest%[2]d"
+  shape               = "Exadata.X9M"
+  storage_count       = "3"
+  zones               = ["3"]
+  tags = {
+    test = "testTag1"
+  }
 }
 `, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
@@ -182,14 +183,14 @@ func (a ExadataInfraResource) requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_oracledatabase_exadata_infrastructure" "import" {
-  name = azurerm_oracledatabase_exadata_infrastructure.test.name
-  location = azurerm_oracledatabase_exadata_infrastructure.test.location
+  name                = azurerm_oracledatabase_exadata_infrastructure.test.name
+  location            = azurerm_oracledatabase_exadata_infrastructure.test.location
   resource_group_name = azurerm_oracledatabase_exadata_infrastructure.test.resource_group_name
-  compute_count = azurerm_oracledatabase_exadata_infrastructure.test.compute_count
-  display_name = azurerm_oracledatabase_exadata_infrastructure.test.display_name
-  shape = azurerm_oracledatabase_exadata_infrastructure.test.shape
-  storage_count = azurerm_oracledatabase_exadata_infrastructure.test.storage_count
-  zones = azurerm_oracledatabase_exadata_infrastructure.test.zones
+  compute_count       = azurerm_oracledatabase_exadata_infrastructure.test.compute_count
+  display_name        = azurerm_oracledatabase_exadata_infrastructure.test.display_name
+  shape               = azurerm_oracledatabase_exadata_infrastructure.test.shape
+  storage_count       = azurerm_oracledatabase_exadata_infrastructure.test.storage_count
+  zones               = azurerm_oracledatabase_exadata_infrastructure.test.zones
 }
 `, a.basic(data))
 }

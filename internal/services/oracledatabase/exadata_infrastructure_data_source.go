@@ -5,6 +5,10 @@ package oracledatabase
 import (
 	"context"
 	"fmt"
+	"time"
+
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -13,8 +17,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/cloudexadatainfrastructures"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"time"
 )
 
 type ExadataInfraDataSource struct{}
@@ -81,21 +83,19 @@ type EstimatedPatchingTimeModel struct {
 }
 
 type MaintenanceWindowModel struct {
-	CustomActionTimeoutInMins    int64    `tfschema:"custom_action_timeout_in_mins"`
-	DaysOfWeek                   []string `tfschema:"days_of_week"`
-	HoursOfDay                   []int64  `tfschema:"hours_of_day"`
-	IsCustomActionTimeoutEnabled bool     `tfschema:"is_custom_action_timeout_enabled"`
-	IsMonthlyPatchingEnabled     bool     `tfschema:"is_monthly_patching_enabled"`
-	LeadTimeInWeeks              int64    `tfschema:"lead_time_in_weeks"`
-	Months                       []string `tfschema:"months"`
-	PatchingMode                 string   `tfschema:"patching_mode"`
-	Preference                   string   `tfschema:"preference"`
-	WeeksOfMonth                 []int64  `tfschema:"weeks_of_month"`
+	DaysOfWeek      []string `tfschema:"days_of_week"`
+	HoursOfDay      []int64  `tfschema:"hours_of_day"`
+	LeadTimeInWeeks int64    `tfschema:"lead_time_in_weeks"`
+	Months          []string `tfschema:"months"`
+	PatchingMode    string   `tfschema:"patching_mode"`
+	Preference      string   `tfschema:"preference"`
+	WeeksOfMonth    []int64  `tfschema:"weeks_of_month"`
 }
 
 func (d ExadataInfraDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
+
 		"name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
@@ -106,12 +106,11 @@ func (d ExadataInfraDataSource) Arguments() map[string]*pluginsdk.Schema {
 func (d ExadataInfraDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.LocationComputed(),
+
 		"type": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
-		"tags":  commonschema.TagsDataSource(),
-		"zones": commonschema.ZonesMultipleComputed(),
 
 		// SystemData
 		"system_data": {
@@ -123,22 +122,27 @@ func (d ExadataInfraDataSource) Attributes() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
+
 					"created_by_type": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
+
 					"created_at": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
+
 					"last_modified_by": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
+
 					"last_modified_by_type": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
+
 					"last_modified_at": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
@@ -152,22 +156,27 @@ func (d ExadataInfraDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
+
 		"additional_storage_count": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
+
 		"available_storage_size_in_gbs": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
+
 		"compute_count": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
+
 		"cpu_count": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
+
 		"customer_contacts": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
@@ -175,22 +184,27 @@ func (d ExadataInfraDataSource) Attributes() map[string]*pluginsdk.Schema {
 				Type: pluginsdk.TypeString,
 			},
 		},
+
 		"data_storage_size_in_tbs": {
 			Type:     pluginsdk.TypeFloat,
 			Computed: true,
 		},
+
 		"db_node_storage_size_in_gbs": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
+
 		"db_server_version": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"display_name": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"estimated_patching_time": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
@@ -200,14 +214,17 @@ func (d ExadataInfraDataSource) Attributes() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeInt,
 						Computed: true,
 					},
+
 					"estimated_network_switches_patching_time": {
 						Type:     pluginsdk.TypeInt,
 						Computed: true,
 					},
+
 					"estimated_storage_server_patching_time": {
 						Type:     pluginsdk.TypeInt,
 						Computed: true,
 					},
+
 					"total_estimated_patching_time": {
 						Type:     pluginsdk.TypeInt,
 						Computed: true,
@@ -215,18 +232,22 @@ func (d ExadataInfraDataSource) Attributes() map[string]*pluginsdk.Schema {
 				},
 			},
 		},
+
 		"last_maintenance_run_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"lifecycle_details": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"lifecycle_state": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"maintenance_window": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
@@ -236,6 +257,7 @@ func (d ExadataInfraDataSource) Attributes() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeInt,
 						Computed: true,
 					},
+
 					"days_of_week": {
 						Type:     pluginsdk.TypeList,
 						Computed: true,
@@ -243,6 +265,7 @@ func (d ExadataInfraDataSource) Attributes() map[string]*pluginsdk.Schema {
 							Type: pluginsdk.TypeString,
 						},
 					},
+
 					"hours_of_day": {
 						Type:     pluginsdk.TypeList,
 						Computed: true,
@@ -250,18 +273,22 @@ func (d ExadataInfraDataSource) Attributes() map[string]*pluginsdk.Schema {
 							Type: pluginsdk.TypeInt,
 						},
 					},
+
 					"is_custom_action_timeout_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Computed: true,
 					},
+
 					"is_monthly_patching_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Computed: true,
 					},
+
 					"lead_time_in_weeks": {
 						Type:     pluginsdk.TypeInt,
 						Computed: true,
 					},
+
 					"months": {
 						Type:     pluginsdk.TypeList,
 						Computed: true,
@@ -269,14 +296,17 @@ func (d ExadataInfraDataSource) Attributes() map[string]*pluginsdk.Schema {
 							Type: pluginsdk.TypeString,
 						},
 					},
+
 					"patching_mode": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
+
 					"preference": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
+
 					"weeks_of_month": {
 						Type:     pluginsdk.TypeList,
 						Computed: true,
@@ -287,70 +317,90 @@ func (d ExadataInfraDataSource) Attributes() map[string]*pluginsdk.Schema {
 				},
 			},
 		},
+
 		"max_cpu_count": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
+
 		"max_data_storage_in_tbs": {
 			Type:     pluginsdk.TypeFloat,
 			Computed: true,
 		},
+
 		"max_db_node_storage_size_in_gbs": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
+
 		"max_memory_in_gbs": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
+
 		"memory_size_in_gbs": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
+
 		"monthly_db_server_version": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"monthly_storage_server_version": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"next_maintenance_run_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"oci_url": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"ocid": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"provisioning_state": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"shape": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"storage_count": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
+
 		"storage_server_version": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"time_created": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"total_storage_size_in_gbs": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
+
+		"tags": commonschema.TagsDataSource(),
+
+		"zones": commonschema.ZonesMultipleComputed(),
 	}
 }
 
@@ -392,6 +442,14 @@ func (d ExadataInfraDataSource) Read() sdk.ResourceFunc {
 				}
 
 				var output ExadataInfraDataModel
+
+				output.Name = id.CloudExadataInfrastructureName
+				output.ResourceGroupName = id.ResourceGroupName
+				output.Type = pointer.From(model.Type)
+				output.Tags = utils.FlattenPtrMapStringString(model.Tags)
+				output.Location = model.Location
+				output.Zones = model.Zones
+
 				prop := model.Properties
 				if prop != nil {
 					output = ExadataInfraDataModel{
@@ -400,16 +458,16 @@ func (d ExadataInfraDataSource) Read() sdk.ResourceFunc {
 						AvailableStorageSizeInGbs:   pointer.From(prop.AvailableStorageSizeInGbs),
 						CpuCount:                    pointer.From(prop.CpuCount),
 						ComputeCount:                pointer.From(prop.ComputeCount),
-						CustomerContacts:            ConvertCustomerContactsToInternalModel(prop.CustomerContacts),
+						CustomerContacts:            FlattenCustomerContacts(prop.CustomerContacts),
 						DataStorageSizeInTbs:        pointer.From(prop.DataStorageSizeInTbs),
 						DbNodeStorageSizeInGbs:      pointer.From(prop.DbNodeStorageSizeInGbs),
 						DbServerVersion:             pointer.From(prop.DbServerVersion),
 						DisplayName:                 prop.DisplayName,
-						EstimatedPatchingTime:       ConvertEstimatedPatchingTimesToInternalModel(prop.EstimatedPatchingTime),
+						EstimatedPatchingTime:       FlattenEstimatedPatchingTimes(prop.EstimatedPatchingTime),
 						LastMaintenanceRunId:        pointer.From(prop.LastMaintenanceRunId),
 						LifecycleDetails:            pointer.From(prop.LifecycleDetails),
 						LifecycleState:              string(*prop.LifecycleState),
-						MaintenanceWindow:           ConvertMaintenanceWindowToInternalModel(prop.MaintenanceWindow),
+						MaintenanceWindow:           FlattenMaintenanceWindow(prop.MaintenanceWindow),
 						MaxCPUCount:                 pointer.From(prop.MaxCPUCount),
 						MaxDataStorageInTbs:         pointer.From(prop.MaxDataStorageInTbs),
 						MaxDbNodeStorageSizeInGbs:   pointer.From(prop.MaxDbNodeStorageSizeInGbs),
@@ -442,12 +500,6 @@ func (d ExadataInfraDataSource) Read() sdk.ResourceFunc {
 						},
 					}
 				}
-				output.Name = id.CloudExadataInfrastructureName
-				output.ResourceGroupName = id.ResourceGroupName
-				output.Type = pointer.From(model.Type)
-				output.Tags = utils.FlattenPtrMapStringString(model.Tags)
-				output.Location = model.Location
-				output.Zones = model.Zones
 
 				metadata.SetID(id)
 				return metadata.Encode(&output)
@@ -455,4 +507,65 @@ func (d ExadataInfraDataSource) Read() sdk.ResourceFunc {
 			return nil
 		},
 	}
+}
+
+func FlattenCustomerContacts(customerContactsList *[]cloudexadatainfrastructures.CustomerContact) []string {
+	var customerContacts []string
+	if customerContactsList != nil {
+		for _, customerContact := range *customerContactsList {
+			customerContacts = append(customerContacts, customerContact.Email)
+		}
+	}
+	return customerContacts
+}
+
+func FlattenEstimatedPatchingTimes(estimatedPatchingTime *cloudexadatainfrastructures.EstimatedPatchingTime) []EstimatedPatchingTimeModel {
+	if estimatedPatchingTime != nil {
+		return []EstimatedPatchingTimeModel{
+			{
+				EstimatedDbServerPatchingTime:        estimatedPatchingTime.EstimatedDbServerPatchingTime,
+				EstimatedNetworkSwitchesPatchingTime: estimatedPatchingTime.EstimatedNetworkSwitchesPatchingTime,
+				EstimatedStorageServerPatchingTime:   estimatedPatchingTime.EstimatedStorageServerPatchingTime,
+				TotalEstimatedPatchingTime:           estimatedPatchingTime.TotalEstimatedPatchingTime,
+			},
+		}
+	}
+	return nil
+}
+
+func FlattenMaintenanceWindow(maintenanceWindow *cloudexadatainfrastructures.MaintenanceWindow) []MaintenanceWindowModel {
+	if maintenanceWindow != nil {
+		return []MaintenanceWindowModel{
+			{
+				DaysOfWeek:      FlattenDayOfWeek(maintenanceWindow.DaysOfWeek),
+				HoursOfDay:      pointer.From(maintenanceWindow.HoursOfDay),
+				LeadTimeInWeeks: pointer.From(maintenanceWindow.LeadTimeInWeeks),
+				Months:          FlattenMonths(maintenanceWindow.Months),
+				PatchingMode:    string(pointer.From(maintenanceWindow.PatchingMode)),
+				Preference:      string(pointer.From(maintenanceWindow.Preference)),
+				WeeksOfMonth:    pointer.From(maintenanceWindow.WeeksOfMonth),
+			},
+		}
+	}
+	return nil
+}
+
+func FlattenDayOfWeek(dayOfWeeks *[]cloudexadatainfrastructures.DayOfWeek) []string {
+	var dayOfWeeksArray []string
+	if dayOfWeeks != nil {
+		for _, dayOfWeek := range *dayOfWeeks {
+			dayOfWeeksArray = append(dayOfWeeksArray, string(dayOfWeek.Name))
+		}
+	}
+	return dayOfWeeksArray
+}
+
+func FlattenMonths(months *[]cloudexadatainfrastructures.Month) []string {
+	var monthsArray []string
+	if months != nil {
+		for _, month := range *months {
+			monthsArray = append(monthsArray, string(month.Name))
+		}
+	}
+	return monthsArray
 }

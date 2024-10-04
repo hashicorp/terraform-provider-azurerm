@@ -5,6 +5,8 @@ package oracledatabase
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -15,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracledatabase/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"time"
 )
 
 var _ sdk.Resource = ExadataInfraResource{}
@@ -45,14 +46,13 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		// Azure
 		"location": commonschema.Location(),
+
 		"name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 		},
-		"resource_group_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-		},
+
+		"resource_group_name": commonschema.ResourceGroupName(),
 
 		// Required
 		"compute_count": {
@@ -60,14 +60,17 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 			Required:     true,
 			ValidateFunc: validate.ComputeCount,
 		},
+
 		"display_name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 		},
+
 		"shape": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 		},
+
 		"storage_count": {
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
@@ -83,81 +86,79 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 				Type: pluginsdk.TypeString,
 			},
 		},
+
 		"maintenance_window": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			Computed: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"custom_action_timeout_in_mins": {
-						Type:         pluginsdk.TypeInt,
-						Optional:     true,
-						Computed:     true,
-						ValidateFunc: validate.CustomActionTimeoutInMins,
-					},
 					"days_of_week": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
 						Computed: true,
 						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeString,
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validate.DaysOfWeek,
 						},
 					},
+
 					"hours_of_day": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
 						Computed: true,
 						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeInt,
+							Type:         pluginsdk.TypeInt,
+							ValidateFunc: validate.HoursOfDay,
 						},
 					},
-					"is_custom_action_timeout_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Computed: true,
-					},
-					"is_monthly_patching_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Computed: true,
-					},
+
 					"lead_time_in_weeks": {
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						Computed:     true,
 						ValidateFunc: validate.LeadTimeInWeeks,
 					},
+
 					"months": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
 						Computed: true,
 						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeString,
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validate.Month,
 						},
 					},
+
 					"patching_mode": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Computed: true,
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: validate.PatchingMode,
 					},
+
 					"preference": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Computed: true,
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: validate.Preference,
 					},
+
 					"weeks_of_month": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
 						Computed: true,
 						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeInt,
+							Type:         pluginsdk.TypeInt,
+							ValidateFunc: validate.WeeksOfMonth,
 						},
 					},
 				},
 			},
 		},
 
-		"tags":  commonschema.Tags(),
+		"tags": commonschema.Tags(),
+
 		"zones": commonschema.ZonesMultipleRequired(),
 	}
 }
@@ -208,22 +209,19 @@ func (r ExadataInfraResource) Create() sdk.ResourceFunc {
 					DisplayName:      model.DisplayName,
 					StorageCount:     pointer.To(model.StorageCount),
 					Shape:            model.Shape,
-					CustomerContacts: pointer.To(ConvertCustomerContactsToSDK(model.CustomerContacts)),
+					CustomerContacts: pointer.To(ExpandCustomerContacts(model.CustomerContacts)),
 				},
 			}
 
-			if model.MaintenanceWindow != nil && len(model.MaintenanceWindow) > 0 {
+			if len(model.MaintenanceWindow) > 0 {
 				param.Properties.MaintenanceWindow = &cloudexadatainfrastructures.MaintenanceWindow{
-					CustomActionTimeoutInMins:    pointer.To(model.MaintenanceWindow[0].CustomActionTimeoutInMins),
-					DaysOfWeek:                   pointer.To(ConvertDayOfWeekToSDK(model.MaintenanceWindow[0].DaysOfWeek)),
-					HoursOfDay:                   pointer.To(model.MaintenanceWindow[0].HoursOfDay),
-					IsCustomActionTimeoutEnabled: pointer.To(model.MaintenanceWindow[0].IsCustomActionTimeoutEnabled),
-					IsMonthlyPatchingEnabled:     pointer.To(model.MaintenanceWindow[0].IsMonthlyPatchingEnabled),
-					LeadTimeInWeeks:              pointer.To(model.MaintenanceWindow[0].LeadTimeInWeeks),
-					Months:                       pointer.To(ConvertMonthsToSDK(model.MaintenanceWindow[0].Months)),
-					PatchingMode:                 pointer.To(cloudexadatainfrastructures.PatchingMode(model.MaintenanceWindow[0].PatchingMode)),
-					Preference:                   pointer.To(cloudexadatainfrastructures.Preference(model.MaintenanceWindow[0].Preference)),
-					WeeksOfMonth:                 pointer.To(model.MaintenanceWindow[0].WeeksOfMonth),
+					DaysOfWeek:      pointer.To(ExpandDayOfWeekTo(model.MaintenanceWindow[0].DaysOfWeek)),
+					HoursOfDay:      pointer.To(model.MaintenanceWindow[0].HoursOfDay),
+					LeadTimeInWeeks: pointer.To(model.MaintenanceWindow[0].LeadTimeInWeeks),
+					Months:          pointer.To(ExpandMonths(model.MaintenanceWindow[0].Months)),
+					PatchingMode:    pointer.To(cloudexadatainfrastructures.PatchingMode(model.MaintenanceWindow[0].PatchingMode)),
+					Preference:      pointer.To(cloudexadatainfrastructures.Preference(model.MaintenanceWindow[0].Preference)),
+					WeeksOfMonth:    pointer.To(model.MaintenanceWindow[0].WeeksOfMonth),
 				}
 			}
 
@@ -298,20 +296,21 @@ func (ExadataInfraResource) Read() sdk.ResourceFunc {
 			if result.Model == nil {
 				return fmt.Errorf("retrieving %s got nil model", id)
 			}
-			var output ExadataInfraResourceModel
 
-			output.CustomerContacts = ConvertCustomerContactsToInternalModel(result.Model.Properties.CustomerContacts)
-			output.Name = pointer.ToString(result.Model.Name)
-			output.Location = result.Model.Location
-			output.Zones = result.Model.Zones
-			output.ResourceGroupName = id.ResourceGroupName
-			output.Tags = utils.FlattenPtrMapStringString(result.Model.Tags)
 			prop := result.Model.Properties
-			output.ComputeCount = pointer.From(prop.ComputeCount)
-			output.DisplayName = prop.DisplayName
-			output.StorageCount = pointer.From(prop.StorageCount)
-			output.Shape = prop.Shape
-			output.MaintenanceWindow = ConvertMaintenanceWindowToInternalModel(prop.MaintenanceWindow)
+			output := ExadataInfraResourceModel{
+				CustomerContacts:  FlattenCustomerContacts(result.Model.Properties.CustomerContacts),
+				Name:              pointer.ToString(result.Model.Name),
+				Location:          result.Model.Location,
+				Zones:             result.Model.Zones,
+				ResourceGroupName: id.ResourceGroupName,
+				Tags:              utils.FlattenPtrMapStringString(result.Model.Tags),
+				ComputeCount:      pointer.From(prop.ComputeCount),
+				DisplayName:       prop.DisplayName,
+				StorageCount:      pointer.From(prop.StorageCount),
+				Shape:             prop.Shape,
+				MaintenanceWindow: FlattenMaintenanceWindow(prop.MaintenanceWindow),
+			}
 
 			return metadata.Encode(&output)
 		},
@@ -340,4 +339,34 @@ func (ExadataInfraResource) Delete() sdk.ResourceFunc {
 
 func (ExadataInfraResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return cloudexadatainfrastructures.ValidateCloudExadataInfrastructureID
+}
+
+func ExpandCustomerContacts(customerContactsList []string) []cloudexadatainfrastructures.CustomerContact {
+	var customerContacts []cloudexadatainfrastructures.CustomerContact
+	for _, customerContact := range customerContactsList {
+		customerContacts = append(customerContacts, cloudexadatainfrastructures.CustomerContact{
+			Email: customerContact,
+		})
+	}
+	return customerContacts
+}
+
+func ExpandDayOfWeekTo(daysOfWeek []string) []cloudexadatainfrastructures.DayOfWeek {
+	var daysOfWeekConverted []cloudexadatainfrastructures.DayOfWeek
+	for _, day := range daysOfWeek {
+		daysOfWeekConverted = append(daysOfWeekConverted, cloudexadatainfrastructures.DayOfWeek{
+			Name: cloudexadatainfrastructures.DayOfWeekName(day),
+		})
+	}
+	return daysOfWeekConverted
+}
+
+func ExpandMonths(months []string) []cloudexadatainfrastructures.Month {
+	var monthsConverted []cloudexadatainfrastructures.Month
+	for _, month := range months {
+		monthsConverted = append(monthsConverted, cloudexadatainfrastructures.Month{
+			Name: cloudexadatainfrastructures.MonthName(month),
+		})
+	}
+	return monthsConverted
 }
