@@ -7,8 +7,11 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
-* `azurerm_storage_blob` - `source_content` is now ForceNew [GH-27508]
 * `azurerm_app_service_certificate` - `key_vault_secret_id` can now be versionless [GH-27537]
+* `azurerm_linux_virtual_machine_scale_set` - prevent crash when `auto_upgrade_minor_version_enabled` is nil [GH-27353]
+* `azurerm_role_assignment` - correctly parse ID when it's a root or provider scope [GH-27237]
+* `azurerm_storage_blob` - `source_content` is now ForceNew [GH-27508]
+* `azurerm_virtual_network_gateway_connection` - revert `shared_key` to Optional and Computed [GH-27560]
 
 ## 4.3.0 (September 19, 2024)
 
