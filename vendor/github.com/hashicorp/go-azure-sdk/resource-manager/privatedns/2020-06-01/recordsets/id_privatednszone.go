@@ -42,7 +42,7 @@ func ParsePrivateDnsZoneID(input string) (*PrivateDnsZoneId, error) {
 	}
 
 	id := PrivateDnsZoneId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParsePrivateDnsZoneIDInsensitively(input string) (*PrivateDnsZoneId, error)
 	}
 
 	id := PrivateDnsZoneId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id PrivateDnsZoneId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticPrivateDnsZones", "privateDnsZones", "privateDnsZones"),
-		resourceids.UserSpecifiedSegment("privateDnsZoneName", "privateDnsZoneValue"),
+		resourceids.UserSpecifiedSegment("privateDnsZoneName", "privateZoneName"),
 	}
 }
 

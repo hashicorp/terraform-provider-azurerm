@@ -14,6 +14,14 @@ type PostgreSQLOutputDataSource struct {
 	Properties *PostgreSQLDataSourceProperties `json:"properties,omitempty"`
 
 	// Fields inherited from OutputDataSource
+
+	Type string `json:"type"`
+}
+
+func (s PostgreSQLOutputDataSource) OutputDataSource() BaseOutputDataSourceImpl {
+	return BaseOutputDataSourceImpl{
+		Type: s.Type,
+	}
 }
 
 var _ json.Marshaler = PostgreSQLOutputDataSource{}
@@ -27,9 +35,10 @@ func (s PostgreSQLOutputDataSource) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling PostgreSQLOutputDataSource: %+v", err)
 	}
+
 	decoded["type"] = "Microsoft.DBForPostgreSQL/servers/databases"
 
 	encoded, err = json.Marshal(decoded)

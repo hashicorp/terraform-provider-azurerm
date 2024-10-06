@@ -15,7 +15,7 @@ type ContainerAppsClient struct {
 }
 
 func NewContainerAppsClientWithBaseURI(sdkApi sdkEnv.Api) (*ContainerAppsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "containerapps", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "containerapps", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ContainerAppsClient: %+v", err)
 	}

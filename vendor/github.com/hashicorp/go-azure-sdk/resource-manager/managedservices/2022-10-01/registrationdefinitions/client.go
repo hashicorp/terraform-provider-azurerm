@@ -15,7 +15,7 @@ type RegistrationDefinitionsClient struct {
 }
 
 func NewRegistrationDefinitionsClientWithBaseURI(sdkApi sdkEnv.Api) (*RegistrationDefinitionsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "registrationdefinitions", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "registrationdefinitions", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating RegistrationDefinitionsClient: %+v", err)
 	}

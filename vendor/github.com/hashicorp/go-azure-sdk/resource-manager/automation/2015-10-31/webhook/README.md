@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/automation/2015-10-31/webhook` Documentation
 
-The `webhook` SDK allows for interaction with the Azure Resource Manager Service `automation` (API Version `2015-10-31`).
+The `webhook` SDK allows for interaction with Azure Resource Manager `automation` (API Version `2015-10-31`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := webhook.NewWebHookID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountValue", "webHookValue")
+id := webhook.NewWebHookID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountName", "webhookName")
 
 payload := webhook.WebhookCreateOrUpdateParameters{
 	// ...
@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webhook.NewWebHookID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountValue", "webHookValue")
+id := webhook.NewWebHookID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountName", "webhookName")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -61,7 +61,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webhook.NewAutomationAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountValue")
+id := webhook.NewAutomationAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountName")
 
 read, err := client.GenerateUri(ctx, id)
 if err != nil {
@@ -77,7 +77,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webhook.NewWebHookID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountValue", "webHookValue")
+id := webhook.NewWebHookID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountName", "webhookName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -93,7 +93,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webhook.NewAutomationAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountValue")
+id := webhook.NewAutomationAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountName")
 
 // alternatively `client.ListByAutomationAccount(ctx, id, webhook.DefaultListByAutomationAccountOperationOptions())` can be used to do batched pagination
 items, err := client.ListByAutomationAccountComplete(ctx, id, webhook.DefaultListByAutomationAccountOperationOptions())
@@ -110,7 +110,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webhook.NewWebHookID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountValue", "webHookValue")
+id := webhook.NewWebHookID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountName", "webhookName")
 
 payload := webhook.WebhookUpdateParameters{
 	// ...

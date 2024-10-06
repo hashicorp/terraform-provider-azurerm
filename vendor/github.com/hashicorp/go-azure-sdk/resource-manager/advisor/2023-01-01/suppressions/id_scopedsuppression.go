@@ -42,7 +42,7 @@ func ParseScopedSuppressionID(input string) (*ScopedSuppressionId, error) {
 	}
 
 	id := ScopedSuppressionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseScopedSuppressionIDInsensitively(input string) (*ScopedSuppressionId, 
 	}
 
 	id := ScopedSuppressionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -112,9 +112,9 @@ func (id ScopedSuppressionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAdvisor", "Microsoft.Advisor", "Microsoft.Advisor"),
 		resourceids.StaticSegment("staticRecommendations", "recommendations", "recommendations"),
-		resourceids.UserSpecifiedSegment("recommendationId", "recommendationIdValue"),
+		resourceids.UserSpecifiedSegment("recommendationId", "recommendationId"),
 		resourceids.StaticSegment("staticSuppressions", "suppressions", "suppressions"),
-		resourceids.UserSpecifiedSegment("suppressionName", "suppressionValue"),
+		resourceids.UserSpecifiedSegment("suppressionName", "name"),
 	}
 }
 

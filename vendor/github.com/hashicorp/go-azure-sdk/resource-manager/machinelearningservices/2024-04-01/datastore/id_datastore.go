@@ -44,7 +44,7 @@ func ParseDataStoreID(input string) (*DataStoreId, error) {
 	}
 
 	id := DataStoreId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseDataStoreIDInsensitively(input string) (*DataStoreId, error) {
 	}
 
 	id := DataStoreId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id DataStoreId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftMachineLearningServices", "Microsoft.MachineLearningServices", "Microsoft.MachineLearningServices"),
 		resourceids.StaticSegment("staticWorkspaces", "workspaces", "workspaces"),
-		resourceids.UserSpecifiedSegment("workspaceName", "workspaceValue"),
+		resourceids.UserSpecifiedSegment("workspaceName", "workspaceName"),
 		resourceids.StaticSegment("staticDataStores", "dataStores", "dataStores"),
-		resourceids.UserSpecifiedSegment("dataStoreName", "dataStoreValue"),
+		resourceids.UserSpecifiedSegment("dataStoreName", "name"),
 	}
 }
 

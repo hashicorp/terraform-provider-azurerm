@@ -46,7 +46,6 @@ func (c RegistriesClient) GetBuildSourceUploadUrl(ctx context.Context, id Regist
 
 	var model SourceUploadDefinition
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

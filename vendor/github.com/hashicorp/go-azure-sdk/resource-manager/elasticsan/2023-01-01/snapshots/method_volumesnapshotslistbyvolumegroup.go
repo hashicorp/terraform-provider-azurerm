@@ -39,6 +39,7 @@ func (o VolumeSnapshotsListByVolumeGroupOperationOptions) ToHeaders() *client.He
 
 func (o VolumeSnapshotsListByVolumeGroupOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-07-01/managedhsms` Documentation
 
-The `managedhsms` SDK allows for interaction with the Azure Resource Manager Service `keyvault` (API Version `2023-07-01`).
+The `managedhsms` SDK allows for interaction with Azure Resource Manager `keyvault` (API Version `2023-07-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -46,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managedhsms.NewManagedHSMID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedHSMValue")
+id := managedhsms.NewManagedHSMID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name")
 
 payload := managedhsms.ManagedHsm{
 	// ...
@@ -63,7 +63,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := managedhsms.NewManagedHSMID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedHSMValue")
+id := managedhsms.NewManagedHSMID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -75,7 +75,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := managedhsms.NewManagedHSMID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedHSMValue")
+id := managedhsms.NewManagedHSMID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -91,7 +91,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managedhsms.NewDeletedManagedHSMID("12345678-1234-9876-4563-123456789012", "locationValue", "deletedManagedHSMValue")
+id := managedhsms.NewDeletedManagedHSMID("12345678-1234-9876-4563-123456789012", "location", "name")
 
 read, err := client.GetDeleted(ctx, id)
 if err != nil {
@@ -158,7 +158,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := managedhsms.NewDeletedManagedHSMID("12345678-1234-9876-4563-123456789012", "locationValue", "deletedManagedHSMValue")
+id := managedhsms.NewDeletedManagedHSMID("12345678-1234-9876-4563-123456789012", "location", "name")
 
 if err := client.PurgeDeletedThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -170,7 +170,7 @@ if err := client.PurgeDeletedThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := managedhsms.NewManagedHSMID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedHSMValue")
+id := managedhsms.NewManagedHSMID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name")
 
 payload := managedhsms.ManagedHsm{
 	// ...

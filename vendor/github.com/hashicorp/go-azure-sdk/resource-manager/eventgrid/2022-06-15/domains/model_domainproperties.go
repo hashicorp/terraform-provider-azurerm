@@ -26,10 +26,21 @@ type DomainProperties struct {
 var _ json.Unmarshaler = &DomainProperties{}
 
 func (s *DomainProperties) UnmarshalJSON(bytes []byte) error {
-	type alias DomainProperties
-	var decoded alias
+	var decoded struct {
+		AutoCreateTopicWithFirstSubscription *bool                        `json:"autoCreateTopicWithFirstSubscription,omitempty"`
+		AutoDeleteTopicWithLastSubscription  *bool                        `json:"autoDeleteTopicWithLastSubscription,omitempty"`
+		DataResidencyBoundary                *DataResidencyBoundary       `json:"dataResidencyBoundary,omitempty"`
+		DisableLocalAuth                     *bool                        `json:"disableLocalAuth,omitempty"`
+		Endpoint                             *string                      `json:"endpoint,omitempty"`
+		InboundIPRules                       *[]InboundIPRule             `json:"inboundIpRules,omitempty"`
+		InputSchema                          *InputSchema                 `json:"inputSchema,omitempty"`
+		MetricResourceId                     *string                      `json:"metricResourceId,omitempty"`
+		PrivateEndpointConnections           *[]PrivateEndpointConnection `json:"privateEndpointConnections,omitempty"`
+		ProvisioningState                    *DomainProvisioningState     `json:"provisioningState,omitempty"`
+		PublicNetworkAccess                  *PublicNetworkAccess         `json:"publicNetworkAccess,omitempty"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into DomainProperties: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
 	s.AutoCreateTopicWithFirstSubscription = decoded.AutoCreateTopicWithFirstSubscription
@@ -50,11 +61,12 @@ func (s *DomainProperties) UnmarshalJSON(bytes []byte) error {
 	}
 
 	if v, ok := temp["inputSchemaMapping"]; ok {
-		impl, err := unmarshalInputSchemaMappingImplementation(v)
+		impl, err := UnmarshalInputSchemaMappingImplementation(v)
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'InputSchemaMapping' for 'DomainProperties': %+v", err)
 		}
 		s.InputSchemaMapping = impl
 	}
+
 	return nil
 }

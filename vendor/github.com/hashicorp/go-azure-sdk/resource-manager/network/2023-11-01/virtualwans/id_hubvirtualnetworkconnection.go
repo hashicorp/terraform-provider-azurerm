@@ -44,7 +44,7 @@ func ParseHubVirtualNetworkConnectionID(input string) (*HubVirtualNetworkConnect
 	}
 
 	id := HubVirtualNetworkConnectionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseHubVirtualNetworkConnectionIDInsensitively(input string) (*HubVirtualN
 	}
 
 	id := HubVirtualNetworkConnectionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id HubVirtualNetworkConnectionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticVirtualHubs", "virtualHubs", "virtualHubs"),
-		resourceids.UserSpecifiedSegment("virtualHubName", "virtualHubValue"),
+		resourceids.UserSpecifiedSegment("virtualHubName", "virtualHubName"),
 		resourceids.StaticSegment("staticHubVirtualNetworkConnections", "hubVirtualNetworkConnections", "hubVirtualNetworkConnections"),
-		resourceids.UserSpecifiedSegment("hubVirtualNetworkConnectionName", "hubVirtualNetworkConnectionValue"),
+		resourceids.UserSpecifiedSegment("hubVirtualNetworkConnectionName", "connectionName"),
 	}
 }
 

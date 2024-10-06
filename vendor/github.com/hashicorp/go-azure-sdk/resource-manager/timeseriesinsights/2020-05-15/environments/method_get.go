@@ -16,7 +16,7 @@ import (
 type GetOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *EnvironmentResource
+	Model        EnvironmentResource
 }
 
 type GetOperationOptions struct {
@@ -35,6 +35,7 @@ func (o GetOperationOptions) ToHeaders() *client.Headers {
 
 func (o GetOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -77,11 +78,11 @@ func (c EnvironmentsClient) Get(ctx context.Context, id EnvironmentId, options G
 	if err = resp.Unmarshal(&respObj); err != nil {
 		return
 	}
-	model, err := unmarshalEnvironmentResourceImplementation(respObj)
+	model, err := UnmarshalEnvironmentResourceImplementation(respObj)
 	if err != nil {
 		return
 	}
-	result.Model = &model
+	result.Model = model
 
 	return
 }

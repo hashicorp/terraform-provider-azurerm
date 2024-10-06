@@ -73,7 +73,7 @@ func (c AdminRulesClient) List(ctx context.Context, id RuleCollectionId) (result
 	temp := make([]BaseAdminRule, 0)
 	if values.Values != nil {
 		for i, v := range *values.Values {
-			val, err := unmarshalBaseAdminRuleImplementation(v)
+			val, err := UnmarshalBaseAdminRuleImplementation(v)
 			if err != nil {
 				err = fmt.Errorf("unmarshalling item %d for BaseAdminRule (%q): %+v", i, v, err)
 				return result, err

@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2022-04-01/endpoints` Documentation
 
-The `endpoints` SDK allows for interaction with the Azure Resource Manager Service `trafficmanager` (API Version `2022-04-01`).
+The `endpoints` SDK allows for interaction with Azure Resource Manager `trafficmanager` (API Version `2022-04-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := endpoints.NewEndpointTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "trafficManagerProfileValue", "AzureEndpoints", "endpointValue")
+id := endpoints.NewEndpointTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "profileName", "AzureEndpoints", "endpointName")
 
 payload := endpoints.Endpoint{
 	// ...
@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := endpoints.NewEndpointTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "trafficManagerProfileValue", "AzureEndpoints", "endpointValue")
+id := endpoints.NewEndpointTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "profileName", "AzureEndpoints", "endpointName")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -61,7 +61,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := endpoints.NewEndpointTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "trafficManagerProfileValue", "AzureEndpoints", "endpointValue")
+id := endpoints.NewEndpointTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "profileName", "AzureEndpoints", "endpointName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -77,7 +77,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := endpoints.NewEndpointTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "trafficManagerProfileValue", "AzureEndpoints", "endpointValue")
+id := endpoints.NewEndpointTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "profileName", "AzureEndpoints", "endpointName")
 
 payload := endpoints.Endpoint{
 	// ...

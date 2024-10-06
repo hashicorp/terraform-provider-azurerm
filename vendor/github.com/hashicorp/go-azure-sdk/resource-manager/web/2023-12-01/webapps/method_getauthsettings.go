@@ -47,7 +47,6 @@ func (c WebAppsClient) GetAuthSettings(ctx context.Context, id commonids.AppServ
 
 	var model SiteAuthSettings
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

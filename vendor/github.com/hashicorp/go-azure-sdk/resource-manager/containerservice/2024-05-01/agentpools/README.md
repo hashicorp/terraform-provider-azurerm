@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-05-01/agentpools` Documentation
 
-The `agentpools` SDK allows for interaction with the Azure Resource Manager Service `containerservice` (API Version `2024-05-01`).
+The `agentpools` SDK allows for interaction with Azure Resource Manager `containerservice` (API Version `2024-05-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := agentpools.NewAgentPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterValue", "agentPoolValue")
+id := agentpools.NewAgentPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "agentPoolName")
 
 if err := client.AbortLatestOperationThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -37,7 +37,7 @@ if err := client.AbortLatestOperationThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := agentpools.NewAgentPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterValue", "agentPoolValue")
+id := agentpools.NewAgentPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "agentPoolName")
 
 payload := agentpools.AgentPool{
 	// ...
@@ -54,7 +54,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := agentpools.NewAgentPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterValue", "agentPoolValue")
+id := agentpools.NewAgentPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "agentPoolName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -66,7 +66,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := agentpools.NewAgentPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterValue", "agentPoolValue")
+id := agentpools.NewAgentPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "agentPoolName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -82,7 +82,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewKubernetesClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterValue")
+id := commonids.NewKubernetesClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterName")
 
 read, err := client.GetAvailableAgentPoolVersions(ctx, id)
 if err != nil {
@@ -98,7 +98,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := agentpools.NewAgentPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterValue", "agentPoolValue")
+id := agentpools.NewAgentPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "agentPoolName")
 
 read, err := client.GetUpgradeProfile(ctx, id)
 if err != nil {
@@ -114,7 +114,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewKubernetesClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterValue")
+id := commonids.NewKubernetesClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterName")
 
 // alternatively `client.List(ctx, id)` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id)
@@ -131,7 +131,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := agentpools.NewAgentPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterValue", "agentPoolValue")
+id := agentpools.NewAgentPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "agentPoolName")
 
 if err := client.UpgradeNodeImageVersionThenPoll(ctx, id); err != nil {
 	// handle the error

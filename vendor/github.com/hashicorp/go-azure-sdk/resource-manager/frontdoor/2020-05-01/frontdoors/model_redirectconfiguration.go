@@ -19,6 +19,14 @@ type RedirectConfiguration struct {
 	RedirectType      *FrontDoorRedirectType     `json:"redirectType,omitempty"`
 
 	// Fields inherited from RouteConfiguration
+
+	OdataType string `json:"@odata.type"`
+}
+
+func (s RedirectConfiguration) RouteConfiguration() BaseRouteConfigurationImpl {
+	return BaseRouteConfigurationImpl{
+		OdataType: s.OdataType,
+	}
 }
 
 var _ json.Marshaler = RedirectConfiguration{}
@@ -32,9 +40,10 @@ func (s RedirectConfiguration) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling RedirectConfiguration: %+v", err)
 	}
+
 	decoded["@odata.type"] = "#Microsoft.Azure.FrontDoor.Models.FrontdoorRedirectConfiguration"
 
 	encoded, err = json.Marshal(decoded)

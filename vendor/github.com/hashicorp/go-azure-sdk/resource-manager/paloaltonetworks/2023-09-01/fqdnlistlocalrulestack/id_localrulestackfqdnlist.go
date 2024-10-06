@@ -44,7 +44,7 @@ func ParseLocalRulestackFqdnListID(input string) (*LocalRulestackFqdnListId, err
 	}
 
 	id := LocalRulestackFqdnListId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseLocalRulestackFqdnListIDInsensitively(input string) (*LocalRulestackFq
 	}
 
 	id := LocalRulestackFqdnListId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id LocalRulestackFqdnListId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticPaloAltoNetworksCloudngfw", "PaloAltoNetworks.Cloudngfw", "PaloAltoNetworks.Cloudngfw"),
 		resourceids.StaticSegment("staticLocalRulestacks", "localRulestacks", "localRulestacks"),
-		resourceids.UserSpecifiedSegment("localRulestackName", "localRulestackValue"),
+		resourceids.UserSpecifiedSegment("localRulestackName", "localRulestackName"),
 		resourceids.StaticSegment("staticFqdnLists", "fqdnLists", "fqdnLists"),
-		resourceids.UserSpecifiedSegment("fqdnListName", "fqdnListValue"),
+		resourceids.UserSpecifiedSegment("fqdnListName", "name"),
 	}
 }
 

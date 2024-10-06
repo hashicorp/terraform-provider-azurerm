@@ -36,6 +36,7 @@ func (o StartWebSiteNetworkTraceSlotOperationOptions) ToHeaders() *client.Header
 
 func (o StartWebSiteNetworkTraceSlotOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -82,7 +83,6 @@ func (c WebAppsClient) StartWebSiteNetworkTraceSlot(ctx context.Context, id Slot
 
 	var model string
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

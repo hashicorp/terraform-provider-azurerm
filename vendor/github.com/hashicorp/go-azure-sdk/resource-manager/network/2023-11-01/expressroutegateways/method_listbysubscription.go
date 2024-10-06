@@ -47,7 +47,6 @@ func (c ExpressRouteGatewaysClient) ListBySubscription(ctx context.Context, id c
 
 	var model ExpressRouteGatewayList
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

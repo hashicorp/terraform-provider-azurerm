@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/workflowtriggers` Documentation
 
-The `workflowtriggers` SDK allows for interaction with the Azure Resource Manager Service `logic` (API Version `2019-05-01`).
+The `workflowtriggers` SDK allows for interaction with Azure Resource Manager `logic` (API Version `2019-05-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := workflowtriggers.NewTriggerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workflowValue", "triggerValue")
+id := workflowtriggers.NewTriggerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workflowName", "triggerName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -40,7 +40,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := workflowtriggers.NewTriggerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workflowValue", "triggerValue")
+id := workflowtriggers.NewTriggerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workflowName", "triggerName")
 
 read, err := client.GetSchemaJson(ctx, id)
 if err != nil {
@@ -56,7 +56,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := workflowtriggers.NewWorkflowID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workflowValue")
+id := workflowtriggers.NewWorkflowID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workflowName")
 
 // alternatively `client.List(ctx, id, workflowtriggers.DefaultListOperationOptions())` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id, workflowtriggers.DefaultListOperationOptions())
@@ -73,7 +73,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := workflowtriggers.NewTriggerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workflowValue", "triggerValue")
+id := workflowtriggers.NewTriggerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workflowName", "triggerName")
 
 read, err := client.ListCallbackUrl(ctx, id)
 if err != nil {
@@ -89,7 +89,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := workflowtriggers.NewTriggerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workflowValue", "triggerValue")
+id := workflowtriggers.NewTriggerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workflowName", "triggerName")
 
 read, err := client.Reset(ctx, id)
 if err != nil {
@@ -105,7 +105,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := workflowtriggers.NewTriggerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workflowValue", "triggerValue")
+id := workflowtriggers.NewTriggerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workflowName", "triggerName")
 
 read, err := client.Run(ctx, id)
 if err != nil {
@@ -121,7 +121,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := workflowtriggers.NewTriggerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workflowValue", "triggerValue")
+id := workflowtriggers.NewTriggerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workflowName", "triggerName")
 
 payload := workflowtriggers.SetTriggerStateActionDefinition{
 	// ...
@@ -142,7 +142,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := workflowtriggers.NewVersionTriggerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workflowValue", "versionIdValue", "triggerValue")
+id := workflowtriggers.NewVersionTriggerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workflowName", "versionId", "triggerName")
 
 payload := workflowtriggers.GetCallbackUrlParameters{
 	// ...

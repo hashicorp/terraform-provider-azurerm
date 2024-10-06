@@ -46,7 +46,6 @@ func (c PacketCapturesClient) List(ctx context.Context, id NetworkWatcherId) (re
 
 	var model PacketCaptureListResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

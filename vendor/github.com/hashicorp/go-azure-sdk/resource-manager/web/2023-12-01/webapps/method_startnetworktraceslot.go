@@ -39,6 +39,7 @@ func (o StartNetworkTraceSlotOperationOptions) ToHeaders() *client.Headers {
 
 func (o StartNetworkTraceSlotOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

@@ -50,7 +50,6 @@ func (c NginxConfigurationAnalysisClient) ConfigurationsAnalysis(ctx context.Con
 
 	var model AnalysisResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

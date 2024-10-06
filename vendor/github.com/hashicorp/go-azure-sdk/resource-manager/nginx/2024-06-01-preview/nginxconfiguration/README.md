@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-06-01-preview/nginxconfiguration` Documentation
 
-The `nginxconfiguration` SDK allows for interaction with the Azure Resource Manager Service `nginx` (API Version `2024-06-01-preview`).
+The `nginxconfiguration` SDK allows for interaction with Azure Resource Manager `nginx` (API Version `2024-06-01-preview`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := nginxconfiguration.NewConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "nginxDeploymentValue", "configurationValue")
+id := nginxconfiguration.NewConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "deploymentName", "configurationName")
 
 payload := nginxconfiguration.NginxConfiguration{
 	// ...
@@ -41,7 +41,7 @@ if err := client.ConfigurationsCreateOrUpdateThenPoll(ctx, id, payload); err != 
 
 ```go
 ctx := context.TODO()
-id := nginxconfiguration.NewConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "nginxDeploymentValue", "configurationValue")
+id := nginxconfiguration.NewConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "deploymentName", "configurationName")
 
 if err := client.ConfigurationsDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +53,7 @@ if err := client.ConfigurationsDeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := nginxconfiguration.NewConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "nginxDeploymentValue", "configurationValue")
+id := nginxconfiguration.NewConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "deploymentName", "configurationName")
 
 read, err := client.ConfigurationsGet(ctx, id)
 if err != nil {
@@ -69,7 +69,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := nginxconfiguration.NewNginxDeploymentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "nginxDeploymentValue")
+id := nginxconfiguration.NewNginxDeploymentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "deploymentName")
 
 // alternatively `client.ConfigurationsList(ctx, id)` can be used to do batched pagination
 items, err := client.ConfigurationsListComplete(ctx, id)

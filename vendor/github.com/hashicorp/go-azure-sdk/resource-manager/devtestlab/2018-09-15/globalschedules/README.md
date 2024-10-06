@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/devtestlab/2018-09-15/globalschedules` Documentation
 
-The `globalschedules` SDK allows for interaction with the Azure Resource Manager Service `devtestlab` (API Version `2018-09-15`).
+The `globalschedules` SDK allows for interaction with Azure Resource Manager `devtestlab` (API Version `2018-09-15`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := globalschedules.NewScheduleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "scheduleValue")
+id := globalschedules.NewScheduleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name")
 
 payload := globalschedules.Schedule{
 	// ...
@@ -46,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := globalschedules.NewScheduleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "scheduleValue")
+id := globalschedules.NewScheduleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -62,7 +62,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := globalschedules.NewScheduleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "scheduleValue")
+id := globalschedules.NewScheduleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name")
 
 if err := client.ExecuteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -74,7 +74,7 @@ if err := client.ExecuteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := globalschedules.NewScheduleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "scheduleValue")
+id := globalschedules.NewScheduleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name")
 
 read, err := client.Get(ctx, id, globalschedules.DefaultGetOperationOptions())
 if err != nil {
@@ -124,7 +124,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := globalschedules.NewScheduleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "scheduleValue")
+id := globalschedules.NewScheduleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name")
 
 payload := globalschedules.RetargetScheduleProperties{
 	// ...
@@ -141,7 +141,7 @@ if err := client.RetargetThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := globalschedules.NewScheduleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "scheduleValue")
+id := globalschedules.NewScheduleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name")
 
 payload := globalschedules.UpdateResource{
 	// ...

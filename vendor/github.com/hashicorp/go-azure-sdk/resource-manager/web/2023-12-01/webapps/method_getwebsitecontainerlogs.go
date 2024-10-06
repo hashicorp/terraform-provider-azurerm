@@ -48,7 +48,6 @@ func (c WebAppsClient) GetWebSiteContainerLogs(ctx context.Context, id commonids
 
 	var model []byte
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

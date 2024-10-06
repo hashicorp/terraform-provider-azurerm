@@ -45,7 +45,6 @@ func (c ReplicationsClient) Get(ctx context.Context, id ReplicationId) (result G
 
 	var model Replication
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

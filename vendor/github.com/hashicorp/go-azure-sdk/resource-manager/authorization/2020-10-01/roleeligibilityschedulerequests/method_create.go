@@ -49,7 +49,6 @@ func (c RoleEligibilityScheduleRequestsClient) Create(ctx context.Context, id Sc
 
 	var model RoleEligibilityScheduleRequest
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -44,7 +44,7 @@ func ParseAssemblyID(input string) (*AssemblyId, error) {
 	}
 
 	id := AssemblyId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseAssemblyIDInsensitively(input string) (*AssemblyId, error) {
 	}
 
 	id := AssemblyId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id AssemblyId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftLogic", "Microsoft.Logic", "Microsoft.Logic"),
 		resourceids.StaticSegment("staticIntegrationAccounts", "integrationAccounts", "integrationAccounts"),
-		resourceids.UserSpecifiedSegment("integrationAccountName", "integrationAccountValue"),
+		resourceids.UserSpecifiedSegment("integrationAccountName", "integrationAccountName"),
 		resourceids.StaticSegment("staticAssemblies", "assemblies", "assemblies"),
-		resourceids.UserSpecifiedSegment("assemblyName", "assemblyValue"),
+		resourceids.UserSpecifiedSegment("assemblyName", "assemblyArtifactName"),
 	}
 }
 

@@ -44,7 +44,7 @@ func ParseCreateQueryKeyID(input string) (*CreateQueryKeyId, error) {
 	}
 
 	id := CreateQueryKeyId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseCreateQueryKeyIDInsensitively(input string) (*CreateQueryKeyId, error)
 	}
 
 	id := CreateQueryKeyId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id CreateQueryKeyId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftSearch", "Microsoft.Search", "Microsoft.Search"),
 		resourceids.StaticSegment("staticSearchServices", "searchServices", "searchServices"),
-		resourceids.UserSpecifiedSegment("searchServiceName", "searchServiceValue"),
+		resourceids.UserSpecifiedSegment("searchServiceName", "searchServiceName"),
 		resourceids.StaticSegment("staticCreateQueryKey", "createQueryKey", "createQueryKey"),
-		resourceids.UserSpecifiedSegment("createQueryKeyName", "createQueryKeyValue"),
+		resourceids.UserSpecifiedSegment("createQueryKeyName", "name"),
 	}
 }
 

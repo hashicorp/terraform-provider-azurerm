@@ -42,7 +42,7 @@ func ParseWebPubSubID(input string) (*WebPubSubId, error) {
 	}
 
 	id := WebPubSubId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseWebPubSubIDInsensitively(input string) (*WebPubSubId, error) {
 	}
 
 	id := WebPubSubId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id WebPubSubId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftSignalRService", "Microsoft.SignalRService", "Microsoft.SignalRService"),
 		resourceids.StaticSegment("staticWebPubSub", "webPubSub", "webPubSub"),
-		resourceids.UserSpecifiedSegment("webPubSubName", "webPubSubValue"),
+		resourceids.UserSpecifiedSegment("webPubSubName", "resourceName"),
 	}
 }
 

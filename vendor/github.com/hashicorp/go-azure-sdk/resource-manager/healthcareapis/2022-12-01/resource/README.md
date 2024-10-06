@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/resource` Documentation
 
-The `resource` SDK allows for interaction with the Azure Resource Manager Service `healthcareapis` (API Version `2022-12-01`).
+The `resource` SDK allows for interaction with Azure Resource Manager `healthcareapis` (API Version `2022-12-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := resource.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue")
+id := resource.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
 
 payload := resource.ServicesDescription{
 	// ...
@@ -41,7 +41,7 @@ if err := client.ServicesCreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := resource.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue")
+id := resource.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
 
 if err := client.ServicesDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +53,7 @@ if err := client.ServicesDeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := resource.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue")
+id := resource.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
 
 read, err := client.ServicesGet(ctx, id)
 if err != nil {
@@ -69,7 +69,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := resource.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue")
+id := resource.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
 
 payload := resource.ServicesPatchDescription{
 	// ...

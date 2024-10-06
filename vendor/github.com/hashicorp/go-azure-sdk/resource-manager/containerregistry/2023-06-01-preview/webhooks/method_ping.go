@@ -46,7 +46,6 @@ func (c WebHooksClient) Ping(ctx context.Context, id WebHookId) (result PingOper
 
 	var model EventInfo
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

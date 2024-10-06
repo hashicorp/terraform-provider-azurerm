@@ -36,6 +36,7 @@ func (o CredentialOperationsGetOperationOptions) ToHeaders() *client.Headers {
 
 func (o CredentialOperationsGetOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -74,7 +75,6 @@ func (c CredentialsClient) CredentialOperationsGet(ctx context.Context, id Crede
 
 	var model CredentialResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

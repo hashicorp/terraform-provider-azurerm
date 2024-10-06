@@ -44,7 +44,7 @@ func ParseExtensionTypeID(input string) (*ExtensionTypeId, error) {
 	}
 
 	id := ExtensionTypeId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseExtensionTypeIDInsensitively(input string) (*ExtensionTypeId, error) {
 	}
 
 	id := ExtensionTypeId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -119,11 +119,11 @@ func (id ExtensionTypeId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftHybridCompute", "Microsoft.HybridCompute", "Microsoft.HybridCompute"),
 		resourceids.StaticSegment("staticLocations", "locations", "locations"),
-		resourceids.UserSpecifiedSegment("locationName", "locationValue"),
+		resourceids.UserSpecifiedSegment("locationName", "location"),
 		resourceids.StaticSegment("staticPublishers", "publishers", "publishers"),
-		resourceids.UserSpecifiedSegment("publisherName", "publisherValue"),
+		resourceids.UserSpecifiedSegment("publisherName", "publisher"),
 		resourceids.StaticSegment("staticExtensionTypes", "extensionTypes", "extensionTypes"),
-		resourceids.UserSpecifiedSegment("extensionTypeName", "extensionTypeValue"),
+		resourceids.UserSpecifiedSegment("extensionTypeName", "extensionType"),
 	}
 }
 

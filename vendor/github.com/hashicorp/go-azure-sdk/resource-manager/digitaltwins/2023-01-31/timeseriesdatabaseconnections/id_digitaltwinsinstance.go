@@ -42,7 +42,7 @@ func ParseDigitalTwinsInstanceID(input string) (*DigitalTwinsInstanceId, error) 
 	}
 
 	id := DigitalTwinsInstanceId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseDigitalTwinsInstanceIDInsensitively(input string) (*DigitalTwinsInstan
 	}
 
 	id := DigitalTwinsInstanceId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id DigitalTwinsInstanceId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDigitalTwins", "Microsoft.DigitalTwins", "Microsoft.DigitalTwins"),
 		resourceids.StaticSegment("staticDigitalTwinsInstances", "digitalTwinsInstances", "digitalTwinsInstances"),
-		resourceids.UserSpecifiedSegment("digitalTwinsInstanceName", "digitalTwinsInstanceValue"),
+		resourceids.UserSpecifiedSegment("digitalTwinsInstanceName", "resourceName"),
 	}
 }
 

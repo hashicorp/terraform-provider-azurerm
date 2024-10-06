@@ -46,7 +46,6 @@ func (c VirtualNetworkGatewayConnectionsClient) GetSharedKey(ctx context.Context
 
 	var model ConnectionSharedKey
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

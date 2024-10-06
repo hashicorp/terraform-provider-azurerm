@@ -44,7 +44,7 @@ func ParseExecutionID(input string) (*ExecutionId, error) {
 	}
 
 	id := ExecutionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseExecutionIDInsensitively(input string) (*ExecutionId, error) {
 	}
 
 	id := ExecutionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id ExecutionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftApp", "Microsoft.App", "Microsoft.App"),
 		resourceids.StaticSegment("staticJobs", "jobs", "jobs"),
-		resourceids.UserSpecifiedSegment("jobName", "jobValue"),
+		resourceids.UserSpecifiedSegment("jobName", "jobName"),
 		resourceids.StaticSegment("staticExecutions", "executions", "executions"),
-		resourceids.UserSpecifiedSegment("executionName", "executionValue"),
+		resourceids.UserSpecifiedSegment("executionName", "jobExecutionName"),
 	}
 }
 

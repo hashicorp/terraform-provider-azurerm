@@ -46,7 +46,6 @@ func (c WebAppsClient) ListVnetConnectionsSlot(ctx context.Context, id SlotId) (
 
 	var model []VnetInfoResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

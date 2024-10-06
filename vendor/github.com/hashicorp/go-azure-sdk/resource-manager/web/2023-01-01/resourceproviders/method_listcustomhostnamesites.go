@@ -40,6 +40,7 @@ func (o ListCustomHostNameSitesOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListCustomHostNameSitesOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

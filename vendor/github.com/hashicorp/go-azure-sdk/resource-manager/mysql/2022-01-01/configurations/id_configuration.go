@@ -44,7 +44,7 @@ func ParseConfigurationID(input string) (*ConfigurationId, error) {
 	}
 
 	id := ConfigurationId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseConfigurationIDInsensitively(input string) (*ConfigurationId, error) {
 	}
 
 	id := ConfigurationId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id ConfigurationId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDBforMySQL", "Microsoft.DBforMySQL", "Microsoft.DBforMySQL"),
 		resourceids.StaticSegment("staticFlexibleServers", "flexibleServers", "flexibleServers"),
-		resourceids.UserSpecifiedSegment("flexibleServerName", "flexibleServerValue"),
+		resourceids.UserSpecifiedSegment("flexibleServerName", "serverName"),
 		resourceids.StaticSegment("staticConfigurations", "configurations", "configurations"),
-		resourceids.UserSpecifiedSegment("configurationName", "configurationValue"),
+		resourceids.UserSpecifiedSegment("configurationName", "configurationName"),
 	}
 }
 

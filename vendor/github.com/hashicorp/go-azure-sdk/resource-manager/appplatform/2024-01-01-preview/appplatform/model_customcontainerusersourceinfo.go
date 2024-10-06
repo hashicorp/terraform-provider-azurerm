@@ -14,7 +14,16 @@ type CustomContainerUserSourceInfo struct {
 	CustomContainer *CustomContainer `json:"customContainer,omitempty"`
 
 	// Fields inherited from UserSourceInfo
+
+	Type    string  `json:"type"`
 	Version *string `json:"version,omitempty"`
+}
+
+func (s CustomContainerUserSourceInfo) UserSourceInfo() BaseUserSourceInfoImpl {
+	return BaseUserSourceInfoImpl{
+		Type:    s.Type,
+		Version: s.Version,
+	}
 }
 
 var _ json.Marshaler = CustomContainerUserSourceInfo{}
@@ -28,9 +37,10 @@ func (s CustomContainerUserSourceInfo) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling CustomContainerUserSourceInfo: %+v", err)
 	}
+
 	decoded["type"] = "Container"
 
 	encoded, err = json.Marshal(decoded)

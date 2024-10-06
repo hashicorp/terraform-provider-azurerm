@@ -36,6 +36,7 @@ func (o ServicesDeleteOperationOptions) ToHeaders() *client.Headers {
 
 func (o ServicesDeleteOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

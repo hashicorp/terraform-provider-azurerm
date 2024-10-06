@@ -48,7 +48,7 @@ func ParseFunctionKeyID(input string) (*FunctionKeyId, error) {
 	}
 
 	id := FunctionKeyId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -65,7 +65,7 @@ func ParseFunctionKeyIDInsensitively(input string) (*FunctionKeyId, error) {
 	}
 
 	id := FunctionKeyId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -133,13 +133,13 @@ func (id FunctionKeyId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftWeb", "Microsoft.Web", "Microsoft.Web"),
 		resourceids.StaticSegment("staticSites", "sites", "sites"),
-		resourceids.UserSpecifiedSegment("siteName", "siteValue"),
+		resourceids.UserSpecifiedSegment("siteName", "name"),
 		resourceids.StaticSegment("staticSlots", "slots", "slots"),
-		resourceids.UserSpecifiedSegment("slotName", "slotValue"),
+		resourceids.UserSpecifiedSegment("slotName", "slot"),
 		resourceids.StaticSegment("staticFunctions", "functions", "functions"),
-		resourceids.UserSpecifiedSegment("functionName", "functionValue"),
+		resourceids.UserSpecifiedSegment("functionName", "functionName"),
 		resourceids.StaticSegment("staticKeys", "keys", "keys"),
-		resourceids.UserSpecifiedSegment("keyName", "keyValue"),
+		resourceids.UserSpecifiedSegment("keyName", "keyName"),
 	}
 }
 

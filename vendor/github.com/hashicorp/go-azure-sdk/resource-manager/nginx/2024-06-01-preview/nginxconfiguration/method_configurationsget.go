@@ -45,7 +45,6 @@ func (c NginxConfigurationClient) ConfigurationsGet(ctx context.Context, id Conf
 
 	var model NginxConfiguration
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

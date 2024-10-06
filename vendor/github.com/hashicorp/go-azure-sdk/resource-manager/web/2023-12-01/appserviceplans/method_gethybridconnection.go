@@ -45,7 +45,6 @@ func (c AppServicePlansClient) GetHybridConnection(ctx context.Context, id Hybri
 
 	var model HybridConnection
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

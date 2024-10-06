@@ -46,7 +46,7 @@ func ParseTagDescriptionID(input string) (*TagDescriptionId, error) {
 	}
 
 	id := TagDescriptionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -63,7 +63,7 @@ func ParseTagDescriptionIDInsensitively(input string) (*TagDescriptionId, error)
 	}
 
 	id := TagDescriptionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -127,11 +127,11 @@ func (id TagDescriptionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftApiManagement", "Microsoft.ApiManagement", "Microsoft.ApiManagement"),
 		resourceids.StaticSegment("staticService", "service", "service"),
-		resourceids.UserSpecifiedSegment("serviceName", "serviceValue"),
+		resourceids.UserSpecifiedSegment("serviceName", "serviceName"),
 		resourceids.StaticSegment("staticApis", "apis", "apis"),
-		resourceids.UserSpecifiedSegment("apiId", "apiIdValue"),
+		resourceids.UserSpecifiedSegment("apiId", "apiId"),
 		resourceids.StaticSegment("staticTagDescriptions", "tagDescriptions", "tagDescriptions"),
-		resourceids.UserSpecifiedSegment("tagDescriptionId", "tagDescriptionIdValue"),
+		resourceids.UserSpecifiedSegment("tagDescriptionId", "tagDescriptionId"),
 	}
 }
 

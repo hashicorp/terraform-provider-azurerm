@@ -49,7 +49,6 @@ func (c QueueServiceClient) QueueCreate(ctx context.Context, id QueueId, input S
 
 	var model StorageQueue
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

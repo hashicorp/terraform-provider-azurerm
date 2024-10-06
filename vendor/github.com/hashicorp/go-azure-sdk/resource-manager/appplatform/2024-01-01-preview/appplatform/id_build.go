@@ -46,7 +46,7 @@ func ParseBuildID(input string) (*BuildId, error) {
 	}
 
 	id := BuildId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -63,7 +63,7 @@ func ParseBuildIDInsensitively(input string) (*BuildId, error) {
 	}
 
 	id := BuildId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -127,11 +127,11 @@ func (id BuildId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAppPlatform", "Microsoft.AppPlatform", "Microsoft.AppPlatform"),
 		resourceids.StaticSegment("staticSpring", "spring", "spring"),
-		resourceids.UserSpecifiedSegment("springName", "springValue"),
+		resourceids.UserSpecifiedSegment("springName", "serviceName"),
 		resourceids.StaticSegment("staticBuildServices", "buildServices", "buildServices"),
-		resourceids.UserSpecifiedSegment("buildServiceName", "buildServiceValue"),
+		resourceids.UserSpecifiedSegment("buildServiceName", "buildServiceName"),
 		resourceids.StaticSegment("staticBuilds", "builds", "builds"),
-		resourceids.UserSpecifiedSegment("buildName", "buildValue"),
+		resourceids.UserSpecifiedSegment("buildName", "buildName"),
 	}
 }
 
