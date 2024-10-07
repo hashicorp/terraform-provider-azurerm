@@ -48,6 +48,8 @@ The following arguments are supported:
 
 * `storage_account_id` - (Required) Specifies the ID of the Storage Account in which the Data Lake Gen2 File System should exist. Changing this forces a new resource to be created.
 
+* `default_encryption_scope` - (Optional) The default encryption scope to use for this filesystem. Changing this forces a new resource to be created.
+
 * `properties` - (Optional) A mapping of Key to Base64-Encoded Values which should be assigned to this Data Lake Gen2 File System.
 
 * `ace` - (Optional) One or more `ace` blocks as defined below to specify the entries for the ACL for the path.

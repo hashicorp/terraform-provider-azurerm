@@ -71,10 +71,7 @@ func (r DataConnectorMicrosoftThreatProtectionResource) IDValidationFunc() plugi
 }
 
 func (r DataConnectorMicrosoftThreatProtectionResource) CustomImporter() sdk.ResourceRunFunc {
-	return func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-		_, err := importSentinelDataConnector(securityinsight.DataConnectorKindMicrosoftThreatProtection)(ctx, metadata.ResourceData, metadata.Client)
-		return err
-	}
+	return importDataConnectorTyped(securityinsight.DataConnectorKindMicrosoftThreatProtection)
 }
 
 func (r DataConnectorMicrosoftThreatProtectionResource) Create() sdk.ResourceFunc {

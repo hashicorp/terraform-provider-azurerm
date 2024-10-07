@@ -20,7 +20,7 @@ type TopicsGetAuthorizationRuleOperationResponse struct {
 // TopicsGetAuthorizationRule ...
 func (c TopicsAuthorizationRuleClient) TopicsGetAuthorizationRule(ctx context.Context, id TopicAuthorizationRuleId) (result TopicsGetAuthorizationRuleOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -43,7 +43,9 @@ func (c TopicsAuthorizationRuleClient) TopicsGetAuthorizationRule(ctx context.Co
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model SBAuthorizationRule
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

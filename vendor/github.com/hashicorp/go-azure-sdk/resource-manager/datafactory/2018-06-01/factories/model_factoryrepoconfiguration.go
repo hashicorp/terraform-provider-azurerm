@@ -10,9 +10,41 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type FactoryRepoConfiguration interface {
+	FactoryRepoConfiguration() BaseFactoryRepoConfigurationImpl
 }
 
-func unmarshalFactoryRepoConfigurationImplementation(input []byte) (FactoryRepoConfiguration, error) {
+var _ FactoryRepoConfiguration = BaseFactoryRepoConfigurationImpl{}
+
+type BaseFactoryRepoConfigurationImpl struct {
+	AccountName         string  `json:"accountName"`
+	CollaborationBranch string  `json:"collaborationBranch"`
+	DisablePublish      *bool   `json:"disablePublish,omitempty"`
+	LastCommitId        *string `json:"lastCommitId,omitempty"`
+	RepositoryName      string  `json:"repositoryName"`
+	RootFolder          string  `json:"rootFolder"`
+	Type                string  `json:"type"`
+}
+
+func (s BaseFactoryRepoConfigurationImpl) FactoryRepoConfiguration() BaseFactoryRepoConfigurationImpl {
+	return s
+}
+
+var _ FactoryRepoConfiguration = RawFactoryRepoConfigurationImpl{}
+
+// RawFactoryRepoConfigurationImpl is returned when the Discriminated Value doesn't match any of the defined types
+// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
+// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+type RawFactoryRepoConfigurationImpl struct {
+	factoryRepoConfiguration BaseFactoryRepoConfigurationImpl
+	Type                     string
+	Values                   map[string]interface{}
+}
+
+func (s RawFactoryRepoConfigurationImpl) FactoryRepoConfiguration() BaseFactoryRepoConfigurationImpl {
+	return s.factoryRepoConfiguration
+}
+
+func UnmarshalFactoryRepoConfigurationImplementation(input []byte) (FactoryRepoConfiguration, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -22,9 +54,9 @@ func unmarshalFactoryRepoConfigurationImplementation(input []byte) (FactoryRepoC
 		return nil, fmt.Errorf("unmarshaling FactoryRepoConfiguration into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["type"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["type"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "FactoryGitHubConfiguration") {
@@ -43,14 +75,15 @@ func unmarshalFactoryRepoConfigurationImplementation(input []byte) (FactoryRepoC
 		return out, nil
 	}
 
-	type RawFactoryRepoConfigurationImpl struct {
-		Type   string                 `json:"-"`
-		Values map[string]interface{} `json:"-"`
+	var parent BaseFactoryRepoConfigurationImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseFactoryRepoConfigurationImpl: %+v", err)
 	}
-	out := RawFactoryRepoConfigurationImpl{
-		Type:   value,
-		Values: temp,
-	}
-	return out, nil
+
+	return RawFactoryRepoConfigurationImpl{
+		factoryRepoConfiguration: parent,
+		Type:                     value,
+		Values:                   temp,
+	}, nil
 
 }

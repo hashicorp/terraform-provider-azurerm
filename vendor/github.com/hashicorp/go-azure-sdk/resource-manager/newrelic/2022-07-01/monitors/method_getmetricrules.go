@@ -21,7 +21,7 @@ type GetMetricRulesOperationResponse struct {
 // GetMetricRules ...
 func (c MonitorsClient) GetMetricRules(ctx context.Context, id MonitorId, input MetricsRequest) (result GetMetricRulesOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -48,7 +48,9 @@ func (c MonitorsClient) GetMetricRules(ctx context.Context, id MonitorId, input 
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model MetricRules
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

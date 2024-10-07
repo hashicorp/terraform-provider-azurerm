@@ -20,7 +20,7 @@ type GetOperationResponse struct {
 // Get ...
 func (c IntegrationAccountCertificatesClient) Get(ctx context.Context, id CertificateId) (result GetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -43,7 +43,9 @@ func (c IntegrationAccountCertificatesClient) Get(ctx context.Context, id Certif
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model IntegrationAccountCertificate
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

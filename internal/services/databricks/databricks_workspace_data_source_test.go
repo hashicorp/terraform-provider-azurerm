@@ -30,7 +30,7 @@ func TestAccDatabricksWorkspaceDataSource_basic(t *testing.T) {
 	})
 }
 
-func TestAccDatabricksWorkspaceDataSource_storage_account_identity(t *testing.T) {
+func TestAccDatabricksWorkspaceDataSource_storageAccountIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_databricks_workspace", "test")
 	r := DatabricksWorkspaceDataSource{}
 
@@ -102,7 +102,7 @@ resource "azurerm_databricks_workspace" "test" {
   }
 }
 
-resource "azurerm_databricks_workspace_customer_managed_key" "test" {
+resource "azurerm_databricks_workspace_root_dbfs_customer_managed_key" "test" {
   depends_on = [azurerm_key_vault_access_policy.databricks]
 
   workspace_id     = azurerm_databricks_workspace.test.id

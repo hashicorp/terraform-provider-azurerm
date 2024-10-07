@@ -6,18 +6,22 @@ Analysis Services
 App Configuration
 App Service (Web Apps)
 Application Insights
+Arc Resource Bridge
 ArcKubernetes
 Attestation
 Authorization
 Automanage
 Automation
+Azure Managed Lustre File System
 Azure Stack HCI
+Azure VMware Solution
 Base
 Batch
 Billing
 Blueprints
 Bot
 CDN
+Chaos Studio
 Cognitive Services
 Communication
 Compute
@@ -41,11 +45,14 @@ Databox Edge
 Databricks
 Datadog
 Desktop Virtualization
+Dev Center
 Dev Test
 Digital Twins
-Disks
 Elastic
+Elastic SAN
+Extended Location
 Fluid Relay
+Graph Services
 HDInsight
 Hardware Security Module
 Healthcare
@@ -53,28 +60,27 @@ Hybrid Compute
 IoT Central
 IoT Hub
 Key Vault
-Lab Service
 Lighthouse
 Load Balancer
 Load Test
 Log Analytics
 Logic App
-Logz
 Machine Learning
 Maintenance
 Managed Applications
 Management
 Maps
-Media
 Messaging
 Mixed Reality
 Mobile Network
 Monitor
+NGINX
 NetApp
 Network
+Network Function
 New Relic
-Nginx
 Orbital
+Palo Alto
 Policy
 Portal
 PowerBI
@@ -82,6 +88,7 @@ Private DNS
 Private DNS Resolver
 Purview
 Recovery Services
+Red Hat OpenShift
 Redis
 Redis Enterprise
 Search
@@ -89,14 +96,14 @@ Security Center
 Sentinel
 Service Fabric
 Service Fabric Managed Clusters
+Service Networking
 Spring Cloud
 Storage
 Storage Mover
 Stream Analytics
 Synapse
+System Center Virtual Machine Manager
 Template
-Time Series Insights
-VMware (AVS)
-Video Analyzer
 Voice Services
 Web PubSub
+Workloads

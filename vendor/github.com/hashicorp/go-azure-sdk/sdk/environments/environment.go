@@ -160,9 +160,14 @@ func NewApiEndpoint(name, endpoint string, appId *string) *ApiEndpoint {
 	}
 }
 
-func (e *ApiEndpoint) withResourceIdentifier(identifier string) *ApiEndpoint {
-	e.resourceIdentifier = pointer.To(identifier)
-	return e
+func (e *ApiEndpoint) WithResourceIdentifier(identifier string) Api {
+	newApi := *e
+	newApi.resourceIdentifier = pointer.To(identifier)
+	return &newApi
+}
+
+func (e *ApiEndpoint) Available() bool {
+	return e != nil && (e.resourceIdentifier != nil || e.endpoint != nil)
 }
 
 func (e *ApiEndpoint) DomainSuffix() (*string, bool) {
@@ -187,6 +192,9 @@ func (e *ApiEndpoint) AppId() (*string, bool) {
 }
 
 func (e *ApiEndpoint) Name() string {
+	if e == nil {
+		return "(nil)"
+	}
 	return e.name
 }
 

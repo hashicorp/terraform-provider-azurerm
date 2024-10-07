@@ -36,6 +36,7 @@ func (o UpdateOperationOptions) ToHeaders() *client.Headers {
 
 func (o UpdateOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -48,13 +49,13 @@ func (o UpdateOperationOptions) ToQuery() *client.QueryParams {
 // Update ...
 func (c ZonesClient) Update(ctx context.Context, id DnsZoneId, input ZoneUpdate, options UpdateOperationOptions) (result UpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPatch,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -76,7 +77,9 @@ func (c ZonesClient) Update(ctx context.Context, id DnsZoneId, input ZoneUpdate,
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Zone
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

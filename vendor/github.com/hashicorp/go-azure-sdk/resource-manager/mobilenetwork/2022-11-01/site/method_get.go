@@ -20,7 +20,7 @@ type GetOperationResponse struct {
 // Get ...
 func (c SiteClient) Get(ctx context.Context, id SiteId) (result GetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -43,7 +43,9 @@ func (c SiteClient) Get(ctx context.Context, id SiteId) (result GetOperationResp
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Site
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

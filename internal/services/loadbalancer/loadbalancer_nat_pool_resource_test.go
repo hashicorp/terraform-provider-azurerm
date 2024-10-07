@@ -8,13 +8,14 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/loadbalancers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 type LoadBalancerNatPool struct{}
@@ -140,20 +141,21 @@ func (r LoadBalancerNatPool) Exists(ctx context.Context, client *clients.Client,
 		return nil, err
 	}
 
-	lb, err := client.LoadBalancers.LoadBalancersClient.Get(ctx, id.ResourceGroup, id.LoadBalancerName, "")
+	plbId := loadbalancers.ProviderLoadBalancerId{SubscriptionId: id.SubscriptionId, ResourceGroupName: id.ResourceGroup, LoadBalancerName: id.LoadBalancerName}
+	lb, err := client.LoadBalancers.LoadBalancersClient.Get(ctx, plbId, loadbalancers.GetOperationOptions{})
 	if err != nil {
-		if utils.ResponseWasNotFound(lb.Response) {
-			return nil, fmt.Errorf("Load Balancer %q (resource group %q) not found for Nat Pool %q", id.LoadBalancerName, id.ResourceGroup, id.InboundNatPoolName)
+		if response.WasNotFound(lb.HttpResponse) {
+			return nil, fmt.Errorf("%s was not found", plbId)
 		}
-		return nil, fmt.Errorf("failed reading Load Balancer %q (resource group %q) for Nat Pool %q", id.LoadBalancerName, id.ResourceGroup, id.InboundNatPoolName)
+		return nil, fmt.Errorf("retrieving %s: %+v", plbId, err)
 	}
-	props := lb.LoadBalancerPropertiesFormat
-	if props == nil || props.InboundNatPools == nil || len(*props.InboundNatPools) == 0 {
+	model := lb.Model
+	if model == nil || model.Properties == nil || model.Properties.InboundNatPools == nil || len(*model.Properties.InboundNatPools) == 0 {
 		return nil, fmt.Errorf("Nat Pool %q not found in Load Balancer %q (resource group %q)", id.InboundNatPoolName, id.LoadBalancerName, id.ResourceGroup)
 	}
 
 	found := false
-	for _, v := range *props.InboundNatPools {
+	for _, v := range *model.Properties.InboundNatPools {
 		if v.Name != nil && *v.Name == id.InboundNatPoolName {
 			found = true
 		}
@@ -162,7 +164,7 @@ func (r LoadBalancerNatPool) Exists(ctx context.Context, client *clients.Client,
 		return nil, fmt.Errorf("Nat Pool %q not found in Load Balancer %q (resource group %q)", id.InboundNatPoolName, id.LoadBalancerName, id.ResourceGroup)
 	}
 
-	return utils.Bool(found), nil
+	return pointer.To(found), nil
 }
 
 func (r LoadBalancerNatPool) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -171,37 +173,36 @@ func (r LoadBalancerNatPool) Destroy(ctx context.Context, client *clients.Client
 		return nil, err
 	}
 
-	lb, err := client.LoadBalancers.LoadBalancersClient.Get(ctx, id.ResourceGroup, id.LoadBalancerName, "")
+	plbId := loadbalancers.ProviderLoadBalancerId{SubscriptionId: id.SubscriptionId, ResourceGroupName: id.ResourceGroup, LoadBalancerName: id.LoadBalancerName}
+	lb, err := client.LoadBalancers.LoadBalancersClient.Get(ctx, plbId, loadbalancers.GetOperationOptions{})
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Load Balancer %q (Resource Group %q)", id.LoadBalancerName, id.ResourceGroup)
+		return nil, fmt.Errorf("retrieving %s: %+v", plbId, err)
 	}
-	if lb.LoadBalancerPropertiesFormat == nil {
+	if lb.Model == nil {
+		return nil, fmt.Errorf("`model` was nil")
+	}
+	if lb.Model.Properties == nil {
 		return nil, fmt.Errorf("`properties` was nil")
 	}
-	if lb.LoadBalancerPropertiesFormat.InboundNatPools == nil {
+	if lb.Model.Properties.InboundNatPools == nil {
 		return nil, fmt.Errorf("`properties.InboundNatPools` was nil")
 	}
 
-	inboundNatPools := make([]network.InboundNatPool, 0)
-	for _, inboundNatPool := range *lb.LoadBalancerPropertiesFormat.InboundNatPools {
+	inboundNatPools := make([]loadbalancers.InboundNatPool, 0)
+	for _, inboundNatPool := range *lb.Model.Properties.InboundNatPools {
 		if inboundNatPool.Name == nil || *inboundNatPool.Name == id.InboundNatPoolName {
 			continue
 		}
 
 		inboundNatPools = append(inboundNatPools, inboundNatPool)
 	}
-	lb.LoadBalancerPropertiesFormat.InboundNatPools = &inboundNatPools
+	lb.Model.Properties.InboundNatPools = &inboundNatPools
 
-	future, err := client.LoadBalancers.LoadBalancersClient.CreateOrUpdate(ctx, id.ResourceGroup, id.LoadBalancerName, lb)
+	err = client.LoadBalancers.LoadBalancersClient.CreateOrUpdateThenPoll(ctx, plbId, *lb.Model)
 	if err != nil {
 		return nil, fmt.Errorf("updating Load Balancer %q (Resource Group %q): %+v", id.LoadBalancerName, id.ResourceGroup, err)
 	}
-
-	if err := future.WaitForCompletionRef(ctx, client.LoadBalancers.LoadBalancersClient.Client); err != nil {
-		return nil, fmt.Errorf("waiting for update of Load Balancer %q (Resource Group %q): %+v", id.LoadBalancerName, id.ResourceGroup, err)
-	}
-
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r LoadBalancerNatPool) basic(data acceptance.TestData, sku string) string {

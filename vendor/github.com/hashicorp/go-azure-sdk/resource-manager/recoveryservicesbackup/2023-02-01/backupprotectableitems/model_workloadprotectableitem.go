@@ -10,9 +10,39 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type WorkloadProtectableItem interface {
+	WorkloadProtectableItem() BaseWorkloadProtectableItemImpl
 }
 
-func unmarshalWorkloadProtectableItemImplementation(input []byte) (WorkloadProtectableItem, error) {
+var _ WorkloadProtectableItem = BaseWorkloadProtectableItemImpl{}
+
+type BaseWorkloadProtectableItemImpl struct {
+	BackupManagementType *string           `json:"backupManagementType,omitempty"`
+	FriendlyName         *string           `json:"friendlyName,omitempty"`
+	ProtectableItemType  string            `json:"protectableItemType"`
+	ProtectionState      *ProtectionStatus `json:"protectionState,omitempty"`
+	WorkloadType         *string           `json:"workloadType,omitempty"`
+}
+
+func (s BaseWorkloadProtectableItemImpl) WorkloadProtectableItem() BaseWorkloadProtectableItemImpl {
+	return s
+}
+
+var _ WorkloadProtectableItem = RawWorkloadProtectableItemImpl{}
+
+// RawWorkloadProtectableItemImpl is returned when the Discriminated Value doesn't match any of the defined types
+// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
+// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+type RawWorkloadProtectableItemImpl struct {
+	workloadProtectableItem BaseWorkloadProtectableItemImpl
+	Type                    string
+	Values                  map[string]interface{}
+}
+
+func (s RawWorkloadProtectableItemImpl) WorkloadProtectableItem() BaseWorkloadProtectableItemImpl {
+	return s.workloadProtectableItem
+}
+
+func UnmarshalWorkloadProtectableItemImplementation(input []byte) (WorkloadProtectableItem, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -22,9 +52,9 @@ func unmarshalWorkloadProtectableItemImplementation(input []byte) (WorkloadProte
 		return nil, fmt.Errorf("unmarshaling WorkloadProtectableItem into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["protectableItemType"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["protectableItemType"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "AzureFileShare") {
@@ -131,14 +161,15 @@ func unmarshalWorkloadProtectableItemImplementation(input []byte) (WorkloadProte
 		return out, nil
 	}
 
-	type RawWorkloadProtectableItemImpl struct {
-		Type   string                 `json:"-"`
-		Values map[string]interface{} `json:"-"`
+	var parent BaseWorkloadProtectableItemImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseWorkloadProtectableItemImpl: %+v", err)
 	}
-	out := RawWorkloadProtectableItemImpl{
-		Type:   value,
-		Values: temp,
-	}
-	return out, nil
+
+	return RawWorkloadProtectableItemImpl{
+		workloadProtectableItem: parent,
+		Type:                    value,
+		Values:                  temp,
+	}, nil
 
 }

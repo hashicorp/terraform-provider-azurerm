@@ -21,7 +21,7 @@ type ListKeyVaultKeysOperationResponse struct {
 // ListKeyVaultKeys ...
 func (c IntegrationAccountsClient) ListKeyVaultKeys(ctx context.Context, id IntegrationAccountId, input ListKeyVaultKeysDefinition) (result ListKeyVaultKeysOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -48,7 +48,9 @@ func (c IntegrationAccountsClient) ListKeyVaultKeys(ctx context.Context, id Inte
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model KeyVaultKeyCollection
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

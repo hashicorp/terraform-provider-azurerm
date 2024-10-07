@@ -21,7 +21,7 @@ type GetMetricStatusOperationResponse struct {
 // GetMetricStatus ...
 func (c MonitorsClient) GetMetricStatus(ctx context.Context, id MonitorId, input MetricsStatusRequest) (result GetMetricStatusOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -48,7 +48,9 @@ func (c MonitorsClient) GetMetricStatus(ctx context.Context, id MonitorId, input
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model MetricsStatusResponse
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

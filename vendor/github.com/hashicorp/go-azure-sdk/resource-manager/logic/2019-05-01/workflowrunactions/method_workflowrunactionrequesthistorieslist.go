@@ -19,17 +19,31 @@ type WorkflowRunActionRequestHistoriesListOperationResponse struct {
 }
 
 type WorkflowRunActionRequestHistoriesListCompleteResult struct {
-	Items []RequestHistory
+	LatestHttpResponse *http.Response
+	Items              []RequestHistory
+}
+
+type WorkflowRunActionRequestHistoriesListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *WorkflowRunActionRequestHistoriesListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // WorkflowRunActionRequestHistoriesList ...
 func (c WorkflowRunActionsClient) WorkflowRunActionRequestHistoriesList(ctx context.Context, id ActionId) (result WorkflowRunActionRequestHistoriesListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &WorkflowRunActionRequestHistoriesListCustomPager{},
 		Path:       fmt.Sprintf("%s/requestHistories", id.ID()),
 	}
 
@@ -71,6 +85,7 @@ func (c WorkflowRunActionsClient) WorkflowRunActionRequestHistoriesListCompleteM
 
 	resp, err := c.WorkflowRunActionRequestHistoriesList(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +98,8 @@ func (c WorkflowRunActionsClient) WorkflowRunActionRequestHistoriesListCompleteM
 	}
 
 	result = WorkflowRunActionRequestHistoriesListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

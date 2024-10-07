@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ProximityPlacementGroupId{}
+func init() {
+	recaser.RegisterResourceId(&ProximityPlacementGroupId{})
+}
+
+var _ resourceids.ResourceId = &ProximityPlacementGroupId{}
 
 // ProximityPlacementGroupId is a struct representing the Resource ID for a Proximity Placement Group
 type ProximityPlacementGroupId struct {
@@ -30,25 +35,15 @@ func NewProximityPlacementGroupID(subscriptionId string, resourceGroupName strin
 
 // ParseProximityPlacementGroupID parses 'input' into a ProximityPlacementGroupId
 func ParseProximityPlacementGroupID(input string) (*ProximityPlacementGroupId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ProximityPlacementGroupId{})
+	parser := resourceids.NewParserFromResourceIdType(&ProximityPlacementGroupId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ProximityPlacementGroupId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ProximityPlacementGroupName, ok = parsed.Parsed["proximityPlacementGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "proximityPlacementGroupName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +52,36 @@ func ParseProximityPlacementGroupID(input string) (*ProximityPlacementGroupId, e
 // ParseProximityPlacementGroupIDInsensitively parses 'input' case-insensitively into a ProximityPlacementGroupId
 // note: this method should only be used for API response data and not user input
 func ParseProximityPlacementGroupIDInsensitively(input string) (*ProximityPlacementGroupId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ProximityPlacementGroupId{})
+	parser := resourceids.NewParserFromResourceIdType(&ProximityPlacementGroupId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ProximityPlacementGroupId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ProximityPlacementGroupName, ok = parsed.Parsed["proximityPlacementGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "proximityPlacementGroupName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ProximityPlacementGroupId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.ProximityPlacementGroupName, ok = input.Parsed["proximityPlacementGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "proximityPlacementGroupName", input)
+	}
+
+	return nil
 }
 
 // ValidateProximityPlacementGroupID checks that 'input' can be parsed as a Proximity Placement Group ID
@@ -112,7 +115,7 @@ func (id ProximityPlacementGroupId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftCompute", "Microsoft.Compute", "Microsoft.Compute"),
 		resourceids.StaticSegment("staticProximityPlacementGroups", "proximityPlacementGroups", "proximityPlacementGroups"),
-		resourceids.UserSpecifiedSegment("proximityPlacementGroupName", "proximityPlacementGroupValue"),
+		resourceids.UserSpecifiedSegment("proximityPlacementGroupName", "proximityPlacementGroupName"),
 	}
 }
 

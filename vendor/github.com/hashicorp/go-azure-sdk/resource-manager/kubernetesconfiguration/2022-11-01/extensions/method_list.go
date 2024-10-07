@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
@@ -19,17 +20,31 @@ type ListOperationResponse struct {
 }
 
 type ListCompleteResult struct {
-	Items []Extension
+	LatestHttpResponse *http.Response
+	Items              []Extension
+}
+
+type ListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // List ...
-func (c ExtensionsClient) List(ctx context.Context, id ProviderId) (result ListOperationResponse, err error) {
+func (c ExtensionsClient) List(ctx context.Context, id commonids.ScopeId) (result ListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.KubernetesConfiguration/extensions", id.ID()),
 	}
 
@@ -61,16 +76,17 @@ func (c ExtensionsClient) List(ctx context.Context, id ProviderId) (result ListO
 }
 
 // ListComplete retrieves all the results into a single object
-func (c ExtensionsClient) ListComplete(ctx context.Context, id ProviderId) (ListCompleteResult, error) {
+func (c ExtensionsClient) ListComplete(ctx context.Context, id commonids.ScopeId) (ListCompleteResult, error) {
 	return c.ListCompleteMatchingPredicate(ctx, id, ExtensionOperationPredicate{})
 }
 
 // ListCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c ExtensionsClient) ListCompleteMatchingPredicate(ctx context.Context, id ProviderId, predicate ExtensionOperationPredicate) (result ListCompleteResult, err error) {
+func (c ExtensionsClient) ListCompleteMatchingPredicate(ctx context.Context, id commonids.ScopeId, predicate ExtensionOperationPredicate) (result ListCompleteResult, err error) {
 	items := make([]Extension, 0)
 
 	resp, err := c.List(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +99,8 @@ func (c ExtensionsClient) ListCompleteMatchingPredicate(ctx context.Context, id 
 	}
 
 	result = ListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -26,7 +26,7 @@ resource "azurerm_databricks_workspace" "example" {
   }
 }
 
-resource "azurerm_databricks_workspace_customer_managed_key" "example" {
+resource "azurerm_databricks_workspace_root_dbfs_customer_managed_key" "example" {
   depends_on = [azurerm_key_vault_access_policy.databricks]
 
   workspace_id     = azurerm_databricks_workspace.example.id
@@ -82,6 +82,8 @@ resource "azurerm_key_vault_access_policy" "terraform" {
     "Recover",
     "Update",
     "Purge",
+    "GetRotationPolicy",
+    "SetRotationPolicy",
   ]
 }
 
@@ -93,8 +95,8 @@ resource "azurerm_key_vault_access_policy" "databricks" {
   object_id    = azurerm_databricks_workspace.example.storage_account_identity.0.principal_id
 
   key_permissions = [
-    "get",
-    "unwrapKey",
-    "wrapKey",
+    "Get",
+    "UnwrapKey",
+    "WrapKey",
   ]
 }

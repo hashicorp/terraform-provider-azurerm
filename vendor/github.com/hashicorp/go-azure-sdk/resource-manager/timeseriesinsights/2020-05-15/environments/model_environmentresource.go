@@ -10,9 +10,41 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type EnvironmentResource interface {
+	EnvironmentResource() BaseEnvironmentResourceImpl
 }
 
-func unmarshalEnvironmentResourceImplementation(input []byte) (EnvironmentResource, error) {
+var _ EnvironmentResource = BaseEnvironmentResourceImpl{}
+
+type BaseEnvironmentResourceImpl struct {
+	Id       *string            `json:"id,omitempty"`
+	Kind     Kind               `json:"kind"`
+	Location string             `json:"location"`
+	Name     *string            `json:"name,omitempty"`
+	Sku      Sku                `json:"sku"`
+	Tags     *map[string]string `json:"tags,omitempty"`
+	Type     *string            `json:"type,omitempty"`
+}
+
+func (s BaseEnvironmentResourceImpl) EnvironmentResource() BaseEnvironmentResourceImpl {
+	return s
+}
+
+var _ EnvironmentResource = RawEnvironmentResourceImpl{}
+
+// RawEnvironmentResourceImpl is returned when the Discriminated Value doesn't match any of the defined types
+// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
+// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+type RawEnvironmentResourceImpl struct {
+	environmentResource BaseEnvironmentResourceImpl
+	Type                string
+	Values              map[string]interface{}
+}
+
+func (s RawEnvironmentResourceImpl) EnvironmentResource() BaseEnvironmentResourceImpl {
+	return s.environmentResource
+}
+
+func UnmarshalEnvironmentResourceImplementation(input []byte) (EnvironmentResource, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -22,9 +54,9 @@ func unmarshalEnvironmentResourceImplementation(input []byte) (EnvironmentResour
 		return nil, fmt.Errorf("unmarshaling EnvironmentResource into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["kind"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["kind"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "Gen1") {
@@ -43,14 +75,15 @@ func unmarshalEnvironmentResourceImplementation(input []byte) (EnvironmentResour
 		return out, nil
 	}
 
-	type RawEnvironmentResourceImpl struct {
-		Type   string                 `json:"-"`
-		Values map[string]interface{} `json:"-"`
+	var parent BaseEnvironmentResourceImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseEnvironmentResourceImpl: %+v", err)
 	}
-	out := RawEnvironmentResourceImpl{
-		Type:   value,
-		Values: temp,
-	}
-	return out, nil
+
+	return RawEnvironmentResourceImpl{
+		environmentResource: parent,
+		Type:                value,
+		Values:              temp,
+	}, nil
 
 }

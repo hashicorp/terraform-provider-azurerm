@@ -21,7 +21,7 @@ type GenerateCertificateOperationResponse struct {
 // GenerateCertificate ...
 func (c DevicesClient) GenerateCertificate(ctx context.Context, id DataBoxEdgeDeviceId) (result GenerateCertificateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -44,7 +44,9 @@ func (c DevicesClient) GenerateCertificate(ctx context.Context, id DataBoxEdgeDe
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model GenerateCertResponse
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -20,7 +20,7 @@ type WorkflowRunActionRepetitionsGetOperationResponse struct {
 // WorkflowRunActionRepetitionsGet ...
 func (c WorkflowRunActionsClient) WorkflowRunActionRepetitionsGet(ctx context.Context, id RepetitionId) (result WorkflowRunActionRepetitionsGetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -43,7 +43,9 @@ func (c WorkflowRunActionsClient) WorkflowRunActionRepetitionsGet(ctx context.Co
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model WorkflowRunActionRepetitionDefinition
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

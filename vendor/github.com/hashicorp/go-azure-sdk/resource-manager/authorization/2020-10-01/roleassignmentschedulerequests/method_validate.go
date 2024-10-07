@@ -21,7 +21,7 @@ type ValidateOperationResponse struct {
 // Validate ...
 func (c RoleAssignmentScheduleRequestsClient) Validate(ctx context.Context, id ScopedRoleAssignmentScheduleRequestId, input RoleAssignmentScheduleRequest) (result ValidateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -48,7 +48,9 @@ func (c RoleAssignmentScheduleRequestsClient) Validate(ctx context.Context, id S
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model RoleAssignmentScheduleRequest
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

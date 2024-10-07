@@ -29,7 +29,7 @@ resource "azurerm_cosmosdb_sql_container" "example" {
   resource_group_name   = data.azurerm_cosmosdb_account.example.resource_group_name
   account_name          = data.azurerm_cosmosdb_account.example.name
   database_name         = azurerm_cosmosdb_sql_database.example.name
-  partition_key_path    = "/definition/id"
+  partition_key_paths   = ["/definition/id"]
   partition_key_version = 1
   throughput            = 400
 
@@ -67,7 +67,9 @@ The following arguments are supported:
 
 * `database_name` - (Required) The name of the Cosmos DB SQL Database to create the container within. Changing this forces a new resource to be created.
 
-* `partition_key_path` - (Required) Define a partition key. Changing this forces a new resource to be created.
+* `partition_key_paths` - (Required) A list of partition key paths. Changing this forces a new resource to be created.
+
+* `partition_key_kind` - (Optional) Define a partition key kind. Possible values are `Hash` and `MultiHash`. Defaults to `Hash`. Changing this forces a new resource to be created.
 
 * `partition_key_version` - (Optional) Define a partition key version. Changing this forces a new resource to be created. Possible values are `1`and `2`. This should be set to `2` in order to use large partition keys.
 
@@ -75,7 +77,7 @@ The following arguments are supported:
 
 * `throughput` - (Optional) The throughput of SQL container (RU/s). Must be set in increments of `100`. The minimum value is `400`. This must be set upon container creation otherwise it cannot be updated without a manual terraform destroy-apply.
 
-* `autoscale_settings` - (Optional) An `autoscale_settings` block as defined below. This must be set upon database creation otherwise it cannot be updated without a manual terraform destroy-apply. Requires `partition_key_path` to be set.
+* `autoscale_settings` - (Optional) An `autoscale_settings` block as defined below. This must be set upon database creation otherwise it cannot be updated without a manual terraform destroy-apply.
 
 ~> **Note:** Switching between autoscale and manual throughput is not supported via Terraform and must be completed via the Azure Portal and refreshed.
 

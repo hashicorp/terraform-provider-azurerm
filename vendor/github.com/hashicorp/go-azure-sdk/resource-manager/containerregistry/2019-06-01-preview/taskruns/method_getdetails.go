@@ -21,7 +21,7 @@ type GetDetailsOperationResponse struct {
 // GetDetails ...
 func (c TaskRunsClient) GetDetails(ctx context.Context, id TaskRunId) (result GetDetailsOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -44,7 +44,9 @@ func (c TaskRunsClient) GetDetails(ctx context.Context, id TaskRunId) (result Ge
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model TaskRun
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

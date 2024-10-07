@@ -20,7 +20,7 @@ type MonitorsGetOperationResponse struct {
 // MonitorsGet ...
 func (c MonitorsResourceClient) MonitorsGet(ctx context.Context, id MonitorId) (result MonitorsGetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -43,7 +43,9 @@ func (c MonitorsResourceClient) MonitorsGet(ctx context.Context, id MonitorId) (
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model DatadogMonitorResource
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

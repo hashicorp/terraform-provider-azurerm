@@ -14,6 +14,14 @@ type DocumentDbOutputDataSource struct {
 	Properties *DocumentDbOutputDataSourceProperties `json:"properties,omitempty"`
 
 	// Fields inherited from OutputDataSource
+
+	Type string `json:"type"`
+}
+
+func (s DocumentDbOutputDataSource) OutputDataSource() BaseOutputDataSourceImpl {
+	return BaseOutputDataSourceImpl{
+		Type: s.Type,
+	}
 }
 
 var _ json.Marshaler = DocumentDbOutputDataSource{}
@@ -27,9 +35,10 @@ func (s DocumentDbOutputDataSource) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling DocumentDbOutputDataSource: %+v", err)
 	}
+
 	decoded["type"] = "Microsoft.Storage/DocumentDB"
 
 	encoded, err = json.Marshal(decoded)

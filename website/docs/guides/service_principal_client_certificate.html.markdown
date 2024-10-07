@@ -15,6 +15,7 @@ Terraform supports a number of different methods for authenticating to Azure:
 * Authenticating to Azure using a Service Principal and a Client Certificate (which is covered in this guide)
 * [Authenticating to Azure using a Service Principal and a Client Secret](service_principal_client_secret.html)
 * [Authenticating to Azure using a Service Principal and OpenID Connect](service_principal_oidc.html)
+* [Authenticating to Azure using AKS Workload Identity](aks_workload_identity.html)
 
 ---
 
@@ -126,7 +127,7 @@ $ export ARM_SUBSCRIPTION_ID="20000000-0000-0000-0000-000000000000"
 > $env:ARM_SUBSCRIPTION_ID = "20000000-0000-0000-0000-000000000000"
 ```
 
-The following Terraform and Provider blocks can be specified - where `3.0.0` is the version of the Azure Provider that you'd like to use:
+The following Terraform and Provider blocks can be specified - where `4.1.0` is the version of the Azure Provider that you'd like to use:
 
 ```hcl
 # We strongly recommend using the required_providers block to set the
@@ -135,7 +136,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=3.0.0"
+      version = "=4.1.0"
     }
   }
 }
@@ -167,7 +168,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=3.0.0"
+      version = "=4.1.0"
     }
   }
 }
@@ -195,7 +196,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=3.43.0"
+      version = "=4.1.0"
     }
   }
 }

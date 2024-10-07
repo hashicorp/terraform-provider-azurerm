@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ExpressRouteCircuitPeeringResource struct{}
@@ -175,17 +175,17 @@ func testAccExpressRouteCircuitPeering_microsoftPeeringWithRouteFilter(t *testin
 }
 
 func (t ExpressRouteCircuitPeeringResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ExpressRouteCircuitPeeringID(state.ID)
+	id, err := commonids.ParseExpressRouteCircuitPeeringID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Network.ExpressRoutePeeringsClient.Get(ctx, id.ResourceGroup, id.ExpressRouteCircuitName, id.PeeringName)
+	resp, err := clients.Network.ExpressRouteCircuitPeerings.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading %s: %+v", *id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (ExpressRouteCircuitPeeringResource) privatePeering(data acceptance.TestData) string {
@@ -462,6 +462,7 @@ resource "azurerm_express_route_circuit_peering" "test" {
 
   microsoft_peering_config {
     advertised_public_prefixes = ["123.3.0.0/24"]
+    advertised_communities     = ["12076:52005", "12076:52006"]
   }
 
   ipv6 {
@@ -473,6 +474,7 @@ resource "azurerm_express_route_circuit_peering" "test" {
       advertised_public_prefixes = ["2002:db01::/126"]
       customer_asn               = 64511
       routing_registry_name      = "ARIN"
+      advertised_communities     = ["12076:52005", "12076:52006"]
     }
   }
 }
@@ -626,6 +628,7 @@ resource "azurerm_express_route_circuit_peering" "test" {
 
   microsoft_peering_config {
     advertised_public_prefixes = ["123.1.0.0/24"]
+    advertised_communities     = ["12076:52005", "12076:52006"]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)

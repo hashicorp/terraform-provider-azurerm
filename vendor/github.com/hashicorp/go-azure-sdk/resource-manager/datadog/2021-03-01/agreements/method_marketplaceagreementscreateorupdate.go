@@ -22,7 +22,7 @@ type MarketplaceAgreementsCreateOrUpdateOperationResponse struct {
 // MarketplaceAgreementsCreateOrUpdate ...
 func (c AgreementsClient) MarketplaceAgreementsCreateOrUpdate(ctx context.Context, id commonids.SubscriptionId, input DatadogAgreementResource) (result MarketplaceAgreementsCreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -49,7 +49,9 @@ func (c AgreementsClient) MarketplaceAgreementsCreateOrUpdate(ctx context.Contex
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model DatadogAgreementResource
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

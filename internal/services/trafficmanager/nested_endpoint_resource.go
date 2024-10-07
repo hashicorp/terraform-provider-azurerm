@@ -9,12 +9,13 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2018-08-01/endpoints"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2018-08-01/profiles"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2022-04-01/endpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2022-04-01/profiles"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	azSchema "github.com/hashicorp/terraform-provider-azurerm/internal/tf/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -23,7 +24,7 @@ import (
 )
 
 func resourceNestedEndpoint() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceNestedEndpointCreateUpdate,
 		Read:   resourceNestedEndpointRead,
 		Update: resourceNestedEndpointCreateUpdate,
@@ -72,7 +73,7 @@ func resourceNestedEndpoint() *pluginsdk.Resource {
 			"weight": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Computed:     true,
+				Default:      1,
 				ValidateFunc: validation.IntBetween(1, 1000),
 			},
 
@@ -120,7 +121,7 @@ func resourceNestedEndpoint() *pluginsdk.Resource {
 			"priority": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Computed:     true,
+				Default:      1,
 				ValidateFunc: validation.IntBetween(1, 1000),
 			},
 
@@ -164,6 +165,23 @@ func resourceNestedEndpoint() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["priority"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validation.IntBetween(1, 1000),
+		}
+		resource.Schema["weight"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validation.IntBetween(1, 1000),
+		}
+	}
+
+	return resource
 }
 
 func resourceNestedEndpointCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {

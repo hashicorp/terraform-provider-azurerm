@@ -9,6 +9,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/analysisservices/2017-08-01/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -95,7 +96,6 @@ func TestAccAnalysisServicesServer_firewallSettings(t *testing.T) {
 			Config: r.firewallSettings1(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("enable_power_bi_service").HasValue("true"),
 				check.That(data.ResourceName).Key("ipv4_firewall_rule.#").HasValue("0"),
 			),
 		},
@@ -104,7 +104,6 @@ func TestAccAnalysisServicesServer_firewallSettings(t *testing.T) {
 			Config: r.firewallSettings2(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("enable_power_bi_service").HasValue("false"),
 				check.That(data.ResourceName).Key("ipv4_firewall_rule.#").HasValue("1"),
 			),
 		},
@@ -113,7 +112,6 @@ func TestAccAnalysisServicesServer_firewallSettings(t *testing.T) {
 			Config: r.firewallSettings3(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("enable_power_bi_service").HasValue("true"),
 				check.That(data.ResourceName).Key("ipv4_firewall_rule.#").HasValue("2"),
 			),
 		},
@@ -314,11 +312,11 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_analysis_services_server" "test" {
-  name                    = "acctestass%d"
-  location                = azurerm_resource_group.test.location
-  resource_group_name     = azurerm_resource_group.test.name
-  sku                     = "B1"
-  enable_power_bi_service = %t
+  name                     = "acctestass%d"
+  location                 = azurerm_resource_group.test.location
+  resource_group_name      = azurerm_resource_group.test.name
+  sku                      = "B1"
+  power_bi_service_enabled = %t
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enablePowerBIService)
 }
@@ -335,11 +333,11 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_analysis_services_server" "test" {
-  name                    = "acctestass%d"
-  location                = azurerm_resource_group.test.location
-  resource_group_name     = azurerm_resource_group.test.name
-  sku                     = "B1"
-  enable_power_bi_service = %t
+  name                     = "acctestass%d"
+  location                 = azurerm_resource_group.test.location
+  resource_group_name      = azurerm_resource_group.test.name
+  sku                      = "B1"
+  power_bi_service_enabled = %t
 
   ipv4_firewall_rule {
     name        = "test1"
@@ -362,11 +360,11 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_analysis_services_server" "test" {
-  name                    = "acctestass%d"
-  location                = azurerm_resource_group.test.location
-  resource_group_name     = azurerm_resource_group.test.name
-  sku                     = "B1"
-  enable_power_bi_service = %t
+  name                     = "acctestass%d"
+  location                 = azurerm_resource_group.test.location
+  resource_group_name      = azurerm_resource_group.test.name
+  sku                      = "B1"
+  power_bi_service_enabled = %t
 
   ipv4_firewall_rule {
     name        = "test1"
@@ -521,7 +519,10 @@ func (t AnalysisServicesServerResource) suspend(ctx context.Context, clients *cl
 		return err
 	}
 
-	if err := client.SuspendThenPoll(ctx, *id); err != nil {
+	timeout, cancel := context.WithTimeout(ctx, 15*time.Minute)
+	defer cancel()
+
+	if err := client.SuspendThenPoll(timeout, *id); err != nil {
 		return fmt.Errorf("suspending %s: %+v", *id, err)
 	}
 
@@ -537,7 +538,10 @@ func (t AnalysisServicesServerResource) checkState(expectedState servers.State) 
 			return err
 		}
 
-		resp, err := client.GetDetails(ctx, *id)
+		timeout, cancel := context.WithTimeout(ctx, 15*time.Minute)
+		defer cancel()
+
+		resp, err := client.GetDetails(timeout, *id)
 		if err != nil {
 			return fmt.Errorf("retrieving %s to check the state: %+v", *id, err)
 		}

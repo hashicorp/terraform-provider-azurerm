@@ -7,8 +7,8 @@ import (
 	"context"
 	"log"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -60,7 +60,7 @@ func (s KustoDatabaseV0ToV1) Schema() map[string]*pluginsdk.Schema {
 func (s KustoDatabaseV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 		oldId := rawState["id"].(string)
-		newId, err := parse.DatabaseIDInsensitively(oldId)
+		newId, err := commonids.ParseKustoDatabaseIDInsensitively(oldId)
 		if err != nil {
 			return nil, err
 		}

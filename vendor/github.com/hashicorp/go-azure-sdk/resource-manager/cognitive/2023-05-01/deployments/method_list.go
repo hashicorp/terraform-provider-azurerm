@@ -19,17 +19,31 @@ type ListOperationResponse struct {
 }
 
 type ListCompleteResult struct {
-	Items []Deployment
+	LatestHttpResponse *http.Response
+	Items              []Deployment
+}
+
+type ListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // List ...
 func (c DeploymentsClient) List(ctx context.Context, id AccountId) (result ListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListCustomPager{},
 		Path:       fmt.Sprintf("%s/deployments", id.ID()),
 	}
 
@@ -71,6 +85,7 @@ func (c DeploymentsClient) ListCompleteMatchingPredicate(ctx context.Context, id
 
 	resp, err := c.List(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +98,8 @@ func (c DeploymentsClient) ListCompleteMatchingPredicate(ctx context.Context, id
 	}
 
 	result = ListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

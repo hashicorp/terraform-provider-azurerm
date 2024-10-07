@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	webtests "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-06-15/webtestsapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type AppInsightsWebTestsResource struct{}
@@ -99,17 +99,17 @@ func TestAccApplicationInsightsWebTests_requiresImport(t *testing.T) {
 }
 
 func (t AppInsightsWebTestsResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.WebTestID(state.ID)
+	id, err := webtests.ParseWebTestID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.AppInsights.WebTestsClient.Get(ctx, *id)
+	resp, err := clients.AppInsights.WebTestsClient.WebTestsGet(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Application Insights '%q' (resource group: '%q') does not exist", id.ResourceGroup, id.Name)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.WebTestProperties != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (AppInsightsWebTestsResource) basic(data acceptance.TestData) string {

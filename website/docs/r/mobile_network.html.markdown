@@ -42,9 +42,9 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the Azure Region where the Mobile Network should exist. Changing this forces a new Mobile Network to be created. The possible values are `eastus` and `northeurope`.
 
-* `mobile_country_code` - (Required) Mobile country code (MCC), defined in https://www.itu.int/rec/T-REC-E.212 .
+* `mobile_country_code` - (Required) Mobile country code (MCC), defined in https://www.itu.int/rec/T-REC-E.212 . Changing this forces a new resource to be created.
 
-* `mobile_network_code` - (Required) Mobile network code (MNC), defined in https://www.itu.int/rec/T-REC-E.212 .
+* `mobile_network_code` - (Required) Mobile network code (MNC), defined in https://www.itu.int/rec/T-REC-E.212 . Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Mobile Network.
 

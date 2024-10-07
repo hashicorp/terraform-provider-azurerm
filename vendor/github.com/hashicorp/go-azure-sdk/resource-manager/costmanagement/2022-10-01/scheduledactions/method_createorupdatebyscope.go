@@ -36,6 +36,7 @@ func (o CreateOrUpdateByScopeOperationOptions) ToHeaders() *client.Headers {
 
 func (o CreateOrUpdateByScopeOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -48,14 +49,14 @@ func (o CreateOrUpdateByScopeOperationOptions) ToQuery() *client.QueryParams {
 // CreateOrUpdateByScope ...
 func (c ScheduledActionsClient) CreateOrUpdateByScope(ctx context.Context, id ScopedScheduledActionId, input ScheduledAction, options CreateOrUpdateByScopeOperationOptions) (result CreateOrUpdateByScopeOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPut,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -77,7 +78,9 @@ func (c ScheduledActionsClient) CreateOrUpdateByScope(ctx context.Context, id Sc
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ScheduledAction
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

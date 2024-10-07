@@ -90,6 +90,7 @@ resource "azurerm_public_ip" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Dynamic"
+  sku                 = "Basic"
   domain_name_label   = "acctestpip%d"
 }
 
@@ -134,8 +135,8 @@ resource "azurerm_virtual_machine" "testsource" {
 
   storage_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -223,6 +224,7 @@ resource "azurerm_public_ip" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Dynamic"
+  sku                 = "Basic"
   domain_name_label   = "acctestpip%d"
 }
 
@@ -267,8 +269,8 @@ resource "azurerm_virtual_machine" "testsource" {
 
   storage_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 

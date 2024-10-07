@@ -23,7 +23,7 @@ type DeletedAccountsPurgeOperationResponse struct {
 // DeletedAccountsPurge ...
 func (c CognitiveServicesAccountsClient) DeletedAccountsPurge(ctx context.Context, id DeletedAccountId) (result DeletedAccountsPurgeOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,

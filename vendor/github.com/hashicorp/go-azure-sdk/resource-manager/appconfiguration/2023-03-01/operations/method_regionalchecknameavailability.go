@@ -21,7 +21,7 @@ type RegionalCheckNameAvailabilityOperationResponse struct {
 // RegionalCheckNameAvailability ...
 func (c OperationsClient) RegionalCheckNameAvailability(ctx context.Context, id LocationId, input CheckNameAvailabilityParameters) (result RegionalCheckNameAvailabilityOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -48,7 +48,9 @@ func (c OperationsClient) RegionalCheckNameAvailability(ctx context.Context, id 
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model NameAvailabilityStatus
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -106,7 +106,7 @@ func TestAccDataSourceMonitorActionGroup_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("sms_receiver.1.phone_number").HasValue("3123456789"),
 				check.That(data.ResourceName).Key("webhook_receiver.#").HasValue("2"),
 				check.That(data.ResourceName).Key("webhook_receiver.0.service_uri").HasValue("http://example.com/alert"),
-				check.That(data.ResourceName).Key("webhook_receiver.1.service_uri").HasValue("https://backup.example.com/warning"),
+				check.That(data.ResourceName).Key("webhook_receiver.1.service_uri").HasValue("https://example.com/warning/backup"),
 				check.That(data.ResourceName).Key("webhook_receiver.1.use_common_alert_schema").HasValue("false"),
 				check.That(data.ResourceName).Key("webhook_receiver.1.aad_auth.#").HasValue("0"),
 				check.That(data.ResourceName).Key("automation_runbook_receiver.#").HasValue("1"),
@@ -250,7 +250,7 @@ resource "azurerm_monitor_action_group" "test" {
 
   webhook_receiver {
     name        = "callmybackupapi"
-    service_uri = "https://backup.example.com/warning"
+    service_uri = "https://example.com/warning/backup"
   }
 
   automation_runbook_receiver {

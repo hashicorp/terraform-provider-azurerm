@@ -18,12 +18,13 @@ type CreateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *Extension
 }
 
 // Create ...
-func (c ExtensionsClient) Create(ctx context.Context, id ExtensionId, input Extension) (result CreateOperationResponse, err error) {
+func (c ExtensionsClient) Create(ctx context.Context, id ScopedExtensionId, input Extension) (result CreateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,
@@ -60,7 +61,7 @@ func (c ExtensionsClient) Create(ctx context.Context, id ExtensionId, input Exte
 }
 
 // CreateThenPoll performs Create then polls until it's completed
-func (c ExtensionsClient) CreateThenPoll(ctx context.Context, id ExtensionId, input Extension) error {
+func (c ExtensionsClient) CreateThenPoll(ctx context.Context, id ScopedExtensionId, input Extension) error {
 	result, err := c.Create(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Create: %+v", err)

@@ -20,17 +20,31 @@ type AccountsListByResourceGroupOperationResponse struct {
 }
 
 type AccountsListByResourceGroupCompleteResult struct {
-	Items []Account
+	LatestHttpResponse *http.Response
+	Items              []Account
+}
+
+type AccountsListByResourceGroupCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *AccountsListByResourceGroupCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // AccountsListByResourceGroup ...
 func (c CognitiveServicesAccountsClient) AccountsListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (result AccountsListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &AccountsListByResourceGroupCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.CognitiveServices/accounts", id.ID()),
 	}
 
@@ -72,6 +86,7 @@ func (c CognitiveServicesAccountsClient) AccountsListByResourceGroupCompleteMatc
 
 	resp, err := c.AccountsListByResourceGroup(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -84,7 +99,8 @@ func (c CognitiveServicesAccountsClient) AccountsListByResourceGroupCompleteMatc
 	}
 
 	result = AccountsListByResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

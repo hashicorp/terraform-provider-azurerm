@@ -20,7 +20,7 @@ type ConfigurationsGetOperationResponse struct {
 // ConfigurationsGet ...
 func (c SingleSignOnClient) ConfigurationsGet(ctx context.Context, id SingleSignOnConfigurationId) (result ConfigurationsGetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -43,7 +43,9 @@ func (c SingleSignOnClient) ConfigurationsGet(ctx context.Context, id SingleSign
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model DatadogSingleSignOnResource
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

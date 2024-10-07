@@ -38,6 +38,7 @@ func (o DeleteOperationOptions) ToHeaders() *client.Headers {
 
 func (o DeleteOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -50,15 +51,15 @@ func (o DeleteOperationOptions) ToQuery() *client.QueryParams {
 // Delete ...
 func (c ZonesClient) Delete(ctx context.Context, id DnsZoneId, options DeleteOperationOptions) (result DeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodDelete,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

@@ -20,7 +20,7 @@ type SpatialAnchorsAccountsCreateOperationResponse struct {
 // SpatialAnchorsAccountsCreate ...
 func (c ResourceClient) SpatialAnchorsAccountsCreate(ctx context.Context, id SpatialAnchorsAccountId, input SpatialAnchorsAccount) (result SpatialAnchorsAccountsCreateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,
@@ -48,7 +48,9 @@ func (c ResourceClient) SpatialAnchorsAccountsCreate(ctx context.Context, id Spa
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model SpatialAnchorsAccount
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

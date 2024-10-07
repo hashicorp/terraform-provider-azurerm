@@ -132,7 +132,7 @@ resource "azurerm_cosmosdb_sql_container" "updated" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
   database_name       = azurerm_cosmosdb_sql_database.updated.name
-  partition_key_path  = "/definition"
+  partition_key_paths = ["/definition/id"]
 }
 
 resource "azurerm_stream_analytics_output_cosmosdb" "test" {
@@ -157,7 +157,7 @@ resource "azurerm_stream_analytics_output_cosmosdb" "test" {
   cosmosdb_sql_database_id = azurerm_cosmosdb_sql_database.test.id
   container_name           = azurerm_cosmosdb_sql_container.test.name
   document_id              = "exampledocumentid"
-  partition_key            = "exmaplekey"
+  partition_key            = "examplekey"
 }
 `, template, data.RandomString, data.RandomInteger)
 }
@@ -219,7 +219,7 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
   database_name       = azurerm_cosmosdb_sql_database.test.name
-  partition_key_path  = "/definition"
+  partition_key_paths = ["/definition/id"]
 }
 
 resource "azurerm_stream_analytics_job" "test" {

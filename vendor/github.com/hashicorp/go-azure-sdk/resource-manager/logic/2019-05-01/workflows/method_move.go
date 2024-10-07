@@ -23,7 +23,7 @@ type MoveOperationResponse struct {
 // Move ...
 func (c WorkflowsClient) Move(ctx context.Context, id WorkflowId, input WorkflowReference) (result MoveOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

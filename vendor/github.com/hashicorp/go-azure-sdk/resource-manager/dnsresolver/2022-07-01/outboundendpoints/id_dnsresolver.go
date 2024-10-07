@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = DnsResolverId{}
+func init() {
+	recaser.RegisterResourceId(&DnsResolverId{})
+}
+
+var _ resourceids.ResourceId = &DnsResolverId{}
 
 // DnsResolverId is a struct representing the Resource ID for a Dns Resolver
 type DnsResolverId struct {
@@ -30,25 +35,15 @@ func NewDnsResolverID(subscriptionId string, resourceGroupName string, dnsResolv
 
 // ParseDnsResolverID parses 'input' into a DnsResolverId
 func ParseDnsResolverID(input string) (*DnsResolverId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DnsResolverId{})
+	parser := resourceids.NewParserFromResourceIdType(&DnsResolverId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := DnsResolverId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.DnsResolverName, ok = parsed.Parsed["dnsResolverName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "dnsResolverName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +52,36 @@ func ParseDnsResolverID(input string) (*DnsResolverId, error) {
 // ParseDnsResolverIDInsensitively parses 'input' case-insensitively into a DnsResolverId
 // note: this method should only be used for API response data and not user input
 func ParseDnsResolverIDInsensitively(input string) (*DnsResolverId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DnsResolverId{})
+	parser := resourceids.NewParserFromResourceIdType(&DnsResolverId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := DnsResolverId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.DnsResolverName, ok = parsed.Parsed["dnsResolverName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "dnsResolverName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *DnsResolverId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.DnsResolverName, ok = input.Parsed["dnsResolverName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "dnsResolverName", input)
+	}
+
+	return nil
 }
 
 // ValidateDnsResolverID checks that 'input' can be parsed as a Dns Resolver ID
@@ -112,7 +115,7 @@ func (id DnsResolverId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticDnsResolvers", "dnsResolvers", "dnsResolvers"),
-		resourceids.UserSpecifiedSegment("dnsResolverName", "dnsResolverValue"),
+		resourceids.UserSpecifiedSegment("dnsResolverName", "dnsResolverName"),
 	}
 }
 

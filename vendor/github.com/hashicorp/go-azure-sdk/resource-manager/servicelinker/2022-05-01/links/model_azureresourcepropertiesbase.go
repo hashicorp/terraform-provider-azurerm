@@ -10,9 +10,35 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type AzureResourcePropertiesBase interface {
+	AzureResourcePropertiesBase() BaseAzureResourcePropertiesBaseImpl
 }
 
-func unmarshalAzureResourcePropertiesBaseImplementation(input []byte) (AzureResourcePropertiesBase, error) {
+var _ AzureResourcePropertiesBase = BaseAzureResourcePropertiesBaseImpl{}
+
+type BaseAzureResourcePropertiesBaseImpl struct {
+	Type AzureResourceType `json:"type"`
+}
+
+func (s BaseAzureResourcePropertiesBaseImpl) AzureResourcePropertiesBase() BaseAzureResourcePropertiesBaseImpl {
+	return s
+}
+
+var _ AzureResourcePropertiesBase = RawAzureResourcePropertiesBaseImpl{}
+
+// RawAzureResourcePropertiesBaseImpl is returned when the Discriminated Value doesn't match any of the defined types
+// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
+// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+type RawAzureResourcePropertiesBaseImpl struct {
+	azureResourcePropertiesBase BaseAzureResourcePropertiesBaseImpl
+	Type                        string
+	Values                      map[string]interface{}
+}
+
+func (s RawAzureResourcePropertiesBaseImpl) AzureResourcePropertiesBase() BaseAzureResourcePropertiesBaseImpl {
+	return s.azureResourcePropertiesBase
+}
+
+func UnmarshalAzureResourcePropertiesBaseImplementation(input []byte) (AzureResourcePropertiesBase, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -22,9 +48,9 @@ func unmarshalAzureResourcePropertiesBaseImplementation(input []byte) (AzureReso
 		return nil, fmt.Errorf("unmarshaling AzureResourcePropertiesBase into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["type"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["type"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "KeyVault") {
@@ -35,14 +61,15 @@ func unmarshalAzureResourcePropertiesBaseImplementation(input []byte) (AzureReso
 		return out, nil
 	}
 
-	type RawAzureResourcePropertiesBaseImpl struct {
-		Type   string                 `json:"-"`
-		Values map[string]interface{} `json:"-"`
+	var parent BaseAzureResourcePropertiesBaseImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseAzureResourcePropertiesBaseImpl: %+v", err)
 	}
-	out := RawAzureResourcePropertiesBaseImpl{
-		Type:   value,
-		Values: temp,
-	}
-	return out, nil
+
+	return RawAzureResourcePropertiesBaseImpl{
+		azureResourcePropertiesBase: parent,
+		Type:                        value,
+		Values:                      temp,
+	}, nil
 
 }

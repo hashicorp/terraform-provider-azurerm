@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2018-08-01/endpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2022-04-01/endpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -137,7 +137,6 @@ resource "azurerm_traffic_manager_nested_endpoint" "test" {
   target_resource_id      = azurerm_traffic_manager_profile.child.id
   profile_id              = azurerm_traffic_manager_profile.parent.id
   minimum_child_endpoints = 5
-  weight                  = 3
 }
 `, r.template(data), data.RandomInteger)
 }

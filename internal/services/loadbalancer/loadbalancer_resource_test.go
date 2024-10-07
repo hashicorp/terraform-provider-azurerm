@@ -6,14 +6,15 @@ package loadbalancer_test
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/loadbalancers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type LoadBalancer struct{}
@@ -249,19 +250,17 @@ func TestAccAzureRMLoadBalancer_edgeZone(t *testing.T) {
 }
 
 func (r LoadBalancer) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	loadBalancerName := state.Attributes["name"]
-	resourceGroup := state.Attributes["resource_group_name"]
-
-	resp, err := client.LoadBalancers.LoadBalancersClient.Get(ctx, resourceGroup, loadBalancerName, "")
+	plbId := loadbalancers.ProviderLoadBalancerId{SubscriptionId: client.Account.SubscriptionId, ResourceGroupName: state.Attributes["resource_group_name"], LoadBalancerName: state.Attributes["name"]}
+	resp, err := client.LoadBalancers.LoadBalancersClient.Get(ctx, plbId, loadbalancers.GetOperationOptions{})
 	if err != nil {
-		if resp.StatusCode == http.StatusNotFound {
-			return nil, fmt.Errorf("Bad: Load Balancer %q (resource group: %q) does not exist", loadBalancerName, resourceGroup)
+		if response.WasNotFound(resp.HttpResponse) {
+			return nil, fmt.Errorf("%s was not found", plbId)
 		}
 
-		return nil, fmt.Errorf("Bad: Get on loadBalancerClient: %+v", err)
+		return nil, fmt.Errorf("retrieving %s: %+v", plbId, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil && resp.Model.Id != nil), nil
 }
 
 func (r LoadBalancer) basic(data acceptance.TestData) string {

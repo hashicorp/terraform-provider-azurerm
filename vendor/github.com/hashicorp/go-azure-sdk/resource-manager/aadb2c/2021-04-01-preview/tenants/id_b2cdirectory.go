@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) HashiCorp Inc. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = B2CDirectoryId{}
+func init() {
+	recaser.RegisterResourceId(&B2CDirectoryId{})
+}
+
+var _ resourceids.ResourceId = &B2CDirectoryId{}
 
 // B2CDirectoryId is a struct representing the Resource ID for a B 2 C Directory
 type B2CDirectoryId struct {
@@ -30,25 +35,15 @@ func NewB2CDirectoryID(subscriptionId string, resourceGroup string, directoryNam
 
 // ParseB2CDirectoryID parses 'input' into a B2CDirectoryId
 func ParseB2CDirectoryID(input string) (*B2CDirectoryId, error) {
-	parser := resourceids.NewParserFromResourceIdType(B2CDirectoryId{})
+	parser := resourceids.NewParserFromResourceIdType(&B2CDirectoryId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := B2CDirectoryId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroup, ok = parsed.Parsed["resourceGroup"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroup", *parsed)
-	}
-
-	if id.DirectoryName, ok = parsed.Parsed["directoryName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "directoryName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +52,36 @@ func ParseB2CDirectoryID(input string) (*B2CDirectoryId, error) {
 // ParseB2CDirectoryIDInsensitively parses 'input' case-insensitively into a B2CDirectoryId
 // note: this method should only be used for API response data and not user input
 func ParseB2CDirectoryIDInsensitively(input string) (*B2CDirectoryId, error) {
-	parser := resourceids.NewParserFromResourceIdType(B2CDirectoryId{})
+	parser := resourceids.NewParserFromResourceIdType(&B2CDirectoryId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := B2CDirectoryId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroup, ok = parsed.Parsed["resourceGroup"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroup", *parsed)
-	}
-
-	if id.DirectoryName, ok = parsed.Parsed["directoryName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "directoryName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *B2CDirectoryId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroup, ok = input.Parsed["resourceGroup"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroup", input)
+	}
+
+	if id.DirectoryName, ok = input.Parsed["directoryName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "directoryName", input)
+	}
+
+	return nil
 }
 
 // ValidateB2CDirectoryID checks that 'input' can be parsed as a B 2 C Directory ID

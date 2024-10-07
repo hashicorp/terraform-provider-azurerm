@@ -1,6 +1,10 @@
 package clusters
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -21,6 +25,19 @@ func PossibleValuesForClusterProvisioningState() []string {
 		string(ClusterProvisioningStateInProgress),
 		string(ClusterProvisioningStateSucceeded),
 	}
+}
+
+func (s *ClusterProvisioningState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseClusterProvisioningState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseClusterProvisioningState(input string) (*ClusterProvisioningState, error) {
@@ -49,6 +66,19 @@ func PossibleValuesForClusterSkuName() []string {
 	return []string{
 		string(ClusterSkuNameDefault),
 	}
+}
+
+func (s *ClusterSkuName) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseClusterSkuName(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseClusterSkuName(input string) (*ClusterSkuName, error) {
@@ -92,6 +122,19 @@ func PossibleValuesForJobState() []string {
 		string(JobStateStopped),
 		string(JobStateStopping),
 	}
+}
+
+func (s *JobState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseJobState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseJobState(input string) (*JobState, error) {

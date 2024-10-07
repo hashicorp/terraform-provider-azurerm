@@ -21,7 +21,7 @@ type UpdateExtendedInformationOperationResponse struct {
 // UpdateExtendedInformation ...
 func (c DevicesClient) UpdateExtendedInformation(ctx context.Context, id DataBoxEdgeDeviceId, input DataBoxEdgeDeviceExtendedInfoPatch) (result UpdateExtendedInformationOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -48,7 +48,9 @@ func (c DevicesClient) UpdateExtendedInformation(ctx context.Context, id DataBox
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model DataBoxEdgeDeviceExtendedInfo
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

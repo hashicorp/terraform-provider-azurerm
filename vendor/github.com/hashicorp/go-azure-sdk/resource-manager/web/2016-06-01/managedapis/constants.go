@@ -1,6 +1,10 @@
 package managedapis
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -19,6 +23,19 @@ func PossibleValuesForApiType() []string {
 		string(ApiTypeRest),
 		string(ApiTypeSoap),
 	}
+}
+
+func (s *ApiType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseApiType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseApiType(input string) (*ApiType, error) {
@@ -64,6 +81,19 @@ func PossibleValuesForConnectionParameterType() []string {
 	}
 }
 
+func (s *ConnectionParameterType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseConnectionParameterType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseConnectionParameterType(input string) (*ConnectionParameterType, error) {
 	vals := map[string]ConnectionParameterType{
 		"array":        ConnectionParameterTypeArray,
@@ -99,6 +129,19 @@ func PossibleValuesForWsdlImportMethod() []string {
 		string(WsdlImportMethodSoapPassThrough),
 		string(WsdlImportMethodSoapToRest),
 	}
+}
+
+func (s *WsdlImportMethod) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseWsdlImportMethod(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseWsdlImportMethod(input string) (*WsdlImportMethod, error) {

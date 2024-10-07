@@ -20,7 +20,7 @@ type GetOperationResponse struct {
 // Get ...
 func (c DisasterRecoveryConfigsClient) Get(ctx context.Context, id DisasterRecoveryConfigId) (result GetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -43,7 +43,9 @@ func (c DisasterRecoveryConfigsClient) Get(ctx context.Context, id DisasterRecov
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ArmDisasterRecovery
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

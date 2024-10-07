@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/routefilters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/routefilters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -119,6 +119,7 @@ func TestAccRouteFilter_withRules(t *testing.T) {
 				check.That(data.ResourceName).Key("rule.0.communities.1").HasValue("12076:53006"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.withRulesUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -130,6 +131,14 @@ func TestAccRouteFilter_withRules(t *testing.T) {
 				check.That(data.ResourceName).Key("rule.0.communities.1").HasValue("12076:52006"),
 			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.withRulesRemoved(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -139,7 +148,7 @@ func (t RouteFilterResource) Exists(ctx context.Context, clients *clients.Client
 		return nil, err
 	}
 
-	resp, err := clients.Network.RouteFiltersClient.Get(ctx, *id, routefilters.DefaultGetOperationOptions())
+	resp, err := clients.Network.RouteFilters.Get(ctx, *id, routefilters.DefaultGetOperationOptions())
 	if err != nil {
 		return nil, fmt.Errorf("reading Route Filter (%s): %+v", id, err)
 	}
@@ -153,7 +162,7 @@ func (RouteFilterResource) Destroy(ctx context.Context, client *clients.Client, 
 		return nil, err
 	}
 
-	if err = client.Network.RouteFiltersClient.DeleteThenPoll(ctx, *id); err != nil {
+	if err = client.Network.RouteFilters.DeleteThenPoll(ctx, *id); err != nil {
 		return nil, fmt.Errorf("deleting Route Filter %q: %+v", id, err)
 	}
 
@@ -308,4 +317,24 @@ resource "azurerm_route_filter" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (RouteFilterResource) withRulesRemoved(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_route_filter" "test" {
+  name                = "acctestrf%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  rule                = []
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

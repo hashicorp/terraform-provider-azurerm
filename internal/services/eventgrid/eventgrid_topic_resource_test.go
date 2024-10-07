@@ -8,10 +8,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/topics"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -145,6 +145,13 @@ func TestAccEventGridTopic_inboundIPRules(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.unsetInboundIPRules(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -189,17 +196,17 @@ func TestAccEventGridTopic_basicWithUserAssignedManagedIdentity(t *testing.T) {
 }
 
 func (EventGridTopicResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.TopicID(state.ID)
+	id, err := topics.ParseTopicID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.EventGrid.TopicsClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.EventGrid.Topics.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving EventGrid Topic %q (resource group: %q): %+v", id.Name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.TopicProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (EventGridTopicResource) basic(data acceptance.TestData) string {
@@ -337,6 +344,29 @@ resource "azurerm_eventgrid_topic" "test" {
     ip_mask = "10.1.0.0/16"
     action  = "Allow"
   }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (EventGridTopicResource) unsetInboundIPRules(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_eventgrid_topic" "test" {
+  name                = "acctesteg-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  public_network_access_enabled = true
+
+  inbound_ip_rule = []
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

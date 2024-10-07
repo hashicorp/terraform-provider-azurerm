@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/rules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/singlesignon"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 type Client struct {
@@ -31,56 +31,56 @@ type Client struct {
 	SingleSignOn           *singlesignon.SingleSignOnClient
 }
 
-func NewClientWithBaseURI(api environments.Api, configureFunc func(c *resourcemanager.Client)) (*Client, error) {
-	agreementsClient, err := agreements.NewAgreementsClientWithBaseURI(api)
+func NewClientWithBaseURI(sdkApi sdkEnv.Api, configureFunc func(c *resourcemanager.Client)) (*Client, error) {
+	agreementsClient, err := agreements.NewAgreementsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building Agreements client: %+v", err)
 	}
 	configureFunc(agreementsClient.Client)
 
-	apiKeyClient, err := apikey.NewApiKeyClientWithBaseURI(api)
+	apiKeyClient, err := apikey.NewApiKeyClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building ApiKey client: %+v", err)
 	}
 	configureFunc(apiKeyClient.Client)
 
-	hostsClient, err := hosts.NewHostsClientWithBaseURI(api)
+	hostsClient, err := hosts.NewHostsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building Hosts client: %+v", err)
 	}
 	configureFunc(hostsClient.Client)
 
-	linkedResourcesClient, err := linkedresources.NewLinkedResourcesClientWithBaseURI(api)
+	linkedResourcesClient, err := linkedresources.NewLinkedResourcesClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building LinkedResources client: %+v", err)
 	}
 	configureFunc(linkedResourcesClient.Client)
 
-	monitoredResourcesClient, err := monitoredresources.NewMonitoredResourcesClientWithBaseURI(api)
+	monitoredResourcesClient, err := monitoredresources.NewMonitoredResourcesClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building MonitoredResources client: %+v", err)
 	}
 	configureFunc(monitoredResourcesClient.Client)
 
-	monitorsResourceClient, err := monitorsresource.NewMonitorsResourceClientWithBaseURI(api)
+	monitorsResourceClient, err := monitorsresource.NewMonitorsResourceClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building MonitorsResource client: %+v", err)
 	}
 	configureFunc(monitorsResourceClient.Client)
 
-	refreshSetPasswordLinkClient, err := refreshsetpasswordlink.NewRefreshSetPasswordLinkClientWithBaseURI(api)
+	refreshSetPasswordLinkClient, err := refreshsetpasswordlink.NewRefreshSetPasswordLinkClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building RefreshSetPasswordLink client: %+v", err)
 	}
 	configureFunc(refreshSetPasswordLinkClient.Client)
 
-	rulesClient, err := rules.NewRulesClientWithBaseURI(api)
+	rulesClient, err := rules.NewRulesClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building Rules client: %+v", err)
 	}
 	configureFunc(rulesClient.Client)
 
-	singleSignOnClient, err := singlesignon.NewSingleSignOnClientWithBaseURI(api)
+	singleSignOnClient, err := singlesignon.NewSingleSignOnClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building SingleSignOn client: %+v", err)
 	}

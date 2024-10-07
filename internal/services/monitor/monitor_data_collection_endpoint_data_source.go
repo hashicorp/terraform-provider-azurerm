@@ -49,12 +49,18 @@ func (d DataCollectionEndpointDataSource) Attributes() map[string]*pluginsdk.Sch
 			Computed: true,
 		},
 
+		"immutable_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
 		"location": commonschema.LocationComputed(),
 
 		"logs_ingestion_endpoint": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"public_network_access_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Computed: true,
@@ -95,8 +101,8 @@ func (d DataCollectionEndpointDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			var enablePublicNetWorkAccess bool
-			var description, kind, location, configurationAccessEndpoint, logsIngestionEndpoint string
+			var publicNetWorkAccessEnabled bool
+			var description, kind, location, configurationAccessEndpoint, logsIngestionEndpoint, immutableId string
 			var tag map[string]interface{}
 			if model := resp.Model; model != nil {
 				kind = flattenDataCollectionEndpointKind(model.Kind)
@@ -105,7 +111,7 @@ func (d DataCollectionEndpointDataSource) Read() sdk.ResourceFunc {
 				if prop := model.Properties; prop != nil {
 					description = flattenDataCollectionEndpointDescription(prop.Description)
 					if networkAcls := prop.NetworkAcls; networkAcls != nil {
-						enablePublicNetWorkAccess = flattenDataCollectionEndpointPublicNetworkAccess(networkAcls.PublicNetworkAccess)
+						publicNetWorkAccessEnabled = flattenDataCollectionEndpointPublicNetworkAccess(networkAcls.PublicNetworkAccess)
 					}
 
 					if prop.ConfigurationAccess != nil && prop.ConfigurationAccess.Endpoint != nil {
@@ -114,6 +120,10 @@ func (d DataCollectionEndpointDataSource) Read() sdk.ResourceFunc {
 
 					if prop.LogsIngestion != nil && prop.LogsIngestion.Endpoint != nil {
 						logsIngestionEndpoint = *prop.LogsIngestion.Endpoint
+					}
+
+					if prop.ImmutableId != nil {
+						immutableId = *prop.ImmutableId
 					}
 				}
 			}
@@ -124,10 +134,11 @@ func (d DataCollectionEndpointDataSource) Read() sdk.ResourceFunc {
 				ConfigurationAccessEndpoint: configurationAccessEndpoint,
 				Description:                 description,
 				Kind:                        kind,
+				ImmutableId:                 immutableId,
 				Location:                    location,
 				LogsIngestionEndpoint:       logsIngestionEndpoint,
 				Name:                        id.DataCollectionEndpointName,
-				EnablePublicNetworkAccess:   enablePublicNetWorkAccess,
+				PublicNetworkAccessEnabled:  publicNetWorkAccessEnabled,
 				ResourceGroupName:           id.ResourceGroupName,
 				Tags:                        tag,
 			})

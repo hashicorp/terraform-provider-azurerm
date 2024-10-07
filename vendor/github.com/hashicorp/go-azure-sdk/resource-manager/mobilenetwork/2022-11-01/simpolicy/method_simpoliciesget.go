@@ -20,7 +20,7 @@ type SimPoliciesGetOperationResponse struct {
 // SimPoliciesGet ...
 func (c SIMPolicyClient) SimPoliciesGet(ctx context.Context, id SimPolicyId) (result SimPoliciesGetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -43,7 +43,9 @@ func (c SIMPolicyClient) SimPoliciesGet(ctx context.Context, id SimPolicyId) (re
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model SimPolicy
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

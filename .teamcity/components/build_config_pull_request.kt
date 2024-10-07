@@ -35,7 +35,7 @@ class pullRequest(displayName: String, environment: String, vcsRootId : String) 
             }
 
             params {
-                TerraformAcceptanceTestParameters(defaultParallelism, "TestAcc", "12")
+                TerraformAcceptanceTestParameters(defaultParallelism, "TestAcc", defaultTimeout)
                 TerraformAcceptanceTestsFlag()
                 TerraformShouldPanicForSchemaErrors()
                 TerraformCoreBinaryTesting()

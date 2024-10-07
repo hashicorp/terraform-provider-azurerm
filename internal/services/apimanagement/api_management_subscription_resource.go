@@ -10,20 +10,22 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement" // nolint: staticcheck
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/gofrs/uuid"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/api"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/product"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/subscription"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceApiManagementSubscription() *pluginsdk.Resource {
@@ -34,7 +36,7 @@ func resourceApiManagementSubscription() *pluginsdk.Resource {
 		Delete: resourceApiManagementSubscriptionDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.SubscriptionID(id)
+			_, err := subscription.ParseSubscriptions2ID(id)
 			return err
 		}),
 
@@ -76,7 +78,7 @@ func resourceApiManagementSubscription() *pluginsdk.Resource {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
 				ForceNew:      true,
-				ValidateFunc:  validate.ProductID,
+				ValidateFunc:  product.ValidateProductID,
 				ConflictsWith: []string{"api_id"},
 			},
 
@@ -84,21 +86,21 @@ func resourceApiManagementSubscription() *pluginsdk.Resource {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
 				ForceNew:      true,
-				ValidateFunc:  validate.ApiID,
+				ValidateFunc:  api.ValidateApiID,
 				ConflictsWith: []string{"product_id"},
 			},
 
 			"state": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(apimanagement.SubscriptionStateSubmitted),
+				Default:  string(subscription.SubscriptionStateSubmitted),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(apimanagement.SubscriptionStateActive),
-					string(apimanagement.SubscriptionStateCancelled),
-					string(apimanagement.SubscriptionStateExpired),
-					string(apimanagement.SubscriptionStateRejected),
-					string(apimanagement.SubscriptionStateSubmitted),
-					string(apimanagement.SubscriptionStateSuspended),
+					string(subscription.SubscriptionStateActive),
+					string(subscription.SubscriptionStateCancelled),
+					string(subscription.SubscriptionStateExpired),
+					string(subscription.SubscriptionStateRejected),
+					string(subscription.SubscriptionStateSubmitted),
+					string(subscription.SubscriptionStateSuspended),
 				}, false),
 			},
 
@@ -140,18 +142,18 @@ func resourceApiManagementSubscriptionCreateUpdate(d *pluginsdk.ResourceData, me
 
 		subName = subId.String()
 	}
-	id := parse.NewSubscriptionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), subName)
+	id := subscription.NewSubscriptions2ID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), subName)
 
 	if d.IsNewResource() {
-		resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name)
+		resp, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
+			if !response.WasNotFound(resp.HttpResponse) {
 				return fmt.Errorf("checking for present of existing %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(resp.Response) {
-			return tf.ImportAsExistsError("azurerm_api_management_subscription", *resp.ID)
+		if !response.WasNotFound(resp.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_api_management_subscription", id.ID())
 		}
 	}
 
@@ -171,30 +173,28 @@ func resourceApiManagementSubscriptionCreateUpdate(d *pluginsdk.ResourceData, me
 		scope = "/apis"
 	}
 
-	params := apimanagement.SubscriptionCreateParameters{
-		SubscriptionCreateParameterProperties: &apimanagement.SubscriptionCreateParameterProperties{
-			DisplayName:  utils.String(displayName),
-			Scope:        utils.String(scope),
-			State:        apimanagement.SubscriptionState(state),
-			AllowTracing: utils.Bool(allowTracing),
+	params := subscription.SubscriptionCreateParameters{
+		Properties: &subscription.SubscriptionCreateParameterProperties{
+			DisplayName:  displayName,
+			Scope:        scope,
+			State:        pointer.To(subscription.SubscriptionState(state)),
+			AllowTracing: pointer.To(allowTracing),
 		},
 	}
 	if v, ok := d.GetOk("user_id"); ok {
-		params.SubscriptionCreateParameterProperties.OwnerID = utils.String(v.(string))
+		params.Properties.OwnerId = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("primary_key"); ok {
-		params.SubscriptionCreateParameterProperties.PrimaryKey = utils.String(v.(string))
+		params.Properties.PrimaryKey = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("secondary_key"); ok {
-		params.SubscriptionCreateParameterProperties.SecondaryKey = utils.String(v.(string))
+		params.Properties.SecondaryKey = pointer.To(v.(string))
 	}
 
-	sendEmail := utils.Bool(false)
-
 	err := pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
-		if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, id.Name, params, sendEmail, "", apimanagement.AppTypeDeveloperPortal); err != nil {
+		if _, err := client.CreateOrUpdate(ctx, id, params, subscription.CreateOrUpdateOperationOptions{AppType: pointer.To(subscription.AppTypeDeveloperPortal), Notify: pointer.To(false)}); err != nil {
 			// APIM admins set limit on number of subscriptions to a product.  In order to be able to correctly enforce that limit service cannot let simultaneous creations
 			// to go through and first one wins/subsequent one gets 412 and that client/user can retry. This ensures that we have proper limits enforces as desired by APIM admin.
 			if v, ok := err.(autorest.DetailedError); ok && v.StatusCode == http.StatusPreconditionFailed {
@@ -218,58 +218,62 @@ func resourceApiManagementSubscriptionRead(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SubscriptionID(d.Id())
+	id, err := subscription.ParseSubscriptions2ID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Subscription %q was not found in API Management Service %q / Resource Group %q - removing from state!", id.Name, id.ServiceName, id.ResourceGroup)
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[INFO] %s does not exist - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Subscription %q (API Management Service %q / Resource Group %q): %+v", id.Name, id.ServiceName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("subscription_id", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("subscription_id", id.SubscriptionName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("api_management_name", id.ServiceName)
 
-	if props := resp.SubscriptionContractProperties; props != nil {
-		d.Set("display_name", props.DisplayName)
-		d.Set("state", string(props.State))
-		productId := ""
-		apiId := ""
-		// check if the subscription is for all apis or a specific product/ api
-		if props.Scope != nil && *props.Scope != "" && !strings.HasSuffix(*props.Scope, "/apis") {
-			// the scope is either a product or api id
-			parseId, err := parse.ProductIDInsensitively(*props.Scope)
-			if err == nil {
-				productId = parseId.ID()
-			} else {
-				parsedApiId, err := parse.ApiIDInsensitively(*props.Scope)
-				if err != nil {
-					return fmt.Errorf("parsing scope into product/ api id %q: %+v", *props.Scope, err)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("display_name", pointer.From(props.DisplayName))
+			d.Set("state", string(props.State))
+			productId := ""
+			apiId := ""
+			// check if the subscription is for all apis or a specific product/ api
+			if props.Scope != "" && !strings.HasSuffix(props.Scope, "/apis") {
+				// the scope is either a product or api id
+				parseId, err := product.ParseProductIDInsensitively(props.Scope)
+				if err == nil {
+					productId = parseId.ID()
+				} else {
+					parsedApiId, err := api.ParseApiIDInsensitively(props.Scope)
+					if err != nil {
+						return fmt.Errorf("parsing scope into product/ api id %q: %+v", props.Scope, err)
+					}
+					apiId = parsedApiId.ID()
 				}
-				apiId = parsedApiId.ID()
 			}
+			d.Set("product_id", productId)
+			d.Set("api_id", apiId)
+			d.Set("user_id", pointer.From(props.OwnerId))
+			d.Set("allow_tracing", pointer.From(props.AllowTracing))
 		}
-		d.Set("product_id", productId)
-		d.Set("api_id", apiId)
-		d.Set("user_id", props.OwnerID)
-		d.Set("allow_tracing", props.AllowTracing)
 	}
 
 	// Primary and secondary keys must be got from this additional api
-	keyResp, err := client.ListSecrets(ctx, id.ResourceGroup, id.ServiceName, id.Name)
+	keyResp, err := client.ListSecrets(ctx, *id)
 	if err != nil {
-		return fmt.Errorf("listing Subscription %q Primary and Secondary Keys (API Management Service %q / Resource Group %q): %+v", id.Name, id.ServiceName, id.ResourceGroup, err)
+		return fmt.Errorf("listing Subscription %q Primary and Secondary Keys (API Management Service %q / Resource Group %q): %+v", id.SubscriptionId, id.ServiceName, id.ResourceGroupName, err)
 	}
-	d.Set("primary_key", keyResp.PrimaryKey)
-	d.Set("secondary_key", keyResp.SecondaryKey)
+	if model := keyResp.Model; model != nil {
+		d.Set("primary_key", pointer.From(model.PrimaryKey))
+		d.Set("secondary_key", pointer.From(model.SecondaryKey))
+	}
 
 	return nil
 }
@@ -279,14 +283,14 @@ func resourceApiManagementSubscriptionDelete(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SubscriptionID(d.Id())
+	id, err := subscription.ParseSubscriptions2ID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if resp, err := client.Delete(ctx, id.ResourceGroup, id.ServiceName, id.Name, ""); err != nil {
-		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("removing Subscription %q (API Management Service %q / Resource Group %q): %+v", id.Name, id.ServiceName, id.ResourceGroup, err)
+	if resp, err := client.Delete(ctx, *id, subscription.DeleteOperationOptions{}); err != nil {
+		if !response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("deleting %s: %+v", *id, err)
 		}
 	}
 

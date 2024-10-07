@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = DataCollectionRuleId{}
+func init() {
+	recaser.RegisterResourceId(&DataCollectionRuleId{})
+}
+
+var _ resourceids.ResourceId = &DataCollectionRuleId{}
 
 // DataCollectionRuleId is a struct representing the Resource ID for a Data Collection Rule
 type DataCollectionRuleId struct {
@@ -30,25 +35,15 @@ func NewDataCollectionRuleID(subscriptionId string, resourceGroupName string, da
 
 // ParseDataCollectionRuleID parses 'input' into a DataCollectionRuleId
 func ParseDataCollectionRuleID(input string) (*DataCollectionRuleId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DataCollectionRuleId{})
+	parser := resourceids.NewParserFromResourceIdType(&DataCollectionRuleId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := DataCollectionRuleId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.DataCollectionRuleName, ok = parsed.Parsed["dataCollectionRuleName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "dataCollectionRuleName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +52,36 @@ func ParseDataCollectionRuleID(input string) (*DataCollectionRuleId, error) {
 // ParseDataCollectionRuleIDInsensitively parses 'input' case-insensitively into a DataCollectionRuleId
 // note: this method should only be used for API response data and not user input
 func ParseDataCollectionRuleIDInsensitively(input string) (*DataCollectionRuleId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DataCollectionRuleId{})
+	parser := resourceids.NewParserFromResourceIdType(&DataCollectionRuleId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := DataCollectionRuleId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.DataCollectionRuleName, ok = parsed.Parsed["dataCollectionRuleName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "dataCollectionRuleName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *DataCollectionRuleId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.DataCollectionRuleName, ok = input.Parsed["dataCollectionRuleName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "dataCollectionRuleName", input)
+	}
+
+	return nil
 }
 
 // ValidateDataCollectionRuleID checks that 'input' can be parsed as a Data Collection Rule ID
@@ -112,7 +115,7 @@ func (id DataCollectionRuleId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftInsights", "Microsoft.Insights", "Microsoft.Insights"),
 		resourceids.StaticSegment("staticDataCollectionRules", "dataCollectionRules", "dataCollectionRules"),
-		resourceids.UserSpecifiedSegment("dataCollectionRuleName", "dataCollectionRuleValue"),
+		resourceids.UserSpecifiedSegment("dataCollectionRuleName", "dataCollectionRuleName"),
 	}
 }
 

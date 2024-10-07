@@ -8,10 +8,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -103,13 +104,13 @@ func TestAccSpringCloudCustomizedAccelerator_update(t *testing.T) {
 }
 
 func (r SpringCloudCustomizedAcceleratorResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.SpringCloudCustomizedAcceleratorID(state.ID)
+	id, err := appplatform.ParseCustomizedAcceleratorID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.AppPlatform.CustomizedAcceleratorClient.Get(ctx, id.ResourceGroup, id.SpringName, id.ApplicationAcceleratorName, id.CustomizedAcceleratorName)
+	resp, err := client.AppPlatform.AppPlatformClient.CustomizedAcceleratorsGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
@@ -184,12 +185,14 @@ resource "azurerm_spring_cloud_customized_accelerator" "test" {
   spring_cloud_accelerator_id = azurerm_spring_cloud_accelerator.test.id
 
   git_repository {
-    url                 = "https://github.com/Azure-Samples/piggymetrics"
-    branch              = "Azure"
+    url                 = "https://github.com/sample-accelerators/fragments.git"
+    branch              = "main"
     interval_in_seconds = 100
+    path                = "java-version"
   }
 
   accelerator_tags = ["tag-a", "tag-b"]
+  accelerator_type = "Fragment"
   description      = "test description"
   display_name     = "test name"
   icon_url         = "https://images.freecreatives.com/wp-content/uploads/2015/05/smiley-559124_640.jpg"

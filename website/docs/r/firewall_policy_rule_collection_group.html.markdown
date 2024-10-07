@@ -105,7 +105,7 @@ A `application_rule_collection` block supports the following:
 
 * `priority` - (Required) The priority of the application rule collection. The range is `100` - `65000`.
 
-* `rule` - (Required) One or more `application_rule` (application rule) blocks as defined below.
+* `rule` - (Required) One or more `application_rule` blocks as defined below.
 
 ---
 
@@ -117,7 +117,7 @@ A `network_rule_collection` block supports the following:
 
 * `priority` - (Required) The priority of the network rule collection. The range is `100` - `65000`.
 
-* `rule` - (Required) One or more `network_rule` (network rule) blocks as defined below.
+* `rule` - (Required) One or more `network_rule` blocks as defined below.
 
 ---
 
@@ -129,7 +129,7 @@ A `nat_rule_collection` block supports the following:
 
 * `priority` - (Required) The priority of the NAT rule collection. The range is `100` - `65000`.
 
-* `rule` - (Required) A `nat_rule` (NAT rule) block as defined below.
+* `rule` - (Required) A `nat_rule` block as defined below.
 
 ---
 
@@ -139,7 +139,9 @@ A `application_rule` (application rule) block supports the following:
 
 * `description` - (Optional) The description which should be used for this rule.
 
-* `protocols` - (Optional) One or more `protocols` blocks as defined below. Not required when specifying `destination_fqdn_tags`, but required when specifying `destination_fqdns`.
+* `protocols` - (Optional) One or more `protocols` blocks as defined below.
+
+* `http_headers` - (Optional) Specifies a list of HTTP/HTTPS headers to insert. One or more `http_headers` blocks as defined below.
 
 * `source_addresses` - (Optional) Specifies a list of source IP addresses (including CIDR, IP range and `*`).
 
@@ -163,6 +165,8 @@ A `network_rule` (network rule) block supports the following:
 
 * `name` - (Required) The name which should be used for this rule.
 
+* `description` - (Optional) The description which should be used for this rule.
+
 * `protocols` - (Required) Specifies a list of network protocols this rule applies to. Possible values are `Any`, `TCP`, `UDP`, `ICMP`.
 
 * `destination_ports` - (Required) Specifies a list of destination ports.
@@ -182,6 +186,8 @@ A `network_rule` (network rule) block supports the following:
 A `nat_rule` (NAT rule) block supports the following:
 
 * `name` - (Required) The name which should be used for this rule.
+
+* `description` - (Optional) The description which should be used for this rule.
 
 * `protocols` - (Required) Specifies a list of network protocols this rule applies to. Possible values are `TCP`, `UDP`.
 
@@ -208,6 +214,14 @@ A `protocols` block supports the following:
 * `type` - (Required) Protocol type. Possible values are `Http` and `Https`.
 
 * `port` - (Required) Port number of the protocol. Range is 0-64000.
+
+---
+
+A `http_headers` block supports the following:
+
+* `name` - (Required) Specifies the name of the header.
+
+* `value` - (Required) Specifies the value of the value.
 
 ## Attributes Reference
 

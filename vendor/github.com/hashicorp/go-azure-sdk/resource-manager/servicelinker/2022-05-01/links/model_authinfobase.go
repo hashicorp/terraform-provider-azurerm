@@ -10,9 +10,35 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type AuthInfoBase interface {
+	AuthInfoBase() BaseAuthInfoBaseImpl
 }
 
-func unmarshalAuthInfoBaseImplementation(input []byte) (AuthInfoBase, error) {
+var _ AuthInfoBase = BaseAuthInfoBaseImpl{}
+
+type BaseAuthInfoBaseImpl struct {
+	AuthType AuthType `json:"authType"`
+}
+
+func (s BaseAuthInfoBaseImpl) AuthInfoBase() BaseAuthInfoBaseImpl {
+	return s
+}
+
+var _ AuthInfoBase = RawAuthInfoBaseImpl{}
+
+// RawAuthInfoBaseImpl is returned when the Discriminated Value doesn't match any of the defined types
+// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
+// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+type RawAuthInfoBaseImpl struct {
+	authInfoBase BaseAuthInfoBaseImpl
+	Type         string
+	Values       map[string]interface{}
+}
+
+func (s RawAuthInfoBaseImpl) AuthInfoBase() BaseAuthInfoBaseImpl {
+	return s.authInfoBase
+}
+
+func UnmarshalAuthInfoBaseImplementation(input []byte) (AuthInfoBase, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -22,9 +48,9 @@ func unmarshalAuthInfoBaseImplementation(input []byte) (AuthInfoBase, error) {
 		return nil, fmt.Errorf("unmarshaling AuthInfoBase into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["authType"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["authType"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "secret") {
@@ -67,14 +93,15 @@ func unmarshalAuthInfoBaseImplementation(input []byte) (AuthInfoBase, error) {
 		return out, nil
 	}
 
-	type RawAuthInfoBaseImpl struct {
-		Type   string                 `json:"-"`
-		Values map[string]interface{} `json:"-"`
+	var parent BaseAuthInfoBaseImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseAuthInfoBaseImpl: %+v", err)
 	}
-	out := RawAuthInfoBaseImpl{
-		Type:   value,
-		Values: temp,
-	}
-	return out, nil
+
+	return RawAuthInfoBaseImpl{
+		authInfoBase: parent,
+		Type:         value,
+		Values:       temp,
+	}, nil
 
 }

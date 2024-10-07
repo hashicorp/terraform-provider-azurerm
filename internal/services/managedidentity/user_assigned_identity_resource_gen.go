@@ -84,6 +84,7 @@ func (r UserAssignedIdentityResource) Create() sdk.ResourceFunc {
 			}
 
 			subscriptionId := metadata.Client.Account.SubscriptionId
+
 			id := commonids.NewUserAssignedIdentityID(subscriptionId, config.ResourceGroupName, config.Name)
 
 			existing, err := client.UserAssignedIdentitiesGet(ctx, id)
@@ -191,18 +192,6 @@ func (r UserAssignedIdentityResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (r UserAssignedIdentityResource) mapUserAssignedIdentityResourceSchemaToUserAssignedIdentityProperties(input UserAssignedIdentityResourceSchema, output *managedidentities.UserAssignedIdentityProperties) error {
-
-	return nil
-}
-
-func (r UserAssignedIdentityResource) mapUserAssignedIdentityPropertiesToUserAssignedIdentityResourceSchema(input managedidentities.UserAssignedIdentityProperties, output *UserAssignedIdentityResourceSchema) error {
-	output.ClientId = pointer.From(input.ClientId)
-	output.PrincipalId = pointer.From(input.PrincipalId)
-	output.TenantId = pointer.From(input.TenantId)
-	return nil
-}
-
 func (r UserAssignedIdentityResource) mapUserAssignedIdentityResourceSchemaToIdentity(input UserAssignedIdentityResourceSchema, output *managedidentities.Identity) error {
 	output.Location = location.Normalize(input.Location)
 	output.Tags = tags.Expand(input.Tags)
@@ -254,5 +243,17 @@ func (r UserAssignedIdentityResource) mapIdentityUpdateToUserAssignedIdentityRes
 		return fmt.Errorf("mapping SDK Field %q / Model %q to Schema: %+v", "UserAssignedIdentityProperties", "Properties", err)
 	}
 
+	return nil
+}
+
+func (r UserAssignedIdentityResource) mapUserAssignedIdentityResourceSchemaToUserAssignedIdentityProperties(input UserAssignedIdentityResourceSchema, output *managedidentities.UserAssignedIdentityProperties) error {
+
+	return nil
+}
+
+func (r UserAssignedIdentityResource) mapUserAssignedIdentityPropertiesToUserAssignedIdentityResourceSchema(input managedidentities.UserAssignedIdentityProperties, output *UserAssignedIdentityResourceSchema) error {
+	output.ClientId = pointer.From(input.ClientId)
+	output.PrincipalId = pointer.From(input.PrincipalId)
+	output.TenantId = pointer.From(input.TenantId)
 	return nil
 }

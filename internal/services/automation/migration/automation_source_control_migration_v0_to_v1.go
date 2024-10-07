@@ -7,7 +7,7 @@ import (
 	"context"
 	"log"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2020-01-13-preview/sourcecontrol"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/sourcecontrol"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 

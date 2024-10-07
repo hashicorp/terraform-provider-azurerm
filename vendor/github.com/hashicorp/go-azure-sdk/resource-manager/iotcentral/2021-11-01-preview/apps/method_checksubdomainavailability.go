@@ -22,7 +22,7 @@ type CheckSubdomainAvailabilityOperationResponse struct {
 // CheckSubdomainAvailability ...
 func (c AppsClient) CheckSubdomainAvailability(ctx context.Context, id commonids.SubscriptionId, input OperationInputs) (result CheckSubdomainAvailabilityOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -49,7 +49,9 @@ func (c AppsClient) CheckSubdomainAvailability(ctx context.Context, id commonids
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model AppAvailabilityInfo
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

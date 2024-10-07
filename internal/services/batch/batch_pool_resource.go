@@ -5,6 +5,7 @@ package batch
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -21,6 +22,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -30,7 +32,7 @@ import (
 )
 
 func resourceBatchPool() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceBatchPoolCreate,
 		Read:   resourceBatchPoolRead,
 		Update: resourceBatchPoolUpdate,
@@ -463,9 +465,15 @@ func resourceBatchPool() *pluginsdk.Resource {
 								string(pool.DynamicVNetAssignmentScopeJob),
 							}, false),
 						},
+						"accelerated_networking_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+							ForceNew: true,
+						},
 						"subnet_id": {
 							Type:         pluginsdk.TypeString,
-							Required:     true,
+							Optional:     true,
 							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
@@ -652,12 +660,16 @@ func resourceBatchPool() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 						},
+						"automatic_upgrade_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
 						"settings_json": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsJSON,
 						},
-						"protected_settings": {
+						"protected_settings": { // todo 4.0 - should this actually be a map of key value pairs?
 							Type:      pluginsdk.TypeString,
 							Optional:  true,
 							Sensitive: true,
@@ -816,6 +828,47 @@ func resourceBatchPool() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["container_configuration"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MinItems: 1,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"type": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+						AtLeastOneOf: []string{"container_configuration.0.type", "container_configuration.0.container_image_names", "container_configuration.0.container_registries"},
+					},
+					"container_image_names": {
+						Type:     pluginsdk.TypeSet,
+						Optional: true,
+						ForceNew: true,
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						AtLeastOneOf: []string{"container_configuration.0.type", "container_configuration.0.container_image_names", "container_configuration.0.container_registries"},
+					},
+					"container_registries": {
+						Type:       pluginsdk.TypeList,
+						Optional:   true,
+						ForceNew:   true,
+						ConfigMode: pluginsdk.SchemaConfigModeAttr,
+						Elem: &pluginsdk.Resource{
+							Schema: containerRegistry(),
+						},
+						AtLeastOneOf: []string{"container_configuration.0.type", "container_configuration.0.container_image_names", "container_configuration.0.container_registries"},
+					},
+				},
+			},
+		}
+	}
+
+	return resource
 }
 
 func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -860,11 +913,11 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 	}
 	parameters.Properties.TaskSchedulingPolicy = taskSchedulingPolicy
 
-	identity, err := identity.ExpandUserAssignedMap(d.Get("identity").([]interface{}))
+	identityResult, err := identity.ExpandUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf(`expanding "identity": %v`, err)
 	}
-	parameters.Identity = identity
+	parameters.Identity = identityResult
 
 	scaleSettings, err := expandBatchPoolScaleSettings(d)
 	if err != nil {
@@ -894,6 +947,8 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 		parameters.Properties.DeploymentConfiguration = &pool.DeploymentConfiguration{
 			VirtualMachineConfiguration: vmDeploymentConfiguration,
 		}
+	} else {
+		return deploymentErr
 	}
 
 	certificates := d.Get("certificate").([]interface{})
@@ -1100,11 +1155,11 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		identity, err := identity.FlattenUserAssignedMap(model.Identity)
+		identityResult, err := identity.FlattenUserAssignedMap(model.Identity)
 		if err != nil {
 			return fmt.Errorf("flattening `identity`: %+v", err)
 		}
-		if err := d.Set("identity", identity); err != nil {
+		if err := d.Set("identity", identityResult); err != nil {
 			return fmt.Errorf("setting `identity`: %+v", err)
 		}
 
@@ -1194,8 +1249,15 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 							if item.AutoUpgradeMinorVersion != nil {
 								extension["auto_upgrade_minor_version"] = *item.AutoUpgradeMinorVersion
 							}
+							if item.EnableAutomaticUpgrade != nil {
+								extension["automatic_upgrade_enabled"] = *item.EnableAutomaticUpgrade
+							}
 							if item.Settings != nil {
-								extension["settings_json"] = item.Settings
+								settingValue, err := json.Marshal((*item.Settings).(map[string]interface{}))
+								if err != nil {
+									return fmt.Errorf("flattening `settings_json`: %+v", err)
+								}
+								extension["settings_json"] = string(settingValue)
 							}
 
 							for i := 0; i < n; i++ {

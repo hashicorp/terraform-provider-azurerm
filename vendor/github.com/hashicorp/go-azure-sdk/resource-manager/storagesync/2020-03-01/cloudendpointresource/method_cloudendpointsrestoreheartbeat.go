@@ -20,7 +20,7 @@ type CloudEndpointsrestoreheartbeatOperationResponse struct {
 // CloudEndpointsrestoreheartbeat ...
 func (c CloudEndpointResourceClient) CloudEndpointsrestoreheartbeat(ctx context.Context, id CloudEndpointId) (result CloudEndpointsrestoreheartbeatOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

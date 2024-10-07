@@ -20,7 +20,7 @@ type GetOperationResponse struct {
 // Get ...
 func (c BatchAccountClient) Get(ctx context.Context, id BatchAccountId) (result GetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -43,7 +43,9 @@ func (c BatchAccountClient) Get(ctx context.Context, id BatchAccountId) (result 
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model BatchAccount
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

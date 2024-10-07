@@ -11,9 +11,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/sshpublickeys"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/sshpublickeys"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -71,7 +72,7 @@ func dataSourceSshPublicKeyRead(d *pluginsdk.ResourceData, meta interface{}) err
 	if model := resp.Model; model != nil {
 		var publicKey *string
 		if props := model.Properties; props.PublicKey != nil {
-			publicKey, err = NormalizeSSHKey(*props.PublicKey)
+			publicKey, err = suppress.NormalizeSSHKey(*props.PublicKey)
 			if err != nil {
 				return fmt.Errorf("normalising public key: %+v", err)
 			}

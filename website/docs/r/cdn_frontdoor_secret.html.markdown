@@ -34,6 +34,11 @@ data "azuread_service_principal" "frontdoor" {
   display_name = "Microsoft.Azure.Cdn"
 }
 
+resource "azurerm_resource_group" "example" {
+  name     = "example-cdn-frontdoor"
+  location = "West Europe"
+}
+
 resource "azurerm_key_vault" "example" {
   name                       = "example-keyvault"
   location                   = azurerm_resource_group.example.location
@@ -78,20 +83,26 @@ resource "azurerm_key_vault" "example" {
 
 resource "azurerm_key_vault_certificate" "example" {
   name         = "example-cert"
-  key_vault_id = azurerm_key_vault.test.id
+  key_vault_id = azurerm_key_vault.example.id
 
   certificate {
     contents = filebase64("my-certificate.pfx")
   }
 }
 
+resource "azurerm_cdn_frontdoor_profile" "example" {
+  name                = "example-cdn-profile"
+  resource_group_name = azurerm_resource_group.example.name
+  sku_name            = "Standard_AzureFrontDoor"
+}
+
 resource "azurerm_cdn_frontdoor_secret" "example" {
   name                     = "example-customer-managed-secret"
-  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
 
   secret {
     customer_certificate {
-      key_vault_certificate_id = azurerm_key_vault_certificate.test.id
+      key_vault_certificate_id = azurerm_key_vault_certificate.example.id
     }
   }
 }

@@ -138,6 +138,21 @@ func TestAccStreamAnalyticsOutputBlob_authenticationMode(t *testing.T) {
 	})
 }
 
+func TestAccStreamAnalyticsOutputBlob_blobWriteMode(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_blob", "test")
+	r := StreamAnalyticsOutputBlobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.blobWriteMode(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("storage_account_key"),
+	})
+}
+
 func (r StreamAnalyticsOutputBlobResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := outputs.ParseOutputID(state.ID)
 	if err != nil {
@@ -386,4 +401,29 @@ QUERY
   %s
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, identity)
+}
+
+func (r StreamAnalyticsOutputBlobResource) blobWriteMode(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_stream_analytics_output_blob" "test" {
+  name                      = "acctestinput-%d"
+  stream_analytics_job_name = azurerm_stream_analytics_job.test.name
+  resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
+  storage_account_name      = azurerm_storage_account.test.name
+  storage_account_key       = azurerm_storage_account.test.primary_access_key
+  storage_container_name    = azurerm_storage_container.test.name
+  path_pattern              = "some-pattern/{date}/{time}"
+  date_format               = "yyyy-MM-dd"
+  time_format               = "HH"
+  blob_write_mode           = "Once"
+
+  serialization {
+    type            = "Csv"
+    encoding        = "UTF8"
+    field_delimiter = ","
+  }
+}
+`, r.template(data, ""), data.RandomInteger)
 }

@@ -10,6 +10,8 @@ description: |-
 
 Manages a NetApp Volume.
 
+!>**IMPORTANT:** To mitigate the possibility of accidental data loss it is highly recommended that you use the `prevent_destroy` lifecycle argument in your configuration file for this resource. For more information on the `prevent_destroy` lifecycle argument please see the [terraform documentation](https://developer.hashicorp.com/terraform/tutorials/state/resource-lifecycle#prevent-resource-deletion).
+
 ## NetApp Volume Usage
 
 ```hcl
@@ -57,10 +59,6 @@ resource "azurerm_netapp_pool" "example" {
 }
 
 resource "azurerm_netapp_volume" "example" {
-  lifecycle {
-    prevent_destroy = true
-  }
-
   name                       = "example-netappvolume"
   location                   = azurerm_resource_group.example.location
   zone                       = "1"
@@ -70,9 +68,8 @@ resource "azurerm_netapp_volume" "example" {
   volume_path                = "my-unique-file-path"
   service_level              = "Premium"
   subnet_id                  = azurerm_subnet.example.id
-  network_features           = "Basic"
   protocols                  = ["NFSv4.1"]
-  security_style             = "Unix"
+  security_style             = "unix"
   storage_quota_in_gb        = 100
   snapshot_directory_visible = false
 
@@ -92,6 +89,11 @@ resource "azurerm_netapp_volume" "example" {
   # Note: this cannot be used in conjunction with data_protection_replication when endpoint_type is dst
   data_protection_snapshot_policy {
     snapshot_policy_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.NetApp/netAppAccounts/account1/snapshotPolicies/snapshotpolicy1"
+  }
+
+  # prevent the possibility of accidental data loss
+  lifecycle {
+    prevent_destroy = true
   }
 }
 ```
@@ -120,11 +122,11 @@ The following arguments are supported:
 
 * `protocols` - (Optional) The target volume protocol expressed as a list. Supported single value include `CIFS`, `NFSv3`, or `NFSv4.1`. If argument is not defined it will default to `NFSv3`. Changing this forces a new resource to be created and data will be lost. Dual protocol scenario is supported for CIFS and NFSv3, for more information, please refer to [Create a dual-protocol volume for Azure NetApp Files](https://docs.microsoft.com/azure/azure-netapp-files/create-volumes-dual-protocol) document.
 
-* `security_style` - (Optional) Volume security style, accepted values are `Unix` or `Ntfs`. If not provided, single-protocol volume is created defaulting to `Unix` if it is `NFSv3` or `NFSv4.1` volume, if `CIFS`, it will default to `Ntfs`. In a dual-protocol volume, if not provided, its value will be `Ntfs`. Changing this forces a new resource to be created.
+* `security_style` - (Optional) Volume security style, accepted values are `unix` or `ntfs`. If not provided, single-protocol volume is created defaulting to `unix` if it is `NFSv3` or `NFSv4.1` volume, if `CIFS`, it will default to `ntfs`. In a dual-protocol volume, if not provided, its value will be `ntfs`. Changing this forces a new resource to be created.
 
 * `subnet_id` - (Required) The ID of the Subnet the NetApp Volume resides in, which must have the `Microsoft.NetApp/volumes` delegation. Changing this forces a new resource to be created.
 
-* `network_features` - (Optional) Indicates which network feature to use, accepted values are `Basic` or `Standard`, it defaults to `Basic` if not defined. This is a feature in public preview and for more information about it and how to register, please refer to [Configure network features for an Azure NetApp Files volume](https://docs.microsoft.com/en-us/azure/azure-netapp-files/configure-network-features). Changing this forces a new resource to be created.
+* `network_features` - (Optional) Indicates which network feature to use, accepted values are `Basic` or `Standard`, it defaults to `Basic` if not defined. This is a feature in public preview and for more information about it and how to register, please refer to [Configure network features for an Azure NetApp Files volume](https://docs.microsoft.com/en-us/azure/azure-netapp-files/configure-network-features).
 
 * `storage_quota_in_gb` - (Required) The maximum Storage Quota allowed for a file system in Gigabytes.
 
@@ -139,6 +141,22 @@ The following arguments are supported:
 * `export_policy_rule` - (Optional) One or more `export_policy_rule` block defined below.
 
 * `throughput_in_mibps` - (Optional) Throughput of this volume in Mibps.
+
+* `encryption_key_source` - (Optional) The encryption key source, it can be `Microsoft.NetApp` for platform managed keys or `Microsoft.KeyVault` for customer-managed keys. This is required with `key_vault_private_endpoint_id`. Changing this forces a new resource to be created.
+
+* `kerberos_enabled` - (Optional) Enable to allow Kerberos secured volumes. Requires appropriate export rules.
+
+~> **NOTE:** `kerberos_enabled` requires that the parent `azurerm_netapp_account` has a *valid* AD connection defined. If the configuration is invalid, the volume will still be created but in a failed state. This requires manually deleting the volume and recreating it again via Terraform once the AD configuration has been corrected.
+
+* `key_vault_private_endpoint_id` - (Optional) The Private Endpoint ID for Key Vault, which is required when using customer-managed keys. This is required with `encryption_key_source`. Changing this forces a new resource to be created.
+
+* `smb_non_browsable_enabled` - (Optional) Limits clients from browsing for an SMB share by hiding the share from view in Windows Explorer or when listing shares in "net view." Only end users that know the absolute paths to the share are able to find the share. Defaults to `false`. For more information, please refer to [Understand NAS share permissions in Azure NetApp Files](https://learn.microsoft.com/en-us/azure/azure-netapp-files/network-attached-storage-permissions#:~:text=Non%2Dbrowsable%20shares,find%20the%20share.)
+
+* `smb_access_based_enumeration_enabled` - (Optional) Limits enumeration of files and folders (that is, listing the contents) in SMB only to users with allowed access on the share. For instance, if a user doesn't have access to read a file or folder in a share with access-based enumeration enabled, then the file or folder doesn't show up in directory listings. Defaults to `false`. For more information, please refer to [Understand NAS share permissions in Azure NetApp Files](https://learn.microsoft.com/en-us/azure/azure-netapp-files/network-attached-storage-permissions#:~:text=security%20for%20administrators.-,Access%2Dbased%20enumeration,in%20an%20Azure%20NetApp%20Files%20SMB%20volume.%20Only%20contosoadmin%20has%20access.,-In%20the%20below)
+
+* `smb_continuous_availability_enabled` - (Optional) Enable SMB Continuous Availability.
+
+* `smb3_protocol_encryption_enabled` - (Optional) Enable SMB encryption.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -159,6 +177,18 @@ An `export_policy_rule` block supports the following:
 * `unix_read_write` - (Optional) Is the file system on unix read and write?
 
 * `root_access_enabled` - (Optional) Is root access permitted to this volume?
+
+* `kerberos_5_read_only_enabled` - (Optional) Is Kerberos 5 read-only access permitted to this volume?
+
+* `kerberos_5_read_write_enabled` - (Optional) Is Kerberos 5 read/write permitted to this volume?
+
+* `kerberos_5i_read_only_enabled` - (Optional) Is Kerberos 5i read-only permitted to this volume?
+
+* `kerberos_5i_read_write_enabled` - (Optional) Is Kerberos 5i read/write permitted to this volume?
+
+* `kerberos_5p_read_only_enabled` - (Optional) Is Kerberos 5p read-only permitted to this volume?
+
+* `kerberos_5p_read_write_enabled` - (Optional) Is Kerberos 5p read/write permitted to this volume?
 
 ---
 

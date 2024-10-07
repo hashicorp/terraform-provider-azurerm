@@ -20,7 +20,7 @@ type GetOperationResponse struct {
 // Get ...
 func (c ViewsClient) Get(ctx context.Context, id ViewId) (result GetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -43,7 +43,9 @@ func (c ViewsClient) Get(ctx context.Context, id ViewId) (result GetOperationRes
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model View
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

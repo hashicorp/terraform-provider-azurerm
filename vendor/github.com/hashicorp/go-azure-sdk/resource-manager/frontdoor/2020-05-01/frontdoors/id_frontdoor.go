@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = FrontDoorId{}
+func init() {
+	recaser.RegisterResourceId(&FrontDoorId{})
+}
+
+var _ resourceids.ResourceId = &FrontDoorId{}
 
 // FrontDoorId is a struct representing the Resource ID for a Front Door
 type FrontDoorId struct {
@@ -30,25 +35,15 @@ func NewFrontDoorID(subscriptionId string, resourceGroupName string, frontDoorNa
 
 // ParseFrontDoorID parses 'input' into a FrontDoorId
 func ParseFrontDoorID(input string) (*FrontDoorId, error) {
-	parser := resourceids.NewParserFromResourceIdType(FrontDoorId{})
+	parser := resourceids.NewParserFromResourceIdType(&FrontDoorId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := FrontDoorId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.FrontDoorName, ok = parsed.Parsed["frontDoorName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "frontDoorName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +52,36 @@ func ParseFrontDoorID(input string) (*FrontDoorId, error) {
 // ParseFrontDoorIDInsensitively parses 'input' case-insensitively into a FrontDoorId
 // note: this method should only be used for API response data and not user input
 func ParseFrontDoorIDInsensitively(input string) (*FrontDoorId, error) {
-	parser := resourceids.NewParserFromResourceIdType(FrontDoorId{})
+	parser := resourceids.NewParserFromResourceIdType(&FrontDoorId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := FrontDoorId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.FrontDoorName, ok = parsed.Parsed["frontDoorName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "frontDoorName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *FrontDoorId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.FrontDoorName, ok = input.Parsed["frontDoorName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "frontDoorName", input)
+	}
+
+	return nil
 }
 
 // ValidateFrontDoorID checks that 'input' can be parsed as a Front Door ID
@@ -112,7 +115,7 @@ func (id FrontDoorId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticFrontDoors", "frontDoors", "frontDoors"),
-		resourceids.UserSpecifiedSegment("frontDoorName", "frontDoorValue"),
+		resourceids.UserSpecifiedSegment("frontDoorName", "frontDoorName"),
 	}
 }
 

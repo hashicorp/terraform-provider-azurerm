@@ -18,12 +18,13 @@ type CloudEndpointsPostBackupOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *PostBackupResponse
 }
 
 // CloudEndpointsPostBackup ...
 func (c CloudEndpointResourceClient) CloudEndpointsPostBackup(ctx context.Context, id CloudEndpointId, input BackupRequest) (result CloudEndpointsPostBackupOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

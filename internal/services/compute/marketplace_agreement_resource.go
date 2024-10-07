@@ -20,7 +20,7 @@ import (
 
 func resourceMarketplaceAgreement() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceMarketplaceAgreementCreateUpdate,
+		Create: resourceMarketplaceAgreementCreate,
 		Read:   resourceMarketplaceAgreementRead,
 		Delete: resourceMarketplaceAgreementDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -31,7 +31,6 @@ func resourceMarketplaceAgreement() *pluginsdk.Resource {
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
@@ -70,7 +69,7 @@ func resourceMarketplaceAgreement() *pluginsdk.Resource {
 	}
 }
 
-func resourceMarketplaceAgreementCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMarketplaceAgreementCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.MarketplaceAgreementsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId

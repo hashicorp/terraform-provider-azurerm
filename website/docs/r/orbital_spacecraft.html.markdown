@@ -25,8 +25,8 @@ resource "azurerm_orbital_spacecraft" "example" {
   norad_id            = "12345"
 
   links {
-    bandwidth_mhz        = 100
-    center_frequency_mhz = 101
+    bandwidth_mhz        = 30
+    center_frequency_mhz = 2050
     direction            = "Uplink"
     polarization         = "LHCP"
     name                 = "examplename"
@@ -68,6 +68,8 @@ A `links` block supports the following:
 * `bandwidth_mhz` - (Required) Bandwidth in Mhz.
 
 * `center_frequency_mhz` - (Required) Center frequency in Mhz.
+
+~> **Note:** The value of `center_frequency_mhz +/- bandwidth_mhz / 2` should fall in one of these ranges: `Uplink/LHCP`: [2025, 2120]; `Uplink/Linear`: [399, 403],[435, 438],[449, 451]; `Uplink/RHCP`: [399, 403],[435, 438],[449, 451],[2025, 2120]; `Downlink/LHCP`: [2200, 2300], [7500, 8400]; `Downlink/Linear`: [399, 403], [435, 438], [449, 451]; Downlink/Linear`: [399, 403], [435, 438], [449, 451], [2200, 2300], [7500, 8400]
 
 * `direction` - (Required) Direction if the communication. Possible values are `Uplink` and `Downlink`.
 

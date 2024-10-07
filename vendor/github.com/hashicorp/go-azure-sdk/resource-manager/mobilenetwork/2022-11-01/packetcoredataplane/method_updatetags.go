@@ -20,7 +20,7 @@ type UpdateTagsOperationResponse struct {
 // UpdateTags ...
 func (c PacketCoreDataPlaneClient) UpdateTags(ctx context.Context, id PacketCoreDataPlaneId, input TagsObject) (result UpdateTagsOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -47,7 +47,9 @@ func (c PacketCoreDataPlaneClient) UpdateTags(ctx context.Context, id PacketCore
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model PacketCoreDataPlane
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

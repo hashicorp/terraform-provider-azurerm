@@ -9,7 +9,7 @@ type LinkedResourceOperationPredicate struct {
 
 func (p LinkedResourceOperationPredicate) Matches(input LinkedResource) bool {
 
-	if p.Id != nil && (input.Id == nil && *p.Id != *input.Id) {
+	if p.Id != nil && (input.Id == nil || *p.Id != *input.Id) {
 		return false
 	}
 

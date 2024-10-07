@@ -18,12 +18,13 @@ type CreateOrUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *DataNetwork
 }
 
 // CreateOrUpdate ...
 func (c DataNetworkClient) CreateOrUpdate(ctx context.Context, id DataNetworkId, input DataNetwork) (result CreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

@@ -20,7 +20,7 @@ type ClustersGetOperationResponse struct {
 // ClustersGet ...
 func (c EventHubsClustersClient) ClustersGet(ctx context.Context, id ClusterId) (result ClustersGetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -43,7 +43,9 @@ func (c EventHubsClustersClient) ClustersGet(ctx context.Context, id ClusterId) 
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Cluster
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/routefilters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/routefilters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -75,7 +75,7 @@ func dataSourceRouteFilter() *pluginsdk.Resource {
 }
 
 func dataSourceRouteFilterRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.RouteFiltersClient
+	client := meta.(*clients.Client).Network.RouteFilters
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -96,7 +96,7 @@ func dataSourceRouteFilterRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		d.Set("location", location.Normalize(model.Location))
+		d.Set("location", location.NormalizeNilable(model.Location))
 
 		if props := model.Properties; props != nil {
 			if err = d.Set("rule", flattenRouteFilterDataSourceRules(props.Rules)); err != nil {

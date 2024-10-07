@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2022-04-01/backuppolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backuppolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -53,34 +53,6 @@ func TestAccDataProtectionBackupPolicyPostgreSQL_complete(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccDataProtectionBackupPolicyPostgreSQL_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_postgresql", "test")
-	r := DataProtectionBackupPolicyPostgreSQLResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -169,6 +141,8 @@ resource "azurerm_data_protection_backup_policy_postgresql" "test" {
 
   backup_repeating_time_intervals = ["R/2021-05-23T02:30:00+00:00/P1W"]
   default_retention_duration      = "P4M"
+  time_zone                       = "India Standard Time"
+
   retention_rule {
     name     = "weekly"
     duration = "P6M"

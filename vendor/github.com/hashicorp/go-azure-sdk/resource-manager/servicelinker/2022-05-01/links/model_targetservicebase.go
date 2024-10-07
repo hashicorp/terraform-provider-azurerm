@@ -10,9 +10,35 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type TargetServiceBase interface {
+	TargetServiceBase() BaseTargetServiceBaseImpl
 }
 
-func unmarshalTargetServiceBaseImplementation(input []byte) (TargetServiceBase, error) {
+var _ TargetServiceBase = BaseTargetServiceBaseImpl{}
+
+type BaseTargetServiceBaseImpl struct {
+	Type TargetServiceType `json:"type"`
+}
+
+func (s BaseTargetServiceBaseImpl) TargetServiceBase() BaseTargetServiceBaseImpl {
+	return s
+}
+
+var _ TargetServiceBase = RawTargetServiceBaseImpl{}
+
+// RawTargetServiceBaseImpl is returned when the Discriminated Value doesn't match any of the defined types
+// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
+// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+type RawTargetServiceBaseImpl struct {
+	targetServiceBase BaseTargetServiceBaseImpl
+	Type              string
+	Values            map[string]interface{}
+}
+
+func (s RawTargetServiceBaseImpl) TargetServiceBase() BaseTargetServiceBaseImpl {
+	return s.targetServiceBase
+}
+
+func UnmarshalTargetServiceBaseImplementation(input []byte) (TargetServiceBase, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -22,9 +48,9 @@ func unmarshalTargetServiceBaseImplementation(input []byte) (TargetServiceBase, 
 		return nil, fmt.Errorf("unmarshaling TargetServiceBase into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["type"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["type"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "AzureResource") {
@@ -51,14 +77,15 @@ func unmarshalTargetServiceBaseImplementation(input []byte) (TargetServiceBase, 
 		return out, nil
 	}
 
-	type RawTargetServiceBaseImpl struct {
-		Type   string                 `json:"-"`
-		Values map[string]interface{} `json:"-"`
+	var parent BaseTargetServiceBaseImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseTargetServiceBaseImpl: %+v", err)
 	}
-	out := RawTargetServiceBaseImpl{
-		Type:   value,
-		Values: temp,
-	}
-	return out, nil
+
+	return RawTargetServiceBaseImpl{
+		targetServiceBase: parent,
+		Type:              value,
+		Values:            temp,
+	}, nil
 
 }

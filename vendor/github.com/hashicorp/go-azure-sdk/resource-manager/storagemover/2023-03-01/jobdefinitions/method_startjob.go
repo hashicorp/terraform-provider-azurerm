@@ -21,7 +21,7 @@ type StartJobOperationResponse struct {
 // StartJob ...
 func (c JobDefinitionsClient) StartJob(ctx context.Context, id JobDefinitionId) (result StartJobOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -44,7 +44,9 @@ func (c JobDefinitionsClient) StartJob(ctx context.Context, id JobDefinitionId) 
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model JobRunResourceId
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

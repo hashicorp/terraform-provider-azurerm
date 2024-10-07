@@ -31,9 +31,9 @@ const (
 
 type ApplicationStackWindows struct {
 	CurrentStack            string `tfschema:"current_stack"`
-	DockerContainerName     string `tfschema:"docker_container_name"`
-	DockerContainerRegistry string `tfschema:"docker_container_registry"`
-	DockerContainerTag      string `tfschema:"docker_container_tag"`
+	DockerContainerName     string `tfschema:"docker_container_name,removedInNextMajorVersion"`
+	DockerContainerRegistry string `tfschema:"docker_container_registry,removedInNextMajorVersion"`
+	DockerContainerTag      string `tfschema:"docker_container_tag,removedInNextMajorVersion"`
 	JavaContainer           string `tfschema:"java_container"`
 	JavaContainerVersion    string `tfschema:"java_container_version"`
 	JavaEmbeddedServer      bool   `tfschema:"java_embedded_server_enabled"`
@@ -42,7 +42,7 @@ type ApplicationStackWindows struct {
 	NetCoreVersion          string `tfschema:"dotnet_core_version"`
 	NodeVersion             string `tfschema:"node_version"`
 	PhpVersion              string `tfschema:"php_version"`
-	PythonVersion           string `tfschema:"python_version"`
+	PythonVersion           string `tfschema:"python_version,removedInNextMajorVersion"`
 	Python                  bool   `tfschema:"python"`
 	TomcatVersion           string `tfschema:"tomcat_version"`
 
@@ -71,7 +71,6 @@ var windowsApplicationStackConstraint = []string{
 	"site_config.0.application_stack.0.java_version",
 	"site_config.0.application_stack.0.node_version",
 	"site_config.0.application_stack.0.php_version",
-	"site_config.0.application_stack.0.python_version",
 	"site_config.0.application_stack.0.python",
 }
 
@@ -88,7 +87,8 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 					"v4.0",
 					"v5.0",
 					"v6.0",
-					"v7.0"}, false),
+					"v7.0",
+					"v8.0"}, false),
 				AtLeastOneOf: windowsApplicationStackConstraint,
 			},
 
@@ -128,6 +128,7 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 					"~14",
 					"~16",
 					"~18",
+					"~20",
 				}, false),
 				AtLeastOneOf: windowsApplicationStackConstraint,
 			},
@@ -282,6 +283,7 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 			"~14",
 			"~16",
 			"~18",
+			"~20",
 		}, false)
 		r.Schema["java_version"].AtLeastOneOf = windowsApplicationStackConstraintThreePointX
 
@@ -419,8 +421,8 @@ type ApplicationStackLinux struct {
 	JavaVersion         string `tfschema:"java_version"`
 	JavaServer          string `tfschema:"java_server"`
 	JavaServerVersion   string `tfschema:"java_server_version"`
-	DockerImageTag      string `tfschema:"docker_image_tag"`
-	DockerImage         string `tfschema:"docker_image"`
+	DockerImageTag      string `tfschema:"docker_image_tag,removedInNextMajorVersion"`
+	DockerImage         string `tfschema:"docker_image,removedInNextMajorVersion"`
 	RubyVersion         string `tfschema:"ruby_version"`
 
 	DockerRegistryUrl      string `tfschema:"docker_registry_url"`
@@ -463,6 +465,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 					"5.0", // deprecated
 					"6.0",
 					"7.0",
+					"8.0",
 				}, false),
 				ExactlyOneOf: linuxApplicationStackConstraint,
 			},
@@ -485,6 +488,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 					"8.0",
 					"8.1",
 					"8.2",
+					"8.3",
 				}, false),
 				ExactlyOneOf: linuxApplicationStackConstraint,
 			},
@@ -498,6 +502,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 					"3.9",
 					"3.10",
 					"3.11",
+					"3.12",
 				}, false),
 				ExactlyOneOf: linuxApplicationStackConstraint,
 			},
@@ -510,6 +515,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 					"14-lts",
 					"16-lts",
 					"18-lts",
+					"20-lts",
 				}, false),
 				ExactlyOneOf: linuxApplicationStackConstraint,
 			},
@@ -533,6 +539,9 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 					"17",
 				}, false),
 				ExactlyOneOf: linuxApplicationStackConstraint,
+				RequiredWith: []string{
+					"site_config.0.application_stack.0.java_server_version", "site_config.0.application_stack.0.java_server",
+				},
 			},
 
 			"java_server": {
@@ -544,7 +553,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 					"JBOSSEAP",
 				}, false),
 				RequiredWith: []string{
-					"site_config.0.application_stack.0.java_version",
+					"site_config.0.application_stack.0.java_version", "site_config.0.application_stack.0.java_server_version",
 				},
 			},
 
@@ -552,7 +561,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				RequiredWith: []string{
-					"site_config.0.application_stack.0.java_server",
+					"site_config.0.application_stack.0.java_version", "site_config.0.application_stack.0.java_server",
 				},
 			},
 

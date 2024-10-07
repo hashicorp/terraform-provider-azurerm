@@ -8,12 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type StorageBlobInventoryPolicyResource struct{}
@@ -95,26 +96,43 @@ func TestAccStorageBlobInventoryPolicy_update(t *testing.T) {
 	})
 }
 
+func TestAccStorageBlobInventoryPolicy_containerFilter(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_blob_inventory_policy", "test")
+	r := StorageBlobInventoryPolicyResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.containerFilter(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r StorageBlobInventoryPolicyResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.BlobInventoryPolicyID(state.ID)
+	id, err := commonids.ParseStorageAccountID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.Storage.BlobInventoryPoliciesClient.Get(ctx, id.ResourceGroup, id.StorageAccountName)
+
+	resp, err := client.Storage.ResourceManager.BlobInventoryPolicies.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
+		if response.WasNotFound(resp.HttpResponse) {
+			return pointer.To(false), nil
 		}
-		return nil, fmt.Errorf("retrieving %q: %+v", id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	if props := resp.BlobInventoryPolicyProperties; props != nil {
-		if policy := props.Policy; policy != nil {
-			if policy.Enabled == nil || !*policy.Enabled {
-				return utils.Bool(false), nil
+
+	found := false
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			if props.Policy.Enabled {
+				found = true
 			}
 		}
 	}
-	return utils.Bool(true), nil
+	return pointer.To(found), nil
 }
 
 func (r StorageBlobInventoryPolicyResource) template(data acceptance.TestData) string {
@@ -275,4 +293,34 @@ resource "azurerm_storage_blob_inventory_policy" "test" {
   }
 }
 `, template)
+}
+
+func (r StorageBlobInventoryPolicyResource) containerFilter(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_blob_inventory_policy" "test" {
+  storage_account_id = azurerm_storage_account.test.id
+  rules {
+    name                   = "rule1"
+    storage_container_name = azurerm_storage_container.test.name
+    format                 = "Csv"
+    schedule               = "Daily"
+    scope                  = "Container"
+    filter {
+      blob_types      = []
+      include_deleted = true
+    }
+    schema_fields = [
+      "Name",
+      "Last-Modified",
+      "Deleted",
+      "HasImmutabilityPolicy",
+      "Version",
+      "DeletedTime",
+      "RemainingRetentionDays"
+    ]
+  }
+}
+`, r.template(data))
 }

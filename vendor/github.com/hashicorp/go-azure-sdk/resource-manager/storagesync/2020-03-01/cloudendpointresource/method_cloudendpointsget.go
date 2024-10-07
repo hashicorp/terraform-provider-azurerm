@@ -20,7 +20,7 @@ type CloudEndpointsGetOperationResponse struct {
 // CloudEndpointsGet ...
 func (c CloudEndpointResourceClient) CloudEndpointsGet(ctx context.Context, id CloudEndpointId) (result CloudEndpointsGetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -43,7 +43,9 @@ func (c CloudEndpointResourceClient) CloudEndpointsGet(ctx context.Context, id C
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model CloudEndpoint
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

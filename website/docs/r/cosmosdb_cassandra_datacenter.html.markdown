@@ -100,6 +100,8 @@ The following arguments are supported:
 
 * `sku_name` - (Optional) Determines the selected sku.
 
+-> **NOTE:** In v4.0 of the provider the `sku_name` will have a default value of `Standard_E16s_v5`.
+
 * `disk_count` - (Optional) Determines the number of p30 disks that are attached to each node.
 
 * `availability_zones_enabled` - (Optional) Determines whether availability zones are enabled. Defaults to `true`.
@@ -109,6 +111,8 @@ The following arguments are supported:
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Cassandra Datacenter.
+
+* `seed_node_ip_addresses` - A list of IP Address for the seed nodes in this Cassandra Datacenter. 
 
 ## Timeouts
 

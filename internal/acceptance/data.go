@@ -11,7 +11,6 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
@@ -40,17 +39,13 @@ type TestData struct {
 	// RandomString is a random 5 character string is unique to this test case
 	RandomString string
 
-	// ResourceName is the fully qualified resource name, comprising of the
+	// ResourceName is the fully qualified resource name, comprising the
 	// resource type and then the resource label
 	// e.g. `azurerm_resource_group.test`
 	ResourceName string
 
 	// ResourceType is the Terraform Resource Type - `azurerm_resource_group`
 	ResourceType string
-
-	// Environment is a struct containing Details about the Azure Environment
-	// that we're running against
-	Environment azure.Environment
 
 	// EnvironmentName is the name of the Azure Environment where we're running
 	EnvironmentName string
@@ -64,16 +59,10 @@ type TestData struct {
 
 // BuildTestData generates some test data for the given resource
 func BuildTestData(t *testing.T, resourceType string, resourceLabel string) TestData {
-	env, err := Environment()
-	if err != nil {
-		t.Fatalf("Error retrieving Environment: %+v", err)
-	}
-
 	testData := TestData{
 		RandomInteger:   RandTimeInt(),
 		RandomString:    randString(5),
 		ResourceName:    fmt.Sprintf("%s.%s", resourceType, resourceLabel),
-		Environment:     *env,
 		EnvironmentName: EnvironmentName(),
 		MetadataURL:     os.Getenv("ARM_METADATA_HOSTNAME"),
 

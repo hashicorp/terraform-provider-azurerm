@@ -21,7 +21,7 @@ type AccountsRegenerateKeyOperationResponse struct {
 // AccountsRegenerateKey ...
 func (c CognitiveServicesAccountsClient) AccountsRegenerateKey(ctx context.Context, id AccountId, input RegenerateKeyParameters) (result AccountsRegenerateKeyOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -48,7 +48,9 @@ func (c CognitiveServicesAccountsClient) AccountsRegenerateKey(ctx context.Conte
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ApiKeys
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

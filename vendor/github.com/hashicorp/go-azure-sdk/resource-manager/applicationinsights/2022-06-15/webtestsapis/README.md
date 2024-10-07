@@ -1,13 +1,14 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-06-15/webtestsapis` Documentation
 
-The `webtestsapis` SDK allows for interaction with the Azure Resource Manager Service `applicationinsights` (API Version `2022-06-15`).
+The `webtestsapis` SDK allows for interaction with Azure Resource Manager `applicationinsights` (API Version `2022-06-15`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-06-15/webtestsapis"
 ```
 
@@ -24,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := webtestsapis.NewWebTestID("12345678-1234-9876-4563-123456789012", "example-resource-group", "webTestValue")
+id := webtestsapis.NewWebTestID("12345678-1234-9876-4563-123456789012", "example-resource-group", "webTestName")
 
 payload := webtestsapis.WebTest{
 	// ...
@@ -45,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webtestsapis.NewWebTestID("12345678-1234-9876-4563-123456789012", "example-resource-group", "webTestValue")
+id := webtestsapis.NewWebTestID("12345678-1234-9876-4563-123456789012", "example-resource-group", "webTestName")
 
 read, err := client.WebTestsDelete(ctx, id)
 if err != nil {
@@ -61,7 +62,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webtestsapis.NewWebTestID("12345678-1234-9876-4563-123456789012", "example-resource-group", "webTestValue")
+id := webtestsapis.NewWebTestID("12345678-1234-9876-4563-123456789012", "example-resource-group", "webTestName")
 
 read, err := client.WebTestsGet(ctx, id)
 if err != nil {
@@ -77,7 +78,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webtestsapis.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 // alternatively `client.WebTestsList(ctx, id)` can be used to do batched pagination
 items, err := client.WebTestsListComplete(ctx, id)
@@ -94,7 +95,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webtestsapis.NewComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "componentValue")
+id := webtestsapis.NewComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "componentName")
 
 // alternatively `client.WebTestsListByComponent(ctx, id)` can be used to do batched pagination
 items, err := client.WebTestsListByComponentComplete(ctx, id)
@@ -111,7 +112,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webtestsapis.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
+id := commonids.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
 // alternatively `client.WebTestsListByResourceGroup(ctx, id)` can be used to do batched pagination
 items, err := client.WebTestsListByResourceGroupComplete(ctx, id)
@@ -128,7 +129,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webtestsapis.NewWebTestID("12345678-1234-9876-4563-123456789012", "example-resource-group", "webTestValue")
+id := webtestsapis.NewWebTestID("12345678-1234-9876-4563-123456789012", "example-resource-group", "webTestName")
 
 payload := webtestsapis.TagsResource{
 	// ...

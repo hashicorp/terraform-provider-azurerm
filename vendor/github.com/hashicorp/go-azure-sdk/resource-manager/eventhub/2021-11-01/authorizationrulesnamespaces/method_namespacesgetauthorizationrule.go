@@ -20,7 +20,7 @@ type NamespacesGetAuthorizationRuleOperationResponse struct {
 // NamespacesGetAuthorizationRule ...
 func (c AuthorizationRulesNamespacesClient) NamespacesGetAuthorizationRule(ctx context.Context, id AuthorizationRuleId) (result NamespacesGetAuthorizationRuleOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -43,7 +43,9 @@ func (c AuthorizationRulesNamespacesClient) NamespacesGetAuthorizationRule(ctx c
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model AuthorizationRule
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

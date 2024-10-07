@@ -18,11 +18,24 @@ type AzureSQLAGWorkloadContainerProtectionContainer struct {
 	WorkloadType     *WorkloadType                       `json:"workloadType,omitempty"`
 
 	// Fields inherited from ProtectionContainer
-	BackupManagementType  *BackupManagementType `json:"backupManagementType,omitempty"`
-	FriendlyName          *string               `json:"friendlyName,omitempty"`
-	HealthStatus          *string               `json:"healthStatus,omitempty"`
-	ProtectableObjectType *string               `json:"protectableObjectType,omitempty"`
-	RegistrationStatus    *string               `json:"registrationStatus,omitempty"`
+
+	BackupManagementType  *BackupManagementType    `json:"backupManagementType,omitempty"`
+	ContainerType         ProtectableContainerType `json:"containerType"`
+	FriendlyName          *string                  `json:"friendlyName,omitempty"`
+	HealthStatus          *string                  `json:"healthStatus,omitempty"`
+	ProtectableObjectType *string                  `json:"protectableObjectType,omitempty"`
+	RegistrationStatus    *string                  `json:"registrationStatus,omitempty"`
+}
+
+func (s AzureSQLAGWorkloadContainerProtectionContainer) ProtectionContainer() BaseProtectionContainerImpl {
+	return BaseProtectionContainerImpl{
+		BackupManagementType:  s.BackupManagementType,
+		ContainerType:         s.ContainerType,
+		FriendlyName:          s.FriendlyName,
+		HealthStatus:          s.HealthStatus,
+		ProtectableObjectType: s.ProtectableObjectType,
+		RegistrationStatus:    s.RegistrationStatus,
+	}
 }
 
 var _ json.Marshaler = AzureSQLAGWorkloadContainerProtectionContainer{}
@@ -36,9 +49,10 @@ func (s AzureSQLAGWorkloadContainerProtectionContainer) MarshalJSON() ([]byte, e
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling AzureSQLAGWorkloadContainerProtectionContainer: %+v", err)
 	}
+
 	decoded["containerType"] = "SQLAGWorkLoadContainer"
 
 	encoded, err = json.Marshal(decoded)

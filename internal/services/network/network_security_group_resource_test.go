@@ -8,12 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/networksecuritygroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type NetworkSecurityGroupResource struct{}
@@ -66,6 +67,7 @@ func TestAccNetworkSecurityGroup_singleRule(t *testing.T) {
 func TestAccNetworkSecurityGroup_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_security_group", "test")
 	r := NetworkSecurityGroupResource{}
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.singleRule(data),
@@ -192,6 +194,10 @@ func TestAccNetworkSecurityGroup_applicationSecurityGroup(t *testing.T) {
 }
 
 func TestAccNetworkSecurityGroup_deleteRule(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("This test can be removed since it will be a duplicate of the update test in 4.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_network_security_group", "test")
 	r := NetworkSecurityGroupResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -214,35 +220,30 @@ func TestAccNetworkSecurityGroup_deleteRule(t *testing.T) {
 }
 
 func (t NetworkSecurityGroupResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.NetworkSecurityGroupID(state.ID)
+	id, err := networksecuritygroups.ParseNetworkSecurityGroupID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Network.SecurityGroupClient.Get(ctx, id.ResourceGroup, id.Name, "")
+	resp, err := clients.Network.Client.NetworkSecurityGroups.Get(ctx, *id, networksecuritygroups.DefaultGetOperationOptions())
 	if err != nil {
-		return nil, fmt.Errorf("reading Network Security Group (%s): %+v", id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (NetworkSecurityGroupResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.NetworkSecurityGroupID(state.ID)
+	id, err := networksecuritygroups.ParseNetworkSecurityGroupID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	future, err := client.Network.SecurityGroupClient.Delete(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		return nil, fmt.Errorf("deleting Network Security Group %q: %+v", id, err)
+	if err := client.Network.Client.NetworkSecurityGroups.DeleteThenPoll(ctx, *id); err != nil {
+		return nil, fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Network.SecurityGroupClient.Client); err != nil {
-		return nil, fmt.Errorf("waiting for Deletion of Network Security Group: %+v", err)
-	}
-
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (NetworkSecurityGroupResource) basic(data acceptance.TestData) string {

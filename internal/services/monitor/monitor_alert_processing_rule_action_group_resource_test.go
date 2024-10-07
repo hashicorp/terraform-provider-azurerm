@@ -99,12 +99,12 @@ func TestAccMonitorAlertProcessingRuleActionGroup_update(t *testing.T) {
 }
 
 func (r MonitorAlertProcessingRuleActionGroupResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := alertprocessingrules.ParseActionRuleIDInsensitively(state.ID)
+	id, err := alertprocessingrules.ParseActionRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Monitor.AlertProcessingRulesClient.AlertProcessingRulesGetByName(ctx, *id)
+	resp, err := clients.Monitor.AlertProcessingRulesClient.GetByName(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving (%s): %+v", *id, err)
 	}

@@ -20,7 +20,7 @@ type AccountsGetOperationResponse struct {
 // AccountsGet ...
 func (c CognitiveServicesAccountsClient) AccountsGet(ctx context.Context, id AccountId) (result AccountsGetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -43,7 +43,9 @@ func (c CognitiveServicesAccountsClient) AccountsGet(ctx context.Context, id Acc
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Account
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

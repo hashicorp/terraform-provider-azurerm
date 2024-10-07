@@ -38,7 +38,6 @@ func TestAccDataSourceSnapshot_encryption(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").Exists(),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
-				check.That(data.ResourceName).Key("encryption_settings.0.enabled").HasValue("true"),
 			),
 		},
 	})
@@ -177,8 +176,6 @@ resource "azurerm_snapshot" "test" {
   disk_size_gb        = "20"
 
   encryption_settings {
-    enabled = true
-
     disk_encryption_key {
       secret_url      = azurerm_key_vault_secret.test.id
       source_vault_id = azurerm_key_vault.test.id
@@ -207,8 +204,8 @@ provider "azurerm" {
 data "azurerm_platform_image" "test" {
   location  = "%[2]s"
   publisher = "Canonical"
-  offer     = "UbuntuServer"
-  sku       = "18_04-LTS-gen2"
+  offer     = "0001-com-ubuntu-server-jammy"
+  sku       = "22_04-lts-gen2"
 }
 
 resource "azurerm_resource_group" "test" {

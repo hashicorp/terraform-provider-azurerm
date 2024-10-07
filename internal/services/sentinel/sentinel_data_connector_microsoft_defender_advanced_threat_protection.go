@@ -25,10 +25,7 @@ func resourceSentinelDataConnectorMicrosoftDefenderAdvancedThreatProtection() *p
 		Read:   resourceSentinelDataConnectorMicrosoftDefenderAdvancedThreatProtectionRead,
 		Delete: resourceSentinelDataConnectorMicrosoftDefenderAdvancedThreatProtectionDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
-			_, err := parse.DataConnectorID(id)
-			return err
-		}, importSentinelDataConnector(securityinsight.DataConnectorKindMicrosoftDefenderAdvancedThreatProtection)),
+		Importer: importDataConnectorUntyped(securityinsight.DataConnectorKindMicrosoftDefenderAdvancedThreatProtection),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

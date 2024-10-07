@@ -10,13 +10,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-07-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 )
 
 type VirtualMachineScaleSetResource struct{}
@@ -799,92 +798,99 @@ func TestAccVirtualMachineScaleSet_importBasic_managedDisk_withZones(t *testing.
 }
 
 func (VirtualMachineScaleSetResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.VirtualMachineScaleSetID(state.ID)
+	id, err := virtualmachinescalesets.ParseVirtualMachineScaleSetID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	// this is a preview feature we don't want to use right now
-	var forceDelete *bool = nil
-	future, err := client.Legacy.VMScaleSetClient.Delete(ctx, id.ResourceGroup, id.Name, forceDelete)
-	if err != nil {
-		return nil, fmt.Errorf("Bad: deleting %s: %+v", *id, err)
+	opts := virtualmachinescalesets.DefaultDeleteOperationOptions()
+	opts.ForceDeletion = nil
+	if err := client.Compute.VirtualMachineScaleSetsClient.DeleteThenPoll(ctx, *id, opts); err != nil {
+		return nil, fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Legacy.VMScaleSetClient.Client); err != nil {
-		return nil, fmt.Errorf("Bad: waiting for deletion of %s: %+v", *id, err)
-	}
-
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (VirtualMachineScaleSetResource) hasLoadBalancer(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
-	id, err := parse.VirtualMachineScaleSetID(state.ID)
+	id, err := virtualmachinescalesets.ParseVirtualMachineScaleSetID(state.ID)
 	if err != nil {
 		return err
 	}
 
-	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
-	read, err := client.Legacy.VMScaleSetClient.Get(ctx, id.ResourceGroup, id.Name, compute.ExpandTypesForGetVMScaleSetsUserData)
+	ctx2, cancel := context.WithTimeout(ctx, 5*time.Minute)
+	defer cancel()
+
+	opts := virtualmachinescalesets.DefaultGetOperationOptions()
+	opts.Expand = pointer.To(virtualmachinescalesets.ExpandTypesForGetVMScaleSetsUserData)
+	read, err := client.Compute.VirtualMachineScaleSetsClient.Get(ctx2, *id, opts)
 	if err != nil {
 		return err
 	}
 
-	if props := read.VirtualMachineScaleSetProperties; props != nil {
-		if vmProfile := props.VirtualMachineProfile; vmProfile != nil {
-			if nwProfile := vmProfile.NetworkProfile; nwProfile != nil {
-				if nics := nwProfile.NetworkInterfaceConfigurations; nics != nil {
-					for _, nic := range *nics {
-						if nic.IPConfigurations == nil {
-							continue
-						}
-
-						for _, config := range *nic.IPConfigurations {
-							if config.LoadBalancerBackendAddressPools == nil {
+	if model := read.Model; model != nil {
+		if props := model.Properties; props != nil {
+			if vmProfile := props.VirtualMachineProfile; vmProfile != nil {
+				if nwProfile := vmProfile.NetworkProfile; nwProfile != nil {
+					if nics := nwProfile.NetworkInterfaceConfigurations; nics != nil {
+						for _, nic := range *nics {
+							if nic.Properties == nil || nic.Properties.IPConfigurations == nil {
 								continue
 							}
 
-							if len(*config.LoadBalancerBackendAddressPools) > 0 {
-								return nil
+							for _, config := range nic.Properties.IPConfigurations {
+								if config.Properties == nil || config.Properties.LoadBalancerBackendAddressPools == nil {
+									continue
+								}
+
+								if len(*config.Properties.LoadBalancerBackendAddressPools) > 0 {
+									return nil
+								}
 							}
 						}
 					}
 				}
 			}
 		}
+
 	}
 
 	return fmt.Errorf("load balancer configuration was missing")
 }
 
 func (VirtualMachineScaleSetResource) hasApplicationGateway(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
-	id, err := parse.VirtualMachineScaleSetID(state.ID)
+	id, err := virtualmachinescalesets.ParseVirtualMachineScaleSetID(state.ID)
 	if err != nil {
 		return err
 	}
 
-	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
-	read, err := client.Legacy.VMScaleSetClient.Get(ctx, id.ResourceGroup, id.Name, compute.ExpandTypesForGetVMScaleSetsUserData)
+	ctx2, cancel := context.WithTimeout(ctx, 5*time.Minute)
+	defer cancel()
+	opts := virtualmachinescalesets.DefaultGetOperationOptions()
+	opts.Expand = pointer.To(virtualmachinescalesets.ExpandTypesForGetVMScaleSetsUserData)
+	read, err := client.Compute.VirtualMachineScaleSetsClient.Get(ctx2, *id, opts)
 	if err != nil {
 		return err
 	}
 
-	if props := read.VirtualMachineScaleSetProperties; props != nil {
-		if vmProfile := props.VirtualMachineProfile; vmProfile != nil {
-			if nwProfile := vmProfile.NetworkProfile; nwProfile != nil {
-				if nics := nwProfile.NetworkInterfaceConfigurations; nics != nil {
-					for _, nic := range *nics {
-						if nic.IPConfigurations == nil {
-							continue
-						}
-
-						for _, config := range *nic.IPConfigurations {
-							if config.ApplicationGatewayBackendAddressPools == nil {
+	if model := read.Model; model != nil {
+		if props := model.Properties; props != nil {
+			if vmProfile := props.VirtualMachineProfile; vmProfile != nil {
+				if nwProfile := vmProfile.NetworkProfile; nwProfile != nil {
+					if nics := nwProfile.NetworkInterfaceConfigurations; nics != nil {
+						for _, nic := range *nics {
+							if nic.Properties == nil || nic.Properties.IPConfigurations == nil {
 								continue
 							}
 
-							if len(*config.ApplicationGatewayBackendAddressPools) > 0 {
-								return nil
+							for _, config := range nic.Properties.IPConfigurations {
+								if config.Properties == nil || config.Properties.ApplicationGatewayBackendAddressPools == nil {
+									continue
+								}
+
+								if len(*config.Properties.ApplicationGatewayBackendAddressPools) > 0 {
+									return nil
+								}
 							}
 						}
 					}
@@ -897,18 +903,19 @@ func (VirtualMachineScaleSetResource) hasApplicationGateway(ctx context.Context,
 }
 
 func (t VirtualMachineScaleSetResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.VirtualMachineScaleSetID(state.ID)
+	id, err := virtualmachinescalesets.ParseVirtualMachineScaleSetID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
-	resp, err := clients.Legacy.VMScaleSetClient.Get(ctx, id.ResourceGroup, id.Name, compute.ExpandTypesForGetVMScaleSetsUserData)
+	opts := virtualmachinescalesets.DefaultGetOperationOptions()
+	opts.Expand = pointer.To(virtualmachinescalesets.ExpandTypesForGetVMScaleSetsUserData)
+	resp, err := clients.Compute.VirtualMachineScaleSetsClient.Get(ctx, *id, opts)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Compute Virtual Machine Scale Set %q", id)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (VirtualMachineScaleSetResource) basic(data acceptance.TestData) string {
@@ -993,8 +1000,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
   storage_profile_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 }
@@ -1043,8 +1050,8 @@ resource "azurerm_virtual_machine_scale_set" "import" {
 
   storage_profile_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 }
@@ -1134,8 +1141,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
   storage_profile_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 }
@@ -1224,8 +1231,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
   storage_profile_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 }
@@ -1320,8 +1327,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
   storage_profile_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -1417,8 +1424,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
   storage_profile_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 }
@@ -1516,8 +1523,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
   storage_profile_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 }
@@ -1615,8 +1622,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
   storage_profile_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 }
@@ -1715,8 +1722,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
   storage_profile_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 }
@@ -1814,8 +1821,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
   storage_profile_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 }
@@ -1910,8 +1917,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
   storage_profile_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 }
@@ -2000,8 +2007,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
   storage_profile_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 }
@@ -2090,8 +2097,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
   storage_profile_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 }
@@ -2183,8 +2190,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
   storage_profile_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 }
@@ -2276,8 +2283,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
   storage_profile_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 }
@@ -2378,8 +2385,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
   storage_profile_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 }
@@ -2566,8 +2573,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
   storage_profile_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 }
@@ -2685,8 +2692,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
   storage_profile_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 }
@@ -2804,8 +2811,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
   storage_profile_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -2927,8 +2934,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
   storage_profile_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 }
@@ -3046,8 +3053,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
   storage_profile_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 }
@@ -3117,8 +3124,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
   storage_profile_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 }
@@ -3188,8 +3195,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
   storage_profile_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 }
@@ -3348,8 +3355,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
   storage_profile_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 }
@@ -3434,8 +3441,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
   storage_profile_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 }
@@ -3452,7 +3459,8 @@ resource "azurerm_public_ip" "test" {
   name                = "acctest-pubip-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_application_gateway" "test" {
@@ -3461,9 +3469,9 @@ resource "azurerm_application_gateway" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   sku {
-    name     = "Standard_Medium"
-    tier     = "Standard"
-    capacity = 1
+    name     = "Standard_v2"
+    tier     = "Standard_v2"
+    capacity = 2
   }
 
   gateway_ip_configuration {
@@ -3476,15 +3484,6 @@ resource "azurerm_application_gateway" "test" {
     # id = computed
     name                 = "ip-config-public"
     public_ip_address_id = azurerm_public_ip.test.id
-  }
-
-  frontend_ip_configuration {
-    # id = computed
-    name      = "ip-config-private"
-    subnet_id = azurerm_subnet.gwtest.id
-
-    # private_ip_address = computed
-    private_ip_address_allocation = "Dynamic"
   }
 
   frontend_port {
@@ -3546,6 +3545,8 @@ resource "azurerm_application_gateway" "test" {
 
     # backend_http_settings_id = computed
     backend_http_settings_name = "backend-http-1"
+
+    priority = 10
   }
 
   tags = {
@@ -3662,8 +3663,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
   storage_profile_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 }
@@ -3748,8 +3749,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
   storage_profile_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 }
@@ -3836,8 +3837,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
   storage_profile_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 }
@@ -3934,8 +3935,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
   storage_profile_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 }
@@ -4040,8 +4041,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
   storage_profile_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 }
@@ -4134,8 +4135,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
   storage_profile_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -4251,8 +4252,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
   storage_profile_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -4361,8 +4362,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
   storage_profile_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -4478,8 +4479,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
   storage_profile_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -4582,8 +4583,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
   storage_profile_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 }
@@ -4679,8 +4680,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
   storage_profile_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04.0-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 }
@@ -4768,8 +4769,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
   storage_profile_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 }
@@ -4944,8 +4945,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
   storage_profile_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 }
@@ -4983,12 +4984,14 @@ resource "azurerm_public_ip" "test" {
   resource_group_name     = azurerm_resource_group.test.name
   allocation_method       = "Dynamic"
   idle_timeout_in_minutes = 4
+  sku                     = "Basic"
 }
 
 resource "azurerm_lb" "test" {
   name                = "acctestlb-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Basic"
 
   frontend_ip_configuration {
     name                 = "PublicIPAddress"
@@ -5077,8 +5080,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
   storage_profile_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 }
@@ -5126,12 +5129,14 @@ resource "azurerm_public_ip" "test" {
   resource_group_name     = azurerm_resource_group.test.name
   allocation_method       = "Dynamic"
   idle_timeout_in_minutes = 4
+  sku                     = "Basic"
 }
 
 resource "azurerm_lb" "test" {
   name                = "acctestlb-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Basic"
 
   frontend_ip_configuration {
     name                 = "PublicIPAddress"
@@ -5214,8 +5219,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
   storage_profile_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 }
@@ -5311,8 +5316,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
   storage_profile_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 }

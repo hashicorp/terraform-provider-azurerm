@@ -21,7 +21,7 @@ type ConfigureFactoryRepoOperationResponse struct {
 // ConfigureFactoryRepo ...
 func (c FactoriesClient) ConfigureFactoryRepo(ctx context.Context, id LocationId, input FactoryRepoUpdate) (result ConfigureFactoryRepoOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -48,7 +48,9 @@ func (c FactoriesClient) ConfigureFactoryRepo(ctx context.Context, id LocationId
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Factory
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

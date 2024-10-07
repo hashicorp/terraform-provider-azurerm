@@ -23,7 +23,7 @@ type CloudEndpointsTriggerChangeDetectionOperationResponse struct {
 // CloudEndpointsTriggerChangeDetection ...
 func (c CloudEndpointResourceClient) CloudEndpointsTriggerChangeDetection(ctx context.Context, id CloudEndpointId, input TriggerChangeDetectionParameters) (result CloudEndpointsTriggerChangeDetectionOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

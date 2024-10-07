@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = SliceId{}
+func init() {
+	recaser.RegisterResourceId(&SliceId{})
+}
+
+var _ resourceids.ResourceId = &SliceId{}
 
 // SliceId is a struct representing the Resource ID for a Slice
 type SliceId struct {
@@ -32,29 +37,15 @@ func NewSliceID(subscriptionId string, resourceGroupName string, mobileNetworkNa
 
 // ParseSliceID parses 'input' into a SliceId
 func ParseSliceID(input string) (*SliceId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SliceId{})
+	parser := resourceids.NewParserFromResourceIdType(&SliceId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := SliceId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.MobileNetworkName, ok = parsed.Parsed["mobileNetworkName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "mobileNetworkName", *parsed)
-	}
-
-	if id.SliceName, ok = parsed.Parsed["sliceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "sliceName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +54,40 @@ func ParseSliceID(input string) (*SliceId, error) {
 // ParseSliceIDInsensitively parses 'input' case-insensitively into a SliceId
 // note: this method should only be used for API response data and not user input
 func ParseSliceIDInsensitively(input string) (*SliceId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SliceId{})
+	parser := resourceids.NewParserFromResourceIdType(&SliceId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := SliceId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.MobileNetworkName, ok = parsed.Parsed["mobileNetworkName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "mobileNetworkName", *parsed)
-	}
-
-	if id.SliceName, ok = parsed.Parsed["sliceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "sliceName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *SliceId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.MobileNetworkName, ok = input.Parsed["mobileNetworkName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "mobileNetworkName", input)
+	}
+
+	if id.SliceName, ok = input.Parsed["sliceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "sliceName", input)
+	}
+
+	return nil
 }
 
 // ValidateSliceID checks that 'input' can be parsed as a Slice ID
@@ -122,9 +121,9 @@ func (id SliceId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftMobileNetwork", "Microsoft.MobileNetwork", "Microsoft.MobileNetwork"),
 		resourceids.StaticSegment("staticMobileNetworks", "mobileNetworks", "mobileNetworks"),
-		resourceids.UserSpecifiedSegment("mobileNetworkName", "mobileNetworkValue"),
+		resourceids.UserSpecifiedSegment("mobileNetworkName", "mobileNetworkName"),
 		resourceids.StaticSegment("staticSlices", "slices", "slices"),
-		resourceids.UserSpecifiedSegment("sliceName", "sliceValue"),
+		resourceids.UserSpecifiedSegment("sliceName", "sliceName"),
 	}
 }
 

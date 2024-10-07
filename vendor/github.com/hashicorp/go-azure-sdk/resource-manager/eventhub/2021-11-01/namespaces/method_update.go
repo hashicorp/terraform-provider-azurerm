@@ -20,7 +20,7 @@ type UpdateOperationResponse struct {
 // Update ...
 func (c NamespacesClient) Update(ctx context.Context, id NamespaceId, input EHNamespace) (result UpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusCreated,
@@ -49,7 +49,9 @@ func (c NamespacesClient) Update(ctx context.Context, id NamespaceId, input EHNa
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model EHNamespace
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

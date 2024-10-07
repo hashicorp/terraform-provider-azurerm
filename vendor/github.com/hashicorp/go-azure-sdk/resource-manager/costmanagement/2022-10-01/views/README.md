@@ -1,13 +1,14 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2022-10-01/views` Documentation
 
-The `views` SDK allows for interaction with the Azure Resource Manager Service `costmanagement` (API Version `2022-10-01`).
+The `views` SDK allows for interaction with Azure Resource Manager `costmanagement` (API Version `2022-10-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2022-10-01/views"
 ```
 
@@ -24,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := views.NewViewID("viewValue")
+id := views.NewViewID("viewName")
 
 payload := views.View{
 	// ...
@@ -45,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := views.NewScopedViewID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "viewValue")
+id := views.NewScopedViewID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "viewName")
 
 payload := views.View{
 	// ...
@@ -66,7 +67,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := views.NewViewID("viewValue")
+id := views.NewViewID("viewName")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -82,7 +83,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := views.NewScopedViewID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "viewValue")
+id := views.NewScopedViewID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "viewName")
 
 read, err := client.DeleteByScope(ctx, id)
 if err != nil {
@@ -98,7 +99,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := views.NewViewID("viewValue")
+id := views.NewViewID("viewName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -114,7 +115,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := views.NewScopedViewID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "viewValue")
+id := views.NewScopedViewID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "viewName")
 
 read, err := client.GetByScope(ctx, id)
 if err != nil {
@@ -147,7 +148,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := views.NewScopeID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
+id := commonids.NewScopeID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
 
 // alternatively `client.ListByScope(ctx, id)` can be used to do batched pagination
 items, err := client.ListByScopeComplete(ctx, id)

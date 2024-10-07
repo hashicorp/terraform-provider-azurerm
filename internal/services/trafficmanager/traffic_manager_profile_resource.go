@@ -13,10 +13,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2018-08-01/profiles"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2022-04-01/profiles"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -25,7 +26,7 @@ import (
 )
 
 func resourceArmTrafficManagerProfile() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceArmTrafficManagerProfileCreate,
 		Read:   resourceArmTrafficManagerProfileRead,
 		Update: resourceArmTrafficManagerProfileUpdate,
@@ -52,16 +53,6 @@ func resourceArmTrafficManagerProfile() *pluginsdk.Resource {
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
-
-			"profile_status": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(profiles.ProfileStatusEnabled),
-					string(profiles.ProfileStatusDisabled),
-				}, false),
-			},
 
 			"traffic_routing_method": {
 				Type:     pluginsdk.TypeString,
@@ -174,9 +165,14 @@ func resourceArmTrafficManagerProfile() *pluginsdk.Resource {
 				},
 			},
 
-			"fqdn": {
+			"profile_status": {
 				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Optional: true,
+				Default:  string(profiles.ProfileStatusEnabled),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(profiles.ProfileStatusEnabled),
+					string(profiles.ProfileStatusDisabled),
+				}, false),
 			},
 
 			"max_return": {
@@ -190,9 +186,27 @@ func resourceArmTrafficManagerProfile() *pluginsdk.Resource {
 				Optional: true,
 			},
 
+			"fqdn": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"tags": commonschema.Tags(),
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["profile_status"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(profiles.ProfileStatusEnabled),
+				string(profiles.ProfileStatusDisabled),
+			}, false),
+		}
+	}
+	return resource
 }
 
 func resourceArmTrafficManagerProfileCreate(d *pluginsdk.ResourceData, meta interface{}) error {

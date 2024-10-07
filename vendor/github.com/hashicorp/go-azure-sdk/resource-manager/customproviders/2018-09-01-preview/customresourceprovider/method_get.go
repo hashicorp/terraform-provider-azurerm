@@ -20,7 +20,7 @@ type GetOperationResponse struct {
 // Get ...
 func (c CustomResourceProviderClient) Get(ctx context.Context, id ResourceProviderId) (result GetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -43,7 +43,9 @@ func (c CustomResourceProviderClient) Get(ctx context.Context, id ResourceProvid
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model CustomRPManifest
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -20,7 +20,7 @@ type RulesGetOperationResponse struct {
 // RulesGet ...
 func (c SubscriptionsClient) RulesGet(ctx context.Context, id RuleId) (result RulesGetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -43,7 +43,9 @@ func (c SubscriptionsClient) RulesGet(ctx context.Context, id RuleId) (result Ru
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Rule
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

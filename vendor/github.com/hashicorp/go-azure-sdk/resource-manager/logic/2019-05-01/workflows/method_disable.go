@@ -20,7 +20,7 @@ type DisableOperationResponse struct {
 // Disable ...
 func (c WorkflowsClient) Disable(ctx context.Context, id WorkflowId) (result DisableOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ScopedRemediationId{}
+func init() {
+	recaser.RegisterResourceId(&ScopedRemediationId{})
+}
+
+var _ resourceids.ResourceId = &ScopedRemediationId{}
 
 // ScopedRemediationId is a struct representing the Resource ID for a Scoped Remediation
 type ScopedRemediationId struct {
@@ -28,21 +33,15 @@ func NewScopedRemediationID(resourceId string, remediationName string) ScopedRem
 
 // ParseScopedRemediationID parses 'input' into a ScopedRemediationId
 func ParseScopedRemediationID(input string) (*ScopedRemediationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScopedRemediationId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScopedRemediationId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedRemediationId{}
-
-	if id.ResourceId, ok = parsed.Parsed["resourceId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceId", *parsed)
-	}
-
-	if id.RemediationName, ok = parsed.Parsed["remediationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "remediationName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -51,24 +50,32 @@ func ParseScopedRemediationID(input string) (*ScopedRemediationId, error) {
 // ParseScopedRemediationIDInsensitively parses 'input' case-insensitively into a ScopedRemediationId
 // note: this method should only be used for API response data and not user input
 func ParseScopedRemediationIDInsensitively(input string) (*ScopedRemediationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScopedRemediationId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScopedRemediationId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedRemediationId{}
-
-	if id.ResourceId, ok = parsed.Parsed["resourceId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceId", *parsed)
-	}
-
-	if id.RemediationName, ok = parsed.Parsed["remediationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "remediationName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ScopedRemediationId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.ResourceId, ok = input.Parsed["resourceId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceId", input)
+	}
+
+	if id.RemediationName, ok = input.Parsed["remediationName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "remediationName", input)
+	}
+
+	return nil
 }
 
 // ValidateScopedRemediationID checks that 'input' can be parsed as a Scoped Remediation ID
@@ -99,7 +106,7 @@ func (id ScopedRemediationId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftPolicyInsights", "Microsoft.PolicyInsights", "Microsoft.PolicyInsights"),
 		resourceids.StaticSegment("staticRemediations", "remediations", "remediations"),
-		resourceids.UserSpecifiedSegment("remediationName", "remediationValue"),
+		resourceids.UserSpecifiedSegment("remediationName", "remediationName"),
 	}
 }
 

@@ -23,7 +23,7 @@ type SimPoliciesDeleteOperationResponse struct {
 // SimPoliciesDelete ...
 func (c SIMPolicyClient) SimPoliciesDelete(ctx context.Context, id SimPolicyId) (result SimPoliciesDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,

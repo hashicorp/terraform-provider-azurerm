@@ -587,8 +587,9 @@ func expandAzureRMPolicySetDefinitionPolicyDefinitions(input []interface{}) (*[]
 	for _, item := range input {
 		v := item.(map[string]interface{})
 
-		parameters := make(map[string]*policy.ParameterValuesValue)
+		var parameters map[string]*policy.ParameterValuesValue
 		if p, ok := v["parameter_values"].(string); ok && p != "" {
+			parameters = make(map[string]*policy.ParameterValuesValue)
 			if err := json.Unmarshal([]byte(p), &parameters); err != nil {
 				return nil, fmt.Errorf("unmarshalling `parameter_values`: %+v", err)
 			}
@@ -597,6 +598,7 @@ func expandAzureRMPolicySetDefinitionPolicyDefinitions(input []interface{}) (*[]
 			if len(parameters) > 0 && len(p) > 0 {
 				return nil, fmt.Errorf("cannot set both `parameters` and `parameter_values`")
 			}
+			parameters = make(map[string]*policy.ParameterValuesValue)
 			for k, value := range p {
 				parameters[k] = &policy.ParameterValuesValue{
 					Value: value,

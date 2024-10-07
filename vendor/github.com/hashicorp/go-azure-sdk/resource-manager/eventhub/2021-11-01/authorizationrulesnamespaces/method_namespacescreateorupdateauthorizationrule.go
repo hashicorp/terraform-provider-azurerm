@@ -20,7 +20,7 @@ type NamespacesCreateOrUpdateAuthorizationRuleOperationResponse struct {
 // NamespacesCreateOrUpdateAuthorizationRule ...
 func (c AuthorizationRulesNamespacesClient) NamespacesCreateOrUpdateAuthorizationRule(ctx context.Context, id AuthorizationRuleId, input AuthorizationRule) (result NamespacesCreateOrUpdateAuthorizationRuleOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -47,7 +47,9 @@ func (c AuthorizationRulesNamespacesClient) NamespacesCreateOrUpdateAuthorizatio
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model AuthorizationRule
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

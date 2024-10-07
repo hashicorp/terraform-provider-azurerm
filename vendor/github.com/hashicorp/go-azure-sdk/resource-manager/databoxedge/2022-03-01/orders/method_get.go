@@ -21,7 +21,7 @@ type GetOperationResponse struct {
 // Get ...
 func (c OrdersClient) Get(ctx context.Context, id DataBoxEdgeDeviceId) (result GetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -44,7 +44,9 @@ func (c OrdersClient) Get(ctx context.Context, id DataBoxEdgeDeviceId) (result G
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Order
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

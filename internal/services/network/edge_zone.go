@@ -5,25 +5,41 @@ package network
 
 import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/edgezones"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
-func expandEdgeZone(input string) *network.ExtendedLocation {
+func expandEdgeZoneModel(input string) *edgezones.Model {
 	normalized := edgezones.Normalize(input)
 	if normalized == "" {
 		return nil
 	}
 
-	return &network.ExtendedLocation{
-		Name: utils.String(normalized),
-		Type: network.ExtendedLocationTypesEdgeZone,
+	return &edgezones.Model{
+		Name: normalized,
 	}
 }
 
-func flattenEdgeZone(input *network.ExtendedLocation) string {
-	if input == nil || input.Type != network.ExtendedLocationTypesEdgeZone || input.Name == nil {
+func flattenEdgeZoneModel(input *edgezones.Model) string {
+	if input == nil || input.Name == "" {
 		return ""
 	}
-	return edgezones.NormalizeNilable(input.Name)
+	return edgezones.Normalize(input.Name)
+}
+
+// These will be renamed to expandEdgeZone when all calls to the former expandEdgeZone have been removed
+func expandEdgeZoneNew(input string) *edgezones.Model {
+	normalized := edgezones.Normalize(input)
+	if normalized == "" {
+		return nil
+	}
+
+	return &edgezones.Model{
+		Name: normalized,
+	}
+}
+
+func flattenEdgeZoneNew(input *edgezones.Model) string {
+	if input == nil || input.Name == "" {
+		return ""
+	}
+	return edgezones.Normalize(input.Name)
 }

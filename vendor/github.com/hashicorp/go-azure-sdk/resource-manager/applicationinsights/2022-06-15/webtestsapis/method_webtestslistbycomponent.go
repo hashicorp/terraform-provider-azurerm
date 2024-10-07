@@ -19,17 +19,31 @@ type WebTestsListByComponentOperationResponse struct {
 }
 
 type WebTestsListByComponentCompleteResult struct {
-	Items []WebTest
+	LatestHttpResponse *http.Response
+	Items              []WebTest
+}
+
+type WebTestsListByComponentCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *WebTestsListByComponentCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // WebTestsListByComponent ...
 func (c WebTestsAPIsClient) WebTestsListByComponent(ctx context.Context, id ComponentId) (result WebTestsListByComponentOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &WebTestsListByComponentCustomPager{},
 		Path:       fmt.Sprintf("%s/webTests", id.ID()),
 	}
 
@@ -71,6 +85,7 @@ func (c WebTestsAPIsClient) WebTestsListByComponentCompleteMatchingPredicate(ctx
 
 	resp, err := c.WebTestsListByComponent(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +98,8 @@ func (c WebTestsAPIsClient) WebTestsListByComponentCompleteMatchingPredicate(ctx
 	}
 
 	result = WebTestsListByComponentCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -20,7 +20,7 @@ type WorkbookTemplatesUpdateOperationResponse struct {
 // WorkbookTemplatesUpdate ...
 func (c WorkbookTemplatesAPIsClient) WorkbookTemplatesUpdate(ctx context.Context, id WorkbookTemplateId, input WorkbookTemplateUpdateParameters) (result WorkbookTemplatesUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -47,7 +47,9 @@ func (c WorkbookTemplatesAPIsClient) WorkbookTemplatesUpdate(ctx context.Context
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model WorkbookTemplate
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

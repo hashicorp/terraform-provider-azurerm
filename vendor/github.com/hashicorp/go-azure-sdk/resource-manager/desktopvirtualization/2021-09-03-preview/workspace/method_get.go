@@ -20,7 +20,7 @@ type GetOperationResponse struct {
 // Get ...
 func (c WorkspaceClient) Get(ctx context.Context, id WorkspaceId) (result GetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -43,7 +43,9 @@ func (c WorkspaceClient) Get(ctx context.Context, id WorkspaceId) (result GetOpe
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Workspace
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

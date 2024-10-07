@@ -20,7 +20,7 @@ type GetOperationResponse struct {
 // Get ...
 func (c FluidRelayServersClient) Get(ctx context.Context, id FluidRelayServerId) (result GetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -43,7 +43,9 @@ func (c FluidRelayServersClient) Get(ctx context.Context, id FluidRelayServerId)
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model FluidRelayServer
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

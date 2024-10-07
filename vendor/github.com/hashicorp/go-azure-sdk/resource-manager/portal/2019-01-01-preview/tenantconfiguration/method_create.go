@@ -20,7 +20,7 @@ type CreateOperationResponse struct {
 // Create ...
 func (c TenantConfigurationClient) Create(ctx context.Context, input Configuration) (result CreateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,
@@ -48,7 +48,9 @@ func (c TenantConfigurationClient) Create(ctx context.Context, input Configurati
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Configuration
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

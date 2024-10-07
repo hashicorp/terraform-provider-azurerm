@@ -14,6 +14,8 @@ Manages an Alias for a Subscription - which adds an Alias to an existing Subscri
 
 ~> **NOTE:** It is not possible to destroy (cancel) a subscription if it contains resources. If resources are present that are not managed by Terraform then these will need to be removed before the Subscription can be destroyed.
 
+~> **Note:** This resource will automatically attempt to cancel a subscription when it is deleted. This behavior can be disabled in the provider `features` block by setting the `prevent_cancellation_on_destroy` field to `true` within the `subscription` block.
+
 ~> **NOTE:** Azure supports Multiple Aliases per Subscription, however, to reliably manage this resource in Terraform only a single Alias is supported.
 
 ~> **NOTE:** When using this resource across tenants the `client_id` and `tenant_id` of the `provider` config block should be for the home tenant details for the SPN / User or a permissions error will likely be encountered. See [the official documentation](https://learn.microsoft.com/en-us/azure/cost-management-billing/manage/programmatically-create-subscription) for more details. 

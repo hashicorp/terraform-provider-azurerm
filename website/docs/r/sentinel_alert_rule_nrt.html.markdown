@@ -57,6 +57,8 @@ The following arguments are supported:
 
 * `display_name` - (Required) The friendly name of this Sentinel NRT Alert Rule.
 
+* `event_grouping` - (Required) A `event_grouping` block as defined below.
+
 * `severity` - (Required) The alert severity of this Sentinel NRT Alert Rule. Possible values are `High`, `Medium`, `Low` and `Informational`.
 
 * `query` - (Required) The query of this Sentinel NRT Alert Rule.
@@ -77,10 +79,6 @@ The following arguments are supported:
 
 * `entity_mapping` - (Optional) A list of `entity_mapping` blocks as defined below.
 
-* `event_grouping` - (Optional) A `event_grouping` block as defined below.
-
--> **NOTE:** `event_grouping` will be required in the next major version of the AzureRM Provider.
-
 * `sentinel_entity_mapping` - (Optional) A list of `sentinel_entity_mapping` blocks as defined below.
 
 -> **NOTE:** `entity_mapping` and `sentinel_entity_mapping` together can't exceed 5.
@@ -91,7 +89,7 @@ The following arguments are supported:
 
 * `suppression_enabled` - (Optional) Should the Sentinel NRT Alert Rulea stop running query after alert is generated? Defaults to `false`.
 
-* `tactics` - (Optional) A list of categories of attacks by which to classify the rule. Possible values are `Collection`, `CommandAndControl`, `CredentialAccess`, `DefenseEvasion`, `Discovery`, `Execution`, `Exfiltration`, `Impact`, `InitialAccess`, `LateralMovement`, `Persistence`, `PrivilegeEscalation` and `PreAttack`.
+* `tactics` - (Optional) A list of categories of attacks by which to classify the rule. Possible values are `Collection`, `CommandAndControl`, `CredentialAccess`, `DefenseEvasion`, `Discovery`, `Execution`, `Exfiltration`, `Impact`, `ImpairProcessControl`, `InhibitResponseFunction`, `InitialAccess`, `LateralMovement`, `Persistence`, `PreAttack`, `PrivilegeEscalation`, `Reconnaissance` and `ResourceDevelopment`.
 
 * `techniques` - (Optional) A list of techniques of attacks by which to classify the rule.
 

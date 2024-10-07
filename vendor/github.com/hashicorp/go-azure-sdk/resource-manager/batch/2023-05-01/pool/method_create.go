@@ -40,6 +40,7 @@ func (o CreateOperationOptions) ToHeaders() *client.Headers {
 
 func (o CreateOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -52,13 +53,13 @@ func (o CreateOperationOptions) ToQuery() *client.QueryParams {
 // Create ...
 func (c PoolClient) Create(ctx context.Context, id PoolId, input Pool, options CreateOperationOptions) (result CreateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPut,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -80,7 +81,9 @@ func (c PoolClient) Create(ctx context.Context, id PoolId, input Pool, options C
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Pool
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

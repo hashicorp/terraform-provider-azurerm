@@ -22,7 +22,7 @@ type CheckNameAvailabilityOperationResponse struct {
 // CheckNameAvailability ...
 func (c TenantsClient) CheckNameAvailability(ctx context.Context, id commonids.SubscriptionId, input CheckNameAvailabilityRequest) (result CheckNameAvailabilityOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -49,7 +49,9 @@ func (c TenantsClient) CheckNameAvailability(ctx context.Context, id commonids.S
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model CheckNameAvailabilityResult
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

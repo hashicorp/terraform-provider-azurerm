@@ -1,13 +1,14 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-07-01/skus` Documentation
 
-The `skus` SDK allows for interaction with the Azure Resource Manager Service `compute` (API Version `2021-07-01`).
+The `skus` SDK allows for interaction with Azure Resource Manager `compute` (API Version `2021-07-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-07-01/skus"
 ```
 
@@ -24,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := skus.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 // alternatively `client.ResourceSkusList(ctx, id, skus.DefaultResourceSkusListOperationOptions())` can be used to do batched pagination
 items, err := client.ResourceSkusListComplete(ctx, id, skus.DefaultResourceSkusListOperationOptions())

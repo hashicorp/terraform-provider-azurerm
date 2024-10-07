@@ -22,7 +22,7 @@ type CheckNameAvailabilityByScopeOperationResponse struct {
 // CheckNameAvailabilityByScope ...
 func (c ScheduledActionsClient) CheckNameAvailabilityByScope(ctx context.Context, id commonids.ScopeId, input CheckNameAvailabilityRequest) (result CheckNameAvailabilityByScopeOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -49,7 +49,9 @@ func (c ScheduledActionsClient) CheckNameAvailabilityByScope(ctx context.Context
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model CheckNameAvailabilityResponse
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

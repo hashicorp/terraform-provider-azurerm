@@ -1,13 +1,14 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/policyinsights/2021-10-01/remediations` Documentation
 
-The `remediations` SDK allows for interaction with the Azure Resource Manager Service `policyinsights` (API Version `2021-10-01`).
+The `remediations` SDK allows for interaction with Azure Resource Manager `policyinsights` (API Version `2021-10-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/policyinsights/2021-10-01/remediations"
 ```
 
@@ -20,13 +21,13 @@ client.Client.Authorizer = authorizer
 ```
 
 
-### Example Usage: `RemediationsClient.RemediationsCancelAtManagementGroup`
+### Example Usage: `RemediationsClient.CancelAtManagementGroup`
 
 ```go
 ctx := context.TODO()
-id := remediations.NewProviders2RemediationID("managementGroupIdValue", "remediationValue")
+id := remediations.NewProviders2RemediationID("managementGroupId", "remediationName")
 
-read, err := client.RemediationsCancelAtManagementGroup(ctx, id)
+read, err := client.CancelAtManagementGroup(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -36,13 +37,13 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `RemediationsClient.RemediationsCancelAtResource`
+### Example Usage: `RemediationsClient.CancelAtResource`
 
 ```go
 ctx := context.TODO()
-id := remediations.NewScopedRemediationID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "remediationValue")
+id := remediations.NewScopedRemediationID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "remediationName")
 
-read, err := client.RemediationsCancelAtResource(ctx, id)
+read, err := client.CancelAtResource(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -52,13 +53,13 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `RemediationsClient.RemediationsCancelAtResourceGroup`
+### Example Usage: `RemediationsClient.CancelAtResourceGroup`
 
 ```go
 ctx := context.TODO()
-id := remediations.NewProviderRemediationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "remediationValue")
+id := remediations.NewProviderRemediationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "remediationName")
 
-read, err := client.RemediationsCancelAtResourceGroup(ctx, id)
+read, err := client.CancelAtResourceGroup(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -68,13 +69,13 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `RemediationsClient.RemediationsCancelAtSubscription`
+### Example Usage: `RemediationsClient.CancelAtSubscription`
 
 ```go
 ctx := context.TODO()
-id := remediations.NewRemediationID("12345678-1234-9876-4563-123456789012", "remediationValue")
+id := remediations.NewRemediationID("12345678-1234-9876-4563-123456789012", "remediationName")
 
-read, err := client.RemediationsCancelAtSubscription(ctx, id)
+read, err := client.CancelAtSubscription(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -84,18 +85,18 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `RemediationsClient.RemediationsCreateOrUpdateAtManagementGroup`
+### Example Usage: `RemediationsClient.CreateOrUpdateAtManagementGroup`
 
 ```go
 ctx := context.TODO()
-id := remediations.NewProviders2RemediationID("managementGroupIdValue", "remediationValue")
+id := remediations.NewProviders2RemediationID("managementGroupId", "remediationName")
 
 payload := remediations.Remediation{
 	// ...
 }
 
 
-read, err := client.RemediationsCreateOrUpdateAtManagementGroup(ctx, id, payload)
+read, err := client.CreateOrUpdateAtManagementGroup(ctx, id, payload)
 if err != nil {
 	// handle the error
 }
@@ -105,18 +106,18 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `RemediationsClient.RemediationsCreateOrUpdateAtResource`
+### Example Usage: `RemediationsClient.CreateOrUpdateAtResource`
 
 ```go
 ctx := context.TODO()
-id := remediations.NewScopedRemediationID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "remediationValue")
+id := remediations.NewScopedRemediationID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "remediationName")
 
 payload := remediations.Remediation{
 	// ...
 }
 
 
-read, err := client.RemediationsCreateOrUpdateAtResource(ctx, id, payload)
+read, err := client.CreateOrUpdateAtResource(ctx, id, payload)
 if err != nil {
 	// handle the error
 }
@@ -126,18 +127,18 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `RemediationsClient.RemediationsCreateOrUpdateAtResourceGroup`
+### Example Usage: `RemediationsClient.CreateOrUpdateAtResourceGroup`
 
 ```go
 ctx := context.TODO()
-id := remediations.NewProviderRemediationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "remediationValue")
+id := remediations.NewProviderRemediationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "remediationName")
 
 payload := remediations.Remediation{
 	// ...
 }
 
 
-read, err := client.RemediationsCreateOrUpdateAtResourceGroup(ctx, id, payload)
+read, err := client.CreateOrUpdateAtResourceGroup(ctx, id, payload)
 if err != nil {
 	// handle the error
 }
@@ -147,18 +148,18 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `RemediationsClient.RemediationsCreateOrUpdateAtSubscription`
+### Example Usage: `RemediationsClient.CreateOrUpdateAtSubscription`
 
 ```go
 ctx := context.TODO()
-id := remediations.NewRemediationID("12345678-1234-9876-4563-123456789012", "remediationValue")
+id := remediations.NewRemediationID("12345678-1234-9876-4563-123456789012", "remediationName")
 
 payload := remediations.Remediation{
 	// ...
 }
 
 
-read, err := client.RemediationsCreateOrUpdateAtSubscription(ctx, id, payload)
+read, err := client.CreateOrUpdateAtSubscription(ctx, id, payload)
 if err != nil {
 	// handle the error
 }
@@ -168,13 +169,13 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `RemediationsClient.RemediationsDeleteAtManagementGroup`
+### Example Usage: `RemediationsClient.DeleteAtManagementGroup`
 
 ```go
 ctx := context.TODO()
-id := remediations.NewProviders2RemediationID("managementGroupIdValue", "remediationValue")
+id := remediations.NewProviders2RemediationID("managementGroupId", "remediationName")
 
-read, err := client.RemediationsDeleteAtManagementGroup(ctx, id)
+read, err := client.DeleteAtManagementGroup(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -184,13 +185,13 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `RemediationsClient.RemediationsDeleteAtResource`
+### Example Usage: `RemediationsClient.DeleteAtResource`
 
 ```go
 ctx := context.TODO()
-id := remediations.NewScopedRemediationID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "remediationValue")
+id := remediations.NewScopedRemediationID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "remediationName")
 
-read, err := client.RemediationsDeleteAtResource(ctx, id)
+read, err := client.DeleteAtResource(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -200,13 +201,13 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `RemediationsClient.RemediationsDeleteAtResourceGroup`
+### Example Usage: `RemediationsClient.DeleteAtResourceGroup`
 
 ```go
 ctx := context.TODO()
-id := remediations.NewProviderRemediationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "remediationValue")
+id := remediations.NewProviderRemediationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "remediationName")
 
-read, err := client.RemediationsDeleteAtResourceGroup(ctx, id)
+read, err := client.DeleteAtResourceGroup(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -216,13 +217,13 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `RemediationsClient.RemediationsDeleteAtSubscription`
+### Example Usage: `RemediationsClient.DeleteAtSubscription`
 
 ```go
 ctx := context.TODO()
-id := remediations.NewRemediationID("12345678-1234-9876-4563-123456789012", "remediationValue")
+id := remediations.NewRemediationID("12345678-1234-9876-4563-123456789012", "remediationName")
 
-read, err := client.RemediationsDeleteAtSubscription(ctx, id)
+read, err := client.DeleteAtSubscription(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -232,13 +233,13 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `RemediationsClient.RemediationsGetAtManagementGroup`
+### Example Usage: `RemediationsClient.GetAtManagementGroup`
 
 ```go
 ctx := context.TODO()
-id := remediations.NewProviders2RemediationID("managementGroupIdValue", "remediationValue")
+id := remediations.NewProviders2RemediationID("managementGroupId", "remediationName")
 
-read, err := client.RemediationsGetAtManagementGroup(ctx, id)
+read, err := client.GetAtManagementGroup(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -248,13 +249,13 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `RemediationsClient.RemediationsGetAtResource`
+### Example Usage: `RemediationsClient.GetAtResource`
 
 ```go
 ctx := context.TODO()
-id := remediations.NewScopedRemediationID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "remediationValue")
+id := remediations.NewScopedRemediationID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "remediationName")
 
-read, err := client.RemediationsGetAtResource(ctx, id)
+read, err := client.GetAtResource(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -264,13 +265,13 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `RemediationsClient.RemediationsGetAtResourceGroup`
+### Example Usage: `RemediationsClient.GetAtResourceGroup`
 
 ```go
 ctx := context.TODO()
-id := remediations.NewProviderRemediationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "remediationValue")
+id := remediations.NewProviderRemediationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "remediationName")
 
-read, err := client.RemediationsGetAtResourceGroup(ctx, id)
+read, err := client.GetAtResourceGroup(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -280,13 +281,13 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `RemediationsClient.RemediationsGetAtSubscription`
+### Example Usage: `RemediationsClient.GetAtSubscription`
 
 ```go
 ctx := context.TODO()
-id := remediations.NewRemediationID("12345678-1234-9876-4563-123456789012", "remediationValue")
+id := remediations.NewRemediationID("12345678-1234-9876-4563-123456789012", "remediationName")
 
-read, err := client.RemediationsGetAtSubscription(ctx, id)
+read, err := client.GetAtSubscription(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -296,14 +297,14 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `RemediationsClient.RemediationsListDeploymentsAtManagementGroup`
+### Example Usage: `RemediationsClient.ListDeploymentsAtManagementGroup`
 
 ```go
 ctx := context.TODO()
-id := remediations.NewProviders2RemediationID("managementGroupIdValue", "remediationValue")
+id := remediations.NewProviders2RemediationID("managementGroupId", "remediationName")
 
-// alternatively `client.RemediationsListDeploymentsAtManagementGroup(ctx, id, remediations.DefaultRemediationsListDeploymentsAtManagementGroupOperationOptions())` can be used to do batched pagination
-items, err := client.RemediationsListDeploymentsAtManagementGroupComplete(ctx, id, remediations.DefaultRemediationsListDeploymentsAtManagementGroupOperationOptions())
+// alternatively `client.ListDeploymentsAtManagementGroup(ctx, id, remediations.DefaultListDeploymentsAtManagementGroupOperationOptions())` can be used to do batched pagination
+items, err := client.ListDeploymentsAtManagementGroupComplete(ctx, id, remediations.DefaultListDeploymentsAtManagementGroupOperationOptions())
 if err != nil {
 	// handle the error
 }
@@ -313,14 +314,14 @@ for _, item := range items {
 ```
 
 
-### Example Usage: `RemediationsClient.RemediationsListDeploymentsAtResource`
+### Example Usage: `RemediationsClient.ListDeploymentsAtResource`
 
 ```go
 ctx := context.TODO()
-id := remediations.NewScopedRemediationID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "remediationValue")
+id := remediations.NewScopedRemediationID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "remediationName")
 
-// alternatively `client.RemediationsListDeploymentsAtResource(ctx, id, remediations.DefaultRemediationsListDeploymentsAtResourceOperationOptions())` can be used to do batched pagination
-items, err := client.RemediationsListDeploymentsAtResourceComplete(ctx, id, remediations.DefaultRemediationsListDeploymentsAtResourceOperationOptions())
+// alternatively `client.ListDeploymentsAtResource(ctx, id, remediations.DefaultListDeploymentsAtResourceOperationOptions())` can be used to do batched pagination
+items, err := client.ListDeploymentsAtResourceComplete(ctx, id, remediations.DefaultListDeploymentsAtResourceOperationOptions())
 if err != nil {
 	// handle the error
 }
@@ -330,14 +331,14 @@ for _, item := range items {
 ```
 
 
-### Example Usage: `RemediationsClient.RemediationsListDeploymentsAtResourceGroup`
+### Example Usage: `RemediationsClient.ListDeploymentsAtResourceGroup`
 
 ```go
 ctx := context.TODO()
-id := remediations.NewProviderRemediationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "remediationValue")
+id := remediations.NewProviderRemediationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "remediationName")
 
-// alternatively `client.RemediationsListDeploymentsAtResourceGroup(ctx, id, remediations.DefaultRemediationsListDeploymentsAtResourceGroupOperationOptions())` can be used to do batched pagination
-items, err := client.RemediationsListDeploymentsAtResourceGroupComplete(ctx, id, remediations.DefaultRemediationsListDeploymentsAtResourceGroupOperationOptions())
+// alternatively `client.ListDeploymentsAtResourceGroup(ctx, id, remediations.DefaultListDeploymentsAtResourceGroupOperationOptions())` can be used to do batched pagination
+items, err := client.ListDeploymentsAtResourceGroupComplete(ctx, id, remediations.DefaultListDeploymentsAtResourceGroupOperationOptions())
 if err != nil {
 	// handle the error
 }
@@ -347,14 +348,14 @@ for _, item := range items {
 ```
 
 
-### Example Usage: `RemediationsClient.RemediationsListDeploymentsAtSubscription`
+### Example Usage: `RemediationsClient.ListDeploymentsAtSubscription`
 
 ```go
 ctx := context.TODO()
-id := remediations.NewRemediationID("12345678-1234-9876-4563-123456789012", "remediationValue")
+id := remediations.NewRemediationID("12345678-1234-9876-4563-123456789012", "remediationName")
 
-// alternatively `client.RemediationsListDeploymentsAtSubscription(ctx, id, remediations.DefaultRemediationsListDeploymentsAtSubscriptionOperationOptions())` can be used to do batched pagination
-items, err := client.RemediationsListDeploymentsAtSubscriptionComplete(ctx, id, remediations.DefaultRemediationsListDeploymentsAtSubscriptionOperationOptions())
+// alternatively `client.ListDeploymentsAtSubscription(ctx, id, remediations.DefaultListDeploymentsAtSubscriptionOperationOptions())` can be used to do batched pagination
+items, err := client.ListDeploymentsAtSubscriptionComplete(ctx, id, remediations.DefaultListDeploymentsAtSubscriptionOperationOptions())
 if err != nil {
 	// handle the error
 }
@@ -364,14 +365,14 @@ for _, item := range items {
 ```
 
 
-### Example Usage: `RemediationsClient.RemediationsListForManagementGroup`
+### Example Usage: `RemediationsClient.ListForManagementGroup`
 
 ```go
 ctx := context.TODO()
-id := remediations.NewManagementGroupID("managementGroupIdValue")
+id := remediations.NewManagementGroupID("managementGroupId")
 
-// alternatively `client.RemediationsListForManagementGroup(ctx, id, remediations.DefaultRemediationsListForManagementGroupOperationOptions())` can be used to do batched pagination
-items, err := client.RemediationsListForManagementGroupComplete(ctx, id, remediations.DefaultRemediationsListForManagementGroupOperationOptions())
+// alternatively `client.ListForManagementGroup(ctx, id, remediations.DefaultListForManagementGroupOperationOptions())` can be used to do batched pagination
+items, err := client.ListForManagementGroupComplete(ctx, id, remediations.DefaultListForManagementGroupOperationOptions())
 if err != nil {
 	// handle the error
 }
@@ -381,14 +382,14 @@ for _, item := range items {
 ```
 
 
-### Example Usage: `RemediationsClient.RemediationsListForResource`
+### Example Usage: `RemediationsClient.ListForResource`
 
 ```go
 ctx := context.TODO()
-id := remediations.NewScopeID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
+id := commonids.NewScopeID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
 
-// alternatively `client.RemediationsListForResource(ctx, id, remediations.DefaultRemediationsListForResourceOperationOptions())` can be used to do batched pagination
-items, err := client.RemediationsListForResourceComplete(ctx, id, remediations.DefaultRemediationsListForResourceOperationOptions())
+// alternatively `client.ListForResource(ctx, id, remediations.DefaultListForResourceOperationOptions())` can be used to do batched pagination
+items, err := client.ListForResourceComplete(ctx, id, remediations.DefaultListForResourceOperationOptions())
 if err != nil {
 	// handle the error
 }
@@ -398,14 +399,14 @@ for _, item := range items {
 ```
 
 
-### Example Usage: `RemediationsClient.RemediationsListForResourceGroup`
+### Example Usage: `RemediationsClient.ListForResourceGroup`
 
 ```go
 ctx := context.TODO()
-id := remediations.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
+id := commonids.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
-// alternatively `client.RemediationsListForResourceGroup(ctx, id, remediations.DefaultRemediationsListForResourceGroupOperationOptions())` can be used to do batched pagination
-items, err := client.RemediationsListForResourceGroupComplete(ctx, id, remediations.DefaultRemediationsListForResourceGroupOperationOptions())
+// alternatively `client.ListForResourceGroup(ctx, id, remediations.DefaultListForResourceGroupOperationOptions())` can be used to do batched pagination
+items, err := client.ListForResourceGroupComplete(ctx, id, remediations.DefaultListForResourceGroupOperationOptions())
 if err != nil {
 	// handle the error
 }
@@ -415,14 +416,14 @@ for _, item := range items {
 ```
 
 
-### Example Usage: `RemediationsClient.RemediationsListForSubscription`
+### Example Usage: `RemediationsClient.ListForSubscription`
 
 ```go
 ctx := context.TODO()
-id := remediations.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
-// alternatively `client.RemediationsListForSubscription(ctx, id, remediations.DefaultRemediationsListForSubscriptionOperationOptions())` can be used to do batched pagination
-items, err := client.RemediationsListForSubscriptionComplete(ctx, id, remediations.DefaultRemediationsListForSubscriptionOperationOptions())
+// alternatively `client.ListForSubscription(ctx, id, remediations.DefaultListForSubscriptionOperationOptions())` can be used to do batched pagination
+items, err := client.ListForSubscriptionComplete(ctx, id, remediations.DefaultListForSubscriptionOperationOptions())
 if err != nil {
 	// handle the error
 }

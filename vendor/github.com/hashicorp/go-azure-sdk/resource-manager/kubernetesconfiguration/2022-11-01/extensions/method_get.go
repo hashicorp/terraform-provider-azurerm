@@ -18,9 +18,9 @@ type GetOperationResponse struct {
 }
 
 // Get ...
-func (c ExtensionsClient) Get(ctx context.Context, id ExtensionId) (result GetOperationResponse, err error) {
+func (c ExtensionsClient) Get(ctx context.Context, id ScopedExtensionId) (result GetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -43,7 +43,9 @@ func (c ExtensionsClient) Get(ctx context.Context, id ExtensionId) (result GetOp
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Extension
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

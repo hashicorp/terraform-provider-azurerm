@@ -22,7 +22,7 @@ func importSentinelAlertRule(expectKind alertrules.AlertRuleKind) pluginsdk.Impo
 		}
 
 		client := meta.(*clients.Client).Sentinel.AlertRulesClient
-		resp, err := client.AlertRulesGet(ctx, *id)
+		resp, err := client.Get(ctx, *id)
 		if err != nil {
 			return nil, fmt.Errorf("retrieving Sentinel Alert Rule %q: %+v", id, err)
 		}
@@ -42,7 +42,7 @@ func importSentinelAlertRuleForTypedSdk(expectKind alertrules.AlertRuleKind) sdk
 		}
 
 		client := metadata.Client.Sentinel.AlertRulesClient
-		resp, err := client.AlertRulesGet(ctx, *id)
+		resp, err := client.Get(ctx, *id)
 		if err != nil {
 			return fmt.Errorf("retrieving Sentinel Alert Rule %q: %+v", id, err)
 		}
@@ -54,14 +54,13 @@ func importSentinelAlertRuleForTypedSdk(expectKind alertrules.AlertRuleKind) sdk
 	}
 }
 
-func assertAlertRuleKind(rule *alertrules.AlertRule, expectKind alertrules.AlertRuleKind) error {
+func assertAlertRuleKind(rule alertrules.AlertRule, expectKind alertrules.AlertRuleKind) error {
 	if rule == nil {
 		return fmt.Errorf("model was nil")
 	}
 
-	rulePtr := *rule
 	var kind alertrules.AlertRuleKind
-	switch rulePtr.(type) {
+	switch rule.(type) {
 	case alertrules.MLBehaviorAnalyticsAlertRule:
 		kind = alertrules.AlertRuleKindMLBehaviorAnalytics
 	case alertrules.FusionAlertRule:

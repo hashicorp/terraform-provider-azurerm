@@ -19,13 +19,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/serverrestart"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2022-12-01/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2023-06-01-preview/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2020-06-01/privatezones"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -119,20 +121,43 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				ValidateFunc: validate.FlexibleServerSkuName,
 			},
 
+			"auto_grow_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"storage_mb": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validation.IntInSlice([]int{32768, 65536, 131072, 262144, 524288, 1048576, 2097152, 4194304, 8388608, 16777216}),
+				ValidateFunc: validation.IntInSlice([]int{32768, 65536, 131072, 262144, 524288, 1048576, 2097152, 4193280, 4194304, 8388608, 16777216, 33553408}),
 			},
 
-			"version": {
+			"storage_tier": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Computed: true,
-				// TODO: Remove "15" after this issue has been resolved:
-				// https://github.com/Azure/azure-rest-api-specs/issues/24186
-				ValidateFunc: validation.StringInSlice(append(servers.PossibleValuesForServerVersion(), "15"), false),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(servers.AzureManagedDiskPerformanceTiersPFour),
+					string(servers.AzureManagedDiskPerformanceTiersPSix),
+					string(servers.AzureManagedDiskPerformanceTiersPOneZero),
+					string(servers.AzureManagedDiskPerformanceTiersPOneFive),
+					string(servers.AzureManagedDiskPerformanceTiersPTwoZero),
+					string(servers.AzureManagedDiskPerformanceTiersPThreeZero),
+					string(servers.AzureManagedDiskPerformanceTiersPFourZero),
+					string(servers.AzureManagedDiskPerformanceTiersPFiveZero),
+					string(servers.AzureManagedDiskPerformanceTiersPSixZero),
+					string(servers.AzureManagedDiskPerformanceTiersPSevenZero),
+					string(servers.AzureManagedDiskPerformanceTiersPEightZero),
+				}, false),
+			},
+
+			"version": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.StringInSlice(servers.PossibleValuesForServerVersion(), false),
 			},
 
 			"zone": commonschema.ZoneSingleOptional(),
@@ -144,6 +169,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 					string(servers.CreateModeDefault),
 					string(servers.CreateModePointInTimeRestore),
 					string(servers.CreateModeReplica),
+					string(servers.CreateModeGeoRestore),
 					string(servers.CreateModeUpdate),
 				}, false),
 			},
@@ -159,10 +185,11 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Computed: true,
+				// todo make this case sensitive when https://github.com/Azure/azure-rest-api-specs/issues/26346 is fixed
+				DiffSuppressFunc: suppress.CaseDifference,
 				// This is `computed`, because there is a breaking change to require this field when setting vnet.
 				// For existing fs who don't want to be recreated, they could contact service team to manually migrate to the private dns zone
 				// We need to ignore the diff when remote is set private dns zone
-				ForceNew:     true,
 				ValidateFunc: privatezones.ValidatePrivateDnsZoneID,
 			},
 
@@ -251,7 +278,8 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 
 			"public_network_access_enabled": {
 				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Optional: true,
+				Default:  true,
 			},
 
 			"replication_role": {
@@ -273,7 +301,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 					Schema: map[string]*pluginsdk.Schema{
 						"key_vault_key_id": {
 							Type:         pluginsdk.TypeString,
-							Optional:     true,
+							Required:     true,
 							ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
 							RequiredWith: []string{
 								"identity",
@@ -281,6 +309,20 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 							},
 						},
 						"primary_user_assigned_identity_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+						},
+						"geo_backup_key_vault_key_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+							RequiredWith: []string{
+								"identity",
+								"customer_managed_key.0.geo_backup_user_assigned_identity_id",
+							},
+						},
+						"geo_backup_user_assigned_identity_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: commonids.ValidateUserAssignedIdentityID,
@@ -325,6 +367,67 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				diff.ForceNew("administrator_login")
 			}
 			return nil
+		}, func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+			storageTierMappings := validate.InitializeFlexibleServerStorageTierDefaults()
+			var newTier string
+			var newMb int
+			var isValid bool
+
+			oldStorageMbRaw, newStorageMbRaw := diff.GetChange("storage_mb")
+			oldTierRaw, newTierRaw := diff.GetChange("storage_tier")
+
+			if oldStorageMbRaw.(int) == 0 && oldTierRaw.(string) == "" && newStorageMbRaw.(int) == 0 && newTierRaw.(string) == "" {
+				// This is a new resource without any values in the state
+				// or config, default values will be set in create...
+				return nil
+			}
+
+			newMb = newStorageMbRaw.(int)
+			newTier = newTierRaw.(string)
+
+			// if newMb or newTier values are empty,
+			// assign the default values that will
+			// be assigned in the create func...
+			if newMb == 0 {
+				newMb = 32768
+			}
+
+			// get the valid mappings for the passed
+			// storage_mb size...
+			storageTiers := storageTierMappings[newMb]
+
+			if newTier == "" {
+				newTier = string(storageTiers.DefaultTier)
+			}
+
+			// verify that the storage_tier is valid
+			// for the given storage_mb...
+			for _, tier := range *storageTiers.ValidTiers {
+				if newTier == tier {
+					isValid = true
+					break
+				}
+			}
+
+			if !isValid {
+				if strings.EqualFold(oldTierRaw.(string), newTier) {
+					// The tier value did not change, so we need to determin if they are
+					// using the default value for the tier, or they actually defined the
+					// tier in the config or not... If they did not define
+					// the tier in the config we need to assign a new valid default
+					// tier for the newMb value. However, if the tier is in the config
+					// this is a valid error and should be returned...
+					if v := diff.GetRawConfig().AsValueMap()["storage_tier"]; v.IsNull() {
+						diff.SetNew("storage_tier", string(storageTiers.DefaultTier))
+						log.Printf("[DEBUG]: 'storage_tier' was not valid and was not in the config assigning new default 'storage_tier' %q -> %q\n", newTier, storageTiers.DefaultTier)
+						return nil
+					}
+				}
+
+				return fmt.Errorf("invalid 'storage_tier' %q for defined 'storage_mb' size '%d', expected one of [%s]", newTier, newMb, azure.QuotedStringSlice(*storageTiers.ValidTiers))
+			}
+
+			return nil
 		},
 		),
 	}
@@ -357,12 +460,12 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("`replication_role` cannot be set while creating")
 	}
 
-	if servers.CreateMode(createMode) == servers.CreateModePointInTimeRestore {
+	if servers.CreateMode(createMode) == servers.CreateModePointInTimeRestore || servers.CreateMode(createMode) == servers.CreateModeGeoRestore {
 		if _, ok := d.GetOk("source_server_id"); !ok {
-			return fmt.Errorf("`source_server_id` is required when `create_mode` is `PointInTimeRestore`")
+			return fmt.Errorf("`source_server_id` is required when `create_mode` is  %s", createMode)
 		}
 		if _, ok := d.GetOk("point_in_time_restore_time_in_utc"); !ok {
-			return fmt.Errorf("`point_in_time_restore_time_in_utc` is required when `create_mode` is `PointInTimeRestore`")
+			return fmt.Errorf("`point_in_time_restore_time_in_utc` is required when `create_mode` is  %s", createMode)
 		}
 	}
 
@@ -388,6 +491,7 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 			if !adminLoginSet {
 				return fmt.Errorf("`administrator_login` is required when `create_mode` is `Default` and `authentication.password_auth_enabled` is set to `true`")
 			}
+
 			if !adminPwdSet {
 				return fmt.Errorf("`administrator_password` is required when `create_mode` is `Default` and `authentication.password_auth_enabled` is set to `true`")
 			}
@@ -398,11 +502,9 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 		if _, ok := d.GetOk("sku_name"); !ok {
 			return fmt.Errorf("`sku_name` is required when `create_mode` is `Default`")
 		}
+
 		if _, ok := d.GetOk("version"); !ok {
 			return fmt.Errorf("`version` is required when `create_mode` is `Default`")
-		}
-		if _, ok := d.GetOk("storage_mb"); !ok {
-			return fmt.Errorf("`storage_mb` is required when `create_mode` is `Default`")
 		}
 	}
 
@@ -411,11 +513,35 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("expanding `sku_name` for %s: %v", id, err)
 	}
 
+	storage, err := expandArmServerStorage(d)
+	if err != nil {
+		return err
+	}
+	var storageMb int
+
+	if storage.StorageSizeGB == nil || *storage.StorageSizeGB == 0 {
+		// set the default value for storage_mb...
+		storageMb = 32768
+		storage.StorageSizeGB = pointer.FromInt64(int64(32))
+		log.Printf("[DEBUG]: Default 'storage_mb' Set -> %d\n", storageMb)
+	} else {
+		storageMb = int(*storage.StorageSizeGB) * 1024
+	}
+
+	if storage.Tier == nil || *storage.Tier == "" {
+		// determine the correct default storage_tier based
+		// on the defined storage_mb...
+		storageTierMappings := validate.InitializeFlexibleServerStorageTierDefaults()
+		storageTiers := storageTierMappings[storageMb]
+		storage.Tier = pointer.To(storageTiers.DefaultTier)
+		log.Printf("[DEBUG]: Default 'storage_tier' Set -> %q\n", storageTiers.DefaultTier)
+	}
+
 	parameters := servers.Server{
 		Location: location.Normalize(d.Get("location").(string)),
 		Properties: &servers.ServerProperties{
 			Network:          expandArmServerNetwork(d),
-			Storage:          expandArmServerStorage(d),
+			Storage:          storage,
 			HighAvailability: expandFlexibleServerHighAvailability(d.Get("high_availability").([]interface{}), true),
 			Backup:           expandArmServerBackup(d),
 			DataEncryption:   expandFlexibleServerDataEncryption(d.Get("customer_managed_key").([]interface{})),
@@ -545,8 +671,18 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 				return fmt.Errorf("setting `maintenance_window`: %+v", err)
 			}
 
-			if storage := props.Storage; storage != nil && storage.StorageSizeGB != nil {
-				d.Set("storage_mb", (*storage.StorageSizeGB * 1024))
+			if storage := props.Storage; storage != nil {
+				if storage.AutoGrow != nil {
+					d.Set("auto_grow_enabled", *storage.AutoGrow == servers.StorageAutoGrowEnabled)
+				}
+
+				if storage.StorageSizeGB != nil {
+					d.Set("storage_mb", (*storage.StorageSizeGB * 1024))
+				}
+
+				if storage.Tier != nil {
+					d.Set("storage_tier", string(*storage.Tier))
+				}
 			}
 
 			if backup := props.Backup; backup != nil {
@@ -644,6 +780,10 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 		}
 	}
 
+	if d.HasChange("private_dns_zone_id") || d.HasChange("public_network_access_enabled") {
+		parameters.Properties.Network = expandArmServerNetwork(d)
+	}
+
 	var requireFailover bool
 	// failover is only supported when `zone` and `high_availability.0.standby_availability_zone` are exchanged with each other
 	if d.HasChanges("zone", "high_availability") {
@@ -711,16 +851,21 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 		parameters.Properties.AuthConfig = expandFlexibleServerAuthConfig(d.Get("authentication").([]interface{}))
 	}
 
-	if d.HasChange("storage_mb") {
+	if d.HasChange("auto_grow_enabled") || d.HasChange("storage_mb") || d.HasChange("storage_tier") {
 		// TODO remove the additional update after https://github.com/Azure/azure-rest-api-specs/issues/22867 is fixed
+		storage, err := expandArmServerStorage(d)
+		if err != nil {
+			return err
+		}
+
 		storageUpdateParameters := servers.ServerForUpdate{
 			Properties: &servers.ServerPropertiesForUpdate{
-				Storage: expandArmServerStorage(d),
+				Storage: storage,
 			},
 		}
 
 		if err := client.UpdateThenPoll(ctx, *id, storageUpdateParameters); err != nil {
-			return fmt.Errorf("updating `storage_mb` for %s: %+v", *id, err)
+			return fmt.Errorf("updating `auto_grow_enabled` / `storage_mb` for %s: %+v", *id, err)
 		}
 	}
 
@@ -837,6 +982,12 @@ func expandArmServerNetwork(d *pluginsdk.ResourceData) *servers.Network {
 		network.PrivateDnsZoneArmResourceId = utils.String(v.(string))
 	}
 
+	publicNetworkAccessEnabled := servers.ServerPublicNetworkAccessStateEnabled
+	if !d.Get("public_network_access_enabled").(bool) {
+		publicNetworkAccessEnabled = servers.ServerPublicNetworkAccessStateDisabled
+	}
+	network.PublicNetworkAccess = pointer.To(publicNetworkAccessEnabled)
+
 	return &network
 }
 
@@ -858,14 +1009,30 @@ func expandArmServerMaintenanceWindow(input []interface{}) *servers.MaintenanceW
 	return &maintenanceWindow
 }
 
-func expandArmServerStorage(d *pluginsdk.ResourceData) *servers.Storage {
+func expandArmServerStorage(d *pluginsdk.ResourceData) (*servers.Storage, error) {
 	storage := servers.Storage{}
 
-	if v, ok := d.GetOk("storage_mb"); ok {
-		storage.StorageSizeGB = utils.Int64(int64(v.(int) / 1024))
+	autoGrow := servers.StorageAutoGrowDisabled
+	if v, ok := d.GetOk("auto_grow_enabled"); ok && v.(bool) {
+		autoGrow = servers.StorageAutoGrowEnabled
+	}
+	storage.AutoGrow = &autoGrow
+
+	// storage_mb can only be scaled up...
+	oldStorageMbRaw, newStorageMbRaw := d.GetChange("storage_mb")
+	if newStorageMbRaw.(int) < oldStorageMbRaw.(int) {
+		return nil, fmt.Errorf("'storage_mb' can only be scaled up, expected the new 'storage_mb' value (%d) to be larger than the previous 'storage_mb' value (%d)", newStorageMbRaw.(int), oldStorageMbRaw.(int))
 	}
 
-	return &storage
+	if v, ok := d.GetOk("storage_mb"); ok {
+		storage.StorageSizeGB = pointer.FromInt64(int64(v.(int) / 1024))
+	}
+
+	if v, ok := d.GetOk("storage_tier"); ok {
+		storage.Tier = pointer.To(servers.AzureManagedDiskPerformanceTiers(v.(string)))
+	}
+
+	return &storage, nil
 }
 
 func expandArmServerBackup(d *pluginsdk.ResourceData) *servers.Backup {
@@ -1062,9 +1229,23 @@ func expandFlexibleServerDataEncryption(input []interface{}) *servers.DataEncryp
 
 	det := servers.ArmServerKeyTypeAzureKeyVault
 	dataEncryption := servers.DataEncryption{
-		Type:                          &det,
-		PrimaryKeyURI:                 utils.String(v["key_vault_key_id"].(string)),
-		PrimaryUserAssignedIdentityId: utils.String(v["primary_user_assigned_identity_id"].(string)),
+		Type: &det,
+	}
+
+	if keyVaultKeyId := v["key_vault_key_id"].(string); keyVaultKeyId != "" {
+		dataEncryption.PrimaryKeyURI = utils.String(keyVaultKeyId)
+	}
+
+	if primaryUserAssignedIdentityId := v["primary_user_assigned_identity_id"].(string); primaryUserAssignedIdentityId != "" {
+		dataEncryption.PrimaryUserAssignedIdentityId = utils.String(primaryUserAssignedIdentityId)
+	}
+
+	if geoBackupKeyVaultKeyId := v["geo_backup_key_vault_key_id"].(string); geoBackupKeyVaultKeyId != "" {
+		dataEncryption.GeoBackupKeyURI = utils.String(geoBackupKeyVaultKeyId)
+	}
+
+	if geoBackupUserAssignedIdentityId := v["geo_backup_user_assigned_identity_id"].(string); geoBackupUserAssignedIdentityId != "" {
+		dataEncryption.GeoBackupUserAssignedIdentityId = utils.String(geoBackupUserAssignedIdentityId)
 	}
 
 	return &dataEncryption
@@ -1085,6 +1266,17 @@ func flattenFlexibleServerDataEncryption(de *servers.DataEncryption) ([]interfac
 			return nil, fmt.Errorf("parsing %q: %+v", *identity, err)
 		}
 		item["primary_user_assigned_identity_id"] = parsed.ID()
+	}
+
+	if de.GeoBackupKeyURI != nil {
+		item["geo_backup_key_vault_key_id"] = *de.GeoBackupKeyURI
+	}
+	if identity := de.GeoBackupUserAssignedIdentityId; identity != nil {
+		parsed, err := commonids.ParseUserAssignedIdentityIDInsensitively(*identity)
+		if err != nil {
+			return nil, fmt.Errorf("parsing %q: %+v", *identity, err)
+		}
+		item["geo_backup_user_assigned_identity_id"] = parsed.ID()
 	}
 
 	return []interface{}{item}, nil

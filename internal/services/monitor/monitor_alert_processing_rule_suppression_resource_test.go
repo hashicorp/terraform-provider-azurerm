@@ -104,7 +104,7 @@ func (r MonitorAlertProcessingRuleSuppressionResource) Exists(ctx context.Contex
 		return nil, err
 	}
 
-	resp, err := clients.Monitor.AlertProcessingRulesClient.AlertProcessingRulesGetByName(ctx, *id)
+	resp, err := clients.Monitor.AlertProcessingRulesClient.GetByName(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving (%s): %+v", *id, err)
 	}

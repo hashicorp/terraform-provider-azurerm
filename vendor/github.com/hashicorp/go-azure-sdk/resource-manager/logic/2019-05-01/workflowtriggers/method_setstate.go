@@ -20,7 +20,7 @@ type SetStateOperationResponse struct {
 // SetState ...
 func (c WorkflowTriggersClient) SetState(ctx context.Context, id TriggerId, input SetTriggerStateActionDefinition) (result SetStateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

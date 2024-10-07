@@ -10,9 +10,40 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type EventSourceResource interface {
+	EventSourceResource() BaseEventSourceResourceImpl
 }
 
-func unmarshalEventSourceResourceImplementation(input []byte) (EventSourceResource, error) {
+var _ EventSourceResource = BaseEventSourceResourceImpl{}
+
+type BaseEventSourceResourceImpl struct {
+	Id       *string            `json:"id,omitempty"`
+	Kind     Kind               `json:"kind"`
+	Location string             `json:"location"`
+	Name     *string            `json:"name,omitempty"`
+	Tags     *map[string]string `json:"tags,omitempty"`
+	Type     *string            `json:"type,omitempty"`
+}
+
+func (s BaseEventSourceResourceImpl) EventSourceResource() BaseEventSourceResourceImpl {
+	return s
+}
+
+var _ EventSourceResource = RawEventSourceResourceImpl{}
+
+// RawEventSourceResourceImpl is returned when the Discriminated Value doesn't match any of the defined types
+// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
+// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+type RawEventSourceResourceImpl struct {
+	eventSourceResource BaseEventSourceResourceImpl
+	Type                string
+	Values              map[string]interface{}
+}
+
+func (s RawEventSourceResourceImpl) EventSourceResource() BaseEventSourceResourceImpl {
+	return s.eventSourceResource
+}
+
+func UnmarshalEventSourceResourceImplementation(input []byte) (EventSourceResource, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -22,9 +53,9 @@ func unmarshalEventSourceResourceImplementation(input []byte) (EventSourceResour
 		return nil, fmt.Errorf("unmarshaling EventSourceResource into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["kind"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["kind"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "Microsoft.EventHub") {
@@ -43,14 +74,15 @@ func unmarshalEventSourceResourceImplementation(input []byte) (EventSourceResour
 		return out, nil
 	}
 
-	type RawEventSourceResourceImpl struct {
-		Type   string                 `json:"-"`
-		Values map[string]interface{} `json:"-"`
+	var parent BaseEventSourceResourceImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseEventSourceResourceImpl: %+v", err)
 	}
-	out := RawEventSourceResourceImpl{
-		Type:   value,
-		Values: temp,
-	}
-	return out, nil
+
+	return RawEventSourceResourceImpl{
+		eventSourceResource: parent,
+		Type:                value,
+		Values:              temp,
+	}, nil
 
 }

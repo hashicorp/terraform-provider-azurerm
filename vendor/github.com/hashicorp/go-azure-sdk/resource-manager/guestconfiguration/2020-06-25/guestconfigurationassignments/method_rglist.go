@@ -22,7 +22,7 @@ type RGListOperationResponse struct {
 // RGList ...
 func (c GuestConfigurationAssignmentsClient) RGList(ctx context.Context, id commonids.ResourceGroupId) (result RGListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusNoContent,
 			http.StatusOK,
@@ -46,7 +46,9 @@ func (c GuestConfigurationAssignmentsClient) RGList(ctx context.Context, id comm
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model GuestConfigurationAssignmentList
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

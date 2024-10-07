@@ -6,15 +6,14 @@ package applicationinsights_test
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	smartdetection "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2015-05-01/componentproactivedetectionapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type AppInsightsSmartDetectionRule struct{}
@@ -102,17 +101,17 @@ func TestAccApplicationInsightsSmartDetectionRule_longDependencyDuration(t *test
 // but this still causes issues when the resource performs a d.IsNewResource() check, where the tf.ImportAsExistsError is thrown.
 
 func (t AppInsightsSmartDetectionRule) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.SmartDetectionRuleID(state.Attributes["id"])
+	id, err := smartdetection.ParseProactiveDetectionConfigID(state.Attributes["id"])
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.AppInsights.SmartDetectionRuleClient.Get(ctx, id.ResourceGroup, id.ComponentName, id.SmartDetectionRuleName)
+	resp, err := clients.AppInsights.SmartDetectionRuleClient.ProactiveDetectionConfigurationsGet(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Application Insights Smart Detection Rule '%s' does not exist", id)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.StatusCode != http.StatusNotFound), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (AppInsightsSmartDetectionRule) basic(data acceptance.TestData) string {

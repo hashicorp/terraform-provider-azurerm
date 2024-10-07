@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/datamigration/2018-04-19/projectresource"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datamigration/2021-06-30/projectresource"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -66,8 +66,11 @@ func resourceDatabaseMigrationProject() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					// Now that go sdk only export SQL as source platform type, we only allow it here.
+					string(projectresource.ProjectSourcePlatformMongoDb),
+					string(projectresource.ProjectSourcePlatformMySQL),
+					string(projectresource.ProjectSourcePlatformPostgreSql),
 					string(projectresource.ProjectSourcePlatformSQL),
+					string(projectresource.ProjectSourcePlatformUnknown),
 				}, false),
 			},
 
@@ -76,8 +79,12 @@ func resourceDatabaseMigrationProject() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					// Now that go sdk only export SQL as source platform type, we only allow it here.
+					string(projectresource.ProjectTargetPlatformAzureDbForMySql),
+					string(projectresource.ProjectTargetPlatformAzureDbForPostgreSql),
+					string(projectresource.ProjectTargetPlatformMongoDb),
 					string(projectresource.ProjectTargetPlatformSQLDB),
+					string(projectresource.ProjectTargetPlatformSQLMI),
+					string(projectresource.ProjectTargetPlatformUnknown),
 				}, false),
 			},
 

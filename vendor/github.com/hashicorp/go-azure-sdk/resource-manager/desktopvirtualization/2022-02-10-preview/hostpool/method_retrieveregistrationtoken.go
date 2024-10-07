@@ -21,7 +21,7 @@ type RetrieveRegistrationTokenOperationResponse struct {
 // RetrieveRegistrationToken ...
 func (c HostPoolClient) RetrieveRegistrationToken(ctx context.Context, id HostPoolId) (result RetrieveRegistrationTokenOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -44,7 +44,9 @@ func (c HostPoolClient) RetrieveRegistrationToken(ctx context.Context, id HostPo
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model RegistrationInfo
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

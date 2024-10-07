@@ -67,7 +67,8 @@ func resourceSentinelAlertRuleFusion() *pluginsdk.Resource {
 			"source": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				// Service will auto-fill this if not given in request, based on the "alert_rule_template_guid".
+				// NOTE: O+C The API creates a source if omitted based on the `alert_rule_template_guid`
+				// but overwriting this/reverting to the default can be done without issue so this can remain
 				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -137,7 +138,7 @@ func resourceSentinelAlertRuleFusionCreateUpdate(d *pluginsdk.ResourceData, meta
 	id := alertrules.NewAlertRuleID(workspaceID.SubscriptionId, workspaceID.ResourceGroupName, workspaceID.WorkspaceName, name)
 
 	if d.IsNewResource() {
-		resp, err := client.AlertRulesGet(ctx, id)
+		resp, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(resp.HttpResponse) {
 				return fmt.Errorf("checking for existing %q: %+v", id, err)
@@ -158,7 +159,7 @@ func resourceSentinelAlertRuleFusionCreateUpdate(d *pluginsdk.ResourceData, meta
 	}
 
 	if !d.IsNewResource() {
-		resp, err := client.AlertRulesGet(ctx, id)
+		resp, err := client.Get(ctx, id)
 		if err != nil {
 			return fmt.Errorf("retrieving %q: %+v", id, err)
 		}
@@ -171,7 +172,7 @@ func resourceSentinelAlertRuleFusionCreateUpdate(d *pluginsdk.ResourceData, meta
 		}
 	}
 
-	if _, err := client.AlertRulesCreateOrUpdate(ctx, id, params); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, params); err != nil {
 		return fmt.Errorf("creating Sentinel Alert Rule Fusion %q: %+v", id, err)
 	}
 
@@ -190,7 +191,7 @@ func resourceSentinelAlertRuleFusionRead(d *pluginsdk.ResourceData, meta interfa
 		return err
 	}
 
-	resp, err := client.AlertRulesGet(ctx, *id)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] %q was not found - removing from state!", id)
@@ -205,19 +206,19 @@ func resourceSentinelAlertRuleFusionRead(d *pluginsdk.ResourceData, meta interfa
 		if err := assertAlertRuleKind(resp.Model, alertrules.AlertRuleKindFusion); err != nil {
 			return fmt.Errorf("asserting alert rule of %q: %+v", id, err)
 		}
-		modelPtr := *model
-		rule := modelPtr.(alertrules.FusionAlertRule)
 
-		d.Set("name", id.RuleId)
+		if rule, ok := model.(alertrules.FusionAlertRule); ok {
+			d.Set("name", id.RuleId)
 
-		workspaceId := alertrules.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName)
-		d.Set("log_analytics_workspace_id", workspaceId.ID())
+			workspaceId := alertrules.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName)
+			d.Set("log_analytics_workspace_id", workspaceId.ID())
 
-		if prop := rule.Properties; prop != nil {
-			d.Set("enabled", prop.Enabled)
-			d.Set("alert_rule_template_guid", prop.AlertRuleTemplateName)
-			if err := d.Set("source", flattenFusionSourceSettings(prop.SourceSettings)); err != nil {
-				return fmt.Errorf("setting `source`: %v", err)
+			if prop := rule.Properties; prop != nil {
+				d.Set("enabled", prop.Enabled)
+				d.Set("alert_rule_template_guid", prop.AlertRuleTemplateName)
+				if err := d.Set("source", flattenFusionSourceSettings(prop.SourceSettings)); err != nil {
+					return fmt.Errorf("setting `source`: %v", err)
+				}
 			}
 		}
 	}
@@ -235,7 +236,7 @@ func resourceSentinelAlertRuleFusionDelete(d *pluginsdk.ResourceData, meta inter
 		return err
 	}
 
-	if _, err := client.AlertRulesDelete(ctx, *id); err != nil {
+	if _, err := client.Delete(ctx, *id); err != nil {
 		return fmt.Errorf("deleting Sentinel Alert Rule Fusion %q: %+v", id, err)
 	}
 

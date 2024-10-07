@@ -142,14 +142,13 @@ func (t SentinelAlertRuleMsSecurityIncidentResource) Exists(ctx context.Context,
 		return nil, err
 	}
 
-	resp, err := clients.Sentinel.AlertRulesClient.AlertRulesGet(ctx, *id)
+	resp, err := clients.Sentinel.AlertRulesClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading Sentinel Alert Rule Ms Security Incident %q: %v", id, err)
 	}
 
 	if model := resp.Model; model != nil {
-		modelPtr := *model
-		rule, ok := modelPtr.(alertrules.MicrosoftSecurityIncidentCreationAlertRule)
+		rule, ok := model.(alertrules.MicrosoftSecurityIncidentCreationAlertRule)
 		if !ok {
 			return nil, fmt.Errorf("the Alert Rule %q is not a Fusion Alert Rule", id)
 		}

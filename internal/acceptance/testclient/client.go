@@ -40,7 +40,7 @@ func Build() (*clients.Client, error) {
 		}
 
 		if metadataHost != "" {
-			if env, err = environments.FromEndpoint(ctx, fmt.Sprintf("https://%s", metadataHost), envName); err != nil {
+			if env, err = environments.FromEndpoint(ctx, fmt.Sprintf("https://%s", metadataHost)); err != nil {
 				return nil, fmt.Errorf("building test client: %+v", err)
 			}
 		} else if env, err = environments.FromName(envName); err != nil {
@@ -65,12 +65,11 @@ func Build() (*clients.Client, error) {
 		}
 
 		clientBuilder := clients.ClientBuilder{
-			AuthConfig:               &authConfig,
-			SkipProviderRegistration: true,
-			TerraformVersion:         os.Getenv("TERRAFORM_CORE_VERSION"),
-			Features:                 features.Default(),
-			StorageUseAzureAD:        false,
-			SubscriptionID:           os.Getenv("ARM_SUBSCRIPTION_ID"),
+			AuthConfig:        &authConfig,
+			TerraformVersion:  os.Getenv("TERRAFORM_CORE_VERSION"),
+			Features:          features.Default(),
+			StorageUseAzureAD: false,
+			SubscriptionID:    os.Getenv("ARM_SUBSCRIPTION_ID"),
 		}
 
 		client, err := clients.Build(ctx, clientBuilder)

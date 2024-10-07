@@ -20,7 +20,7 @@ type GetOperationResponse struct {
 // Get ...
 func (c IntegrationAccountAssembliesClient) Get(ctx context.Context, id AssemblyId) (result GetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -43,7 +43,9 @@ func (c IntegrationAccountAssembliesClient) Get(ctx context.Context, id Assembly
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model AssemblyDefinition
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

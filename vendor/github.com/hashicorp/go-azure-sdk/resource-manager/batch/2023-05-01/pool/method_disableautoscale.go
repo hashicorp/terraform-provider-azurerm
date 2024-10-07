@@ -21,7 +21,7 @@ type DisableAutoScaleOperationResponse struct {
 // DisableAutoScale ...
 func (c PoolClient) DisableAutoScale(ctx context.Context, id PoolId) (result DisableAutoScaleOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -44,7 +44,9 @@ func (c PoolClient) DisableAutoScale(ctx context.Context, id PoolId) (result Dis
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Pool
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -10,9 +10,9 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2022-10-01/vaultcertificates"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2022-10-01/vaults"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationfabrics"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2024-01-01/vaults"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2024-04-01/vaultcertificates"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationfabrics"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -37,11 +37,14 @@ func (HyperVHostTestResource) generateHyperVHostRegistrationCert(callbackFunc fu
 			},
 		}
 
+		ctx2, cancel := context.WithTimeout(ctx, 15*time.Minute)
+		defer cancel()
+
 		date := time.Now().Format("2-01-2006")
 		name := fmt.Sprintf(`CN=CB_%s-%s-vaultcredentials`, FabricId.VaultName, date)
 		id := vaultcertificates.NewCertificateID(FabricId.SubscriptionId, FabricId.ResourceGroupName, FabricId.VaultName, name)
 
-		resp, err := client.Create(ctx, id, input)
+		resp, err := client.Create(ctx2, id, input)
 		if err != nil {
 			return fmt.Errorf("creating: %+v", err)
 		}
@@ -57,12 +60,12 @@ func (HyperVHostTestResource) generateHyperVHostRegistrationCert(callbackFunc fu
 
 		vaultId := vaults.NewVaultID(id.SubscriptionId, id.ResourceGroupName, id.VaultName)
 
-		vault, err := fetchRecoveryServicesVaultDetails(ctx, clients.RecoveryServices.VaultsClient, vaultId)
+		vault, err := fetchRecoveryServicesVaultDetails(ctx2, clients.RecoveryServices.VaultsClient, vaultId)
 		if err != nil {
 			return fmt.Errorf("retrieving %s: %+v", id, err)
 		}
 
-		fabric, err := fetchRecoveryServicesFabricDetails(ctx, clients.RecoveryServices.FabricClient, *FabricId)
+		fabric, err := fetchRecoveryServicesFabricDetails(ctx2, clients.RecoveryServices.FabricClient, *FabricId)
 		if err != nil {
 			return fmt.Errorf("retrieving %s: %+v", id, err)
 		}

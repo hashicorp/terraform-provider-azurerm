@@ -23,7 +23,7 @@ type DeleteOperationResponse struct {
 // Delete ...
 func (c MobileNetworkClient) Delete(ctx context.Context, id MobileNetworkId) (result DeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,

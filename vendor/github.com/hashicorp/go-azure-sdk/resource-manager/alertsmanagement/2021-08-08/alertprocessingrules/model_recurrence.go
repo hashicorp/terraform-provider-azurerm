@@ -10,9 +10,37 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type Recurrence interface {
+	Recurrence() BaseRecurrenceImpl
 }
 
-func unmarshalRecurrenceImplementation(input []byte) (Recurrence, error) {
+var _ Recurrence = BaseRecurrenceImpl{}
+
+type BaseRecurrenceImpl struct {
+	EndTime        *string        `json:"endTime,omitempty"`
+	RecurrenceType RecurrenceType `json:"recurrenceType"`
+	StartTime      *string        `json:"startTime,omitempty"`
+}
+
+func (s BaseRecurrenceImpl) Recurrence() BaseRecurrenceImpl {
+	return s
+}
+
+var _ Recurrence = RawRecurrenceImpl{}
+
+// RawRecurrenceImpl is returned when the Discriminated Value doesn't match any of the defined types
+// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
+// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+type RawRecurrenceImpl struct {
+	recurrence BaseRecurrenceImpl
+	Type       string
+	Values     map[string]interface{}
+}
+
+func (s RawRecurrenceImpl) Recurrence() BaseRecurrenceImpl {
+	return s.recurrence
+}
+
+func UnmarshalRecurrenceImplementation(input []byte) (Recurrence, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -22,9 +50,9 @@ func unmarshalRecurrenceImplementation(input []byte) (Recurrence, error) {
 		return nil, fmt.Errorf("unmarshaling Recurrence into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["recurrenceType"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["recurrenceType"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "Daily") {
@@ -51,14 +79,15 @@ func unmarshalRecurrenceImplementation(input []byte) (Recurrence, error) {
 		return out, nil
 	}
 
-	type RawRecurrenceImpl struct {
-		Type   string                 `json:"-"`
-		Values map[string]interface{} `json:"-"`
+	var parent BaseRecurrenceImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseRecurrenceImpl: %+v", err)
 	}
-	out := RawRecurrenceImpl{
-		Type:   value,
-		Values: temp,
-	}
-	return out, nil
+
+	return RawRecurrenceImpl{
+		recurrence: parent,
+		Type:       value,
+		Values:     temp,
+	}, nil
 
 }

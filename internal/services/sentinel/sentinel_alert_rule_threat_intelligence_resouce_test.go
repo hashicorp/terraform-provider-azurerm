@@ -100,7 +100,7 @@ func (r SentinelAlertRuleThreatIntelligenceResource) Exists(ctx context.Context,
 		return nil, err
 	}
 
-	resp, err := alertRuleClient.AlertRulesGet(ctx, *id)
+	resp, err := alertRuleClient.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
@@ -109,8 +109,7 @@ func (r SentinelAlertRuleThreatIntelligenceResource) Exists(ctx context.Context,
 	}
 
 	if model := resp.Model; model != nil {
-		modelPtr := *model
-		rule, ok := modelPtr.(alertrules.ThreatIntelligenceAlertRule)
+		rule, ok := model.(alertrules.ThreatIntelligenceAlertRule)
 		if !ok {
 			return nil, fmt.Errorf("the Alert Rule %q is not a Fusion Alert Rule", id)
 		}

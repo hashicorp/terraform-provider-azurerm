@@ -10,7 +10,9 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"           // nolint: staticcheck
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/databases"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -18,8 +20,8 @@ import (
 // FindDatabaseReplicationPartners looks for partner databases having one of the specified replication roles, by
 // reading any replication links then attempting to discover and match the corresponding server/database resources for
 // the other end of the link.
-func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *sql.DatabasesClient, replicationLinksClient *sql.ReplicationLinksClient, resourcesClient *resources.Client, id parse.DatabaseId, rolesToFind []sql.ReplicationRole) ([]sql.Database, error) {
-	var partnerDatabases []sql.Database
+func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *databases.DatabasesClient, replicationLinksClient *sql.ReplicationLinksClient, resourcesClient *resources.Client, id commonids.SqlDatabaseId, primaryEnclaveType databases.AlwaysEncryptedEnclaveType, rolesToFind []sql.ReplicationRole) ([]databases.Database, error) {
+	var partnerDatabases []databases.Database
 
 	matchesRole := func(role sql.ReplicationRole) bool {
 		for _, r := range rolesToFind {
@@ -30,10 +32,11 @@ func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *sql.D
 		return false
 	}
 
-	for linksIterator, err := replicationLinksClient.ListByDatabaseComplete(ctx, id.ResourceGroup, id.ServerName, id.Name); linksIterator.NotDone(); err = linksIterator.NextWithContext(ctx) {
+	for linksIterator, err := replicationLinksClient.ListByDatabaseComplete(ctx, id.ResourceGroupName, id.ServerName, id.DatabaseName); linksIterator.NotDone(); err = linksIterator.NextWithContext(ctx) {
 		if err != nil {
 			return nil, fmt.Errorf("reading Replication Links for %s: %+v", id, err)
 		}
+
 		if linksIterator.Response().IsEmpty() {
 			return nil, fmt.Errorf("reading Replication Links for %s: response was empty", id)
 		}
@@ -43,6 +46,7 @@ func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *sql.D
 			log.Printf("[INFO] Replication Link Properties was nil for %s", id)
 			continue
 		}
+
 		if linkProps.PartnerLocation == nil || linkProps.PartnerServer == nil || linkProps.PartnerDatabase == nil {
 			log.Printf("[INFO] Replication Link Properties was invalid for %s", id)
 			continue
@@ -91,18 +95,26 @@ func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *sql.D
 
 				// If the database has a replication link for the specified role, we'll consider it a partner of this database if the location is the same as expected partner
 				if matchesRole(linkPropsPossiblePartner.Role) {
-					partnerDatabaseId := parse.NewDatabaseID(partnerServerId.SubscriptionId, partnerServerId.ResourceGroup, partnerServerId.Name, *linkProps.PartnerDatabase)
-					partnerDatabase, err := databasesClient.Get(ctx, partnerDatabaseId.ResourceGroup, partnerDatabaseId.ServerName, partnerDatabaseId.Name)
+					partnerDatabaseId := commonids.NewSqlDatabaseID(partnerServerId.SubscriptionId, partnerServerId.ResourceGroup, partnerServerId.Name, *linkProps.PartnerDatabase)
+					partnerDatabase, err := databasesClient.Get(ctx, partnerDatabaseId, databases.DefaultGetOperationOptions())
 					if err != nil {
 						return nil, fmt.Errorf("retrieving Partner %s: %+v", partnerDatabaseId, err)
 					}
-					if location.NormalizeNilable(partnerDatabase.Location) != location.Normalize(*linkProps.PartnerLocation) {
-						log.Printf("[INFO] Mismatch of possible Partner Database based on location (%s vs %s) for %s", location.NormalizeNilable(partnerDatabase.Location), location.Normalize(*linkProps.PartnerLocation), id)
-						continue
-					}
-					if partnerDatabase.ID != nil {
-						log.Printf("[INFO] Found Partner %s", partnerDatabaseId)
-						partnerDatabases = append(partnerDatabases, partnerDatabase)
+
+					if partnerDatabase := partnerDatabase.Model; partnerDatabase != nil {
+						if location.Normalize(partnerDatabase.Location) != location.Normalize(*linkProps.PartnerLocation) {
+							log.Printf("[INFO] Mismatch of possible Partner Database based on location (%s vs %s) for %s", location.Normalize(partnerDatabase.Location), location.Normalize(*linkProps.PartnerLocation), id)
+							continue
+						}
+
+						if partnerDatabase.Id != nil && partnerDatabase.Properties != nil && partnerDatabase.Properties.PreferredEnclaveType != nil {
+							if primaryEnclaveType != "" && primaryEnclaveType == *partnerDatabase.Properties.PreferredEnclaveType {
+								log.Printf("[INFO] Found Partner %s", partnerDatabaseId)
+								partnerDatabases = append(partnerDatabases, *partnerDatabase)
+							} else {
+								log.Printf("[INFO] Mismatch of possible Partner Database based on enclave type (%q vs %q) for %s", primaryEnclaveType, string(*partnerDatabase.Properties.PreferredEnclaveType), id)
+							}
+						}
 					}
 				}
 			}

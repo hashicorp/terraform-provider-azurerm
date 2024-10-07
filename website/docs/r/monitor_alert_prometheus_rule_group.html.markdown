@@ -37,10 +37,10 @@ resource "azurerm_kubernetes_cluster" "example" {
   dns_prefix          = "example-aks"
 
   default_node_pool {
-    name                   = "default"
-    node_count             = 1
-    vm_size                = "Standard_DS2_v2"
-    enable_host_encryption = true
+    name                    = "default"
+    node_count              = 1
+    vm_size                 = "Standard_DS2_v2"
+    host_encryption_enabled = true
   }
 
   identity {
@@ -79,9 +79,6 @@ EOF
 
     action {
       action_group_id = azurerm_monitor_action_group.example.id
-      action_properties = {
-        actionName = "actionValue"
-      }
     }
 
     alert_resolution {
@@ -158,6 +155,8 @@ An `action` block supports the following:
 * `action_group_id` - (Required) Specifies the resource id of the monitor action group.
 
 * `action_properties` - (Optional) Specifies the properties of an action group object.
+ 
+-> **Note:** `action_properties` can only be configured for IcM Connector Action Groups for now. Other public features will be supported in the future.
 
 ---
 

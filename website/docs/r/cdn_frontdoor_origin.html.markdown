@@ -195,7 +195,7 @@ resource "azurerm_private_link_service" "example" {
   location            = azurerm_resource_group.example.location
 
   visibility_subscription_ids                 = [data.azurerm_client_config.current.subscription_id]
-  load_balancer_frontend_ip_configuration_ids = [azurerm_lb.example.frontend_ip_configuration.0.id]
+  load_balancer_frontend_ip_configuration_ids = [azurerm_lb.example.frontend_ip_configuration[0].id]
 
   nat_ip_configuration {
     name                       = "primary"
@@ -222,8 +222,6 @@ The following arguments are supported:
 * `certificate_name_check_enabled` - (Required) Specifies whether certificate name checks are enabled for this origin.
 
 * `enabled` - (Optional) Should the origin be enabled? Possible values are `true` or `false`. Defaults to `true`.
-
--> **NOTE:** The `enabled` field will need to be explicitly set until the 4.0 provider is released due to the deprecation of the `health_probes_enabled` property in version 3.x of the AzureRM Provider.
 
 * `http_port` - (Optional) The value of the HTTP port. Must be between `1` and `65535`. Defaults to `80`.
 

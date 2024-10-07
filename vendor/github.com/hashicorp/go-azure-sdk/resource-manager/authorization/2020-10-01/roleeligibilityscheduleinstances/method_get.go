@@ -20,7 +20,7 @@ type GetOperationResponse struct {
 // Get ...
 func (c RoleEligibilityScheduleInstancesClient) Get(ctx context.Context, id ScopedRoleEligibilityScheduleInstanceId) (result GetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -43,7 +43,9 @@ func (c RoleEligibilityScheduleInstancesClient) Get(ctx context.Context, id Scop
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model RoleEligibilityScheduleInstance
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

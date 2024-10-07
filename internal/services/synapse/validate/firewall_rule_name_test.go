@@ -33,6 +33,11 @@ func TestFirewallRuleName(t *testing.T) {
 			expected: true,
 		},
 		{
+			// can contain utf-8 chars
+			input:    "øüå-rule",
+			expected: true,
+		},
+		{
 			// can't contain `*`
 			input:    "abcon*demand",
 			expected: false,

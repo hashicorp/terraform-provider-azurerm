@@ -21,7 +21,7 @@ type NamespacesListKeysOperationResponse struct {
 // NamespacesListKeys ...
 func (c NamespacesAuthorizationRuleClient) NamespacesListKeys(ctx context.Context, id AuthorizationRuleId) (result NamespacesListKeysOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -44,7 +44,9 @@ func (c NamespacesAuthorizationRuleClient) NamespacesListKeys(ctx context.Contex
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model AccessKeys
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

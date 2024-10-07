@@ -10,9 +10,35 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type FunctionRetrieveDefaultDefinitionParameters interface {
+	FunctionRetrieveDefaultDefinitionParameters() BaseFunctionRetrieveDefaultDefinitionParametersImpl
 }
 
-func unmarshalFunctionRetrieveDefaultDefinitionParametersImplementation(input []byte) (FunctionRetrieveDefaultDefinitionParameters, error) {
+var _ FunctionRetrieveDefaultDefinitionParameters = BaseFunctionRetrieveDefaultDefinitionParametersImpl{}
+
+type BaseFunctionRetrieveDefaultDefinitionParametersImpl struct {
+	BindingType string `json:"bindingType"`
+}
+
+func (s BaseFunctionRetrieveDefaultDefinitionParametersImpl) FunctionRetrieveDefaultDefinitionParameters() BaseFunctionRetrieveDefaultDefinitionParametersImpl {
+	return s
+}
+
+var _ FunctionRetrieveDefaultDefinitionParameters = RawFunctionRetrieveDefaultDefinitionParametersImpl{}
+
+// RawFunctionRetrieveDefaultDefinitionParametersImpl is returned when the Discriminated Value doesn't match any of the defined types
+// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
+// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+type RawFunctionRetrieveDefaultDefinitionParametersImpl struct {
+	functionRetrieveDefaultDefinitionParameters BaseFunctionRetrieveDefaultDefinitionParametersImpl
+	Type                                        string
+	Values                                      map[string]interface{}
+}
+
+func (s RawFunctionRetrieveDefaultDefinitionParametersImpl) FunctionRetrieveDefaultDefinitionParameters() BaseFunctionRetrieveDefaultDefinitionParametersImpl {
+	return s.functionRetrieveDefaultDefinitionParameters
+}
+
+func UnmarshalFunctionRetrieveDefaultDefinitionParametersImplementation(input []byte) (FunctionRetrieveDefaultDefinitionParameters, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -22,9 +48,9 @@ func unmarshalFunctionRetrieveDefaultDefinitionParametersImplementation(input []
 		return nil, fmt.Errorf("unmarshaling FunctionRetrieveDefaultDefinitionParameters into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["bindingType"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["bindingType"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "Microsoft.MachineLearning/WebService") {
@@ -43,14 +69,15 @@ func unmarshalFunctionRetrieveDefaultDefinitionParametersImplementation(input []
 		return out, nil
 	}
 
-	type RawFunctionRetrieveDefaultDefinitionParametersImpl struct {
-		Type   string                 `json:"-"`
-		Values map[string]interface{} `json:"-"`
+	var parent BaseFunctionRetrieveDefaultDefinitionParametersImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseFunctionRetrieveDefaultDefinitionParametersImpl: %+v", err)
 	}
-	out := RawFunctionRetrieveDefaultDefinitionParametersImpl{
+
+	return RawFunctionRetrieveDefaultDefinitionParametersImpl{
+		functionRetrieveDefaultDefinitionParameters: parent,
 		Type:   value,
 		Values: temp,
-	}
-	return out, nil
+	}, nil
 
 }

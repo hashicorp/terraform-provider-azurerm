@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2023-03-01/endpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2023-03-01/storagemovers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -66,7 +67,7 @@ func (r StorageMoverTargetEndpointResource) Arguments() map[string]*pluginsdk.Sc
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.StorageAccountID,
+			ValidateFunc: commonids.ValidateStorageAccountID,
 		},
 
 		"storage_container_name": {

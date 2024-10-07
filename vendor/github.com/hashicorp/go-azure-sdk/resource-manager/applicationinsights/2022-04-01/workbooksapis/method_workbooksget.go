@@ -34,6 +34,7 @@ func (o WorkbooksGetOperationOptions) ToHeaders() *client.Headers {
 
 func (o WorkbooksGetOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -48,13 +49,13 @@ func (o WorkbooksGetOperationOptions) ToQuery() *client.QueryParams {
 // WorkbooksGet ...
 func (c WorkbooksAPIsClient) WorkbooksGet(ctx context.Context, id WorkbookId, options WorkbooksGetOperationOptions) (result WorkbooksGetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -72,7 +73,9 @@ func (c WorkbooksAPIsClient) WorkbooksGet(ctx context.Context, id WorkbookId, op
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Workbook
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

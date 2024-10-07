@@ -4,13 +4,16 @@
 package containers
 
 import (
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2023-05-01/containerinstance"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 func SchemaContainerGroupProbe() *pluginsdk.Schema {
-	//lintignore:XS003
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -48,13 +51,16 @@ func SchemaContainerGroupProbe() *pluginsdk.Schema {
 								ValidateFunc: validate.PortNumber,
 							},
 							"scheme": {
-								Type:     pluginsdk.TypeString,
-								Optional: true,
-								ForceNew: true,
-								ValidateFunc: validation.StringInSlice([]string{
-									"Http",
-									"Https",
-								}, false),
+								Type:         pluginsdk.TypeString,
+								Optional:     true,
+								ForceNew:     true,
+								ValidateFunc: validation.StringInSlice(containerinstance.PossibleValuesForScheme(), !features.FourPointOhBeta()),
+								DiffSuppressFunc: func() func(string, string, string, *schema.ResourceData) bool {
+									if !features.FourPointOhBeta() {
+										return suppress.CaseDifference
+									}
+									return nil
+								}(),
 							},
 							"http_headers": {
 								Type:     pluginsdk.TypeMap,

@@ -23,7 +23,7 @@ type RefreshPermissionsOperationResponse struct {
 // RefreshPermissions ...
 func (c ApplicationsClient) RefreshPermissions(ctx context.Context, id ApplicationId) (result RefreshPermissionsOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

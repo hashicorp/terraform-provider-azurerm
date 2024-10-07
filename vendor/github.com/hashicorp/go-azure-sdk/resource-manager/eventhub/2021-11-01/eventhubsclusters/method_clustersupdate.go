@@ -18,12 +18,13 @@ type ClustersUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *Cluster
 }
 
 // ClustersUpdate ...
 func (c EventHubsClustersClient) ClustersUpdate(ctx context.Context, id ClusterId, input Cluster) (result ClustersUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusCreated,

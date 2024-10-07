@@ -11,15 +11,15 @@ type AppServiceInfoOperationPredicate struct {
 
 func (p AppServiceInfoOperationPredicate) Matches(input AppServiceInfo) bool {
 
-	if p.AgentStatus != nil && (input.AgentStatus == nil && *p.AgentStatus != *input.AgentStatus) {
+	if p.AgentStatus != nil && (input.AgentStatus == nil || *p.AgentStatus != *input.AgentStatus) {
 		return false
 	}
 
-	if p.AgentVersion != nil && (input.AgentVersion == nil && *p.AgentVersion != *input.AgentVersion) {
+	if p.AgentVersion != nil && (input.AgentVersion == nil || *p.AgentVersion != *input.AgentVersion) {
 		return false
 	}
 
-	if p.AzureResourceId != nil && (input.AzureResourceId == nil && *p.AzureResourceId != *input.AzureResourceId) {
+	if p.AzureResourceId != nil && (input.AzureResourceId == nil || *p.AzureResourceId != *input.AzureResourceId) {
 		return false
 	}
 
@@ -34,15 +34,15 @@ type MonitoredResourceOperationPredicate struct {
 
 func (p MonitoredResourceOperationPredicate) Matches(input MonitoredResource) bool {
 
-	if p.Id != nil && (input.Id == nil && *p.Id != *input.Id) {
+	if p.Id != nil && (input.Id == nil || *p.Id != *input.Id) {
 		return false
 	}
 
-	if p.ReasonForLogsStatus != nil && (input.ReasonForLogsStatus == nil && *p.ReasonForLogsStatus != *input.ReasonForLogsStatus) {
+	if p.ReasonForLogsStatus != nil && (input.ReasonForLogsStatus == nil || *p.ReasonForLogsStatus != *input.ReasonForLogsStatus) {
 		return false
 	}
 
-	if p.ReasonForMetricsStatus != nil && (input.ReasonForMetricsStatus == nil && *p.ReasonForMetricsStatus != *input.ReasonForMetricsStatus) {
+	if p.ReasonForMetricsStatus != nil && (input.ReasonForMetricsStatus == nil || *p.ReasonForMetricsStatus != *input.ReasonForMetricsStatus) {
 		return false
 	}
 
@@ -58,7 +58,7 @@ type NewRelicMonitorResourceOperationPredicate struct {
 
 func (p NewRelicMonitorResourceOperationPredicate) Matches(input NewRelicMonitorResource) bool {
 
-	if p.Id != nil && (input.Id == nil && *p.Id != *input.Id) {
+	if p.Id != nil && (input.Id == nil || *p.Id != *input.Id) {
 		return false
 	}
 
@@ -66,11 +66,11 @@ func (p NewRelicMonitorResourceOperationPredicate) Matches(input NewRelicMonitor
 		return false
 	}
 
-	if p.Name != nil && (input.Name == nil && *p.Name != *input.Name) {
+	if p.Name != nil && (input.Name == nil || *p.Name != *input.Name) {
 		return false
 	}
 
-	if p.Type != nil && (input.Type == nil && *p.Type != *input.Type) {
+	if p.Type != nil && (input.Type == nil || *p.Type != *input.Type) {
 		return false
 	}
 
@@ -85,15 +85,15 @@ type VMInfoOperationPredicate struct {
 
 func (p VMInfoOperationPredicate) Matches(input VMInfo) bool {
 
-	if p.AgentStatus != nil && (input.AgentStatus == nil && *p.AgentStatus != *input.AgentStatus) {
+	if p.AgentStatus != nil && (input.AgentStatus == nil || *p.AgentStatus != *input.AgentStatus) {
 		return false
 	}
 
-	if p.AgentVersion != nil && (input.AgentVersion == nil && *p.AgentVersion != *input.AgentVersion) {
+	if p.AgentVersion != nil && (input.AgentVersion == nil || *p.AgentVersion != *input.AgentVersion) {
 		return false
 	}
 
-	if p.VMId != nil && (input.VMId == nil && *p.VMId != *input.VMId) {
+	if p.VMId != nil && (input.VMId == nil || *p.VMId != *input.VMId) {
 		return false
 	}
 

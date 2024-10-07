@@ -9,14 +9,15 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/images"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -25,7 +26,7 @@ import (
 )
 
 func resourceImage() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceImageCreateUpdate,
 		Read:   resourceImageRead,
 		Update: resourceImageCreateUpdate,
@@ -74,7 +75,7 @@ func resourceImage() *pluginsdk.Resource {
 			"source_virtual_machine_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: computeValidate.VirtualMachineID,
+				ValidateFunc: commonids.ValidateVirtualMachineID,
 			},
 
 			"os_disk": {
@@ -107,7 +108,7 @@ func resourceImage() *pluginsdk.Resource {
 							Computed:         true,
 							Optional:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
-							ValidateFunc:     disks.ValidateDiskID,
+							ValidateFunc:     commonids.ValidateManagedDiskID,
 						},
 
 						"blob_uri": {
@@ -135,6 +136,21 @@ func resourceImage() *pluginsdk.Resource {
 							Optional:     true,
 							ForceNew:     true,
 							ValidateFunc: validation.NoZeroValues,
+						},
+
+						"disk_encryption_set_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: validate.DiskEncryptionSetID,
+						},
+
+						"storage_type": {
+							Type:         pluginsdk.TypeString,
+							Description:  "The type of storage disk",
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringInSlice(images.PossibleValuesForStorageAccountTypes(), false),
 						},
 					},
 				},
@@ -154,7 +170,7 @@ func resourceImage() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ForceNew:     true,
-							ValidateFunc: disks.ValidateDiskID,
+							ValidateFunc: commonids.ValidateManagedDiskID,
 						},
 
 						"blob_uri": {
@@ -181,6 +197,21 @@ func resourceImage() *pluginsdk.Resource {
 							Computed:     true,
 							ValidateFunc: validation.NoZeroValues,
 						},
+
+						"disk_encryption_set_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: validate.DiskEncryptionSetID,
+						},
+
+						"storage_type": {
+							Type:         pluginsdk.TypeString,
+							Description:  "The type of storage disk",
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringInSlice(images.PossibleValuesForStorageAccountTypes(), false),
+						},
 					},
 				},
 			},
@@ -188,6 +219,13 @@ func resourceImage() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		delete(resource.Schema["os_disk"].Elem.(*pluginsdk.Resource).Schema, "storage_type")
+		delete(resource.Schema["data_disk"].Elem.(*pluginsdk.Resource).Schema, "storage_type")
+	}
+
+	return resource
 }
 
 func resourceImageCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -359,6 +397,15 @@ func expandImageOSDisk(input []interface{}) *images.ImageOSDisk {
 			out.DiskSizeGB = pointer.To(int64(size.(int)))
 		}
 
+		if id := config["disk_encryption_set_id"].(string); id != "" {
+			out.DiskEncryptionSet = &images.SubResource{
+				Id: pointer.To(id),
+			}
+		}
+
+		if features.FourPointOhBeta() {
+			out.StorageAccountType = pointer.To(images.StorageAccountTypes(config["storage_type"].(string)))
+		}
 		return out
 	}
 
@@ -390,6 +437,16 @@ func expandImageDataDisks(disks []interface{}) *[]images.ImageDataDisk {
 			item.ManagedDisk = managedDisk
 		}
 
+		if id := config["disk_encryption_set_id"].(string); id != "" {
+			item.DiskEncryptionSet = &images.SubResource{
+				Id: pointer.To(id),
+			}
+		}
+
+		if features.FourPointOhBeta() {
+			item.StorageAccountType = pointer.To(images.StorageAccountTypes(config["storage_type"].(string)))
+		}
+
 		output = append(output, item)
 	}
 
@@ -417,14 +474,31 @@ func flattenImageOSDisk(input *images.ImageStorageProfile) []interface{} {
 			if disk := v.ManagedDisk; disk != nil && disk.Id != nil {
 				managedDiskId = *disk.Id
 			}
-			output = append(output, map[string]interface{}{
-				"blob_uri":        blobUri,
-				"caching":         caching,
-				"managed_disk_id": managedDiskId,
-				"os_type":         string(v.OsType),
-				"os_state":        string(v.OsState),
-				"size_gb":         diskSizeGB,
-			})
+			diskEncryptionSetId := ""
+			if set := v.DiskEncryptionSet; set != nil && set.Id != nil {
+				encryptionId, _ := commonids.ParseDiskEncryptionSetIDInsensitively(*set.Id)
+				diskEncryptionSetId = encryptionId.ID()
+			}
+
+			properties := map[string]interface{}{
+				"blob_uri":               blobUri,
+				"caching":                caching,
+				"managed_disk_id":        managedDiskId,
+				"os_type":                string(v.OsType),
+				"os_state":               string(v.OsState),
+				"size_gb":                diskSizeGB,
+				"disk_encryption_set_id": diskEncryptionSetId,
+			}
+
+			if features.FourPointOhBeta() {
+				storageType := ""
+				if v.StorageAccountType != nil {
+					storageType = string(*v.StorageAccountType)
+				}
+				properties["storage_type"] = storageType
+			}
+
+			output = append(output, properties)
 		}
 	}
 
@@ -453,13 +527,30 @@ func flattenImageDataDisks(input *images.ImageStorageProfile) []interface{} {
 				if disk.ManagedDisk != nil && disk.ManagedDisk.Id != nil {
 					managedDiskId = *disk.ManagedDisk.Id
 				}
-				output = append(output, map[string]interface{}{
-					"blob_uri":        blobUri,
-					"caching":         caching,
-					"lun":             int(disk.Lun),
-					"managed_disk_id": managedDiskId,
-					"size_gb":         diskSizeGb,
-				})
+				diskEncryptionSetId := ""
+				if set := disk.DiskEncryptionSet; set != nil && set.Id != nil {
+					encryptionId, _ := commonids.ParseDiskEncryptionSetIDInsensitively(*set.Id)
+					diskEncryptionSetId = encryptionId.ID()
+				}
+
+				properties := map[string]interface{}{
+					"blob_uri":               blobUri,
+					"caching":                caching,
+					"lun":                    int(disk.Lun),
+					"managed_disk_id":        managedDiskId,
+					"size_gb":                diskSizeGb,
+					"disk_encryption_set_id": diskEncryptionSetId,
+				}
+
+				if features.FourPointOhBeta() {
+					storageType := ""
+					if disk.StorageAccountType != nil {
+						storageType = string(*disk.StorageAccountType)
+					}
+					properties["storage_type"] = storageType
+				}
+
+				output = append(output, properties)
 			}
 		}
 	}

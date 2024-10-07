@@ -21,7 +21,7 @@ type CancelDeletionOperationResponse struct {
 // CancelDeletion ...
 func (c CertificateClient) CancelDeletion(ctx context.Context, id CertificateId) (result CancelDeletionOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -44,7 +44,9 @@ func (c CertificateClient) CancelDeletion(ctx context.Context, id CertificateId)
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Certificate
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

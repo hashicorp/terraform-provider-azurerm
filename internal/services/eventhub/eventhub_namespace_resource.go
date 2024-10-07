@@ -95,14 +95,6 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 				Default:  false,
 			},
 
-			// for premium namespace, zone redundant is computed by service based on the availability of availability zone feature.
-			"zone_redundant": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
-			},
-
 			"dedicated_cluster_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -115,7 +107,6 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 			"maximum_throughput_units": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Computed:     true,
 				ValidateFunc: validation.IntBetween(0, 40),
 			},
 
@@ -212,7 +203,7 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 			"minimum_tls_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Default:  string(namespaces.TlsVersionOnePointTwo),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(namespaces.TlsVersionOnePointZero),
 					string(namespaces.TlsVersionOnePointOne),
@@ -279,14 +270,28 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 			pluginsdk.CustomizeDiffShim(eventhubTLSVersionDiff),
 		),
 	}
+
 	if !features.FourPointOhBeta() {
 		resource.Schema["zone_redundant"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Default:    false,
+			Deprecated: "The `zone_redundant` property has been deprecated and will be removed in v4.0 of the provider.",
+			ForceNew:   true,
+		}
+
+		resource.Schema["minimum_tls_version"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Default:  false,
-			ForceNew: true,
+			Computed: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(namespaces.TlsVersionOnePointZero),
+				string(namespaces.TlsVersionOnePointOne),
+				string(namespaces.TlsVersionOnePointTwo),
+			}, false),
 		}
 	}
+
 	return resource
 }
 
@@ -352,9 +357,11 @@ func resourceEventHubNamespaceCreate(d *pluginsdk.ResourceData, meta interface{}
 		Tags: tags.Expand(t),
 	}
 
-	// for premium namespace, the zone_redundant is computed based on the region, user's input will be overridden
-	if sku != string(namespaces.SkuNamePremium) {
-		parameters.Properties.ZoneRedundant = utils.Bool(d.Get("zone_redundant").(bool))
+	if !features.FourPointOhBeta() {
+		// for premium namespace, the zone_redundant is computed based on the region, user's input will be overridden
+		if sku != string(namespaces.SkuNamePremium) {
+			parameters.Properties.ZoneRedundant = utils.Bool(d.Get("zone_redundant").(bool))
+		}
 	}
 
 	if v := d.Get("dedicated_cluster_id").(string); v != "" {
@@ -479,8 +486,21 @@ func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta interface{}
 		parameters.Properties.MaximumThroughputUnits = utils.Int64(0)
 	}
 
-	if err = client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+	if _, err = client.Update(ctx, id, parameters); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
+	deadline, _ := ctx.Deadline()
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending:      []string{"Activating", "ActivatingIdentity", "Updating", "Pending"},
+		Target:       []string{"Succeeded"},
+		Refresh:      eventHubNamespaceProvisioningStateRefreshFunc(ctx, client, id),
+		Timeout:      time.Until(deadline),
+		PollInterval: 10 * time.Second,
+	}
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to be updated: %+v", id, err)
 	}
 
 	if d.HasChange("network_rulesets") {
@@ -552,8 +572,11 @@ func resourceEventHubNamespaceRead(d *pluginsdk.ResourceData, meta interface{}) 
 		if props := model.Properties; props != nil {
 			d.Set("auto_inflate_enabled", props.IsAutoInflateEnabled)
 			d.Set("maximum_throughput_units", int(*props.MaximumThroughputUnits))
-			d.Set("zone_redundant", props.ZoneRedundant)
 			d.Set("dedicated_cluster_id", props.ClusterArmId)
+
+			if !features.FourPointOhBeta() {
+				d.Set("zone_redundant", props.ZoneRedundant)
+			}
 
 			localAuthDisabled := false
 			if props.DisableLocalAuth != nil {
@@ -776,4 +799,24 @@ func eventhubTLSVersionDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ in
 		err = fmt.Errorf("`minimum_tls_version` has been set before, please set a valid value for this property ")
 	}
 	return
+}
+
+func eventHubNamespaceProvisioningStateRefreshFunc(ctx context.Context, client *namespaces.NamespacesClient, id namespaces.NamespaceId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, id)
+
+		provisioningState := "Pending"
+		if err != nil {
+			if response.WasNotFound(res.HttpResponse) {
+				return res, provisioningState, nil
+			}
+			return nil, "Error", fmt.Errorf("polling for the provisioning state of %s: %+v", id, err)
+		}
+
+		if res.Model != nil && res.Model.Properties != nil && res.Model.Properties.ProvisioningState != nil {
+			provisioningState = *res.Model.Properties.ProvisioningState
+		}
+
+		return res, provisioningState, nil
+	}
 }

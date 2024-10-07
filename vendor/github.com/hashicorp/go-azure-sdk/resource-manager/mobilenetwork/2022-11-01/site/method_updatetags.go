@@ -20,7 +20,7 @@ type UpdateTagsOperationResponse struct {
 // UpdateTags ...
 func (c SiteClient) UpdateTags(ctx context.Context, id SiteId, input TagsObject) (result UpdateTagsOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -47,7 +47,9 @@ func (c SiteClient) UpdateTags(ctx context.Context, id SiteId, input TagsObject)
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Site
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

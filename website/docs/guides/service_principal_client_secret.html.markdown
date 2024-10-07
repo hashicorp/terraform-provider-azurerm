@@ -15,6 +15,7 @@ Terraform supports a number of different methods for authenticating to Azure:
 * [Authenticating to Azure using a Service Principal and a Client Certificate](service_principal_client_certificate.html)
 * Authenticating to Azure using a Service Principal and a Client Secret (which is covered in this guide)
 * [Authenticating to Azure using a Service Principal and OpenID Connect](service_principal_oidc.html)
+* [Authenticating to Azure using AKS Workload Identity](aks_workload_identity.html)
 
 ---
 
@@ -28,7 +29,7 @@ It's possible to complete this task in either the [Azure CLI](#creating-a-servic
 
 ### Creating a Service Principal using the Azure CLI
 
-~> **Note**: If you're using the **China** or **US Government** Azure Clouds - you'll need to first configure the Azure CLI to work with that Cloud.  You can do this by running:
+~> **Note:** If you're using the **China** or **US Government** Azure Clouds - you'll need to first configure the Azure CLI to work with that Cloud.  You can do this by running:
 
 ```shell
 az cloud set --name AzureChinaCloud|AzureUSGovernment
@@ -111,7 +112,7 @@ Once logged in as the Service Principal - we should be able to list the VM sizes
 az vm list-sizes --location westus
 ```
 
-~> **Note**: If you're using the **China**, **German** or **Government** Azure Clouds - you will need to switch `westus` out for another region. You can find which regions are available by running:
+~> **Note:** If you're using the **China** or **Government** Azure Clouds - you will need to switch `westus` out for another region. You can find which regions are available by running:
 
 ```shell
 az account list-locations
@@ -183,7 +184,7 @@ export ARM_SUBSCRIPTION_ID="20000000-0000-0000-0000-000000000000"
 > $env:ARM_TENANT_ID = "10000000-0000-0000-0000-000000000000"
 > $env:ARM_SUBSCRIPTION_ID = "20000000-0000-0000-0000-000000000000"
 ```
-The following Terraform and Provider blocks can be specified - where `3.0.0` is the version of the Azure Provider that you'd like to use:
+The following Terraform and Provider blocks can be specified - where `4.1.0` is the version of the Azure Provider that you'd like to use:
 
 ```hcl
 # We strongly recommend using the required_providers block to set the
@@ -192,7 +193,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=3.0.0"
+      version = "=4.1.0"
     }
   }
 }
@@ -223,7 +224,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=3.0.0"
+      version = "=4.1.0"
     }
   }
 }

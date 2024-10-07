@@ -19,17 +19,31 @@ type FhirDestinationsListByIotConnectorOperationResponse struct {
 }
 
 type FhirDestinationsListByIotConnectorCompleteResult struct {
-	Items []IotFhirDestination
+	LatestHttpResponse *http.Response
+	Items              []IotFhirDestination
+}
+
+type FhirDestinationsListByIotConnectorCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *FhirDestinationsListByIotConnectorCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // FhirDestinationsListByIotConnector ...
 func (c IotConnectorsClient) FhirDestinationsListByIotConnector(ctx context.Context, id IotConnectorId) (result FhirDestinationsListByIotConnectorOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &FhirDestinationsListByIotConnectorCustomPager{},
 		Path:       fmt.Sprintf("%s/fhirDestinations", id.ID()),
 	}
 
@@ -71,6 +85,7 @@ func (c IotConnectorsClient) FhirDestinationsListByIotConnectorCompleteMatchingP
 
 	resp, err := c.FhirDestinationsListByIotConnector(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +98,8 @@ func (c IotConnectorsClient) FhirDestinationsListByIotConnectorCompleteMatchingP
 	}
 
 	result = FhirDestinationsListByIotConnectorCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

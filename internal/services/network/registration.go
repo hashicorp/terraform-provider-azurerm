@@ -33,12 +33,16 @@ func (r Registration) WebsiteCategories() []string {
 
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
+		ManagerDataSource{},
 		ManagerNetworkGroupDataSource{},
+		ManagerConnectivityConfigurationDataSource{},
+		VPNServerConfigurationDataSource{},
 	}
 }
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
+		CustomIpPrefixResource{},
 		ManagerAdminRuleResource{},
 		ManagerAdminRuleCollectionResource{},
 		ManagerDeploymentResource{},
@@ -52,6 +56,7 @@ func (r Registration) Resources() []sdk.Resource {
 		ManagerSubscriptionConnectionResource{},
 		PrivateEndpointApplicationSecurityGroupAssociationResource{},
 		RouteMapResource{},
+		VirtualHubRoutingIntentResource{},
 	}
 }
 
@@ -62,7 +67,9 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 		"azurerm_application_security_group":                dataSourceApplicationSecurityGroup(),
 		"azurerm_bastion_host":                              dataSourceBastionHost(),
 		"azurerm_express_route_circuit":                     dataSourceExpressRouteCircuit(),
+		"azurerm_express_route_circuit_peering":             dataSourceExpressRouteCircuitPeering(),
 		"azurerm_ip_group":                                  dataSourceIpGroup(),
+		"azurerm_ip_groups":                                 dataSourceIpGroups(),
 		"azurerm_nat_gateway":                               dataSourceNatGateway(),
 		"azurerm_network_ddos_protection_plan":              dataSourceNetworkDDoSProtectionPlan(),
 		"azurerm_network_interface":                         dataSourceNetworkInterface(),

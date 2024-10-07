@@ -23,7 +23,7 @@ type CreateOperationResponse struct {
 // Create ...
 func (c TenantsClient) Create(ctx context.Context, id B2CDirectoryId, input CreateTenant) (result CreateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusCreated,

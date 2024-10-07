@@ -20,7 +20,7 @@ type SyncGroupsGetOperationResponse struct {
 // SyncGroupsGet ...
 func (c SyncGroupResourceClient) SyncGroupsGet(ctx context.Context, id SyncGroupId) (result SyncGroupsGetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -43,7 +43,9 @@ func (c SyncGroupResourceClient) SyncGroupsGet(ctx context.Context, id SyncGroup
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model SyncGroup
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

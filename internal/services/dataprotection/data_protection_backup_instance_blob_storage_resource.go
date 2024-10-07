@@ -4,20 +4,21 @@
 package dataprotection
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2022-04-01/backupinstances"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2022-04-01/backuppolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backupinstances"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backuppolicies"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	storageParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
-	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	azSchema "github.com/hashicorp/terraform-provider-azurerm/internal/tf/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -63,7 +64,7 @@ func resourceDataProtectionBackupInstanceBlobStorage() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: storageValidate.StorageAccountID,
+				ValidateFunc: commonids.ValidateStorageAccountID,
 			},
 
 			"backup_policy_id": {
@@ -71,7 +72,22 @@ func resourceDataProtectionBackupInstanceBlobStorage() *schema.Resource {
 				Required:     true,
 				ValidateFunc: backuppolicies.ValidateBackupPolicyID,
 			},
+
+			"storage_account_container_names": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+			},
 		},
+
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			// The `storage_account_container_names` can not be removed once specified.
+			pluginsdk.ForceNewIfChange("storage_account_container_names", func(ctx context.Context, old, new, _ interface{}) bool {
+				return len(old.([]interface{})) > 0 && len(new.([]interface{})) == 0
+			}),
+		),
 	}
 }
 
@@ -97,9 +113,15 @@ func resourceDataProtectionBackupInstanceBlobStorageCreateUpdate(d *schema.Resou
 		}
 	}
 
-	storageAccountId, _ := storageParse.StorageAccountID(d.Get("storage_account_id").(string))
+	storageAccountId, err := commonids.ParseStorageAccountID(d.Get("storage_account_id").(string))
+	if err != nil {
+		return err
+	}
 	location := location.Normalize(d.Get("location").(string))
-	policyId, _ := backuppolicies.ParseBackupPolicyID(d.Get("backup_policy_id").(string))
+	policyId, err := backuppolicies.ParseBackupPolicyID(d.Get("backup_policy_id").(string))
+	if err != nil {
+		return err
+	}
 
 	parameters := backupinstances.BackupInstanceResource{
 		Properties: &backupinstances.BackupInstance{
@@ -108,7 +130,7 @@ func resourceDataProtectionBackupInstanceBlobStorageCreateUpdate(d *schema.Resou
 				ObjectType:       utils.String("Datasource"),
 				ResourceID:       storageAccountId.ID(),
 				ResourceLocation: utils.String(location),
-				ResourceName:     utils.String(storageAccountId.Name),
+				ResourceName:     utils.String(storageAccountId.StorageAccountName),
 				ResourceType:     utils.String("Microsoft.Storage/storageAccounts"),
 				ResourceUri:      utils.String(storageAccountId.ID()),
 			},
@@ -119,8 +141,17 @@ func resourceDataProtectionBackupInstanceBlobStorageCreateUpdate(d *schema.Resou
 		},
 	}
 
-	err := client.CreateOrUpdateThenPoll(ctx, id, parameters)
-	if err != nil {
+	if v, ok := d.GetOk("storage_account_container_names"); ok {
+		parameters.Properties.PolicyInfo.PolicyParameters = &backupinstances.PolicyParameters{
+			BackupDatasourceParametersList: &[]backupinstances.BackupDatasourceParameters{
+				backupinstances.BlobBackupDatasourceParameters{
+					ContainersList: pointer.From(utils.ExpandStringSlice(v.([]interface{}))),
+				},
+			},
+		}
+	}
+
+	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters, backupinstances.DefaultCreateOrUpdateOperationOptions()); err != nil {
 		return fmt.Errorf("creating/updating DataProtection BackupInstance (%q): %+v", id, err)
 	}
 
@@ -171,6 +202,15 @@ func resourceDataProtectionBackupInstanceBlobStorageRead(d *schema.ResourceData,
 			d.Set("storage_account_id", props.DataSourceInfo.ResourceID)
 			d.Set("location", props.DataSourceInfo.ResourceLocation)
 			d.Set("backup_policy_id", props.PolicyInfo.PolicyId)
+			if policyParas := props.PolicyInfo.PolicyParameters; policyParas != nil {
+				if dataStoreParas := policyParas.BackupDatasourceParametersList; dataStoreParas != nil {
+					if dsp := pointer.From(dataStoreParas); len(dsp) > 0 {
+						if parameter, ok := dsp[0].(backupinstances.BlobBackupDatasourceParameters); ok {
+							d.Set("storage_account_container_names", utils.FlattenStringSlice(&parameter.ContainersList))
+						}
+					}
+				}
+			}
 		}
 	}
 	return nil
@@ -186,7 +226,7 @@ func resourceDataProtectionBackupInstanceBlobStorageDelete(d *schema.ResourceDat
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, *id)
+	err = client.DeleteThenPoll(ctx, *id, backupinstances.DefaultDeleteOperationOptions())
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}

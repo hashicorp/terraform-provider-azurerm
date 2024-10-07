@@ -6,14 +6,15 @@ package apimanagement_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/namedvalue"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ApiManagementNamedValueResource struct{}
@@ -60,6 +61,18 @@ func TestAccApiManagementNamedValue_keyVaultSystemAssigned(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccApiManagementNamedValue_keyVaultInvalidSecretValue(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_named_value", "test")
+	r := ApiManagementNamedValueResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.keyVaultWithInvalidSecretValue(data),
+			ExpectError: regexp.MustCompile("`secret` must be true when `value_from_key_vault` is set"),
+		},
 	})
 }
 
@@ -115,17 +128,17 @@ func TestAccApiManagementNamedValue_update(t *testing.T) {
 }
 
 func (ApiManagementNamedValueResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.NamedValueID(state.ID)
+	id, err := namedvalue.ParseNamedValueID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.ApiManagement.NamedValueClient.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name)
+	resp, err := clients.ApiManagement.NamedValueClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading %s: %+v", *id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil && resp.Model.Id != nil), nil
 }
 
 func (ApiManagementNamedValueResource) template(data acceptance.TestData) string {
@@ -342,6 +355,28 @@ resource "azurerm_api_management_named_value" "test" {
   secret              = false
   value               = "Key Vault to Value"
   tags                = ["tag5", "tag6"]
+}
+`, r.keyVaultTemplate(data), data.RandomInteger)
+}
+
+func (r ApiManagementNamedValueResource) keyVaultWithInvalidSecretValue(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_api_management_named_value" "test" {
+  name                = "acctestAMProperty-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
+  display_name        = "TestKeyVault%[2]d"
+  secret              = false
+  value_from_key_vault {
+    secret_id          = azurerm_key_vault_secret.test.id
+    identity_client_id = azurerm_user_assigned_identity.test.client_id
+  }
+
+  tags = ["tag1", "tag2"]
+
+  depends_on = [azurerm_key_vault_access_policy.test2]
 }
 `, r.keyVaultTemplate(data), data.RandomInteger)
 }

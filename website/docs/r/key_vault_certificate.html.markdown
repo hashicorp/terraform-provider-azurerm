@@ -11,7 +11,7 @@ description: |-
 
 Manages a Key Vault Certificate.
 
-~> **Note:** the Azure Provider includes a Feature Toggle which will purge a Key Vault Certificate resource on destroy, rather than the default soft-delete. See [`purge_soft_deleted_certificates_on_destroy`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block#purge_soft_deleted_certificates_on_destroy) for more information. 
+~> **Note:** The Azure Provider includes a Feature Toggle which will purge a Key Vault Certificate resource on destroy, rather than the default soft-delete. See [`purge_soft_deleted_certificates_on_destroy`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block#purge_soft_deleted_certificates_on_destroy) for more information. 
 
 ## Example Usage (Importing a PFX)
 
@@ -236,9 +236,9 @@ The following arguments are supported:
 
 * `key_vault_id` - (Required) The ID of the Key Vault where the Certificate should be created. Changing this forces a new resource to be created.
 
-* `certificate` - (Optional) A `certificate` block as defined below, used to Import an existing certificate.
+* `certificate` - (Optional) A `certificate` block as defined below, used to Import an existing certificate. Changing this will create a new version of the Key Vault Certificate.
 
-* `certificate_policy` - (Optional) A `certificate_policy` block as defined below. Changing this forces a new resource to be created.
+* `certificate_policy` - (Optional) A `certificate_policy` block as defined below. Changing this (except the `lifetime_action` field) will create a new version of the Key Vault Certificate.
 
 ~> **NOTE:** When creating a Key Vault Certificate, at least one of `certificate` or `certificate_policy` is required. Provide `certificate` to import an existing certificate, `certificate_policy` to generate a new certificate.
 
@@ -286,17 +286,17 @@ The `certificate_policy` block supports the following:
 
 The `issuer_parameters` block supports the following:
 
-* `name` - (Required) The name of the Certificate Issuer. Possible values include `Self` (for self-signed certificate), or `Unknown` (for a certificate issuing authority like `Let's Encrypt` and Azure direct supported ones). Changing this forces a new resource to be created.
+* `name` - (Required) The name of the Certificate Issuer. Possible values include `Self` (for self-signed certificate), or `Unknown` (for a certificate issuing authority like `Let's Encrypt` and Azure direct supported ones).
 
 ---
 
 The `key_properties` block supports the following:
 
-* `curve` - (Optional) Specifies the curve to use when creating an `EC` key. Possible values are `P-256`, `P-256K`, `P-384`, and `P-521`. This field will be required in a future release if `key_type` is `EC` or `EC-HSM`. Changing this forces a new resource to be created.
-* `exportable` - (Required) Is this certificate exportable? Changing this forces a new resource to be created.
-* `key_size` - (Optional) The size of the key used in the certificate. Possible values include `2048`, `3072`, and `4096` for `RSA` keys, or `256`, `384`, and `521` for `EC` keys. This property is required when using RSA keys. Changing this forces a new resource to be created.
-* `key_type` - (Required) Specifies the type of key. Possible values are `EC`, `EC-HSM`, `RSA`, `RSA-HSM` and `oct`. Changing this forces a new resource to be created.
-* `reuse_key` - (Required) Is the key reusable? Changing this forces a new resource to be created.
+* `curve` - (Optional) Specifies the curve to use when creating an `EC` key. Possible values are `P-256`, `P-256K`, `P-384`, and `P-521`. This field will be required in a future release if `key_type` is `EC` or `EC-HSM`.
+* `exportable` - (Required) Is this certificate exportable?
+* `key_size` - (Optional) The size of the key used in the certificate. Possible values include `2048`, `3072`, and `4096` for `RSA` keys, or `256`, `384`, and `521` for `EC` keys. This property is required when using RSA keys.
+* `key_type` - (Required) Specifies the type of key. Possible values are `EC`, `EC-HSM`, `RSA`, `RSA-HSM` and `oct`.
+* `reuse_key` - (Required) Is the key reusable?
 
 ---
 
@@ -309,38 +309,38 @@ The `lifetime_action` block supports the following:
 
 The `action` block supports the following:
 
-* `action_type` - (Required) The Type of action to be performed when the lifetime trigger is triggerec. Possible values include `AutoRenew` and `EmailContacts`. Changing this forces a new resource to be created.
+* `action_type` - (Required) The Type of action to be performed when the lifetime trigger is triggerec. Possible values include `AutoRenew` and `EmailContacts`.
 
 ---
 
 The `trigger` block supports the following:
 
-* `days_before_expiry` - (Optional) The number of days before the Certificate expires that the action associated with this Trigger should run. Changing this forces a new resource to be created. Conflicts with `lifetime_percentage`.
-* `lifetime_percentage` - (Optional) The percentage at which during the Certificates Lifetime the action associated with this Trigger should run. Changing this forces a new resource to be created. Conflicts with `days_before_expiry`.
+* `days_before_expiry` - (Optional) The number of days before the Certificate expires that the action associated with this Trigger should run. Conflicts with `lifetime_percentage`.
+* `lifetime_percentage` - (Optional) The percentage at which during the Certificates Lifetime the action associated with this Trigger should run. Conflicts with `days_before_expiry`.
 
 ---
 
 The `secret_properties` block supports the following:
 
-* `content_type` - (Required) The Content-Type of the Certificate, such as `application/x-pkcs12` for a PFX or `application/x-pem-file` for a PEM. Changing this forces a new resource to be created.
+* `content_type` - (Required) The Content-Type of the Certificate, such as `application/x-pkcs12` for a PFX or `application/x-pem-file` for a PEM.
 
 ---
 
 The `x509_certificate_properties` block supports the following:
 
-* `extended_key_usage` - (Optional) A list of Extended/Enhanced Key Usages. Changing this forces a new resource to be created.
-* `key_usage` - (Required) A list of uses associated with this Key. Possible values include `cRLSign`, `dataEncipherment`, `decipherOnly`, `digitalSignature`, `encipherOnly`, `keyAgreement`, `keyCertSign`, `keyEncipherment` and `nonRepudiation` and are case-sensitive. Changing this forces a new resource to be created.
-* `subject` - (Required) The Certificate's Subject. Changing this forces a new resource to be created.
-* `subject_alternative_names` - (Optional) A `subject_alternative_names` block as defined below. Changing this forces a new resource to be created.
-* `validity_in_months` - (Required) The Certificates Validity Period in Months. Changing this forces a new resource to be created.
+* `extended_key_usage` - (Optional) A list of Extended/Enhanced Key Usages.
+* `key_usage` - (Required) A list of uses associated with this Key. Possible values include `cRLSign`, `dataEncipherment`, `decipherOnly`, `digitalSignature`, `encipherOnly`, `keyAgreement`, `keyCertSign`, `keyEncipherment` and `nonRepudiation` and are case-sensitive.
+* `subject` - (Required) The Certificate's Subject.
+* `subject_alternative_names` - (Optional) A `subject_alternative_names` block as defined below.
+* `validity_in_months` - (Required) The Certificates Validity Period in Months.
 
 ---
 
 The `subject_alternative_names` block supports the following:
 
-* `dns_names` - (Optional) A list of alternative DNS names (FQDNs) identified by the Certificate. Changing this forces a new resource to be created.
-* `emails` - (Optional) A list of email addresses identified by this Certificate. Changing this forces a new resource to be created.
-* `upns` - (Optional) A list of User Principal Names identified by the Certificate. Changing this forces a new resource to be created.
+* `dns_names` - (Optional) A list of alternative DNS names (FQDNs) identified by the Certificate.
+* `emails` - (Optional) A list of email addresses identified by this Certificate.
+* `upns` - (Optional) A list of User Principal Names identified by the Certificate.
 
 ## Attributes Reference
 

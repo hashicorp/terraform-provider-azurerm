@@ -7,14 +7,13 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/loadbalancers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func dataSourceArmLoadBalancerBackendAddressPool() *pluginsdk.Resource {
@@ -34,7 +33,7 @@ func dataSourceArmLoadBalancerBackendAddressPool() *pluginsdk.Resource {
 			"loadbalancer_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validate.LoadBalancerID,
+				ValidateFunc: loadbalancers.ValidateLoadBalancerID,
 			},
 
 			"backend_address": {
@@ -122,90 +121,92 @@ func dataSourceArmLoadBalancerBackendAddressPool() *pluginsdk.Resource {
 }
 
 func dataSourceArmLoadBalancerBackendAddressPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).LoadBalancers.LoadBalancerBackendAddressPoolsClient
+	lbClient := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
-	loadBalancerId, err := parse.LoadBalancerID(d.Get("loadbalancer_id").(string))
+	loadBalancerId, err := loadbalancers.ParseLoadBalancerID(d.Get("loadbalancer_id").(string))
 	if err != nil {
 		return err
 	}
-	id := parse.NewLoadBalancerBackendAddressPoolID(loadBalancerId.SubscriptionId, loadBalancerId.ResourceGroup, loadBalancerId.Name, name)
+	id := loadbalancers.NewLoadBalancerBackendAddressPoolID(loadBalancerId.SubscriptionId, loadBalancerId.ResourceGroupName, loadBalancerId.LoadBalancerName, name)
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.LoadBalancerName, id.BackendAddressPoolName)
+	resp, err := lbClient.LoadBalancerBackendAddressPoolsGet(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Load Balancer Backend Address Pool %q was not found", id)
+		if response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("%s was not found", id)
 		}
-		return fmt.Errorf("failed to retrieve Load Balancer Backend Address Pool %q: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
 
-	if props := resp.BackendAddressPoolPropertiesFormat; props != nil {
-		if err := d.Set("backend_address", flattenArmLoadBalancerBackendAddresses(props.LoadBalancerBackendAddresses)); err != nil {
-			return fmt.Errorf("setting `backend_address`: %v", err)
-		}
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			if err := d.Set("backend_address", flattenArmLoadBalancerBackendAddresses(props.LoadBalancerBackendAddresses)); err != nil {
+				return fmt.Errorf("setting `backend_address`: %v", err)
+			}
 
-		var backendIPConfigurations []interface{}
-		if beipConfigs := props.BackendIPConfigurations; beipConfigs != nil {
-			for _, config := range *beipConfigs {
-				ipConfig := make(map[string]interface{})
-				if id := config.ID; id != nil {
-					ipConfig["id"] = *id
-					backendIPConfigurations = append(backendIPConfigurations, ipConfig)
+			var backendIPConfigurations []interface{}
+			if beipConfigs := props.BackendIPConfigurations; beipConfigs != nil {
+				for _, config := range *beipConfigs {
+					ipConfig := make(map[string]interface{})
+					if id := config.Id; id != nil {
+						ipConfig["id"] = pointer.From(id)
+						backendIPConfigurations = append(backendIPConfigurations, ipConfig)
+					}
 				}
 			}
-		}
-		if err := d.Set("backend_ip_configurations", backendIPConfigurations); err != nil {
-			return fmt.Errorf("setting `backend_ip_configurations`: %v", err)
-		}
-
-		var loadBalancingRules []string
-		if rules := props.LoadBalancingRules; rules != nil {
-			for _, rule := range *rules {
-				if rule.ID == nil {
-					continue
-				}
-				loadBalancingRules = append(loadBalancingRules, *rule.ID)
+			if err := d.Set("backend_ip_configurations", backendIPConfigurations); err != nil {
+				return fmt.Errorf("setting `backend_ip_configurations`: %v", err)
 			}
-		}
-		if err := d.Set("load_balancing_rules", loadBalancingRules); err != nil {
-			return fmt.Errorf("setting `load_balancing_rules`: %v", err)
-		}
 
-		var outboundRules []string
-		if rules := props.OutboundRules; rules != nil {
-			for _, rule := range *rules {
-				if rule.ID == nil {
-					continue
+			var loadBalancingRules []string
+			if rules := props.LoadBalancingRules; rules != nil {
+				for _, rule := range *rules {
+					if rule.Id == nil {
+						continue
+					}
+					loadBalancingRules = append(loadBalancingRules, pointer.From(rule.Id))
 				}
-				outboundRules = append(outboundRules, *rule.ID)
 			}
-		}
-		if err := d.Set("outbound_rules", outboundRules); err != nil {
-			return fmt.Errorf("setting `outbound_rules`: %v", err)
-		}
+			if err := d.Set("load_balancing_rules", loadBalancingRules); err != nil {
+				return fmt.Errorf("setting `load_balancing_rules`: %v", err)
+			}
 
-		var inboundNATRules []string
-		if rules := props.InboundNatRules; rules != nil {
-			for _, rule := range *rules {
-				if rule.ID == nil {
-					continue
+			var outboundRules []string
+			if rules := props.OutboundRules; rules != nil {
+				for _, rule := range *rules {
+					if rule.Id == nil {
+						continue
+					}
+					outboundRules = append(outboundRules, pointer.From(rule.Id))
 				}
-				inboundNATRules = append(inboundNATRules, *rule.ID)
 			}
-		}
-		if err := d.Set("inbound_nat_rules", inboundNATRules); err != nil {
-			return fmt.Errorf("setting `inbound_nat_rules`: %v", err)
+			if err := d.Set("outbound_rules", outboundRules); err != nil {
+				return fmt.Errorf("setting `outbound_rules`: %v", err)
+			}
+
+			var inboundNATRules []string
+			if rules := props.InboundNatRules; rules != nil {
+				for _, rule := range *rules {
+					if rule.Id == nil {
+						continue
+					}
+					inboundNATRules = append(inboundNATRules, pointer.From(rule.Id))
+				}
+			}
+			if err := d.Set("inbound_nat_rules", inboundNATRules); err != nil {
+				return fmt.Errorf("setting `inbound_nat_rules`: %v", err)
+			}
 		}
 	}
 
 	return nil
 }
 
-func flattenArmLoadBalancerBackendAddresses(input *[]network.LoadBalancerBackendAddress) []interface{} {
+func flattenArmLoadBalancerBackendAddresses(input *[]loadbalancers.LoadBalancerBackendAddress) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -223,12 +224,12 @@ func flattenArmLoadBalancerBackendAddresses(input *[]network.LoadBalancerBackend
 			vnetId    string
 		)
 		var inboundNATRulePortMappingList []interface{}
-		if prop := e.LoadBalancerBackendAddressPropertiesFormat; prop != nil {
-			if prop.IPAddress != nil {
-				ipAddress = *prop.IPAddress
-			}
-			if prop.VirtualNetwork != nil && prop.VirtualNetwork.ID != nil {
-				vnetId = *prop.VirtualNetwork.ID
+		if prop := e.Properties; prop != nil {
+
+			ipAddress = pointer.From(prop.IPAddress)
+
+			if prop.VirtualNetwork != nil {
+				vnetId = pointer.From(prop.VirtualNetwork.Id)
 			}
 			if prop.InboundNatRulesPortMapping != nil {
 				rules := prop.InboundNatRulesPortMapping
@@ -236,7 +237,7 @@ func flattenArmLoadBalancerBackendAddresses(input *[]network.LoadBalancerBackend
 					rulePortMapping := make(map[string]interface{})
 
 					if rule.InboundNatRuleName != nil {
-						rulePortMapping["inbound_nat_rule_name"] = *rule.InboundNatRuleName
+						rulePortMapping["inbound_nat_rule_name"] = pointer.From(rule.InboundNatRuleName)
 					}
 					if rule.FrontendPort != nil {
 						rulePortMapping["frontendPort"] = *rule.FrontendPort

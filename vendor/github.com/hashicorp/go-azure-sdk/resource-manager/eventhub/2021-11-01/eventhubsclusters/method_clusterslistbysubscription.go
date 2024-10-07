@@ -20,17 +20,31 @@ type ClustersListBySubscriptionOperationResponse struct {
 }
 
 type ClustersListBySubscriptionCompleteResult struct {
-	Items []Cluster
+	LatestHttpResponse *http.Response
+	Items              []Cluster
+}
+
+type ClustersListBySubscriptionCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ClustersListBySubscriptionCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ClustersListBySubscription ...
 func (c EventHubsClustersClient) ClustersListBySubscription(ctx context.Context, id commonids.SubscriptionId) (result ClustersListBySubscriptionOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ClustersListBySubscriptionCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.EventHub/clusters", id.ID()),
 	}
 
@@ -72,6 +86,7 @@ func (c EventHubsClustersClient) ClustersListBySubscriptionCompleteMatchingPredi
 
 	resp, err := c.ClustersListBySubscription(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -84,7 +99,8 @@ func (c EventHubsClustersClient) ClustersListBySubscriptionCompleteMatchingPredi
 	}
 
 	result = ClustersListBySubscriptionCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -170,7 +170,7 @@ func resourceDedicatedHardwareSecurityModuleCreate(d *pluginsdk.ResourceData, me
 			NetworkProfile:           expandDedicatedHsmNetworkProfile(d.Get("network_profile").([]interface{})),
 			ManagementNetworkProfile: expandDedicatedHsmNetworkProfile(d.Get("management_network_profile").([]interface{})),
 		},
-		Sku: dedicatedhsms.Sku{
+		Sku: &dedicatedhsms.Sku{
 			Name: &skuName,
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),

@@ -10,10 +10,12 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2022-03-01/managedenvironments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2024-03-01/managedenvironments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -30,6 +32,8 @@ type ContainerAppEnvironmentDataSourceModel struct {
 	InfrastructureSubnetId      string                 `tfschema:"infrastructure_subnet_id"`
 	InternalLoadBalancerEnabled bool                   `tfschema:"internal_load_balancer_enabled"`
 	Tags                        map[string]interface{} `tfschema:"tags"`
+
+	CustomDomainVerificationId string `tfschema:"custom_domain_verification_id"`
 
 	DefaultDomain         string `tfschema:"default_domain"`
 	DockerBridgeCidr      string `tfschema:"docker_bridge_cidr"`
@@ -84,6 +88,12 @@ func (r ContainerAppEnvironmentDataSource) Attributes() map[string]*pluginsdk.Sc
 		},
 
 		"tags": commonschema.TagsDataSource(),
+
+		"custom_domain_verification_id": {
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Description: "The ID of the Custom Domain Verification for this Container App Environment.",
+		},
 
 		"default_domain": {
 			Type:        pluginsdk.TypeString,
@@ -155,11 +165,17 @@ func (r ContainerAppEnvironmentDataSource) Read() sdk.ResourceFunc {
 					}
 
 					if appsLogs := props.AppLogsConfiguration; appsLogs != nil && appsLogs.LogAnalyticsConfiguration != nil {
-						environment.LogAnalyticsWorkspaceName = pointer.From(appsLogs.LogAnalyticsConfiguration.CustomerId)
+						lawClient := metadata.Client.LogAnalytics.SharedKeyWorkspacesClient
+						lawName, err := findLogAnalyticsWorkspaceName(ctx, lawClient, subscriptionId, pointer.From(appsLogs.LogAnalyticsConfiguration.CustomerId))
+						if err != nil {
+							return fmt.Errorf("retrieving Log Analytics Workspace: %+v", err)
+						}
+						environment.LogAnalyticsWorkspaceName = lawName
 					}
 
 					environment.StaticIP = pointer.From(props.StaticIP)
 					environment.DefaultDomain = pointer.From(props.DefaultDomain)
+					environment.CustomDomainVerificationId = pointer.From(props.CustomDomainConfiguration.CustomDomainVerificationId)
 				}
 			}
 
@@ -168,4 +184,29 @@ func (r ContainerAppEnvironmentDataSource) Read() sdk.ResourceFunc {
 			return metadata.Encode(&environment)
 		},
 	}
+}
+
+func findLogAnalyticsWorkspaceName(ctx context.Context, client *workspaces.WorkspacesClient, subscriptionId, targetCustomerId string) (string, error) {
+	parsedSubscriptionId := commonids.NewSubscriptionID(subscriptionId)
+
+	resp, err := client.List(ctx, parsedSubscriptionId)
+	if err != nil {
+		return "", err
+	}
+
+	if resp.Model == nil {
+		return "", fmt.Errorf("model was nil")
+	}
+
+	if resp.Model.Value == nil {
+		return "", fmt.Errorf("value was nil")
+	}
+
+	for _, law := range *resp.Model.Value {
+		if law.Properties != nil && law.Properties.CustomerId != nil && *law.Properties.CustomerId == targetCustomerId && law.Name != nil {
+			return *law.Name, nil
+		}
+	}
+
+	return "", fmt.Errorf("no matching workspace found")
 }

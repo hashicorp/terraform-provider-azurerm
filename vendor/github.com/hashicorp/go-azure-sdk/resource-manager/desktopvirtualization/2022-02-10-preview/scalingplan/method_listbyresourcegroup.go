@@ -20,17 +20,31 @@ type ListByResourceGroupOperationResponse struct {
 }
 
 type ListByResourceGroupCompleteResult struct {
-	Items []ScalingPlan
+	LatestHttpResponse *http.Response
+	Items              []ScalingPlan
+}
+
+type ListByResourceGroupCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByResourceGroupCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListByResourceGroup ...
 func (c ScalingPlanClient) ListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (result ListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByResourceGroupCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.DesktopVirtualization/scalingPlans", id.ID()),
 	}
 
@@ -72,6 +86,7 @@ func (c ScalingPlanClient) ListByResourceGroupCompleteMatchingPredicate(ctx cont
 
 	resp, err := c.ListByResourceGroup(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -84,7 +99,8 @@ func (c ScalingPlanClient) ListByResourceGroupCompleteMatchingPredicate(ctx cont
 	}
 
 	result = ListByResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

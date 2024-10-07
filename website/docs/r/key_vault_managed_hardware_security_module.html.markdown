@@ -10,7 +10,7 @@ description: |-
 
 Manages a Key Vault Managed Hardware Security Module.
 
-~> **Note:** the Azure Provider includes a Feature Toggle which will purge a Key Vault Managed Hardware Security Module resource on destroy, rather than the default soft-delete. See [`purge_soft_deleted_hardware_security_modules_on_destroy`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block#purge_soft_deleted_hardware_security_modules_on_destroy) for more information.
+~> **Note:** The Azure Provider includes a Feature Toggle which will purge a Key Vault Managed Hardware Security Module resource on destroy, rather than the default soft-delete. See [`purge_soft_deleted_hardware_security_modules_on_destroy`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block#purge_soft_deleted_hardware_security_modules_on_destroy) for more information.
 
 ## Example Usage
 
@@ -74,7 +74,7 @@ The following arguments are supported:
 
 * `security_domain_quorum` - (Optional) Specifies the minimum number of shares required to decrypt the security domain for recovery. This is required when `security_domain_key_vault_certificate_ids` is specified. Valid values are between 2 and 10.
 
-* `tags` - (Optional) A mapping of tags to assign to the resource. Changing this forces a new resource to be created.
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
 
@@ -99,6 +99,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 60 minutes) Used when creating the Key Vault Managed Hardware Security Module.
+* `update` - (Defaults to 30 minutes) Used when updating the Key Vault Managed Hardware Security Module.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Key Vault Managed Hardware Security Module.
 * `delete` - (Defaults to 60 minutes) Used when deleting the Key Vault Managed Hardware Security Module.
 

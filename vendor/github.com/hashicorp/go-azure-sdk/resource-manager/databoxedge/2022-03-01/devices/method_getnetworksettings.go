@@ -21,7 +21,7 @@ type GetNetworkSettingsOperationResponse struct {
 // GetNetworkSettings ...
 func (c DevicesClient) GetNetworkSettings(ctx context.Context, id DataBoxEdgeDeviceId) (result GetNetworkSettingsOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -44,7 +44,9 @@ func (c DevicesClient) GetNetworkSettings(ctx context.Context, id DataBoxEdgeDev
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model NetworkSettings
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

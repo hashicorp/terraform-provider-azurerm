@@ -9,13 +9,13 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/eventhubs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2022-01-01-preview/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
-	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -63,7 +63,6 @@ func resourceEventHub() *pluginsdk.Resource {
 			"partition_count": {
 				Type:         pluginsdk.TypeInt,
 				Required:     true,
-				ForceNew:     true,
 				ValidateFunc: validate.ValidateEventHubPartitionCount,
 			},
 
@@ -136,7 +135,7 @@ func resourceEventHub() *pluginsdk.Resource {
 									"storage_account_id": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
-										ValidateFunc: storageValidate.StorageAccountID,
+										ValidateFunc: commonids.ValidateStorageAccountID,
 									},
 								},
 							},
@@ -222,6 +221,12 @@ func resourceEventHubUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	id := eventhubs.NewEventhubID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("name").(string))
 
 	if d.HasChange("partition_count") {
+
+		o, n := d.GetChange("partition_count")
+		if o.(int) > n.(int) {
+			return fmt.Errorf("`partition_count` cannot be decreased")
+		}
+
 		client := meta.(*clients.Client).Eventhub.NamespacesClient
 		namespaceId := namespaces.NewNamespaceID(subscriptionId, id.ResourceGroupName, id.NamespaceName)
 		resp, err := client.Get(ctx, namespaceId)

@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = AuthorizationId{}
+func init() {
+	recaser.RegisterResourceId(&AuthorizationId{})
+}
+
+var _ resourceids.ResourceId = &AuthorizationId{}
 
 // AuthorizationId is a struct representing the Resource ID for a Authorization
 type AuthorizationId struct {
@@ -32,29 +37,15 @@ func NewAuthorizationID(subscriptionId string, resourceGroupName string, private
 
 // ParseAuthorizationID parses 'input' into a AuthorizationId
 func ParseAuthorizationID(input string) (*AuthorizationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AuthorizationId{})
+	parser := resourceids.NewParserFromResourceIdType(&AuthorizationId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := AuthorizationId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.PrivateCloudName, ok = parsed.Parsed["privateCloudName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "privateCloudName", *parsed)
-	}
-
-	if id.AuthorizationName, ok = parsed.Parsed["authorizationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "authorizationName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +54,40 @@ func ParseAuthorizationID(input string) (*AuthorizationId, error) {
 // ParseAuthorizationIDInsensitively parses 'input' case-insensitively into a AuthorizationId
 // note: this method should only be used for API response data and not user input
 func ParseAuthorizationIDInsensitively(input string) (*AuthorizationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AuthorizationId{})
+	parser := resourceids.NewParserFromResourceIdType(&AuthorizationId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := AuthorizationId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.PrivateCloudName, ok = parsed.Parsed["privateCloudName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "privateCloudName", *parsed)
-	}
-
-	if id.AuthorizationName, ok = parsed.Parsed["authorizationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "authorizationName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *AuthorizationId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.PrivateCloudName, ok = input.Parsed["privateCloudName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "privateCloudName", input)
+	}
+
+	if id.AuthorizationName, ok = input.Parsed["authorizationName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "authorizationName", input)
+	}
+
+	return nil
 }
 
 // ValidateAuthorizationID checks that 'input' can be parsed as a Authorization ID
@@ -122,9 +121,9 @@ func (id AuthorizationId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAVS", "Microsoft.AVS", "Microsoft.AVS"),
 		resourceids.StaticSegment("staticPrivateClouds", "privateClouds", "privateClouds"),
-		resourceids.UserSpecifiedSegment("privateCloudName", "privateCloudValue"),
+		resourceids.UserSpecifiedSegment("privateCloudName", "privateCloudName"),
 		resourceids.StaticSegment("staticAuthorizations", "authorizations", "authorizations"),
-		resourceids.UserSpecifiedSegment("authorizationName", "authorizationValue"),
+		resourceids.UserSpecifiedSegment("authorizationName", "authorizationName"),
 	}
 }
 

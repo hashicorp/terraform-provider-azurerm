@@ -16,11 +16,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	components "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
+	webtests "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-06-15/webtestsapis"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2018-03-01/metricalerts"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -291,12 +292,12 @@ func resourceMonitorMetricAlert() *pluginsdk.Resource {
 						"web_test_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: validate.WebTestID,
+							ValidateFunc: webtests.ValidateWebTestID,
 						},
 						"component_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: validate.ComponentID,
+							ValidateFunc: components.ValidateComponentID,
 						},
 						"failed_location_count": {
 							Type:         pluginsdk.TypeInt,
@@ -604,7 +605,7 @@ func expandMonitorMetricAlertCriteria(d *pluginsdk.ResourceData, isLegacy bool) 
 }
 
 func expandMonitorMetricAlertSingleResourceMultiMetricCriteria(input []interface{}) metricalerts.MetricAlertCriteria {
-	criteria := make([]metricalerts.MultiMetricCriteria, 0)
+	criteria := make([]metricalerts.MetricCriteria, 0)
 	for i, item := range input {
 		v := item.(map[string]interface{})
 		dimensions := expandMonitorMetricDimension(v["dimension"].([]interface{}))
@@ -739,11 +740,11 @@ func flattenMonitorMetricAlertCriteria(input metricalerts.MetricAlertCriteria) [
 	}
 }
 
-func flattenMonitorMetricAlertSingleResourceMultiMetricCriteria(input *[]metricalerts.MultiMetricCriteria) []interface{} {
+func flattenMonitorMetricAlertSingleResourceMultiMetricCriteria(input *[]metricalerts.MetricCriteria) []interface{} {
 	if input == nil || len(*input) == 0 {
 		return nil
 	}
-	criteria := (*input)[0].(metricalerts.MetricCriteria)
+	criteria := (*input)[0]
 	metricName := criteria.MetricName
 	metricNamespace := criteria.MetricNamespace
 	timeAggregation := criteria.TimeAggregation

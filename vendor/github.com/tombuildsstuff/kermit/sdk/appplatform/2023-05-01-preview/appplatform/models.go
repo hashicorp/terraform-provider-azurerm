@@ -5189,7 +5189,7 @@ type ClusterResourceProperties struct {
 	VnetAddons *ServiceVNetAddons `json:"vnetAddons,omitempty"`
 	// Version - READ-ONLY; Version of the Service
 	Version *int32 `json:"version,omitempty"`
-	// ServiceID - READ-ONLY; ServiceInstanceEntity GUID which uniquely identifies a created resource
+	// ServiceID - READ-ONLY; ServiceInstanceEntity Id which uniquely identifies a created resource
 	ServiceID *string `json:"serviceId,omitempty"`
 	// ManagedEnvironmentID - The resource Id of the Managed Environment that the Spring Apps instance builds on
 	ManagedEnvironmentID *string `json:"managedEnvironmentId,omitempty"`
@@ -8143,6 +8143,25 @@ func (future *DeploymentsUpdateFuture) result(client DeploymentsClient) (dr Depl
 	return
 }
 
+// DevToolPortalComponent ...
+type DevToolPortalComponent struct {
+	// Name - READ-ONLY
+	Name *string `json:"name,omitempty"`
+	// ResourceRequests - The requested resource quantity for required CPU and Memory.
+	ResourceRequests *DevToolPortalResourceRequests `json:"resourceRequests,omitempty"`
+	// Instances - READ-ONLY; Collection of instances belong to Dev Tool Portal.
+	Instances *[]DevToolPortalInstance `json:"instances,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for DevToolPortalComponent.
+func (dtpc DevToolPortalComponent) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if dtpc.ResourceRequests != nil {
+		objectMap["resourceRequests"] = dtpc.ResourceRequests
+	}
+	return json.Marshal(objectMap)
+}
+
 // DevToolPortalFeatureDetail detail settings for Dev Tool Portal feature
 type DevToolPortalFeatureDetail struct {
 	// State - State of the plugin. Possible values include: 'DevToolPortalFeatureStateEnabled', 'DevToolPortalFeatureStateDisabled'
@@ -8186,10 +8205,8 @@ func (dtpi DevToolPortalInstance) MarshalJSON() ([]byte, error) {
 type DevToolPortalProperties struct {
 	// ProvisioningState - READ-ONLY; State of the Dev Tool Portal. Possible values include: 'DevToolPortalProvisioningStateCreating', 'DevToolPortalProvisioningStateUpdating', 'DevToolPortalProvisioningStateSucceeded', 'DevToolPortalProvisioningStateFailed', 'DevToolPortalProvisioningStateDeleting', 'DevToolPortalProvisioningStateCanceled'
 	ProvisioningState DevToolPortalProvisioningState `json:"provisioningState,omitempty"`
-	// ResourceRequests - The requested resource quantity for required CPU and Memory.
-	ResourceRequests *DevToolPortalResourceRequests `json:"resourceRequests,omitempty"`
-	// Instances - READ-ONLY; Collection of instances belong to Dev Tool Portal.
-	Instances *[]DevToolPortalInstance `json:"instances,omitempty"`
+	// Components - READ-ONLY; Collection of components belong to Dev Tool Portal.
+	Components *[]DevToolPortalComponent `json:"components,omitempty"`
 	// Public - Indicates whether the resource exposes public endpoint
 	Public *bool `json:"public,omitempty"`
 	// URL - READ-ONLY; URL of the resource, exposed when 'public' is true.
@@ -8203,9 +8220,6 @@ type DevToolPortalProperties struct {
 // MarshalJSON is the custom marshaler for DevToolPortalProperties.
 func (dtpp DevToolPortalProperties) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if dtpp.ResourceRequests != nil {
-		objectMap["resourceRequests"] = dtpp.ResourceRequests
-	}
 	if dtpp.Public != nil {
 		objectMap["public"] = dtpp.Public
 	}

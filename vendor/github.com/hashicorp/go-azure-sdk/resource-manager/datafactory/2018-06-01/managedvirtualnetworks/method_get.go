@@ -36,6 +36,7 @@ func (o GetOperationOptions) ToHeaders() *client.Headers {
 
 func (o GetOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -48,13 +49,13 @@ func (o GetOperationOptions) ToQuery() *client.QueryParams {
 // Get ...
 func (c ManagedVirtualNetworksClient) Get(ctx context.Context, id ManagedVirtualNetworkId, options GetOperationOptions) (result GetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -72,7 +73,9 @@ func (c ManagedVirtualNetworksClient) Get(ctx context.Context, id ManagedVirtual
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ManagedVirtualNetworkResource
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

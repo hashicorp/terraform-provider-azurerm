@@ -72,7 +72,7 @@ data "azurerm_stream_analytics_job" "test" {
 }
 
 func (d StreamAnalyticsJobDataSource) identity(data acceptance.TestData) string {
-	config := StreamAnalyticsJobResource{}.identity(data)
+	config := StreamAnalyticsJobResource{}.identitySystemAssigned(data)
 	return fmt.Sprintf(`
 %s
 

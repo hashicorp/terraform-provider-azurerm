@@ -8,13 +8,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/identityprovider"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ApiManagementIdentityProviderAADResource struct{}
@@ -26,6 +25,35 @@ func TestAccApiManagementIdentityProviderAAD_basic(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("client_secret"),
+	})
+}
+
+func TestAccApiManagementIdentityProviderAAD_clientLibrary(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_aad", "test")
+	r := ApiManagementIdentityProviderAADResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.clientLibrary(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("client_secret"),
+		{
+			Config: r.clientLibraryUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("client_secret"),
+		{
+			Config: r.clientLibrary(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -80,17 +108,81 @@ func TestAccApiManagementIdentityProviderAAD_requiresImport(t *testing.T) {
 }
 
 func (ApiManagementIdentityProviderAADResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.IdentityProviderID(state.ID)
+	id, err := identityprovider.ParseIdentityProviderID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.ApiManagement.IdentityProviderClient.Get(ctx, id.ResourceGroup, id.ServiceName, apimanagement.IdentityProviderType(id.Name))
+	resp, err := clients.ApiManagement.IdentityProviderClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading ApiManagement Identity Provider AAD (%s): %+v", id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil && resp.Model.Id != nil), nil
+}
+
+func (ApiManagementIdentityProviderAADResource) clientLibrary(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-api-%d"
+  location = "%s"
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+  sku_name            = "Developer_1"
+}
+
+resource "azurerm_api_management_identity_provider_aad" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
+  client_id           = "00000000-0000-0000-0000-000000000000"
+  client_library      = "MSAL"
+  client_secret       = "00000000000000000000000000000000"
+  signin_tenant       = "00000000-0000-0000-0000-000000000000"
+  allowed_tenants     = ["%s"]
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Client().TenantID)
+}
+
+func (ApiManagementIdentityProviderAADResource) clientLibraryUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-api-%d"
+  location = "%s"
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+  sku_name            = "Developer_1"
+}
+
+resource "azurerm_api_management_identity_provider_aad" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
+  client_id           = "00000000-0000-0000-0000-000000000000"
+  client_library      = "MSAL-2"
+  client_secret       = "00000000000000000000000000000000"
+  signin_tenant       = "00000000-0000-0000-0000-000000000000"
+  allowed_tenants     = ["%s"]
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Client().TenantID)
 }
 
 func (ApiManagementIdentityProviderAADResource) basic(data acceptance.TestData) string {

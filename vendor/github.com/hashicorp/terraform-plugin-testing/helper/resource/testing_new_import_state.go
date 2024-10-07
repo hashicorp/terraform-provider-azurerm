@@ -12,14 +12,28 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/mitchellh/go-testing-interface"
 
+	"github.com/hashicorp/terraform-plugin-testing/config"
+	"github.com/hashicorp/terraform-plugin-testing/internal/teststep"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
 	"github.com/hashicorp/terraform-plugin-testing/internal/logging"
 	"github.com/hashicorp/terraform-plugin-testing/internal/plugintest"
 )
 
-func testStepNewImportState(ctx context.Context, t testing.T, helper *plugintest.Helper, wd *plugintest.WorkingDir, step TestStep, cfg string, providers *providerFactories) error {
+func testStepNewImportState(ctx context.Context, t testing.T, helper *plugintest.Helper, wd *plugintest.WorkingDir, step TestStep, cfg teststep.Config, providers *providerFactories, stepIndex int) error {
 	t.Helper()
+
+	configRequest := teststep.PrepareConfigurationRequest{
+		Directory: step.ConfigDirectory,
+		File:      step.ConfigFile,
+		Raw:       step.Config,
+		TestStepConfigRequest: config.TestStepConfigRequest{
+			StepNumber: stepIndex + 1,
+			TestName:   t.Name(),
+		},
+	}.Exec()
+
+	testStepConfig := teststep.Configuration(configRequest)
 
 	if step.ResourceName == "" {
 		t.Fatal("ResourceName is required for an import state test")
@@ -28,6 +42,7 @@ func testStepNewImportState(ctx context.Context, t testing.T, helper *plugintest
 	// get state from check sequence
 	var state *terraform.State
 	var err error
+
 	err = runProviderCommand(ctx, t, func() error {
 		state, err = getState(ctx, t, wd)
 		if err != nil {
@@ -79,11 +94,11 @@ func testStepNewImportState(ctx context.Context, t testing.T, helper *plugintest
 	logging.HelperResourceTrace(ctx, fmt.Sprintf("Using import identifier: %s", importId))
 
 	// Create working directory for import tests
-	if step.Config == "" {
+	if testStepConfig == nil {
 		logging.HelperResourceTrace(ctx, "Using prior TestStep Config for import")
 
-		step.Config = cfg
-		if step.Config == "" {
+		testStepConfig = cfg
+		if testStepConfig == nil {
 			t.Fatal("Cannot import state with no specified config")
 		}
 	}
@@ -94,11 +109,11 @@ func testStepNewImportState(ctx context.Context, t testing.T, helper *plugintest
 	if step.ImportStatePersist {
 		importWd = wd
 	} else {
-		importWd = helper.RequireNewWorkingDir(ctx, t)
+		importWd = helper.RequireNewWorkingDir(ctx, t, "")
 		defer importWd.Close()
 	}
 
-	err = importWd.SetConfig(ctx, step.Config)
+	err = importWd.SetConfig(ctx, testStepConfig, step.ConfigVariables)
 	if err != nil {
 		t.Fatalf("Error setting test config: %s", err)
 	}
@@ -147,7 +162,7 @@ func testStepNewImportState(ctx context.Context, t testing.T, helper *plugintest
 				continue
 			}
 
-			is := r.Primary.DeepCopy()
+			is := r.Primary.DeepCopy() //nolint:staticcheck // legacy usage
 			is.Ephemeral.Type = r.Type // otherwise the check function cannot see the type
 			states = append(states, is)
 		}
@@ -182,12 +197,33 @@ func testStepNewImportState(ctx context.Context, t testing.T, helper *plugintest
 			}
 		}
 
+		identifierAttribute := step.ImportStateVerifyIdentifierAttribute
+
+		if identifierAttribute == "" {
+			identifierAttribute = "id"
+		}
+
 		for _, r := range newResources {
+			rIdentifier, ok := r.Primary.Attributes[identifierAttribute]
+
+			if !ok {
+				t.Fatalf("ImportStateVerify: New resource missing identifier attribute %q, ensure attribute value is properly set or use ImportStateVerifyIdentifierAttribute to choose different attribute", identifierAttribute)
+			}
+
 			// Find the existing resource
 			var oldR *terraform.ResourceState
 			for _, r2 := range oldResources {
+				if r2.Primary == nil || r2.Type != r.Type || r2.Provider != r.Provider {
+					continue
+				}
 
-				if r2.Primary != nil && r2.Primary.ID == r.Primary.ID && r2.Type == r.Type && r2.Provider == r.Provider {
+				r2Identifier, ok := r2.Primary.Attributes[identifierAttribute]
+
+				if !ok {
+					t.Fatalf("ImportStateVerify: Old resource missing identifier attribute %q, ensure attribute value is properly set or use ImportStateVerifyIdentifierAttribute to choose different attribute", identifierAttribute)
+				}
+
+				if r2Identifier == rIdentifier {
 					oldR = r2
 					break
 				}
@@ -195,7 +231,7 @@ func testStepNewImportState(ctx context.Context, t testing.T, helper *plugintest
 			if oldR == nil || oldR.Primary == nil {
 				t.Fatalf(
 					"Failed state verification, resource with ID %s not found",
-					r.Primary.ID)
+					rIdentifier)
 			}
 
 			// don't add empty flatmapped containers, so we can more easily

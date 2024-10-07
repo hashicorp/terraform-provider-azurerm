@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2022-04-01/backupinstances"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backupinstances"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -130,6 +130,7 @@ resource "azurerm_data_protection_backup_vault" "test" {
   location            = azurerm_resource_group.test.location
   datastore_type      = "VaultStore"
   redundancy          = "LocallyRedundant"
+  soft_delete         = "Off"
 
   identity {
     type = "SystemAssigned"

@@ -20,7 +20,7 @@ type GetByIdOperationResponse struct {
 // GetById ...
 func (c ApplicationsClient) GetById(ctx context.Context, id ApplicationIdId) (result GetByIdOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -43,7 +43,9 @@ func (c ApplicationsClient) GetById(ctx context.Context, id ApplicationIdId) (re
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Application
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

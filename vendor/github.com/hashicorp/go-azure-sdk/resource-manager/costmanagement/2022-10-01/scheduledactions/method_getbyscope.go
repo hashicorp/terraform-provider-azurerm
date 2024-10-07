@@ -20,7 +20,7 @@ type GetByScopeOperationResponse struct {
 // GetByScope ...
 func (c ScheduledActionsClient) GetByScope(ctx context.Context, id ScopedScheduledActionId) (result GetByScopeOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -43,7 +43,9 @@ func (c ScheduledActionsClient) GetByScope(ctx context.Context, id ScopedSchedul
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ScheduledAction
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

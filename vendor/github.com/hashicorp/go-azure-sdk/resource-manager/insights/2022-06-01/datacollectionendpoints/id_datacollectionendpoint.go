@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = DataCollectionEndpointId{}
+func init() {
+	recaser.RegisterResourceId(&DataCollectionEndpointId{})
+}
+
+var _ resourceids.ResourceId = &DataCollectionEndpointId{}
 
 // DataCollectionEndpointId is a struct representing the Resource ID for a Data Collection Endpoint
 type DataCollectionEndpointId struct {
@@ -30,25 +35,15 @@ func NewDataCollectionEndpointID(subscriptionId string, resourceGroupName string
 
 // ParseDataCollectionEndpointID parses 'input' into a DataCollectionEndpointId
 func ParseDataCollectionEndpointID(input string) (*DataCollectionEndpointId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DataCollectionEndpointId{})
+	parser := resourceids.NewParserFromResourceIdType(&DataCollectionEndpointId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := DataCollectionEndpointId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.DataCollectionEndpointName, ok = parsed.Parsed["dataCollectionEndpointName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "dataCollectionEndpointName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +52,36 @@ func ParseDataCollectionEndpointID(input string) (*DataCollectionEndpointId, err
 // ParseDataCollectionEndpointIDInsensitively parses 'input' case-insensitively into a DataCollectionEndpointId
 // note: this method should only be used for API response data and not user input
 func ParseDataCollectionEndpointIDInsensitively(input string) (*DataCollectionEndpointId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DataCollectionEndpointId{})
+	parser := resourceids.NewParserFromResourceIdType(&DataCollectionEndpointId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := DataCollectionEndpointId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.DataCollectionEndpointName, ok = parsed.Parsed["dataCollectionEndpointName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "dataCollectionEndpointName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *DataCollectionEndpointId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.DataCollectionEndpointName, ok = input.Parsed["dataCollectionEndpointName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "dataCollectionEndpointName", input)
+	}
+
+	return nil
 }
 
 // ValidateDataCollectionEndpointID checks that 'input' can be parsed as a Data Collection Endpoint ID
@@ -112,7 +115,7 @@ func (id DataCollectionEndpointId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftInsights", "Microsoft.Insights", "Microsoft.Insights"),
 		resourceids.StaticSegment("staticDataCollectionEndpoints", "dataCollectionEndpoints", "dataCollectionEndpoints"),
-		resourceids.UserSpecifiedSegment("dataCollectionEndpointName", "dataCollectionEndpointValue"),
+		resourceids.UserSpecifiedSegment("dataCollectionEndpointName", "dataCollectionEndpointName"),
 	}
 }
 

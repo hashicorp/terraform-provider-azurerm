@@ -15,6 +15,9 @@ import (
 //
 // Cancellation from the passed in context will propagate through to the
 // underlying StateChangeConf
+//
+// Deprecated: Copy this function to the provider codebase or use
+// github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry.RetryContext.
 func RetryContext(ctx context.Context, timeout time.Duration, f RetryFunc) error {
 	// These are used to pull the error out of the function; need a mutex to
 	// avoid a data race.
@@ -72,15 +75,25 @@ func Retry(timeout time.Duration, f RetryFunc) error {
 }
 
 // RetryFunc is the function retried until it succeeds.
+//
+// Deprecated: Copy this type to the provider codebase or use
+// github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry.RetryFunc.
 type RetryFunc func() *RetryError
 
 // RetryError is the required return type of RetryFunc. It forces client code
 // to choose whether or not a given error is retryable.
+//
+// Deprecated: Copy this type to the provider codebase or use
+// github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry.RetryError.
 type RetryError struct {
 	Err       error
 	Retryable bool
 }
 
+// Unwrap returns the Err, compatible with errors.Unwrap.
+//
+// Deprecated: Copy this method to the provider codebase or use
+// github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry.RetryError.
 func (e *RetryError) Unwrap() error {
 	return e.Err
 }
@@ -88,6 +101,9 @@ func (e *RetryError) Unwrap() error {
 // RetryableError is a helper to create a RetryError that's retryable from a
 // given error. To prevent logic errors, will return an error when passed a
 // nil error.
+//
+// Deprecated: Copy this function to the provider codebase or use
+// github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry.RetryableError.
 func RetryableError(err error) *RetryError {
 	if err == nil {
 		return &RetryError{
@@ -103,6 +119,9 @@ func RetryableError(err error) *RetryError {
 // NonRetryableError is a helper to create a RetryError that's _not_ retryable
 // from a given error. To prevent logic errors, will return an error when
 // passed a nil error.
+//
+// Deprecated: Copy this function to the provider codebase or use
+// github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry.NonRetryableError.
 func NonRetryableError(err error) *RetryError {
 	if err == nil {
 		return &RetryError{

@@ -18,12 +18,13 @@ type CreateOrUpdateByIdOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *Application
 }
 
 // CreateOrUpdateById ...
 func (c ApplicationsClient) CreateOrUpdateById(ctx context.Context, id ApplicationIdId, input Application) (result CreateOrUpdateByIdOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

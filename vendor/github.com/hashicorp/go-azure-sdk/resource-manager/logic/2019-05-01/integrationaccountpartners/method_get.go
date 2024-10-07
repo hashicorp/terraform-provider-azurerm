@@ -20,7 +20,7 @@ type GetOperationResponse struct {
 // Get ...
 func (c IntegrationAccountPartnersClient) Get(ctx context.Context, id PartnerId) (result GetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -43,7 +43,9 @@ func (c IntegrationAccountPartnersClient) Get(ctx context.Context, id PartnerId)
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model IntegrationAccountPartner
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

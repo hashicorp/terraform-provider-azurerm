@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ImageId{}
+func init() {
+	recaser.RegisterResourceId(&ImageId{})
+}
+
+var _ resourceids.ResourceId = &ImageId{}
 
 // ImageId is a struct representing the Resource ID for a Image
 type ImageId struct {
@@ -30,25 +35,15 @@ func NewImageID(subscriptionId string, resourceGroupName string, imageName strin
 
 // ParseImageID parses 'input' into a ImageId
 func ParseImageID(input string) (*ImageId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ImageId{})
+	parser := resourceids.NewParserFromResourceIdType(&ImageId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ImageId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ImageName, ok = parsed.Parsed["imageName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "imageName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +52,36 @@ func ParseImageID(input string) (*ImageId, error) {
 // ParseImageIDInsensitively parses 'input' case-insensitively into a ImageId
 // note: this method should only be used for API response data and not user input
 func ParseImageIDInsensitively(input string) (*ImageId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ImageId{})
+	parser := resourceids.NewParserFromResourceIdType(&ImageId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ImageId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ImageName, ok = parsed.Parsed["imageName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "imageName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ImageId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.ImageName, ok = input.Parsed["imageName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "imageName", input)
+	}
+
+	return nil
 }
 
 // ValidateImageID checks that 'input' can be parsed as a Image ID
@@ -112,7 +115,7 @@ func (id ImageId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftCompute", "Microsoft.Compute", "Microsoft.Compute"),
 		resourceids.StaticSegment("staticImages", "images", "images"),
-		resourceids.UserSpecifiedSegment("imageName", "imageValue"),
+		resourceids.UserSpecifiedSegment("imageName", "imageName"),
 	}
 }
 

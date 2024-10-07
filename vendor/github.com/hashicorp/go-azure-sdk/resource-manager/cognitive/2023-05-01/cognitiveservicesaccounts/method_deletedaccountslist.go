@@ -20,17 +20,31 @@ type DeletedAccountsListOperationResponse struct {
 }
 
 type DeletedAccountsListCompleteResult struct {
-	Items []Account
+	LatestHttpResponse *http.Response
+	Items              []Account
+}
+
+type DeletedAccountsListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *DeletedAccountsListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // DeletedAccountsList ...
 func (c CognitiveServicesAccountsClient) DeletedAccountsList(ctx context.Context, id commonids.SubscriptionId) (result DeletedAccountsListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &DeletedAccountsListCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.CognitiveServices/deletedAccounts", id.ID()),
 	}
 
@@ -72,6 +86,7 @@ func (c CognitiveServicesAccountsClient) DeletedAccountsListCompleteMatchingPred
 
 	resp, err := c.DeletedAccountsList(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -84,7 +99,8 @@ func (c CognitiveServicesAccountsClient) DeletedAccountsListCompleteMatchingPred
 	}
 
 	result = DeletedAccountsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

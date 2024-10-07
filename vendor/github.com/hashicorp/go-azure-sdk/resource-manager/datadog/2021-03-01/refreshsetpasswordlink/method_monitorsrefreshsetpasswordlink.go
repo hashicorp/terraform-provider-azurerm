@@ -21,7 +21,7 @@ type MonitorsRefreshSetPasswordLinkOperationResponse struct {
 // MonitorsRefreshSetPasswordLink ...
 func (c RefreshSetPasswordLinkClient) MonitorsRefreshSetPasswordLink(ctx context.Context, id MonitorId) (result MonitorsRefreshSetPasswordLinkOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -44,7 +44,9 @@ func (c RefreshSetPasswordLinkClient) MonitorsRefreshSetPasswordLink(ctx context
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model DatadogSetPasswordLink
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

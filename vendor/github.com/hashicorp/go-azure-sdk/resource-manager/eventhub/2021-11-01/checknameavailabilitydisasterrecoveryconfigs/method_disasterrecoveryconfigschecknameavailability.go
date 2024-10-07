@@ -21,7 +21,7 @@ type DisasterRecoveryConfigsCheckNameAvailabilityOperationResponse struct {
 // DisasterRecoveryConfigsCheckNameAvailability ...
 func (c CheckNameAvailabilityDisasterRecoveryConfigsClient) DisasterRecoveryConfigsCheckNameAvailability(ctx context.Context, id NamespaceId, input CheckNameAvailabilityParameter) (result DisasterRecoveryConfigsCheckNameAvailabilityOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -48,7 +48,9 @@ func (c CheckNameAvailabilityDisasterRecoveryConfigsClient) DisasterRecoveryConf
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model CheckNameAvailabilityResult
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

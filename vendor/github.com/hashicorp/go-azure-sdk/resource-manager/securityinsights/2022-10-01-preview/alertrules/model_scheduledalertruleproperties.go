@@ -20,18 +20,18 @@ type ScheduledAlertRuleProperties struct {
 	EventGroupingSettings    *EventGroupingSettings   `json:"eventGroupingSettings,omitempty"`
 	IncidentConfiguration    *IncidentConfiguration   `json:"incidentConfiguration,omitempty"`
 	LastModifiedUtc          *string                  `json:"lastModifiedUtc,omitempty"`
-	Query                    string                   `json:"query"`
-	QueryFrequency           string                   `json:"queryFrequency"`
-	QueryPeriod              string                   `json:"queryPeriod"`
+	Query                    *string                  `json:"query,omitempty"`
+	QueryFrequency           *string                  `json:"queryFrequency,omitempty"`
+	QueryPeriod              *string                  `json:"queryPeriod,omitempty"`
 	SentinelEntitiesMappings *[]SentinelEntityMapping `json:"sentinelEntitiesMappings,omitempty"`
-	Severity                 AlertSeverity            `json:"severity"`
+	Severity                 *AlertSeverity           `json:"severity,omitempty"`
 	SuppressionDuration      string                   `json:"suppressionDuration"`
 	SuppressionEnabled       bool                     `json:"suppressionEnabled"`
 	Tactics                  *[]AttackTactic          `json:"tactics,omitempty"`
 	Techniques               *[]string                `json:"techniques,omitempty"`
 	TemplateVersion          *string                  `json:"templateVersion,omitempty"`
-	TriggerOperator          TriggerOperator          `json:"triggerOperator"`
-	TriggerThreshold         int64                    `json:"triggerThreshold"`
+	TriggerOperator          *TriggerOperator         `json:"triggerOperator,omitempty"`
+	TriggerThreshold         *int64                   `json:"triggerThreshold,omitempty"`
 }
 
 func (o *ScheduledAlertRuleProperties) GetLastModifiedUtcAsTime() (*time.Time, error) {

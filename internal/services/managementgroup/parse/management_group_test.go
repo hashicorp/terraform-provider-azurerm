@@ -98,3 +98,42 @@ func TestManagementGroupID(t *testing.T) {
 		}
 	}
 }
+
+func TestManagementGroupIDForSystemTopic(t *testing.T) {
+	testData := []struct {
+		Name     string
+		Input    string
+		Error    bool
+		Expected *ManagementGroupId
+	}{
+		{
+			Name:  "Management Group ID for System Topic",
+			Input: "/tenants/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/providers/Microsoft.Management/managementGroups/00000000-0000-0000-0000-000000000000",
+			Expected: &ManagementGroupId{
+				Name:     "00000000-0000-0000-0000-000000000000",
+				TenantID: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+			},
+		},
+	}
+
+	for _, v := range testData {
+		t.Logf("[DEBUG] Testing %q", v.Name)
+
+		actual, err := TenantScopedManagementGroupID(v.Input)
+		if err != nil {
+			if v.Error {
+				continue
+			}
+
+			t.Fatalf("Expected a value but got an error: %s", err)
+		}
+
+		if actual.Name != v.Expected.Name {
+			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
+		}
+
+		if actual.TenantID != v.Expected.TenantID {
+			t.Fatalf("Expected %q but got %q for TenantID", v.Expected.TenantID, actual.TenantID)
+		}
+	}
+}

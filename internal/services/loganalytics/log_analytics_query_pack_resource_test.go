@@ -25,7 +25,7 @@ func (r LogAnalyticsQueryPackResource) Exists(ctx context.Context, client *clien
 		return nil, err
 	}
 
-	resp, err := client.LogAnalytics.QueryPacksClient.QueryPacksGet(ctx, *id)
+	resp, err := client.LogAnalytics.QueryPacksClient.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil

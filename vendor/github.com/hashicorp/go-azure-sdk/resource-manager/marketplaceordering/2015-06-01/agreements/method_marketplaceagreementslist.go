@@ -22,7 +22,7 @@ type MarketplaceAgreementsListOperationResponse struct {
 // MarketplaceAgreementsList ...
 func (c AgreementsClient) MarketplaceAgreementsList(ctx context.Context, id commonids.SubscriptionId) (result MarketplaceAgreementsListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -45,7 +45,9 @@ func (c AgreementsClient) MarketplaceAgreementsList(ctx context.Context, id comm
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model AgreementTermsList
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -22,10 +22,12 @@ Manages a Virtual Desktop Scaling Plan.
 
 resource "random_uuid" "example" {
 }
+
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
 }
+
 resource "azurerm_role_definition" "example" {
   name        = "AVD-AutoScale"
   scope       = azurerm_resource_group.example.id
@@ -53,9 +55,11 @@ resource "azurerm_role_definition" "example" {
     azurerm_resource_group.example.id,
   ]
 }
+
 data "azuread_service_principal" "example" {
-  display_name = "Windows Virtual Desktop"
+  display_name = "Azure Virtual Desktop"
 }
+
 resource "azurerm_role_assignment" "example" {
   name                             = random_uuid.example.result
   scope                            = azurerm_resource_group.example.id
@@ -63,6 +67,7 @@ resource "azurerm_role_assignment" "example" {
   principal_id                     = data.azuread_service_principal.example.id
   skip_service_principal_aad_check = true
 }
+
 resource "azurerm_virtual_desktop_host_pool" "example" {
   name                 = "example-hostpool"
   location             = azurerm_resource_group.example.location
@@ -71,6 +76,7 @@ resource "azurerm_virtual_desktop_host_pool" "example" {
   validate_environment = true
   load_balancer_type   = "BreadthFirst"
 }
+
 resource "azurerm_virtual_desktop_scaling_plan" "example" {
   name                = "example-scaling-plan"
   location            = azurerm_resource_group.example.location
@@ -117,7 +123,7 @@ The following arguments are supported:
 
 * `schedule` - (Required) One or more `schedule` blocks as defined below.
 
-* `host_pool` - (Required) One or more `host_pool` blocks as defined below.
+* `host_pool` - (Optional) One or more `host_pool` blocks as defined below.
 
 * `time_zone` - (Required) Specifies the Time Zone which should be used by the Scaling Plan for time based events, [the possible values are defined here](https://jackstromberg.com/2017/01/list-of-time-zones-consumed-by-azure/).
 
@@ -159,7 +165,7 @@ A `schedule` block supports the following:
 
 * `ramp_down_capacity_threshold_percent` - (Required) This is the value in percentage of used host pool capacity that will be considered to evaluate whether to turn on/off virtual machines during the ramp-down and off-peak hours. For example, if capacity threshold is specified as 60% and your total host pool capacity is 100 sessions, autoscale will turn on additional session hosts once the host pool exceeds a load of 60 sessions.
 
-* `ramp_down_force_logoff_users` - (Required) Whether users will be forced to log-off session hosts once the `ramp_down_wait_time_minutes` value has been exceeded during the Ramp-Down period. Possible
+* `ramp_down_force_logoff_users` - (Required) Whether users will be forced to log-off session hosts once the `ramp_down_wait_time_minutes` value has been exceeded during the Ramp-Down period. Possible values are `true` and `false`.
 
 * `ramp_down_load_balancing_algorithm` - (Required) The load Balancing Algorithm to use during the Ramp-Down period. Possible values are `DepthFirst` and `BreadthFirst`.
 

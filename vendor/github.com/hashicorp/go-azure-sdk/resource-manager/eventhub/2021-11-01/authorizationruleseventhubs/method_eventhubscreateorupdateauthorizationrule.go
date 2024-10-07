@@ -20,7 +20,7 @@ type EventHubsCreateOrUpdateAuthorizationRuleOperationResponse struct {
 // EventHubsCreateOrUpdateAuthorizationRule ...
 func (c AuthorizationRulesEventHubsClient) EventHubsCreateOrUpdateAuthorizationRule(ctx context.Context, id EventhubAuthorizationRuleId, input AuthorizationRule) (result EventHubsCreateOrUpdateAuthorizationRuleOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -47,7 +47,9 @@ func (c AuthorizationRulesEventHubsClient) EventHubsCreateOrUpdateAuthorizationR
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model AuthorizationRule
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -20,7 +20,7 @@ type WebTestsGetOperationResponse struct {
 // WebTestsGet ...
 func (c WebTestsAPIsClient) WebTestsGet(ctx context.Context, id WebTestId) (result WebTestsGetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -43,7 +43,9 @@ func (c WebTestsAPIsClient) WebTestsGet(ctx context.Context, id WebTestId) (resu
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model WebTest
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -7,31 +7,32 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2022-07-01-preview/maintenanceconfigurations"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/maintenanceconfigurations"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func resourceArmMaintenanceConfiguration() *pluginsdk.Resource {
+func resourceMaintenanceConfiguration() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceArmMaintenanceConfigurationCreateUpdate,
-		Read:   resourceArmMaintenanceConfigurationRead,
-		Update: resourceArmMaintenanceConfigurationCreateUpdate,
-		Delete: resourceArmMaintenanceConfigurationDelete,
+		Create: resourceMaintenanceConfigurationCreate,
+		Read:   resourceMaintenanceConfigurationRead,
+		Update: resourceMaintenanceConfigurationUpdate,
+		Delete: resourceMaintenanceConfigurationDelete,
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
@@ -231,28 +232,27 @@ func resourceArmMaintenanceConfiguration() *pluginsdk.Resource {
 				},
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
 
-func resourceArmMaintenanceConfigurationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMaintenanceConfigurationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Maintenance.ConfigurationsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := maintenanceconfigurations.NewMaintenanceConfigurationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-		}
+
+	existing, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_maintenance_configuration", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
+	}
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_maintenance_configuration", id.ID())
 	}
 
 	scope := maintenanceconfigurations.MaintenanceScope(d.Get("scope").(string))
@@ -288,18 +288,76 @@ func resourceArmMaintenanceConfigurationCreateUpdate(d *pluginsdk.ResourceData, 
 			ExtensionProperties: extensionProperties,
 			InstallPatches:      installPatches,
 		},
-		Tags: expandTags(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, configuration); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
-	return resourceArmMaintenanceConfigurationRead(d, meta)
+	return resourceMaintenanceConfigurationRead(d, meta)
 }
 
-func resourceArmMaintenanceConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMaintenanceConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Maintenance.ConfigurationsClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := maintenanceconfigurations.ParseMaintenanceConfigurationID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	payload := existing.Model
+
+	if d.HasChanges("scope", "window", "install_patches", "properties") {
+		scope := maintenanceconfigurations.MaintenanceScope(d.Get("scope").(string))
+		window := expandMaintenanceConfigurationWindow(d.Get("window").([]interface{}))
+		installPatches := expandMaintenanceConfigurationInstallPatches(d.Get("install_patches").([]interface{}))
+		extensionProperties := expandExtensionProperties(d.Get("properties").(map[string]interface{}))
+		if scope == maintenanceconfigurations.MaintenanceScopeInGuestPatch {
+			if window == nil {
+				return fmt.Errorf("`window` must be specified when `scope` is `InGuestPatch`")
+			}
+			if installPatches == nil {
+				return fmt.Errorf("`install_patches` must be specified when `scope` is `InGuestPatch`")
+			}
+			if _, ok := (*extensionProperties)["InGuestPatchMode"]; !ok {
+				if _, ok := d.GetOk("in_guest_user_patch_mode"); !ok {
+					return fmt.Errorf("`in_guest_user_patch_mode` must be specified when `scope` is `InGuestPatch`")
+				}
+				(*extensionProperties)["InGuestPatchMode"] = d.Get("in_guest_user_patch_mode").(string)
+			}
+		}
+
+		payload.Properties.MaintenanceScope = &scope
+		payload.Properties.MaintenanceWindow = window
+		payload.Properties.ExtensionProperties = extensionProperties
+		payload.Properties.InstallPatches = installPatches
+	}
+
+	if d.HasChange("visibility") {
+		payload.Properties.Visibility = pointer.To(maintenanceconfigurations.Visibility(d.Get("visibility").(string)))
+	}
+
+	if d.HasChange("tags") {
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if _, err := client.CreateOrUpdate(ctx, *id, *payload); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
+	return resourceMaintenanceConfigurationRead(d, meta)
+}
+
+func resourceMaintenanceConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Maintenance.ConfigurationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -345,14 +403,14 @@ func resourceArmMaintenanceConfigurationRead(d *pluginsdk.ResourceData, meta int
 			}
 		}
 		d.Set("location", location.NormalizeNilable(model.Location))
-		if err = tags.FlattenAndSet(d, flattenTags(model.Tags)); err != nil {
+		if err = tags.FlattenAndSet(d, model.Tags); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func resourceArmMaintenanceConfigurationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMaintenanceConfigurationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Maintenance.ConfigurationsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -446,7 +504,12 @@ func flattenMaintenanceConfigurationInstallPatches(input *maintenanceconfigurati
 		output := make(map[string]interface{})
 
 		if rebootSetting := v.RebootSetting; rebootSetting != nil {
-			output["reboot"] = *rebootSetting
+			// https://github.com/Azure/azure-rest-api-specs/issues/27222
+			if strings.EqualFold(string(*rebootSetting), "AlwaysReboot") {
+				output["reboot"] = "Always"
+			} else {
+				output["reboot"] = *rebootSetting
+			}
 		}
 
 		if windowsParameters := v.WindowsParameters; windowsParameters != nil {
@@ -522,10 +585,10 @@ func expandMaintenanceConfigurationInstallPatchesLinux(input []interface{}) *mai
 	if v, ok := v["classifications_to_include"]; ok {
 		linuxParameters.ClassificationsToInclude = utils.ExpandStringSlice(v.([]interface{}))
 	}
-	if v, ok := v["packages_to_exclude"]; ok {
+	if v, ok := v["package_names_mask_to_exclude"]; ok {
 		linuxParameters.PackageNameMasksToExclude = utils.ExpandStringSlice(v.([]interface{}))
 	}
-	if v, ok := v["packages_to_include"]; ok {
+	if v, ok := v["package_names_mask_to_include"]; ok {
 		linuxParameters.PackageNameMasksToInclude = utils.ExpandStringSlice(v.([]interface{}))
 	}
 	return &linuxParameters
@@ -534,22 +597,25 @@ func expandMaintenanceConfigurationInstallPatchesLinux(input []interface{}) *mai
 func flattenMaintenanceConfigurationInstallPatchesLinux(input *maintenanceconfigurations.InputLinuxParameters) []interface{} {
 	results := make([]interface{}, 0)
 
-	if v := input; v != nil {
-		output := make(map[string]interface{})
-
-		if classificationsToInclude := v.ClassificationsToInclude; classificationsToInclude != nil {
-			output["classifications_to_include"] = utils.FlattenStringSlice(classificationsToInclude)
+	if input != nil {
+		classificationsToInclude := make([]interface{}, 0)
+		if input.ClassificationsToInclude != nil {
+			classificationsToInclude = utils.FlattenStringSlice(input.ClassificationsToInclude)
+		}
+		packageNamesMaskToExclude := make([]interface{}, 0)
+		if input.PackageNameMasksToExclude != nil {
+			packageNamesMaskToExclude = utils.FlattenStringSlice(input.PackageNameMasksToExclude)
+		}
+		packageNamesMaskToInclude := make([]interface{}, 0)
+		if input.PackageNameMasksToInclude != nil {
+			packageNamesMaskToInclude = utils.FlattenStringSlice(input.PackageNameMasksToInclude)
 		}
 
-		if packageNameMasksToInclude := v.PackageNameMasksToInclude; packageNameMasksToInclude != nil {
-			output["packages_to_exclude"] = utils.FlattenStringSlice(packageNameMasksToInclude)
-		}
-
-		if packageNameMasksToExclude := v.PackageNameMasksToExclude; packageNameMasksToExclude != nil {
-			output["packages_to_include"] = utils.FlattenStringSlice(packageNameMasksToExclude)
-		}
-
-		results = append(results, output)
+		results = append(results, map[string]interface{}{
+			"classifications_to_include":    classificationsToInclude,
+			"package_names_mask_to_exclude": packageNamesMaskToExclude,
+			"package_names_mask_to_include": packageNamesMaskToInclude,
+		})
 	}
 
 	return results

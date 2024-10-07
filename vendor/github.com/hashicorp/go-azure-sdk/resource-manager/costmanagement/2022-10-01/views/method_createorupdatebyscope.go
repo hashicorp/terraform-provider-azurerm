@@ -20,7 +20,7 @@ type CreateOrUpdateByScopeOperationResponse struct {
 // CreateOrUpdateByScope ...
 func (c ViewsClient) CreateOrUpdateByScope(ctx context.Context, id ScopedViewId, input View) (result CreateOrUpdateByScopeOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,
@@ -48,7 +48,9 @@ func (c ViewsClient) CreateOrUpdateByScope(ctx context.Context, id ScopedViewId,
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model View
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

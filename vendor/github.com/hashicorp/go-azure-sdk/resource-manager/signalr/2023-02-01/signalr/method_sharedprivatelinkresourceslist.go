@@ -19,17 +19,31 @@ type SharedPrivateLinkResourcesListOperationResponse struct {
 }
 
 type SharedPrivateLinkResourcesListCompleteResult struct {
-	Items []SharedPrivateLinkResource
+	LatestHttpResponse *http.Response
+	Items              []SharedPrivateLinkResource
+}
+
+type SharedPrivateLinkResourcesListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *SharedPrivateLinkResourcesListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // SharedPrivateLinkResourcesList ...
 func (c SignalRClient) SharedPrivateLinkResourcesList(ctx context.Context, id SignalRId) (result SharedPrivateLinkResourcesListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &SharedPrivateLinkResourcesListCustomPager{},
 		Path:       fmt.Sprintf("%s/sharedPrivateLinkResources", id.ID()),
 	}
 
@@ -71,6 +85,7 @@ func (c SignalRClient) SharedPrivateLinkResourcesListCompleteMatchingPredicate(c
 
 	resp, err := c.SharedPrivateLinkResourcesList(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +98,8 @@ func (c SignalRClient) SharedPrivateLinkResourcesListCompleteMatchingPredicate(c
 	}
 
 	result = SharedPrivateLinkResourcesListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

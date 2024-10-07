@@ -14,27 +14,27 @@ type ResourceSkuOperationPredicate struct {
 
 func (p ResourceSkuOperationPredicate) Matches(input ResourceSku) bool {
 
-	if p.Family != nil && (input.Family == nil && *p.Family != *input.Family) {
+	if p.Family != nil && (input.Family == nil || *p.Family != *input.Family) {
 		return false
 	}
 
-	if p.Kind != nil && (input.Kind == nil && *p.Kind != *input.Kind) {
+	if p.Kind != nil && (input.Kind == nil || *p.Kind != *input.Kind) {
 		return false
 	}
 
-	if p.Name != nil && (input.Name == nil && *p.Name != *input.Name) {
+	if p.Name != nil && (input.Name == nil || *p.Name != *input.Name) {
 		return false
 	}
 
-	if p.ResourceType != nil && (input.ResourceType == nil && *p.ResourceType != *input.ResourceType) {
+	if p.ResourceType != nil && (input.ResourceType == nil || *p.ResourceType != *input.ResourceType) {
 		return false
 	}
 
-	if p.Size != nil && (input.Size == nil && *p.Size != *input.Size) {
+	if p.Size != nil && (input.Size == nil || *p.Size != *input.Size) {
 		return false
 	}
 
-	if p.Tier != nil && (input.Tier == nil && *p.Tier != *input.Tier) {
+	if p.Tier != nil && (input.Tier == nil || *p.Tier != *input.Tier) {
 		return false
 	}
 

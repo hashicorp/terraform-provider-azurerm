@@ -22,6 +22,7 @@ resource "azurerm_dashboard_grafana" "example" {
   name                              = "example-dg"
   resource_group_name               = azurerm_resource_group.example.name
   location                          = "West Europe"
+  grafana_major_version             = 10
   api_key_enabled                   = true
   deterministic_outbound_ip_enabled = true
   public_network_access_enabled     = false
@@ -46,11 +47,15 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the Azure Region where the Dashboard Grafana should exist. Changing this forces a new Dashboard Grafana to be created.
 
+* `grafana_major_version` - (Required) Which major version of Grafana to deploy. Possible values are `9`, `10`. Changing this forces a new resource to be created.
+
 * `api_key_enabled` - (Optional) Whether to enable the api key setting of the Grafana instance. Defaults to `false`.
 
 * `auto_generated_domain_name_label_scope` - (Optional) Scope for dns deterministic name hash calculation. The only possible value is `TenantReuse`. Defaults to `TenantReuse`.
 
 * `deterministic_outbound_ip_enabled` - (Optional) Whether to enable the Grafana instance to use deterministic outbound IPs. Defaults to `false`.
+
+* `smtp` - (Optional) A `smtp` block as defined below.
 
 * `azure_monitor_workspace_integrations` - (Optional) A `azure_monitor_workspace_integrations` block as defined below.
 
@@ -58,11 +63,31 @@ The following arguments are supported:
 
 * `public_network_access_enabled` - (Optional) Whether to enable traffic over the public interface. Defaults to `true`.
 
-* `sku` - (Optional) The name of the SKU used for the Grafana instance. The only possible value is `Standard`. Defaults to `Standard`. Changing this forces a new Dashboard Grafana to be created.
+* `sku` - (Optional) The name of the SKU used for the Grafana instance. Possible values are `Standard` and `Essential`. Defaults to `Standard`. Changing this forces a new Dashboard Grafana to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Dashboard Grafana.
 
 * `zone_redundancy_enabled` - (Optional) Whether to enable the zone redundancy setting of the Grafana instance. Defaults to `false`. Changing this forces a new Dashboard Grafana to be created.
+
+---
+
+A `smtp` block supports the following:
+
+* `enabled` - (Optional) Whether to enable the smtp setting of the Grafana instance. Defaults to `false`.
+
+* `host` - (Required) SMTP server hostname with port, e.g. test.email.net:587
+
+* `user` - (Required) User of SMTP authentication.
+
+* `password` - (Required) Password of SMTP authentication.
+
+* `start_tls_policy` - (Required) Whether to use TLS when connecting to SMTP server. Possible values are `OpportunisticStartTLS`, `NoStartTLS`, `MandatoryStartTLS`.
+
+* `from_address` - (Required) Address used when sending emails.
+
+* `from_name` - (Optional) Name used when sending emails. Defaults to `Azure Managed Grafana Notification`.
+
+* `verification_skip_enabled` - (Optional) Whether verify SSL for SMTP server. Defaults to `false`.
 
 ---
 
@@ -76,7 +101,7 @@ An `identity` block supports the following:
 
 * `type` - (Required) Specifies the type of Managed Service Identity. Possible values are `SystemAssigned`, `UserAssigned`. Changing this forces a new resource to be created.
 
-* `identity_ids` - (Optional) Specifies the list of User Assigned Managed Service Identity IDs which should be assigned to this Dashboard Grafana.
+* `identity_ids` - (Optional) Specifies the list of User Assigned Managed Service Identity IDs which should be assigned to this Dashboard Grafana. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
@@ -86,7 +111,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `endpoint` - The endpoint of the Grafana instance.
 
-* `grafana_version` - The Grafana software version.
+* `grafana_version` - The full Grafana software semantic version deployed.
 
 * `identity` - An `identity` block as defined below.
 

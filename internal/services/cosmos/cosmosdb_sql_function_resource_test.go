@@ -129,7 +129,7 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
   database_name       = azurerm_cosmosdb_sql_database.test.name
-  partition_key_path  = "/definition/id"
+  partition_key_paths = ["/definition/id"]
 }
 	`, data.Locations.Primary, data.RandomInteger, string(documentdb.DatabaseAccountKindGlobalDocumentDB), string(documentdb.DefaultConsistencyLevelSession))
 }

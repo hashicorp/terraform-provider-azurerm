@@ -20,7 +20,7 @@ type UpdateOperationResponse struct {
 // Update ...
 func (c MonitorsClient) Update(ctx context.Context, id MonitorId, input NewRelicMonitorResourceUpdate) (result UpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -47,7 +47,9 @@ func (c MonitorsClient) Update(ctx context.Context, id MonitorId, input NewRelic
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model NewRelicMonitorResource
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

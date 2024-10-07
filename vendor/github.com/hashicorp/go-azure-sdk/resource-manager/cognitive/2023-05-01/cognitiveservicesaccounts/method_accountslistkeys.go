@@ -21,7 +21,7 @@ type AccountsListKeysOperationResponse struct {
 // AccountsListKeys ...
 func (c CognitiveServicesAccountsClient) AccountsListKeys(ctx context.Context, id AccountId) (result AccountsListKeysOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -44,7 +44,9 @@ func (c CognitiveServicesAccountsClient) AccountsListKeys(ctx context.Context, i
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ApiKeys
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

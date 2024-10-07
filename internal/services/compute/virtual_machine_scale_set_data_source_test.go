@@ -27,6 +27,7 @@ func TestAccDataSourceVirtualMachineScaleSet_basicLinux(t *testing.T) {
 				check.That(data.ResourceName).Key("instances.#").HasValue("1"),
 				check.That(data.ResourceName).Key("instances.0.instance_id").HasValue("0"),
 				check.That(data.ResourceName).Key("instances.0.private_ip_address").HasValue("10.0.2.4"),
+				check.That(data.ResourceName).Key("instances.0.power_state").HasValue("running"),
 			),
 		},
 	})
@@ -108,6 +109,10 @@ func (VirtualMachineScaleSetDataSource) orchestrated(data acceptance.TestData) s
 data "azurerm_virtual_machine_scale_set" "test" {
   name                = azurerm_orchestrated_virtual_machine_scale_set.test.name
   resource_group_name = azurerm_resource_group.test.name
+
+  depends_on = [
+    azurerm_windows_virtual_machine.test
+  ]
 }
 `, template)
 }

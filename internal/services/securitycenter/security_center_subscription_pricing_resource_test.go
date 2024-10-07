@@ -49,11 +49,22 @@ func TestAccServerVulnerabilityAssessment(t *testing.T) {
 	})
 }
 
+func TestAccSecurityCenterSubscriptionPricing_cloudPosture(t *testing.T) {
+	// These tests will change pricing tier of cloud posture
+	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
+		"securityCenterSubscriptionPricing": {
+			"basic":          testAccSecurityCenterSubscriptionPricing_cloudPostureExtension,
+			"standardToFree": testAccSecurityCenterSubscriptionPricing_cloudPostureExtensionStandardToFreeExtensions,
+			"freeToStandard": testAccSecurityCenterSubscriptionPricing_cloudPostureExtensionFreeToStandardDisabledExtensions,
+		},
+	})
+}
+
 func TestAccSecurityCenterSubscriptionPricing_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_subscription_pricing", "test")
 	r := SecurityCenterSubscriptionPricingResource{}
 
-	data.ResourceSequentialTestSkipCheckDestroyed(t, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.tier("Standard", "AppServices"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -69,7 +80,7 @@ func TestAccSecurityCenterSubscriptionPricing_cosmosDbs(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_subscription_pricing", "test")
 	r := SecurityCenterSubscriptionPricingResource{}
 
-	data.ResourceSequentialTestSkipCheckDestroyed(t, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.tier("Standard", "CosmosDbs"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -85,13 +96,105 @@ func TestAccSecurityCenterSubscriptionPricing_storageAccountSubplan(t *testing.T
 	data := acceptance.BuildTestData(t, "azurerm_security_center_subscription_pricing", "test")
 	r := SecurityCenterSubscriptionPricingResource{}
 
-	data.ResourceSequentialTestSkipCheckDestroyed(t, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.storageAccountSubplan(),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tier").HasValue("Standard"),
 				check.That(data.ResourceName).Key("subplan").HasValue("PerStorageAccount"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func testAccSecurityCenterSubscriptionPricing_cloudPostureExtension(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_security_center_subscription_pricing", "test")
+	r := SecurityCenterSubscriptionPricingResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.cloudPostureExtension(),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tier").HasValue("Standard"),
+				check.That(data.ResourceName).Key("resource_type").HasValue("CloudPosture"),
+				check.That(data.ResourceName).Key("extension.#").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.cloudPostureExtensionUpdated(),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tier").HasValue("Standard"),
+				check.That(data.ResourceName).Key("resource_type").HasValue("CloudPosture"),
+				check.That(data.ResourceName).Key("extension.#").HasValue("3"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.cloudPostureExtension(),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tier").HasValue("Standard"),
+				check.That(data.ResourceName).Key("resource_type").HasValue("CloudPosture"),
+				check.That(data.ResourceName).Key("extension.#").HasValue("2"),
+			),
+		},
+	})
+}
+
+func testAccSecurityCenterSubscriptionPricing_cloudPostureExtensionFreeToStandardDisabledExtensions(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_security_center_subscription_pricing", "test")
+	r := SecurityCenterSubscriptionPricingResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.cloudPostureFree(),
+			Check: acceptance.ComposeTestCheckFunc(
+				// for `free` tier it can not be checked if exist
+				check.That(data.ResourceName).Key("tier").HasValue("Free"),
+				check.That(data.ResourceName).Key("resource_type").HasValue("CloudPosture"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.cloudPostureStandard(),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tier").HasValue("Standard"),
+				check.That(data.ResourceName).Key("resource_type").HasValue("CloudPosture"),
+				check.That(data.ResourceName).Key("extension.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func testAccSecurityCenterSubscriptionPricing_cloudPostureExtensionStandardToFreeExtensions(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_security_center_subscription_pricing", "test")
+	r := SecurityCenterSubscriptionPricingResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.cloudPostureExtension(),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tier").HasValue("Standard"),
+				check.That(data.ResourceName).Key("resource_type").HasValue("CloudPosture"),
+				check.That(data.ResourceName).Key("extension.#").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.cloudPostureFree(),
+			Check: acceptance.ComposeTestCheckFunc(
+				// The existence can not be checked, the Exists() takes `free` as non-exist.
+				check.That(data.ResourceName).Key("tier").HasValue("Free"),
+				check.That(data.ResourceName).Key("resource_type").HasValue("CloudPosture"),
+				check.That(data.ResourceName).Key("extension.#").HasValue("0"),
 			),
 		},
 		data.ImportStep(),
@@ -109,7 +212,7 @@ func (SecurityCenterSubscriptionPricingResource) Exists(ctx context.Context, cli
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model.Properties != nil), nil
+	return utils.Bool(resp.Model.Properties != nil && resp.Model.Properties.PricingTier != pricings_v2023_01_01.PricingTierFree), nil
 }
 
 func (SecurityCenterSubscriptionPricingResource) tier(tier string, resource_type string) string {
@@ -135,6 +238,92 @@ resource "azurerm_security_center_subscription_pricing" "test" {
   tier          = "Standard"
   resource_type = "StorageAccounts"
   subplan       = "PerStorageAccount"
+}
+`
+}
+
+func (SecurityCenterSubscriptionPricingResource) cloudPostureExtension() string {
+	return `
+provider "azurerm" {
+  features {
+
+  }
+}
+
+resource "azurerm_security_center_subscription_pricing" "test" {
+  tier          = "Standard"
+  resource_type = "CloudPosture"
+
+  extension {
+    name = "SensitiveDataDiscovery"
+  }
+
+  extension {
+    name = "AgentlessVmScanning"
+    additional_extension_properties = {
+      ExclusionTags = "[]"
+    }
+  }
+}
+`
+}
+
+func (SecurityCenterSubscriptionPricingResource) cloudPostureExtensionUpdated() string {
+	return `
+provider "azurerm" {
+  features {
+
+  }
+}
+
+resource "azurerm_security_center_subscription_pricing" "test" {
+  tier          = "Standard"
+  resource_type = "CloudPosture"
+
+  extension {
+    name = "ContainerRegistriesVulnerabilityAssessments"
+  }
+
+  extension {
+    name = "AgentlessVmScanning"
+    additional_extension_properties = {
+      ExclusionTags = "[]"
+    }
+  }
+
+  extension {
+    name = "AgentlessDiscoveryForKubernetes"
+  }
+}
+`
+}
+
+func (SecurityCenterSubscriptionPricingResource) cloudPostureFree() string {
+	return `
+provider "azurerm" {
+  features {
+
+  }
+}
+
+resource "azurerm_security_center_subscription_pricing" "test" {
+  tier          = "Free"
+  resource_type = "CloudPosture"
+}
+`
+}
+
+func (SecurityCenterSubscriptionPricingResource) cloudPostureStandard() string {
+	return `
+provider "azurerm" {
+  features {
+
+  }
+}
+
+resource "azurerm_security_center_subscription_pricing" "test" {
+  tier          = "Standard"
+  resource_type = "CloudPosture"
 }
 `
 }

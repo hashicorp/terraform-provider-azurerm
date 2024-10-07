@@ -8,10 +8,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/eventsubscriptions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -425,17 +425,17 @@ func TestAccEventGridSystemTopicEventSubscription_deliveryPropertiesHybridRelay(
 }
 
 func (EventGridSystemTopicEventSubscriptionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.SystemTopicEventSubscriptionID(state.ID)
+	id, err := eventsubscriptions.ParseSystemTopicEventSubscriptionID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.EventGrid.SystemTopicEventSubscriptionsClient.Get(ctx, id.ResourceGroup, id.SystemTopicName, id.EventSubscriptionName)
+	resp, err := clients.EventGrid.EventSubscriptions.SystemTopicEventSubscriptionsGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.EventSubscriptionProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (EventGridSystemTopicEventSubscriptionResource) basic(data acceptance.TestData) string {
@@ -841,16 +841,18 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_servicebus_namespace" "example" {
-  name                = "acctestservicebusnamespace-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
+  name                         = "acctestservicebusnamespace-%[1]d"
+  location                     = azurerm_resource_group.test.location
+  resource_group_name          = azurerm_resource_group.test.name
+  sku                          = "Premium"
+  premium_messaging_partitions = 2
+  capacity                     = 2
 }
 
 resource "azurerm_servicebus_queue" "test" {
-  name                = "acctestservicebusqueue-%[1]d"
-  namespace_id        = azurerm_servicebus_namespace.example.id
-  enable_partitioning = true
+  name                 = "acctestservicebusqueue-%[1]d"
+  namespace_id         = azurerm_servicebus_namespace.example.id
+  partitioning_enabled = true
 }
 
 resource "azurerm_eventgrid_system_topic" "test" {
@@ -891,9 +893,9 @@ resource "azurerm_servicebus_namespace" "example" {
 }
 
 resource "azurerm_servicebus_topic" "test" {
-  name                = "acctestservicebustopic-%[1]d"
-  namespace_id        = azurerm_servicebus_namespace.example.id
-  enable_partitioning = true
+  name                 = "acctestservicebustopic-%[1]d"
+  namespace_id         = azurerm_servicebus_namespace.example.id
+  partitioning_enabled = true
 }
 
 resource "azurerm_eventgrid_system_topic" "test" {
@@ -1442,9 +1444,9 @@ resource "azurerm_servicebus_namespace" "example" {
 }
 
 resource "azurerm_servicebus_topic" "test" {
-  name                = "acctestservicebustopic-%[1]d"
-  namespace_id        = azurerm_servicebus_namespace.example.id
-  enable_partitioning = true
+  name                 = "acctestservicebustopic-%[1]d"
+  namespace_id         = azurerm_servicebus_namespace.example.id
+  partitioning_enabled = true
 }
 
 resource "azurerm_eventgrid_system_topic" "test" {
@@ -1505,9 +1507,9 @@ resource "azurerm_servicebus_namespace" "example" {
 }
 
 resource "azurerm_servicebus_topic" "test" {
-  name                = "acctestservicebustopic-%[1]d"
-  namespace_id        = azurerm_servicebus_namespace.example.id
-  enable_partitioning = true
+  name                 = "acctestservicebustopic-%[1]d"
+  namespace_id         = azurerm_servicebus_namespace.example.id
+  partitioning_enabled = true
 }
 
 resource "azurerm_eventgrid_system_topic" "test" {
@@ -1560,9 +1562,9 @@ resource "azurerm_servicebus_namespace" "example" {
 }
 
 resource "azurerm_servicebus_topic" "test" {
-  name                = "acctestservicebustopic-%[1]d"
-  namespace_id        = azurerm_servicebus_namespace.example.id
-  enable_partitioning = true
+  name                 = "acctestservicebustopic-%[1]d"
+  namespace_id         = azurerm_servicebus_namespace.example.id
+  partitioning_enabled = true
 }
 
 resource "azurerm_eventgrid_system_topic" "test" {
@@ -1628,9 +1630,9 @@ resource "azurerm_servicebus_namespace" "example" {
 }
 
 resource "azurerm_servicebus_topic" "test" {
-  name                = "acctestservicebustopic-%[1]d"
-  namespace_id        = azurerm_servicebus_namespace.example.id
-  enable_partitioning = true
+  name                 = "acctestservicebustopic-%[1]d"
+  namespace_id         = azurerm_servicebus_namespace.example.id
+  partitioning_enabled = true
 }
 
 resource "azurerm_eventgrid_system_topic" "test" {

@@ -7,21 +7,20 @@ import (
 	"context"
 	"fmt"
 	"regexp"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	arckubernetes "github.com/hashicorp/go-azure-sdk/resource-manager/hybridkubernetes/2021-10-01/connectedclusters"
+	arckubernetes "github.com/hashicorp/go-azure-sdk/resource-manager/hybridkubernetes/2024-01-01/connectedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2022-11-01/fluxconfiguration"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/accounts"
+	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/containers"
 )
 
 const (
@@ -113,7 +112,27 @@ func (r ArcKubernetesFluxConfigurationResource) ModelObject() interface{} {
 }
 
 func (r ArcKubernetesFluxConfigurationResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return fluxconfiguration.ValidateFluxConfigurationID
+	return func(val interface{}, key string) (warns []string, errs []error) {
+		idRaw, ok := val.(string)
+		if !ok {
+			errs = append(errs, fmt.Errorf("expected `id` to be a string but got %+v", val))
+			return
+		}
+
+		id, err := fluxconfiguration.ParseScopedFluxConfigurationID(idRaw)
+		if err != nil {
+			errs = append(errs, fmt.Errorf("parsing %q: %+v", idRaw, err))
+			return
+		}
+
+		// validate the scope is a connected cluster id
+		if _, err := arckubernetes.ParseConnectedClusterID(id.Scope); err != nil {
+			errs = append(errs, fmt.Errorf("parsing %q as a Connected Cluster ID: %+v", idRaw, err))
+			return
+		}
+
+		return
+	}
 }
 
 func (r ArcKubernetesFluxConfigurationResource) Arguments() map[string]*pluginsdk.Schema {
@@ -234,7 +253,7 @@ func (r ArcKubernetesFluxConfigurationResource) Arguments() map[string]*pluginsd
 					"local_auth_reference": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: azValidate.LocalAuthReference,
+						ValidateFunc: validate.LocalAuthReference,
 						ExactlyOneOf: []string{"blob_storage.0.account_key", "blob_storage.0.local_auth_reference", "blob_storage.0.sas_token", "blob_storage.0.service_principal"},
 					},
 
@@ -356,7 +375,7 @@ func (r ArcKubernetesFluxConfigurationResource) Arguments() map[string]*pluginsd
 					"local_auth_reference": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: azValidate.LocalAuthReference,
+						ValidateFunc: validate.LocalAuthReference,
 						ExactlyOneOf: []string{"bucket.0.access_key", "bucket.0.local_auth_reference"},
 					},
 
@@ -440,7 +459,7 @@ func (r ArcKubernetesFluxConfigurationResource) Arguments() map[string]*pluginsd
 					"local_auth_reference": {
 						Type:          pluginsdk.TypeString,
 						Optional:      true,
-						ValidateFunc:  azValidate.LocalAuthReference,
+						ValidateFunc:  validate.LocalAuthReference,
 						ConflictsWith: []string{"git_repository.0.https_user", "git_repository.0.ssh_private_key_base64", "git_repository.0.ssh_known_hosts_base64"},
 					},
 
@@ -518,7 +537,8 @@ func (r ArcKubernetesFluxConfigurationResource) Create() sdk.ResourceFunc {
 			}
 
 			// defined as strings because they're not enums in the swagger https://github.com/Azure/azure-rest-api-specs/pull/23545
-			id := fluxconfiguration.NewFluxConfigurationID(subscriptionId, clusterID.ResourceGroupName, "Microsoft.Kubernetes", "connectedClusters", clusterID.ConnectedClusterName, model.Name)
+			connectedClusterId := arckubernetes.NewConnectedClusterID(subscriptionId, clusterID.ResourceGroupName, clusterID.ConnectedClusterName)
+			id := fluxconfiguration.NewScopedFluxConfigurationID(connectedClusterId.ID(), model.Name)
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
@@ -550,7 +570,7 @@ func (r ArcKubernetesFluxConfigurationResource) Create() sdk.ResourceFunc {
 				properties.Properties.Bucket, properties.Properties.ConfigurationProtectedSettings = expandBucketDefinitionModel(model.Bucket)
 			} else if _, exists = metadata.ResourceData.GetOk("blob_storage"); exists {
 				properties.Properties.SourceKind = pointer.To(fluxconfiguration.SourceKindTypeAzureBlob)
-				azureBlob, err := expandArcAzureBlobDefinitionModel(model.BlobStorage)
+				azureBlob, err := expandArcAzureBlobDefinitionModel(model.BlobStorage, metadata.Client.Storage.StorageDomainSuffix)
 				if err != nil {
 					return fmt.Errorf("expanding `blob_storage`: %+v", err)
 				}
@@ -578,7 +598,7 @@ func (r ArcKubernetesFluxConfigurationResource) Update() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.ArcKubernetes.FluxConfigurationClient
 
-			id, err := fluxconfiguration.ParseFluxConfigurationID(metadata.ResourceData.Id())
+			id, err := fluxconfiguration.ParseScopedFluxConfigurationID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -604,7 +624,7 @@ func (r ArcKubernetesFluxConfigurationResource) Update() sdk.ResourceFunc {
 
 			properties.Properties.ConfigurationProtectedSettings = nil
 			if metadata.ResourceData.HasChange("blob_storage") {
-				azureBlob, err := expandArcAzureBlobDefinitionModel(model.BlobStorage)
+				azureBlob, err := expandArcAzureBlobDefinitionModel(model.BlobStorage, metadata.Client.Storage.StorageDomainSuffix)
 				if err != nil {
 					return fmt.Errorf("expanding `blob_storage`: %+v", err)
 				}
@@ -645,6 +665,12 @@ func (r ArcKubernetesFluxConfigurationResource) Update() sdk.ResourceFunc {
 				properties.Properties.Suspend = utils.Bool(!model.ContinuousReconciliationEnabled)
 			}
 
+			if properties.Properties.ConfigurationProtectedSettings == nil {
+				if err := setConfigurationProtectedSettings(metadata, model, properties); err != nil {
+					return err
+				}
+			}
+
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *properties); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
@@ -660,7 +686,7 @@ func (r ArcKubernetesFluxConfigurationResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.ArcKubernetes.FluxConfigurationClient
 
-			id, err := fluxconfiguration.ParseFluxConfigurationID(metadata.ResourceData.Id())
+			id, err := fluxconfiguration.ParseScopedFluxConfigurationID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -679,14 +705,19 @@ func (r ArcKubernetesFluxConfigurationResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
+			connectedClusterId, err := arckubernetes.ParseConnectedClusterID(id.Scope)
+			if err != nil {
+				return fmt.Errorf("parsing %q as a Connected Cluster ID: %+v", id.Scope, err)
+			}
+
 			state := ArcKubernetesFluxConfigurationModel{
 				Name:      id.FluxConfigurationName,
-				ClusterID: arckubernetes.NewConnectedClusterID(metadata.Client.Account.SubscriptionId, id.ResourceGroupName, id.ClusterName).ID(),
+				ClusterID: connectedClusterId.ID(),
 			}
 
 			if model := resp.Model; model != nil {
 				if properties := model.Properties; properties != nil {
-					blobStorage, err := flattenArcAzureBlobDefinitionModel(properties.AzureBlob, configModel.BlobStorage)
+					blobStorage, err := flattenArcAzureBlobDefinitionModel(properties.AzureBlob, configModel.BlobStorage, metadata.Client.Storage.StorageDomainSuffix)
 					if err != nil {
 						return fmt.Errorf("flattening `blob_storage`: %+v", err)
 					}
@@ -717,7 +748,7 @@ func (r ArcKubernetesFluxConfigurationResource) Delete() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.ArcKubernetes.FluxConfigurationClient
 
-			id, err := fluxconfiguration.ParseFluxConfigurationID(metadata.ResourceData.Id())
+			id, err := fluxconfiguration.ParseScopedFluxConfigurationID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -731,7 +762,7 @@ func (r ArcKubernetesFluxConfigurationResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandArcAzureBlobDefinitionModel(inputList []AzureBlobDefinitionModel) (*fluxconfiguration.AzureBlobDefinition, error) {
+func expandArcAzureBlobDefinitionModel(inputList []AzureBlobDefinitionModel, storageDomainSuffix string) (*fluxconfiguration.AzureBlobDefinition, error) {
 	if len(inputList) == 0 {
 		return nil, nil
 	}
@@ -747,13 +778,13 @@ func expandArcAzureBlobDefinitionModel(inputList []AzureBlobDefinitionModel) (*f
 	}
 
 	if input.ContainerID != "" {
-		id, err := parse.StorageContainerDataPlaneID(input.ContainerID)
+		id, err := containers.ParseContainerID(input.ContainerID, storageDomainSuffix)
 		if err != nil {
 			return nil, err
 		}
 
-		output.ContainerName = &id.Name
-		output.Url = pointer.To(strings.TrimSuffix(input.ContainerID, "/"+id.Name))
+		output.ContainerName = &id.ContainerName
+		output.Url = pointer.To(id.AccountId.ID())
 	}
 
 	if input.LocalAuthRef != "" {
@@ -938,16 +969,18 @@ func expandRepositoryRefDefinitionModel(referenceType string, referenceValue str
 	return &output, nil
 }
 
-func flattenArcAzureBlobDefinitionModel(input *fluxconfiguration.AzureBlobDefinition, azureBlob []AzureBlobDefinitionModel) ([]AzureBlobDefinitionModel, error) {
+func flattenArcAzureBlobDefinitionModel(input *fluxconfiguration.AzureBlobDefinition, azureBlob []AzureBlobDefinitionModel, storageDomainSuffix string) ([]AzureBlobDefinitionModel, error) {
 	outputList := make([]AzureBlobDefinitionModel, 0)
 	if input == nil {
 		return outputList, nil
 	}
 
-	id, err := parse.StorageContainerDataPlaneID(fmt.Sprintf("%s/%s", pointer.From(input.Url), pointer.From(input.ContainerName)))
+	accountId, err := accounts.ParseAccountID(pointer.From(input.Url), storageDomainSuffix)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing account %q: %+v", pointer.From(input.Url), err)
 	}
+
+	id := containers.NewContainerID(*accountId, pointer.From(input.ContainerName))
 
 	output := AzureBlobDefinitionModel{
 		ContainerID:           id.ID(),
@@ -1105,5 +1138,18 @@ func validateArcKubernetesFluxConfigurationModel(model *ArcKubernetesFluxConfigu
 		allKeys[k.Name] = true
 	}
 
+	return nil
+}
+
+func setConfigurationProtectedSettings(metadata sdk.ResourceMetaData, model ArcKubernetesFluxConfigurationModel, properties *fluxconfiguration.FluxConfiguration) error {
+	if _, exists := metadata.ResourceData.GetOk("git_repository"); exists {
+		_, configurationProtectedSettings, err := expandGitRepositoryDefinitionModel(model.GitRepository)
+		if err != nil {
+			return err
+		}
+		properties.Properties.ConfigurationProtectedSettings = configurationProtectedSettings
+	} else if _, exists = metadata.ResourceData.GetOk("bucket"); exists {
+		_, properties.Properties.ConfigurationProtectedSettings = expandBucketDefinitionModel(model.Bucket)
+	}
 	return nil
 }

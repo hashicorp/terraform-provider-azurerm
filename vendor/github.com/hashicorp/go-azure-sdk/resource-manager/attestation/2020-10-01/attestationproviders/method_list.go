@@ -22,7 +22,7 @@ type ListOperationResponse struct {
 // List ...
 func (c AttestationProvidersClient) List(ctx context.Context, id commonids.SubscriptionId) (result ListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -45,7 +45,9 @@ func (c AttestationProvidersClient) List(ctx context.Context, id commonids.Subsc
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model AttestationProviderListResult
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

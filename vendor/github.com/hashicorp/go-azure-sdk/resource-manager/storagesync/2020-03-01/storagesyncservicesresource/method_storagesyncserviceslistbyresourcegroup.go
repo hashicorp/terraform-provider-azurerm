@@ -22,7 +22,7 @@ type StorageSyncServicesListByResourceGroupOperationResponse struct {
 // StorageSyncServicesListByResourceGroup ...
 func (c StorageSyncServicesResourceClient) StorageSyncServicesListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (result StorageSyncServicesListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -45,7 +45,9 @@ func (c StorageSyncServicesResourceClient) StorageSyncServicesListByResourceGrou
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model StorageSyncServiceArray
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

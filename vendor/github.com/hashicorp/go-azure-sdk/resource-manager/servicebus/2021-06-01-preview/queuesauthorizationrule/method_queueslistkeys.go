@@ -21,7 +21,7 @@ type QueuesListKeysOperationResponse struct {
 // QueuesListKeys ...
 func (c QueuesAuthorizationRuleClient) QueuesListKeys(ctx context.Context, id QueueAuthorizationRuleId) (result QueuesListKeysOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -44,7 +44,9 @@ func (c QueuesAuthorizationRuleClient) QueuesListKeys(ctx context.Context, id Qu
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model AccessKeys
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -24,7 +24,7 @@ func IsGatewaySubnet(i interface{}, k string) (warnings []string, errors []error
 	}
 
 	if !strings.EqualFold(id.SubnetName, "GatewaySubnet") {
-		errors = append(errors, fmt.Errorf("expected %s to reference a gateway subnet with name GatewaySubnet", k))
+		errors = append(errors, fmt.Errorf("expected %s to reference a gateway subnet with name GatewaySubnet but got %q", k, id.SubnetName))
 	}
 
 	return warnings, errors

@@ -66,7 +66,7 @@ resource "azurerm_virtual_network_gateway_nat_rule" "example" {
   virtual_network_gateway_id = data.azurerm_virtual_network_gateway.example.id
   mode                       = "EgressSnat"
   type                       = "Dynamic"
-  ip_configuration_id        = data.azurerm_virtual_network_gateway.example.ip_configuration.0.id
+  ip_configuration_id        = data.azurerm_virtual_network_gateway.example.ip_configuration[0].id
 
   external_mapping {
     address_space = "10.2.0.0/26"

@@ -20,10 +20,19 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
-resource "azurerm_netapp_account" "example" {
-  name                = "example-netapp"
-  resource_group_name = azurerm_resource_group.example.name
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_user_assigned_identity" "example" {
+  name                = "anf-user-assigned-identity"
   location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+}
+
+resource "azurerm_netapp_account" "example" {
+  name                = "netappaccount"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   active_directory {
     username            = "aduser"
@@ -33,7 +42,15 @@ resource "azurerm_netapp_account" "example" {
     domain              = "westcentralus.com"
     organizational_unit = "OU=FirstLevel"
   }
+
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.example.id
+    ]
+  }
 }
+
 ```
 
 ## Argument Reference
@@ -47,6 +64,8 @@ The following arguments are supported:
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
 * `active_directory` - (Optional) A `active_directory` block as defined below.
+
+* `identity` - (Optional) The `identity` block where it is used when customer managed keys based encryption will be enabled as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -64,9 +83,35 @@ The `active_directory` block supports the following:
 
 * `password` - (Required) The password associated with the `username`.
 
-* `organizational_unit` - (Optional) The Organizational Unit (OU) within the Active Directory Domain.
+* `organizational_unit` - (Optional) The Organizational Unit (OU) within Active Directory where machines will be created. If blank, defaults to `CN=Computers`.
+
+* `site_name` - (Optional) The Active Directory site the service will limit Domain Controller discovery to. If blank, defaults to `Default-First-Site-Name`.
+
+* `kerberos_ad_name` - (Optional) Name of the active directory machine.
+
+* `kerberos_kdc_ip` - (Optional) kdc server IP addresses for the active directory machine.
+
+~> **IMPORTANT:** If you plan on using **Kerberos** volumes, both `ad_name` and `kdc_ip` are required in order to create the volume.
+
+* `aes_encryption_enabled` - (Optional) If enabled, AES encryption will be enabled for SMB communication. Defaults to `false`.
+
+* `local_nfs_users_with_ldap_allowed` - (Optional) If enabled, NFS client local users can also (in addition to LDAP users) access the NFS volumes. Defaults to `false`.
+
+* `ldap_over_tls_enabled` - (Optional) Specifies whether or not the LDAP traffic needs to be secured via TLS. Defaults to `false`.
+
+* `server_root_ca_certificate` - (Optional) When LDAP over SSL/TLS is enabled, the LDAP client is required to have a *base64 encoded Active Directory Certificate Service's self-signed root CA certificate*, this optional parameter is used only for dual protocol with LDAP user-mapping volumes. Required if `ldap_over_tls_enabled` is set to `true`.
+
+* `ldap_signing_enabled` - (Optional) Specifies whether or not the LDAP traffic needs to be signed. Defaults to `false`.
 
 ---
+The `identity` block supports the following:
+
+* `type` - (Required) The identity type, which can be `SystemAssigned` or `UserAssigned`. Only one type at a time is supported by Azure NetApp Files.
+* `identity_ids` - (Optional) The identity id of the user assigned identity to use when type is `UserAssigned`
+
+---
+
+~> **IMPORTANT:** Changing identity type from `SystemAssigned` to `UserAssigned` is a supported operation but the reverse is not supported from within Terraform Azure NetApp Files module.
 
 ## Attributes Reference
 
@@ -90,3 +135,5 @@ NetApp Accounts can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_netapp_account.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.NetApp/netAppAccounts/account1
 ```
+
+~> **IMPORTANT:** When importing a NetApp account, the `active_directory.password` and `active_directory.server_root_ca_certificate` values *cannot* be retrieved from the Azure API and will need to be redeclared within the resource.

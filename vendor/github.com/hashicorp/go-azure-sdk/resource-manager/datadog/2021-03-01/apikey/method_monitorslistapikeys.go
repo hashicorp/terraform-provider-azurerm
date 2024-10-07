@@ -19,17 +19,31 @@ type MonitorsListApiKeysOperationResponse struct {
 }
 
 type MonitorsListApiKeysCompleteResult struct {
-	Items []DatadogApiKey
+	LatestHttpResponse *http.Response
+	Items              []DatadogApiKey
+}
+
+type MonitorsListApiKeysCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *MonitorsListApiKeysCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // MonitorsListApiKeys ...
 func (c ApiKeyClient) MonitorsListApiKeys(ctx context.Context, id MonitorId) (result MonitorsListApiKeysOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodPost,
+		Pager:      &MonitorsListApiKeysCustomPager{},
 		Path:       fmt.Sprintf("%s/listApiKeys", id.ID()),
 	}
 
@@ -71,6 +85,7 @@ func (c ApiKeyClient) MonitorsListApiKeysCompleteMatchingPredicate(ctx context.C
 
 	resp, err := c.MonitorsListApiKeys(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +98,8 @@ func (c ApiKeyClient) MonitorsListApiKeysCompleteMatchingPredicate(ctx context.C
 	}
 
 	result = MonitorsListApiKeysCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

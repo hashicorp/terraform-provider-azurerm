@@ -21,7 +21,7 @@ type GenerateUpgradedDefinitionOperationResponse struct {
 // GenerateUpgradedDefinition ...
 func (c WorkflowsClient) GenerateUpgradedDefinition(ctx context.Context, id WorkflowId, input GenerateUpgradedDefinitionParameters) (result GenerateUpgradedDefinitionOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -48,7 +48,9 @@ func (c WorkflowsClient) GenerateUpgradedDefinition(ctx context.Context, id Work
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model interface{}
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

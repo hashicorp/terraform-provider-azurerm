@@ -88,12 +88,16 @@ func (p deletePoller) Poll(ctx context.Context) (result *pollers.PollResult, err
 	if resp.Response != nil {
 		switch resp.StatusCode {
 		case http.StatusNotFound:
-			result.Status = pollers.PollingStatusSucceeded
-			return
+			{
+				result.Status = pollers.PollingStatusSucceeded
+				return
+			}
 
 		case http.StatusOK:
-			result.Status = pollers.PollingStatusInProgress
-			return
+			{
+				result.Status = pollers.PollingStatusInProgress
+				return
+			}
 		}
 
 		err = fmt.Errorf("unexpected status code when polling for resource after deletion, expected a 200/204 but got %d", resp.StatusCode)

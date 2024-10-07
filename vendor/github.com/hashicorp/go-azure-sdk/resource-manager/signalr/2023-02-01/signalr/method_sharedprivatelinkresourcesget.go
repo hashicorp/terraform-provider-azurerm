@@ -20,7 +20,7 @@ type SharedPrivateLinkResourcesGetOperationResponse struct {
 // SharedPrivateLinkResourcesGet ...
 func (c SignalRClient) SharedPrivateLinkResourcesGet(ctx context.Context, id SharedPrivateLinkResourceId) (result SharedPrivateLinkResourcesGetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -43,7 +43,9 @@ func (c SignalRClient) SharedPrivateLinkResourcesGet(ctx context.Context, id Sha
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model SharedPrivateLinkResource
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -51,13 +51,14 @@ The following arguments are supported:
 
 * `edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Load Balancer should exist. Changing this forces a new Load Balancer to be created.
 
-* `frontend_ip_configuration` - (Optional) One or multiple `frontend_ip_configuration` blocks as documented below.
+* `frontend_ip_configuration` - (Optional) One or more `frontend_ip_configuration` blocks as documented below.
 
-* `sku` - (Optional) The SKU of the Azure Load Balancer. Accepted values are `Basic`, `Standard` and `Gateway`. Defaults to `Basic`. Changing this forces a new resource to be created.
+* `sku` - (Optional) The SKU of the Azure Load Balancer. Accepted values are `Basic`, `Standard` and `Gateway`. Defaults to `Standard`. Changing this forces a new resource to be created.
 
 -> **NOTE:** The `Microsoft.Network/AllowGatewayLoadBalancer` feature is required to be registered in order to use the `Gateway` SKU. The feature can only be registered by the Azure service team, please submit an [Azure support ticket](https://azure.microsoft.com/en-us/support/create-ticket/) for that.
 
 * `sku_tier` - (Optional) `sku_tier` - (Optional) The SKU tier of this Load Balancer. Possible values are `Global` and `Regional`. Defaults to `Regional`. Changing this forces a new resource to be created.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
@@ -70,7 +71,7 @@ The `frontend_ip_configuration` block supports the following:
 
 -> **NOTE:** Availability Zones are only supported with a [Standard SKU](https://docs.microsoft.com/azure/load-balancer/load-balancer-standard-availability-zones) and [in select regions](https://docs.microsoft.com/azure/availability-zones/az-overview) at this time.
 
-* `subnet_id` - The ID of the Subnet which should be associated with the IP Configuration.
+* `subnet_id` - (Optional) The ID of the Subnet which should be associated with the IP Configuration.
 * `gateway_load_balancer_frontend_ip_configuration_id` - (Optional) The Frontend IP Configuration ID of a Gateway SKU Load Balancer.
 * `private_ip_address` - (Optional) Private IP Address to assign to the Load Balancer. The last one and first four IPs in any range are reserved and cannot be manually assigned.
 * `private_ip_address_allocation` - (Optional) The allocation method for the Private IP Address used by this Load Balancer. Possible values as `Dynamic` and `Static`.

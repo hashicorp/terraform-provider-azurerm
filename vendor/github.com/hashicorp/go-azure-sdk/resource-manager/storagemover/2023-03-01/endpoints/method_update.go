@@ -20,7 +20,7 @@ type UpdateOperationResponse struct {
 // Update ...
 func (c EndpointsClient) Update(ctx context.Context, id EndpointId, input EndpointBaseUpdateParameters) (result UpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -47,7 +47,9 @@ func (c EndpointsClient) Update(ctx context.Context, id EndpointId, input Endpoi
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Endpoint
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

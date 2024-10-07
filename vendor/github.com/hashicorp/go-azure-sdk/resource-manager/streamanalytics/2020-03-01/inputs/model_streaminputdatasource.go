@@ -10,9 +10,35 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type StreamInputDataSource interface {
+	StreamInputDataSource() BaseStreamInputDataSourceImpl
 }
 
-func unmarshalStreamInputDataSourceImplementation(input []byte) (StreamInputDataSource, error) {
+var _ StreamInputDataSource = BaseStreamInputDataSourceImpl{}
+
+type BaseStreamInputDataSourceImpl struct {
+	Type string `json:"type"`
+}
+
+func (s BaseStreamInputDataSourceImpl) StreamInputDataSource() BaseStreamInputDataSourceImpl {
+	return s
+}
+
+var _ StreamInputDataSource = RawStreamInputDataSourceImpl{}
+
+// RawStreamInputDataSourceImpl is returned when the Discriminated Value doesn't match any of the defined types
+// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
+// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+type RawStreamInputDataSourceImpl struct {
+	streamInputDataSource BaseStreamInputDataSourceImpl
+	Type                  string
+	Values                map[string]interface{}
+}
+
+func (s RawStreamInputDataSourceImpl) StreamInputDataSource() BaseStreamInputDataSourceImpl {
+	return s.streamInputDataSource
+}
+
+func UnmarshalStreamInputDataSourceImplementation(input []byte) (StreamInputDataSource, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -22,9 +48,9 @@ func unmarshalStreamInputDataSourceImplementation(input []byte) (StreamInputData
 		return nil, fmt.Errorf("unmarshaling StreamInputDataSource into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["type"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["type"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "Microsoft.Storage/Blob") {
@@ -67,14 +93,15 @@ func unmarshalStreamInputDataSourceImplementation(input []byte) (StreamInputData
 		return out, nil
 	}
 
-	type RawStreamInputDataSourceImpl struct {
-		Type   string                 `json:"-"`
-		Values map[string]interface{} `json:"-"`
+	var parent BaseStreamInputDataSourceImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseStreamInputDataSourceImpl: %+v", err)
 	}
-	out := RawStreamInputDataSourceImpl{
-		Type:   value,
-		Values: temp,
-	}
-	return out, nil
+
+	return RawStreamInputDataSourceImpl{
+		streamInputDataSource: parent,
+		Type:                  value,
+		Values:                temp,
+	}, nil
 
 }

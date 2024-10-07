@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -62,7 +63,6 @@ func resourceEventHubCluster() *pluginsdk.Resource {
 			"sku_name": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
-				ForceNew: true,
 				ValidateFunc: validation.StringMatch(
 					regexp.MustCompile(`^Dedicated_[1-9][0-9]*$`),
 					"SKU name must match /^Dedicated_[1-9][0-9]*$/.",
@@ -95,10 +95,11 @@ func resourceEventHubClusterCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
+	sku := expandEventHubClusterSkuName(d.Get("sku_name").(string))
 	cluster := eventhubsclusters.Cluster{
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
-		Sku:      expandEventHubClusterSkuName(d.Get("sku_name").(string)),
+		Sku:      &sku,
 	}
 
 	if err := client.ClustersCreateOrUpdateThenPoll(ctx, id, cluster); err != nil {
@@ -170,17 +171,12 @@ func resourceEventHubClusterDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	})
 }
 
-func expandEventHubClusterSkuName(skuName string) *eventhubsclusters.ClusterSku {
-	if len(skuName) == 0 {
-		return nil
-	}
-
-	name, capacity, err := azure.SplitSku(skuName)
-	if err != nil {
-		return nil
-	}
-
-	return &eventhubsclusters.ClusterSku{
+func expandEventHubClusterSkuName(skuName string) eventhubsclusters.ClusterSku {
+	// "sku_name" is validated to be in this format above, and is required
+	skuParts := strings.Split(skuName, "_")
+	name := skuParts[0]
+	capacity, _ := strconv.Atoi(skuParts[1])
+	return eventhubsclusters.ClusterSku{
 		Name:     eventhubsclusters.ClusterSkuName(name),
 		Capacity: utils.Int64(int64(capacity)),
 	}

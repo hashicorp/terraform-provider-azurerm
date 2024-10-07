@@ -21,7 +21,7 @@ type QueuesRegenerateKeysOperationResponse struct {
 // QueuesRegenerateKeys ...
 func (c QueuesAuthorizationRuleClient) QueuesRegenerateKeys(ctx context.Context, id QueueAuthorizationRuleId, input RegenerateAccessKeyParameters) (result QueuesRegenerateKeysOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -48,7 +48,9 @@ func (c QueuesAuthorizationRuleClient) QueuesRegenerateKeys(ctx context.Context,
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model AccessKeys
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

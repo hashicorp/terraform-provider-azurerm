@@ -21,7 +21,7 @@ type MarketplaceAgreementsGetOperationResponse struct {
 // MarketplaceAgreementsGet ...
 func (c AgreementsClient) MarketplaceAgreementsGet(ctx context.Context, id OfferPlanId) (result MarketplaceAgreementsGetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -44,7 +44,9 @@ func (c AgreementsClient) MarketplaceAgreementsGet(ctx context.Context, id Offer
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model AgreementTerms
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

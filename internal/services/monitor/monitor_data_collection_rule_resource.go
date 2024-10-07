@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
@@ -17,14 +18,17 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-06-01/datacollectionendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-06-01/datacollectionrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01/storageaccounts"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+)
+
+var (
+	_ sdk.ResourceWithUpdate        = DataCollectionRuleResource{}
+	_ sdk.ResourceWithCustomizeDiff = DataCollectionRuleResource{}
 )
 
 type DataCollectionRule struct {
@@ -403,7 +407,7 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 								"storage_account_id": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ValidateFunc: storageaccounts.ValidateStorageAccountID,
+									ValidateFunc: commonids.ValidateStorageAccountID,
 								},
 							},
 						},
@@ -432,7 +436,7 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 								"storage_account_id": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ValidateFunc: storageaccounts.ValidateStorageAccountID,
+									ValidateFunc: commonids.ValidateStorageAccountID,
 								},
 							},
 						},
@@ -461,7 +465,7 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 								"storage_account_id": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ValidateFunc: storageaccounts.ValidateStorageAccountID,
+									ValidateFunc: commonids.ValidateStorageAccountID,
 								},
 							},
 						},
@@ -657,7 +661,7 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 								"sampling_frequency_in_seconds": {
 									Type:         pluginsdk.TypeInt,
 									Required:     true,
-									ValidateFunc: validation.IntBetween(1, 300),
+									ValidateFunc: validation.IntBetween(1, 1800),
 								},
 								"streams": {
 									Type:     pluginsdk.TypeList,
@@ -778,9 +782,7 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 								// lintignore:S013
 								"streams": {
 									Type:     pluginsdk.TypeList,
-									Optional: !features.FourPointOhBeta(),
-									Computed: !features.FourPointOhBeta(),
-									Required: features.FourPointOhBeta(),
+									Required: true,
 									MinItems: 1,
 									Elem: &pluginsdk.Schema{
 										Type:         pluginsdk.TypeString,
@@ -862,6 +864,7 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 					"Linux",
 					"Windows",
 					"AgentDirectToStore",
+					"WorkspaceTransforms",
 				},
 				false),
 		},
@@ -1252,7 +1255,6 @@ func expandDataCollectionRuleDataSourceDataImports(input []DataImport) *datacoll
 	}
 
 	return result
-
 }
 
 func expandDataCollectionRuleDataSourceExtensions(input []Extension) (*[]datacollectionrules.ExtensionDataSource, error) {
@@ -1443,9 +1445,6 @@ func expandDataCollectionRuleDataSourceSyslog(input []Syslog) *[]datacollectionr
 
 func expandDataCollectionRuleDataSourceSyslogStreams(input []string) *[]datacollectionrules.KnownSyslogDataSourceStreams {
 	if len(input) == 0 {
-		if !features.FourPointOhBeta() {
-			return &[]datacollectionrules.KnownSyslogDataSourceStreams{datacollectionrules.KnownSyslogDataSourceStreamsMicrosoftNegativeSyslog}
-		}
 		return nil
 	}
 
@@ -1850,7 +1849,6 @@ func flattenDataCollectionRuleDataSourceLogFiles(input *[]datacollectionrules.Lo
 		})
 	}
 	return result
-
 }
 
 func flattenDataCollectionRuleDataSourcePerfCounters(input *[]datacollectionrules.PerfCounterDataSource) []PerfCounter {
@@ -2180,4 +2178,18 @@ func flattenDataCollectionRuleStreamDeclarations(input *map[string]datacollectio
 	}
 
 	return result
+}
+
+func (r DataCollectionRuleResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			if oldValue, newValue := metadata.ResourceDiff.GetChange("kind"); oldValue.(string) != newValue.(string) && oldValue.(string) != "" {
+				if err := metadata.ResourceDiff.ForceNew("kind"); err != nil {
+					return err
+				}
+			}
+			return nil
+		},
+	}
 }

@@ -14,9 +14,20 @@ type IoTHubEventSourceCreateOrUpdateParameters struct {
 	Properties IoTHubEventSourceCreationProperties `json:"properties"`
 
 	// Fields inherited from EventSourceCreateOrUpdateParameters
+
+	Kind           EventSourceKind    `json:"kind"`
 	LocalTimestamp *LocalTimestamp    `json:"localTimestamp,omitempty"`
 	Location       string             `json:"location"`
 	Tags           *map[string]string `json:"tags,omitempty"`
+}
+
+func (s IoTHubEventSourceCreateOrUpdateParameters) EventSourceCreateOrUpdateParameters() BaseEventSourceCreateOrUpdateParametersImpl {
+	return BaseEventSourceCreateOrUpdateParametersImpl{
+		Kind:           s.Kind,
+		LocalTimestamp: s.LocalTimestamp,
+		Location:       s.Location,
+		Tags:           s.Tags,
+	}
 }
 
 var _ json.Marshaler = IoTHubEventSourceCreateOrUpdateParameters{}
@@ -30,9 +41,10 @@ func (s IoTHubEventSourceCreateOrUpdateParameters) MarshalJSON() ([]byte, error)
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling IoTHubEventSourceCreateOrUpdateParameters: %+v", err)
 	}
+
 	decoded["kind"] = "Microsoft.IoTHub"
 
 	encoded, err = json.Marshal(decoded)

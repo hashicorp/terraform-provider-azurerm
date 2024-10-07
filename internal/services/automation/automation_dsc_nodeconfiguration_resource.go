@@ -11,7 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2020-01-13-preview/dscnodeconfiguration"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/dscnodeconfiguration"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
@@ -72,7 +72,7 @@ func resourceAutomationDscNodeConfiguration() *pluginsdk.Resource {
 }
 
 func resourceAutomationDscNodeConfigurationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Automation.DscNodeConfigurationClient
+	client := meta.(*clients.Client).Automation.DscNodeConfiguration
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -118,7 +118,7 @@ func resourceAutomationDscNodeConfigurationCreateUpdate(d *pluginsdk.ResourceDat
 
 	err := client.CreateOrUpdateThenPoll(ctx, id, parameters)
 	if err != nil {
-		return fmt.Errorf("creating/updating %q: %+v", id, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -127,7 +127,7 @@ func resourceAutomationDscNodeConfigurationCreateUpdate(d *pluginsdk.ResourceDat
 }
 
 func resourceAutomationDscNodeConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Automation.DscNodeConfigurationClient
+	client := meta.(*clients.Client).Automation.DscNodeConfiguration
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -143,7 +143,7 @@ func resourceAutomationDscNodeConfigurationRead(d *pluginsdk.ResourceData, meta 
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on %s: %+v", *id, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.NodeConfigurationName)
@@ -166,7 +166,7 @@ func resourceAutomationDscNodeConfigurationRead(d *pluginsdk.ResourceData, meta 
 }
 
 func resourceAutomationDscNodeConfigurationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Automation.DscNodeConfigurationClient
+	client := meta.(*clients.Client).Automation.DscNodeConfiguration
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -175,12 +175,7 @@ func resourceAutomationDscNodeConfigurationDelete(d *pluginsdk.ResourceData, met
 		return err
 	}
 
-	resp, err := client.Delete(ctx, *id)
-	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
-			return nil
-		}
-
+	if _, err := client.Delete(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 

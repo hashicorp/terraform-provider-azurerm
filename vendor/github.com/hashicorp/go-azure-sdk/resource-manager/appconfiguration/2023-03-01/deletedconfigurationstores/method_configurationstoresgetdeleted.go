@@ -20,7 +20,7 @@ type ConfigurationStoresGetDeletedOperationResponse struct {
 // ConfigurationStoresGetDeleted ...
 func (c DeletedConfigurationStoresClient) ConfigurationStoresGetDeleted(ctx context.Context, id DeletedConfigurationStoreId) (result ConfigurationStoresGetDeletedOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -43,7 +43,9 @@ func (c DeletedConfigurationStoresClient) ConfigurationStoresGetDeleted(ctx cont
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model DeletedConfigurationStore
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

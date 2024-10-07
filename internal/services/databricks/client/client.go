@@ -7,8 +7,8 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2022-10-01-preview/accessconnector"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2023-02-01/vnetpeering"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2023-02-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2024-05-01/vnetpeering"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2024-05-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 

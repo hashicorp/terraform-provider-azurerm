@@ -20,7 +20,7 @@ type TagRulesCreateOrUpdateOperationResponse struct {
 // TagRulesCreateOrUpdate ...
 func (c RulesClient) TagRulesCreateOrUpdate(ctx context.Context, id TagRuleId, input MonitoringTagRules) (result TagRulesCreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -47,7 +47,9 @@ func (c RulesClient) TagRulesCreateOrUpdate(ctx context.Context, id TagRuleId, i
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model MonitoringTagRules
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -21,7 +21,7 @@ type ListDCAccessCodeOperationResponse struct {
 // ListDCAccessCode ...
 func (c OrdersClient) ListDCAccessCode(ctx context.Context, id DataBoxEdgeDeviceId) (result ListDCAccessCodeOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -44,7 +44,9 @@ func (c OrdersClient) ListDCAccessCode(ctx context.Context, id DataBoxEdgeDevice
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model DCAccessCode
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

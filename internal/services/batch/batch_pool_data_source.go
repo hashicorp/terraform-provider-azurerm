@@ -478,6 +478,10 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
+						"accelerated_networking_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
 						"subnet_id": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,

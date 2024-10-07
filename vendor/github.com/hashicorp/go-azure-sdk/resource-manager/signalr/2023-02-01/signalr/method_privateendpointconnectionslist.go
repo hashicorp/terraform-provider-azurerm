@@ -19,17 +19,31 @@ type PrivateEndpointConnectionsListOperationResponse struct {
 }
 
 type PrivateEndpointConnectionsListCompleteResult struct {
-	Items []PrivateEndpointConnection
+	LatestHttpResponse *http.Response
+	Items              []PrivateEndpointConnection
+}
+
+type PrivateEndpointConnectionsListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *PrivateEndpointConnectionsListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // PrivateEndpointConnectionsList ...
 func (c SignalRClient) PrivateEndpointConnectionsList(ctx context.Context, id SignalRId) (result PrivateEndpointConnectionsListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &PrivateEndpointConnectionsListCustomPager{},
 		Path:       fmt.Sprintf("%s/privateEndpointConnections", id.ID()),
 	}
 
@@ -71,6 +85,7 @@ func (c SignalRClient) PrivateEndpointConnectionsListCompleteMatchingPredicate(c
 
 	resp, err := c.PrivateEndpointConnectionsList(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +98,8 @@ func (c SignalRClient) PrivateEndpointConnectionsListCompleteMatchingPredicate(c
 	}
 
 	result = PrivateEndpointConnectionsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

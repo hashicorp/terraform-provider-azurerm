@@ -86,13 +86,14 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `name` - The name of the linked server.
 
+* `geo_replicated_primary_host_name` - The geo-replicated primary hostname for this linked server.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 60 minutes) Used when creating the Redis.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Redis.
-* `update` - (Defaults to 60 minutes) Used when updating the Redis.
 * `delete` - (Defaults to 60 minutes) Used when deleting the Redis.
 
 ## Import

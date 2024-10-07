@@ -41,6 +41,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `administrator_login` - The Administrator login for the PostgreSQL Flexible Server.
 
+* `auto_grow_enabled` - Is the storage auto grow for PostgreSQL Flexible Server enabled?
+
 * `backup_retention_days` -  The backup retention days for the PostgreSQL Flexible Server.
 
 * `delegated_subnet_id` - The ID of the virtual network subnet to create the PostgreSQL Flexible Server.

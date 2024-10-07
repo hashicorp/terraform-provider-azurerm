@@ -21,7 +21,7 @@ type MonitorsGetDefaultKeyOperationResponse struct {
 // MonitorsGetDefaultKey ...
 func (c ApiKeyClient) MonitorsGetDefaultKey(ctx context.Context, id MonitorId) (result MonitorsGetDefaultKeyOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -44,7 +44,9 @@ func (c ApiKeyClient) MonitorsGetDefaultKey(ctx context.Context, id MonitorId) (
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model DatadogApiKey
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

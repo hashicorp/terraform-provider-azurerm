@@ -20,7 +20,7 @@ type FailOverOperationResponse struct {
 // FailOver ...
 func (c DisasterRecoveryConfigsClient) FailOver(ctx context.Context, id DisasterRecoveryConfigId, input FailoverProperties) (result FailOverOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

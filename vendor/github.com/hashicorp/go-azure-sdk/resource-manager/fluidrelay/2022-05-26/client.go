@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/fluidrelay/2022-05-26/fluidrelaycontainers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/fluidrelay/2022-05-26/fluidrelayservers"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 type Client struct {
@@ -17,14 +17,14 @@ type Client struct {
 	FluidRelayServers    *fluidrelayservers.FluidRelayServersClient
 }
 
-func NewClientWithBaseURI(api environments.Api, configureFunc func(c *resourcemanager.Client)) (*Client, error) {
-	fluidRelayContainersClient, err := fluidrelaycontainers.NewFluidRelayContainersClientWithBaseURI(api)
+func NewClientWithBaseURI(sdkApi sdkEnv.Api, configureFunc func(c *resourcemanager.Client)) (*Client, error) {
+	fluidRelayContainersClient, err := fluidrelaycontainers.NewFluidRelayContainersClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building FluidRelayContainers client: %+v", err)
 	}
 	configureFunc(fluidRelayContainersClient.Client)
 
-	fluidRelayServersClient, err := fluidrelayservers.NewFluidRelayServersClientWithBaseURI(api)
+	fluidRelayServersClient, err := fluidrelayservers.NewFluidRelayServersClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building FluidRelayServers client: %+v", err)
 	}

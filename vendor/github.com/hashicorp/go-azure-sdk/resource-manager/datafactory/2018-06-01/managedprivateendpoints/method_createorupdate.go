@@ -36,6 +36,7 @@ func (o CreateOrUpdateOperationOptions) ToHeaders() *client.Headers {
 
 func (o CreateOrUpdateOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -48,13 +49,13 @@ func (o CreateOrUpdateOperationOptions) ToQuery() *client.QueryParams {
 // CreateOrUpdate ...
 func (c ManagedPrivateEndpointsClient) CreateOrUpdate(ctx context.Context, id ManagedPrivateEndpointId, input ManagedPrivateEndpointResource, options CreateOrUpdateOperationOptions) (result CreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPut,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -76,7 +77,9 @@ func (c ManagedPrivateEndpointsClient) CreateOrUpdate(ctx context.Context, id Ma
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ManagedPrivateEndpointResource
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

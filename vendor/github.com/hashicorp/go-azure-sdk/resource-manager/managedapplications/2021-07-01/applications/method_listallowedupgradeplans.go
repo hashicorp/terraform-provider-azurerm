@@ -21,7 +21,7 @@ type ListAllowedUpgradePlansOperationResponse struct {
 // ListAllowedUpgradePlans ...
 func (c ApplicationsClient) ListAllowedUpgradePlans(ctx context.Context, id ApplicationId) (result ListAllowedUpgradePlansOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -44,7 +44,9 @@ func (c ApplicationsClient) ListAllowedUpgradePlans(ctx context.Context, id Appl
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model AllowedUpgradePlansResult
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

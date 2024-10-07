@@ -22,11 +22,13 @@ const (
 	NestedItemTypeSecret NestedItemObjectType = "secrets"
 	// KeyVaultObjectType Certificates...
 	NestedItemTypeCertificate NestedItemObjectType = "certificates"
+	// KeyVaultObjectType Storage Keys...
+	NestedItemTypeStorageKey NestedItemObjectType = "storage"
 )
 
 // PossibleNestedItemObjectTypeValues returns a string slice of possible "NestedItemObjectType" values.
 func PossibleNestedItemObjectTypeValues() []string {
-	return []string{string(NestedItemTypeKey), string(NestedItemTypeSecret), string(NestedItemTypeCertificate)}
+	return []string{string(NestedItemTypeKey), string(NestedItemTypeSecret), string(NestedItemTypeCertificate), string(NestedItemTypeStorageKey)}
 }
 
 var _ resourceids.Id = NestedItemId{}
@@ -150,7 +152,7 @@ func parseNestedItemId(id string) (*NestedItemId, error) {
 	nestedItemObjectType := NestedItemObjectType(components[0])
 
 	childId := NestedItemId{
-		KeyVaultBaseUrl: fmt.Sprintf("%s://%s/", idURL.Scheme, idURL.Host),
+		KeyVaultBaseUrl: fmt.Sprintf("https://%s/", idURL.Host),
 		NestedItemType:  nestedItemObjectType,
 		Name:            components[1],
 		Version:         version,

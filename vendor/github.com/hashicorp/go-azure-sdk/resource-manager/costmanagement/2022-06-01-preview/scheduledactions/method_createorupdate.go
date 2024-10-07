@@ -20,7 +20,7 @@ type CreateOrUpdateOperationResponse struct {
 // CreateOrUpdate ...
 func (c ScheduledActionsClient) CreateOrUpdate(ctx context.Context, id ScheduledActionId, input ScheduledAction) (result CreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,
@@ -48,7 +48,9 @@ func (c ScheduledActionsClient) CreateOrUpdate(ctx context.Context, id Scheduled
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ScheduledAction
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

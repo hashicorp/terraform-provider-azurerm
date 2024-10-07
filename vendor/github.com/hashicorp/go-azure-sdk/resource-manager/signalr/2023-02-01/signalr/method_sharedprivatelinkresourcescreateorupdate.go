@@ -18,12 +18,13 @@ type SharedPrivateLinkResourcesCreateOrUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *SharedPrivateLinkResource
 }
 
 // SharedPrivateLinkResourcesCreateOrUpdate ...
 func (c SignalRClient) SharedPrivateLinkResourcesCreateOrUpdate(ctx context.Context, id SharedPrivateLinkResourceId, input SharedPrivateLinkResource) (result SharedPrivateLinkResourcesCreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

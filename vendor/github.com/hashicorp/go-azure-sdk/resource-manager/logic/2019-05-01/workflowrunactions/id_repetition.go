@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = RepetitionId{}
+func init() {
+	recaser.RegisterResourceId(&RepetitionId{})
+}
+
+var _ resourceids.ResourceId = &RepetitionId{}
 
 // RepetitionId is a struct representing the Resource ID for a Repetition
 type RepetitionId struct {
@@ -36,37 +41,15 @@ func NewRepetitionID(subscriptionId string, resourceGroupName string, workflowNa
 
 // ParseRepetitionID parses 'input' into a RepetitionId
 func ParseRepetitionID(input string) (*RepetitionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(RepetitionId{})
+	parser := resourceids.NewParserFromResourceIdType(&RepetitionId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := RepetitionId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.WorkflowName, ok = parsed.Parsed["workflowName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "workflowName", *parsed)
-	}
-
-	if id.RunName, ok = parsed.Parsed["runName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "runName", *parsed)
-	}
-
-	if id.ActionName, ok = parsed.Parsed["actionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "actionName", *parsed)
-	}
-
-	if id.RepetitionName, ok = parsed.Parsed["repetitionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "repetitionName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -75,40 +58,48 @@ func ParseRepetitionID(input string) (*RepetitionId, error) {
 // ParseRepetitionIDInsensitively parses 'input' case-insensitively into a RepetitionId
 // note: this method should only be used for API response data and not user input
 func ParseRepetitionIDInsensitively(input string) (*RepetitionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(RepetitionId{})
+	parser := resourceids.NewParserFromResourceIdType(&RepetitionId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := RepetitionId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.WorkflowName, ok = parsed.Parsed["workflowName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "workflowName", *parsed)
-	}
-
-	if id.RunName, ok = parsed.Parsed["runName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "runName", *parsed)
-	}
-
-	if id.ActionName, ok = parsed.Parsed["actionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "actionName", *parsed)
-	}
-
-	if id.RepetitionName, ok = parsed.Parsed["repetitionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "repetitionName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *RepetitionId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.WorkflowName, ok = input.Parsed["workflowName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "workflowName", input)
+	}
+
+	if id.RunName, ok = input.Parsed["runName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "runName", input)
+	}
+
+	if id.ActionName, ok = input.Parsed["actionName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "actionName", input)
+	}
+
+	if id.RepetitionName, ok = input.Parsed["repetitionName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "repetitionName", input)
+	}
+
+	return nil
 }
 
 // ValidateRepetitionID checks that 'input' can be parsed as a Repetition ID
@@ -142,13 +133,13 @@ func (id RepetitionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftLogic", "Microsoft.Logic", "Microsoft.Logic"),
 		resourceids.StaticSegment("staticWorkflows", "workflows", "workflows"),
-		resourceids.UserSpecifiedSegment("workflowName", "workflowValue"),
+		resourceids.UserSpecifiedSegment("workflowName", "workflowName"),
 		resourceids.StaticSegment("staticRuns", "runs", "runs"),
-		resourceids.UserSpecifiedSegment("runName", "runValue"),
+		resourceids.UserSpecifiedSegment("runName", "runName"),
 		resourceids.StaticSegment("staticActions", "actions", "actions"),
-		resourceids.UserSpecifiedSegment("actionName", "actionValue"),
+		resourceids.UserSpecifiedSegment("actionName", "actionName"),
 		resourceids.StaticSegment("staticRepetitions", "repetitions", "repetitions"),
-		resourceids.UserSpecifiedSegment("repetitionName", "repetitionValue"),
+		resourceids.UserSpecifiedSegment("repetitionName", "repetitionName"),
 	}
 }
 

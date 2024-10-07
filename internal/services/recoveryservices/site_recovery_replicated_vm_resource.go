@@ -17,23 +17,18 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/edgezones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/availabilitysets"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/virtualmachines"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/diskencryptionsets"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationfabrics"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationprotecteditems"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationprotectioncontainers"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01/storageaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationfabrics"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationprotecteditems"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationprotectioncontainers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	computeParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
-	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
@@ -135,7 +130,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 			"target_availability_set_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: availabilitysets.ValidateAvailabilitySetID,
+				ValidateFunc: commonids.ValidateAvailabilitySetID,
 				ConflictsWith: []string{
 					"target_zone",
 				},
@@ -161,8 +156,9 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 
 			"unmanaged_disk": {
 				Type:       pluginsdk.TypeSet,
-				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Optional:   true,
+				Computed:   true,
+				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				ForceNew:   true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -184,7 +180,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ForceNew:     true,
-							ValidateFunc: storageaccounts.ValidateStorageAccountID,
+							ValidateFunc: commonids.ValidateStorageAccountID,
 						},
 					},
 				},
@@ -198,8 +194,9 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 
 			"managed_disk": {
 				Type:       pluginsdk.TypeSet,
-				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Optional:   true,
+				Computed:   true,
+				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				ForceNew:   true,
 				Set:        resourceSiteRecoveryReplicatedVMDiskHash,
 				Elem: &pluginsdk.Resource{
@@ -215,7 +212,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ForceNew:     true,
-							ValidateFunc: storageaccounts.ValidateStorageAccountID,
+							ValidateFunc: commonids.ValidateStorageAccountID,
 						},
 
 						"target_resource_group_id": {
@@ -253,13 +250,13 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ForceNew:     true,
-							ValidateFunc: diskencryptionsets.ValidateDiskEncryptionSetID,
+							ValidateFunc: commonids.ValidateDiskEncryptionSetID,
 						},
 
 						"target_disk_encryption": {
 							Type:       pluginsdk.TypeList,
-							ConfigMode: pluginsdk.SchemaConfigModeAttr,
 							Optional:   true,
+							ConfigMode: pluginsdk.SchemaConfigModeAttr,
 							MaxItems:   1,
 							Elem:       diskEncryptionResource(),
 						},
@@ -276,7 +273,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 			"target_boot_diagnostic_storage_account_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: storageaccounts.ValidateStorageAccountID,
+				ValidateFunc: commonids.ValidateStorageAccountID,
 			},
 
 			"target_capacity_reservation_group_id": {
@@ -288,15 +285,22 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 			"target_virtual_machine_scale_set_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: computeValidate.VirtualMachineScaleSetID,
+				ValidateFunc: commonids.ValidateVirtualMachineScaleSetID,
+			},
+
+			"target_virtual_machine_size": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// O+C if not specified, this gets set to the vm_size of the virtual machine
+				Computed:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"network_interface": {
 				Type:       pluginsdk.TypeSet, // use set to avoid diff caused by different orders.
-				Set:        resourceSiteRecoveryReplicatedVMNicHash,
-				ConfigMode: pluginsdk.SchemaConfigModeAttr,
-				Computed:   true,
 				Optional:   true,
+				Computed:   true,
+				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Elem:       networkInterfaceResource(),
 			},
 		},
@@ -376,9 +380,9 @@ func diskEncryptionResource() *pluginsdk.Resource {
 		Schema: map[string]*pluginsdk.Schema{
 			"disk_encryption_key": {
 				Type:       pluginsdk.TypeList,
-				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Required:   true,
 				MaxItems:   1,
+				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"secret_url": {
@@ -388,16 +392,16 @@ func diskEncryptionResource() *pluginsdk.Resource {
 							ValidateFunc: keyVaultValidate.NestedItemId,
 						},
 
-						"vault_id": commonschema.ResourceIDReferenceRequiredForceNew(commonids.KeyVaultId{}),
+						"vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.KeyVaultId{}),
 					},
 				},
 			},
 
 			"key_encryption_key": {
 				Type:       pluginsdk.TypeList,
-				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Optional:   true,
 				MaxItems:   1,
+				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"key_url": {
@@ -407,7 +411,7 @@ func diskEncryptionResource() *pluginsdk.Resource {
 							ValidateFunc: keyVaultValidate.NestedItemId,
 						},
 
-						"vault_id": commonschema.ResourceIDReferenceRequiredForceNew(commonids.KeyVaultId{}),
+						"vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.KeyVaultId{}),
 					},
 				},
 			},
@@ -642,12 +646,13 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 			SelectedTfoAzureNetworkId:      &testNetworkId,
 			VMNics:                         &vmNics,
 			RecoveryAvailabilitySetId:      targetAvailabilitySetID,
+			RecoveryAzureVMSize:            pointer.To(d.Get("target_virtual_machine_size").(string)),
 			ProviderSpecificDetails: replicationprotecteditems.A2AUpdateReplicationProtectedItemInput{
 				ManagedDiskUpdateDetails:           &managedDisks,
-				RecoveryProximityPlacementGroupId:  utils.String(d.Get("target_proximity_placement_group_id").(string)),
-				RecoveryBootDiagStorageAccountId:   utils.String(d.Get("target_boot_diagnostic_storage_account_id").(string)),
-				RecoveryCapacityReservationGroupId: utils.String(d.Get("target_capacity_reservation_group_id").(string)),
-				RecoveryVirtualMachineScaleSetId:   utils.String(d.Get("target_virtual_machine_scale_set_id").(string)),
+				RecoveryProximityPlacementGroupId:  pointer.To(d.Get("target_proximity_placement_group_id").(string)),
+				RecoveryBootDiagStorageAccountId:   pointer.To(d.Get("target_boot_diagnostic_storage_account_id").(string)),
+				RecoveryCapacityReservationGroupId: pointer.To(d.Get("target_capacity_reservation_group_id").(string)),
+				RecoveryVirtualMachineScaleSetId:   pointer.To(d.Get("target_virtual_machine_scale_set_id").(string)),
 			},
 		},
 	}
@@ -758,7 +763,7 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 
 			availabilitySetId := ""
 			if respAvailabilitySetId := pointer.From(a2aDetails.RecoveryAvailabilitySet); respAvailabilitySetId != "" {
-				parsedAvailabilitySetId, err := availabilitysets.ParseAvailabilitySetIDInsensitively(respAvailabilitySetId)
+				parsedAvailabilitySetId, err := commonids.ParseAvailabilitySetIDInsensitively(respAvailabilitySetId)
 				if err != nil {
 					return err
 				}
@@ -798,7 +803,7 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 
 			recoveryBootDiagStorageAccount := ""
 			if respBootDiagStorageAccountId := pointer.From(a2aDetails.RecoveryBootDiagStorageAccountId); respBootDiagStorageAccountId != "" {
-				parsedRecoveryBootDiagStorageAccount, err := storageaccounts.ParseStorageAccountIDInsensitively(respBootDiagStorageAccountId)
+				parsedRecoveryBootDiagStorageAccount, err := commonids.ParseStorageAccountIDInsensitively(respBootDiagStorageAccountId)
 				if err != nil {
 					return err
 				}
@@ -818,7 +823,7 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 
 			vmssId := ""
 			if respVmssId := pointer.From(a2aDetails.RecoveryVirtualMachineScaleSetId); respVmssId != "" {
-				parsedVmssId, err := computeParse.VirtualMachineScaleSetIDInsensitively(respVmssId)
+				parsedVmssId, err := commonids.ParseVirtualMachineScaleSetIDInsensitively(respVmssId)
 				if err != nil {
 					return err
 				}
@@ -826,6 +831,7 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 			}
 			d.Set("target_virtual_machine_scale_set_id", vmssId)
 
+			d.Set("target_virtual_machine_size", pointer.From(a2aDetails.RecoveryAzureVMSize))
 			d.Set("target_zone", a2aDetails.RecoveryAvailabilityZone)
 			d.Set("target_edge_zone", flattenEdgeZone(a2aDetails.RecoveryExtendedLocation))
 			d.Set("multi_vm_group_name", a2aDetails.MultiVMGroupName)
@@ -848,7 +854,7 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 					diskOutput := make(map[string]interface{})
 					diskId := ""
 					if respDiskId := pointer.From(disk.DiskId); respDiskId != "" {
-						parsedDiskId, err := disks.ParseDiskIDInsensitively(respDiskId)
+						parsedDiskId, err := commonids.ParseManagedDiskIDInsensitively(respDiskId)
 						if err != nil {
 							return err
 						}
@@ -858,7 +864,7 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 
 					primaryStagingAzureStorageAccountID := ""
 					if respStorageAccId := pointer.From(disk.PrimaryStagingAzureStorageAccountId); respStorageAccId != "" {
-						parsedStorageAccountId, err := storageaccounts.ParseStorageAccountIDInsensitively(respStorageAccId)
+						parsedStorageAccountId, err := commonids.ParseStorageAccountIDInsensitively(respStorageAccId)
 						if err != nil {
 							return err
 						}
@@ -890,7 +896,7 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 
 					recoveryEncryptionSetId := ""
 					if respDESId := pointer.From(disk.RecoveryDiskEncryptionSetId); respDESId != "" {
-						parsedEncryptionSetId, err := diskencryptionsets.ParseDiskEncryptionSetIDInsensitively(respDESId)
+						parsedEncryptionSetId, err := commonids.ParseDiskEncryptionSetIDInsensitively(respDESId)
 						if err != nil {
 							return err
 						}
@@ -957,8 +963,8 @@ func resourceSiteRecoveryReplicatedItemDelete(d *pluginsdk.ResourceData, meta in
 		Properties: replicationprotecteditems.DisableProtectionInputProperties{
 			DisableProtectionReason: &disableProtectionReason,
 			// It's a workaround for https://github.com/hashicorp/pandora/issues/1864
-			ReplicationProviderInput: &siterecovery.DisableProtectionProviderSpecificInput{
-				InstanceType: siterecovery.InstanceTypeDisableProtectionProviderSpecificInput,
+			ReplicationProviderInput: replicationprotecteditems.BaseDisableProtectionProviderSpecificInputImpl{
+				InstanceType: string(siterecovery.InstanceTypeDisableProtectionProviderSpecificInput),
 			},
 		},
 	}
@@ -978,19 +984,6 @@ func resourceSiteRecoveryReplicatedVMDiskHash(v interface{}) int {
 
 	if m, ok := v.(map[string]interface{}); ok {
 		if v, ok := m["disk_id"]; ok {
-			buf.WriteString(strings.ToLower(v.(string)))
-		}
-	}
-
-	return pluginsdk.HashString(buf.String())
-}
-
-// the default hash function will not ignore Option + Computed properties, which will cause diff.
-func resourceSiteRecoveryReplicatedVMNicHash(v interface{}) int {
-	var buf bytes.Buffer
-
-	if m, ok := v.(map[string]interface{}); ok {
-		if v, ok := m["source_network_interface_id"]; ok {
 			buf.WriteString(strings.ToLower(v.(string)))
 		}
 	}

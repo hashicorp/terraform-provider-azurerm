@@ -8,10 +8,11 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/virtualmachines"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationrecoveryservicesproviders"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationrecoveryservicesproviders"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -70,7 +71,10 @@ func (HyperVHostTestResource) virtualMachineExists(ctx context.Context, client *
 		return err
 	}
 
-	resp, err := client.Compute.VirtualMachinesClient.Get(ctx, *id, virtualmachines.DefaultGetOperationOptions())
+	ctx2, cancel := context.WithTimeout(ctx, 15*time.Minute)
+	defer cancel()
+
+	resp, err := client.Compute.VirtualMachinesClient.Get(ctx2, *id, virtualmachines.DefaultGetOperationOptions())
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s does not exist", *id)
@@ -83,13 +87,16 @@ func (HyperVHostTestResource) virtualMachineExists(ctx context.Context, client *
 }
 
 func (HyperVHostTestResource) rebootVirtualMachine(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
+	ctx2, cancel := context.WithTimeout(ctx, 15*time.Minute)
+	defer cancel()
+
 	client := clients.Compute.VirtualMachinesClient
 	id, err := virtualmachines.ParseVirtualMachineID(state.ID)
 	if err != nil {
 		return err
 	}
 
-	if err := client.RestartThenPoll(ctx, *id); err != nil {
+	if err := client.RestartThenPoll(ctx2, *id); err != nil {
 		return fmt.Errorf("restarting %s: %+v", id, err)
 	}
 
@@ -289,11 +296,6 @@ resource "azurerm_network_security_group" "hybrid" {
     source_address_prefix      = "*"
     destination_address_prefix = "*"
   }
-
-
-  lifecycle {
-    ignore_changes = [security_rule]
-  }
 }
 
 resource "azurerm_network_interface_security_group_association" "hybrid" {
@@ -357,7 +359,7 @@ resource "azurerm_network_interface" "host" {
   location            = azurerm_resource_group.hybrid.location
   resource_group_name = azurerm_resource_group.hybrid.name
 
-  enable_ip_forwarding = true
+  ip_forwarding_enabled = true
 
   ip_configuration {
     name                          = "internal"

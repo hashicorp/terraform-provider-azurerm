@@ -21,7 +21,7 @@ type CloudEndpointsListBySyncGroupOperationResponse struct {
 // CloudEndpointsListBySyncGroup ...
 func (c CloudEndpointResourceClient) CloudEndpointsListBySyncGroup(ctx context.Context, id SyncGroupId) (result CloudEndpointsListBySyncGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -44,7 +44,9 @@ func (c CloudEndpointResourceClient) CloudEndpointsListBySyncGroup(ctx context.C
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model CloudEndpointArray
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

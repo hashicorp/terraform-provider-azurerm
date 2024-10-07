@@ -10,9 +10,35 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type RouteConfiguration interface {
+	RouteConfiguration() BaseRouteConfigurationImpl
 }
 
-func unmarshalRouteConfigurationImplementation(input []byte) (RouteConfiguration, error) {
+var _ RouteConfiguration = BaseRouteConfigurationImpl{}
+
+type BaseRouteConfigurationImpl struct {
+	OdataType string `json:"@odata.type"`
+}
+
+func (s BaseRouteConfigurationImpl) RouteConfiguration() BaseRouteConfigurationImpl {
+	return s
+}
+
+var _ RouteConfiguration = RawRouteConfigurationImpl{}
+
+// RawRouteConfigurationImpl is returned when the Discriminated Value doesn't match any of the defined types
+// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
+// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+type RawRouteConfigurationImpl struct {
+	routeConfiguration BaseRouteConfigurationImpl
+	Type               string
+	Values             map[string]interface{}
+}
+
+func (s RawRouteConfigurationImpl) RouteConfiguration() BaseRouteConfigurationImpl {
+	return s.routeConfiguration
+}
+
+func UnmarshalRouteConfigurationImplementation(input []byte) (RouteConfiguration, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -22,9 +48,9 @@ func unmarshalRouteConfigurationImplementation(input []byte) (RouteConfiguration
 		return nil, fmt.Errorf("unmarshaling RouteConfiguration into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["@odata.type"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["@odata.type"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "#Microsoft.Azure.FrontDoor.Models.FrontdoorForwardingConfiguration") {
@@ -43,14 +69,15 @@ func unmarshalRouteConfigurationImplementation(input []byte) (RouteConfiguration
 		return out, nil
 	}
 
-	type RawRouteConfigurationImpl struct {
-		Type   string                 `json:"-"`
-		Values map[string]interface{} `json:"-"`
+	var parent BaseRouteConfigurationImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseRouteConfigurationImpl: %+v", err)
 	}
-	out := RawRouteConfigurationImpl{
-		Type:   value,
-		Values: temp,
-	}
-	return out, nil
+
+	return RawRouteConfigurationImpl{
+		routeConfiguration: parent,
+		Type:               value,
+		Values:             temp,
+	}, nil
 
 }

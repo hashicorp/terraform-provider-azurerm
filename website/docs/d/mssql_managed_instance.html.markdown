@@ -37,6 +37,8 @@ The following attributes are exported:
 
 * `customer_managed_key` - Specifies KeyVault key, used by SQL Managed Instance for Transparent Data Encryption.
 
+* `dns_zone` - The Dns Zone where the SQL Managed Instance is located.
+
 * `dns_zone_partner_id` - The ID of the SQL Managed Instance which shares the DNS zone.
 
 * `fqdn` - The fully qualified domain name of the Azure Managed SQL Instance.

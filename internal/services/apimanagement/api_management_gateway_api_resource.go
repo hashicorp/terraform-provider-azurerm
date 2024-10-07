@@ -9,15 +9,16 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/api"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/gateway"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/gatewayapi"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceApiManagementGatewayApi() *pluginsdk.Resource {
@@ -27,23 +28,27 @@ func resourceApiManagementGatewayApi() *pluginsdk.Resource {
 		Delete: resourceApiManagementGatewayApiDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.GatewayApiID(id)
+			_, err := gatewayapi.ParseGatewayApiID(id)
 			return err
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.ApiManagementGatewayApiV0ToV1{},
+		}),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"api_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ApiID,
+				ValidateFunc: api.ValidateApiID,
 			},
 			"gateway_id": {
 				Type:         pluginsdk.TypeString,
@@ -60,32 +65,33 @@ func resourceApiManagementGatewayApiCreate(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	apiID, err := parse.ApiID(d.Get("api_id").(string))
+	apiID, err := api.ParseApiID(d.Get("api_id").(string))
 	if err != nil {
 		return fmt.Errorf("parsing `api_id`: %v", err)
 	}
 
-	gatewayID, err := parse.GatewayID(d.Get("gateway_id").(string))
+	gatewayID, err := gateway.ParseGatewayID(d.Get("gateway_id").(string))
 	if err != nil {
 		return fmt.Errorf("parsing `gateway_id`: %v", err)
 	}
 
-	exists, err := client.GetEntityTag(ctx, gatewayID.ResourceGroup, gatewayID.ServiceName, gatewayID.Name, apiID.Name)
+	apiName := getApiName(apiID.ApiId)
+
+	id := gatewayapi.NewGatewayApiID(gatewayID.SubscriptionId, gatewayID.ResourceGroupName, gatewayID.ServiceName, gatewayID.GatewayId, apiName)
+	exists, err := client.GetEntityTag(ctx, id)
 	if err != nil {
-		if !utils.ResponseWasStatusCode(exists, http.StatusNoContent) {
-			if !utils.ResponseWasNotFound(exists) {
+		if !response.WasStatusCode(exists.HttpResponse, http.StatusNoContent) {
+			if !response.WasNotFound(exists.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", gatewayID, err)
 			}
 		}
 	}
 
-	id := parse.NewGatewayApiID(gatewayID.SubscriptionId, gatewayID.ResourceGroup, gatewayID.ServiceName, gatewayID.Name, apiID.Name)
-	if !utils.ResponseWasNotFound(exists) {
+	if !response.WasNotFound(exists.HttpResponse) {
 		return tf.ImportAsExistsError("azurerm_api_management_gateway_api", id.ID())
 	}
-	params := &apimanagement.AssociationContract{}
-	_, err = client.CreateOrUpdate(ctx, gatewayID.ResourceGroup, gatewayID.ServiceName, gatewayID.Name, apiID.Name, params)
-	if err != nil {
+	params := gatewayapi.AssociationContract{}
+	if _, err = client.CreateOrUpdate(ctx, id, params); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 	d.SetId(id.ID())
@@ -98,31 +104,34 @@ func resourceApiManagementGatewayApiRead(d *pluginsdk.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.GatewayApiID(d.Id())
+	id, err := gatewayapi.ParseGatewayApiID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	apiId := parse.NewApiID(id.SubscriptionId, id.ResourceGroup, id.ServiceName, id.ApiName)
-	resp, err := client.GetEntityTag(ctx, id.ResourceGroup, id.ServiceName, id.GatewayName, id.ApiName)
+	apiName := getApiName(id.ApiId)
+
+	apiId := api.NewApiID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, apiName)
+	gatewayApiId := gatewayapi.NewGatewayApiID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, id.GatewayId, apiName)
+	resp, err := client.GetEntityTag(ctx, gatewayApiId)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp) {
-			log.Printf("[DEBUG] %s does not exist - removing from state!", id)
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[DEBUG] %s does not exist - removing from state!", gatewayApiId)
 			d.SetId("")
 			return nil
 		}
-		if utils.ResponseWasStatusCode(resp, http.StatusNoContent) {
-			log.Printf("[DEBUG] %s returned with No Content status - bypassing and moving on!", id)
+		if response.WasStatusCode(resp.HttpResponse, http.StatusNoContent) {
+			log.Printf("[DEBUG] %s returned with No Content status - bypassing and moving on!", gatewayApiId)
 		} else {
-			return fmt.Errorf("retrieving %s: %+v", id, err)
+			return fmt.Errorf("retrieving %s: %+v", gatewayApiId, err)
 		}
 	}
-	if utils.ResponseWasNotFound(resp) {
-		log.Printf("[DEBUG] %s was not found - removing from state!", id)
+	if response.WasNotFound(resp.HttpResponse) {
+		log.Printf("[DEBUG] %s was not found - removing from state!", *id)
 		d.SetId("")
 		return nil
 	}
-	gateway := parse.NewGatewayID(id.SubscriptionId, id.ResourceGroup, id.ServiceName, id.GatewayName)
+	gateway := gatewayapi.NewGatewayID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, id.GatewayId)
 
 	d.Set("api_id", apiId.ID())
 	d.Set("gateway_id", gateway.ID())
@@ -135,14 +144,17 @@ func resourceApiManagementGatewayApiDelete(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.GatewayApiID(d.Id())
+	id, err := gatewayapi.ParseGatewayApiID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if resp, err := client.Delete(ctx, id.ResourceGroup, id.ServiceName, id.GatewayName, id.ApiName); err != nil {
-		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("removing %s: %+v", id, err)
+	name := getApiName(id.ApiId)
+
+	newId := gatewayapi.NewGatewayApiID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, id.GatewayId, name)
+	if resp, err := client.Delete(ctx, newId); err != nil {
+		if !response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("removing %s: %+v", newId, err)
 		}
 	}
 

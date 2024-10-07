@@ -19,17 +19,31 @@ type WorkbooksRevisionsListOperationResponse struct {
 }
 
 type WorkbooksRevisionsListCompleteResult struct {
-	Items []Workbook
+	LatestHttpResponse *http.Response
+	Items              []Workbook
+}
+
+type WorkbooksRevisionsListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *WorkbooksRevisionsListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // WorkbooksRevisionsList ...
 func (c WorkbooksAPIsClient) WorkbooksRevisionsList(ctx context.Context, id WorkbookId) (result WorkbooksRevisionsListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &WorkbooksRevisionsListCustomPager{},
 		Path:       fmt.Sprintf("%s/revisions", id.ID()),
 	}
 
@@ -71,6 +85,7 @@ func (c WorkbooksAPIsClient) WorkbooksRevisionsListCompleteMatchingPredicate(ctx
 
 	resp, err := c.WorkbooksRevisionsList(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +98,8 @@ func (c WorkbooksAPIsClient) WorkbooksRevisionsListCompleteMatchingPredicate(ctx
 	}
 
 	result = WorkbooksRevisionsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

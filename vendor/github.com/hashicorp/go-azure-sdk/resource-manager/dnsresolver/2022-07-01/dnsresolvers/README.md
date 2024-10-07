@@ -1,13 +1,14 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/dnsresolver/2022-07-01/dnsresolvers` Documentation
 
-The `dnsresolvers` SDK allows for interaction with the Azure Resource Manager Service `dnsresolver` (API Version `2022-07-01`).
+The `dnsresolvers` SDK allows for interaction with Azure Resource Manager `dnsresolver` (API Version `2022-07-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/dnsresolver/2022-07-01/dnsresolvers"
 ```
 
@@ -24,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := dnsresolvers.NewDnsResolverID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dnsResolverValue")
+id := dnsresolvers.NewDnsResolverID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dnsResolverName")
 
 payload := dnsresolvers.DnsResolver{
 	// ...
@@ -41,7 +42,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload, dnsresolvers.DefaultCr
 
 ```go
 ctx := context.TODO()
-id := dnsresolvers.NewDnsResolverID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dnsResolverValue")
+id := dnsresolvers.NewDnsResolverID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dnsResolverName")
 
 if err := client.DeleteThenPoll(ctx, id, dnsresolvers.DefaultDeleteOperationOptions()); err != nil {
 	// handle the error
@@ -53,7 +54,7 @@ if err := client.DeleteThenPoll(ctx, id, dnsresolvers.DefaultDeleteOperationOpti
 
 ```go
 ctx := context.TODO()
-id := dnsresolvers.NewDnsResolverID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dnsResolverValue")
+id := dnsresolvers.NewDnsResolverID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dnsResolverName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -69,7 +70,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := dnsresolvers.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 // alternatively `client.List(ctx, id, dnsresolvers.DefaultListOperationOptions())` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id, dnsresolvers.DefaultListOperationOptions())
@@ -86,7 +87,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := dnsresolvers.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
+id := commonids.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
 // alternatively `client.ListByResourceGroup(ctx, id, dnsresolvers.DefaultListByResourceGroupOperationOptions())` can be used to do batched pagination
 items, err := client.ListByResourceGroupComplete(ctx, id, dnsresolvers.DefaultListByResourceGroupOperationOptions())
@@ -103,7 +104,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := dnsresolvers.NewVirtualNetworkID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkValue")
+id := commonids.NewVirtualNetworkID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkName")
 
 // alternatively `client.ListByVirtualNetwork(ctx, id, dnsresolvers.DefaultListByVirtualNetworkOperationOptions())` can be used to do batched pagination
 items, err := client.ListByVirtualNetworkComplete(ctx, id, dnsresolvers.DefaultListByVirtualNetworkOperationOptions())
@@ -120,7 +121,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := dnsresolvers.NewDnsResolverID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dnsResolverValue")
+id := dnsresolvers.NewDnsResolverID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dnsResolverName")
 
 payload := dnsresolvers.DnsResolverPatch{
 	// ...

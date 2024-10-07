@@ -21,7 +21,7 @@ type ListContentCallbackUrlOperationResponse struct {
 // ListContentCallbackUrl ...
 func (c IntegrationAccountAssembliesClient) ListContentCallbackUrl(ctx context.Context, id AssemblyId) (result ListContentCallbackUrlOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -44,7 +44,9 @@ func (c IntegrationAccountAssembliesClient) ListContentCallbackUrl(ctx context.C
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model WorkflowTriggerCallbackUrl
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

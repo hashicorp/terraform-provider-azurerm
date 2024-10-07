@@ -7,12 +7,14 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/encryptionscopes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceStorageEncryptionScope() *pluginsdk.Resource {
@@ -33,7 +35,7 @@ func dataSourceStorageEncryptionScope() *pluginsdk.Resource {
 			"storage_account_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: storageValidate.StorageAccountID,
+				ValidateFunc: commonids.ValidateStorageAccountID,
 			},
 
 			"source": {
@@ -50,36 +52,37 @@ func dataSourceStorageEncryptionScope() *pluginsdk.Resource {
 }
 
 func dataSourceStorageEncryptionScopeRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Storage.EncryptionScopesClient
+	client := meta.(*clients.Client).Storage.ResourceManager.EncryptionScopes
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	accountId, err := parse.StorageAccountID(d.Get("storage_account_id").(string))
+	accountId, err := commonids.ParseStorageAccountID(d.Get("storage_account_id").(string))
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, accountId.ResourceGroup, accountId.Name, name)
+	id := encryptionscopes.NewEncryptionScopeID(accountId.SubscriptionId, accountId.ResourceGroupName, accountId.StorageAccountName, d.Get("name").(string))
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Storage Encryption Scope %q (Storage Account Name %q / Resource Group %q) was not found", name, accountId.Name, accountId.ResourceGroup)
+		if response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("%s was not found", id)
 		}
 
-		return fmt.Errorf("retrieving Storage Encryption Scope %q (Storage Account Name %q / Resource Group %q): %+v", name, accountId.Name, accountId.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.SetId(parse.NewEncryptionScopeID(accountId.SubscriptionId, accountId.ResourceGroup, accountId.Name, name).ID())
+	d.SetId(id.ID())
 
-	if props := resp.EncryptionScopeProperties; props != nil {
-		d.Set("source", flattenEncryptionScopeSource(props.Source))
-		var keyId string
-		if kv := props.KeyVaultProperties; kv != nil {
-			if kv.KeyURI != nil {
-				keyId = *kv.KeyURI
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			keyVaultKeyUri := ""
+			if props.KeyVaultProperties != nil && props.KeyVaultProperties.KeyUri != nil {
+				keyVaultKeyUri = *props.KeyVaultProperties.KeyUri
 			}
+			d.Set("key_vault_key_id", keyVaultKeyUri)
+
+			d.Set("source", string(pointer.From(props.Source)))
 		}
-		d.Set("key_vault_key_id", keyId)
 	}
 
 	return nil

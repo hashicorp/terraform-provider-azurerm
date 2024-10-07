@@ -20,7 +20,7 @@ type UpdateOperationResponse struct {
 // Update ...
 func (c DesktopClient) Update(ctx context.Context, id DesktopId, input DesktopPatch) (result UpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -47,7 +47,9 @@ func (c DesktopClient) Update(ctx context.Context, id DesktopId, input DesktopPa
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Desktop
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

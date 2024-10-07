@@ -6,7 +6,6 @@ package desktopvirtualization
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -21,6 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization/migration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -55,16 +55,10 @@ func resourceVirtualDesktopApplicationGroup() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.All(
-					validation.StringIsNotEmpty,
-					validation.StringMatch(
-						regexp.MustCompile("^[-a-zA-Z0-9]{1,260}$"),
-						"Virtual desktop application group name must be 1 - 260 characters long, contain only letters, numbers and hyphens.",
-					),
-				),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.ApplicationGroupName,
 			},
 
 			"location": commonschema.Location(),

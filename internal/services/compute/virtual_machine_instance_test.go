@@ -6,17 +6,17 @@ package compute
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
 )
 
 func TestVirtualMachineShouldBeStarted(t *testing.T) {
-	buildInstanceViewStatus := func(statuses ...string) *[]compute.InstanceViewStatus {
-		results := make([]compute.InstanceViewStatus, 0)
+	buildInstanceViewStatus := func(statuses ...string) *[]virtualmachines.InstanceViewStatus {
+		results := make([]virtualmachines.InstanceViewStatus, 0)
 
 		for _, v := range statuses {
-			results = append(results, compute.InstanceViewStatus{
-				Code: utils.String(v),
+			results = append(results, virtualmachines.InstanceViewStatus{
+				Code: pointer.To(v),
 			})
 		}
 
@@ -25,7 +25,7 @@ func TestVirtualMachineShouldBeStarted(t *testing.T) {
 
 	testCases := []struct {
 		Name     string
-		Input    *[]compute.InstanceViewStatus
+		Input    *[]virtualmachines.InstanceViewStatus
 		Expected bool
 	}{
 		{
@@ -73,10 +73,10 @@ func TestVirtualMachineShouldBeStarted(t *testing.T) {
 	for _, testCase := range testCases {
 		t.Logf("Running %q..", testCase.Name)
 
-		instanceView := compute.VirtualMachineInstanceView{
+		instanceView := virtualmachines.VirtualMachineInstanceView{
 			Statuses: testCase.Input,
 		}
-		result := virtualMachineShouldBeStarted(instanceView)
+		result := virtualMachineShouldBeStarted(&instanceView)
 		if result != testCase.Expected {
 			t.Fatalf("Expected %t but got %t", testCase.Expected, result)
 		}

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -259,10 +260,10 @@ func resourceAppServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 	// Check if App Service Plan is part of ASE
 	// If so, the name needs updating to <app name>.<ASE name>.appserviceenvironment.net and FQDN setting true for name availability check
-	aspDetails, err := aspClient.Get(ctx, aspID.ResourceGroup, aspID.ServerfarmName)
+	aspDetails, err := aspClient.Get(ctx, aspID.ResourceGroup, aspID.ServerFarmName)
 	// 404 is incorrectly being considered an acceptable response, issue tracked at https://github.com/Azure/azure-sdk-for-go/issues/15002
 	if err != nil || utils.ResponseWasNotFound(aspDetails.Response) {
-		return fmt.Errorf("App Service Environment %q or Resource Group %q does not exist", aspID.ServerfarmName, aspID.ResourceGroup)
+		return fmt.Errorf("App Service Environment %q or Resource Group %q does not exist", aspID.ServerFarmName, aspID.ResourceGroup)
 	}
 	if aspDetails.HostingEnvironmentProfile != nil {
 		availabilityRequest.Name = utils.String(fmt.Sprintf("%s.%s.appserviceenvironment.net", id.SiteName, *aspDetails.HostingEnvironmentProfile.Name))
@@ -707,7 +708,11 @@ func resourceAppServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	if props := resp.SiteProperties; props != nil {
-		d.Set("app_service_plan_id", props.ServerFarmID)
+		servicePlan, err := commonids.ParseAppServicePlanIDInsensitively(pointer.From(props.ServerFarmID))
+		if err != nil {
+			return err
+		}
+		d.Set("app_service_plan_id", servicePlan.ID())
 		d.Set("client_affinity_enabled", props.ClientAffinityEnabled)
 		d.Set("enabled", props.Enabled)
 		d.Set("https_only", props.HTTPSOnly)

@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	service "github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/resource"
@@ -66,6 +67,8 @@ func resourceHealthcareService() *pluginsdk.Resource {
 					string(service.KindFhirNegativeStuThree),
 				}, false),
 			},
+
+			"identity": commonschema.SystemAssignedIdentityOptional(),
 
 			"cosmosdb_throughput": {
 				Type:         pluginsdk.TypeInt,
@@ -198,6 +201,12 @@ func resourceHealthcareService() *pluginsdk.Resource {
 				},
 			},
 
+			"configuration_export_storage_account_name": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
 			"public_network_access_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -246,6 +255,19 @@ func resourceHealthcareServiceCreateUpdate(d *pluginsdk.ResourceData, meta inter
 		},
 	}
 
+	storageAcc, hasValues := d.GetOk("configuration_export_storage_account_name")
+	if hasValues {
+		healthcareServiceDescription.Properties.ExportConfiguration = &service.ServiceExportConfigurationInfo{
+			StorageAccountName: pointer.To(storageAcc.(string)),
+		}
+	}
+
+	identity, err := identity.ExpandSystemAssigned(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+	healthcareServiceDescription.Identity = identity
+
 	publicNetworkAccess := d.Get("public_network_access_enabled").(bool)
 	if !publicNetworkAccess {
 		healthcareServiceDescription.Properties.PublicNetworkAccess = pointer.To(service.PublicNetworkAccessDisabled)
@@ -292,6 +314,12 @@ func resourceHealthcareServiceRead(d *pluginsdk.ResourceData, meta interface{}) 
 		if kind := m.Kind; string(kind) != "" {
 			d.Set("kind", kind)
 		}
+
+		i := identity.FlattenSystemAssigned(m.Identity)
+		if err := d.Set("identity", i); err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
+		}
+
 		if props := m.Properties; props != nil {
 			if err := d.Set("access_policy_object_ids", flattenAccessPolicies(props.AccessPolicies)); err != nil {
 				return fmt.Errorf("setting `access_policy_object_ids`: %+v", err)
@@ -309,6 +337,11 @@ func resourceHealthcareServiceRead(d *pluginsdk.ResourceData, meta interface{}) 
 			}
 			d.Set("cosmosdb_key_vault_key_versionless_id", cosmodDbKeyVaultKeyVersionlessId)
 			d.Set("cosmosdb_throughput", cosmosDbThroughput)
+
+			if props.ExportConfiguration != nil && props.ExportConfiguration.StorageAccountName != nil {
+				d.Set("configuration_export_storage_account_name", props.ExportConfiguration.StorageAccountName)
+			}
+
 			if pointer.From(props.PublicNetworkAccess) == service.PublicNetworkAccessEnabled {
 				d.Set("public_network_access_enabled", true)
 			} else {

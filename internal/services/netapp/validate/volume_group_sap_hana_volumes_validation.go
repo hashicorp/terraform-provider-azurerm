@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumegroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/volumegroups"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
@@ -59,21 +59,6 @@ func PossibleValuesForProtocolTypeVolumeGroupSapHana() []string {
 	return []string{
 		string(ProtocolTypeNfsV41),
 		string(ProtocolTypeNfsV3),
-	}
-}
-
-// Diverging from the SDK volumegroups.SecurityStyle since it is defined as lower case
-// but the backend changes it to Pascal case on GET. Please refer to https://github.com/Azure/azure-sdk-for-go/issues/14684
-type SecurityStyle string
-
-const (
-	SecurityStyleUnix SecurityStyle = "Unix"
-	SecurityStyleNtfs SecurityStyle = "Ntfs"
-)
-
-func PossibleValuesForSecurityStyle() []string {
-	return []string{
-		string(SecurityStyleUnix),
 	}
 }
 

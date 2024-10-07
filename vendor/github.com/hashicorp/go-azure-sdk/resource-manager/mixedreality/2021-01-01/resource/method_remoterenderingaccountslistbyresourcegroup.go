@@ -20,17 +20,31 @@ type RemoteRenderingAccountsListByResourceGroupOperationResponse struct {
 }
 
 type RemoteRenderingAccountsListByResourceGroupCompleteResult struct {
-	Items []RemoteRenderingAccount
+	LatestHttpResponse *http.Response
+	Items              []RemoteRenderingAccount
+}
+
+type RemoteRenderingAccountsListByResourceGroupCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *RemoteRenderingAccountsListByResourceGroupCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // RemoteRenderingAccountsListByResourceGroup ...
 func (c ResourceClient) RemoteRenderingAccountsListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (result RemoteRenderingAccountsListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &RemoteRenderingAccountsListByResourceGroupCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.MixedReality/remoteRenderingAccounts", id.ID()),
 	}
 
@@ -72,6 +86,7 @@ func (c ResourceClient) RemoteRenderingAccountsListByResourceGroupCompleteMatchi
 
 	resp, err := c.RemoteRenderingAccountsListByResourceGroup(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -84,7 +99,8 @@ func (c ResourceClient) RemoteRenderingAccountsListByResourceGroupCompleteMatchi
 	}
 
 	result = RemoteRenderingAccountsListByResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -25,7 +25,7 @@ The following arguments are supported:
 
 * `name` - (Required) Name of the Private DNS Resolver Inbound Endpoint.
 
-* `private_dns_resolver_id` - (Required) ID of the Private DNS Resolver Inbound Endpoint.
+* `private_dns_resolver_id` - (Required) ID of the Private DNS Resolver.
 
 ## Attributes Reference
 

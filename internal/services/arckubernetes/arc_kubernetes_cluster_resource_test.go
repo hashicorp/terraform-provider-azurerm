@@ -16,7 +16,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	arckubernetes "github.com/hashicorp/go-azure-sdk/resource-manager/hybridkubernetes/2021-10-01/connectedclusters"
+	arckubernetes "github.com/hashicorp/go-azure-sdk/resource-manager/hybridkubernetes/2024-01-01/connectedclusters"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -43,7 +43,7 @@ func TestAccArcKubernetesCluster_basic(t *testing.T) {
 			Config: r.update(data, credential, privateKey, publicKey),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("distribution").HasValue("kind"),
+				check.That(data.ResourceName).Key("distribution").HasValue("generic"),
 				check.That(data.ResourceName).Key("infrastructure").HasValue("generic"),
 			),
 		},
@@ -85,7 +85,7 @@ func TestAccArcKubernetesCluster_complete(t *testing.T) {
 			Config: r.update(data, credential, privateKey, publicKey),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("distribution").HasValue("kind"),
+				check.That(data.ResourceName).Key("distribution").HasValue("generic"),
 				check.That(data.ResourceName).Key("infrastructure").HasValue("generic"),
 			),
 		},
@@ -199,8 +199,8 @@ resource "azurerm_linux_virtual_machine" "test" {
   }
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "18.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 }

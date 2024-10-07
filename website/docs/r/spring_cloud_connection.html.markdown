@@ -115,7 +115,7 @@ An `authentication` block supports the following:
 
 ---
 
-* `client_type` - (Optional) The application client type. Possible values are `none`, `dotnet`, `java`, `python`, `go`, `php`, `ruby`, `django`, `nodejs` and `springBoot`.
+* `client_type` - (Optional) The application client type. Possible values are `none`, `dotnet`, `java`, `python`, `go`, `php`, `ruby`, `django`, `nodejs` and `springBoot`. Defaults to `none`.
 
 * `vnet_solution` - (Optional) The type of the VNet solution. Possible values are `serviceEndpoint`, `privateLink`.
 
@@ -125,7 +125,7 @@ An `authentication` block supports the following:
 
 An `secret_store` block supports the following:
 
-* `key_vault_id` - (required) The key vault id to store secret.
+* `key_vault_id` - (Required) The key vault id to store secret.
 
 
 ## Attribute Reference

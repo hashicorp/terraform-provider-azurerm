@@ -2956,8 +2956,8 @@ type LifetimeActionsTrigger struct {
 
 // LifetimeActionsType the action that will be executed.
 type LifetimeActionsType struct {
-	// Type - The type of the action. Possible values include: 'KeyRotationPolicyActionRotate', 'KeyRotationPolicyActionNotify'
-	Type KeyRotationPolicyAction `json:"type,omitempty"`
+	// Type - The type of the action. The value should be compared case-insensitively. Possible values include: 'ActionTypeRotate', 'ActionTypeNotify'
+	Type ActionType `json:"type,omitempty"`
 }
 
 // OrganizationDetails details of the organization of the certificate issuer.

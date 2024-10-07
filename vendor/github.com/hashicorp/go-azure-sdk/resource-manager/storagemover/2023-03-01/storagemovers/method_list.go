@@ -20,17 +20,31 @@ type ListOperationResponse struct {
 }
 
 type ListCompleteResult struct {
-	Items []StorageMover
+	LatestHttpResponse *http.Response
+	Items              []StorageMover
+}
+
+type ListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // List ...
 func (c StorageMoversClient) List(ctx context.Context, id commonids.ResourceGroupId) (result ListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.StorageMover/storageMovers", id.ID()),
 	}
 
@@ -72,6 +86,7 @@ func (c StorageMoversClient) ListCompleteMatchingPredicate(ctx context.Context, 
 
 	resp, err := c.List(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -84,7 +99,8 @@ func (c StorageMoversClient) ListCompleteMatchingPredicate(ctx context.Context, 
 	}
 
 	result = ListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

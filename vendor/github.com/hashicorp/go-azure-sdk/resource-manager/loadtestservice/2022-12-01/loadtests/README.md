@@ -1,13 +1,14 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/loadtestservice/2022-12-01/loadtests` Documentation
 
-The `loadtests` SDK allows for interaction with the Azure Resource Manager Service `loadtestservice` (API Version `2022-12-01`).
+The `loadtests` SDK allows for interaction with Azure Resource Manager `loadtestservice` (API Version `2022-12-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/loadtestservice/2022-12-01/loadtests"
 ```
 
@@ -24,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := loadtests.NewLoadTestID("12345678-1234-9876-4563-123456789012", "example-resource-group", "loadTestValue")
+id := loadtests.NewLoadTestID("12345678-1234-9876-4563-123456789012", "example-resource-group", "loadTestName")
 
 payload := loadtests.LoadTestResource{
 	// ...
@@ -41,7 +42,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := loadtests.NewLoadTestID("12345678-1234-9876-4563-123456789012", "example-resource-group", "loadTestValue")
+id := loadtests.NewLoadTestID("12345678-1234-9876-4563-123456789012", "example-resource-group", "loadTestName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +54,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := loadtests.NewLoadTestID("12345678-1234-9876-4563-123456789012", "example-resource-group", "loadTestValue")
+id := loadtests.NewLoadTestID("12345678-1234-9876-4563-123456789012", "example-resource-group", "loadTestName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -69,7 +70,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := loadtests.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
+id := commonids.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
 // alternatively `client.ListByResourceGroup(ctx, id)` can be used to do batched pagination
 items, err := client.ListByResourceGroupComplete(ctx, id)
@@ -86,10 +87,27 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := loadtests.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 // alternatively `client.ListBySubscription(ctx, id)` can be used to do batched pagination
 items, err := client.ListBySubscriptionComplete(ctx, id)
+if err != nil {
+	// handle the error
+}
+for _, item := range items {
+	// do something
+}
+```
+
+
+### Example Usage: `LoadTestsClient.ListOutboundNetworkDependenciesEndpoints`
+
+```go
+ctx := context.TODO()
+id := loadtests.NewLoadTestID("12345678-1234-9876-4563-123456789012", "example-resource-group", "loadTestName")
+
+// alternatively `client.ListOutboundNetworkDependenciesEndpoints(ctx, id)` can be used to do batched pagination
+items, err := client.ListOutboundNetworkDependenciesEndpointsComplete(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -103,9 +121,9 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := loadtests.NewLoadTestID("12345678-1234-9876-4563-123456789012", "example-resource-group", "loadTestValue")
+id := loadtests.NewLoadTestID("12345678-1234-9876-4563-123456789012", "example-resource-group", "loadTestName")
 
-payload := loadtests.LoadTestResourcePatchRequestBody{
+payload := loadtests.LoadTestResourceUpdate{
 	// ...
 }
 

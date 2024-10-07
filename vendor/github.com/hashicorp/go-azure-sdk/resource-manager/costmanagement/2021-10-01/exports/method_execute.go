@@ -20,7 +20,7 @@ type ExecuteOperationResponse struct {
 // Execute ...
 func (c ExportsClient) Execute(ctx context.Context, id ScopedExportId) (result ExecuteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

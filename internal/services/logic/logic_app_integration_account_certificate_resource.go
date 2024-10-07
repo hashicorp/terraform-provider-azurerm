@@ -70,7 +70,7 @@ func resourceLogicAppIntegrationAccountCertificate() *pluginsdk.Resource {
 							ValidateFunc: keyVaultValidate.NestedItemName,
 						},
 
-						"key_vault_id": commonschema.ResourceIDReferenceRequired(commonids.KeyVaultId{}),
+						"key_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}),
 
 						"key_version": {
 							Type:         pluginsdk.TypeString,

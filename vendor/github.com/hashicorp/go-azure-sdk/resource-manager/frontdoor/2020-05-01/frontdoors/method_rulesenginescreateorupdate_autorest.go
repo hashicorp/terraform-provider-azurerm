@@ -16,6 +16,7 @@ import (
 type RulesEnginesCreateOrUpdateOperationResponse struct {
 	Poller       polling.LongRunningPoller
 	HttpResponse *http.Response
+	Model        *RulesEngine
 }
 
 // RulesEnginesCreateOrUpdate ...

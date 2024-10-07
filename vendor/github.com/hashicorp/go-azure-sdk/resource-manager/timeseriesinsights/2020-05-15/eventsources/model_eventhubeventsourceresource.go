@@ -14,11 +14,24 @@ type EventHubEventSourceResource struct {
 	Properties EventHubEventSourceCommonProperties `json:"properties"`
 
 	// Fields inherited from EventSourceResource
+
 	Id       *string            `json:"id,omitempty"`
+	Kind     Kind               `json:"kind"`
 	Location string             `json:"location"`
 	Name     *string            `json:"name,omitempty"`
 	Tags     *map[string]string `json:"tags,omitempty"`
 	Type     *string            `json:"type,omitempty"`
+}
+
+func (s EventHubEventSourceResource) EventSourceResource() BaseEventSourceResourceImpl {
+	return BaseEventSourceResourceImpl{
+		Id:       s.Id,
+		Kind:     s.Kind,
+		Location: s.Location,
+		Name:     s.Name,
+		Tags:     s.Tags,
+		Type:     s.Type,
+	}
 }
 
 var _ json.Marshaler = EventHubEventSourceResource{}
@@ -32,9 +45,10 @@ func (s EventHubEventSourceResource) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling EventHubEventSourceResource: %+v", err)
 	}
+
 	decoded["kind"] = "Microsoft.EventHub"
 
 	encoded, err = json.Marshal(decoded)

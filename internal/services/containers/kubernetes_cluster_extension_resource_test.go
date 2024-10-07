@@ -97,7 +97,7 @@ func TestAccKubernetesClusterExtension_plan(t *testing.T) {
 }
 
 func (r KubernetesClusterExtensionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := extensions.ParseExtensionID(state.ID)
+	id, err := extensions.ParseScopedExtensionID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -134,6 +134,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = 1
     vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {

@@ -44,7 +44,7 @@ resource "azurerm_public_ip" "example" {
   name                = "example-pip"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
 }
 
 # since these variables are re-used - a locals block makes this more maintainable
@@ -63,14 +63,14 @@ resource "azurerm_application_gateway" "network" {
   location            = azurerm_resource_group.example.location
 
   sku {
-    name     = "Standard_Small"
-    tier     = "Standard"
+    name     = "Standard_v2"
+    tier     = "Standard_v2"
     capacity = 2
   }
 
   gateway_ip_configuration {
     name      = "my-gateway-ip-configuration"
-    subnet_id = azurerm_subnet.frontend.id
+    subnet_id = azurerm_subnet.backend.id
   }
 
   frontend_port {
@@ -152,7 +152,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the association between the Network Interface and the Application Gateway Backend Address Pool.
-* `update` - (Defaults to 30 minutes) Used when updating the association between the Network Interface and the Application Gateway Backend Address Pool.
 * `read` - (Defaults to 5 minutes) Used when retrieving the association between the Network Interface and the Application Gateway Backend Address Pool.
 * `delete` - (Defaults to 30 minutes) Used when deleting the association between the Network Interface and the Application Gateway Backend Address Pool.
 

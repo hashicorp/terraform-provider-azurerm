@@ -63,6 +63,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `enabled` - Is the Windows Web App enabled?
 
+* `ftp_publish_basic_authentication_enabled` - Are the default FTP Basic Authentication publishing credentials enabled.
+
 * `https_only` - Does the Windows Web App require HTTPS connections.
 
 * `identity` - A `identity` block as defined below.
@@ -81,6 +83,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `possible_outbound_ip_addresses` - The string representation of the list of Possible Outbound IP Addresses that could be used by this Windows Web App.
 
+* `public_network_access_enabled` - Is Public Network Access enabled for the Windows Web App.
+
 * `service_plan_id` - The ID of the Service Plan in which this Windows Web App resides.
 
 * `site_config` - A `site_config` block as defined below.
@@ -94,6 +98,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `tags` - A mapping of tags assigned to the Windows Web App.
 
 * `virtual_network_subnet_id` - The subnet id which the Windows Web App is vNet Integrated with.
+
+* `webdeploy_publish_basic_authentication_enabled` - Are the default WebDeploy Basic Authentication publishing credentials enabled.
 
 ---
 
@@ -251,7 +257,7 @@ An `active_directory_v2` block supports the following:
 
 * `client_id` - The ID of the Client used to authenticate with Azure Active Directory.
 
-* `tenant_auth_endpoint` - The Azure Tenant Endpoint for the Authenticating Tenant. e.g. `https://login.microsoftonline.com/v2.0/{tenant-guid}/`
+* `tenant_auth_endpoint` - The Azure Tenant Endpoint for the Authenticating Tenant. e.g. `https://login.microsoftonline.com/{tenant-guid}/v2.0/`
 
 * `client_secret_setting_name` - The App Setting name that contains the client secret of the Client.
 
@@ -287,7 +293,7 @@ A `custom_oidc_v2` block supports the following:
 
 * `client_id` - The ID of the Client to use to authenticate with the Custom OIDC.
 
-* `openid_configuration_endpoint` - The app setting name that contains the `client_secret` value used for the Custom OIDC Login.
+* `openid_configuration_endpoint`- The endpoint used for OpenID Connect Discovery. For example `https://example.com/.well-known/openid-configuration`.
 
 * `name_claim_type` - The name of the claim that contains the users name.
 
@@ -567,8 +573,6 @@ A `site_config` block exports the following:
 
 * `application_stack` - A `application_stack` block as defined above.
 
-* `auto_heal_enabled` - Are Auto heal rules to be enabled.
-
 * `auto_heal_setting` - A `auto_heal_setting` block as defined above.
 
 * `auto_swap_slot_name` - The Windows Web App Slot Name to automatically swap to when deployment to that slot is successfully completed.
@@ -593,6 +597,8 @@ A `site_config` block exports the following:
 
 * `ip_restriction` - A `ip_restriction` block as defined above.
 
+* `ip_restriction_default_action` - The Default action for traffic that does not match any `ip_restriction` rule.
+
 * `load_balancing_mode` - The site Load Balancing Mode.
 
 * `local_mysql_enabled` - Is the Local MySQL enabled.
@@ -607,6 +613,8 @@ A `site_config` block exports the following:
 
 * `scm_ip_restriction` - A `scm_ip_restriction` block as defined above.
 
+* `scm_ip_restriction_default_action` - The Default action for traffic that does not match any `scm_ip_restriction` rule.
+
 * `scm_minimum_tls_version` - The Minimum version of TLS for requests to SCM.
 
 * `scm_type` - The Source Control Management Type in use.
@@ -614,6 +622,8 @@ A `site_config` block exports the following:
 * `scm_use_main_ip_restriction` - Is the Windows Web App `ip_restriction` configuration used for the SCM also.
 
 * `use_32_bit_worker` - Does the Windows Web App use a 32-bit worker.
+
+* `handler_mapping` - A `handler_mapping` block as defined below.
 
 * `virtual_application` - A `virtual_application` block as defined below.
 
@@ -643,7 +653,21 @@ A `slow_request` block exports the following:
 
 * `path` - The App Path for which this rule applies.
 
+~> **NOTE:** `path` in `slow_request` block will be deprecated in 4.0 provider. Please use `slow_request_with_path` to set a slow request trigger with path specified.
+
 * `time_taken` - The amount of time that qualifies as slow for this rule.
+
+---
+
+A `slow_request_with_path` block supports the following:
+
+* `count` - (Required) The number of Slow Requests in the time `interval` to trigger this rule.
+
+* `interval` - (Required) The time interval in the form `hh:mm:ss`.
+
+* `time_taken` - (Required) The threshold of time passed to qualify as a Slow Request in `hh:mm:ss`.
+
+* `path` - (Optional) The path for which this slow request rule applies.
 
 ---
 
@@ -659,7 +683,7 @@ A `status_code` block exports the following:
 
 * `sub_status` - The Request Sub Status of the Status Code.
 
-* `win32_status` - The Win32 Status Code of the Request.
+* `win32_status_code` - The Win32 Status Code of the Request.
 
 ---
 
@@ -695,6 +719,8 @@ A `trigger` block exports the following:
 
 * `slow_request` - A `slow_request` block as defined above.
 
+* `slow_request_with_path` - (Optional) One or more `slow_request_with_path` blocks as defined above.
+
 * `status_code` - A `status_code` block as defined above.
 
 ---
@@ -706,6 +732,16 @@ A `twitter` block exports the following:
 * `consumer_secret` - The OAuth 1.0a consumer secret of the Twitter application used for sign-in.
 
 * `consumer_secret_setting_name` - The app setting name that contains the OAuth 1.0a consumer secret of the Twitter application used for sign-in.
+
+---
+
+A `handler_mapping` block supports the following:
+
+* `extension` - The extension to be handled by the specified FastCGI application.
+
+* `script_processor_path` - The absolute path to the FastCGI application.
+
+* `arguments` - The command-line arguments to be passed to the script processor.
 
 ---
 

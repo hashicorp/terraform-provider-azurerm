@@ -23,7 +23,7 @@ type PrivateEndpointConnectionsDeleteOperationResponse struct {
 // PrivateEndpointConnectionsDelete ...
 func (c SignalRClient) PrivateEndpointConnectionsDelete(ctx context.Context, id PrivateEndpointConnectionId) (result PrivateEndpointConnectionsDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,

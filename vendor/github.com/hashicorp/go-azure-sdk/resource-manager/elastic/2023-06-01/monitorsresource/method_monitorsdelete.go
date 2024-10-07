@@ -23,7 +23,7 @@ type MonitorsDeleteOperationResponse struct {
 // MonitorsDelete ...
 func (c MonitorsResourceClient) MonitorsDelete(ctx context.Context, id MonitorId) (result MonitorsDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,

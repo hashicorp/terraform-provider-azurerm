@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/connection"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/connection"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -98,7 +98,7 @@ func (t AutomationConnectionCertificateResource) Exists(ctx context.Context, cli
 		return nil, err
 	}
 
-	resp, err := clients.Automation.ConnectionClient.Get(ctx, *id)
+	resp, err := clients.Automation.Connection.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}

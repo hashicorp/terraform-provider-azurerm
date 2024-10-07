@@ -10,9 +10,52 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ProtectedItem interface {
+	ProtectedItem() BaseProtectedItemImpl
 }
 
-func unmarshalProtectedItemImplementation(input []byte) (ProtectedItem, error) {
+var _ ProtectedItem = BaseProtectedItemImpl{}
+
+type BaseProtectedItemImpl struct {
+	BackupManagementType             *BackupManagementType `json:"backupManagementType,omitempty"`
+	BackupSetName                    *string               `json:"backupSetName,omitempty"`
+	ContainerName                    *string               `json:"containerName,omitempty"`
+	CreateMode                       *CreateMode           `json:"createMode,omitempty"`
+	DeferredDeleteTimeInUTC          *string               `json:"deferredDeleteTimeInUTC,omitempty"`
+	DeferredDeleteTimeRemaining      *string               `json:"deferredDeleteTimeRemaining,omitempty"`
+	IsArchiveEnabled                 *bool                 `json:"isArchiveEnabled,omitempty"`
+	IsDeferredDeleteScheduleUpcoming *bool                 `json:"isDeferredDeleteScheduleUpcoming,omitempty"`
+	IsRehydrate                      *bool                 `json:"isRehydrate,omitempty"`
+	IsScheduledForDeferredDelete     *bool                 `json:"isScheduledForDeferredDelete,omitempty"`
+	LastRecoveryPoint                *string               `json:"lastRecoveryPoint,omitempty"`
+	PolicyId                         *string               `json:"policyId,omitempty"`
+	PolicyName                       *string               `json:"policyName,omitempty"`
+	ProtectedItemType                string                `json:"protectedItemType"`
+	ResourceGuardOperationRequests   *[]string             `json:"resourceGuardOperationRequests,omitempty"`
+	SoftDeleteRetentionPeriodInDays  *int64                `json:"softDeleteRetentionPeriodInDays,omitempty"`
+	SourceResourceId                 *string               `json:"sourceResourceId,omitempty"`
+	WorkloadType                     *DataSourceType       `json:"workloadType,omitempty"`
+}
+
+func (s BaseProtectedItemImpl) ProtectedItem() BaseProtectedItemImpl {
+	return s
+}
+
+var _ ProtectedItem = RawProtectedItemImpl{}
+
+// RawProtectedItemImpl is returned when the Discriminated Value doesn't match any of the defined types
+// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
+// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+type RawProtectedItemImpl struct {
+	protectedItem BaseProtectedItemImpl
+	Type          string
+	Values        map[string]interface{}
+}
+
+func (s RawProtectedItemImpl) ProtectedItem() BaseProtectedItemImpl {
+	return s.protectedItem
+}
+
+func UnmarshalProtectedItemImplementation(input []byte) (ProtectedItem, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -22,9 +65,9 @@ func unmarshalProtectedItemImplementation(input []byte) (ProtectedItem, error) {
 		return nil, fmt.Errorf("unmarshaling ProtectedItem into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["protectedItemType"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["protectedItemType"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "AzureFileShareProtectedItem") {
@@ -131,14 +174,15 @@ func unmarshalProtectedItemImplementation(input []byte) (ProtectedItem, error) {
 		return out, nil
 	}
 
-	type RawProtectedItemImpl struct {
-		Type   string                 `json:"-"`
-		Values map[string]interface{} `json:"-"`
+	var parent BaseProtectedItemImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseProtectedItemImpl: %+v", err)
 	}
-	out := RawProtectedItemImpl{
-		Type:   value,
-		Values: temp,
-	}
-	return out, nil
+
+	return RawProtectedItemImpl{
+		protectedItem: parent,
+		Type:          value,
+		Values:        temp,
+	}, nil
 
 }

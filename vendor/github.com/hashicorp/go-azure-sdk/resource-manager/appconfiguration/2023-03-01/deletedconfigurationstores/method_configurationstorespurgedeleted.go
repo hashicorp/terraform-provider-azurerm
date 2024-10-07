@@ -23,7 +23,7 @@ type ConfigurationStoresPurgeDeletedOperationResponse struct {
 // ConfigurationStoresPurgeDeleted ...
 func (c DeletedConfigurationStoresClient) ConfigurationStoresPurgeDeleted(ctx context.Context, id DeletedConfigurationStoreId) (result ConfigurationStoresPurgeDeletedOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,

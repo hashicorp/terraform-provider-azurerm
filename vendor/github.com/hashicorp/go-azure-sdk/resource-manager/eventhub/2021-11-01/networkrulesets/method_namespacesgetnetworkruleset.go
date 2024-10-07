@@ -21,7 +21,7 @@ type NamespacesGetNetworkRuleSetOperationResponse struct {
 // NamespacesGetNetworkRuleSet ...
 func (c NetworkRuleSetsClient) NamespacesGetNetworkRuleSet(ctx context.Context, id NamespaceId) (result NamespacesGetNetworkRuleSetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -44,7 +44,9 @@ func (c NetworkRuleSetsClient) NamespacesGetNetworkRuleSet(ctx context.Context, 
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model NetworkRuleSet
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

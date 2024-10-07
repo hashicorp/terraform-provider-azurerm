@@ -20,7 +20,7 @@ type QueuesCreateOrUpdateAuthorizationRuleOperationResponse struct {
 // QueuesCreateOrUpdateAuthorizationRule ...
 func (c QueuesAuthorizationRuleClient) QueuesCreateOrUpdateAuthorizationRule(ctx context.Context, id QueueAuthorizationRuleId, input SBAuthorizationRule) (result QueuesCreateOrUpdateAuthorizationRuleOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -47,7 +47,9 @@ func (c QueuesAuthorizationRuleClient) QueuesCreateOrUpdateAuthorizationRule(ctx
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model SBAuthorizationRule
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -7,8 +7,8 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
-	"github.com/hashicorp/go-azure-helpers/authentication"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/sdk/auth"
@@ -23,16 +23,15 @@ type ClientBuilder struct {
 	AuthConfig *auth.Credentials
 	Features   features.UserFeatures
 
+	CustomCorrelationRequestID  string
 	DisableCorrelationRequestID bool
 	DisableTerraformPartnerID   bool
-	SkipProviderRegistration    bool
+	MetadataHost                string
+	PartnerID                   string
+	RegisteredResourceProviders resourceproviders.ResourceProviders
 	StorageUseAzureAD           bool
-
-	CustomCorrelationRequestID string
-	MetadataHost               string
-	PartnerID                  string
-	SubscriptionID             string
-	TerraformVersion           string
+	SubscriptionID              string
+	TerraformVersion            string
 }
 
 const azureStackEnvironmentError = `
@@ -69,7 +68,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		return nil, fmt.Errorf("unable to build authorizer for Key Vault API: %+v", err)
 	}
 
-	if _, ok := builder.AuthConfig.Environment.Synapse.ResourceIdentifier(); ok {
+	if builder.AuthConfig.Environment.Synapse.Available() {
 		synapseAuth, err = auth.NewAuthorizerFromCredentials(ctx, *builder.AuthConfig, builder.AuthConfig.Environment.Synapse)
 		if err != nil {
 			return nil, fmt.Errorf("unable to build authorizer for Synapse API: %+v", err)
@@ -78,7 +77,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		log.Printf("[DEBUG] Skipping building the Synapse Authorizer since this is not supported in the current Azure Environment")
 	}
 
-	if _, ok := builder.AuthConfig.Environment.Batch.ResourceIdentifier(); ok {
+	if builder.AuthConfig.Environment.Batch.Available() {
 		batchManagementAuth, err = auth.NewAuthorizerFromCredentials(ctx, *builder.AuthConfig, builder.AuthConfig.Environment.Batch)
 		if err != nil {
 			return nil, fmt.Errorf("unable to build authorizer for Batch Management API: %+v", err)
@@ -97,21 +96,24 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		return authorizer, nil
 	})
 
-	// TODO: remove these when autorest clients are no longer used
-	azureEnvironment, err := authentication.AzureEnvironmentByNameFromEndpoint(ctx, builder.MetadataHost, builder.AuthConfig.Environment.Name)
-	if err != nil {
-		return nil, fmt.Errorf("unable to find environment %q from endpoint %q: %+v", builder.AuthConfig.Environment.Name, builder.MetadataHost, err)
-	}
-	resourceManagerEndpoint, _ := builder.AuthConfig.Environment.ResourceManager.Endpoint()
-
-	account, err := NewResourceManagerAccount(ctx, *builder.AuthConfig, builder.SubscriptionID, builder.SkipProviderRegistration, *azureEnvironment)
+	account, err := NewResourceManagerAccount(ctx, *builder.AuthConfig, builder.SubscriptionID, builder.RegisteredResourceProviders)
 	if err != nil {
 		return nil, fmt.Errorf("building account: %+v", err)
 	}
 
-	managedHSMAuth, err := auth.NewAuthorizerFromCredentials(ctx, *builder.AuthConfig, builder.AuthConfig.Environment.ManagedHSM)
-	if err != nil {
-		return nil, fmt.Errorf("unable to build authorizer for Managed HSM API: %+v", err)
+	var managedHSMAuth auth.Authorizer
+	if builder.AuthConfig.Environment.ManagedHSM.Available() {
+		managedHSMAuth, err = auth.NewAuthorizerFromCredentials(ctx, *builder.AuthConfig, builder.AuthConfig.Environment.ManagedHSM)
+		if err != nil {
+			return nil, fmt.Errorf("unable to build authorizer for Managed HSM API: %+v", err)
+		}
+	} else {
+		log.Printf("[DEBUG] Skipping building the Managed HSM Authorizer since this is not supported in the current Azure Environment")
+	}
+
+	resourceManagerEndpoint, ok := builder.AuthConfig.Environment.ResourceManager.Endpoint()
+	if !ok {
+		return nil, fmt.Errorf("unable to determine resource manager endpoint for the current environment")
 	}
 
 	client := Client{
@@ -129,6 +131,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 			AuthorizerFunc:  authorizerFunc,
 		},
 
+		AuthConfig:  builder.AuthConfig,
 		Environment: builder.AuthConfig.Environment,
 		Features:    builder.Features,
 
@@ -141,17 +144,14 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		KeyVaultAuthorizer:        authWrapper.AutorestAuthorizer(keyVaultAuth).BearerAuthorizerCallback(),
 		ManagedHSMAuthorizer:      authWrapper.AutorestAuthorizer(managedHSMAuth).BearerAuthorizerCallback(),
 		ResourceManagerAuthorizer: authWrapper.AutorestAuthorizer(resourceManagerAuth),
-		StorageAuthorizer:         authWrapper.AutorestAuthorizer(storageAuth),
 		SynapseAuthorizer:         authWrapper.AutorestAuthorizer(synapseAuth),
 
 		CustomCorrelationRequestID:  builder.CustomCorrelationRequestID,
 		DisableCorrelationRequestID: builder.DisableCorrelationRequestID,
 		DisableTerraformPartnerID:   builder.DisableTerraformPartnerID,
-		SkipProviderReg:             builder.SkipProviderRegistration,
+		SkipProviderReg:             len(builder.RegisteredResourceProviders) == 0,
 		StorageUseAzureAD:           builder.StorageUseAzureAD,
 
-		// TODO: remove when `Azure/go-autorest` is no longer used
-		AzureEnvironment:        *azureEnvironment,
 		ResourceManagerEndpoint: *resourceManagerEndpoint,
 	}
 
@@ -162,8 +162,11 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 	if features.EnhancedValidationEnabled() {
 		subscriptionId := commonids.NewSubscriptionID(client.Account.SubscriptionId)
 
-		location.CacheSupportedLocations(ctx, *resourceManagerEndpoint)
-		if err := resourceproviders.CacheSupportedProviders(ctx, client.Resource.ResourceProvidersClient, subscriptionId); err != nil {
+		ctx2, cancel := context.WithTimeout(ctx, 10*time.Minute)
+		defer cancel()
+
+		location.CacheSupportedLocations(ctx2, *resourceManagerEndpoint)
+		if err := resourceproviders.CacheSupportedProviders(ctx2, client.Resource.ResourceProvidersClient, subscriptionId); err != nil {
 			log.Printf("[DEBUG] error retrieving providers: %s. Enhanced validation will be unavailable", err)
 		}
 	}

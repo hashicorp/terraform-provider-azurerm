@@ -46,7 +46,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `auth_settings_v2` - An `auth_settings_v2` block as defined below.
 
 * `availability` - The current availability state. Possible values are `Normal`, `Limited`, and `DisasterRecoveryMode`.
-* 
+
 * `backup` - A `backup` block as defined below.
 
 * `client_affinity_enabled` - Is Client Affinity enabled?
@@ -67,6 +67,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `enabled` - Is the Linux Web App enabled?
 
+* `ftp_publish_basic_authentication_enabled` - Are the default FTP Basic Authentication publishing credentials enabled.
+
 * `https_only` - Should the Linux Web App require HTTPS connections.
 
 * `identity` - A `identity` block as defined below.
@@ -85,6 +87,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `possible_outbound_ip_addresses` - A comma separated list of outbound IP addresses - such as `52.23.25.3,52.143.43.12,52.143.43.17` - not all of which are necessarily in use. Superset of `outbound_ip_addresses`.
 
+* `public_network_access_enabled` - Is Public Network Access enabled for this Linux Web App.
+
 * `service_plan_id` - The ID of the Service Plan that this Linux Web App exists in.
 
 * `site_config` - A `site_config` block as defined below.
@@ -98,6 +102,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `virtual_network_subnet_id` - The subnet id which the Linux Web App is vNet Integrated with.
 
 * `usage` - The current usage state. Possible values are `Normal` and `Exceeded`.
+
+* `webdeploy_publish_basic_authentication_enabled` - Are the default WebDeploy Basic Authentication publishing credentials enabled.
 
 * `tags` - A mapping of tags assigned to the Linux Web App.
 
@@ -255,7 +261,7 @@ An `active_directory_v2` block supports the following:
 
 * `client_id` - The ID of the Client used to authenticate with Azure Active Directory.
 
-* `tenant_auth_endpoint` - The Azure Tenant Endpoint for the Authenticating Tenant. e.g. `https://login.microsoftonline.com/v2.0/{tenant-guid}/`
+* `tenant_auth_endpoint` - The Azure Tenant Endpoint for the Authenticating Tenant. e.g. `https://login.microsoftonline.com/{tenant-guid}/v2.0/`
 
 * `client_secret_setting_name` - The App Setting name that contains the client secret of the Client.
 
@@ -291,7 +297,7 @@ A `custom_oidc_v2` block supports the following:
 
 * `client_id` - The ID of the Client to use to authenticate with the Custom OIDC.
 
-* `openid_configuration_endpoint` - The app setting name that contains the `client_secret` value used for the Custom OIDC Login.
+* `openid_configuration_endpoint`- The endpoint used for OpenID Connect Discovery. For example `https://example.com/.well-known/openid-configuration`.
 
 * `name_claim_type` - The name of the claim that contains the users name.
 
@@ -563,8 +569,6 @@ A `site_config` block exports the following:
 
 * `application_stack` - A `application_stack` block as defined above.
 
-* `auto_heal_enabled` - Are Auto heal rules be enabled.
-
 * `auto_heal_setting` - A `auto_heal_setting` block as defined above.
 
 * `auto_swap_slot_name` - The Linux Web App Slot Name to automatically swap to when deployment to that slot is successfully completed.
@@ -583,11 +587,13 @@ A `site_config` block exports the following:
 
 * `health_check_path` - The path to the Health Check endpoint.
 
-* `health_check_eviction_time_in_min` - (Optional) The amount of time in minutes that a node can be unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Only valid in conjunction with `health_check_path`.
+* `health_check_eviction_time_in_min` - The amount of time in minutes that a node can be unhealthy before being removed from the load balancer.
 
 * `http2_enabled` - Is HTTP2.0 enabled.
 
 * `ip_restriction` - A `ip_restriction` block as defined above.
+
+* `ip_restriction_default_action` - The Default action for traffic that does not match any `ip_restriction` rule.
 
 * `linux_fx_version` - The `LinuxFXVersion` string.
 
@@ -604,6 +610,8 @@ A `site_config` block exports the following:
 * `remote_debugging_version` - The Remote Debugging Version.
 
 * `scm_ip_restriction` - A `scm_ip_restriction` block as defined above.
+
+* `scm_ip_restriction_default_action` - The Default action for traffic that does not match any `scm_ip_restriction` rule.
 
 * `scm_minimum_tls_version` - The Minimum version of TLS for requests to SCM.
 
@@ -637,7 +645,21 @@ A `slow_request` block exports the following:
 
 * `path` - The App Path for which this rule applies.
 
+~> **NOTE:** `path` in `slow_request` block will be deprecated in 4.0 provider. Please use `slow_request_with_path` to set a slow request trigger with path specified.
+
 * `time_taken` - The amount of time that qualifies as slow for this rule.
+
+---
+
+A `slow_request_with_path` block supports the following:
+
+* `count` - (Required) The number of Slow Requests in the time `interval` to trigger this rule.
+
+* `interval` - (Required) The time interval in the form `hh:mm:ss`.
+
+* `time_taken` - (Required) The threshold of time passed to qualify as a Slow Request in `hh:mm:ss`.
+
+* `path` - (Optional) The path for which this slow request rule applies.
 
 ---
 
@@ -653,7 +675,7 @@ A `status_code` block exports the following:
 
 * `sub_status` - The Request Sub Status of the Status Code.
 
-* `win32_status` - The Win32 Status Code of the Request.
+* `win32_status_code` - The Win32 Status Code of the Request.
 
 ---
 
@@ -686,6 +708,8 @@ A `trigger` block exports the following:
 * `requests` - A `requests` block as defined above.
 
 * `slow_request` - A `slow_request` block as defined above.
+
+* `slow_request_with_path` - (Optional) One or more `slow_request_with_path` blocks as defined above.
 
 * `status_code` - A `status_code` block as defined above.
 

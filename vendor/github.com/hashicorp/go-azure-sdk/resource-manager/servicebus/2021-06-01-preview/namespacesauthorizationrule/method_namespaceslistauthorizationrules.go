@@ -19,17 +19,31 @@ type NamespacesListAuthorizationRulesOperationResponse struct {
 }
 
 type NamespacesListAuthorizationRulesCompleteResult struct {
-	Items []SBAuthorizationRule
+	LatestHttpResponse *http.Response
+	Items              []SBAuthorizationRule
+}
+
+type NamespacesListAuthorizationRulesCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *NamespacesListAuthorizationRulesCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // NamespacesListAuthorizationRules ...
 func (c NamespacesAuthorizationRuleClient) NamespacesListAuthorizationRules(ctx context.Context, id NamespaceId) (result NamespacesListAuthorizationRulesOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &NamespacesListAuthorizationRulesCustomPager{},
 		Path:       fmt.Sprintf("%s/authorizationRules", id.ID()),
 	}
 
@@ -71,6 +85,7 @@ func (c NamespacesAuthorizationRuleClient) NamespacesListAuthorizationRulesCompl
 
 	resp, err := c.NamespacesListAuthorizationRules(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +98,8 @@ func (c NamespacesAuthorizationRuleClient) NamespacesListAuthorizationRulesCompl
 	}
 
 	result = NamespacesListAuthorizationRulesCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

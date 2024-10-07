@@ -23,7 +23,7 @@ type CloudEndpointsDeleteOperationResponse struct {
 // CloudEndpointsDelete ...
 func (c CloudEndpointResourceClient) CloudEndpointsDelete(ctx context.Context, id CloudEndpointId) (result CloudEndpointsDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,

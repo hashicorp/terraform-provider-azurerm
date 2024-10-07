@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = EmailServiceId{}
+func init() {
+	recaser.RegisterResourceId(&EmailServiceId{})
+}
+
+var _ resourceids.ResourceId = &EmailServiceId{}
 
 // EmailServiceId is a struct representing the Resource ID for a Email Service
 type EmailServiceId struct {
@@ -30,25 +35,15 @@ func NewEmailServiceID(subscriptionId string, resourceGroupName string, emailSer
 
 // ParseEmailServiceID parses 'input' into a EmailServiceId
 func ParseEmailServiceID(input string) (*EmailServiceId, error) {
-	parser := resourceids.NewParserFromResourceIdType(EmailServiceId{})
+	parser := resourceids.NewParserFromResourceIdType(&EmailServiceId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := EmailServiceId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.EmailServiceName, ok = parsed.Parsed["emailServiceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "emailServiceName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +52,36 @@ func ParseEmailServiceID(input string) (*EmailServiceId, error) {
 // ParseEmailServiceIDInsensitively parses 'input' case-insensitively into a EmailServiceId
 // note: this method should only be used for API response data and not user input
 func ParseEmailServiceIDInsensitively(input string) (*EmailServiceId, error) {
-	parser := resourceids.NewParserFromResourceIdType(EmailServiceId{})
+	parser := resourceids.NewParserFromResourceIdType(&EmailServiceId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := EmailServiceId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.EmailServiceName, ok = parsed.Parsed["emailServiceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "emailServiceName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *EmailServiceId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.EmailServiceName, ok = input.Parsed["emailServiceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "emailServiceName", input)
+	}
+
+	return nil
 }
 
 // ValidateEmailServiceID checks that 'input' can be parsed as a Email Service ID
@@ -112,7 +115,7 @@ func (id EmailServiceId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftCommunication", "Microsoft.Communication", "Microsoft.Communication"),
 		resourceids.StaticSegment("staticEmailServices", "emailServices", "emailServices"),
-		resourceids.UserSpecifiedSegment("emailServiceName", "emailServiceValue"),
+		resourceids.UserSpecifiedSegment("emailServiceName", "emailServiceName"),
 	}
 }
 

@@ -22,7 +22,7 @@ type ListByResourceGroupOperationResponse struct {
 // ListByResourceGroup ...
 func (c ServersClient) ListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (result ListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -45,7 +45,9 @@ func (c ServersClient) ListByResourceGroup(ctx context.Context, id commonids.Res
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ServerListResult
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -1,13 +1,14 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2019-09-01/querypacks` Documentation
 
-The `querypacks` SDK allows for interaction with the Azure Resource Manager Service `operationalinsights` (API Version `2019-09-01`).
+The `querypacks` SDK allows for interaction with Azure Resource Manager `operationalinsights` (API Version `2019-09-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2019-09-01/querypacks"
 ```
 
@@ -20,18 +21,18 @@ client.Client.Authorizer = authorizer
 ```
 
 
-### Example Usage: `QueryPacksClient.QueryPacksCreateOrUpdate`
+### Example Usage: `QueryPacksClient.CreateOrUpdate`
 
 ```go
 ctx := context.TODO()
-id := querypacks.NewQueryPackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "queryPackValue")
+id := querypacks.NewQueryPackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "queryPackName")
 
 payload := querypacks.LogAnalyticsQueryPack{
 	// ...
 }
 
 
-read, err := client.QueryPacksCreateOrUpdate(ctx, id, payload)
+read, err := client.CreateOrUpdate(ctx, id, payload)
 if err != nil {
 	// handle the error
 }
@@ -41,18 +42,18 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `QueryPacksClient.QueryPacksCreateOrUpdateWithoutName`
+### Example Usage: `QueryPacksClient.CreateOrUpdateWithoutName`
 
 ```go
 ctx := context.TODO()
-id := querypacks.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
+id := commonids.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
 payload := querypacks.LogAnalyticsQueryPack{
 	// ...
 }
 
 
-read, err := client.QueryPacksCreateOrUpdateWithoutName(ctx, id, payload)
+read, err := client.CreateOrUpdateWithoutName(ctx, id, payload)
 if err != nil {
 	// handle the error
 }
@@ -62,13 +63,13 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `QueryPacksClient.QueryPacksDelete`
+### Example Usage: `QueryPacksClient.Delete`
 
 ```go
 ctx := context.TODO()
-id := querypacks.NewQueryPackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "queryPackValue")
+id := querypacks.NewQueryPackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "queryPackName")
 
-read, err := client.QueryPacksDelete(ctx, id)
+read, err := client.Delete(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -78,13 +79,13 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `QueryPacksClient.QueryPacksGet`
+### Example Usage: `QueryPacksClient.Get`
 
 ```go
 ctx := context.TODO()
-id := querypacks.NewQueryPackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "queryPackValue")
+id := querypacks.NewQueryPackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "queryPackName")
 
-read, err := client.QueryPacksGet(ctx, id)
+read, err := client.Get(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -94,14 +95,14 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `QueryPacksClient.QueryPacksList`
+### Example Usage: `QueryPacksClient.List`
 
 ```go
 ctx := context.TODO()
-id := querypacks.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
-// alternatively `client.QueryPacksList(ctx, id)` can be used to do batched pagination
-items, err := client.QueryPacksListComplete(ctx, id)
+// alternatively `client.List(ctx, id)` can be used to do batched pagination
+items, err := client.ListComplete(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -111,14 +112,14 @@ for _, item := range items {
 ```
 
 
-### Example Usage: `QueryPacksClient.QueryPacksListByResourceGroup`
+### Example Usage: `QueryPacksClient.ListByResourceGroup`
 
 ```go
 ctx := context.TODO()
-id := querypacks.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
+id := commonids.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
-// alternatively `client.QueryPacksListByResourceGroup(ctx, id)` can be used to do batched pagination
-items, err := client.QueryPacksListByResourceGroupComplete(ctx, id)
+// alternatively `client.ListByResourceGroup(ctx, id)` can be used to do batched pagination
+items, err := client.ListByResourceGroupComplete(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -128,18 +129,18 @@ for _, item := range items {
 ```
 
 
-### Example Usage: `QueryPacksClient.QueryPacksUpdateTags`
+### Example Usage: `QueryPacksClient.UpdateTags`
 
 ```go
 ctx := context.TODO()
-id := querypacks.NewQueryPackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "queryPackValue")
+id := querypacks.NewQueryPackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "queryPackName")
 
 payload := querypacks.TagsResource{
 	// ...
 }
 
 
-read, err := client.QueryPacksUpdateTags(ctx, id, payload)
+read, err := client.UpdateTags(ctx, id, payload)
 if err != nil {
 	// handle the error
 }

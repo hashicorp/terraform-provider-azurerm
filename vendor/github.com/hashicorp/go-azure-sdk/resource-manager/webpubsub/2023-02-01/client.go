@@ -4,20 +4,25 @@ package v2023_02_01
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 import (
-	"github.com/Azure/go-autorest/autorest"
+	"fmt"
+
 	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2023-02-01/webpubsub"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 type Client struct {
 	WebPubSub *webpubsub.WebPubSubClient
 }
 
-func NewClientWithBaseURI(endpoint string, configureAuthFunc func(c *autorest.Client)) Client {
-
-	webPubSubClient := webpubsub.NewWebPubSubClientWithBaseURI(endpoint)
-	configureAuthFunc(&webPubSubClient.Client)
-
-	return Client{
-		WebPubSub: &webPubSubClient,
+func NewClientWithBaseURI(sdkApi sdkEnv.Api, configureFunc func(c *resourcemanager.Client)) (*Client, error) {
+	webPubSubClient, err := webpubsub.NewWebPubSubClientWithBaseURI(sdkApi)
+	if err != nil {
+		return nil, fmt.Errorf("building WebPubSub client: %+v", err)
 	}
+	configureFunc(webPubSubClient.Client)
+
+	return &Client{
+		WebPubSub: webPubSubClient,
+	}, nil
 }

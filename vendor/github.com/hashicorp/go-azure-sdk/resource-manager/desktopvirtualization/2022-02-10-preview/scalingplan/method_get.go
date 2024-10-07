@@ -20,7 +20,7 @@ type GetOperationResponse struct {
 // Get ...
 func (c ScalingPlanClient) Get(ctx context.Context, id ScalingPlanId) (result GetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -43,7 +43,9 @@ func (c ScalingPlanClient) Get(ctx context.Context, id ScalingPlanId) (result Ge
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ScalingPlan
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

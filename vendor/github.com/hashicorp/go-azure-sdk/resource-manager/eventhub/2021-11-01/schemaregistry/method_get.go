@@ -20,7 +20,7 @@ type GetOperationResponse struct {
 // Get ...
 func (c SchemaRegistryClient) Get(ctx context.Context, id SchemaGroupId) (result GetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -43,7 +43,9 @@ func (c SchemaRegistryClient) Get(ctx context.Context, id SchemaGroupId) (result
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model SchemaGroup
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

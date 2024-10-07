@@ -25,10 +25,12 @@ func (r Registration) Name() string {
 
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
+		AppServiceEnvironmentV3DataSource{},
 		AppServiceSourceControlTokenDataSource{},
 		LinuxFunctionAppDataSource{},
 		LinuxWebAppDataSource{},
 		ServicePlanDataSource{},
+		StaticWebAppDataSource{},
 		WindowsFunctionAppDataSource{},
 		WindowsWebAppDataSource{},
 	}
@@ -36,6 +38,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
+		AppServiceEnvironmentV3Resource{},
 		AppServiceSourceControlTokenResource{},
 		FunctionAppActiveSlotResource{},
 		FunctionAppFunctionResource{},
@@ -47,6 +50,9 @@ func (r Registration) Resources() []sdk.Resource {
 		ServicePlanResource{},
 		SourceControlResource{},
 		SourceControlSlotResource{},
+		StaticWebAppResource{},
+		StaticWebAppCustomDomainResource{},
+		StaticWebAppFunctionAppRegistrationResource{},
 		WebAppActiveSlotResource{},
 		WebAppHybridConnectionResource{},
 		WindowsFunctionAppResource{},

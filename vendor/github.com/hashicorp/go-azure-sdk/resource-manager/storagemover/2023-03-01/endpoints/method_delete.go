@@ -23,7 +23,7 @@ type DeleteOperationResponse struct {
 // Delete ...
 func (c EndpointsClient) Delete(ctx context.Context, id EndpointId) (result DeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,

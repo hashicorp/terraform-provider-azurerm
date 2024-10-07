@@ -74,15 +74,15 @@ The following arguments are supported:
 
 * `client_token_ids` - (Optional) Specifies a list of IDs of Container Registry Tokens, which are meant to be used by the clients to connect to the Connected Registry.
 
-* `log_level` - (Optional) The verbosity of the logs. Possible values are `None`, `Debug`, `Information`, `Warning` and `Error`.
+* `log_level` - (Optional) The verbosity of the logs. Possible values are `None`, `Debug`, `Information`, `Warning` and `Error`. Defaults to `None`.
 
-* `mode` - (Optional) The mode of the Connected Registry. Possible values are `Mirror`, `ReadOnly`, `ReadWrite` and `Registry`. Changing this forces a new Container Connected Registry to be created.
+* `mode` - (Optional) The mode of the Connected Registry. Possible values are `Mirror`, `ReadOnly`, `ReadWrite` and `Registry`. Changing this forces a new Container Connected Registry to be created. Defaults to `ReadWrite`.
 
 * `notification` - (Optional) One or more `notification` blocks as defined below.
 
 * `parent_registry_id` - (Optional) The ID of the parent registry. This can be either a Container Registry ID or a Connected Registry ID. Changing this forces a new Container Connected Registry to be created.
 
-* `sync_message_ttl` - (Optional) The period of time (in form of ISO8601) for which a message is available to sync before it is expired. Allowed range is from `P1D` to `P90D`.
+* `sync_message_ttl` - (Optional) The period of time (in form of ISO8601) for which a message is available to sync before it is expired. Allowed range is from `P1D` to `P90D`. Defaults to `P1D`.
 
 * `sync_schedule` - (Optional) The cron expression indicating the schedule that the Connected Registry will sync with its parent. Defaults to `* * * * *`.
 

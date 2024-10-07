@@ -21,7 +21,7 @@ type GetExecutionHistoryOperationResponse struct {
 // GetExecutionHistory ...
 func (c ExportsClient) GetExecutionHistory(ctx context.Context, id ScopedExportId) (result GetExecutionHistoryOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -44,7 +44,9 @@ func (c ExportsClient) GetExecutionHistory(ctx context.Context, id ScopedExportI
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ExportExecutionListResult
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

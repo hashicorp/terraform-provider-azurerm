@@ -90,7 +90,7 @@ func TestAccArcKubernetesClusterExtension_update(t *testing.T) {
 }
 
 func (r ArcKubernetesClusterExtensionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := extensions.ParseExtensionID(state.ID)
+	id, err := extensions.ParseScopedExtensionID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -177,6 +177,7 @@ resource "azurerm_arc_kubernetes_cluster_extension" "test" {
   name              = "acctest-kce-%[2]d"
   cluster_id        = azurerm_arc_kubernetes_cluster.test.id
   extension_type    = "microsoft.flux"
+  release_train     = "stable"
   version           = "1.6.3"
   release_namespace = "flux-system"
 

@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = AutomationRuleId{}
+func init() {
+	recaser.RegisterResourceId(&AutomationRuleId{})
+}
+
+var _ resourceids.ResourceId = &AutomationRuleId{}
 
 // AutomationRuleId is a struct representing the Resource ID for a Automation Rule
 type AutomationRuleId struct {
@@ -32,29 +37,15 @@ func NewAutomationRuleID(subscriptionId string, resourceGroupName string, worksp
 
 // ParseAutomationRuleID parses 'input' into a AutomationRuleId
 func ParseAutomationRuleID(input string) (*AutomationRuleId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AutomationRuleId{})
+	parser := resourceids.NewParserFromResourceIdType(&AutomationRuleId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := AutomationRuleId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.WorkspaceName, ok = parsed.Parsed["workspaceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "workspaceName", *parsed)
-	}
-
-	if id.AutomationRuleId, ok = parsed.Parsed["automationRuleId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "automationRuleId", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +54,40 @@ func ParseAutomationRuleID(input string) (*AutomationRuleId, error) {
 // ParseAutomationRuleIDInsensitively parses 'input' case-insensitively into a AutomationRuleId
 // note: this method should only be used for API response data and not user input
 func ParseAutomationRuleIDInsensitively(input string) (*AutomationRuleId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AutomationRuleId{})
+	parser := resourceids.NewParserFromResourceIdType(&AutomationRuleId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := AutomationRuleId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.WorkspaceName, ok = parsed.Parsed["workspaceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "workspaceName", *parsed)
-	}
-
-	if id.AutomationRuleId, ok = parsed.Parsed["automationRuleId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "automationRuleId", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *AutomationRuleId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.WorkspaceName, ok = input.Parsed["workspaceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "workspaceName", input)
+	}
+
+	if id.AutomationRuleId, ok = input.Parsed["automationRuleId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "automationRuleId", input)
+	}
+
+	return nil
 }
 
 // ValidateAutomationRuleID checks that 'input' can be parsed as a Automation Rule ID
@@ -122,11 +121,11 @@ func (id AutomationRuleId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftOperationalInsights", "Microsoft.OperationalInsights", "Microsoft.OperationalInsights"),
 		resourceids.StaticSegment("staticWorkspaces", "workspaces", "workspaces"),
-		resourceids.UserSpecifiedSegment("workspaceName", "workspaceValue"),
+		resourceids.UserSpecifiedSegment("workspaceName", "workspaceName"),
 		resourceids.StaticSegment("staticProviders2", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftSecurityInsights", "Microsoft.SecurityInsights", "Microsoft.SecurityInsights"),
 		resourceids.StaticSegment("staticAutomationRules", "automationRules", "automationRules"),
-		resourceids.UserSpecifiedSegment("automationRuleId", "automationRuleIdValue"),
+		resourceids.UserSpecifiedSegment("automationRuleId", "automationRuleId"),
 	}
 }
 

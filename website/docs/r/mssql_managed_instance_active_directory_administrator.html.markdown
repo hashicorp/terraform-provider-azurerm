@@ -60,7 +60,7 @@ resource "azuread_directory_role" "reader" {
 
 resource "azuread_directory_role_member" "example" {
   role_object_id   = azuread_directory_role.reader.object_id
-  member_object_id = azurerm_mssql_managed_instance.example.identity.0.principal_id
+  member_object_id = azurerm_mssql_managed_instance.example.identity[0].principal_id
 }
 
 resource "azuread_user" "admin" {
@@ -105,7 +105,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 * `create` - (Defaults to 30 minutes) Used when creating the SQL Active Directory Administrator.
 * `update` - (Defaults to 30 minutes) Used when updating the SQL Active Directory Administrator.
 * `read` - (Defaults to 5 minutes) Used when retrieving the SQL Active Directory Administrator.
-* `delete` - (Defaults to 30 minutes) Used when deleting the SQL Active Directory Administrator.
+* `delete` - (Defaults to 60 minutes) Used when deleting the SQL Active Directory Administrator.
 
 ## Import
 

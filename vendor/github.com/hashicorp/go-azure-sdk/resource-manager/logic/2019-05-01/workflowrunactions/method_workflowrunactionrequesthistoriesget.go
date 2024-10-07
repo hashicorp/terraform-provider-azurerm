@@ -20,7 +20,7 @@ type WorkflowRunActionRequestHistoriesGetOperationResponse struct {
 // WorkflowRunActionRequestHistoriesGet ...
 func (c WorkflowRunActionsClient) WorkflowRunActionRequestHistoriesGet(ctx context.Context, id RequestHistoryId) (result WorkflowRunActionRequestHistoriesGetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -43,7 +43,9 @@ func (c WorkflowRunActionsClient) WorkflowRunActionRequestHistoriesGet(ctx conte
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model RequestHistory
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

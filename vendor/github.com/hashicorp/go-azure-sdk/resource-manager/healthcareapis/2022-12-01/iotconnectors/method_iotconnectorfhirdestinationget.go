@@ -20,7 +20,7 @@ type IotConnectorFhirDestinationGetOperationResponse struct {
 // IotConnectorFhirDestinationGet ...
 func (c IotConnectorsClient) IotConnectorFhirDestinationGet(ctx context.Context, id FhirDestinationId) (result IotConnectorFhirDestinationGetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -43,7 +43,9 @@ func (c IotConnectorsClient) IotConnectorFhirDestinationGet(ctx context.Context,
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model IotFhirDestination
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

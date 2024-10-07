@@ -7,6 +7,7 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -17,9 +18,7 @@ import (
 	"sync"
 
 	"github.com/hashicorp/go-cty/cty"
-	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/go-uuid"
-	"github.com/mitchellh/copystructure"
 
 	"github.com/hashicorp/terraform-plugin-testing/internal/addrs"
 	"github.com/hashicorp/terraform-plugin-testing/internal/configs/hcl2shim"
@@ -92,11 +91,19 @@ type State struct {
 
 	// Remote is used to track the metadata required to
 	// pull and push state files from a remote storage endpoint.
+	//
+	// Deprecated: This field is unintentionally exported by this Go module and
+	// external consumption is not supported. It will be removed in the next
+	// major version.
 	Remote *RemoteState `json:"remote,omitempty"`
 
 	// Backend tracks the configuration for the backend in use with
 	// this state. This is used to track any changes in the backend
 	// configuration.
+	//
+	// Deprecated: This field is unintentionally exported by this Go module and
+	// external consumption is not supported. It will be removed in the next
+	// major version.
 	Backend *BackendState `json:"backend,omitempty"`
 
 	// Modules contains all the modules in a breadth-first order
@@ -106,13 +113,28 @@ type State struct {
 
 	// IsBinaryDrivenTest is a special flag that assists with a binary driver
 	// heuristic, it should not be set externally
+	//
+	// Deprecated: This field is unintentionally exported by this Go module and
+	// external consumption is not supported. It will be removed in the next
+	// major version.
 	IsBinaryDrivenTest bool
 }
 
-func (s *State) Lock()   { s.mu.Lock() }
+// Deprecated: This method is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
+func (s *State) Lock() { s.mu.Lock() }
+
+// Deprecated: This method is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
 func (s *State) Unlock() { s.mu.Unlock() }
 
 // NewState is used to initialize a blank state
+//
+// Deprecated: This method is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
 func NewState() *State {
 	s := &State{}
 	s.init()
@@ -122,6 +144,10 @@ func NewState() *State {
 // Children returns the ModuleStates that are direct children of
 // the given path. If the path is "root", for example, then children
 // returned might be "root.child", but not "root.child.grandchild".
+//
+// Deprecated: This method is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
 func (s *State) Children(path []string) []*ModuleState {
 	s.Lock()
 	defer s.Unlock()
@@ -154,6 +180,10 @@ func (s *State) children(path []string) []*ModuleState {
 //
 // This should be the preferred method to add module states since it
 // allows us to optimize lookups later as well as control sorting.
+//
+// Deprecated: This method is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
 func (s *State) AddModule(path addrs.ModuleInstance) *ModuleState {
 	s.Lock()
 	defer s.Unlock()
@@ -200,6 +230,10 @@ func (s *State) addModule(path addrs.ModuleInstance) *ModuleState {
 // ModuleByPath is used to lookup the module state for the given path.
 // This should be the preferred lookup mechanism as it allows for future
 // lookup optimizations.
+//
+// Deprecated: This method is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
 func (s *State) ModuleByPath(path addrs.ModuleInstance) *ModuleState {
 	if s == nil {
 		return nil
@@ -227,6 +261,10 @@ func (s *State) moduleByPath(path addrs.ModuleInstance) *ModuleState {
 }
 
 // Empty returns true if the state is empty.
+//
+// Deprecated: This method is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
 func (s *State) Empty() bool {
 	if s == nil {
 		return true
@@ -241,6 +279,10 @@ func (s *State) Empty() bool {
 //
 // This is similar to !s.Empty, but returns true also in the case where the
 // state has modules but all of them are devoid of resources.
+//
+// Deprecated: This method is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
 func (s *State) HasResources() bool {
 	if s.Empty() {
 		return false
@@ -257,6 +299,10 @@ func (s *State) HasResources() bool {
 
 // IsRemote returns true if State represents a state that exists and is
 // remote.
+//
+// Deprecated: This method is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
 func (s *State) IsRemote() bool {
 	if s == nil {
 		return false
@@ -283,11 +329,15 @@ func (s *State) IsRemote() bool {
 //
 // If this returns an error, then the user should be notified. The error
 // response will include detailed information on the nature of the error.
+//
+// Deprecated: This method is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
 func (s *State) Validate() error {
 	s.Lock()
 	defer s.Unlock()
 
-	var result error
+	var result []error
 
 	// !!!! FOR DEVELOPERS !!!!
 	//
@@ -309,7 +359,7 @@ func (s *State) Validate() error {
 
 			key := strings.Join(ms.Path, ".")
 			if _, ok := found[key]; ok {
-				result = multierror.Append(result, fmt.Errorf(
+				result = append(result, fmt.Errorf(
 					strings.TrimSpace(stateValidateErrMultiModule), key))
 				continue
 			}
@@ -318,7 +368,7 @@ func (s *State) Validate() error {
 		}
 	}
 
-	return result
+	return errors.Join(result...)
 }
 
 // Remove removes the item in the state at the given address, returning
@@ -327,6 +377,10 @@ func (s *State) Validate() error {
 // If the address references a module state or resource, it will delete
 // all children as well. To check what will be deleted, use a StateFilter
 // first.
+//
+// Deprecated: This method is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
 func (s *State) Remove(addr ...string) error {
 	s.Lock()
 	defer s.Unlock()
@@ -373,6 +427,7 @@ func (s *State) Remove(addr ...string) error {
 		case *ResourceState:
 			s.removeResource(path, v)
 		case *InstanceState:
+			//nolint:forcetypeassert
 			s.removeInstance(r.Parent.Value.(*ResourceState), v)
 		default:
 			return fmt.Errorf("unknown type to delete: %T", r.Value)
@@ -436,6 +491,10 @@ func (s *State) RootModule() *ModuleState {
 }
 
 // Equal tests if one state is equal to another.
+//
+// Deprecated: This method is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
 func (s *State) Equal(other *State) bool {
 	// If one is nil, we do a direct check
 	if s == nil || other == nil {
@@ -477,6 +536,9 @@ func (s *State) equal(other *State) bool {
 	return true
 }
 
+// Deprecated: This type is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
 type StateAgeComparison int
 
 const (
@@ -497,6 +559,10 @@ const (
 // the argument, positive if the converse, and zero if they are equal.
 // An error is returned if the two states are not of the same lineage,
 // in which case the integer returned has no meaning.
+//
+// Deprecated: This method is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
 func (s *State) CompareAges(other *State) (StateAgeComparison, error) {
 	// nil states are "older" than actual states
 	switch {
@@ -529,6 +595,10 @@ func (s *State) CompareAges(other *State) (StateAgeComparison, error) {
 
 // SameLineage returns true only if the state given in argument belongs
 // to the same "lineage" of states as the receiver.
+//
+// Deprecated: This method is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
 func (s *State) SameLineage(other *State) bool {
 	s.Lock()
 	defer s.Unlock()
@@ -546,19 +616,59 @@ func (s *State) SameLineage(other *State) bool {
 
 // DeepCopy performs a deep copy of the state structure and returns
 // a new structure.
+//
+// Deprecated: This method is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
 func (s *State) DeepCopy() *State {
 	if s == nil {
 		return nil
 	}
 
-	copiedState, err := copystructure.Config{Lock: true}.Copy(s)
-	if err != nil {
-		panic(err)
+	copied := &State{
+		IsBinaryDrivenTest: s.IsBinaryDrivenTest,
+		Lineage:            s.Lineage,
+		Serial:             s.Serial,
+		TFVersion:          s.TFVersion,
+		Version:            s.Version,
 	}
 
-	return copiedState.(*State)
+	if s.Backend != nil {
+		copied.Backend = &BackendState{
+			Hash:      s.Backend.Hash,
+			ConfigRaw: s.Backend.ConfigRaw,
+			Type:      s.Backend.Type,
+		}
+	}
+
+	// Best effort single level copy is fine; this is method is not used by this
+	// Go module and its already deprecated.
+	if s.Modules != nil {
+		copied.Modules = make([]*ModuleState, len(s.Modules))
+
+		copy(copied.Modules, s.Modules)
+	}
+
+	if s.Remote != nil {
+		copied.Remote = &RemoteState{
+			Type: s.Remote.Type,
+		}
+
+		if s.Remote.Config != nil {
+			copied.Remote.Config = make(map[string]string, len(s.Remote.Config))
+
+			for key, value := range s.Remote.Config {
+				copied.Remote.Config[key] = value
+			}
+		}
+	}
+
+	return copied
 }
 
+// Deprecated: This method is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
 func (s *State) Init() {
 	s.Lock()
 	defer s.Unlock()
@@ -587,6 +697,9 @@ func (s *State) init() {
 
 }
 
+// Deprecated: This method is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
 func (s *State) EnsureHasLineage() {
 	s.Lock()
 	defer s.Unlock()
@@ -612,6 +725,10 @@ func (s *State) ensureHasLineage() {
 }
 
 // AddModuleState insert this module state and override any existing ModuleState
+//
+// Deprecated: This method is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
 func (s *State) AddModuleState(mod *ModuleState) {
 	mod.init()
 	s.Lock()
@@ -703,6 +820,10 @@ func (s *State) String() string {
 }
 
 // BackendState stores the configuration to connect to a remote backend.
+//
+// Deprecated: This type is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
 type BackendState struct {
 	Type      string          `json:"type"`   // Backend type
 	ConfigRaw json.RawMessage `json:"config"` // Backend raw config
@@ -711,6 +832,10 @@ type BackendState struct {
 
 // RemoteState is used to track the information about a remote
 // state store that we push/pull state to.
+//
+// Deprecated: This type is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
 type RemoteState struct {
 	// Type controls the client we use for the remote state
 	Type string `json:"type"`
@@ -722,7 +847,14 @@ type RemoteState struct {
 	mu sync.Mutex
 }
 
-func (s *RemoteState) Lock()   { s.mu.Lock() }
+// Deprecated: This method is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
+func (s *RemoteState) Lock() { s.mu.Lock() }
+
+// Deprecated: This method is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
 func (s *RemoteState) Unlock() { s.mu.Unlock() }
 
 func (r *RemoteState) init() {
@@ -734,6 +866,9 @@ func (r *RemoteState) init() {
 	}
 }
 
+// Deprecated: This method is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
 func (r *RemoteState) Empty() bool {
 	if r == nil {
 		return true
@@ -759,7 +894,14 @@ type OutputState struct {
 	mu sync.Mutex
 }
 
-func (s *OutputState) Lock()   { s.mu.Lock() }
+// Deprecated: This method is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
+func (s *OutputState) Lock() { s.mu.Lock() }
+
+// Deprecated: This method is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
 func (s *OutputState) Unlock() { s.mu.Unlock() }
 
 func (s *OutputState) String() string {
@@ -768,6 +910,10 @@ func (s *OutputState) String() string {
 
 // Equal compares two OutputState structures for equality. nil values are
 // considered equal.
+//
+// Deprecated: This method is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
 func (s *OutputState) Equal(other *OutputState) bool {
 	if s == nil && other == nil {
 		return true
@@ -834,7 +980,14 @@ type ModuleState struct {
 	mu sync.Mutex
 }
 
-func (s *ModuleState) Lock()   { s.mu.Lock() }
+// Deprecated: This method is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
+func (s *ModuleState) Lock() { s.mu.Lock() }
+
+// Deprecated: This method is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
 func (s *ModuleState) Unlock() { s.mu.Unlock() }
 
 // Equal tests whether one module state is equal to another.
@@ -1196,7 +1349,14 @@ type ResourceState struct {
 	mu sync.Mutex
 }
 
-func (s *ResourceState) Lock()   { s.mu.Lock() }
+// Deprecated: This method is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
+func (s *ResourceState) Lock() { s.mu.Lock() }
+
+// Deprecated: This method is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
 func (s *ResourceState) Unlock() { s.mu.Unlock() }
 
 // Equal tests whether two ResourceStates are equal.
@@ -1317,7 +1477,14 @@ type InstanceState struct {
 	mu sync.Mutex
 }
 
-func (s *InstanceState) Lock()   { s.mu.Lock() }
+// Deprecated: This method is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
+func (s *InstanceState) Lock() { s.mu.Lock() }
+
+// Deprecated: This method is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
 func (s *InstanceState) Unlock() { s.mu.Unlock() }
 
 func (s *InstanceState) init() {
@@ -1338,6 +1505,10 @@ func (s *InstanceState) init() {
 // legacy InstanceState representation.
 //
 // This is for shimming to old components only and should not be used in new code.
+//
+// Deprecated: This function is unintentionally exported by this Go module and
+// not supported for external consumption. It will be removed in the next major
+// version.
 func NewInstanceStateShimmedFromValue(state cty.Value, schemaVersion int) *InstanceState {
 	attrs := hcl2shim.FlatmapValueFromHCL2(state)
 	return &InstanceState{
@@ -1358,6 +1529,10 @@ func NewInstanceStateShimmedFromValue(state cty.Value, schemaVersion int) *Insta
 //
 // This is for shimming from old components only and should not be used in
 // new code.
+//
+// Deprecated: This method is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
 func (s *InstanceState) AttrsAsObjectValue(ty cty.Type) (cty.Value, error) {
 	if s == nil {
 		// if the state is nil, we need to construct a complete cty.Value with
@@ -1379,6 +1554,10 @@ func (s *InstanceState) AttrsAsObjectValue(ty cty.Type) (cty.Value, error) {
 }
 
 // Copy all the Fields from another InstanceState
+//
+// Deprecated: This method is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
 func (s *InstanceState) Set(from *InstanceState) {
 	s.Lock()
 	defer s.Unlock()
@@ -1393,15 +1572,51 @@ func (s *InstanceState) Set(from *InstanceState) {
 	s.Tainted = from.Tainted
 }
 
+// Deprecated: This method is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
 func (s *InstanceState) DeepCopy() *InstanceState {
-	copiedState, err := copystructure.Config{Lock: true}.Copy(s)
-	if err != nil {
-		panic(err)
+	if s == nil {
+		return nil
 	}
 
-	return copiedState.(*InstanceState)
+	copied := &InstanceState{
+		Ephemeral: EphemeralState{
+			ConnInfo: s.Ephemeral.ConnInfo,
+			Type:     s.Ephemeral.Type,
+		},
+		ID:           s.ID,
+		ProviderMeta: s.ProviderMeta,
+		RawConfig:    s.RawConfig,
+		RawPlan:      s.RawPlan,
+		RawState:     s.RawState,
+		Tainted:      s.Tainted,
+	}
+
+	if s.Attributes != nil {
+		copied.Attributes = make(map[string]string, len(s.Attributes))
+
+		for k, v := range s.Attributes {
+			copied.Attributes[k] = v
+		}
+	}
+
+	// Best effort single level copy is fine; this is not used by this Go module
+	// and its already deprecated.
+	if s.Meta != nil {
+		copied.Meta = make(map[string]any, len(s.Meta))
+
+		for k, v := range s.Meta {
+			copied.Meta[k] = v
+		}
+	}
+
+	return copied
 }
 
+// Deprecated: This method is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
 func (s *InstanceState) Empty() bool {
 	if s == nil {
 		return true
@@ -1481,6 +1696,10 @@ func (s *InstanceState) Equal(other *InstanceState) bool {
 // If the diff attribute requires computing the value, and hence
 // won't be available until apply, the value is replaced with the
 // computeID.
+//
+// Deprecated: This method is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
 func (s *InstanceState) MergeDiff(d *InstanceDiff) *InstanceState {
 	result := s.DeepCopy()
 	if result == nil {
@@ -1553,6 +1772,10 @@ func (s *InstanceState) String() string {
 }
 
 // EphemeralState is used for transient state that is only kept in-memory
+//
+// Deprecated: This type is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
 type EphemeralState struct {
 	// ConnInfo is used for the providers to export information which is
 	// used to connect to the resource for provisioning. For example,

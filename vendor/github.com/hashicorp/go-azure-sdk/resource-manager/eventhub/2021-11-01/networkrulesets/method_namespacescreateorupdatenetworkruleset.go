@@ -21,7 +21,7 @@ type NamespacesCreateOrUpdateNetworkRuleSetOperationResponse struct {
 // NamespacesCreateOrUpdateNetworkRuleSet ...
 func (c NetworkRuleSetsClient) NamespacesCreateOrUpdateNetworkRuleSet(ctx context.Context, id NamespaceId, input NetworkRuleSet) (result NamespacesCreateOrUpdateNetworkRuleSetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -48,7 +48,9 @@ func (c NetworkRuleSetsClient) NamespacesCreateOrUpdateNetworkRuleSet(ctx contex
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model NetworkRuleSet
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

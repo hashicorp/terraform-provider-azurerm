@@ -33,10 +33,10 @@ resource "azurerm_subnet" "public" {
 
     service_delegation {
       actions = [
-          "Microsoft.Network/virtualNetworks/subnets/join/action",
-          "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
-          "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action",
-        ]
+        "Microsoft.Network/virtualNetworks/subnets/join/action",
+        "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
+        "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action",
+      ]
       name = "Microsoft.Databricks/workspaces"
     }
   }
@@ -53,10 +53,10 @@ resource "azurerm_subnet" "private" {
 
     service_delegation {
       actions = [
-          "Microsoft.Network/virtualNetworks/subnets/join/action",
-          "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
-          "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action",
-        ]
+        "Microsoft.Network/virtualNetworks/subnets/join/action",
+        "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
+        "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action",
+      ]
       name = "Microsoft.Databricks/workspaces"
     }
   }

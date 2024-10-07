@@ -1,13 +1,14 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/managedapplications/2021-07-01/applicationdefinitions` Documentation
 
-The `applicationdefinitions` SDK allows for interaction with the Azure Resource Manager Service `managedapplications` (API Version `2021-07-01`).
+The `applicationdefinitions` SDK allows for interaction with Azure Resource Manager `managedapplications` (API Version `2021-07-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/managedapplications/2021-07-01/applicationdefinitions"
 ```
 
@@ -24,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := applicationdefinitions.NewApplicationDefinitionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applicationDefinitionValue")
+id := applicationdefinitions.NewApplicationDefinitionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applicationDefinitionName")
 
 payload := applicationdefinitions.ApplicationDefinition{
 	// ...
@@ -45,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := applicationdefinitions.NewApplicationDefinitionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applicationDefinitionValue")
+id := applicationdefinitions.NewApplicationDefinitionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applicationDefinitionName")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -61,7 +62,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := applicationdefinitions.NewApplicationDefinitionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applicationDefinitionValue")
+id := applicationdefinitions.NewApplicationDefinitionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applicationDefinitionName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -77,7 +78,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := applicationdefinitions.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
+id := commonids.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
 // alternatively `client.ListByResourceGroup(ctx, id)` can be used to do batched pagination
 items, err := client.ListByResourceGroupComplete(ctx, id)
@@ -94,7 +95,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := applicationdefinitions.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 // alternatively `client.ListBySubscription(ctx, id)` can be used to do batched pagination
 items, err := client.ListBySubscriptionComplete(ctx, id)
@@ -111,7 +112,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := applicationdefinitions.NewApplicationDefinitionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applicationDefinitionValue")
+id := applicationdefinitions.NewApplicationDefinitionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applicationDefinitionName")
 
 payload := applicationdefinitions.ApplicationDefinitionPatchable{
 	// ...

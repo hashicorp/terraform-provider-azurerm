@@ -1,6 +1,10 @@
 package domainservices
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -17,6 +21,19 @@ func PossibleValuesForExternalAccess() []string {
 		string(ExternalAccessDisabled),
 		string(ExternalAccessEnabled),
 	}
+}
+
+func (s *ExternalAccess) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseExternalAccess(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseExternalAccess(input string) (*ExternalAccess, error) {
@@ -47,6 +64,19 @@ func PossibleValuesForFilteredSync() []string {
 	}
 }
 
+func (s *FilteredSync) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseFilteredSync(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseFilteredSync(input string) (*FilteredSync, error) {
 	vals := map[string]FilteredSync{
 		"disabled": FilteredSyncDisabled,
@@ -73,6 +103,19 @@ func PossibleValuesForKerberosArmoring() []string {
 		string(KerberosArmoringDisabled),
 		string(KerberosArmoringEnabled),
 	}
+}
+
+func (s *KerberosArmoring) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseKerberosArmoring(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseKerberosArmoring(input string) (*KerberosArmoring, error) {
@@ -103,6 +146,19 @@ func PossibleValuesForKerberosRc4Encryption() []string {
 	}
 }
 
+func (s *KerberosRc4Encryption) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseKerberosRc4Encryption(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseKerberosRc4Encryption(input string) (*KerberosRc4Encryption, error) {
 	vals := map[string]KerberosRc4Encryption{
 		"disabled": KerberosRc4EncryptionDisabled,
@@ -129,6 +185,19 @@ func PossibleValuesForLdaps() []string {
 		string(LdapsDisabled),
 		string(LdapsEnabled),
 	}
+}
+
+func (s *Ldaps) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseLdaps(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseLdaps(input string) (*Ldaps, error) {
@@ -159,6 +228,19 @@ func PossibleValuesForNotifyDcAdmins() []string {
 	}
 }
 
+func (s *NotifyDcAdmins) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseNotifyDcAdmins(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseNotifyDcAdmins(input string) (*NotifyDcAdmins, error) {
 	vals := map[string]NotifyDcAdmins{
 		"disabled": NotifyDcAdminsDisabled,
@@ -187,6 +269,19 @@ func PossibleValuesForNotifyGlobalAdmins() []string {
 	}
 }
 
+func (s *NotifyGlobalAdmins) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseNotifyGlobalAdmins(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseNotifyGlobalAdmins(input string) (*NotifyGlobalAdmins, error) {
 	vals := map[string]NotifyGlobalAdmins{
 		"disabled": NotifyGlobalAdminsDisabled,
@@ -213,6 +308,19 @@ func PossibleValuesForNtlmV1() []string {
 		string(NtlmV1Disabled),
 		string(NtlmV1Enabled),
 	}
+}
+
+func (s *NtlmV1) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseNtlmV1(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseNtlmV1(input string) (*NtlmV1, error) {
@@ -251,6 +359,19 @@ func PossibleValuesForStatus() []string {
 	}
 }
 
+func (s *Status) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseStatus(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseStatus(input string) (*Status, error) {
 	vals := map[string]Status{
 		"failure": StatusFailure,
@@ -283,6 +404,19 @@ func PossibleValuesForSyncKerberosPasswords() []string {
 	}
 }
 
+func (s *SyncKerberosPasswords) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSyncKerberosPasswords(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseSyncKerberosPasswords(input string) (*SyncKerberosPasswords, error) {
 	vals := map[string]SyncKerberosPasswords{
 		"disabled": SyncKerberosPasswordsDisabled,
@@ -309,6 +443,19 @@ func PossibleValuesForSyncNtlmPasswords() []string {
 		string(SyncNtlmPasswordsDisabled),
 		string(SyncNtlmPasswordsEnabled),
 	}
+}
+
+func (s *SyncNtlmPasswords) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSyncNtlmPasswords(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseSyncNtlmPasswords(input string) (*SyncNtlmPasswords, error) {
@@ -339,6 +486,19 @@ func PossibleValuesForSyncOnPremPasswords() []string {
 	}
 }
 
+func (s *SyncOnPremPasswords) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSyncOnPremPasswords(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseSyncOnPremPasswords(input string) (*SyncOnPremPasswords, error) {
 	vals := map[string]SyncOnPremPasswords{
 		"disabled": SyncOnPremPasswordsDisabled,
@@ -365,6 +525,19 @@ func PossibleValuesForTlsV1() []string {
 		string(TlsV1Disabled),
 		string(TlsV1Enabled),
 	}
+}
+
+func (s *TlsV1) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseTlsV1(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseTlsV1(input string) (*TlsV1, error) {

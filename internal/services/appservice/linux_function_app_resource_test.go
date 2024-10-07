@@ -10,12 +10,14 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type LinuxFunctionAppResource struct{}
@@ -41,7 +43,7 @@ func TestAccLinuxFunctionApp_basicBasicPlan(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -58,7 +60,7 @@ func TestAccLinuxFunctionApp_basicRuntimeCheck(t *testing.T) {
 				check.That(data.ResourceName).Key("site_config.0.runtime_scale_monitoring_enabled").HasValue("true"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -74,7 +76,87 @@ func TestAccLinuxFunctionApp_withIPRestrictions(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+func TestAccLinuxFunctionApp_withIPRestrictionsDescription(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
+	r := LinuxFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withIPRestrictions(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.withIPRestrictionsDescription(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.withIPRestrictions(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+func TestAccLinuxFunctionApp_withIPRestrictionsDefaultAction(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
+	r := LinuxFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withIPRestrictionsDefaultActionDeny(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+func TestAccLinuxFunctionApp_withIPRestrictionsDefaultActionUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
+	r := LinuxFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withIPRestrictions(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.withIPRestrictionsDefaultActionDeny(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.withIPRestrictions(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -90,7 +172,7 @@ func TestAccLinuxFunctionApp_basicConsumptionPlan(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -106,7 +188,7 @@ func TestAccLinuxFunctionApp_basicElasticPremiumPlan(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -122,7 +204,7 @@ func TestAccLinuxFunctionApp_basicPremiumAppServicePlan(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -138,7 +220,7 @@ func TestAccLinuxFunctionApp_basicStandardPlan(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -157,7 +239,7 @@ func TestAccLinuxFunctionApp_withAppSettingsBasic(t *testing.T) {
 				check.That(data.ResourceName).Key("app_settings.%").HasValue("2"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -174,7 +256,7 @@ func TestAccLinuxFunctionApp_withAppSettingsConsumption(t *testing.T) {
 				check.That(data.ResourceName).Key("app_settings.%").HasValue("2"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -191,7 +273,7 @@ func TestAccLinuxFunctionApp_withAppSettingsElasticPremiumPlan(t *testing.T) {
 				check.That(data.ResourceName).Key("app_settings.%").HasValue("2"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -209,7 +291,7 @@ func TestAccLinuxFunctionApp_withCustomContentShareElasticPremiumPlan(t *testing
 				check.That(data.ResourceName).Key("app_settings.WEBSITE_CONTENTSHARE").HasValue("test-acc-custom-content-share"),
 			),
 		},
-		data.ImportStep("app_settings.WEBSITE_CONTENTSHARE", "app_settings.%"),
+		data.ImportStep("app_settings.WEBSITE_CONTENTSHARE", "app_settings.%", "site_credential.0.password"),
 	})
 }
 
@@ -225,7 +307,7 @@ func TestAccLinuxFunctionApp_withCustomContentShareVnetEnabled(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep("app_settings.WEBSITE_CONTENTSHARE", "app_settings.WEBSITE_CONTENTAZUREFILECONNECTIONSTRING", "app_settings.%"),
+		data.ImportStep("app_settings.WEBSITE_CONTENTSHARE", "app_settings.WEBSITE_CONTENTAZUREFILECONNECTIONSTRING", "app_settings.%", "site_credential.0.password"),
 	})
 }
 
@@ -242,7 +324,7 @@ func TestAccLinuxFunctionApp_withAppSettingsPremiumPlan(t *testing.T) {
 				check.That(data.ResourceName).Key("app_settings.%").HasValue("2"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -259,7 +341,7 @@ func TestAccLinuxFunctionApp_withAppSettingsStandardPlan(t *testing.T) {
 				check.That(data.ResourceName).Key("app_settings.%").HasValue("2"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -276,7 +358,7 @@ func TestAccLinuxFunctionApp_withAppSettingsUserSettingUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("app_settings.%").DoesNotExist(),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.appSettingsUserSettingsUpdate(data, SkuElasticPremiumPlan),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -285,7 +367,7 @@ func TestAccLinuxFunctionApp_withAppSettingsUserSettingUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("app_settings.%").HasValue("2"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -302,7 +384,7 @@ func TestAccLinuxFunctionApp_addAppSettings(t *testing.T) {
 				check.That(data.ResourceName).Key("app_settings.%").DoesNotExist(),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.appSettingsAdded(data, SkuConsumptionPlan),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -311,7 +393,7 @@ func TestAccLinuxFunctionApp_addAppSettings(t *testing.T) {
 				check.That(data.ResourceName).Key("app_settings.%").HasValue("2"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.appStackNode(data, SkuConsumptionPlan, "14"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -320,7 +402,7 @@ func TestAccLinuxFunctionApp_addAppSettings(t *testing.T) {
 				check.That(data.ResourceName).Key("app_settings.%").DoesNotExist(),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -342,7 +424,7 @@ func TestAccLinuxFunctionApp_stickySettings(t *testing.T) {
 				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.0").HasValue("First"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -359,7 +441,7 @@ func TestAccLinuxFunctionApp_stickySettingsUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("sticky_settings.#").DoesNotExist(),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.stickySettings(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -371,7 +453,7 @@ func TestAccLinuxFunctionApp_stickySettingsUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.0").HasValue("First"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.stickySettingsUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -383,7 +465,7 @@ func TestAccLinuxFunctionApp_stickySettingsUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.0").HasValue("First"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.stickySettings(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -395,7 +477,7 @@ func TestAccLinuxFunctionApp_stickySettingsUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.0").HasValue("First"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.stickySettingsRemoved(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -404,7 +486,7 @@ func TestAccLinuxFunctionApp_stickySettingsUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("sticky_settings.#").DoesNotExist(),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -421,7 +503,8 @@ func TestAccLinuxFunctionApp_zipDeploy(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("zip_deploy_file"),
+		data.ImportStep("zip_deploy_file",
+			"site_credential.0.password"),
 	})
 }
 
@@ -439,7 +522,7 @@ func TestAccLinuxFunctionApp_withBackupElasticPremiumPlan(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -455,7 +538,7 @@ func TestAccLinuxFunctionApp_withBackupPremiumPlan(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -471,7 +554,7 @@ func TestAccLinuxFunctionApp_withBackupStandardPlan(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -488,7 +571,7 @@ func TestAccLinuxFunctionApp_consumptionComplete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -504,14 +587,14 @@ func TestAccLinuxFunctionApp_consumptionCompleteUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.consumptionComplete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.basic(data, SkuConsumptionPlan),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -522,6 +605,26 @@ func TestAccLinuxFunctionApp_consumptionCompleteUpdate(t *testing.T) {
 	})
 }
 
+func TestAccLinuxFunctionApp_elasticPremiumCompleteWithVnetProperties(t *testing.T) {
+	if !features.FourPointOhBeta() {
+		t.Skip("this test requires 4.0 mode")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
+	r := LinuxFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.elasticCompleteWithVnetProperties(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.elastic_instance_minimum").HasValue("5"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+// TODO 4.0 remove post 4.0
 func TestAccLinuxFunctionApp_elasticPremiumComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
 	r := LinuxFunctionAppResource{}
@@ -534,7 +637,7 @@ func TestAccLinuxFunctionApp_elasticPremiumComplete(t *testing.T) {
 				check.That(data.ResourceName).Key("site_config.0.elastic_instance_minimum").HasValue("5"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -549,7 +652,7 @@ func TestAccLinuxFunctionApp_standardComplete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -567,7 +670,7 @@ func TestAccLinuxFunctionApp_withAuthSettingsStandard(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -582,7 +685,7 @@ func TestAccLinuxFunctionApp_withStorageAccountBlock(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -597,7 +700,7 @@ func TestAccLinuxFunctionApp_withStorageAccountBlocks(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -612,35 +715,35 @@ func TestAccLinuxFunctionApp_withStorageAccountBlockUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.withStorageAccountSingle(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.withStorageAccountMultiple(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.withStorageAccountSingle(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.basic(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -655,7 +758,7 @@ func TestAccLinuxFunctionApp_scmIpRestrictionSubnet(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -671,7 +774,7 @@ func TestAccLinuxFunctionApp_withAuthSettingsConsumption(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -687,7 +790,7 @@ func TestAccLinuxFunctionApp_builtInLogging(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -703,7 +806,7 @@ func TestAccLinuxFunctionApp_withConnectionStrings(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -719,7 +822,7 @@ func TestAccLinuxFunctionApp_withConnectionStringsUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.connectionStrings(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -727,7 +830,7 @@ func TestAccLinuxFunctionApp_withConnectionStringsUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.connectionStringsUpdate(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -735,7 +838,7 @@ func TestAccLinuxFunctionApp_withConnectionStringsUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.basic(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -743,7 +846,7 @@ func TestAccLinuxFunctionApp_withConnectionStringsUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -759,7 +862,7 @@ func TestAccLinuxFunctionApp_dailyTimeQuotaConsumptionPlan(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -775,22 +878,7 @@ func TestAccLinuxFunctionApp_dailyTimeQuotaElasticPremiumPlan(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccLinuxFunctionApp_healthCheckPath(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
-	r := LinuxFunctionAppResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.healthCheckPath(data, "S1"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -805,7 +893,7 @@ func TestAccLinuxFunctionApp_healthCheckPathWithEviction(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -820,21 +908,21 @@ func TestAccLinuxFunctionApp_healthCheckPathWithEvictionUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.healthCheckPathWithEviction(data, "S1"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.basic(data, "S1"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -850,7 +938,7 @@ func TestAccLinuxFunctionApp_appServiceLogging(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -866,7 +954,7 @@ func TestAccLinuxFunctionApp_appServiceLoggingUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.appServiceLogs(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -874,7 +962,7 @@ func TestAccLinuxFunctionApp_appServiceLoggingUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.appServiceLogsWithRetention(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -882,7 +970,7 @@ func TestAccLinuxFunctionApp_appServiceLoggingUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.basic(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -890,7 +978,7 @@ func TestAccLinuxFunctionApp_appServiceLoggingUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -909,7 +997,7 @@ func TestAccLinuxFunctionApp_appStackDotNet31(t *testing.T) {
 				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("DOTNET|3.1"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -925,7 +1013,7 @@ func TestAccLinuxFunctionApp_appStackCustom(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -942,7 +1030,7 @@ func TestAccLinuxFunctionApp_appStackDotNet6(t *testing.T) {
 				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("DOTNET|6.0"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -959,7 +1047,58 @@ func TestAccLinuxFunctionApp_appStackDotNet6Isolated(t *testing.T) {
 				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("DOTNET-ISOLATED|6.0"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+func TestAccLinuxFunctionApp_appStackDotNet8(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
+	r := LinuxFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.appStackDotNet(data, SkuBasicPlan, "8.0"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("DOTNET|8.0"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+func TestAccLinuxFunctionApp_appStackDotNet8ConsumptionPlan(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
+	r := LinuxFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.appStackDotNet(data, SkuConsumptionPlan, "8.0"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("DOTNET|8.0"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+func TestAccLinuxFunctionApp_appStackDotNet8Isolated(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
+	r := LinuxFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.appStackDotNetIsolated(data, SkuBasicPlan, "8.0"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("DOTNET-ISOLATED|8.0"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -976,7 +1115,7 @@ func TestAccLinuxFunctionApp_appStackPython(t *testing.T) {
 				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("PYTHON|3.11"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -993,7 +1132,7 @@ func TestAccLinuxFunctionApp_appStackPythonUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("PYTHON|3.10"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.appStackPython(data, SkuBasicPlan, "3.11"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -1002,7 +1141,7 @@ func TestAccLinuxFunctionApp_appStackPythonUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("PYTHON|3.11"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -1019,7 +1158,7 @@ func TestAccLinuxFunctionApp_appStackNode(t *testing.T) {
 				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("NODE|14"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -1036,13 +1175,22 @@ func TestAccLinuxFunctionApp_appStackNodeUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("NODE|16"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.appStackNode(data, SkuBasicPlan, "18"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("NODE|18"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.appStackNode(data, SkuBasicPlan, "20"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("NODE|20"),
 			),
 		},
 		data.ImportStep(),
@@ -1054,7 +1202,7 @@ func TestAccLinuxFunctionApp_appStackNodeUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("NODE|14"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.appStackNodeUpdateTags(data, SkuBasicPlan, "14"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -1063,7 +1211,7 @@ func TestAccLinuxFunctionApp_appStackNodeUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("NODE|14"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -1080,7 +1228,7 @@ func TestAccLinuxFunctionApp_appStackJava(t *testing.T) {
 				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("JAVA|11"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -1097,7 +1245,7 @@ func TestAccLinuxFunctionApp_appStackJavaUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("JAVA|8"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.appStackJava(data, SkuBasicPlan, "17"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -1106,7 +1254,7 @@ func TestAccLinuxFunctionApp_appStackJavaUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("JAVA|17"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -1122,7 +1270,7 @@ func TestAccLinuxFunctionApp_appStackDocker(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux,container"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -1138,7 +1286,7 @@ func TestAccLinuxFunctionApp_appStackDockerManagedServiceIdentity(t *testing.T) 
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux,container"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -1155,7 +1303,7 @@ func TestAccLinuxFunctionApp_appStackPowerShellCore(t *testing.T) {
 				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("POWERSHELL|7"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -1172,7 +1320,24 @@ func TestAccLinuxFunctionApp_appStackPowerShellCore72(t *testing.T) {
 				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("POWERSHELL|7.2"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+func TestAccLinuxFunctionApp_appStackPowerShellCore74(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
+	r := LinuxFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.appStackPowerShellCore(data, SkuBasicPlan, "7.4"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("POWERSHELL|7.4"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -1189,7 +1354,7 @@ func TestAccLinuxFunctionApp_appStackUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.appStackJava(data, SkuBasicPlan, "11"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -1197,7 +1362,7 @@ func TestAccLinuxFunctionApp_appStackUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -1214,28 +1379,28 @@ func TestAccLinuxFunctionApp_identity(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.identityUserAssigned(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.identitySystemAssignedUserAssigned(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.basic(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -1250,7 +1415,7 @@ func TestAccLinuxFunctionApp_identityKeyVaultIdentity(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -1266,7 +1431,7 @@ func TestAccLinuxFunctionApp_updateServicePlan(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.servicePlanUpdate(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -1274,7 +1439,7 @@ func TestAccLinuxFunctionApp_updateServicePlan(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -1290,7 +1455,7 @@ func TestAccLinuxFunctionApp_updateStorageAccount(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.updateStorageAccount(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -1298,7 +1463,7 @@ func TestAccLinuxFunctionApp_updateStorageAccount(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -1314,7 +1479,7 @@ func TestAccLinuxFunctionApp_msiStorageAccountElastic(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -1330,7 +1495,7 @@ func TestAccLinuxFunctionApp_msiStorageAccountStandard(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -1346,7 +1511,7 @@ func TestAccLinuxFunctionApp_msiStorageAccountUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.msiStorageAccountUpdate(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -1354,7 +1519,7 @@ func TestAccLinuxFunctionApp_msiStorageAccountUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -1370,7 +1535,7 @@ func TestAccLinuxFunctionApp_storageAccountKeyVaultSecret(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -1386,11 +1551,16 @@ func TestAccLinuxFunctionApp_storageAccountKeyVaultSecretVersionless(t *testing.
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
+// TODO 4.0 remove post 4.0
 func TestAccLinuxFunctionAppASEv3_basic(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("skipped as test not valid in 4.0 mode")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
 	r := LinuxFunctionAppResource{}
 
@@ -1401,7 +1571,25 @@ func TestAccLinuxFunctionAppASEv3_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+func TestAccLinuxFunctionAppASEv3_basicWithVnetProperties(t *testing.T) {
+	if !features.FourPointOhBeta() {
+		t.Skip("this test requires 4.0 mode")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
+	r := LinuxFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withASEV3VnetProperties(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -1417,7 +1605,7 @@ func TestAccLinuxFunctionApp_corsUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.withCors(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -1425,7 +1613,7 @@ func TestAccLinuxFunctionApp_corsUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.withCorsSupportCredentials(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -1433,7 +1621,7 @@ func TestAccLinuxFunctionApp_corsUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.withCorsSupportCredentialsOnly(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -1441,7 +1629,7 @@ func TestAccLinuxFunctionApp_corsUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.withCors(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -1449,7 +1637,7 @@ func TestAccLinuxFunctionApp_corsUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.basic(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -1457,7 +1645,7 @@ func TestAccLinuxFunctionApp_corsUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -1473,7 +1661,7 @@ func TestAccLinuxFunctionApp_publicNetworkAccessDisabled(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -1489,7 +1677,7 @@ func TestAccLinuxFunctionApp_publicNetworkAccessUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("true"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.publicNetworkAccessDisabled(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -1497,7 +1685,7 @@ func TestAccLinuxFunctionApp_publicNetworkAccessUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("false"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.basic(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -1505,7 +1693,7 @@ func TestAccLinuxFunctionApp_publicNetworkAccessUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("true"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -1534,13 +1722,16 @@ func TestAccLinuxFunctionApp_basicPlanBackupShouldError(t *testing.T) {
 	})
 }
 
-func TestAccLinuxFunctionApp_vNetIntegration(t *testing.T) {
+func TestAccLinuxFunctionApp_vNetIntegrationWithVnetProperties(t *testing.T) {
+	if !features.FourPointOhBeta() {
+		t.Skip("this test requires 4.0 mode")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
 	r := LinuxFunctionAppResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.vNetIntegration_subnet1(data, SkuStandardPlan),
+			Config: r.vNetIntegration_subnetWithVnetProperties(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("virtual_network_subnet_id").MatchesOtherKey(
@@ -1548,10 +1739,36 @@ func TestAccLinuxFunctionApp_vNetIntegration(t *testing.T) {
 				),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
+// TODO 4.0 remove post 4.0
+func TestAccLinuxFunctionApp_vNetIntegration(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
+	r := LinuxFunctionAppResource{}
+
+	var vnetIntegrationProperties string
+	if features.FourPointOhBeta() {
+		vnetIntegrationProperties = r.vNetIntegration_subnet1WithVnetProperties(data, SkuStandardPlan)
+	} else {
+		vnetIntegrationProperties = r.vNetIntegration_subnet1(data, SkuStandardPlan)
+	}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: vnetIntegrationProperties,
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("virtual_network_subnet_id").MatchesOtherKey(
+					check.That("azurerm_subnet.test1").Key("id"),
+				),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+// TODO 4.0 remove post 4.0
 func TestAccLinuxFunctionApp_vNetIntegrationUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
 	r := LinuxFunctionAppResource{}
@@ -1563,7 +1780,7 @@ func TestAccLinuxFunctionApp_vNetIntegrationUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.vNetIntegration_subnet1(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -1573,7 +1790,7 @@ func TestAccLinuxFunctionApp_vNetIntegrationUpdate(t *testing.T) {
 				),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.vNetIntegration_subnet2(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -1583,14 +1800,56 @@ func TestAccLinuxFunctionApp_vNetIntegrationUpdate(t *testing.T) {
 				),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.vNetIntegration_basic(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+func TestAccLinuxFunctionApp_vNetIntegrationUpdateWithVnetProperties(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
+	r := LinuxFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.vNetIntegration_basic(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.vNetIntegration_subnet1WithVnetProperties(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("virtual_network_subnet_id").MatchesOtherKey(
+					check.That("azurerm_subnet.test1").Key("id"),
+				),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.vNetIntegration_subnet2WithVnetProperties(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("virtual_network_subnet_id").MatchesOtherKey(
+					check.That("azurerm_subnet.test2").Key("id"),
+				),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.vNetIntegration_basic(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -1614,29 +1873,29 @@ func TestAccLinuxFunctionApp_basicOutputs(t *testing.T) {
 				check.That(data.ResourceName).Key("default_hostname").MatchesRegex(regexp.MustCompile(`(.)+`)),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
 // Configs
 
 func (r LinuxFunctionAppResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.FunctionAppID(state.ID)
+	id, err := commonids.ParseFunctionAppID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.AppService.WebAppsClient.Get(ctx, id.ResourceGroup, id.SiteName)
+	resp, err := client.AppService.WebAppsClient.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
+		if response.WasNotFound(resp.HttpResponse) {
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving Linux Web App %s: %+v", id, err)
 	}
-	if utils.ResponseWasNotFound(resp.Response) {
-		return utils.Bool(false), nil
+	if response.WasNotFound(resp.HttpResponse) {
+		return pointer.To(false), nil
 	}
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r LinuxFunctionAppResource) basic(data acceptance.TestData, planSku string) string {
@@ -1811,7 +2070,7 @@ resource "azurerm_linux_function_app" "test" {
 `, r.template(data, SkuStandardPlan), data.RandomInteger)
 }
 
-func (r LinuxFunctionAppResource) healthCheckPath(data acceptance.TestData, planSku string) string {
+func (r LinuxFunctionAppResource) withIPRestrictionsDescription(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1829,10 +2088,59 @@ resource "azurerm_linux_function_app" "test" {
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   site_config {
-    health_check_path = "/health"
+    ip_restriction {
+      ip_address = "13.107.6.152/31,13.107.128.0/22"
+      name       = "test-restriction"
+      priority   = 123
+      action     = "Allow"
+      headers {
+        x_azure_fdid      = ["55ce4ed1-4b06-4bf1-b40e-4638452104da"]
+        x_fd_health_probe = ["1"]
+        x_forwarded_for   = ["9.9.9.9/32", "2002::1234:abcd:ffff:c0a8:101/64"]
+        x_forwarded_host  = ["example.com"]
+      }
+      description = "Allow ip address linux function app"
+    }
   }
 }
-`, r.template(data, planSku), data.RandomInteger)
+`, r.template(data, SkuStandardPlan), data.RandomInteger)
+}
+
+func (r LinuxFunctionAppResource) withIPRestrictionsDefaultActionDeny(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_function_app" "test" {
+  name                = "acctest-LFA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {
+    ip_restriction_default_action = "Deny"
+
+    ip_restriction {
+      ip_address = "13.107.6.152/31,13.107.128.0/22"
+      name       = "test-restriction"
+      priority   = 123
+      action     = "Allow"
+      headers {
+        x_azure_fdid      = ["55ce4ed1-4b06-4bf1-b40e-4638452104da"]
+        x_fd_health_probe = ["1"]
+        x_forwarded_for   = ["9.9.9.9/32", "2002::1234:abcd:ffff:c0a8:101/64"]
+        x_forwarded_host  = ["example.com"]
+      }
+    }
+  }
+}
+`, r.template(data, SkuStandardPlan), data.RandomInteger)
 }
 
 func (r LinuxFunctionAppResource) healthCheckPathWithEviction(data acceptance.TestData, planSku string) string {
@@ -2703,6 +3011,9 @@ resource "azurerm_linux_function_app" "test" {
       powershell_core_version = "%s"
     }
   }
+
+  ftp_publish_basic_authentication_enabled       = false
+  webdeploy_publish_basic_authentication_enabled = false
 }
 `, r.template(data, planSku), data.RandomInteger, version)
 }
@@ -2886,6 +3197,8 @@ resource "azurerm_linux_function_app" "test" {
     ftps_state         = "FtpsOnly"
     health_check_path  = "/health-check"
 
+    health_check_eviction_time_in_min = 7
+
     application_stack {
       python_version = "3.9"
     }
@@ -2902,6 +3215,9 @@ resource "azurerm_linux_function_app" "test" {
       support_credentials = true
     }
   }
+
+  ftp_publish_basic_authentication_enabled       = false
+  webdeploy_publish_basic_authentication_enabled = false
 
   tags = {
     terraform = "true"
@@ -3041,7 +3357,7 @@ resource "azurerm_linux_function_app" "test" {
     load_balancing_mode       = "LeastResponseTime"
     pre_warmed_instance_count = 2
     remote_debugging_enabled  = true
-    remote_debugging_version  = "VS2017"
+    remote_debugging_version  = "VS2022"
 
     scm_ip_restriction {
       ip_address = "10.20.20.20/32"
@@ -3069,11 +3385,12 @@ resource "azurerm_linux_function_app" "test" {
       }
     }
 
-    use_32_bit_worker  = true
-    websockets_enabled = true
-    ftps_state         = "FtpsOnly"
-    health_check_path  = "/health-check"
-    worker_count       = 3
+    use_32_bit_worker                 = true
+    websockets_enabled                = true
+    ftps_state                        = "FtpsOnly"
+    health_check_path                 = "/health-check"
+    health_check_eviction_time_in_min = 7
+    worker_count                      = 3
 
     minimum_tls_version     = "1.1"
     scm_minimum_tls_version = "1.1"
@@ -3095,6 +3412,9 @@ resource "azurerm_linux_function_app" "test" {
     connection_string_names = ["First"]
   }
 
+  ftp_publish_basic_authentication_enabled       = false
+  webdeploy_publish_basic_authentication_enabled = false
+
   tags = {
     terraform = "true"
     Env       = "AccTest"
@@ -3103,6 +3423,152 @@ resource "azurerm_linux_function_app" "test" {
 `, r.storageContainerTemplate(data, planSku), data.RandomInteger, data.Client().TenantID)
 }
 
+func (r LinuxFunctionAppResource) elasticCompleteWithVnetProperties(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acct-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_application_insights" "test" {
+  name                = "acctestappinsights-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  application_type    = "web"
+}
+
+resource "azurerm_linux_function_app" "test" {
+  name                = "acctest-LFA-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  app_settings = {
+    foo    = "bar"
+    secret = "sauce"
+  }
+
+  backup {
+    name                = "acctest"
+    storage_account_url = "https://${azurerm_storage_account.test.name}.blob.core.windows.net/${azurerm_storage_container.test.name}${data.azurerm_storage_account_sas.test.sas}&sr=b"
+    schedule {
+      frequency_interval = 7
+      frequency_unit     = "Day"
+    }
+  }
+
+  connection_string {
+    name  = "Example"
+    value = "some-postgresql-connection-string"
+    type  = "PostgreSQL"
+  }
+
+  site_config {
+    app_command_line   = "whoami"
+    api_definition_url = "https://example.com/azure_function_app_def.json"
+    // api_management_api_id = ""  // TODO
+    application_insights_connection_string = azurerm_application_insights.test.connection_string
+
+    application_stack {
+      python_version = "3.8"
+    }
+
+    elastic_instance_minimum = 5
+
+    container_registry_use_managed_identity       = true
+    container_registry_managed_identity_client_id = azurerm_user_assigned_identity.test.client_id
+
+    default_documents = [
+      "first.html",
+      "second.jsp",
+      "third.aspx",
+      "hostingstart.html",
+    ]
+
+    http2_enabled = true
+
+    ip_restriction {
+      ip_address = "10.10.10.10/32"
+      name       = "test-restriction"
+      priority   = 123
+      action     = "Allow"
+      headers {
+        x_azure_fdid      = ["55ce4ed1-4b06-4bf1-b40e-4638452104da"]
+        x_fd_health_probe = ["1"]
+        x_forwarded_for   = ["9.9.9.9/32", "2002::1234:abcd:ffff:c0a8:101/64"]
+        x_forwarded_host  = ["example.com"]
+      }
+    }
+
+    load_balancing_mode       = "LeastResponseTime"
+    pre_warmed_instance_count = 2
+    remote_debugging_enabled  = true
+    remote_debugging_version  = "VS2022"
+
+    scm_ip_restriction {
+      ip_address = "10.20.20.20/32"
+      name       = "test-scm-restriction"
+      priority   = 123
+      action     = "Allow"
+      headers {
+        x_azure_fdid      = ["55ce4ed1-4b06-4bf1-b40e-4638452104da"]
+        x_fd_health_probe = ["1"]
+        x_forwarded_for   = ["9.9.9.9/32", "2002::1234:abcd:ffff:c0a8:101/64"]
+        x_forwarded_host  = ["example.com"]
+      }
+    }
+
+    scm_ip_restriction {
+      ip_address = "fd80::/64"
+      name       = "test-scm-restriction-v6"
+      priority   = 124
+      action     = "Allow"
+      headers {
+        x_azure_fdid      = ["55ce4ed1-4b06-4bf1-b40e-4638452104da"]
+        x_fd_health_probe = ["1"]
+        x_forwarded_for   = ["9.9.9.9/32", "2002::1234:abcd:ffff:c0a8:101/64"]
+        x_forwarded_host  = ["example.com"]
+      }
+    }
+
+    use_32_bit_worker                 = true
+    websockets_enabled                = true
+    ftps_state                        = "FtpsOnly"
+    health_check_path                 = "/health-check"
+    health_check_eviction_time_in_min = 7
+    worker_count                      = 3
+
+    minimum_tls_version     = "1.1"
+    scm_minimum_tls_version = "1.1"
+
+    cors {
+      allowed_origins = [
+        "https://www.contoso.com",
+        "www.contoso.com",
+      ]
+
+      support_credentials = true
+    }
+
+    vnet_route_all_enabled = true
+  }
+
+  vnet_image_pull_enabled = true
+}
+`, r.storageContainerTemplate(data, SkuElasticPremiumPlan), data.RandomInteger)
+}
+
+// TODO 4.0 remove this test case as it's replaced by vNetIntegration_subnet1WithVnetProperties
 func (r LinuxFunctionAppResource) elasticComplete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3193,7 +3659,7 @@ resource "azurerm_linux_function_app" "test" {
     load_balancing_mode       = "LeastResponseTime"
     pre_warmed_instance_count = 2
     remote_debugging_enabled  = true
-    remote_debugging_version  = "VS2017"
+    remote_debugging_version  = "VS2022"
 
     scm_ip_restriction {
       ip_address = "10.20.20.20/32"
@@ -3221,11 +3687,12 @@ resource "azurerm_linux_function_app" "test" {
       }
     }
 
-    use_32_bit_worker  = true
-    websockets_enabled = true
-    ftps_state         = "FtpsOnly"
-    health_check_path  = "/health-check"
-    worker_count       = 3
+    use_32_bit_worker                 = true
+    websockets_enabled                = true
+    ftps_state                        = "FtpsOnly"
+    health_check_path                 = "/health-check"
+    health_check_eviction_time_in_min = 7
+    worker_count                      = 3
 
     minimum_tls_version     = "1.1"
     scm_minimum_tls_version = "1.1"
@@ -3815,6 +4282,7 @@ resource "azurerm_user_assigned_identity" "test" {
 `, r.template(data, planSku), data.RandomInteger)
 }
 
+// nolint:unparam
 func (r LinuxFunctionAppResource) vNetIntegration_basic(data acceptance.TestData, planSku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3879,6 +4347,70 @@ resource "azurerm_linux_function_app" "test" {
 `, r.template(data, planSku), data.RandomInteger, data.RandomInteger)
 }
 
+func (r LinuxFunctionAppResource) vNetIntegration_subnetWithVnetProperties(data acceptance.TestData, planSku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_virtual_network" "test" {
+  name                = "vnet-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test1" {
+  name                 = "subnet1"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+
+  delegation {
+    name = "delegation"
+
+    service_delegation {
+      name    = "Microsoft.Web/serverFarms"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+
+resource "azurerm_subnet" "test2" {
+  name                 = "subnet2"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+
+  delegation {
+    name = "delegation"
+
+    service_delegation {
+      name    = "Microsoft.Web/serverFarms"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+
+resource "azurerm_linux_function_app" "test" {
+  name                      = "acctest-LFA-%d"
+  location                  = azurerm_resource_group.test.location
+  resource_group_name       = azurerm_resource_group.test.name
+  service_plan_id           = azurerm_service_plan.test.id
+  virtual_network_subnet_id = azurerm_subnet.test1.id
+
+  vnet_image_pull_enabled    = true
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {}
+}
+`, r.template(data, planSku), data.RandomInteger, data.RandomInteger)
+}
+
+// TODO 4.0 remove this test case as it's replaced by vNetIntegration_subnet1WithVnetProperties
 func (r LinuxFunctionAppResource) vNetIntegration_subnet1(data acceptance.TestData, planSku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3941,6 +4473,7 @@ resource "azurerm_linux_function_app" "test" {
 `, r.template(data, planSku), data.RandomInteger, data.RandomInteger)
 }
 
+// TODO 4.0 remove this test case as it's replaced by vNetIntegration_subnet2WithVnetProperties
 func (r LinuxFunctionAppResource) vNetIntegration_subnet2(data acceptance.TestData, planSku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -4003,6 +4536,133 @@ resource "azurerm_linux_function_app" "test" {
 `, r.template(data, planSku), data.RandomInteger, data.RandomInteger)
 }
 
+func (r LinuxFunctionAppResource) vNetIntegration_subnet1WithVnetProperties(data acceptance.TestData, planSku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_virtual_network" "test" {
+  name                = "vnet-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test1" {
+  name                 = "subnet1"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+
+  delegation {
+    name = "delegation"
+
+    service_delegation {
+      name    = "Microsoft.Web/serverFarms"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+
+resource "azurerm_subnet" "test2" {
+  name                 = "subnet2"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+
+  delegation {
+    name = "delegation"
+
+    service_delegation {
+      name    = "Microsoft.Web/serverFarms"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+
+resource "azurerm_linux_function_app" "test" {
+  name                      = "acctest-LFA-%d"
+  location                  = azurerm_resource_group.test.location
+  resource_group_name       = azurerm_resource_group.test.name
+  service_plan_id           = azurerm_service_plan.test.id
+  virtual_network_subnet_id = azurerm_subnet.test1.id
+
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  vnet_image_pull_enabled = true
+  site_config {}
+}
+`, r.template(data, planSku), data.RandomInteger, data.RandomInteger)
+}
+
+func (r LinuxFunctionAppResource) vNetIntegration_subnet2WithVnetProperties(data acceptance.TestData, planSku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_virtual_network" "test" {
+  name                = "vnet-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test1" {
+  name                 = "subnet1"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+
+  delegation {
+    name = "delegation"
+
+    service_delegation {
+      name    = "Microsoft.Web/serverFarms"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+
+resource "azurerm_subnet" "test2" {
+  name                 = "subnet2"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+
+  delegation {
+    name = "delegation"
+
+    service_delegation {
+      name    = "Microsoft.Web/serverFarms"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+
+resource "azurerm_linux_function_app" "test" {
+  name                      = "acctest-LFA-%d"
+  location                  = azurerm_resource_group.test.location
+  resource_group_name       = azurerm_resource_group.test.name
+  service_plan_id           = azurerm_service_plan.test.id
+  virtual_network_subnet_id = azurerm_subnet.test2.id
+
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  vnet_image_pull_enabled = true
+  site_config {}
+}
+`, r.template(data, planSku), data.RandomInteger, data.RandomInteger)
+}
+
+// TODO 4.0 remove this test case as it's replaced by withASEV3VnetProperties
 func (r LinuxFunctionAppResource) withASEV3(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -4022,6 +4682,37 @@ resource "azurerm_linux_function_app" "test" {
 
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {
+    vnet_route_all_enabled = true
+  }
+
+  vnet_image_pull_enabled = true // Must be true for ASE deployed apps
+}
+`, ServicePlanResource{}.aseV3Linux(data), data.RandomString, data.RandomInteger)
+}
+
+func (r LinuxFunctionAppResource) withASEV3VnetProperties(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_linux_function_app" "test" {
+  name                = "acctest-LFA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  vnet_image_pull_enabled = true
 
   site_config {
     vnet_route_all_enabled = true

@@ -20,7 +20,7 @@ type CreateOrUpdateOperationResponse struct {
 // CreateOrUpdate ...
 func (c ConsumerGroupsClient) CreateOrUpdate(ctx context.Context, id ConsumerGroupId, input ConsumerGroup) (result CreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -47,7 +47,9 @@ func (c ConsumerGroupsClient) CreateOrUpdate(ctx context.Context, id ConsumerGro
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ConsumerGroup
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

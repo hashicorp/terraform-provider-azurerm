@@ -1,13 +1,14 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/operationsmanagement/2015-11-01-preview/solution` Documentation
 
-The `solution` SDK allows for interaction with the Azure Resource Manager Service `operationsmanagement` (API Version `2015-11-01-preview`).
+The `solution` SDK allows for interaction with Azure Resource Manager `operationsmanagement` (API Version `2015-11-01-preview`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/operationsmanagement/2015-11-01-preview/solution"
 ```
 
@@ -24,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := solution.NewSolutionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "solutionValue")
+id := solution.NewSolutionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "solutionName")
 
 payload := solution.Solution{
 	// ...
@@ -41,7 +42,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := solution.NewSolutionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "solutionValue")
+id := solution.NewSolutionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "solutionName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +54,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := solution.NewSolutionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "solutionValue")
+id := solution.NewSolutionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "solutionName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -69,7 +70,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := solution.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
+id := commonids.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
 read, err := client.ListByResourceGroup(ctx, id)
 if err != nil {
@@ -85,7 +86,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := solution.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 read, err := client.ListBySubscription(ctx, id)
 if err != nil {
@@ -101,7 +102,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := solution.NewSolutionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "solutionValue")
+id := solution.NewSolutionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "solutionName")
 
 payload := solution.SolutionPatch{
 	// ...

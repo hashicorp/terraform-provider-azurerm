@@ -22,7 +22,7 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_dns_zone" "example" {
   name                = "sub-domain.domain.com"
-  resource_group_name = azurerm_resource_group.test.name
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_cdn_frontdoor_profile" "example" {
@@ -83,7 +83,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Front Door Custom Domain. Possible values must be between 2 and 260 characters in length, must begin with a letter or number, end with a letter or number and contain only letters, numbers and hyphens. Changing this forces a new Front Door Custom Domain to be created.
 
-* `cdn_frontdoor_profile_id` - (Required) The ID of the Front Door Profile. Changing this forces a new Front Door Profile to be created.
+* `cdn_frontdoor_profile_id` - (Required) The ID of the Front Door Profile. Changing this forces a new Front Door Custom Domain to be created.
 
 * `host_name` - (Required) The host name of the domain. The `host_name` field must be the FQDN of your domain(e.g. `contoso.fabrikam.com`). Changing this forces a new Front Door Custom Domain to be created.
 

@@ -20,7 +20,7 @@ type UpdateOperationResponse struct {
 // Update ...
 func (c WorkflowsClient) Update(ctx context.Context, id WorkflowId) (result UpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -43,7 +43,9 @@ func (c WorkflowsClient) Update(ctx context.Context, id WorkflowId) (result Upda
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Workflow
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

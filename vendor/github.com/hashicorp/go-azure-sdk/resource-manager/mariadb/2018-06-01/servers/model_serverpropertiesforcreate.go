@@ -10,9 +10,40 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ServerPropertiesForCreate interface {
+	ServerPropertiesForCreate() BaseServerPropertiesForCreateImpl
 }
 
-func unmarshalServerPropertiesForCreateImplementation(input []byte) (ServerPropertiesForCreate, error) {
+var _ ServerPropertiesForCreate = BaseServerPropertiesForCreateImpl{}
+
+type BaseServerPropertiesForCreateImpl struct {
+	CreateMode          CreateMode               `json:"createMode"`
+	MinimalTlsVersion   *MinimalTlsVersionEnum   `json:"minimalTlsVersion,omitempty"`
+	PublicNetworkAccess *PublicNetworkAccessEnum `json:"publicNetworkAccess,omitempty"`
+	SslEnforcement      *SslEnforcementEnum      `json:"sslEnforcement,omitempty"`
+	StorageProfile      *StorageProfile          `json:"storageProfile,omitempty"`
+	Version             *ServerVersion           `json:"version,omitempty"`
+}
+
+func (s BaseServerPropertiesForCreateImpl) ServerPropertiesForCreate() BaseServerPropertiesForCreateImpl {
+	return s
+}
+
+var _ ServerPropertiesForCreate = RawServerPropertiesForCreateImpl{}
+
+// RawServerPropertiesForCreateImpl is returned when the Discriminated Value doesn't match any of the defined types
+// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
+// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+type RawServerPropertiesForCreateImpl struct {
+	serverPropertiesForCreate BaseServerPropertiesForCreateImpl
+	Type                      string
+	Values                    map[string]interface{}
+}
+
+func (s RawServerPropertiesForCreateImpl) ServerPropertiesForCreate() BaseServerPropertiesForCreateImpl {
+	return s.serverPropertiesForCreate
+}
+
+func UnmarshalServerPropertiesForCreateImplementation(input []byte) (ServerPropertiesForCreate, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -22,9 +53,9 @@ func unmarshalServerPropertiesForCreateImplementation(input []byte) (ServerPrope
 		return nil, fmt.Errorf("unmarshaling ServerPropertiesForCreate into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["createMode"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["createMode"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "Default") {
@@ -59,14 +90,15 @@ func unmarshalServerPropertiesForCreateImplementation(input []byte) (ServerPrope
 		return out, nil
 	}
 
-	type RawServerPropertiesForCreateImpl struct {
-		Type   string                 `json:"-"`
-		Values map[string]interface{} `json:"-"`
+	var parent BaseServerPropertiesForCreateImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseServerPropertiesForCreateImpl: %+v", err)
 	}
-	out := RawServerPropertiesForCreateImpl{
-		Type:   value,
-		Values: temp,
-	}
-	return out, nil
+
+	return RawServerPropertiesForCreateImpl{
+		serverPropertiesForCreate: parent,
+		Type:                      value,
+		Values:                    temp,
+	}, nil
 
 }

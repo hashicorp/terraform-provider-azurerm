@@ -21,7 +21,7 @@ type UploadCertificateOperationResponse struct {
 // UploadCertificate ...
 func (c DevicesClient) UploadCertificate(ctx context.Context, id DataBoxEdgeDeviceId, input UploadCertificateRequest) (result UploadCertificateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -48,7 +48,9 @@ func (c DevicesClient) UploadCertificate(ctx context.Context, id DataBoxEdgeDevi
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model UploadCertificateResponse
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 
