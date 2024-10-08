@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/redhatopenshift/2023-09-04/openshiftclusters` Documentation
 
-The `openshiftclusters` SDK allows for interaction with the Azure Resource Manager Service `redhatopenshift` (API Version `2023-09-04`).
+The `openshiftclusters` SDK allows for interaction with Azure Resource Manager `redhatopenshift` (API Version `2023-09-04`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := openshiftclusters.NewProviderOpenShiftClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "openShiftClusterValue")
+id := openshiftclusters.NewProviderOpenShiftClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
 
 payload := openshiftclusters.OpenShiftCluster{
 	// ...
@@ -42,7 +42,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := openshiftclusters.NewProviderOpenShiftClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "openShiftClusterValue")
+id := openshiftclusters.NewProviderOpenShiftClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -54,7 +54,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := openshiftclusters.NewProviderOpenShiftClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "openShiftClusterValue")
+id := openshiftclusters.NewProviderOpenShiftClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -87,7 +87,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := openshiftclusters.NewProviderOpenShiftClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "openShiftClusterValue")
+id := openshiftclusters.NewProviderOpenShiftClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
 
 read, err := client.ListAdminCredentials(ctx, id)
 if err != nil {
@@ -120,7 +120,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := openshiftclusters.NewProviderOpenShiftClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "openShiftClusterValue")
+id := openshiftclusters.NewProviderOpenShiftClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
 
 read, err := client.ListCredentials(ctx, id)
 if err != nil {
@@ -136,7 +136,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := openshiftclusters.NewProviderOpenShiftClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "openShiftClusterValue")
+id := openshiftclusters.NewProviderOpenShiftClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
 
 payload := openshiftclusters.OpenShiftClusterUpdate{
 	// ...

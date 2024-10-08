@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/snapshots` Documentation
 
-The `snapshots` SDK allows for interaction with the Azure Resource Manager Service `netapp` (API Version `2023-05-01`).
+The `snapshots` SDK allows for interaction with Azure Resource Manager `netapp` (API Version `2023-05-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := snapshots.NewSnapshotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "netAppAccountValue", "capacityPoolValue", "volumeValue", "snapshotValue")
+id := snapshots.NewSnapshotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "poolName", "volumeName", "snapshotName")
 
 payload := snapshots.Snapshot{
 	// ...
@@ -41,7 +41,7 @@ if err := client.CreateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := snapshots.NewSnapshotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "netAppAccountValue", "capacityPoolValue", "volumeValue", "snapshotValue")
+id := snapshots.NewSnapshotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "poolName", "volumeName", "snapshotName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +53,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := snapshots.NewSnapshotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "netAppAccountValue", "capacityPoolValue", "volumeValue", "snapshotValue")
+id := snapshots.NewSnapshotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "poolName", "volumeName", "snapshotName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -69,7 +69,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := snapshots.NewVolumeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "netAppAccountValue", "capacityPoolValue", "volumeValue")
+id := snapshots.NewVolumeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "poolName", "volumeName")
 
 read, err := client.List(ctx, id)
 if err != nil {
@@ -85,7 +85,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := snapshots.NewSnapshotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "netAppAccountValue", "capacityPoolValue", "volumeValue", "snapshotValue")
+id := snapshots.NewSnapshotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "poolName", "volumeName", "snapshotName")
 
 payload := snapshots.SnapshotRestoreFiles{
 	// ...
@@ -102,7 +102,7 @@ if err := client.RestoreFilesThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := snapshots.NewSnapshotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "netAppAccountValue", "capacityPoolValue", "volumeValue", "snapshotValue")
+id := snapshots.NewSnapshotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "poolName", "volumeName", "snapshotName")
 var payload interface{}
 
 if err := client.UpdateThenPoll(ctx, id, payload); err != nil {

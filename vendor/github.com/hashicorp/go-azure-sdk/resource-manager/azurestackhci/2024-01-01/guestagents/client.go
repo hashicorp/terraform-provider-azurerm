@@ -15,7 +15,7 @@ type GuestAgentsClient struct {
 }
 
 func NewGuestAgentsClientWithBaseURI(sdkApi sdkEnv.Api) (*GuestAgentsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "guestagents", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "guestagents", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating GuestAgentsClient: %+v", err)
 	}

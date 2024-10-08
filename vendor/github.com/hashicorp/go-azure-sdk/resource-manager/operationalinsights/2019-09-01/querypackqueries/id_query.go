@@ -44,7 +44,7 @@ func ParseQueryID(input string) (*QueryId, error) {
 	}
 
 	id := QueryId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseQueryIDInsensitively(input string) (*QueryId, error) {
 	}
 
 	id := QueryId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id QueryId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftOperationalInsights", "Microsoft.OperationalInsights", "Microsoft.OperationalInsights"),
 		resourceids.StaticSegment("staticQueryPacks", "queryPacks", "queryPacks"),
-		resourceids.UserSpecifiedSegment("queryPackName", "queryPackValue"),
+		resourceids.UserSpecifiedSegment("queryPackName", "queryPackName"),
 		resourceids.StaticSegment("staticQueries", "queries", "queries"),
-		resourceids.UserSpecifiedSegment("queryName", "queryValue"),
+		resourceids.UserSpecifiedSegment("queryName", "id"),
 	}
 }
 

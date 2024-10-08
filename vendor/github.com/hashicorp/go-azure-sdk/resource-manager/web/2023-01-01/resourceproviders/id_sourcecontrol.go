@@ -38,7 +38,7 @@ func ParseSourceControlID(input string) (*SourceControlId, error) {
 	}
 
 	id := SourceControlId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -55,7 +55,7 @@ func ParseSourceControlIDInsensitively(input string) (*SourceControlId, error) {
 	}
 
 	id := SourceControlId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -99,7 +99,7 @@ func (id SourceControlId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftWeb", "Microsoft.Web", "Microsoft.Web"),
 		resourceids.StaticSegment("staticSourceControls", "sourceControls", "sourceControls"),
-		resourceids.UserSpecifiedSegment("sourceControlName", "sourceControlValue"),
+		resourceids.UserSpecifiedSegment("sourceControlName", "sourceControlType"),
 	}
 }
 

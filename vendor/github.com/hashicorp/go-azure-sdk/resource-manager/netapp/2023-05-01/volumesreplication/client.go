@@ -15,7 +15,7 @@ type VolumesReplicationClient struct {
 }
 
 func NewVolumesReplicationClientWithBaseURI(sdkApi sdkEnv.Api) (*VolumesReplicationClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "volumesreplication", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "volumesreplication", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating VolumesReplicationClient: %+v", err)
 	}

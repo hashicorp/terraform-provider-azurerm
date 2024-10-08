@@ -44,7 +44,7 @@ func ParseEncryptionScopeID(input string) (*EncryptionScopeId, error) {
 	}
 
 	id := EncryptionScopeId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseEncryptionScopeIDInsensitively(input string) (*EncryptionScopeId, erro
 	}
 
 	id := EncryptionScopeId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id EncryptionScopeId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftStorage", "Microsoft.Storage", "Microsoft.Storage"),
 		resourceids.StaticSegment("staticStorageAccounts", "storageAccounts", "storageAccounts"),
-		resourceids.UserSpecifiedSegment("storageAccountName", "storageAccountValue"),
+		resourceids.UserSpecifiedSegment("storageAccountName", "accountName"),
 		resourceids.StaticSegment("staticEncryptionScopes", "encryptionScopes", "encryptionScopes"),
-		resourceids.UserSpecifiedSegment("encryptionScopeName", "encryptionScopeValue"),
+		resourceids.UserSpecifiedSegment("encryptionScopeName", "encryptionScopeName"),
 	}
 }
 

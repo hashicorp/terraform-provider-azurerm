@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/migrate/2020-01-01/machines` Documentation
 
-The `machines` SDK allows for interaction with the Azure Resource Manager Service `migrate` (API Version `2020-01-01`).
+The `machines` SDK allows for interaction with Azure Resource Manager `migrate` (API Version `2020-01-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := machines.NewVMwareSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vmwareSiteValue")
+id := machines.NewVMwareSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName")
 
 // alternatively `client.GetAllMachinesInSite(ctx, id, machines.DefaultGetAllMachinesInSiteOperationOptions())` can be used to do batched pagination
 items, err := client.GetAllMachinesInSiteComplete(ctx, id, machines.DefaultGetAllMachinesInSiteOperationOptions())
@@ -42,7 +42,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewVMwareSiteMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vmwareSiteValue", "machineValue")
+id := commonids.NewVMwareSiteMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vmwareSiteName", "machineName")
 
 read, err := client.GetMachine(ctx, id)
 if err != nil {
@@ -58,7 +58,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewVMwareSiteMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vmwareSiteValue", "machineValue")
+id := commonids.NewVMwareSiteMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vmwareSiteName", "machineName")
 
 read, err := client.StartMachine(ctx, id)
 if err != nil {
@@ -74,7 +74,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewVMwareSiteMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vmwareSiteValue", "machineValue")
+id := commonids.NewVMwareSiteMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vmwareSiteName", "machineName")
 
 read, err := client.StopMachine(ctx, id)
 if err != nil {

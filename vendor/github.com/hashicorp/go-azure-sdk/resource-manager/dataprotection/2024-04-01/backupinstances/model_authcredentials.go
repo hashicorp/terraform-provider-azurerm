@@ -10,18 +10,35 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type AuthCredentials interface {
+	AuthCredentials() BaseAuthCredentialsImpl
 }
 
-// RawAuthCredentialsImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ AuthCredentials = BaseAuthCredentialsImpl{}
+
+type BaseAuthCredentialsImpl struct {
+	ObjectType string `json:"objectType"`
+}
+
+func (s BaseAuthCredentialsImpl) AuthCredentials() BaseAuthCredentialsImpl {
+	return s
+}
+
+var _ AuthCredentials = RawAuthCredentialsImpl{}
+
+// RawAuthCredentialsImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawAuthCredentialsImpl struct {
-	Type   string
-	Values map[string]interface{}
+	authCredentials BaseAuthCredentialsImpl
+	Type            string
+	Values          map[string]interface{}
 }
 
-func unmarshalAuthCredentialsImplementation(input []byte) (AuthCredentials, error) {
+func (s RawAuthCredentialsImpl) AuthCredentials() BaseAuthCredentialsImpl {
+	return s.authCredentials
+}
+
+func UnmarshalAuthCredentialsImplementation(input []byte) (AuthCredentials, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +48,9 @@ func unmarshalAuthCredentialsImplementation(input []byte) (AuthCredentials, erro
 		return nil, fmt.Errorf("unmarshaling AuthCredentials into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["objectType"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["objectType"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "SecretStoreBasedAuthCredentials") {
@@ -44,10 +61,15 @@ func unmarshalAuthCredentialsImplementation(input []byte) (AuthCredentials, erro
 		return out, nil
 	}
 
-	out := RawAuthCredentialsImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseAuthCredentialsImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseAuthCredentialsImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawAuthCredentialsImpl{
+		authCredentials: parent,
+		Type:            value,
+		Values:          temp,
+	}, nil
 
 }

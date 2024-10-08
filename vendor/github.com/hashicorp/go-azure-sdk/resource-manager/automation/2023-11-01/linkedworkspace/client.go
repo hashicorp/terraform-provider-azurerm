@@ -15,7 +15,7 @@ type LinkedWorkspaceClient struct {
 }
 
 func NewLinkedWorkspaceClientWithBaseURI(sdkApi sdkEnv.Api) (*LinkedWorkspaceClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "linkedworkspace", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "linkedworkspace", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating LinkedWorkspaceClient: %+v", err)
 	}

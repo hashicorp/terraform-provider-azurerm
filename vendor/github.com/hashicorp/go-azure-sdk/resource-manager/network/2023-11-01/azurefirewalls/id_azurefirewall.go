@@ -42,7 +42,7 @@ func ParseAzureFirewallID(input string) (*AzureFirewallId, error) {
 	}
 
 	id := AzureFirewallId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseAzureFirewallIDInsensitively(input string) (*AzureFirewallId, error) {
 	}
 
 	id := AzureFirewallId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id AzureFirewallId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticAzureFirewalls", "azureFirewalls", "azureFirewalls"),
-		resourceids.UserSpecifiedSegment("azureFirewallName", "azureFirewallValue"),
+		resourceids.UserSpecifiedSegment("azureFirewallName", "azureFirewallName"),
 	}
 }
 

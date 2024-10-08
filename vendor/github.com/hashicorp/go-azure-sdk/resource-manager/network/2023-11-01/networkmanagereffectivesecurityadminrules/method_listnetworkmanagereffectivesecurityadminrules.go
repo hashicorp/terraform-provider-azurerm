@@ -51,7 +51,6 @@ func (c NetworkManagerEffectiveSecurityAdminRulesClient) ListNetworkManagerEffec
 
 	var model NetworkManagerEffectiveSecurityAdminRulesListResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -15,8 +15,18 @@ type AzureStorageBlobContainerEndpointProperties struct {
 	StorageAccountResourceId string `json:"storageAccountResourceId"`
 
 	// Fields inherited from EndpointBaseProperties
+
 	Description       *string            `json:"description,omitempty"`
+	EndpointType      EndpointType       `json:"endpointType"`
 	ProvisioningState *ProvisioningState `json:"provisioningState,omitempty"`
+}
+
+func (s AzureStorageBlobContainerEndpointProperties) EndpointBaseProperties() BaseEndpointBasePropertiesImpl {
+	return BaseEndpointBasePropertiesImpl{
+		Description:       s.Description,
+		EndpointType:      s.EndpointType,
+		ProvisioningState: s.ProvisioningState,
+	}
 }
 
 var _ json.Marshaler = AzureStorageBlobContainerEndpointProperties{}
@@ -30,9 +40,10 @@ func (s AzureStorageBlobContainerEndpointProperties) MarshalJSON() ([]byte, erro
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling AzureStorageBlobContainerEndpointProperties: %+v", err)
 	}
+
 	decoded["endpointType"] = "AzureStorageBlobContainer"
 
 	encoded, err = json.Marshal(decoded)

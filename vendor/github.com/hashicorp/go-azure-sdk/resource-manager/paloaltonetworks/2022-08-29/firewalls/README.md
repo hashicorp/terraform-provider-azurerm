@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/firewalls` Documentation
 
-The `firewalls` SDK allows for interaction with the Azure Resource Manager Service `paloaltonetworks` (API Version `2022-08-29`).
+The `firewalls` SDK allows for interaction with Azure Resource Manager `paloaltonetworks` (API Version `2022-08-29`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := firewalls.NewFirewallID("12345678-1234-9876-4563-123456789012", "example-resource-group", "firewallValue")
+id := firewalls.NewFirewallID("12345678-1234-9876-4563-123456789012", "example-resource-group", "firewallName")
 
 payload := firewalls.LogSettings{
 	// ...
@@ -46,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := firewalls.NewFirewallID("12345678-1234-9876-4563-123456789012", "example-resource-group", "firewallValue")
+id := firewalls.NewFirewallID("12345678-1234-9876-4563-123456789012", "example-resource-group", "firewallName")
 
 payload := firewalls.FirewallResource{
 	// ...
@@ -63,7 +63,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := firewalls.NewFirewallID("12345678-1234-9876-4563-123456789012", "example-resource-group", "firewallValue")
+id := firewalls.NewFirewallID("12345678-1234-9876-4563-123456789012", "example-resource-group", "firewallName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -75,7 +75,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := firewalls.NewFirewallID("12345678-1234-9876-4563-123456789012", "example-resource-group", "firewallValue")
+id := firewalls.NewFirewallID("12345678-1234-9876-4563-123456789012", "example-resource-group", "firewallName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -91,7 +91,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := firewalls.NewFirewallID("12345678-1234-9876-4563-123456789012", "example-resource-group", "firewallValue")
+id := firewalls.NewFirewallID("12345678-1234-9876-4563-123456789012", "example-resource-group", "firewallName")
 
 read, err := client.GetGlobalRulestack(ctx, id)
 if err != nil {
@@ -107,7 +107,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := firewalls.NewFirewallID("12345678-1234-9876-4563-123456789012", "example-resource-group", "firewallValue")
+id := firewalls.NewFirewallID("12345678-1234-9876-4563-123456789012", "example-resource-group", "firewallName")
 
 read, err := client.GetLogProfile(ctx, id)
 if err != nil {
@@ -123,7 +123,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := firewalls.NewFirewallID("12345678-1234-9876-4563-123456789012", "example-resource-group", "firewallValue")
+id := firewalls.NewFirewallID("12345678-1234-9876-4563-123456789012", "example-resource-group", "firewallName")
 
 read, err := client.GetSupportInfo(ctx, id, firewalls.DefaultGetSupportInfoOperationOptions())
 if err != nil {
@@ -173,7 +173,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := firewalls.NewFirewallID("12345678-1234-9876-4563-123456789012", "example-resource-group", "firewallValue")
+id := firewalls.NewFirewallID("12345678-1234-9876-4563-123456789012", "example-resource-group", "firewallName")
 
 payload := firewalls.FirewallResourceUpdate{
 	// ...

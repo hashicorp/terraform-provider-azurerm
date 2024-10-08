@@ -44,7 +44,7 @@ func ParsePackageID(input string) (*PackageId, error) {
 	}
 
 	id := PackageId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParsePackageIDInsensitively(input string) (*PackageId, error) {
 	}
 
 	id := PackageId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id PackageId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftContainerRegistry", "Microsoft.ContainerRegistry", "Microsoft.ContainerRegistry"),
 		resourceids.StaticSegment("staticRegistries", "registries", "registries"),
-		resourceids.UserSpecifiedSegment("registryName", "registryValue"),
+		resourceids.UserSpecifiedSegment("registryName", "registryName"),
 		resourceids.StaticSegment("staticPackages", "packages", "packages"),
-		resourceids.UserSpecifiedSegment("packageName", "packageValue"),
+		resourceids.UserSpecifiedSegment("packageName", "packageType"),
 	}
 }
 

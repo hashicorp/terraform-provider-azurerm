@@ -10,18 +10,35 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type SAPConfiguration interface {
+	SAPConfiguration() BaseSAPConfigurationImpl
 }
 
-// RawSAPConfigurationImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ SAPConfiguration = BaseSAPConfigurationImpl{}
+
+type BaseSAPConfigurationImpl struct {
+	ConfigurationType SAPConfigurationType `json:"configurationType"`
+}
+
+func (s BaseSAPConfigurationImpl) SAPConfiguration() BaseSAPConfigurationImpl {
+	return s
+}
+
+var _ SAPConfiguration = RawSAPConfigurationImpl{}
+
+// RawSAPConfigurationImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawSAPConfigurationImpl struct {
-	Type   string
-	Values map[string]interface{}
+	sAPConfiguration BaseSAPConfigurationImpl
+	Type             string
+	Values           map[string]interface{}
 }
 
-func unmarshalSAPConfigurationImplementation(input []byte) (SAPConfiguration, error) {
+func (s RawSAPConfigurationImpl) SAPConfiguration() BaseSAPConfigurationImpl {
+	return s.sAPConfiguration
+}
+
+func UnmarshalSAPConfigurationImplementation(input []byte) (SAPConfiguration, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +48,9 @@ func unmarshalSAPConfigurationImplementation(input []byte) (SAPConfiguration, er
 		return nil, fmt.Errorf("unmarshaling SAPConfiguration into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["configurationType"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["configurationType"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "Deployment") {
@@ -60,10 +77,15 @@ func unmarshalSAPConfigurationImplementation(input []byte) (SAPConfiguration, er
 		return out, nil
 	}
 
-	out := RawSAPConfigurationImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseSAPConfigurationImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseSAPConfigurationImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawSAPConfigurationImpl{
+		sAPConfiguration: parent,
+		Type:             value,
+		Values:           temp,
+	}, nil
 
 }

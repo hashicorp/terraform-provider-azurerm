@@ -50,7 +50,6 @@ func (c BlobContainersClient) Update(ctx context.Context, id commonids.StorageCo
 
 	var model BlobContainer
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -42,7 +42,7 @@ func ParseResourceGuardID(input string) (*ResourceGuardId, error) {
 	}
 
 	id := ResourceGuardId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseResourceGuardIDInsensitively(input string) (*ResourceGuardId, error) {
 	}
 
 	id := ResourceGuardId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id ResourceGuardId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDataProtection", "Microsoft.DataProtection", "Microsoft.DataProtection"),
 		resourceids.StaticSegment("staticResourceGuards", "resourceGuards", "resourceGuards"),
-		resourceids.UserSpecifiedSegment("resourceGuardName", "resourceGuardValue"),
+		resourceids.UserSpecifiedSegment("resourceGuardName", "resourceGuardsName"),
 	}
 }
 

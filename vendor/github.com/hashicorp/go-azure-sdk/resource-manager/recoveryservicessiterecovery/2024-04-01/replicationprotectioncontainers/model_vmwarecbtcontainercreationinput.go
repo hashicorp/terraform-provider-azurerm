@@ -13,6 +13,14 @@ var _ ReplicationProviderSpecificContainerCreationInput = VMwareCbtContainerCrea
 type VMwareCbtContainerCreationInput struct {
 
 	// Fields inherited from ReplicationProviderSpecificContainerCreationInput
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s VMwareCbtContainerCreationInput) ReplicationProviderSpecificContainerCreationInput() BaseReplicationProviderSpecificContainerCreationInputImpl {
+	return BaseReplicationProviderSpecificContainerCreationInputImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = VMwareCbtContainerCreationInput{}
@@ -26,9 +34,10 @@ func (s VMwareCbtContainerCreationInput) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling VMwareCbtContainerCreationInput: %+v", err)
 	}
+
 	decoded["instanceType"] = "VMwareCbt"
 
 	encoded, err = json.Marshal(decoded)

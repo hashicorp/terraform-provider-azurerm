@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/postrules` Documentation
 
-The `postrules` SDK allows for interaction with the Azure Resource Manager Service `paloaltonetworks` (API Version `2022-08-29`).
+The `postrules` SDK allows for interaction with Azure Resource Manager `paloaltonetworks` (API Version `2022-08-29`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := postrules.NewPostRuleID("globalRulestackValue", "postRuleValue")
+id := postrules.NewPostRuleID("globalRulestackName", "priority")
 
 payload := postrules.PostRulesResource{
 	// ...
@@ -41,7 +41,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := postrules.NewPostRuleID("globalRulestackValue", "postRuleValue")
+id := postrules.NewPostRuleID("globalRulestackName", "priority")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +53,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := postrules.NewPostRuleID("globalRulestackValue", "postRuleValue")
+id := postrules.NewPostRuleID("globalRulestackName", "priority")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -69,7 +69,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := postrules.NewPostRuleID("globalRulestackValue", "postRuleValue")
+id := postrules.NewPostRuleID("globalRulestackName", "priority")
 
 read, err := client.GetCounters(ctx, id, postrules.DefaultGetCountersOperationOptions())
 if err != nil {
@@ -85,7 +85,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := postrules.NewGlobalRulestackID("globalRulestackValue")
+id := postrules.NewGlobalRulestackID("globalRulestackName")
 
 // alternatively `client.List(ctx, id)` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id)
@@ -102,7 +102,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := postrules.NewPostRuleID("globalRulestackValue", "postRuleValue")
+id := postrules.NewPostRuleID("globalRulestackName", "priority")
 
 read, err := client.RefreshCounters(ctx, id, postrules.DefaultRefreshCountersOperationOptions())
 if err != nil {
@@ -118,7 +118,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := postrules.NewPostRuleID("globalRulestackValue", "postRuleValue")
+id := postrules.NewPostRuleID("globalRulestackName", "priority")
 
 read, err := client.ResetCounters(ctx, id, postrules.DefaultResetCountersOperationOptions())
 if err != nil {

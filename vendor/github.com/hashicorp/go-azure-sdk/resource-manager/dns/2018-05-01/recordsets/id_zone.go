@@ -44,7 +44,7 @@ func ParseZoneID(input string) (*ZoneId, error) {
 	}
 
 	id := ZoneId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseZoneIDInsensitively(input string) (*ZoneId, error) {
 	}
 
 	id := ZoneId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -129,7 +129,7 @@ func (id ZoneId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticDnsZones", "dnsZones", "dnsZones"),
-		resourceids.UserSpecifiedSegment("dnsZoneName", "dnsZoneValue"),
+		resourceids.UserSpecifiedSegment("dnsZoneName", "zoneName"),
 		resourceids.ConstantSegment("recordType", PossibleValuesForRecordType(), "A"),
 	}
 }

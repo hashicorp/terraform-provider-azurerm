@@ -15,7 +15,7 @@ type PeerExpressRouteCircuitConnectionsClient struct {
 }
 
 func NewPeerExpressRouteCircuitConnectionsClientWithBaseURI(sdkApi sdkEnv.Api) (*PeerExpressRouteCircuitConnectionsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "peerexpressroutecircuitconnections", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "peerexpressroutecircuitconnections", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating PeerExpressRouteCircuitConnectionsClient: %+v", err)
 	}

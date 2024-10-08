@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backupvaults` Documentation
 
-The `backupvaults` SDK allows for interaction with the Azure Resource Manager Service `dataprotection` (API Version `2024-04-01`).
+The `backupvaults` SDK allows for interaction with Azure Resource Manager `dataprotection` (API Version `2024-04-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := backupvaults.NewProviderLocationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "locationValue")
+id := backupvaults.NewProviderLocationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "location")
 
 payload := backupvaults.CheckNameAvailabilityRequest{
 	// ...
@@ -46,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := backupvaults.NewBackupVaultID("12345678-1234-9876-4563-123456789012", "example-resource-group", "backupVaultValue")
+id := backupvaults.NewBackupVaultID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultName")
 
 payload := backupvaults.BackupVaultResource{
 	// ...
@@ -63,7 +63,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload, backupvaults.DefaultCr
 
 ```go
 ctx := context.TODO()
-id := backupvaults.NewBackupVaultID("12345678-1234-9876-4563-123456789012", "example-resource-group", "backupVaultValue")
+id := backupvaults.NewBackupVaultID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -75,7 +75,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := backupvaults.NewBackupVaultID("12345678-1234-9876-4563-123456789012", "example-resource-group", "backupVaultValue")
+id := backupvaults.NewBackupVaultID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -125,7 +125,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := backupvaults.NewBackupVaultID("12345678-1234-9876-4563-123456789012", "example-resource-group", "backupVaultValue")
+id := backupvaults.NewBackupVaultID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultName")
 
 payload := backupvaults.PatchResourceRequestInput{
 	// ...

@@ -46,7 +46,7 @@ func ParseSnapshotID(input string) (*SnapshotId, error) {
 	}
 
 	id := SnapshotId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -63,7 +63,7 @@ func ParseSnapshotIDInsensitively(input string) (*SnapshotId, error) {
 	}
 
 	id := SnapshotId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -127,11 +127,11 @@ func (id SnapshotId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftElasticSan", "Microsoft.ElasticSan", "Microsoft.ElasticSan"),
 		resourceids.StaticSegment("staticElasticSans", "elasticSans", "elasticSans"),
-		resourceids.UserSpecifiedSegment("elasticSanName", "elasticSanValue"),
+		resourceids.UserSpecifiedSegment("elasticSanName", "elasticSanName"),
 		resourceids.StaticSegment("staticVolumeGroups", "volumeGroups", "volumeGroups"),
-		resourceids.UserSpecifiedSegment("volumeGroupName", "volumeGroupValue"),
+		resourceids.UserSpecifiedSegment("volumeGroupName", "volumeGroupName"),
 		resourceids.StaticSegment("staticSnapshots", "snapshots", "snapshots"),
-		resourceids.UserSpecifiedSegment("snapshotName", "snapshotValue"),
+		resourceids.UserSpecifiedSegment("snapshotName", "snapshotName"),
 	}
 }
 

@@ -44,7 +44,7 @@ func ParseDatabaseID(input string) (*DatabaseId, error) {
 	}
 
 	id := DatabaseId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseDatabaseIDInsensitively(input string) (*DatabaseId, error) {
 	}
 
 	id := DatabaseId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id DatabaseId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftCache", "Microsoft.Cache", "Microsoft.Cache"),
 		resourceids.StaticSegment("staticRedisEnterprise", "redisEnterprise", "redisEnterprise"),
-		resourceids.UserSpecifiedSegment("redisEnterpriseName", "redisEnterpriseValue"),
+		resourceids.UserSpecifiedSegment("redisEnterpriseName", "clusterName"),
 		resourceids.StaticSegment("staticDatabases", "databases", "databases"),
-		resourceids.UserSpecifiedSegment("databaseName", "databaseValue"),
+		resourceids.UserSpecifiedSegment("databaseName", "databaseName"),
 	}
 }
 

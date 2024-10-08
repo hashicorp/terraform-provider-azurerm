@@ -45,7 +45,6 @@ func (c DdosCustomPoliciesClient) Get(ctx context.Context, id DdosCustomPolicyId
 
 	var model DdosCustomPolicy
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -45,7 +45,6 @@ func (c CollectorPoliciesClient) Get(ctx context.Context, id CollectorPolicyId) 
 
 	var model CollectorPolicy
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

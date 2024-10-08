@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/volumequotarules` Documentation
 
-The `volumequotarules` SDK allows for interaction with the Azure Resource Manager Service `netapp` (API Version `2023-05-01`).
+The `volumequotarules` SDK allows for interaction with Azure Resource Manager `netapp` (API Version `2023-05-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := volumequotarules.NewVolumeQuotaRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "netAppAccountValue", "capacityPoolValue", "volumeValue", "volumeQuotaRuleValue")
+id := volumequotarules.NewVolumeQuotaRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "poolName", "volumeName", "volumeQuotaRuleName")
 
 payload := volumequotarules.VolumeQuotaRule{
 	// ...
@@ -41,7 +41,7 @@ if err := client.CreateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := volumequotarules.NewVolumeQuotaRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "netAppAccountValue", "capacityPoolValue", "volumeValue", "volumeQuotaRuleValue")
+id := volumequotarules.NewVolumeQuotaRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "poolName", "volumeName", "volumeQuotaRuleName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +53,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := volumequotarules.NewVolumeQuotaRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "netAppAccountValue", "capacityPoolValue", "volumeValue", "volumeQuotaRuleValue")
+id := volumequotarules.NewVolumeQuotaRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "poolName", "volumeName", "volumeQuotaRuleName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -69,7 +69,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := volumequotarules.NewVolumeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "netAppAccountValue", "capacityPoolValue", "volumeValue")
+id := volumequotarules.NewVolumeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "poolName", "volumeName")
 
 read, err := client.ListByVolume(ctx, id)
 if err != nil {
@@ -85,7 +85,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := volumequotarules.NewVolumeQuotaRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "netAppAccountValue", "capacityPoolValue", "volumeValue", "volumeQuotaRuleValue")
+id := volumequotarules.NewVolumeQuotaRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "poolName", "volumeName", "volumeQuotaRuleName")
 
 payload := volumequotarules.VolumeQuotaRulePatch{
 	// ...

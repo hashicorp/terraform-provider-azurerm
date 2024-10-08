@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/loadtestservice/2022-12-01/quotas` Documentation
 
-The `quotas` SDK allows for interaction with the Azure Resource Manager Service `loadtestservice` (API Version `2022-12-01`).
+The `quotas` SDK allows for interaction with Azure Resource Manager `loadtestservice` (API Version `2022-12-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := quotas.NewQuotaID("12345678-1234-9876-4563-123456789012", "locationValue", "quotaValue")
+id := quotas.NewQuotaID("12345678-1234-9876-4563-123456789012", "location", "quotaBucketName")
 
 payload := quotas.QuotaBucketRequest{
 	// ...
@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := quotas.NewQuotaID("12345678-1234-9876-4563-123456789012", "locationValue", "quotaValue")
+id := quotas.NewQuotaID("12345678-1234-9876-4563-123456789012", "location", "quotaBucketName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -61,7 +61,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := quotas.NewLocationID("12345678-1234-9876-4563-123456789012", "locationValue")
+id := quotas.NewLocationID("12345678-1234-9876-4563-123456789012", "location")
 
 // alternatively `client.List(ctx, id)` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id)

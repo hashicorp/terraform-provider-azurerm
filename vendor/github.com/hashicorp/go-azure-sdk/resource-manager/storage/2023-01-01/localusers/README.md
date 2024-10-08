@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/localusers` Documentation
 
-The `localusers` SDK allows for interaction with the Azure Resource Manager Service `storage` (API Version `2023-01-01`).
+The `localusers` SDK allows for interaction with Azure Resource Manager `storage` (API Version `2023-01-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := localusers.NewLocalUserID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "localUserValue")
+id := localusers.NewLocalUserID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "username")
 
 payload := localusers.LocalUser{
 	// ...
@@ -46,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := localusers.NewLocalUserID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "localUserValue")
+id := localusers.NewLocalUserID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "username")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -62,7 +62,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := localusers.NewLocalUserID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "localUserValue")
+id := localusers.NewLocalUserID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "username")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -78,7 +78,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewStorageAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue")
+id := commonids.NewStorageAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountName")
 
 read, err := client.List(ctx, id)
 if err != nil {
@@ -94,7 +94,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := localusers.NewLocalUserID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "localUserValue")
+id := localusers.NewLocalUserID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "username")
 
 read, err := client.ListKeys(ctx, id)
 if err != nil {
@@ -110,7 +110,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := localusers.NewLocalUserID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "localUserValue")
+id := localusers.NewLocalUserID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "username")
 
 read, err := client.RegeneratePassword(ctx, id)
 if err != nil {

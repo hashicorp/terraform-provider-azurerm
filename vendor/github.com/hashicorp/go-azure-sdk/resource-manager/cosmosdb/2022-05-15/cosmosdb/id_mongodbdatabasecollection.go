@@ -46,7 +46,7 @@ func ParseMongodbDatabaseCollectionID(input string) (*MongodbDatabaseCollectionI
 	}
 
 	id := MongodbDatabaseCollectionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -63,7 +63,7 @@ func ParseMongodbDatabaseCollectionIDInsensitively(input string) (*MongodbDataba
 	}
 
 	id := MongodbDatabaseCollectionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -127,11 +127,11 @@ func (id MongodbDatabaseCollectionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDocumentDB", "Microsoft.DocumentDB", "Microsoft.DocumentDB"),
 		resourceids.StaticSegment("staticDatabaseAccounts", "databaseAccounts", "databaseAccounts"),
-		resourceids.UserSpecifiedSegment("databaseAccountName", "databaseAccountValue"),
+		resourceids.UserSpecifiedSegment("databaseAccountName", "accountName"),
 		resourceids.StaticSegment("staticMongodbDatabases", "mongodbDatabases", "mongodbDatabases"),
-		resourceids.UserSpecifiedSegment("mongodbDatabaseName", "mongodbDatabaseValue"),
+		resourceids.UserSpecifiedSegment("mongodbDatabaseName", "databaseName"),
 		resourceids.StaticSegment("staticCollections", "collections", "collections"),
-		resourceids.UserSpecifiedSegment("collectionName", "collectionValue"),
+		resourceids.UserSpecifiedSegment("collectionName", "collectionName"),
 	}
 }
 

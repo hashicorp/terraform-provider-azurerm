@@ -15,7 +15,7 @@ type AdministratorsClient struct {
 }
 
 func NewAdministratorsClientWithBaseURI(sdkApi sdkEnv.Api) (*AdministratorsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "administrators", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "administrators", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating AdministratorsClient: %+v", err)
 	}

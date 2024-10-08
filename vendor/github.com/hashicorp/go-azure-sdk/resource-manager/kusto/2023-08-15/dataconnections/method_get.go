@@ -15,7 +15,7 @@ import (
 type GetOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *DataConnection
+	Model        DataConnection
 }
 
 // Get ...
@@ -48,11 +48,11 @@ func (c DataConnectionsClient) Get(ctx context.Context, id DataConnectionId) (re
 	if err = resp.Unmarshal(&respObj); err != nil {
 		return
 	}
-	model, err := unmarshalDataConnectionImplementation(respObj)
+	model, err := UnmarshalDataConnectionImplementation(respObj)
 	if err != nil {
 		return
 	}
-	result.Model = &model
+	result.Model = model
 
 	return
 }

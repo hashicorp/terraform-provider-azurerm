@@ -15,7 +15,7 @@ type StaticMembersClient struct {
 }
 
 func NewStaticMembersClientWithBaseURI(sdkApi sdkEnv.Api) (*StaticMembersClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "staticmembers", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "staticmembers", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating StaticMembersClient: %+v", err)
 	}

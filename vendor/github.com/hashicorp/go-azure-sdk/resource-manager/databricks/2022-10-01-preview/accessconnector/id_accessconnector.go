@@ -42,7 +42,7 @@ func ParseAccessConnectorID(input string) (*AccessConnectorId, error) {
 	}
 
 	id := AccessConnectorId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseAccessConnectorIDInsensitively(input string) (*AccessConnectorId, erro
 	}
 
 	id := AccessConnectorId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id AccessConnectorId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDatabricks", "Microsoft.Databricks", "Microsoft.Databricks"),
 		resourceids.StaticSegment("staticAccessConnectors", "accessConnectors", "accessConnectors"),
-		resourceids.UserSpecifiedSegment("accessConnectorName", "accessConnectorValue"),
+		resourceids.UserSpecifiedSegment("accessConnectorName", "connectorName"),
 	}
 }
 

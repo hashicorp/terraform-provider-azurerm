@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-10-01/deploymentscripts` Documentation
 
-The `deploymentscripts` SDK allows for interaction with the Azure Resource Manager Service `resources` (API Version `2020-10-01`).
+The `deploymentscripts` SDK allows for interaction with Azure Resource Manager `resources` (API Version `2020-10-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := deploymentscripts.NewDeploymentScriptID("12345678-1234-9876-4563-123456789012", "example-resource-group", "deploymentScriptValue")
+id := deploymentscripts.NewDeploymentScriptID("12345678-1234-9876-4563-123456789012", "example-resource-group", "scriptName")
 
 payload := deploymentscripts.DeploymentScript{
 	// ...
@@ -42,7 +42,7 @@ if err := client.CreateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := deploymentscripts.NewDeploymentScriptID("12345678-1234-9876-4563-123456789012", "example-resource-group", "deploymentScriptValue")
+id := deploymentscripts.NewDeploymentScriptID("12345678-1234-9876-4563-123456789012", "example-resource-group", "scriptName")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -58,7 +58,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := deploymentscripts.NewDeploymentScriptID("12345678-1234-9876-4563-123456789012", "example-resource-group", "deploymentScriptValue")
+id := deploymentscripts.NewDeploymentScriptID("12345678-1234-9876-4563-123456789012", "example-resource-group", "scriptName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -74,7 +74,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := deploymentscripts.NewDeploymentScriptID("12345678-1234-9876-4563-123456789012", "example-resource-group", "deploymentScriptValue")
+id := deploymentscripts.NewDeploymentScriptID("12345678-1234-9876-4563-123456789012", "example-resource-group", "scriptName")
 
 read, err := client.GetLogs(ctx, id)
 if err != nil {
@@ -90,7 +90,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := deploymentscripts.NewDeploymentScriptID("12345678-1234-9876-4563-123456789012", "example-resource-group", "deploymentScriptValue")
+id := deploymentscripts.NewDeploymentScriptID("12345678-1234-9876-4563-123456789012", "example-resource-group", "scriptName")
 
 read, err := client.GetLogsDefault(ctx, id, deploymentscripts.DefaultGetLogsDefaultOperationOptions())
 if err != nil {
@@ -140,7 +140,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := deploymentscripts.NewDeploymentScriptID("12345678-1234-9876-4563-123456789012", "example-resource-group", "deploymentScriptValue")
+id := deploymentscripts.NewDeploymentScriptID("12345678-1234-9876-4563-123456789012", "example-resource-group", "scriptName")
 
 payload := deploymentscripts.DeploymentScriptUpdateParameter{
 	// ...

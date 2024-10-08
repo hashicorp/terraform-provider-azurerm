@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/maintenanceconfigurations` Documentation
 
-The `maintenanceconfigurations` SDK allows for interaction with the Azure Resource Manager Service `maintenance` (API Version `2023-04-01`).
+The `maintenanceconfigurations` SDK allows for interaction with Azure Resource Manager `maintenance` (API Version `2023-04-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := maintenanceconfigurations.NewMaintenanceConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "maintenanceConfigurationValue")
+id := maintenanceconfigurations.NewMaintenanceConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
 
 payload := maintenanceconfigurations.MaintenanceConfiguration{
 	// ...
@@ -46,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := maintenanceconfigurations.NewMaintenanceConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "maintenanceConfigurationValue")
+id := maintenanceconfigurations.NewMaintenanceConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -78,7 +78,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := maintenanceconfigurations.NewMaintenanceConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "maintenanceConfigurationValue")
+id := maintenanceconfigurations.NewMaintenanceConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -110,7 +110,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := maintenanceconfigurations.NewMaintenanceConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "maintenanceConfigurationValue")
+id := maintenanceconfigurations.NewMaintenanceConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
 
 payload := maintenanceconfigurations.MaintenanceConfiguration{
 	// ...

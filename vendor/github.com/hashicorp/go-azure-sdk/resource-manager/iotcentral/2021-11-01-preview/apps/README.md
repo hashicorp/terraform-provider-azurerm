@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/iotcentral/2021-11-01-preview/apps` Documentation
 
-The `apps` SDK allows for interaction with the Azure Resource Manager Service `iotcentral` (API Version `2021-11-01-preview`).
+The `apps` SDK allows for interaction with Azure Resource Manager `iotcentral` (API Version `2021-11-01-preview`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -67,7 +67,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := apps.NewIotAppID("12345678-1234-9876-4563-123456789012", "example-resource-group", "iotAppValue")
+id := apps.NewIotAppID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
 
 payload := apps.App{
 	// ...
@@ -84,7 +84,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := apps.NewIotAppID("12345678-1234-9876-4563-123456789012", "example-resource-group", "iotAppValue")
+id := apps.NewIotAppID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -96,7 +96,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := apps.NewIotAppID("12345678-1234-9876-4563-123456789012", "example-resource-group", "iotAppValue")
+id := apps.NewIotAppID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -163,7 +163,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := apps.NewIotAppID("12345678-1234-9876-4563-123456789012", "example-resource-group", "iotAppValue")
+id := apps.NewIotAppID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
 
 payload := apps.AppPatch{
 	// ...

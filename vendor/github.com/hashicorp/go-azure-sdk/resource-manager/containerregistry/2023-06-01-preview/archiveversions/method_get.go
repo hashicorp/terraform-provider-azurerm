@@ -45,7 +45,6 @@ func (c ArchiveVersionsClient) Get(ctx context.Context, id VersionId) (result Ge
 
 	var model ArchiveVersion
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

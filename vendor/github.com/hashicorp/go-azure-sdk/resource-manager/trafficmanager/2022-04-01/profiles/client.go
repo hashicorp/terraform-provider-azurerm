@@ -15,7 +15,7 @@ type ProfilesClient struct {
 }
 
 func NewProfilesClientWithBaseURI(sdkApi sdkEnv.Api) (*ProfilesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "profiles", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "profiles", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ProfilesClient: %+v", err)
 	}
