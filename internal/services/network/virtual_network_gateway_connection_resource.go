@@ -79,6 +79,7 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 			"shared_key": {
 				Type:      pluginsdk.TypeString,
 				Optional:  true,
+				Computed:  true,
 				Sensitive: true,
 			},
 
