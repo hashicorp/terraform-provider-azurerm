@@ -351,6 +351,9 @@ func (r CloudVmClusterResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving as nil when updating for %v", *id)
 			}
 
+			if metadata.ResourceData.HasChangesExcept("tags") {
+				return fmt.Errorf("only `tags` currently support updates")
+			}
 			if metadata.ResourceData.HasChange("tags") {
 				update := &cloudvmclusters.CloudVMClusterUpdate{
 					Tags: tags.Expand(model.Tags),
@@ -359,8 +362,6 @@ func (r CloudVmClusterResource) Update() sdk.ResourceFunc {
 				if err != nil {
 					return fmt.Errorf("updating %s: %v", id, err)
 				}
-			} else if metadata.ResourceData.HasChangesExcept("tags") {
-				return fmt.Errorf("only `tags` currently support updates")
 			}
 			return nil
 		},
