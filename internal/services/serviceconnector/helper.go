@@ -8,7 +8,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicelinker/2022-05-01/links"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicelinker/2024-04-01/servicelinker"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
@@ -169,7 +168,7 @@ func expandServiceConnectorAuthInfoForCreate(input []AuthInfoModel) (servicelink
 	return nil, fmt.Errorf("unrecognised authentication type: %q", in.Type)
 }
 
-func expandServiceConnectorAuthInfoForUpdate(input []AuthInfoModel) (links.AuthInfoBase, error) {
+func expandServiceConnectorAuthInfoForUpdate(input []AuthInfoModel) (servicelinker.AuthInfoBase, error) {
 	if err := validateServiceConnectorAuthInfo(input); err != nil {
 		return nil, err
 	}
@@ -179,34 +178,34 @@ func expandServiceConnectorAuthInfoForUpdate(input []AuthInfoModel) (links.AuthI
 	}
 
 	in := input[0]
-	switch links.AuthType(in.Type) {
-	case links.AuthTypeSecret:
-		return links.SecretAuthInfo{
+	switch servicelinker.AuthType(in.Type) {
+	case servicelinker.AuthTypeSecret:
+		return servicelinker.SecretAuthInfo{
 			Name: pointer.To(in.Name),
-			SecretInfo: links.ValueSecretInfo{
+			SecretInfo: servicelinker.ValueSecretInfo{
 				Value: pointer.To(in.Secret),
 			},
 		}, nil
 
-	case links.AuthTypeServicePrincipalSecret:
-		return links.ServicePrincipalSecretAuthInfo{
+	case servicelinker.AuthTypeServicePrincipalSecret:
+		return servicelinker.ServicePrincipalSecretAuthInfo{
 			ClientId:    in.ClientId,
 			PrincipalId: in.PrincipalId,
 			Secret:      in.Secret,
 		}, nil
 
-	case links.AuthTypeServicePrincipalCertificate:
-		return links.ServicePrincipalCertificateAuthInfo{
+	case servicelinker.AuthTypeServicePrincipalCertificate:
+		return servicelinker.ServicePrincipalCertificateAuthInfo{
 			Certificate: in.Certificate,
 			ClientId:    in.ClientId,
 			PrincipalId: in.PrincipalId,
 		}, nil
 
-	case links.AuthTypeSystemAssignedIdentity:
-		return links.SystemAssignedIdentityAuthInfo{}, nil
+	case servicelinker.AuthTypeSystemAssignedIdentity:
+		return servicelinker.SystemAssignedIdentityAuthInfo{}, nil
 
-	case links.AuthTypeUserAssignedIdentity:
-		return links.UserAssignedIdentityAuthInfo{
+	case servicelinker.AuthTypeUserAssignedIdentity:
+		return servicelinker.UserAssignedIdentityAuthInfo{
 			ClientId:       pointer.To(in.ClientId),
 			SubscriptionId: pointer.To(in.SubscriptionId),
 		}, nil

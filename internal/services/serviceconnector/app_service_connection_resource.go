@@ -337,7 +337,6 @@ func (r AppServiceConnectorResource) Update() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.ServiceConnector.ServiceLinkerClient
-
 			id, err := servicelinker.ParseScopedLinkerID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
