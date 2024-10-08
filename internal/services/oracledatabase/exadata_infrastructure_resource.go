@@ -90,7 +90,6 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 		"maintenance_window": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"days_of_week": {
