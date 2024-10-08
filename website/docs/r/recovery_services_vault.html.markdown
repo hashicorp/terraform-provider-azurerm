@@ -56,7 +56,9 @@ The following arguments are supported:
 
 -> **Note:** Once `cross_region_restore_enabled` is set to `true`, changing it back to `false` forces a new Recovery Service Vault to be created.
 
-* `soft_delete_enabled` - (Optional) Is soft delete enable for this Vault? Defaults to `true`.
+* `soft_delete_enabled` - (Optional) Is soft delete enable for this Vault? Defaults to `true`. **Deprecated** Superseded by `soft_delete_status`
+
+* `soft_delete_status` - (Optional) Is soft delete enable for this Vault? Defaults to `Enabled`. Possible values `Enabled`, `AlwaysON`, `Disabled`. Changing this from `AlwaysON` to `Disabled` or `Enabled` is not possible. You will need to destroy and recreate the resource.
 
 * `encryption` - (Optional) An `encryption` block as defined below. Required with `identity`.
 
