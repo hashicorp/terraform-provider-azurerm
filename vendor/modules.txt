@@ -1356,6 +1356,7 @@ github.com/rickb777/plural
 ## explicit; go 1.13
 github.com/sergi/go-diff/diffmatchpatch
 # github.com/tombuildsstuff/giovanni v0.27.0
+# github.com/jackofallops/giovanni v0.27.0
 ## explicit; go 1.21
 github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/accounts
 github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/blobs
@@ -1371,6 +1372,7 @@ github.com/tombuildsstuff/giovanni/storage/2023-11-03/table/tables
 github.com/tombuildsstuff/giovanni/storage/accesscontrol
 github.com/tombuildsstuff/giovanni/storage/internal/metadata
 # github.com/tombuildsstuff/kermit v0.20240122.1123108
+# github.com/jackofallops/kermit v0.20240122.1123108
 ## explicit; go 1.18
 github.com/jackofallops/kermit/sdk/appconfiguration/1.0/appconfiguration
 github.com/tombuildsstuff/kermit/sdk/appplatform/2023-05-01-preview/appplatform
@@ -1387,6 +1389,7 @@ github.com/tombuildsstuff/kermit/sdk/synapse/2020-08-01-preview/synapse
 github.com/tombuildsstuff/kermit/sdk/synapse/2021-06-01-preview/synapse
 github.com/tombuildsstuff/kermit/sdk/web/2022-09-01/web
 github.com/tombuildsstuff/kermit/version
+github.com/jackofallops/kermit/version
 # github.com/vmihailenco/msgpack v4.0.4+incompatible
 ## explicit
 github.com/vmihailenco/msgpack
