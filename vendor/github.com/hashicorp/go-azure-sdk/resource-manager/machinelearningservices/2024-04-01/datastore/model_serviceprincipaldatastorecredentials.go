@@ -18,6 +18,14 @@ type ServicePrincipalDatastoreCredentials struct {
 	TenantId     string                           `json:"tenantId"`
 
 	// Fields inherited from DatastoreCredentials
+
+	CredentialsType CredentialsType `json:"credentialsType"`
+}
+
+func (s ServicePrincipalDatastoreCredentials) DatastoreCredentials() BaseDatastoreCredentialsImpl {
+	return BaseDatastoreCredentialsImpl{
+		CredentialsType: s.CredentialsType,
+	}
 }
 
 var _ json.Marshaler = ServicePrincipalDatastoreCredentials{}
@@ -31,9 +39,10 @@ func (s ServicePrincipalDatastoreCredentials) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling ServicePrincipalDatastoreCredentials: %+v", err)
 	}
+
 	decoded["credentialsType"] = "ServicePrincipal"
 
 	encoded, err = json.Marshal(decoded)

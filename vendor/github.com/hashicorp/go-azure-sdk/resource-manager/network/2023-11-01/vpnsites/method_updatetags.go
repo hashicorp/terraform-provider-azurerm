@@ -49,7 +49,6 @@ func (c VpnSitesClient) UpdateTags(ctx context.Context, id VpnSiteId, input Tags
 
 	var model VpnSite
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

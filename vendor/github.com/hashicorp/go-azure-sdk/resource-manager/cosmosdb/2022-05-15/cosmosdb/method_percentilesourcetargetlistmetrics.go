@@ -34,6 +34,7 @@ func (o PercentileSourceTargetListMetricsOperationOptions) ToHeaders() *client.H
 
 func (o PercentileSourceTargetListMetricsOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -74,7 +75,6 @@ func (c CosmosDBClient) PercentileSourceTargetListMetrics(ctx context.Context, i
 
 	var model PercentileMetricListResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

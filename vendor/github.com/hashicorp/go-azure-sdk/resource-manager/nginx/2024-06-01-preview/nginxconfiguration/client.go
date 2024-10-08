@@ -15,7 +15,7 @@ type NginxConfigurationClient struct {
 }
 
 func NewNginxConfigurationClientWithBaseURI(sdkApi sdkEnv.Api) (*NginxConfigurationClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "nginxconfiguration", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "nginxconfiguration", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating NginxConfigurationClient: %+v", err)
 	}

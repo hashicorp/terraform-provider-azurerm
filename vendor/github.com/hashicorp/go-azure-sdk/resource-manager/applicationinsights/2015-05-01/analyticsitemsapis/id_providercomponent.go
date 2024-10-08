@@ -44,7 +44,7 @@ func ParseProviderComponentID(input string) (*ProviderComponentId, error) {
 	}
 
 	id := ProviderComponentId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseProviderComponentIDInsensitively(input string) (*ProviderComponentId, 
 	}
 
 	id := ProviderComponentId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,7 +121,7 @@ func (id ProviderComponentId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftInsights", "Microsoft.Insights", "Microsoft.Insights"),
 		resourceids.StaticSegment("staticComponents", "components", "components"),
-		resourceids.UserSpecifiedSegment("componentName", "componentValue"),
+		resourceids.UserSpecifiedSegment("componentName", "resourceName"),
 		resourceids.ScopeSegment("scopePath", "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group"),
 	}
 }

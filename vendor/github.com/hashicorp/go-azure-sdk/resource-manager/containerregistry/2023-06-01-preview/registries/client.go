@@ -15,7 +15,7 @@ type RegistriesClient struct {
 }
 
 func NewRegistriesClientWithBaseURI(sdkApi sdkEnv.Api) (*RegistriesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "registries", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "registries", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating RegistriesClient: %+v", err)
 	}

@@ -45,7 +45,6 @@ func (c WebAppsClient) GetTriggeredWebJob(ctx context.Context, id TriggeredWebJo
 
 	var model TriggeredWebJob
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

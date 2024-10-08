@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-06-01-preview/registries` Documentation
 
-The `registries` SDK allows for interaction with the Azure Resource Manager Service `containerregistry` (API Version `2023-06-01-preview`).
+The `registries` SDK allows for interaction with Azure Resource Manager `containerregistry` (API Version `2023-06-01-preview`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := registries.NewRegistryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "registryValue")
+id := registries.NewRegistryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "registryName")
 
 payload := registries.Registry{
 	// ...
@@ -42,7 +42,7 @@ if err := client.CreateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := registries.NewRegistryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "registryValue")
+id := registries.NewRegistryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "registryName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -54,7 +54,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := registries.NewRegistryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "registryValue")
+id := registries.NewRegistryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "registryName")
 
 payload := registries.GenerateCredentialsParameters{
 	// ...
@@ -71,7 +71,7 @@ if err := client.GenerateCredentialsThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := registries.NewRegistryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "registryValue")
+id := registries.NewRegistryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "registryName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -87,7 +87,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := registries.NewPrivateLinkResourceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "registryValue", "privateLinkResourceValue")
+id := registries.NewPrivateLinkResourceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "registryName", "groupName")
 
 read, err := client.GetPrivateLinkResource(ctx, id)
 if err != nil {
@@ -103,7 +103,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := registries.NewRegistryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "registryValue")
+id := registries.NewRegistryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "registryName")
 
 payload := registries.ImportImageParameters{
 	// ...
@@ -154,7 +154,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := registries.NewRegistryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "registryValue")
+id := registries.NewRegistryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "registryName")
 
 read, err := client.ListCredentials(ctx, id)
 if err != nil {
@@ -170,7 +170,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := registries.NewRegistryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "registryValue")
+id := registries.NewRegistryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "registryName")
 
 // alternatively `client.ListPrivateLinkResources(ctx, id)` can be used to do batched pagination
 items, err := client.ListPrivateLinkResourcesComplete(ctx, id)
@@ -187,7 +187,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := registries.NewRegistryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "registryValue")
+id := registries.NewRegistryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "registryName")
 
 read, err := client.ListUsages(ctx, id)
 if err != nil {
@@ -203,7 +203,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := registries.NewRegistryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "registryValue")
+id := registries.NewRegistryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "registryName")
 
 payload := registries.RegenerateCredentialParameters{
 	// ...
@@ -224,7 +224,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := registries.NewRegistryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "registryValue")
+id := registries.NewRegistryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "registryName")
 
 payload := registries.RegistryUpdateParameters{
 	// ...

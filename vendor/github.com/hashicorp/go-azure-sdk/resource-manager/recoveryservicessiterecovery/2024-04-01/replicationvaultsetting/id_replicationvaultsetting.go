@@ -44,7 +44,7 @@ func ParseReplicationVaultSettingID(input string) (*ReplicationVaultSettingId, e
 	}
 
 	id := ReplicationVaultSettingId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseReplicationVaultSettingIDInsensitively(input string) (*ReplicationVaul
 	}
 
 	id := ReplicationVaultSettingId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id ReplicationVaultSettingId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftRecoveryServices", "Microsoft.RecoveryServices", "Microsoft.RecoveryServices"),
 		resourceids.StaticSegment("staticVaults", "vaults", "vaults"),
-		resourceids.UserSpecifiedSegment("vaultName", "vaultValue"),
+		resourceids.UserSpecifiedSegment("vaultName", "resourceName"),
 		resourceids.StaticSegment("staticReplicationVaultSettings", "replicationVaultSettings", "replicationVaultSettings"),
-		resourceids.UserSpecifiedSegment("replicationVaultSettingName", "replicationVaultSettingValue"),
+		resourceids.UserSpecifiedSegment("replicationVaultSettingName", "vaultSettingName"),
 	}
 }
 

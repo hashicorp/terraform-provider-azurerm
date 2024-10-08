@@ -50,7 +50,6 @@ func (c NetworkInterfacesClient) UpdateTags(ctx context.Context, id commonids.Ne
 
 	var model NetworkInterface
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

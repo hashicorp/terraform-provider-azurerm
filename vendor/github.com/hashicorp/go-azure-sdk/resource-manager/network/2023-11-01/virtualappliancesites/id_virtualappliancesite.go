@@ -44,7 +44,7 @@ func ParseVirtualApplianceSiteID(input string) (*VirtualApplianceSiteId, error) 
 	}
 
 	id := VirtualApplianceSiteId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseVirtualApplianceSiteIDInsensitively(input string) (*VirtualApplianceSi
 	}
 
 	id := VirtualApplianceSiteId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id VirtualApplianceSiteId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticNetworkVirtualAppliances", "networkVirtualAppliances", "networkVirtualAppliances"),
-		resourceids.UserSpecifiedSegment("networkVirtualApplianceName", "networkVirtualApplianceValue"),
+		resourceids.UserSpecifiedSegment("networkVirtualApplianceName", "networkVirtualApplianceName"),
 		resourceids.StaticSegment("staticVirtualApplianceSites", "virtualApplianceSites", "virtualApplianceSites"),
-		resourceids.UserSpecifiedSegment("virtualApplianceSiteName", "virtualApplianceSiteValue"),
+		resourceids.UserSpecifiedSegment("virtualApplianceSiteName", "siteName"),
 	}
 }
 

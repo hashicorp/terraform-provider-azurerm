@@ -42,7 +42,7 @@ func ParseCapacityID(input string) (*CapacityId, error) {
 	}
 
 	id := CapacityId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseCapacityIDInsensitively(input string) (*CapacityId, error) {
 	}
 
 	id := CapacityId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id CapacityId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftPowerBIDedicated", "Microsoft.PowerBIDedicated", "Microsoft.PowerBIDedicated"),
 		resourceids.StaticSegment("staticCapacities", "capacities", "capacities"),
-		resourceids.UserSpecifiedSegment("capacityName", "capacityValue"),
+		resourceids.UserSpecifiedSegment("capacityName", "dedicatedCapacityName"),
 	}
 }
 

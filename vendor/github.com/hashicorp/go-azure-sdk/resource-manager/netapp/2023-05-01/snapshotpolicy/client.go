@@ -15,7 +15,7 @@ type SnapshotPolicyClient struct {
 }
 
 func NewSnapshotPolicyClientWithBaseURI(sdkApi sdkEnv.Api) (*SnapshotPolicyClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "snapshotpolicy", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "snapshotpolicy", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating SnapshotPolicyClient: %+v", err)
 	}

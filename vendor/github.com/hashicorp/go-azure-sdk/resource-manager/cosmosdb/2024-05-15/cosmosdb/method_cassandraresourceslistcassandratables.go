@@ -46,7 +46,6 @@ func (c CosmosDBClient) CassandraResourcesListCassandraTables(ctx context.Contex
 
 	var model CassandraTableListResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -44,7 +44,7 @@ func ParseHubID(input string) (*HubId, error) {
 	}
 
 	id := HubId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseHubIDInsensitively(input string) (*HubId, error) {
 	}
 
 	id := HubId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id HubId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftSignalRService", "Microsoft.SignalRService", "Microsoft.SignalRService"),
 		resourceids.StaticSegment("staticWebPubSub", "webPubSub", "webPubSub"),
-		resourceids.UserSpecifiedSegment("webPubSubName", "webPubSubValue"),
+		resourceids.UserSpecifiedSegment("webPubSubName", "resourceName"),
 		resourceids.StaticSegment("staticHubs", "hubs", "hubs"),
-		resourceids.UserSpecifiedSegment("hubName", "hubValue"),
+		resourceids.UserSpecifiedSegment("hubName", "hubName"),
 	}
 }
 

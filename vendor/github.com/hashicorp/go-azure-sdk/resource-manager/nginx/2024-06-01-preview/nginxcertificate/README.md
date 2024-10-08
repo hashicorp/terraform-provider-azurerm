@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-06-01-preview/nginxcertificate` Documentation
 
-The `nginxcertificate` SDK allows for interaction with the Azure Resource Manager Service `nginx` (API Version `2024-06-01-preview`).
+The `nginxcertificate` SDK allows for interaction with Azure Resource Manager `nginx` (API Version `2024-06-01-preview`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := nginxcertificate.NewCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "nginxDeploymentValue", "certificateValue")
+id := nginxcertificate.NewCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "deploymentName", "certificateName")
 
 payload := nginxcertificate.NginxCertificate{
 	// ...
@@ -41,7 +41,7 @@ if err := client.CertificatesCreateOrUpdateThenPoll(ctx, id, payload); err != ni
 
 ```go
 ctx := context.TODO()
-id := nginxcertificate.NewCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "nginxDeploymentValue", "certificateValue")
+id := nginxcertificate.NewCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "deploymentName", "certificateName")
 
 if err := client.CertificatesDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +53,7 @@ if err := client.CertificatesDeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := nginxcertificate.NewCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "nginxDeploymentValue", "certificateValue")
+id := nginxcertificate.NewCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "deploymentName", "certificateName")
 
 read, err := client.CertificatesGet(ctx, id)
 if err != nil {
@@ -69,7 +69,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := nginxcertificate.NewNginxDeploymentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "nginxDeploymentValue")
+id := nginxcertificate.NewNginxDeploymentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "deploymentName")
 
 // alternatively `client.CertificatesList(ctx, id)` can be used to do batched pagination
 items, err := client.CertificatesListComplete(ctx, id)

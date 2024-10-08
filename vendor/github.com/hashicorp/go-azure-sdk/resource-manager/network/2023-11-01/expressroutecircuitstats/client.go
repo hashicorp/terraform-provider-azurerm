@@ -15,7 +15,7 @@ type ExpressRouteCircuitStatsClient struct {
 }
 
 func NewExpressRouteCircuitStatsClientWithBaseURI(sdkApi sdkEnv.Api) (*ExpressRouteCircuitStatsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "expressroutecircuitstats", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "expressroutecircuitstats", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ExpressRouteCircuitStatsClient: %+v", err)
 	}

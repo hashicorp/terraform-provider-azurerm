@@ -42,7 +42,7 @@ func ParseManagedClusterSnapshotID(input string) (*ManagedClusterSnapshotId, err
 	}
 
 	id := ManagedClusterSnapshotId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseManagedClusterSnapshotIDInsensitively(input string) (*ManagedClusterSn
 	}
 
 	id := ManagedClusterSnapshotId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id ManagedClusterSnapshotId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftContainerService", "Microsoft.ContainerService", "Microsoft.ContainerService"),
 		resourceids.StaticSegment("staticManagedClusterSnapshots", "managedClusterSnapshots", "managedClusterSnapshots"),
-		resourceids.UserSpecifiedSegment("managedClusterSnapshotName", "managedClusterSnapshotValue"),
+		resourceids.UserSpecifiedSegment("managedClusterSnapshotName", "resourceName"),
 	}
 }
 

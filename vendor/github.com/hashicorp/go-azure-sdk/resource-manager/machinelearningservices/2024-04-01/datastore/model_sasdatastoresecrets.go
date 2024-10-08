@@ -14,6 +14,14 @@ type SasDatastoreSecrets struct {
 	SasToken *string `json:"sasToken,omitempty"`
 
 	// Fields inherited from DatastoreSecrets
+
+	SecretsType SecretsType `json:"secretsType"`
+}
+
+func (s SasDatastoreSecrets) DatastoreSecrets() BaseDatastoreSecretsImpl {
+	return BaseDatastoreSecretsImpl{
+		SecretsType: s.SecretsType,
+	}
 }
 
 var _ json.Marshaler = SasDatastoreSecrets{}
@@ -27,9 +35,10 @@ func (s SasDatastoreSecrets) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling SasDatastoreSecrets: %+v", err)
 	}
+
 	decoded["secretsType"] = "Sas"
 
 	encoded, err = json.Marshal(decoded)

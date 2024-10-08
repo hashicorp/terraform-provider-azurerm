@@ -15,7 +15,7 @@ type ScopeConnectionsClient struct {
 }
 
 func NewScopeConnectionsClientWithBaseURI(sdkApi sdkEnv.Api) (*ScopeConnectionsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "scopeconnections", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "scopeconnections", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ScopeConnectionsClient: %+v", err)
 	}

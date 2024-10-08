@@ -46,7 +46,7 @@ func ParseCassandraKeyspaceTableID(input string) (*CassandraKeyspaceTableId, err
 	}
 
 	id := CassandraKeyspaceTableId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -63,7 +63,7 @@ func ParseCassandraKeyspaceTableIDInsensitively(input string) (*CassandraKeyspac
 	}
 
 	id := CassandraKeyspaceTableId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -127,11 +127,11 @@ func (id CassandraKeyspaceTableId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDocumentDB", "Microsoft.DocumentDB", "Microsoft.DocumentDB"),
 		resourceids.StaticSegment("staticDatabaseAccounts", "databaseAccounts", "databaseAccounts"),
-		resourceids.UserSpecifiedSegment("databaseAccountName", "databaseAccountValue"),
+		resourceids.UserSpecifiedSegment("databaseAccountName", "accountName"),
 		resourceids.StaticSegment("staticCassandraKeyspaces", "cassandraKeyspaces", "cassandraKeyspaces"),
-		resourceids.UserSpecifiedSegment("cassandraKeyspaceName", "cassandraKeyspaceValue"),
+		resourceids.UserSpecifiedSegment("cassandraKeyspaceName", "keyspaceName"),
 		resourceids.StaticSegment("staticTables", "tables", "tables"),
-		resourceids.UserSpecifiedSegment("tableName", "tableValue"),
+		resourceids.UserSpecifiedSegment("tableName", "tableName"),
 	}
 }
 

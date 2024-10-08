@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/volumesreplication` Documentation
 
-The `volumesreplication` SDK allows for interaction with the Azure Resource Manager Service `netapp` (API Version `2023-05-01`).
+The `volumesreplication` SDK allows for interaction with Azure Resource Manager `netapp` (API Version `2023-05-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := volumesreplication.NewVolumeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "netAppAccountValue", "capacityPoolValue", "volumeValue")
+id := volumesreplication.NewVolumeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "poolName", "volumeName")
 
 payload := volumesreplication.AuthorizeRequest{
 	// ...
@@ -41,7 +41,7 @@ if err := client.VolumesAuthorizeReplicationThenPoll(ctx, id, payload); err != n
 
 ```go
 ctx := context.TODO()
-id := volumesreplication.NewVolumeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "netAppAccountValue", "capacityPoolValue", "volumeValue")
+id := volumesreplication.NewVolumeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "poolName", "volumeName")
 
 payload := volumesreplication.BreakReplicationRequest{
 	// ...
@@ -58,7 +58,7 @@ if err := client.VolumesBreakReplicationThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := volumesreplication.NewVolumeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "netAppAccountValue", "capacityPoolValue", "volumeValue")
+id := volumesreplication.NewVolumeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "poolName", "volumeName")
 
 if err := client.VolumesDeleteReplicationThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -70,7 +70,7 @@ if err := client.VolumesDeleteReplicationThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := volumesreplication.NewVolumeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "netAppAccountValue", "capacityPoolValue", "volumeValue")
+id := volumesreplication.NewVolumeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "poolName", "volumeName")
 
 read, err := client.VolumesListReplications(ctx, id)
 if err != nil {
@@ -86,7 +86,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := volumesreplication.NewVolumeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "netAppAccountValue", "capacityPoolValue", "volumeValue")
+id := volumesreplication.NewVolumeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "poolName", "volumeName")
 
 if err := client.VolumesReInitializeReplicationThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -98,7 +98,7 @@ if err := client.VolumesReInitializeReplicationThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := volumesreplication.NewVolumeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "netAppAccountValue", "capacityPoolValue", "volumeValue")
+id := volumesreplication.NewVolumeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "poolName", "volumeName")
 
 payload := volumesreplication.ReestablishReplicationRequest{
 	// ...
@@ -115,7 +115,7 @@ if err := client.VolumesReestablishReplicationThenPoll(ctx, id, payload); err !=
 
 ```go
 ctx := context.TODO()
-id := volumesreplication.NewVolumeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "netAppAccountValue", "capacityPoolValue", "volumeValue")
+id := volumesreplication.NewVolumeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "poolName", "volumeName")
 
 read, err := client.VolumesReplicationStatus(ctx, id)
 if err != nil {
@@ -131,7 +131,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := volumesreplication.NewVolumeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "netAppAccountValue", "capacityPoolValue", "volumeValue")
+id := volumesreplication.NewVolumeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "poolName", "volumeName")
 
 if err := client.VolumesResyncReplicationThenPoll(ctx, id); err != nil {
 	// handle the error

@@ -44,7 +44,7 @@ func ParseMeshUpgradeProfileID(input string) (*MeshUpgradeProfileId, error) {
 	}
 
 	id := MeshUpgradeProfileId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseMeshUpgradeProfileIDInsensitively(input string) (*MeshUpgradeProfileId
 	}
 
 	id := MeshUpgradeProfileId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id MeshUpgradeProfileId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftContainerService", "Microsoft.ContainerService", "Microsoft.ContainerService"),
 		resourceids.StaticSegment("staticManagedClusters", "managedClusters", "managedClusters"),
-		resourceids.UserSpecifiedSegment("managedClusterName", "managedClusterValue"),
+		resourceids.UserSpecifiedSegment("managedClusterName", "resourceName"),
 		resourceids.StaticSegment("staticMeshUpgradeProfiles", "meshUpgradeProfiles", "meshUpgradeProfiles"),
-		resourceids.UserSpecifiedSegment("meshUpgradeProfileName", "meshUpgradeProfileValue"),
+		resourceids.UserSpecifiedSegment("meshUpgradeProfileName", "mode"),
 	}
 }
 

@@ -42,7 +42,7 @@ func ParseDataBoxEdgeDeviceID(input string) (*DataBoxEdgeDeviceId, error) {
 	}
 
 	id := DataBoxEdgeDeviceId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseDataBoxEdgeDeviceIDInsensitively(input string) (*DataBoxEdgeDeviceId, 
 	}
 
 	id := DataBoxEdgeDeviceId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id DataBoxEdgeDeviceId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDataBoxEdge", "Microsoft.DataBoxEdge", "Microsoft.DataBoxEdge"),
 		resourceids.StaticSegment("staticDataBoxEdgeDevices", "dataBoxEdgeDevices", "dataBoxEdgeDevices"),
-		resourceids.UserSpecifiedSegment("dataBoxEdgeDeviceName", "dataBoxEdgeDeviceValue"),
+		resourceids.UserSpecifiedSegment("dataBoxEdgeDeviceName", "deviceName"),
 	}
 }
 

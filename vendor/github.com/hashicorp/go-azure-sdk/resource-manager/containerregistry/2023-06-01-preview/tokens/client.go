@@ -15,7 +15,7 @@ type TokensClient struct {
 }
 
 func NewTokensClientWithBaseURI(sdkApi sdkEnv.Api) (*TokensClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "tokens", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "tokens", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating TokensClient: %+v", err)
 	}

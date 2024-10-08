@@ -42,7 +42,7 @@ func ParseCustomIPPrefixID(input string) (*CustomIPPrefixId, error) {
 	}
 
 	id := CustomIPPrefixId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseCustomIPPrefixIDInsensitively(input string) (*CustomIPPrefixId, error)
 	}
 
 	id := CustomIPPrefixId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id CustomIPPrefixId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticCustomIPPrefixes", "customIPPrefixes", "customIPPrefixes"),
-		resourceids.UserSpecifiedSegment("customIPPrefixName", "customIPPrefixValue"),
+		resourceids.UserSpecifiedSegment("customIPPrefixName", "customIpPrefixName"),
 	}
 }
 

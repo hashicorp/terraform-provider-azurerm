@@ -46,7 +46,7 @@ func ParsePeerConnectionID(input string) (*PeerConnectionId, error) {
 	}
 
 	id := PeerConnectionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -63,7 +63,7 @@ func ParsePeerConnectionIDInsensitively(input string) (*PeerConnectionId, error)
 	}
 
 	id := PeerConnectionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -127,11 +127,11 @@ func (id PeerConnectionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticExpressRouteCircuits", "expressRouteCircuits", "expressRouteCircuits"),
-		resourceids.UserSpecifiedSegment("expressRouteCircuitName", "expressRouteCircuitValue"),
+		resourceids.UserSpecifiedSegment("expressRouteCircuitName", "circuitName"),
 		resourceids.StaticSegment("staticPeerings", "peerings", "peerings"),
-		resourceids.UserSpecifiedSegment("peeringName", "peeringValue"),
+		resourceids.UserSpecifiedSegment("peeringName", "peeringName"),
 		resourceids.StaticSegment("staticPeerConnections", "peerConnections", "peerConnections"),
-		resourceids.UserSpecifiedSegment("peerConnectionName", "peerConnectionValue"),
+		resourceids.UserSpecifiedSegment("peerConnectionName", "connectionName"),
 	}
 }
 

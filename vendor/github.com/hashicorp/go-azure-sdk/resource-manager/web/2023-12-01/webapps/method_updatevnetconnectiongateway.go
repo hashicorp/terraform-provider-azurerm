@@ -49,7 +49,6 @@ func (c WebAppsClient) UpdateVnetConnectionGateway(ctx context.Context, id Gatew
 
 	var model VnetGateway
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

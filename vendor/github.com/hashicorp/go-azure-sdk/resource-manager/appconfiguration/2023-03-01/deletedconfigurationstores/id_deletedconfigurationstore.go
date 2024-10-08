@@ -42,7 +42,7 @@ func ParseDeletedConfigurationStoreID(input string) (*DeletedConfigurationStoreI
 	}
 
 	id := DeletedConfigurationStoreId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseDeletedConfigurationStoreIDInsensitively(input string) (*DeletedConfig
 	}
 
 	id := DeletedConfigurationStoreId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -113,9 +113,9 @@ func (id DeletedConfigurationStoreId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAppConfiguration", "Microsoft.AppConfiguration", "Microsoft.AppConfiguration"),
 		resourceids.StaticSegment("staticLocations", "locations", "locations"),
-		resourceids.UserSpecifiedSegment("locationName", "locationValue"),
+		resourceids.UserSpecifiedSegment("locationName", "location"),
 		resourceids.StaticSegment("staticDeletedConfigurationStores", "deletedConfigurationStores", "deletedConfigurationStores"),
-		resourceids.UserSpecifiedSegment("deletedConfigurationStoreName", "deletedConfigurationStoreValue"),
+		resourceids.UserSpecifiedSegment("deletedConfigurationStoreName", "configStoreName"),
 	}
 }
 

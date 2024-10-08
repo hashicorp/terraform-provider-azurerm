@@ -34,6 +34,7 @@ func (o GetPrivateEndpointConnectionOperationOptions) ToHeaders() *client.Header
 
 func (o GetPrivateEndpointConnectionOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -74,7 +75,6 @@ func (c PrivateLinkServicesClient) GetPrivateEndpointConnection(ctx context.Cont
 
 	var model PrivateEndpointConnection
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -122,7 +122,7 @@ func (r FunctionAppConnectorResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			authInfo, err := expandServiceConnectorAuthInfo(model.AuthInfo)
+			authInfo, err := expandServiceConnectorAuthInfoForCreate(model.AuthInfo)
 			if err != nil {
 				return fmt.Errorf("expanding `authentication`: %+v", err)
 			}
@@ -284,7 +284,12 @@ func (r FunctionAppConnectorResource) Update() sdk.ResourceFunc {
 			}
 
 			if d.HasChange("authentication") {
-				linkerProps.AuthInfo = state.AuthInfo
+				authInfo, err := expandServiceConnectorAuthInfoForUpdate(state.AuthInfo)
+				if err != nil {
+					return fmt.Errorf("expanding `authentication`: %+v", err)
+				}
+
+				linkerProps.AuthInfo = authInfo
 			}
 
 			props := links.LinkerPatch{

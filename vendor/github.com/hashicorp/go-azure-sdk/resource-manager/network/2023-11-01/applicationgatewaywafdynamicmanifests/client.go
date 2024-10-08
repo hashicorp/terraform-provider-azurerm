@@ -15,7 +15,7 @@ type ApplicationGatewayWafDynamicManifestsClient struct {
 }
 
 func NewApplicationGatewayWafDynamicManifestsClientWithBaseURI(sdkApi sdkEnv.Api) (*ApplicationGatewayWafDynamicManifestsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "applicationgatewaywafdynamicmanifests", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "applicationgatewaywafdynamicmanifests", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ApplicationGatewayWafDynamicManifestsClient: %+v", err)
 	}

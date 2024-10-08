@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/fhirservices` Documentation
 
-The `fhirservices` SDK allows for interaction with the Azure Resource Manager Service `healthcareapis` (API Version `2022-12-01`).
+The `fhirservices` SDK allows for interaction with Azure Resource Manager `healthcareapis` (API Version `2022-12-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := fhirservices.NewFhirServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue", "fhirServiceValue")
+id := fhirservices.NewFhirServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName", "fhirServiceName")
 
 payload := fhirservices.FhirService{
 	// ...
@@ -41,7 +41,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := fhirservices.NewFhirServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue", "fhirServiceValue")
+id := fhirservices.NewFhirServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName", "fhirServiceName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +53,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := fhirservices.NewFhirServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue", "fhirServiceValue")
+id := fhirservices.NewFhirServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName", "fhirServiceName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -69,7 +69,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := fhirservices.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue")
+id := fhirservices.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName")
 
 // alternatively `client.ListByWorkspace(ctx, id)` can be used to do batched pagination
 items, err := client.ListByWorkspaceComplete(ctx, id)
@@ -86,7 +86,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := fhirservices.NewFhirServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue", "fhirServiceValue")
+id := fhirservices.NewFhirServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName", "fhirServiceName")
 
 payload := fhirservices.FhirServicePatchResource{
 	// ...

@@ -42,7 +42,7 @@ func ParseIotAppID(input string) (*IotAppId, error) {
 	}
 
 	id := IotAppId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseIotAppIDInsensitively(input string) (*IotAppId, error) {
 	}
 
 	id := IotAppId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id IotAppId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftIoTCentral", "Microsoft.IoTCentral", "Microsoft.IoTCentral"),
 		resourceids.StaticSegment("staticIotApps", "iotApps", "iotApps"),
-		resourceids.UserSpecifiedSegment("iotAppName", "iotAppValue"),
+		resourceids.UserSpecifiedSegment("iotAppName", "resourceName"),
 	}
 }
 

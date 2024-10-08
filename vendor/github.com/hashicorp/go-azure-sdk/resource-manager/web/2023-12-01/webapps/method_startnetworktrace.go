@@ -40,6 +40,7 @@ func (o StartNetworkTraceOperationOptions) ToHeaders() *client.Headers {
 
 func (o StartNetworkTraceOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

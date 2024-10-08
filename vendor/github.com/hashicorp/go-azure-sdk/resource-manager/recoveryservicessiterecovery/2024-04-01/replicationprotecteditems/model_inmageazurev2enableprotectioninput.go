@@ -39,6 +39,14 @@ type InMageAzureV2EnableProtectionInput struct {
 	TargetVMTags                    *map[string]string               `json:"targetVmTags,omitempty"`
 
 	// Fields inherited from EnableProtectionProviderSpecificInput
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s InMageAzureV2EnableProtectionInput) EnableProtectionProviderSpecificInput() BaseEnableProtectionProviderSpecificInputImpl {
+	return BaseEnableProtectionProviderSpecificInputImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = InMageAzureV2EnableProtectionInput{}
@@ -52,9 +60,10 @@ func (s InMageAzureV2EnableProtectionInput) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling InMageAzureV2EnableProtectionInput: %+v", err)
 	}
+
 	decoded["instanceType"] = "InMageAzureV2"
 
 	encoded, err = json.Marshal(decoded)

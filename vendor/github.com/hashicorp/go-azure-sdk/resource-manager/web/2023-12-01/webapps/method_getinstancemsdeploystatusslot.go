@@ -46,7 +46,6 @@ func (c WebAppsClient) GetInstanceMsDeployStatusSlot(ctx context.Context, id Slo
 
 	var model MSDeployStatus
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

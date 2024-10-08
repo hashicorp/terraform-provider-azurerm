@@ -45,7 +45,6 @@ func (c QueueServiceClient) QueueGet(ctx context.Context, id QueueId) (result Qu
 
 	var model StorageQueue
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

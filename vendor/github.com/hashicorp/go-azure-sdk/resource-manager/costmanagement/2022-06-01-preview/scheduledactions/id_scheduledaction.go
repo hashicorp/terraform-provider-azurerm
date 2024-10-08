@@ -38,7 +38,7 @@ func ParseScheduledActionID(input string) (*ScheduledActionId, error) {
 	}
 
 	id := ScheduledActionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -55,7 +55,7 @@ func ParseScheduledActionIDInsensitively(input string) (*ScheduledActionId, erro
 	}
 
 	id := ScheduledActionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -99,7 +99,7 @@ func (id ScheduledActionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftCostManagement", "Microsoft.CostManagement", "Microsoft.CostManagement"),
 		resourceids.StaticSegment("staticScheduledActions", "scheduledActions", "scheduledActions"),
-		resourceids.UserSpecifiedSegment("scheduledActionName", "scheduledActionValue"),
+		resourceids.UserSpecifiedSegment("scheduledActionName", "name"),
 	}
 }
 

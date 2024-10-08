@@ -45,7 +45,6 @@ func (c ConfigurationAssignmentsClient) GetParent(ctx context.Context, id Scoped
 
 	var model ConfigurationAssignment
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

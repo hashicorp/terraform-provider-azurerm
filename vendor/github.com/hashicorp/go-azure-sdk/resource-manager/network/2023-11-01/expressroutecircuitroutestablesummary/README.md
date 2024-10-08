@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/expressroutecircuitroutestablesummary` Documentation
 
-The `expressroutecircuitroutestablesummary` SDK allows for interaction with the Azure Resource Manager Service `network` (API Version `2023-11-01`).
+The `expressroutecircuitroutestablesummary` SDK allows for interaction with Azure Resource Manager `network` (API Version `2023-11-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := expressroutecircuitroutestablesummary.NewRouteTablesSummaryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "expressRouteCircuitValue", "peeringValue", "routeTablesSummaryValue")
+id := expressroutecircuitroutestablesummary.NewRouteTablesSummaryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "circuitName", "peeringName", "devicePath")
 
 // alternatively `client.ExpressRouteCircuitsListRoutesTableSummary(ctx, id)` can be used to do batched pagination
 items, err := client.ExpressRouteCircuitsListRoutesTableSummaryComplete(ctx, id)

@@ -15,7 +15,7 @@ type EventSubscriptionsClient struct {
 }
 
 func NewEventSubscriptionsClientWithBaseURI(sdkApi sdkEnv.Api) (*EventSubscriptionsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "eventsubscriptions", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "eventsubscriptions", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating EventSubscriptionsClient: %+v", err)
 	}

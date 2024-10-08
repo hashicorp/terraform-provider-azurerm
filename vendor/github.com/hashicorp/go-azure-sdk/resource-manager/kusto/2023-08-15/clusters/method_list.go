@@ -47,7 +47,6 @@ func (c ClustersClient) List(ctx context.Context, id commonids.SubscriptionId) (
 
 	var model ClusterListResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

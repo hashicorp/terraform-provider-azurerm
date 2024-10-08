@@ -44,7 +44,7 @@ func ParseFirewallRuleID(input string) (*FirewallRuleId, error) {
 	}
 
 	id := FirewallRuleId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseFirewallRuleIDInsensitively(input string) (*FirewallRuleId, error) {
 	}
 
 	id := FirewallRuleId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id FirewallRuleId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDBforMySQL", "Microsoft.DBforMySQL", "Microsoft.DBforMySQL"),
 		resourceids.StaticSegment("staticFlexibleServers", "flexibleServers", "flexibleServers"),
-		resourceids.UserSpecifiedSegment("flexibleServerName", "flexibleServerValue"),
+		resourceids.UserSpecifiedSegment("flexibleServerName", "serverName"),
 		resourceids.StaticSegment("staticFirewallRules", "firewallRules", "firewallRules"),
-		resourceids.UserSpecifiedSegment("firewallRuleName", "firewallRuleValue"),
+		resourceids.UserSpecifiedSegment("firewallRuleName", "firewallRuleName"),
 	}
 }
 

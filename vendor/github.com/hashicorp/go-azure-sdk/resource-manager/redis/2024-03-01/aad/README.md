@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-03-01/aad` Documentation
 
-The `aad` SDK allows for interaction with the Azure Resource Manager Service `redis` (API Version `2024-03-01`).
+The `aad` SDK allows for interaction with Azure Resource Manager `redis` (API Version `2024-03-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := aad.NewAccessPolicyAssignmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisValue", "accessPolicyAssignmentValue")
+id := aad.NewAccessPolicyAssignmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName", "accessPolicyAssignmentName")
 
 payload := aad.RedisCacheAccessPolicyAssignment{
 	// ...
@@ -41,7 +41,7 @@ if err := client.AccessPolicyAssignmentCreateUpdateThenPoll(ctx, id, payload); e
 
 ```go
 ctx := context.TODO()
-id := aad.NewAccessPolicyAssignmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisValue", "accessPolicyAssignmentValue")
+id := aad.NewAccessPolicyAssignmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName", "accessPolicyAssignmentName")
 
 if err := client.AccessPolicyAssignmentDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +53,7 @@ if err := client.AccessPolicyAssignmentDeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := aad.NewAccessPolicyAssignmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisValue", "accessPolicyAssignmentValue")
+id := aad.NewAccessPolicyAssignmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName", "accessPolicyAssignmentName")
 
 read, err := client.AccessPolicyAssignmentGet(ctx, id)
 if err != nil {
@@ -69,7 +69,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := aad.NewRediID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisValue")
+id := aad.NewRediID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName")
 
 // alternatively `client.AccessPolicyAssignmentList(ctx, id)` can be used to do batched pagination
 items, err := client.AccessPolicyAssignmentListComplete(ctx, id)
@@ -86,7 +86,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := aad.NewAccessPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisValue", "accessPolicyValue")
+id := aad.NewAccessPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName", "accessPolicyName")
 
 payload := aad.RedisCacheAccessPolicy{
 	// ...
@@ -103,7 +103,7 @@ if err := client.AccessPolicyCreateUpdateThenPoll(ctx, id, payload); err != nil 
 
 ```go
 ctx := context.TODO()
-id := aad.NewAccessPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisValue", "accessPolicyValue")
+id := aad.NewAccessPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName", "accessPolicyName")
 
 if err := client.AccessPolicyDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -115,7 +115,7 @@ if err := client.AccessPolicyDeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := aad.NewAccessPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisValue", "accessPolicyValue")
+id := aad.NewAccessPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName", "accessPolicyName")
 
 read, err := client.AccessPolicyGet(ctx, id)
 if err != nil {
@@ -131,7 +131,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := aad.NewRediID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisValue")
+id := aad.NewRediID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName")
 
 // alternatively `client.AccessPolicyList(ctx, id)` can be used to do batched pagination
 items, err := client.AccessPolicyListComplete(ctx, id)

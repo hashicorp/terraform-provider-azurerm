@@ -45,7 +45,6 @@ func (c WatchlistItemsClient) Get(ctx context.Context, id WatchlistItemId) (resu
 
 	var model WatchlistItem
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

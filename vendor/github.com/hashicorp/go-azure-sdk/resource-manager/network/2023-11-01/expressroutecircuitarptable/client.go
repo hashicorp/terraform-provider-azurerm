@@ -15,7 +15,7 @@ type ExpressRouteCircuitArpTableClient struct {
 }
 
 func NewExpressRouteCircuitArpTableClientWithBaseURI(sdkApi sdkEnv.Api) (*ExpressRouteCircuitArpTableClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "expressroutecircuitarptable", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "expressroutecircuitarptable", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ExpressRouteCircuitArpTableClient: %+v", err)
 	}

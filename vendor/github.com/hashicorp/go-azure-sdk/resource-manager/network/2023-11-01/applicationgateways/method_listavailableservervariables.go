@@ -47,7 +47,6 @@ func (c ApplicationGatewaysClient) ListAvailableServerVariables(ctx context.Cont
 
 	var model []string
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
