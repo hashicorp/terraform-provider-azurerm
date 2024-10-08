@@ -1138,7 +1138,10 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   auto_scaler_profile {
     balance_similar_node_groups      = true
+	daemonset_eviction_for_empty_nodes_enabled = true
+	daemonset_eviction_for_occupied_nodes_enabled = false
     expander                         = "least-waste"
+	ignore_daemonsets_utilization_enabled = true
     max_graceful_termination_sec     = 15
     max_node_provisioning_time       = "10m"
     max_unready_nodes                = 5
