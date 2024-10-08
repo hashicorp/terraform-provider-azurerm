@@ -72,6 +72,13 @@ func (StackHCIVirtualHardDiskResource) Arguments() map[string]*pluginsdk.Schema 
 
 		"custom_location_id": commonschema.ResourceIDReferenceRequiredForceNew(&customlocations.CustomLocationId{}),
 
+		"disk_size_in_gb": {
+			Type:         pluginsdk.TypeInt,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.IntAtLeast(1),
+		},
+
 		"block_size_in_bytes": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
@@ -87,13 +94,6 @@ func (StackHCIVirtualHardDiskResource) Arguments() map[string]*pluginsdk.Schema 
 				string(virtualharddisks.DiskFileFormatVhd),
 				string(virtualharddisks.DiskFileFormatVhdx),
 			}, false),
-		},
-
-		"disk_size_in_gb": {
-			Type:         pluginsdk.TypeInt,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.IntAtLeast(1),
 		},
 
 		"dynamic_enabled": {
@@ -173,7 +173,8 @@ func (r StackHCIVirtualHardDiskResource) Create() sdk.ResourceFunc {
 					Type: pointer.To(virtualharddisks.ExtendedLocationTypesCustomLocation),
 				},
 				Properties: &virtualharddisks.VirtualHardDiskProperties{
-					Dynamic: pointer.To(config.DynamicEnabled),
+					Dynamic:    pointer.To(config.DynamicEnabled),
+					DiskSizeGB: pointer.To(config.DiskSizeInGB),
 				},
 			}
 
@@ -187,10 +188,6 @@ func (r StackHCIVirtualHardDiskResource) Create() sdk.ResourceFunc {
 
 			if config.DiskFileFormat != "" {
 				payload.Properties.DiskFileFormat = pointer.To(virtualharddisks.DiskFileFormat(config.DiskFileFormat))
-			}
-
-			if config.DiskSizeInGB != 0 {
-				payload.Properties.DiskSizeGB = pointer.To(config.DiskSizeInGB)
 			}
 
 			if config.HypervGeneration != "" {

@@ -224,12 +224,18 @@ resource "azurerm_stack_hci_storage_path" "test" {
 }
 
 resource "azurerm_stack_hci_virtual_hard_disk" "test" {
-  name                = "acctest-vhd-%[2]s"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  custom_location_id  = %[3]q
-  disk_size_in_gb     = 2
-  storage_path_id     = azurerm_stack_hci_storage_path.test.id
+  name                     = "acctest-vhd-%[2]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  custom_location_id       = %[3]q
+  disk_size_in_gb          = 2
+  dynamic_enabled          = false
+  hyperv_generation        = "V2"
+  physical_sector_in_bytes = 4096
+  logical_sector_in_bytes  = 512
+  block_size_in_bytes      = 1024
+  disk_file_format         = "vhdx"
+  storage_path_id          = azurerm_stack_hci_storage_path.test.id
 
   tags = {
     foo = "bar"
