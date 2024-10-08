@@ -547,7 +547,7 @@ func FlattenMaintenanceWindow(maintenanceWindow *cloudexadatainfrastructures.Mai
 			},
 		}
 	}
-	return nil
+	return []MaintenanceWindowModel{}
 }
 
 func FlattenDayOfWeek(dayOfWeeks *[]cloudexadatainfrastructures.DayOfWeek) []string {

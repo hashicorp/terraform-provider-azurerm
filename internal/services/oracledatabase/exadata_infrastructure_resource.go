@@ -177,7 +177,7 @@ func (ExadataInfraResource) ResourceType() string {
 
 func (r ExadataInfraResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 120 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.OracleDatabase.OracleDatabaseClient.CloudExadataInfrastructures
 			subscriptionId := metadata.Client.Account.SubscriptionId
@@ -259,6 +259,10 @@ func (r ExadataInfraResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving as nil when updating for %v", *id)
 			}
 
+			if metadata.ResourceData.HasChangesExcept("tags") {
+				return fmt.Errorf("only `tags` currently support updates")
+			}
+
 			if metadata.ResourceData.HasChange("tags") {
 				update := &cloudexadatainfrastructures.CloudExadataInfrastructureUpdate{
 					Tags: tags.Expand(model.Tags),
@@ -267,8 +271,6 @@ func (r ExadataInfraResource) Update() sdk.ResourceFunc {
 				if err != nil {
 					return fmt.Errorf("updating %s: %v", id, err)
 				}
-			} else if metadata.ResourceData.HasChangesExcept("tags") {
-				return fmt.Errorf("only `tags` currently support updates")
 			}
 			return nil
 		},
@@ -319,7 +321,7 @@ func (ExadataInfraResource) Read() sdk.ResourceFunc {
 
 func (ExadataInfraResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.OracleDatabase.OracleDatabaseClient.CloudExadataInfrastructures
 
