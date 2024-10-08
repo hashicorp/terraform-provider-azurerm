@@ -95,7 +95,6 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 					"days_of_week": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
-						Computed: true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validate.DaysOfWeek,
@@ -105,7 +104,6 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 					"hours_of_day": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
-						Computed: true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeInt,
 							ValidateFunc: validate.HoursOfDay,
@@ -115,14 +113,12 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 					"lead_time_in_weeks": {
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
-						Computed:     true,
 						ValidateFunc: validate.LeadTimeInWeeks,
 					},
 
 					"months": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
-						Computed: true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validate.Month,
@@ -132,21 +128,18 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 					"patching_mode": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						Computed:     true,
 						ValidateFunc: validate.PatchingMode,
 					},
 
 					"preference": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						Computed:     true,
 						ValidateFunc: validate.Preference,
 					},
 
 					"weeks_of_month": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
-						Computed: true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeInt,
 							ValidateFunc: validate.WeeksOfMonth,
