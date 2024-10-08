@@ -1355,38 +1355,38 @@ github.com/rickb777/plural
 # github.com/sergi/go-diff v1.3.2-0.20230802210424-5b0b94c5c0d3
 ## explicit; go 1.13
 github.com/sergi/go-diff/diffmatchpatch
-# github.com/jackofallops/giovanni v0.27.0
+# github.com/tombuildsstuff/giovanni v0.27.0
 ## explicit; go 1.21
-github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts
-github.com/jackofallops/giovanni/storage/2023-11-03/blob/blobs
-github.com/jackofallops/giovanni/storage/2023-11-03/blob/containers
-github.com/jackofallops/giovanni/storage/2023-11-03/datalakestore/filesystems
-github.com/jackofallops/giovanni/storage/2023-11-03/datalakestore/paths
-github.com/jackofallops/giovanni/storage/2023-11-03/file/directories
-github.com/jackofallops/giovanni/storage/2023-11-03/file/files
-github.com/jackofallops/giovanni/storage/2023-11-03/file/shares
-github.com/jackofallops/giovanni/storage/2023-11-03/queue/queues
-github.com/jackofallops/giovanni/storage/2023-11-03/table/entities
-github.com/jackofallops/giovanni/storage/2023-11-03/table/tables
-github.com/jackofallops/giovanni/storage/accesscontrol
-github.com/jackofallops/giovanni/storage/internal/metadata
-# github.com/jackofallops/kermit v0.20240122.1123108
+github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/accounts
+github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/blobs
+github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/containers
+github.com/tombuildsstuff/giovanni/storage/2023-11-03/datalakestore/filesystems
+github.com/tombuildsstuff/giovanni/storage/2023-11-03/datalakestore/paths
+github.com/tombuildsstuff/giovanni/storage/2023-11-03/file/directories
+github.com/tombuildsstuff/giovanni/storage/2023-11-03/file/files
+github.com/tombuildsstuff/giovanni/storage/2023-11-03/file/shares
+github.com/tombuildsstuff/giovanni/storage/2023-11-03/queue/queues
+github.com/tombuildsstuff/giovanni/storage/2023-11-03/table/entities
+github.com/tombuildsstuff/giovanni/storage/2023-11-03/table/tables
+github.com/tombuildsstuff/giovanni/storage/accesscontrol
+github.com/tombuildsstuff/giovanni/storage/internal/metadata
+# github.com/tombuildsstuff/kermit v0.20240122.1123108
 ## explicit; go 1.18
 github.com/jackofallops/kermit/sdk/appconfiguration/1.0/appconfiguration
-github.com/jackofallops/kermit/sdk/appplatform/2023-05-01-preview/appplatform
-github.com/jackofallops/kermit/sdk/attestation/2022-08-01/attestation
-github.com/jackofallops/kermit/sdk/batch/2022-01.15.0/batch
-github.com/jackofallops/kermit/sdk/botservice/2021-05-01-preview/botservice
-github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory
-github.com/jackofallops/kermit/sdk/iotcentral/2022-10-31-preview/iotcentral
-github.com/jackofallops/kermit/sdk/iothub/2022-04-30-preview/iothub
-github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault
-github.com/jackofallops/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights
-github.com/jackofallops/kermit/sdk/synapse/2019-06-01-preview/synapse
-github.com/jackofallops/kermit/sdk/synapse/2020-08-01-preview/synapse
-github.com/jackofallops/kermit/sdk/synapse/2021-06-01-preview/synapse
-github.com/jackofallops/kermit/sdk/web/2022-09-01/web
-github.com/jackofallops/kermit/version
+github.com/tombuildsstuff/kermit/sdk/appplatform/2023-05-01-preview/appplatform
+github.com/tombuildsstuff/kermit/sdk/attestation/2022-08-01/attestation
+github.com/tombuildsstuff/kermit/sdk/batch/2022-01.15.0/batch
+github.com/tombuildsstuff/kermit/sdk/botservice/2021-05-01-preview/botservice
+github.com/tombuildsstuff/kermit/sdk/datafactory/2018-06-01/datafactory
+github.com/tombuildsstuff/kermit/sdk/iotcentral/2022-10-31-preview/iotcentral
+github.com/tombuildsstuff/kermit/sdk/iothub/2022-04-30-preview/iothub
+github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault
+github.com/tombuildsstuff/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights
+github.com/tombuildsstuff/kermit/sdk/synapse/2019-06-01-preview/synapse
+github.com/tombuildsstuff/kermit/sdk/synapse/2020-08-01-preview/synapse
+github.com/tombuildsstuff/kermit/sdk/synapse/2021-06-01-preview/synapse
+github.com/tombuildsstuff/kermit/sdk/web/2022-09-01/web
+github.com/tombuildsstuff/kermit/version
 # github.com/vmihailenco/msgpack v4.0.4+incompatible
 ## explicit
 github.com/vmihailenco/msgpack
