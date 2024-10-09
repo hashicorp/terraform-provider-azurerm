@@ -48,9 +48,9 @@ func UnmarshalOrganizationProfileImplementation(input []byte) (OrganizationProfi
 		return nil, fmt.Errorf("unmarshaling OrganizationProfile into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["kind"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["kind"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "AzureDevOps") {

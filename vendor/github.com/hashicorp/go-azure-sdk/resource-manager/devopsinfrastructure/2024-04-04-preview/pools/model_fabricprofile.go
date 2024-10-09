@@ -48,9 +48,9 @@ func UnmarshalFabricProfileImplementation(input []byte) (FabricProfile, error) {
 		return nil, fmt.Errorf("unmarshaling FabricProfile into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["kind"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["kind"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "Vmss") {

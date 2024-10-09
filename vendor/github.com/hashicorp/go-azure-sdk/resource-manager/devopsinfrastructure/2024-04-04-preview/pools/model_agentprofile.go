@@ -43,10 +43,12 @@ func (s RawAgentProfileImpl) AgentProfile() BaseAgentProfileImpl {
 var _ json.Unmarshaler = &BaseAgentProfileImpl{}
 
 func (s *BaseAgentProfileImpl) UnmarshalJSON(bytes []byte) error {
-	type alias BaseAgentProfileImpl
-	var decoded alias
+	var decoded struct {
+		Kind                string       `json:"kind"`
+		ResourcePredictions *interface{} `json:"resourcePredictions,omitempty"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into BaseAgentProfileImpl: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
 	s.Kind = decoded.Kind
@@ -64,6 +66,7 @@ func (s *BaseAgentProfileImpl) UnmarshalJSON(bytes []byte) error {
 		}
 		s.ResourcePredictionsProfile = impl
 	}
+
 	return nil
 }
 
@@ -77,9 +80,9 @@ func UnmarshalAgentProfileImplementation(input []byte) (AgentProfile, error) {
 		return nil, fmt.Errorf("unmarshaling AgentProfile into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["kind"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["kind"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "Stateful") {

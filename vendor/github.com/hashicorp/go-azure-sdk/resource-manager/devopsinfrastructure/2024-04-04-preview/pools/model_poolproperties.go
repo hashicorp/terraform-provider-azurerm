@@ -20,10 +20,13 @@ type PoolProperties struct {
 var _ json.Unmarshaler = &PoolProperties{}
 
 func (s *PoolProperties) UnmarshalJSON(bytes []byte) error {
-	type alias PoolProperties
-	var decoded alias
+	var decoded struct {
+		DevCenterProjectResourceId string             `json:"devCenterProjectResourceId"`
+		MaximumConcurrency         int64              `json:"maximumConcurrency"`
+		ProvisioningState          *ProvisioningState `json:"provisioningState,omitempty"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into PoolProperties: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
 	s.DevCenterProjectResourceId = decoded.DevCenterProjectResourceId
@@ -58,5 +61,6 @@ func (s *PoolProperties) UnmarshalJSON(bytes []byte) error {
 		}
 		s.OrganizationProfile = impl
 	}
+
 	return nil
 }

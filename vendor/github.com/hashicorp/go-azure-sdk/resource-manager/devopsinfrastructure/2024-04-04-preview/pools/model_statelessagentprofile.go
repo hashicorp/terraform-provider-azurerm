@@ -55,10 +55,12 @@ func (s StatelessAgentProfile) MarshalJSON() ([]byte, error) {
 var _ json.Unmarshaler = &StatelessAgentProfile{}
 
 func (s *StatelessAgentProfile) UnmarshalJSON(bytes []byte) error {
-	type alias StatelessAgentProfile
-	var decoded alias
+	var decoded struct {
+		Kind                string       `json:"kind"`
+		ResourcePredictions *interface{} `json:"resourcePredictions,omitempty"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into StatelessAgentProfile: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
 	s.Kind = decoded.Kind
@@ -76,5 +78,6 @@ func (s *StatelessAgentProfile) UnmarshalJSON(bytes []byte) error {
 		}
 		s.ResourcePredictionsProfile = impl
 	}
+
 	return nil
 }

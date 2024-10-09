@@ -57,15 +57,19 @@ func (s Stateful) MarshalJSON() ([]byte, error) {
 var _ json.Unmarshaler = &Stateful{}
 
 func (s *Stateful) UnmarshalJSON(bytes []byte) error {
-	type alias Stateful
-	var decoded alias
+	var decoded struct {
+		GracePeriodTimeSpan *string      `json:"gracePeriodTimeSpan,omitempty"`
+		MaxAgentLifetime    *string      `json:"maxAgentLifetime,omitempty"`
+		Kind                string       `json:"kind"`
+		ResourcePredictions *interface{} `json:"resourcePredictions,omitempty"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into Stateful: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
 	s.GracePeriodTimeSpan = decoded.GracePeriodTimeSpan
-	s.Kind = decoded.Kind
 	s.MaxAgentLifetime = decoded.MaxAgentLifetime
+	s.Kind = decoded.Kind
 	s.ResourcePredictions = decoded.ResourcePredictions
 
 	var temp map[string]json.RawMessage
@@ -80,5 +84,6 @@ func (s *Stateful) UnmarshalJSON(bytes []byte) error {
 		}
 		s.ResourcePredictionsProfile = impl
 	}
+
 	return nil
 }
