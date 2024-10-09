@@ -506,18 +506,22 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Update(
 				parameters.Properties.AvailabilitySets = availabilitySets
 			}
 
-			if err := client.StopThenPoll(ctx, commonids.NewScopeID(id.Scope), virtualmachineinstances.StopVirtualMachineOptions{
-				SkipShutdown: pointer.To(virtualmachineinstances.SkipShutdownFalse),
-			}); err != nil {
-				return fmt.Errorf("stopping %s: %+v", *id, err)
+			if metadata.ResourceData.HasChange("infrastructure") || metadata.ResourceData.HasChange("hardware") || metadata.ResourceData.HasChange("network_interface") || metadata.ResourceData.HasChange("storage_disk") {
+				if err := client.StopThenPoll(ctx, commonids.NewScopeID(id.Scope), virtualmachineinstances.StopVirtualMachineOptions{
+					SkipShutdown: pointer.To(virtualmachineinstances.SkipShutdownFalse),
+				}); err != nil {
+					return fmt.Errorf("stopping %s: %+v", *id, err)
+				}
 			}
 
 			if err := client.UpdateThenPoll(ctx, commonids.NewScopeID(id.Scope), parameters); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
-			if err := client.StartThenPoll(ctx, commonids.NewScopeID(id.Scope)); err != nil {
-				return fmt.Errorf("starting %s: %+v", *id, err)
+			if metadata.ResourceData.HasChange("infrastructure") || metadata.ResourceData.HasChange("hardware") || metadata.ResourceData.HasChange("network_interface") || metadata.ResourceData.HasChange("storage_disk") {
+				if err := client.StartThenPoll(ctx, commonids.NewScopeID(id.Scope)); err != nil {
+					return fmt.Errorf("starting %s: %+v", *id, err)
+				}
 			}
 
 			return nil
