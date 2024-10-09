@@ -1,5 +1,9 @@
 ## 4.5.0 (Unreleased)
 
+ENHANCEMENTS:
+
+* **New Resource**: `azurerm_stack_hci_virtual_hard_disk` [GH-27474]
+
 BUG FIXES:
 
 * `azurerm_mssql_database` - now creates successfully when elastic pool is hyperscale [GH-27505]
