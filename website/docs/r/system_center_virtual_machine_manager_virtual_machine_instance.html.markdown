@@ -97,7 +97,7 @@ The following arguments are supported:
 
 * `infrastructure` - (Required) An `infrastructure` block as defined below.
 
-* `hardware` - (Optional) A `hardware` block as defined below.
+* `hardware` - (Optional) A `hardware` block as defined below. Changing this forces a new resource to be created.
 
 * `network_interface` - (Optional) A `network_interface` block as defined below.
 
