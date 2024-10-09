@@ -10,7 +10,7 @@ Azure Resource Manager: 4.0 Upgrade Guide
 
 ## Azure Provider Version v4.0
 
-The last major release for the Azure Provider was in March 2022. Since then we've added support for nearly 340 Resources and 120 Data Sources, bringing the total supported features to 1101 Resources and 358 Data Sources at the time of writing this guide.
+Version 3.0 of the Azure Provider was in March 2022. Since then we've added support for nearly 340 Resources and 120 Data Sources, bringing the total supported features to 1101 Resources and 358 Data Sources at the time of writing this guide.
 
 ### Considerations
 
@@ -18,7 +18,7 @@ Version 4.0 of the Azure Provider is a major release and includes breaking chang
 
 When upgrading to version 4.0 of the Azure Provider, we recommend upgrading to the latest version of Terraform Core ([which can be found here](https://www.terraform.io/downloads)).
 
-This guide will continue to receive updates as we incorporate feedback and continue to fix any issues during the Beta.
+This guide will continue to receive updates as we incorporate feedback and continue to fix any issues.
 
 ### Pinning your Provider Version
 
@@ -29,7 +29,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=3.114.0"
+      version = "=4.4.0"
     }
   }
 }
@@ -39,14 +39,14 @@ provider "azurerm" {
 }
 ```
 
-.. or to any 3.x release:
+.. or to any 4.x release:
 
 ```hcl
 terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 3.x"
+      version = "~> 4.x"
     }
   }
 }
@@ -62,8 +62,6 @@ More information on [how to pin the version of a Terraform Provider being used c
 
 
 ## What's available in Version 4.0 of the Azure Provider?
-
--> **Note:** Version `3.114.0`-`3.x` of the Azure Provider allows you to opt-into the Beta of some of these features - [read the Disclaimers in the Beta guide before doing this](https://registry.terraform.io/providers/hashicorp/azurerm/3.114.0/docs/guides/4.0-beta)
 
 Below is an overview of the changes coming 4.0. Each topic is covered in more detail further down.
 
