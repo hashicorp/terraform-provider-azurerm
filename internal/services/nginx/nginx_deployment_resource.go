@@ -62,24 +62,47 @@ type AutoScaleProfile struct {
 	Max  int64  `tfschema:"max_capacity"`
 }
 
+type WebApplicationFirewallSettings struct {
+	ActivationState string `tfschema:"activation_state"`
+}
+
+type WebApplicationFirewallPackage struct {
+	RevisionDatetime string `tfschema:"revision_datetime"`
+	Version          string `tfschema:"version"`
+}
+
+type WebApplicationFirewallComponentVersions struct {
+	WafEngineVersion string `tfschema:"waf_engine_version"`
+	WafNginxVersion  string `tfschema:"waf_nginx_version"`
+}
+
+type WebApplicationFirewallStatus struct {
+	AttackSignaturesPackage []WebApplicationFirewallPackage           `tfschema:"attack_signatures_package"`
+	BotSignaturesPackage    []WebApplicationFirewallPackage           `tfschema:"bot_signatures_package"`
+	ComponentVersions       []WebApplicationFirewallComponentVersions `tfschema:"component_versions"`
+	ThreatCampaignsPackage  []WebApplicationFirewallPackage           `tfschema:"threat_campaigns_package"`
+}
+
 type DeploymentModel struct {
-	ResourceGroupName      string                                     `tfschema:"resource_group_name"`
-	Name                   string                                     `tfschema:"name"`
-	NginxVersion           string                                     `tfschema:"nginx_version"`
-	Identity               []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
-	Sku                    string                                     `tfschema:"sku"`
-	ManagedResourceGroup   string                                     `tfschema:"managed_resource_group"`
-	Location               string                                     `tfschema:"location"`
-	Capacity               int64                                      `tfschema:"capacity"`
-	AutoScaleProfile       []AutoScaleProfile                         `tfschema:"auto_scale_profile"`
-	DiagnoseSupportEnabled bool                                       `tfschema:"diagnose_support_enabled"`
-	Email                  string                                     `tfschema:"email"`
-	IpAddress              string                                     `tfschema:"ip_address"`
-	LoggingStorageAccount  []LoggingStorageAccount                    `tfschema:"logging_storage_account"`
-	FrontendPublic         []FrontendPublic                           `tfschema:"frontend_public"`
-	FrontendPrivate        []FrontendPrivate                          `tfschema:"frontend_private"`
-	NetworkInterface       []NetworkInterface                         `tfschema:"network_interface"`
-	UpgradeChannel         string                                     `tfschema:"automatic_upgrade_channel"`
+	ResourceGroupName              string                                     `tfschema:"resource_group_name"`
+	Name                           string                                     `tfschema:"name"`
+	NginxVersion                   string                                     `tfschema:"nginx_version"`
+	Identity                       []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	Sku                            string                                     `tfschema:"sku"`
+	ManagedResourceGroup           string                                     `tfschema:"managed_resource_group"`
+	Location                       string                                     `tfschema:"location"`
+	Capacity                       int64                                      `tfschema:"capacity"`
+	AutoScaleProfile               []AutoScaleProfile                         `tfschema:"auto_scale_profile"`
+	DiagnoseSupportEnabled         bool                                       `tfschema:"diagnose_support_enabled"`
+	Email                          string                                     `tfschema:"email"`
+	IpAddress                      string                                     `tfschema:"ip_address"`
+	LoggingStorageAccount          []LoggingStorageAccount                    `tfschema:"logging_storage_account"`
+	FrontendPublic                 []FrontendPublic                           `tfschema:"frontend_public"`
+	FrontendPrivate                []FrontendPrivate                          `tfschema:"frontend_private"`
+	NetworkInterface               []NetworkInterface                         `tfschema:"network_interface"`
+	UpgradeChannel                 string                                     `tfschema:"automatic_upgrade_channel"`
+	WebApplicationFirewallSettings []WebApplicationFirewallSettings           `tfschema:"web_application_firewall_settings"`
+	WebApplicationFirewallStatus   []WebApplicationFirewallStatus             `tfschema:"web_application_firewall_status"`
 	// Deprecated: remove in next major version
 	Configuration []Configuration   `tfschema:"configuration,removedInNextMajorVersion"`
 	Tags          map[string]string `tfschema:"tags"`
@@ -262,6 +285,24 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 				}, false),
 		},
 
+		"web_application_firewall_settings": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"activation_state": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice(
+							[]string{
+								"Enabled",
+								"Disabled",
+							}, false),
+					},
+				},
+			},
+		},
+
 		"tags": commonschema.Tags(),
 	}
 
@@ -350,6 +391,19 @@ func (m DeploymentResource) Attributes() map[string]*pluginsdk.Schema {
 		"ip_address": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
+		},
+
+		"web_application_firewall_status": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"attack_signatures_package": webApplicationFirewallPackageComputed(),
+					"bot_signatures_package":    webApplicationFirewallPackageComputed(),
+					"threat_campaigns_package":  webApplicationFirewallPackageComputed(),
+					"component_versions":        webApplicationFirewallComponentVersionsComputed(),
+				},
+			},
 		},
 	}
 }
@@ -496,6 +550,15 @@ func (m DeploymentResource) Create() sdk.ResourceFunc {
 				}
 			}
 
+			if len(model.WebApplicationFirewallSettings) > 0 {
+				activationState := nginxdeployment.ActivationState(model.WebApplicationFirewallSettings[0].ActivationState)
+				prop.NginxAppProtect = &nginxdeployment.NginxDeploymentPropertiesNginxAppProtect{
+					WebApplicationFirewallSettings: nginxdeployment.WebApplicationFirewallSettings{
+						ActivationState: &activationState,
+					},
+				}
+			}
+
 			req.Properties = prop
 
 			req.Identity, err = identity.ExpandSystemAndUserAssignedMapFromModel(model.Identity)
@@ -625,6 +688,52 @@ func (m DeploymentResource) Read() sdk.ResourceFunc {
 
 					if props.AutoUpgradeProfile != nil {
 						output.UpgradeChannel = props.AutoUpgradeProfile.UpgradeChannel
+					}
+
+					if props.NginxAppProtect != nil {
+						if props.NginxAppProtect.WebApplicationFirewallSettings.ActivationState != nil {
+							output.WebApplicationFirewallSettings = []WebApplicationFirewallSettings{
+								{
+									string(*props.NginxAppProtect.WebApplicationFirewallSettings.ActivationState),
+								},
+							}
+						}
+						if props.NginxAppProtect.WebApplicationFirewallStatus != nil {
+							wafStatus := WebApplicationFirewallStatus{}
+							if props.NginxAppProtect.WebApplicationFirewallStatus.AttackSignaturesPackage != nil {
+								wafStatus.AttackSignaturesPackage = []WebApplicationFirewallPackage{
+									{
+										RevisionDatetime: props.NginxAppProtect.WebApplicationFirewallStatus.AttackSignaturesPackage.RevisionDatetime,
+										Version:          props.NginxAppProtect.WebApplicationFirewallStatus.AttackSignaturesPackage.Version,
+									},
+								}
+							}
+							if props.NginxAppProtect.WebApplicationFirewallStatus.BotSignaturesPackage != nil {
+								wafStatus.BotSignaturesPackage = []WebApplicationFirewallPackage{
+									{
+										RevisionDatetime: props.NginxAppProtect.WebApplicationFirewallStatus.BotSignaturesPackage.RevisionDatetime,
+										Version:          props.NginxAppProtect.WebApplicationFirewallStatus.BotSignaturesPackage.Version,
+									},
+								}
+							}
+							if props.NginxAppProtect.WebApplicationFirewallStatus.ThreatCampaignsPackage != nil {
+								wafStatus.ThreatCampaignsPackage = []WebApplicationFirewallPackage{
+									{
+										RevisionDatetime: props.NginxAppProtect.WebApplicationFirewallStatus.ThreatCampaignsPackage.RevisionDatetime,
+										Version:          props.NginxAppProtect.WebApplicationFirewallStatus.ThreatCampaignsPackage.Version,
+									},
+								}
+							}
+							if props.NginxAppProtect.WebApplicationFirewallStatus.ComponentVersions != nil {
+								wafStatus.ComponentVersions = []WebApplicationFirewallComponentVersions{
+									{
+										WafEngineVersion: props.NginxAppProtect.WebApplicationFirewallStatus.ComponentVersions.WafEngineVersion,
+										WafNginxVersion:  props.NginxAppProtect.WebApplicationFirewallStatus.ComponentVersions.WafNginxVersion,
+									},
+								}
+							}
+							output.WebApplicationFirewallStatus = []WebApplicationFirewallStatus{wafStatus}
+						}
 					}
 
 					flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMapToModel(model.Identity)
@@ -764,6 +873,15 @@ func (m DeploymentResource) Update() sdk.ResourceFunc {
 
 			if strings.HasPrefix(model.Sku, "basic") && req.Properties.ScalingProperties != nil {
 				return fmt.Errorf("basic SKUs are incompatible with `capacity` or `auto_scale_profiles`")
+			}
+
+			if meta.ResourceData.HasChange("web_application_firewall_settings") {
+				activationState := nginxdeployment.ActivationState(model.WebApplicationFirewallSettings[0].ActivationState)
+				req.Properties.NginxAppProtect = &nginxdeployment.NginxDeploymentUpdatePropertiesNginxAppProtect{
+					WebApplicationFirewallSettings: &nginxdeployment.WebApplicationFirewallSettings{
+						ActivationState: &activationState,
+					},
+				}
 			}
 
 			if err := client.DeploymentsUpdateThenPoll(ctx, *id, req); err != nil {
