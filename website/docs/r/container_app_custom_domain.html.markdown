@@ -83,7 +83,7 @@ resource "azurerm_container_app" "example" {
 }
 
 resource "azurerm_container_app_custom_domain" "example" {
-  name                                     = trimprefix(azurerm_dns_txt_record.example.fqdn, "asuid.")
+  name                                     = trimsuffix(trimprefix(azurerm_dns_txt_record.api.fqdn, "asuid."), ".")
   container_app_id                         = azurerm_container_app.example.id
   container_app_environment_certificate_id = azurerm_container_app_environment_certificate.example.id
   certificate_binding_type                 = "SniEnabled"
@@ -95,7 +95,7 @@ resource "azurerm_container_app_custom_domain" "example" {
 
 ```hcl
 resource "azurerm_container_app_custom_domain" "example" {
-  name             = trimprefix(azurerm_dns_txt_record.example.fqdn, "asuid.")
+  name             = trimsuffix(trimprefix(azurerm_dns_txt_record.api.fqdn, "asuid."), ".")
   container_app_id = azurerm_container_app.example.id
 
   lifecycle {
@@ -106,7 +106,6 @@ resource "azurerm_container_app_custom_domain" "example" {
 
 ```
 
-
 ## Arguments Reference
 
 The following arguments are supported:
@@ -115,7 +114,7 @@ The following arguments are supported:
 
 ~> **Note:** The Custom Domain verification TXT record requires a prefix of `asuid.`, however, this must be trimmed from the `name` property here. See the [official docs](https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-certificates) for more information.
 
-* `container_app_id` - (Required) The ID of the Container App to which this Custom Domain should be bound. Changing this forces a new resource to be created. 
+* `container_app_id` - (Required) The ID of the Container App to which this Custom Domain should be bound. Changing this forces a new resource to be created.
 
 * `container_app_environment_certificate_id` - (Optional) The ID of the Container App Environment Certificate to use. Changing this forces a new resource to be created.
 
