@@ -45,7 +45,6 @@ func (c DbSystemShapesClient) Get(ctx context.Context, id DbSystemShapeId) (resu
 
 	var model DbSystemShape
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -44,7 +44,7 @@ func ParseDbNodeID(input string) (*DbNodeId, error) {
 	}
 
 	id := DbNodeId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseDbNodeIDInsensitively(input string) (*DbNodeId, error) {
 	}
 
 	id := DbNodeId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id DbNodeId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticOracleDatabase", "Oracle.Database", "Oracle.Database"),
 		resourceids.StaticSegment("staticCloudVmClusters", "cloudVmClusters", "cloudVmClusters"),
-		resourceids.UserSpecifiedSegment("cloudVmClusterName", "cloudVmClusterValue"),
+		resourceids.UserSpecifiedSegment("cloudVmClusterName", "cloudvmclustername"),
 		resourceids.StaticSegment("staticDbNodes", "dbNodes", "dbNodes"),
-		resourceids.UserSpecifiedSegment("dbNodeName", "dbNodeValue"),
+		resourceids.UserSpecifiedSegment("dbNodeName", "dbnodeocid"),
 	}
 }
 

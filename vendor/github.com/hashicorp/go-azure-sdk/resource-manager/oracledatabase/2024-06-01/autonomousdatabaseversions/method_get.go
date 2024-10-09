@@ -45,7 +45,6 @@ func (c AutonomousDatabaseVersionsClient) Get(ctx context.Context, id Autonomous
 
 	var model AutonomousDbVersion
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

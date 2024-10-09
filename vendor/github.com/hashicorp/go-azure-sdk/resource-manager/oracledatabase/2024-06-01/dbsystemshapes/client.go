@@ -15,7 +15,7 @@ type DbSystemShapesClient struct {
 }
 
 func NewDbSystemShapesClientWithBaseURI(sdkApi sdkEnv.Api) (*DbSystemShapesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "dbsystemshapes", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "dbsystemshapes", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating DbSystemShapesClient: %+v", err)
 	}

@@ -442,14 +442,6 @@ func (d ExadataInfraDataSource) Read() sdk.ResourceFunc {
 				}
 
 				var output ExadataInfraDataModel
-
-				output.Name = id.CloudExadataInfrastructureName
-				output.ResourceGroupName = id.ResourceGroupName
-				output.Type = pointer.From(model.Type)
-				output.Tags = utils.FlattenPtrMapStringString(model.Tags)
-				output.Location = model.Location
-				output.Zones = model.Zones
-
 				prop := model.Properties
 				if prop != nil {
 					output = ExadataInfraDataModel{
@@ -500,6 +492,13 @@ func (d ExadataInfraDataSource) Read() sdk.ResourceFunc {
 						},
 					}
 				}
+
+				output.Name = id.CloudExadataInfrastructureName
+				output.ResourceGroupName = id.ResourceGroupName
+				output.Type = pointer.From(model.Type)
+				output.Tags = utils.FlattenPtrMapStringString(model.Tags)
+				output.Location = model.Location
+				output.Zones = model.Zones
 
 				metadata.SetID(id)
 				return metadata.Encode(&output)

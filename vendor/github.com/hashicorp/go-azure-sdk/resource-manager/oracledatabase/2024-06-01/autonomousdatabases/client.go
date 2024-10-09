@@ -15,7 +15,7 @@ type AutonomousDatabasesClient struct {
 }
 
 func NewAutonomousDatabasesClientWithBaseURI(sdkApi sdkEnv.Api) (*AutonomousDatabasesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "autonomousdatabases", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "autonomousdatabases", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating AutonomousDatabasesClient: %+v", err)
 	}

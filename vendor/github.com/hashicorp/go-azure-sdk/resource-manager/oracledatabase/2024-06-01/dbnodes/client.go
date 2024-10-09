@@ -15,7 +15,7 @@ type DbNodesClient struct {
 }
 
 func NewDbNodesClientWithBaseURI(sdkApi sdkEnv.Api) (*DbNodesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "dbnodes", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "dbnodes", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating DbNodesClient: %+v", err)
 	}

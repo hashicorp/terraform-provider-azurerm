@@ -16,6 +16,7 @@ var _ AutonomousDatabaseBaseProperties = AutonomousDatabaseProperties{}
 type AutonomousDatabaseProperties struct {
 
 	// Fields inherited from AutonomousDatabaseBaseProperties
+
 	ActualUsedDataStorageSizeInTbs           *float64                           `json:"actualUsedDataStorageSizeInTbs,omitempty"`
 	AdminPassword                            *string                            `json:"adminPassword,omitempty"`
 	AllocatedStorageSizeInTbs                *float64                           `json:"allocatedStorageSizeInTbs,omitempty"`
@@ -31,6 +32,7 @@ type AutonomousDatabaseProperties struct {
 	ConnectionUrls                           *ConnectionUrlType                 `json:"connectionUrls,omitempty"`
 	CpuCoreCount                             *int64                             `json:"cpuCoreCount,omitempty"`
 	CustomerContacts                         *[]CustomerContact                 `json:"customerContacts,omitempty"`
+	DataBaseType                             DataBaseType                       `json:"dataBaseType"`
 	DataSafeStatus                           *DataSafeStatusType                `json:"dataSafeStatus,omitempty"`
 	DataStorageSizeInGbs                     *int64                             `json:"dataStorageSizeInGbs,omitempty"`
 	DataStorageSizeInTbs                     *int64                             `json:"dataStorageSizeInTbs,omitempty"`
@@ -92,6 +94,86 @@ type AutonomousDatabaseProperties struct {
 	WhitelistedIPs                           *[]string                          `json:"whitelistedIps,omitempty"`
 }
 
+func (s AutonomousDatabaseProperties) AutonomousDatabaseBaseProperties() BaseAutonomousDatabaseBasePropertiesImpl {
+	return BaseAutonomousDatabaseBasePropertiesImpl{
+		ActualUsedDataStorageSizeInTbs:           s.ActualUsedDataStorageSizeInTbs,
+		AdminPassword:                            s.AdminPassword,
+		AllocatedStorageSizeInTbs:                s.AllocatedStorageSizeInTbs,
+		ApexDetails:                              s.ApexDetails,
+		AutonomousDatabaseId:                     s.AutonomousDatabaseId,
+		AutonomousMaintenanceScheduleType:        s.AutonomousMaintenanceScheduleType,
+		AvailableUpgradeVersions:                 s.AvailableUpgradeVersions,
+		BackupRetentionPeriodInDays:              s.BackupRetentionPeriodInDays,
+		CharacterSet:                             s.CharacterSet,
+		ComputeCount:                             s.ComputeCount,
+		ComputeModel:                             s.ComputeModel,
+		ConnectionStrings:                        s.ConnectionStrings,
+		ConnectionUrls:                           s.ConnectionUrls,
+		CpuCoreCount:                             s.CpuCoreCount,
+		CustomerContacts:                         s.CustomerContacts,
+		DataBaseType:                             s.DataBaseType,
+		DataSafeStatus:                           s.DataSafeStatus,
+		DataStorageSizeInGbs:                     s.DataStorageSizeInGbs,
+		DataStorageSizeInTbs:                     s.DataStorageSizeInTbs,
+		DatabaseEdition:                          s.DatabaseEdition,
+		DbVersion:                                s.DbVersion,
+		DbWorkload:                               s.DbWorkload,
+		DisplayName:                              s.DisplayName,
+		FailedDataRecoveryInSeconds:              s.FailedDataRecoveryInSeconds,
+		InMemoryAreaInGbs:                        s.InMemoryAreaInGbs,
+		IsAutoScalingEnabled:                     s.IsAutoScalingEnabled,
+		IsAutoScalingForStorageEnabled:           s.IsAutoScalingForStorageEnabled,
+		IsLocalDataGuardEnabled:                  s.IsLocalDataGuardEnabled,
+		IsMtlsConnectionRequired:                 s.IsMtlsConnectionRequired,
+		IsPreview:                                s.IsPreview,
+		IsPreviewVersionWithServiceTermsAccepted: s.IsPreviewVersionWithServiceTermsAccepted,
+		IsRemoteDataGuardEnabled:                 s.IsRemoteDataGuardEnabled,
+		LicenseModel:                             s.LicenseModel,
+		LifecycleDetails:                         s.LifecycleDetails,
+		LifecycleState:                           s.LifecycleState,
+		LocalAdgAutoFailoverMaxDataLossLimit:     s.LocalAdgAutoFailoverMaxDataLossLimit,
+		LocalDisasterRecoveryType:                s.LocalDisasterRecoveryType,
+		LocalStandbyDb:                           s.LocalStandbyDb,
+		LongTermBackupSchedule:                   s.LongTermBackupSchedule,
+		MemoryPerOracleComputeUnitInGbs:          s.MemoryPerOracleComputeUnitInGbs,
+		NcharacterSet:                            s.NcharacterSet,
+		NextLongTermBackupTimeStamp:              s.NextLongTermBackupTimeStamp,
+		OciUrl:                                   s.OciUrl,
+		Ocid:                                     s.Ocid,
+		OpenMode:                                 s.OpenMode,
+		OperationsInsightsStatus:                 s.OperationsInsightsStatus,
+		PeerDbId:                                 s.PeerDbId,
+		PeerDbIds:                                s.PeerDbIds,
+		PermissionLevel:                          s.PermissionLevel,
+		PrivateEndpoint:                          s.PrivateEndpoint,
+		PrivateEndpointIP:                        s.PrivateEndpointIP,
+		PrivateEndpointLabel:                     s.PrivateEndpointLabel,
+		ProvisionableCPUs:                        s.ProvisionableCPUs,
+		ProvisioningState:                        s.ProvisioningState,
+		Role:                                     s.Role,
+		ScheduledOperations:                      s.ScheduledOperations,
+		ServiceConsoleUrl:                        s.ServiceConsoleUrl,
+		SqlWebDeveloperUrl:                       s.SqlWebDeveloperUrl,
+		SubnetId:                                 s.SubnetId,
+		SupportedRegionsToCloneTo:                s.SupportedRegionsToCloneTo,
+		TimeCreated:                              s.TimeCreated,
+		TimeDataGuardRoleChanged:                 s.TimeDataGuardRoleChanged,
+		TimeDeletionOfFreeAutonomousDatabase:     s.TimeDeletionOfFreeAutonomousDatabase,
+		TimeLocalDataGuardEnabled:                s.TimeLocalDataGuardEnabled,
+		TimeMaintenanceBegin:                     s.TimeMaintenanceBegin,
+		TimeMaintenanceEnd:                       s.TimeMaintenanceEnd,
+		TimeOfLastFailover:                       s.TimeOfLastFailover,
+		TimeOfLastRefresh:                        s.TimeOfLastRefresh,
+		TimeOfLastRefreshPoint:                   s.TimeOfLastRefreshPoint,
+		TimeOfLastSwitchover:                     s.TimeOfLastSwitchover,
+		TimeReclamationOfFreeAutonomousDatabase:  s.TimeReclamationOfFreeAutonomousDatabase,
+		UsedDataStorageSizeInGbs:                 s.UsedDataStorageSizeInGbs,
+		UsedDataStorageSizeInTbs:                 s.UsedDataStorageSizeInTbs,
+		VnetId:                                   s.VnetId,
+		WhitelistedIPs:                           s.WhitelistedIPs,
+	}
+}
+
 func (o *AutonomousDatabaseProperties) GetNextLongTermBackupTimeStampAsTime() (*time.Time, error) {
 	if o.NextLongTermBackupTimeStamp == nil {
 		return nil, nil
@@ -151,9 +233,10 @@ func (s AutonomousDatabaseProperties) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling AutonomousDatabaseProperties: %+v", err)
 	}
+
 	decoded["dataBaseType"] = "Regular"
 
 	encoded, err = json.Marshal(decoded)

@@ -114,6 +114,7 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						ValidateFunc: validate.LeadTimeInWeeks,
+						ValidateFunc: validate.LeadTimeInWeeks,
 					},
 
 					"months": {
@@ -129,11 +130,13 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validate.PatchingMode,
+						ValidateFunc: validate.PatchingMode,
 					},
 
 					"preference": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
+						ValidateFunc: validate.Preference,
 						ValidateFunc: validate.Preference,
 					},
 

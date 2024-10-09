@@ -44,7 +44,7 @@ func ParseAutonomousDatabaseBackupID(input string) (*AutonomousDatabaseBackupId,
 	}
 
 	id := AutonomousDatabaseBackupId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseAutonomousDatabaseBackupIDInsensitively(input string) (*AutonomousData
 	}
 
 	id := AutonomousDatabaseBackupId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id AutonomousDatabaseBackupId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticOracleDatabase", "Oracle.Database", "Oracle.Database"),
 		resourceids.StaticSegment("staticAutonomousDatabases", "autonomousDatabases", "autonomousDatabases"),
-		resourceids.UserSpecifiedSegment("autonomousDatabaseName", "autonomousDatabaseValue"),
+		resourceids.UserSpecifiedSegment("autonomousDatabaseName", "autonomousdatabasename"),
 		resourceids.StaticSegment("staticAutonomousDatabaseBackups", "autonomousDatabaseBackups", "autonomousDatabaseBackups"),
-		resourceids.UserSpecifiedSegment("autonomousDatabaseBackupName", "autonomousDatabaseBackupValue"),
+		resourceids.UserSpecifiedSegment("autonomousDatabaseBackupName", "adbbackupid"),
 	}
 }
 
